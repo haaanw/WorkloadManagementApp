@@ -1,0 +1,35 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(xcrun xcodebuild:*)",
+      "WebFetch(domain:medium.com)",
+      "WebFetch(domain:sensatype.com)",
+      "WebFetch(domain:www.iihglobal.com)",
+      "Bash(find \"/Users/hanwen/Desktop/workload app\" -name \"DMSans*\" 2>/dev/null && grep -E \"FontTokens|ReasoningEngine\" \"/Users/hanwen/Desktop/workload app/workload management/workload management.xcodeproj/project.pbxproj\" | head -10)",
+      "Bash(find \"/Users/hanwen/Desktop/workload app/workload management\" -name \"*.entitlements\" 2>/dev/null && grep \"entitlements\" \"/Users/hanwen/Desktop/workload app/workload management/workload management.xcodeproj/project.pbxproj\" | head -5)",
+      "Bash(gh auth:*)",
+      "Skill(browse)",
+      "Bash(find \"/Users/hanwen/Desktop/workload app\" -name \"*.xcworkspace\" -o -name \"Package.swift\" -o -name \"*.xcodeproj\" 2>/dev/null | head -10)",
+      "Bash(cd \"/Users/hanwen/Desktop/workload app\" && xcodebuild -project \"workload management/workload management.xcodeproj\" -scheme \"workload management\" -destination \"generic/platform=iOS Simulator\" -quiet build 2>&1 | tail -20)",
+      "Bash(cd \"/Users/hanwen/Desktop/workload app\" && xcodebuild -project \"workload management/workload management.xcodeproj\" -scheme \"workload management\" -destination \"generic/platform=iOS Simulator\" -quiet build 2>&1 | grep -E \"error:|warning:|BUILD \\(SUCCEEDED|FAILED\\)\" | head -20)",
+      "Bash(gem list:*)",
+      "Bash(gem install:*)",
+      "Bash(~/.gem/ruby/2.6.0/bin/ruby /tmp/add_files.rb 2>&1)",
+      "Bash(gem env:*)",
+      "Bash(GEM_PATH=\"/Users/hanwen/.gem/ruby/2.6.0:/Library/Ruby/Gems/2.6.0:/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/gems/2.6.0\" /usr/bin/ruby /tmp/add_files.rb 2>&1)",
+      "Bash(GEM_PATH=\"/Users/hanwen/.gem/ruby/2.6.0:/Library/Ruby/Gems/2.6.0:/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/gems/2.6.0\" /usr/bin/ruby /tmp/inspect_groups.rb 2>&1 | head -80)",
+      "Bash(GEM_PATH=\"/Users/hanwen/.gem/ruby/2.6.0:/Library/Ruby/Gems/2.6.0:/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/gems/2.6.0\" /usr/bin/ruby /tmp/add_files2.rb 2>&1)",
+      "Bash(GEM_PATH=\"/Users/hanwen/.gem/ruby/2.6.0:/Library/Ruby/Gems/2.6.0:/System/Library/Frameworks/Ruby.framework/Versions/2.6/usr/lib/ruby/gems/2.6.0\" /usr/bin/ruby /tmp/add_tests.rb 2>&1)",
+      "Bash(cd \"/Users/hanwen/Desktop/workload app\" && xcodebuild -project \"workload management/workload management.xcodeproj\" -scheme \"workload management\" -destination \"generic/platform=iOS Simulator\" -quiet build 2>&1 | grep -E \"error:|BUILD \\(SUCCEEDED|FAILED\\)\" | head -20)",
+      "Bash(cd \"/Users/hanwen/Desktop/workload app\" && xcodebuild -scheme \"workload management\" -destination \"platform=iOS Simulator,name=iPhone 16\" build 2>&1 | tail -20)",
+      "Bash(cd \"/Users/hanwen/Desktop/workload app/workload management\" && xcodebuild -scheme \"workload management\" -destination \"platform=iOS Simulator,name=iPhone 16\" build 2>&1 | grep -E \"\\(error:|warning:|BUILD\\)\" | head -30)",
+      "Bash(cd \"/Users/hanwen/Desktop/workload app/workload management\" && xcodebuild -scheme \"workload management\" -destination \"platform=iOS Simulator,OS=latest,name=iPhone 16\" build 2>&1 | grep -E \"^\\(error:|warning:|.*error:|BUILD\\)\" | grep -v \"warning:\" | head -30)",
+      "Bash(xcrun simctl:*)",
+      "Bash(cd \"/Users/hanwen/Desktop/workload app/workload management\" && xcodebuild -scheme \"workload management\" -destination \"id=CAF84E71-BB64-491D-87C8-875A0143B26D\" build 2>&1 | grep -E \"\\(error:|BUILD SUCCEEDED|BUILD FAILED\\)\" | head -30)",
+      "mcp__Desktop_Commander__read_file",
+      "Bash(xargs ls:*)",
+      "Bash(cp AppIcon-1024.png AppIcon-1024-original.png)",
+      "Bash(sips -z 1024 1024 AppIcon-1024.png)"
+    ]
+  }
+}

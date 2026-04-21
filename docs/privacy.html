@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — Tonus</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1d1d1f; background: #fff; padding: 40px 24px; max-width: 680px; margin: 0 auto; }
+    h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
+    h2 { font-size: 18px; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
+    h3 { font-size: 15px; font-weight: 600; margin-top: 20px; margin-bottom: 8px; }
+    p, li { font-size: 15px; margin-bottom: 12px; }
+    ul { padding-left: 20px; }
+    a { color: #1d1d1f; }
+    .updated { font-size: 14px; color: #6e6e73; margin-bottom: 32px; }
+    .nav { font-size: 13px; color: #6e6e73; margin-bottom: 24px; }
+    .nav a { color: #6e6e73; text-decoration: none; margin-right: 16px; }
+    .nav a:hover { text-decoration: underline; }
+  </style>
+</head>
+<body>
+  <div class="nav">
+    <a href="privacy.html">Privacy</a>
+    <a href="terms.html">Terms</a>
+    <a href="support.html">Support</a>
+  </div>
+
+  <h1>Privacy Policy</h1>
+  <p class="updated">Last updated: March 27, 2026</p>
+
+  <p>Tonus ("the app") is developed by Hanwen Ma. This policy explains what data the app collects, how it is used, and your rights.</p>
+
+  <h2>What Data We Collect</h2>
+
+  <h3>Data you provide</h3>
+  <ul>
+    <li><strong>Account information:</strong> Email address and display name (used for authentication and coach-athlete pairing)</li>
+    <li><strong>Workout logs:</strong> Exercises, sets, reps, weights, RPE, session duration, and notes you enter</li>
+    <li><strong>Wellness check-ins:</strong> Self-reported sleep quality, soreness, energy, and stress ratings</li>
+  </ul>
+
+  <h3>Data from HealthKit (read-only)</h3>
+  <ul>
+    <li>Heart rate variability (HRV)</li>
+    <li>Resting heart rate</li>
+    <li>Sleep duration</li>
+    <li>Body temperature</li>
+    <li>VO2 Max</li>
+    <li>Workout heart rate</li>
+  </ul>
+  <p>Tonus <strong>never writes</strong> data to HealthKit. HealthKit access is optional and requires your explicit permission.</p>
+
+  <h3>Data we compute</h3>
+  <p>Recovery scores, ACWR (Acute:Chronic Workload Ratio), training stress, and personal records are calculated on your device from the data above.</p>
+
+  <h2>How Data Is Stored</h2>
+  <ul>
+    <li><strong>On your device:</strong> All data is stored locally using SwiftData. The app works fully offline.</li>
+    <li><strong>In the cloud:</strong> Composite scores (recovery score, workload snapshots, wellness ratings, workout session headers, and personal records) sync to Supabase (hosted on AWS) for coach-athlete features and multi-device access.</li>
+    <li><strong>Raw HealthKit data is never uploaded.</strong> Only computed scores derived from HealthKit data are synced.</li>
+  </ul>
+
+  <h2>Coach-Athlete Data Sharing</h2>
+  <p>If you link with a coach, they can view:</p>
+  <ul>
+    <li>Your recovery scores and ACWR trends</li>
+    <li>Workout session summaries</li>
+    <li>Personal records</li>
+    <li>Wellness check-in ratings</li>
+  </ul>
+  <p>Coaches cannot access your raw HealthKit data, and you can unlink from a coach at any time.</p>
+
+  <h2>Third-Party Services</h2>
+  <ul>
+    <li><strong>Supabase</strong> (authentication and cloud sync): <a href="https://supabase.com/privacy">supabase.com/privacy</a></li>
+    <li><strong>RevenueCat</strong> (subscription management): <a href="https://www.revenuecat.com/privacy">revenuecat.com/privacy</a></li>
+  </ul>
+  <p>We do not use any advertising networks, analytics trackers, or third-party data brokers.</p>
+
+  <h2>Data Retention and Deletion</h2>
+  <p>Your data is retained as long as your account exists. To delete all your data:</p>
+  <ol>
+    <li>Go to Profile &rarr; Sign Out in the app</li>
+    <li>Contact us at the email below to request full account and data deletion from our servers</li>
+  </ol>
+  <p>Upon deletion, all your data — including workout logs, scores, and coach relationships — is permanently removed from our servers.</p>
+
+  <h2>Your Rights</h2>
+  <p>You have the right to:</p>
+  <ul>
+    <li>Access the data we store about you</li>
+    <li>Request correction of inaccurate data</li>
+    <li>Request deletion of your account and all associated data</li>
+    <li>Withdraw HealthKit permissions at any time via iOS Settings &rarr; Privacy &amp; Security &rarr; Health</li>
+  </ul>
+
+  <h2>Children</h2>
+  <p>Tonus is not directed at children under 13. We do not knowingly collect data from children.</p>
+
+  <h2>Changes to This Policy</h2>
+  <p>We may update this policy from time to time. Changes will be posted to this page with an updated date.</p>
+
+  <h2>Contact</h2>
+  <p>For privacy questions or data deletion requests:<br><strong>Email:</strong> <a href="mailto:hanwenma09@gmail.com">hanwenma09@gmail.com</a></p>
+</body>
+</html>
