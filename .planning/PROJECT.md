@@ -27,6 +27,10 @@ The combination of recovery and load tracked over time — giving athletes long-
 - ✓ PrivacyInfo.xcprivacy manifest — Phase 5
 - ✓ Screenshot automation framework — Phase 5
 - ✓ App icon and launch screen — Phase 5
+- ✓ Periodization detection (Building/Pushing/Tapering/Maintaining) — Phase 3 (post-launch)
+- ✓ Fatigue pattern analysis (recovery dip lag correlation) — Phase 3 (post-launch)
+- ✓ Behavior tagging with recovery impact correlation — Phase 3 (post-launch)
+- ✓ Data sufficiency gating for intelligence features — Phase 3 (post-launch)
 
 ### Active
 
@@ -36,9 +40,6 @@ The combination of recovery and load tracked over time — giving athletes long-
 - [ ] App Store Connect setup and submission
 - [ ] First-run guidance (what to do after signup — log workout? wellness check-in?)
 - [ ] Sport/training preference setup during onboarding
-- [ ] Weekly training summary (load recap + recovery trends)
-- [ ] Training cycle detection (periodization, mesocycle tracking)
-- [ ] Fatigue pattern analysis (correlate recovery dips with training spikes)
 - [ ] Data export (PDF reports or CSV for athletes and coaches)
 
 ### Out of Scope
