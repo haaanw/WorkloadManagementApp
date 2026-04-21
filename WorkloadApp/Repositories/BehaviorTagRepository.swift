@@ -40,11 +40,11 @@ final class BehaviorTagRepository {
     }
 
     /// Upsert a behavior tag with T-03-01 mitigation: sanitize tag name before persisting.
-    func upsertTag(_ tag: BehaviorTag) {
+    func upsertTag(_ tag: BehaviorTag) throws {
         tag.tagName = String(tag.tagName.trimmingCharacters(in: .whitespaces).prefix(20))
         tag.updatedAt = .now
         modelContext.insert(tag)
-        try? modelContext.save()
+        try modelContext.save()
     }
 
     func deleteCustomTag(named tagName: String, for athlete: Athlete) throws {
