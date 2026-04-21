@@ -66,7 +66,7 @@ final class RecoveryViewModel {
                 tags: allTags,
                 recoverySnapshots: recoverySnaps
             )
-            behaviorSufficiency = BehaviorCorrelationEngine.checkSufficiency(tags: allTags)
+            behaviorSufficiency = BehaviorCorrelationEngine.checkSufficiency(tags: allTags, recoverySnapshots: recoverySnaps)
         }
 
         isLoading = false

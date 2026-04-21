@@ -101,11 +101,15 @@ struct BehaviorCorrelationEngine {
     // MARK: - Sufficiency Check
 
     /// Check how many more days of data are needed per tag before correlations can be computed.
+    /// Uses recovery snapshots to determine the full analysis window, matching `computeCorrelations`.
     static func checkSufficiency(
         tags: [BehaviorTag],
+        recoverySnapshots: [RecoverySnapshot],
         minimumSamplesPerGroup: Int = 5
     ) -> [SufficiencyInfo] {
         let calendar = Calendar.current
+        let allRecoveryDates = Set(recoverySnapshots.map { calendar.startOfDay(for: $0.date) })
+
         var tagsByName: [String: [BehaviorTag]] = [:]
         for tag in tags {
             tagsByName[tag.tagName, default: []].append(tag)
@@ -116,19 +120,14 @@ struct BehaviorCorrelationEngine {
                 tagInstances
                     .filter(\.isActive)
                     .map { calendar.startOfDay(for: $0.date) }
-            ).count
-
-            let inactiveDays = Set(
-                tagInstances
-                    .filter { !$0.isActive }
-                    .map { calendar.startOfDay(for: $0.date) }
-            ).count
+            )
+            let inactiveDays = allRecoveryDates.subtracting(activeDays).count
 
             return SufficiencyInfo(
                 tagName: tagName,
-                daysWithTag: activeDays,
+                daysWithTag: activeDays.count,
                 daysWithoutTag: inactiveDays,
-                neededWith: max(0, minimumSamplesPerGroup - activeDays),
+                neededWith: max(0, minimumSamplesPerGroup - activeDays.count),
                 neededWithout: max(0, minimumSamplesPerGroup - inactiveDays)
             )
         }.sorted { $0.tagName < $1.tagName }
