@@ -106,6 +106,10 @@ struct PeriodizationEngine {
             weekSessions.reduce(0.0) { $0 + $1.totalVolume }
         }
 
+        // Note: When no sessions have RPE, weekly RPE averages default to 0.
+        // This causes intensityChange to be 0 (meanPreviousRPE <= 0 guard below),
+        // so phase classification relies solely on volume trends.
+        // This is intentional -- volume-only detection is valid.
         let recentRPEs = recentWindow.map { weekSessions -> Double in
             let rpeSessions = weekSessions.compactMap(\.sessionRPE)
             return rpeSessions.isEmpty ? 0 : rpeSessions.reduce(0, +) / Double(rpeSessions.count)
