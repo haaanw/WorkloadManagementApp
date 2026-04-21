@@ -35,10 +35,10 @@ enum ColorTokens {
     // MARK: - Accent (readiness score number only — nowhere else)
     static let accent       = Color(uiColor: .adaptive(dark: 0xA8A090, light: 0x7A6E5C))
 
-    // MARK: - Zone colors (desaturated — state communicated through text, color is supplementary)
-    static let zoneOptimal  = Color(uiColor: .adaptive(dark: 0x607869, light: 0x3E5C49))
-    static let zoneCaution  = Color(uiColor: .adaptive(dark: 0x7E7252, light: 0x6B5828))
-    static let zoneDanger   = Color(uiColor: .adaptive(dark: 0x7E5C5C, light: 0x6E3A3A))
+    // MARK: - Zone colors (moderately desaturated — distinguishable but not alarming)
+    static let zoneOptimal  = Color(uiColor: .adaptive(dark: 0x4D8C60, light: 0x2D7042))
+    static let zoneCaution  = Color(uiColor: .adaptive(dark: 0x9A8240, light: 0x7A5F10))
+    static let zoneDanger   = Color(uiColor: .adaptive(dark: 0x9A5050, light: 0x8B2E2E))
     static let zoneLow      = Color(uiColor: .adaptive(dark: 0x5A6470, light: 0x3A4A5C))
 
     // MARK: - Charts (muted palette variants of zone colors)

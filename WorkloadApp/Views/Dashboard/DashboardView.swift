@@ -30,16 +30,21 @@ struct DashboardView: View {
                         }
                     }
 
+                    Spacer().frame(height: 8)
+
                     MetricsStrip(viewModel: viewModel)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
 
+                    Spacer().frame(height: 8)
+
                     // Weekly Summary (ANLYT-02, ANLYT-03, D-03)
                     if let summary = viewModel.weeklySummary, summary.sessionCount > 0 {
                         WeeklySummaryCard(summary: summary)
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                        Spacer().frame(height: 8)
                     } else if !viewModel.isLoading {
                         Text("Complete your first training week to see a summary.")
                             .font(.Tokens.label)
@@ -48,6 +53,7 @@ struct DashboardView: View {
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                        Spacer().frame(height: 8)
                     }
 
                     TrainingLoadSection(viewModel: viewModel)
@@ -55,6 +61,8 @@ struct DashboardView: View {
                     Rectangle()
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
+
+                    Spacer().frame(height: 8)
 
                     RecentSessionsSection(sessions: Array(recentSessions.prefix(5)))
                 }
@@ -150,7 +158,7 @@ struct HeroReadinessCard: View {
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
 
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 16) {
                     ForEach(Array(viewModel.reasoningFactors.prefix(2).enumerated()), id: \.offset) { _, factor in
                         factorRow(factor)
                     }
@@ -180,13 +188,21 @@ struct HeroReadinessCard: View {
 
     @ViewBuilder
     private func factorRow(_ factor: ReasoningEngine.Factor) -> some View {
-        let content = VStack(alignment: .leading, spacing: 2) {
-            Text(factor.label)
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text2)
-            Text(factor.deltaText)
-                .font(.Tokens.label)
-                .foregroundStyle(factorColor(factor.direction))
+        let content = HStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 4) {
+                Text(factor.label)
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text2)
+                Text(factor.deltaText)
+                    .font(.Tokens.label)
+                    .foregroundStyle(factorColor(factor.direction))
+            }
+            Spacer()
+            if trendDestination(for: factor) != nil {
+                Image(systemName: "chevron.right")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(ColorTokens.text3)
+            }
         }
 
         if let dest = trendDestination(for: factor) {
@@ -323,7 +339,7 @@ struct MetricStripCell: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.vertical, 20)
     }
 }
 
@@ -368,7 +384,7 @@ struct TrainingLoadSection: View {
             }
         }
         .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.vertical, 20)
         .background(ColorTokens.background)
     }
 }
@@ -436,7 +452,7 @@ struct RecentSessionsSection: View {
                             }
                         }
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 16)
 
                         Rectangle()
                             .fill(ColorTokens.divider)

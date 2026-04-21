@@ -9,25 +9,25 @@ import SwiftUI
 /// project and registered in Info.plist under UIAppFonts.
 extension Font {
     enum Tokens {
-        /// 56pt — Readiness score. Accent color only. Apply .monospacedDigit() at the call site.
-        static let heroScore   = Font.custom("DMSans-Regular", size: 56)
+        /// 64pt — Readiness score. Accent color only. Apply .monospacedDigit() at the call site.
+        static let heroScore   = Font.custom("DMSans-Regular", size: 64)
 
-        /// 28pt — Page title
-        static let pageTitle   = Font.custom("DMSans-Regular", size: 28)
+        /// 32pt — Page title
+        static let pageTitle   = Font.custom("DMSans-Regular", size: 32)
 
-        /// 17pt Medium — Section header
-        static let sectionHead = Font.custom("DMSans-Medium",  size: 17)
+        /// 19pt Medium — Section header
+        static let sectionHead = Font.custom("DMSans-Medium",  size: 19)
 
-        /// 15pt — Body copy, metric values
-        static let body        = Font.custom("DMSans-Regular", size: 15)
+        /// 17pt — Body copy, metric values
+        static let body        = Font.custom("DMSans-Regular", size: 17)
 
-        /// 15pt Medium — active state labels (context switcher, selected states)
-        static let bodyMedium  = Font.custom("DMSans-Medium",  size: 15)
+        /// 17pt Medium — active state labels (context switcher, selected states)
+        static let bodyMedium  = Font.custom("DMSans-Medium",  size: 17)
 
-        /// 13pt — Secondary info, factor labels
-        static let label       = Font.custom("DMSans-Regular", size: 13)
+        /// 15pt — Secondary info, factor labels
+        static let label       = Font.custom("DMSans-Regular", size: 15)
 
-        /// 11pt — Micro labels, all-caps. Apply .tracking(1.2) and .textCase(.uppercase) at call site.
-        static let micro       = Font.custom("DMSans-Regular", size: 11)
+        /// 12pt — Micro labels, all-caps. Apply .tracking(1.2) and .textCase(.uppercase) at call site.
+        static let micro       = Font.custom("DMSans-Regular", size: 12)
     }
 }
