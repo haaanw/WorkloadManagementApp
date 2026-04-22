@@ -38,8 +38,8 @@ The combination of recovery and load tracked over time — giving athletes long-
 - [ ] Generate App Store screenshots for required device sizes
 - [ ] Verify GitHub Pages URLs are live
 - [ ] App Store Connect setup and submission
-- [ ] First-run guidance (what to do after signup — log workout? wellness check-in?)
-- [ ] Sport/training preference setup during onboarding
+- ✓ First-run guidance (welcome card with workout/wellness CTAs) — Phase 4 (post-launch)
+- ✓ Sport/training preference setup during onboarding — Phase 4 (post-launch)
 - [ ] Data export (PDF reports or CSV for athletes and coaches)
 
 ### Out of Scope
@@ -52,10 +52,10 @@ The combination of recovery and load tracked over time — giving athletes long-
 
 ## Context
 
-- App is functionally complete through Phase 4 (local wiring → Supabase → coach/athlete → subscriptions)
+- App is functionally complete through all post-launch phases (local wiring → Supabase → coach/athlete → subscriptions → training intelligence → onboarding)
 - Phase 5 (App Store readiness) is ~80% done — legal pages, privacy manifest, screenshot framework exist
 - Remaining Phase 5 work is mostly manual (App Store Connect setup, TestFlight, submission)
-- Post-launch priority is depth over breadth — make power users love the analytics before optimizing onboarding
+- Post-launch milestone v1.0 complete: analytics, training intelligence, and onboarding all shipped
 - HealthKit provides raw biometric data; app computes composite scores locally (never uploads raw HealthKit data)
 - Design system enforced: 0pt border radius, no shadows, DM Sans font, accent only on readiness score
 
@@ -97,4 +97,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-20 after initialization*
+*Last updated: 2026-04-22 after Phase 4 completion*
