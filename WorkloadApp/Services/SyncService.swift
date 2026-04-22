@@ -819,9 +819,28 @@ struct WorkoutSessionRow: Codable {
                 templateName: row.templateName
             )
             rx.id = row.id
+            rx.coachId = row.coachId
+            rx.athleteId = row.athleteId
+            rx.templateId = row.templateId
+            rx.scheduledDate = row.scheduledDate
             rx.status = PrescriptionStatus(rawValue: row.status) ?? .assigned
             rx.completedSessionId = row.completedSessionId
+            rx.notes = row.notes
+            rx.templateName = row.templateName
+            rx.sportType = SportType(rawValue: row.sportType) ?? .lifting
+            rx.sessionType = SessionType(rawValue: row.sessionType) ?? .strength
             rx.updatedAt = row.updatedAt
+            rx.createdAt = row.createdAt
+
+            // Replace groups from JSON
+            if existing != nil {
+                for group in rx.groups { context.delete(group) }
+                rx.groups = []
+            }
+            if let groupsJSON = row.groupsJson {
+                rx.groups = Self.decodeGroups(from: groupsJSON)
+            }
+
             if existing == nil { context.insert(rx) }
         }
         try? context.save()
