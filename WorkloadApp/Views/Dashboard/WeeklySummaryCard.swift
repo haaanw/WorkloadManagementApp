@@ -4,6 +4,7 @@ import SwiftUI
 /// Shows sessions, volume, avg recovery, load trend, ACWR zone distribution with week-over-week deltas.
 struct WeeklySummaryCard: View {
     let summary: AnalyticsEngine.WeeklySummary
+    let streak: Int
     @AppStorage("weeklySummaryExpanded") private var storedExpanded: Bool = true
     @State private var isExpanded: Bool = true
 
@@ -34,6 +35,25 @@ struct WeeklySummaryCard: View {
 
             if isExpanded {
                 VStack(spacing: 16) {
+                    // Streak row (STRK-01, STRK-02, D-01, D-02)
+                    if streak > 0 {
+                        HStack(spacing: 8) {
+                            Image(systemName: "flame.fill")
+                                .font(.system(size: 13))
+                                .foregroundStyle(ColorTokens.text2)
+                                .accessibilityHidden(true)
+                            Text("\(streak)")
+                                .font(.Tokens.sectionHead)
+                                .monospacedDigit()
+                                .foregroundStyle(ColorTokens.text1)
+                            Text("week streak")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text2)
+                        }
+                        .padding(.horizontal, 16)
+                        .accessibilityLabel("\(streak) week training streak")
+                    }
+
                     // Row 1: Sessions + Volume (2-column)
                     HStack(spacing: 16) {
                         metricCell(title: "SESSIONS", value: "\(summary.sessionCount)", delta: summary.sessionCountDelta)

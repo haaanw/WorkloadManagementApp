@@ -17,6 +17,7 @@ struct DashboardView: View {
     @State private var showActiveWorkout = false
     @State private var showWellnessCheckIn = false
     @State private var viewModel = DashboardViewModel()
+    @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
 
     private var athlete: Athlete? { athletes.first }
 
@@ -56,8 +57,39 @@ struct DashboardView: View {
 
                     // Weekly Summary (ANLYT-02, ANLYT-03, D-03)
                     if let summary = viewModel.weeklySummary, summary.sessionCount > 0 {
-                        WeeklySummaryCard(summary: summary)
+                        WeeklySummaryCard(summary: summary, streak: viewModel.currentStreak)
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+
+                        // Notification pre-permission card (NOTF-02, D-07)
+                        if !prePermissionShown {
+                            NotificationPrePermissionCard(
+                                onEnable: {
+                                    prePermissionShown = true
+                                    Task {
+                                        let granted = await container.notificationService.requestAuthorization()
+                                        if granted {
+                                            let body = NotificationService.buildNotificationBody(
+                                                sessionCount: viewModel.weeklySummary?.sessionCount ?? 0,
+                                                streak: viewModel.currentStreak,
+                                                prCount: 0,
+                                                volumeDelta: viewModel.weeklySummary?.volumeDelta ?? 0
+                                            )
+                                            container.notificationService.scheduleWeeklySummary(
+                                                weekday: 1, hour: 19, minute: 0, body: body
+                                            )
+                                            UserDefaults.standard.set(true, forKey: "notificationsEnabled")
+                                            UserDefaults.standard.set(1, forKey: "notificationDay")
+                                            UserDefaults.standard.set("19:00", forKey: "notificationTime")
+                                        }
+                                    }
+                                },
+                                onDismiss: {
+                                    prePermissionShown = true
+                                }
+                            )
+                            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                        }
+
                         Spacer().frame(height: 8)
                     } else if !viewModel.isLoading {
                         Text("Complete your first training week to see a summary.")
@@ -126,6 +158,11 @@ struct DashboardView: View {
             healthKitService: container.healthKitService,
             modelContext: modelContext,
             syncService: container.syncService
+        )
+        // Refresh notification content with current data (NOTF-01 staleness prevention)
+        viewModel.refreshNotificationContent(
+            notificationService: container.notificationService,
+            modelContext: modelContext
         )
     }
 }
