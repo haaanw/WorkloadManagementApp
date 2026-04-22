@@ -18,18 +18,15 @@ struct OnboardingView: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            TabView(selection: $currentStep) {
+            ZStack {
                 frequencyStep
-                    .tag(0)
-
+                    .opacity(currentStep == 0 ? 1 : 0)
                 experienceStep
-                    .tag(1)
-
+                    .opacity(currentStep == 1 ? 1 : 0)
                 healthKitStep
-                    .tag(2)
+                    .opacity(currentStep == 2 ? 1 : 0)
             }
-            .tabViewStyle(.page(indexDisplayMode: .never))
-            .gesture(DragGesture())
+            .animation(.easeOut(duration: 0.25), value: currentStep)
 
             // MARK: Dot indicators + Continue button
 
