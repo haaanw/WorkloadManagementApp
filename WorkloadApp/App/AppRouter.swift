@@ -35,6 +35,14 @@ struct AppRouter: View {
             InviteConfirmationSheet(code: pending.code, mode: .athleteAccepting)
                 .environment(container)
         }
+        .onChange(of: container.isAuthenticated) { _, isAuth in
+            guard isAuth else { return }
+            // Re-evaluate onboarding after fresh signup (D-06)
+            let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
+            if let a = athletes.first {
+                needsOnboarding = (a.trainingFrequency == nil || a.experienceLevel == nil)
+            }
+        }
         .task {
             #if DEBUG
             // Screenshot mode: bypass auth, seed mock data, show app immediately
