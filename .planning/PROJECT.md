@@ -2,7 +2,7 @@
 
 ## What This Is
 
-Athlete workload management iOS app that combines recovery scoring (HRV, sleep, RHR) with training load tracking (ACWR, EWMA) to give athletes a daily readiness picture and long-term overtraining prevention. Supports both individual athletes and coach-athlete relationships with two-tier subscriptions.
+Athlete workload management iOS app that combines recovery scoring (HRV, sleep, RHR) with training load tracking (ACWR, EWMA) to give athletes a daily readiness picture and long-term overtraining prevention. Includes training intelligence (periodization detection, fatigue patterns, behavior correlation) and guided onboarding. Supports both individual athletes and coach-athlete relationships with two-tier subscriptions.
 
 ## Core Value
 
@@ -27,20 +27,23 @@ The combination of recovery and load tracked over time — giving athletes long-
 - ✓ PrivacyInfo.xcprivacy manifest — Phase 5
 - ✓ Screenshot automation framework — Phase 5
 - ✓ App icon and launch screen — Phase 5
-- ✓ Periodization detection (Building/Pushing/Tapering/Maintaining) — Phase 3 (post-launch)
-- ✓ Fatigue pattern analysis (recovery dip lag correlation) — Phase 3 (post-launch)
-- ✓ Behavior tagging with recovery impact correlation — Phase 3 (post-launch)
-- ✓ Data sufficiency gating for intelligence features — Phase 3 (post-launch)
+- ✓ HealthKit staleness detection and indicators — v1.0 Phase 2
+- ✓ Multi-week trend charts (CTL/ATL/TSB) with time-range picker — v1.0 Phase 2
+- ✓ Weekly training summary with week-over-week deltas — v1.0 Phase 2
+- ✓ Recovery-load correlation overlay (28-day) — v1.0 Phase 2
+- ✓ CSV export with HealthKit-compliant composite-only data — v1.0 Phase 2
+- ✓ Periodization detection (Building/Pushing/Tapering/Maintaining) — v1.0 Phase 3
+- ✓ Fatigue pattern analysis (recovery dip lag correlation) — v1.0 Phase 3
+- ✓ Behavior tagging with recovery impact correlation — v1.0 Phase 3
+- ✓ Data sufficiency gating for intelligence features — v1.0 Phase 3
+- ✓ First-run guidance (welcome card with workout/wellness CTAs) — v1.0 Phase 4
+- ✓ Sport/training preference setup during onboarding — v1.0 Phase 4
 
 ### Active
 
-- [ ] Finalize bundle identifier for App Store
-- [ ] Generate App Store screenshots for required device sizes
-- [ ] Verify GitHub Pages URLs are live
-- [ ] App Store Connect setup and submission
-- ✓ First-run guidance (welcome card with workout/wellness CTAs) — Phase 4 (post-launch)
-- ✓ Sport/training preference setup during onboarding — Phase 4 (post-launch)
-- [ ] Data export (PDF reports or CSV for athletes and coaches)
+- [ ] Data export (PDF reports or CSV for coaches)
+- [ ] Push notifications for weekly summary
+- [ ] Streak tracking for training/check-in consistency
 
 ### Out of Scope
 
@@ -49,13 +52,14 @@ The combination of recovery and load tracked over time — giving athletes long-
 - Video analysis — different product category
 - Android — iOS-first, revisit after establishing market fit
 - Apple Watch companion app — defer until core iOS experience is polished
+- Manual mesocycle/ATP planner — TrainingPeaks owns this space; Tonus's value is automated detection
+- AI chatbot / conversational coach — LLM cost + liability; keep autoregulation rule-based
 
 ## Context
 
-- App is functionally complete through all post-launch phases (local wiring → Supabase → coach/athlete → subscriptions → training intelligence → onboarding)
-- Phase 5 (App Store readiness) is ~80% done — legal pages, privacy manifest, screenshot framework exist
-- Remaining Phase 5 work is mostly manual (App Store Connect setup, TestFlight, submission)
-- Post-launch milestone v1.0 complete: analytics, training intelligence, and onboarding all shipped
+- v1.0 Post-Launch milestone complete (4 phases, 14 plans shipped 2026-04-22)
+- App is functionally complete: auth, sync, subscriptions, analytics, intelligence, onboarding
+- ~15,700 LOC Swift across 80+ files
 - HealthKit provides raw biometric data; app computes composite scores locally (never uploads raw HealthKit data)
 - Design system enforced: 0pt border radius, no shadows, DM Sans font, accent only on readiness score
 
@@ -77,24 +81,26 @@ The combination of recovery and load tracked over time — giving athletes long-
 | Supabase over Firebase | PostgreSQL + RLS, Swift SDK, lower vendor lock-in | ✓ Good |
 | RevenueCat over StoreKit 2 direct | Faster integration, cross-platform potential, analytics | ✓ Good |
 | Two-tier subscription (Pro + Coach) | Separate value props for different user types | ✓ Good |
-| Depth-first post-launch | Power user analytics before onboarding polish | — Pending |
+| Depth-first post-launch | Power user analytics before onboarding polish | ✓ Good — intelligence features shipped before onboarding |
+| ZStack over TabView for onboarding | TabView swipe disable unreliable on iOS 17 | ✓ Good |
+| @Query over relationship arrays for welcome card | SwiftData relationships may not resolve on first render | ✓ Good |
 
 ## Evolution
 
 This document evolves at phase transitions and milestone boundaries.
 
-**After each phase transition** (via `/gsd-transition`):
+**After each phase transition:**
 1. Requirements invalidated? → Move to Out of Scope with reason
 2. Requirements validated? → Move to Validated with phase reference
 3. New requirements emerged? → Add to Active
 4. Decisions to log? → Add to Key Decisions
 5. "What This Is" still accurate? → Update if drifted
 
-**After each milestone** (via `/gsd-complete-milestone`):
+**After each milestone:**
 1. Full review of all sections
 2. Core Value check — still the right priority?
 3. Audit Out of Scope — reasons still valid?
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 after Phase 4 completion*
+*Last updated: 2026-04-22 after v1.0 milestone*
