@@ -36,6 +36,16 @@ struct ProfileView: View {
                             get: { athlete.sportType },
                             set: { athlete.sportType = $0; saveAthlete(athlete) }
                         ), options: SportType.allCases) { $0.displayName }
+                        divider()
+                        editablePicker("Training Frequency", selection: Binding(
+                            get: { athlete.trainingFrequency ?? .threeToFour },
+                            set: { athlete.trainingFrequency = $0; saveAthlete(athlete) }
+                        ), options: TrainingFrequency.allCases) { $0.displayName }
+                        divider()
+                        editablePicker("Experience Level", selection: Binding(
+                            get: { athlete.experienceLevel ?? .intermediate },
+                            set: { athlete.experienceLevel = $0; saveAthlete(athlete) }
+                        ), options: ExperienceLevel.allCases) { $0.displayName }
                         sectionDivider()
 
                         // Preferences
