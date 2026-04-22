@@ -282,7 +282,11 @@ struct OnboardingView: View {
     private func completeOnboarding() {
         guard let athlete = athletes.first,
               let freq = selectedFrequency,
-              let level = selectedLevel else { return }
+              let level = selectedLevel else {
+            // Cannot proceed without selections — should not be reachable in normal flow
+            assertionFailure("completeOnboarding called without required selections")
+            return  // Do NOT call onComplete — stay on screen
+        }
         athlete.trainingFrequency = freq
         athlete.experienceLevel = level
         athlete.updatedAt = .now
