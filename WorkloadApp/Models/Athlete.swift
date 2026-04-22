@@ -16,6 +16,8 @@ final class Athlete {
     var supabaseUserId: UUID?
     var isCoach: Bool = false
     var isCoachOnly: Bool = false
+    var trainingFrequency: TrainingFrequency?
+    var experienceLevel: ExperienceLevel?
 
     @Relationship(deleteRule: .cascade, inverse: \WorkoutSession.athlete)
     var sessions: [WorkoutSession] = []

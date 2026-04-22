@@ -296,3 +296,47 @@ enum SessionType: String, Codable, CaseIterable, Identifiable {
         }
     }
 }
+
+// MARK: - Onboarding Enums
+
+enum TrainingFrequency: String, Codable, CaseIterable, Identifiable {
+    case oneToTwo
+    case threeToFour
+    case fiveToSix
+    case sevenPlus
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .oneToTwo: "1-2 days/week"
+        case .threeToFour: "3-4 days/week"
+        case .fiveToSix: "5-6 days/week"
+        case .sevenPlus: "7+ days/week"
+        }
+    }
+}
+
+enum ExperienceLevel: String, Codable, CaseIterable, Identifiable {
+    case beginner
+    case intermediate
+    case advanced
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .beginner: "Beginner"
+        case .intermediate: "Intermediate"
+        case .advanced: "Advanced"
+        }
+    }
+
+    var subtitle: String {
+        switch self {
+        case .beginner: "New to structured training"
+        case .intermediate: "1-3 years consistent training"
+        case .advanced: "3+ years, understands periodization"
+        }
+    }
+}
