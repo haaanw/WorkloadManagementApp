@@ -34,7 +34,7 @@ Declared values (8pt grid per DESIGN.md):
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 8pt | Icon-label gaps, tight inline spacing |
-| sm | 16pt | Card internal padding (horizontal), small gaps |
+| sm | 16pt | Card internal padding (horizontal and vertical), small gaps |
 | md | 24pt | Card internal padding (vertical), standard gaps |
 | lg | 32pt | Section gaps |
 | xl | 48pt | Major section breaks |
@@ -48,14 +48,16 @@ Source: DESIGN.md spacing section
 
 ## Typography
 
+This phase introduces no new type sizes. The 4 sizes used in Phase 5 new components:
+
 | Role | Size | Weight | Line Height | SwiftUI |
 |------|------|--------|-------------|---------|
-| Hero score | 56pt | 400 (Regular) | 1.0 | `Font.custom("DMSans-Regular", size: 56)` |
-| Page title | 28pt | 400 (Regular) | 1.2 | `Font.Tokens.pageTitle` |
 | Section head | 17pt | 500 (Medium) | 1.3 | `Font.Tokens.sectionHead` |
 | Body | 15pt | 400 (Regular) | 1.6 | `Font.Tokens.body` |
 | Label | 13pt | 400 (Regular) | 1.4 | `Font.Tokens.label` |
 | Micro / caps | 11pt | 400 (Regular) | 1.2 | `Font.Tokens.micro` + `.tracking(1.2)` |
+
+Note: 56pt (hero score) and 28pt (page title) exist in the global design system but are not introduced or modified in this phase. They are not used by any new Phase 5 components.
 
 All numeric displays use `.monospacedDigit()`.
 
@@ -167,7 +169,7 @@ Source: DESIGN.md color section, ColorTokens.swift
 --- sectionDivider ---
 [NOTIFICATIONS -- sectionHeader()]
 
-[Weekly Summary]                [Toggle on/off]       16pt horizontal, 12pt vertical padding
+[Weekly Summary]                [Toggle on/off]       16pt horizontal, 16pt vertical padding
 --- divider ---
 [Day]                           [picker: Sunday]      16pt horizontal, 16pt vertical padding
 --- divider ---
