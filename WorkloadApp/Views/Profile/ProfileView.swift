@@ -9,6 +9,12 @@ struct ProfileView: View {
 
     private var athlete: Athlete? { athletes.first }
 
+    // Notification settings
+    @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
+    @AppStorage("notificationDay") private var notificationDay: Int = 1  // 1 = Sunday
+    @AppStorage("notificationTime") private var notificationTime: String = "19:00"
+    @State private var notificationsDenied: Bool = false
+
     // Invite flow state
     @State private var showInviteCodeSheet = false
     @State private var showEnterCodeSheet = false
@@ -64,6 +70,104 @@ struct ProfileView: View {
                             get: { athlete.loadMetricPreference },
                             set: { athlete.loadMetricPreference = $0; saveAthlete(athlete) }
                         ), options: LoadSource.allCases) { $0.displayName }
+                        sectionDivider()
+
+                        // NOTIFICATIONS section (NOTF-03)
+                        sectionHeader("NOTIFICATIONS")
+
+                        // Toggle row
+                        HStack {
+                            Text("Weekly Summary")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text1)
+                            Spacer()
+                            Toggle("", isOn: Binding(
+                                get: { notificationsEnabled },
+                                set: { newValue in
+                                    if newValue {
+                                        Task {
+                                            let status = await container.notificationService.authorizationStatus()
+                                            if status == .denied {
+                                                notificationsDenied = true
+                                                notificationsEnabled = false
+                                                return
+                                            }
+                                            if status == .notDetermined {
+                                                let granted = await container.notificationService.requestAuthorization()
+                                                if !granted {
+                                                    notificationsEnabled = false
+                                                    return
+                                                }
+                                            }
+                                            notificationsEnabled = true
+                                            scheduleNotification()
+                                        }
+                                    } else {
+                                        notificationsEnabled = false
+                                        container.notificationService.cancelWeeklySummary()
+                                    }
+                                }
+                            ))
+                            .labelsHidden()
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 12)
+
+                        // System denied warning
+                        if notificationsDenied {
+                            Text("Notifications are disabled in Settings. Go to Settings > Tonus to enable them.")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text3)
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 8)
+                        }
+
+                        divider()
+
+                        // Day picker row
+                        editablePicker(
+                            "Day",
+                            selection: Binding(
+                                get: { notificationDay },
+                                set: { newValue in
+                                    notificationDay = newValue
+                                    if notificationsEnabled { scheduleNotification() }
+                                }
+                            ),
+                            options: Array(1...7),
+                            displayName: { weekday in
+                                Calendar.current.weekdaySymbols[weekday - 1]
+                            }
+                        )
+                        .disabled(!notificationsEnabled)
+                        .foregroundStyle(notificationsEnabled ? ColorTokens.text1 : ColorTokens.text3)
+
+                        divider()
+
+                        // Time picker row
+                        editablePicker(
+                            "Time",
+                            selection: Binding(
+                                get: { notificationTime },
+                                set: { newValue in
+                                    notificationTime = newValue
+                                    if notificationsEnabled { scheduleNotification() }
+                                }
+                            ),
+                            options: stride(from: 6, through: 22, by: 1).map { hour in
+                                String(format: "%02d:00", hour)
+                            },
+                            displayName: { timeStr in
+                                let parts = timeStr.split(separator: ":").compactMap { Int($0) }
+                                let hour = parts.first ?? 19
+                                let ampm = hour >= 12 ? "PM" : "AM"
+                                let displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)
+                                return "\(displayHour):00 \(ampm)"
+                            }
+                        )
+                        .disabled(!notificationsEnabled)
+                        .foregroundStyle(notificationsEnabled ? ColorTokens.text1 : ColorTokens.text3)
+
                         sectionDivider()
 
                         // HealthKit
@@ -238,6 +342,14 @@ struct ProfileView: View {
                 }
             }
             .background(ColorTokens.background)
+            .task {
+                let status = await container.notificationService.authorizationStatus()
+                notificationsDenied = (status == .denied)
+                if status == .denied && notificationsEnabled {
+                    notificationsEnabled = false
+                    container.notificationService.cancelWeeklySummary()
+                }
+            }
             .navigationTitle("Profile")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
@@ -383,6 +495,18 @@ struct ProfileView: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
+    }
+
+    private func scheduleNotification() {
+        let timeParts = notificationTime.split(separator: ":").compactMap { Int($0) }
+        let hour = timeParts.first ?? 19
+        let minute = timeParts.count > 1 ? timeParts[1] : 0
+        let body = NotificationService.buildNotificationBody(
+            sessionCount: 0, streak: 0, prCount: 0, volumeDelta: 0
+        )
+        container.notificationService.scheduleWeeklySummary(
+            weekday: notificationDay, hour: hour, minute: minute, body: body
+        )
     }
 
     private func saveAthlete(_ athlete: Athlete) {
