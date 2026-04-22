@@ -44,6 +44,23 @@ The combination of recovery and load tracked over time — giving athletes long-
 - [ ] Data export (PDF reports or CSV for coaches)
 - [ ] Push notifications for weekly summary
 - [ ] Streak tracking for training/check-in consistency
+- [ ] Systematic QA pass (bugs, edge cases, crash testing)
+- [ ] App Store metadata (description, keywords, categories, screenshots)
+- [ ] Preemptive App Review compliance
+- [ ] Performance & UX audit (launch time, scrolling, accessibility)
+
+## Current Milestone: v1.1 App Store Launch
+
+**Goal:** Get Tonus submitted and approved on App Store — polish, metadata, preemptive review compliance, performance audit, plus carry-over features (export, notifications, streaks).
+
+**Target features:**
+- Systematic QA pass (bugs, edge cases, crash testing)
+- App Store metadata (description, keywords, categories, screenshots)
+- Preemptive App Review compliance (common rejection reasons)
+- Performance & UX audit (launch time, scrolling, accessibility)
+- PDF/CSV data export for coaches
+- Push notifications for weekly summary
+- Streak tracking for training/check-in consistency
 
 ### Out of Scope
 
@@ -58,6 +75,7 @@ The combination of recovery and load tracked over time — giving athletes long-
 ## Context
 
 - v1.0 Post-Launch milestone complete (4 phases, 14 plans shipped 2026-04-22)
+- v1.1 App Store Launch milestone started 2026-04-22
 - App is functionally complete: auth, sync, subscriptions, analytics, intelligence, onboarding
 - ~15,700 LOC Swift across 80+ files
 - HealthKit provides raw biometric data; app computes composite scores locally (never uploads raw HealthKit data)
@@ -103,4 +121,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 after v1.0 milestone*
+*Last updated: 2026-04-22 after v1.1 milestone start*
