@@ -1,271 +1,388 @@
 # Domain Pitfalls
 
-**Domain:** Training analytics, periodization detection, fatigue patterns, and data export for athlete workload management iOS app
-**Researched:** 2026-04-20
+**Domain:** App Store submission, push notifications, streak tracking, PDF export, and performance optimization for existing SwiftUI+SwiftData+HealthKit fitness app
+**Researched:** 2026-04-22
 
 ## Critical Pitfalls
 
-Mistakes that cause rewrites, incorrect athlete guidance, or data integrity failures.
+Mistakes that cause App Store rejection, compliance violations, or major rework.
 
-### Pitfall 1: ACWR Over-Reliance Creates False Confidence in Injury Prediction
+### Pitfall 1: App Store Rejection for HealthKit Compliance Violations
 
-**What goes wrong:** The app presents ACWR zones as authoritative injury risk indicators. Athletes and coaches make training decisions based on ACWR thresholds (e.g., "sweet spot" 0.8-1.3) that have weak predictive validity. A 2021 cluster RCT of 482 elite youth footballers found zero difference in injury rates between ACWR-guided and control groups after a full season.
+**What goes wrong:** Apple rejects the app for violating HealthKit-specific review guidelines. The most common rejection message is: "Your app uses HealthKit, but does not appear to include any primary features that require health or fitness data." Even though Tonus uses HealthKit extensively as its core feature, reviewers may not see it if the demo account lacks HealthKit data during review.
 
-**Why it happens:** ACWR is intuitive and widely marketed by wearable companies. The ratio suffers from mathematical coupling (acute load appears in both numerator and denominator of the uncoupled version), arbitrary 7/28-day windows, and susceptibility to noise. Tonus already uses EWMA which is better than rolling averages, but the fundamental limitation remains.
+**Why it happens:** App Review runs on real devices but cannot generate HealthKit data (no wearable attached). If the reviewer sees empty states everywhere (no HRV, no sleep, no RHR), they may conclude HealthKit is not a "primary feature" and reject under Guideline 5.1.3.
 
-**Consequences:** Athletes ignore real fatigue signals because the app says they're in the "sweet spot." Or they skip training unnecessarily because of a high ACWR that reflects normal periodized loading. Liability risk if injury occurs while the app showed "green."
+**Consequences:** Rejection delays launch by 1-2 weeks per resubmission cycle.
 
 **Prevention:**
-- Frame ACWR as a trend indicator, never as injury prediction. Use language like "training load trend" not "injury risk."
-- Always pair ACWR with recovery score data. A high ACWR with good recovery is different from high ACWR with poor recovery.
-- Add disclaimer text in analytics views: "Training load trends are informational, not medical advice."
-- Do not add color-coded "danger zones" to weekly summaries without recovery context.
+- Provide detailed Review Notes explaining: (1) HealthKit is the core data source for recovery scoring, (2) the app displays composite scores derived from HRV/RHR/sleep, (3) empty states appear when no wearable data exists, and this is expected behavior
+- Include screenshots showing the app WITH data (use SCREENSHOT_MODE) alongside a note explaining the full data flow
+- Consider adding a "sample data" onboarding option that populates mock workout/wellness data (not HealthKit data) so the reviewer sees non-empty dashboards
+- Ensure the HealthKit permission dialog appears early and the purpose strings clearly explain each data type's role
 
-**Detection:** Review any analytics UI copy that implies causation ("you're at risk of injury"). Check that ACWR is never presented standalone without recovery data.
+**Detection:** Before submission, test the full app flow with HealthKit authorization denied and all HealthKit data empty. Verify the app still communicates what it does and why HealthKit matters.
 
-**Phase relevance:** Weekly training summary, fatigue pattern analysis.
+**App Store Guidelines:** 5.1.3(i), 5.1.3(ii), 2.1
+
+**Phase relevance:** App Store submission phase -- must address in Review Notes and metadata.
 
 ---
 
-### Pitfall 2: Periodization Detection Without Sufficient Training History
+### Pitfall 2: HealthKit Data Leaking into PDF/CSV Exports
 
-**What goes wrong:** The app attempts to detect mesocycles (accumulation, intensification, realization/deload) from too little data. With fewer than 8-12 weeks of consistent training data, periodization detection produces noisy, meaningless results. Users see "detected patterns" that are actually random variation.
+**What goes wrong:** PDF export for coaches accidentally includes raw HealthKit data (actual HRV values, RHR readings, sleep durations) rather than only composite scores. This violates the app's own privacy constraint and potentially Apple's HealthKit guidelines.
 
-**Why it happens:** Developers want the feature to work immediately. But periodization is inherently a multi-week pattern. A mesocycle is typically 3-6 weeks, meaning you need at least 2 complete cycles (6-12 weeks minimum) to detect any pattern.
+**Why it happens:** The existing CSVExportEngine correctly excludes raw HealthKit data, but a new PDF export engine built independently might pull from different data sources or include "helpful" raw metrics without realizing the constraint. RecoverySnapshot stores composite scores, but the underlying HealthKit queries return raw values that could be passed through.
 
-**Consequences:** New users see garbage pattern labels. Power users lose trust in the analytics. Coaches sharing athlete reports see inconsistent cycle labels that change week to week.
+**Consequences:** Violates Guideline 5.1.3(i) -- HealthKit data may not be shared with third parties except to improve health management. If a coach receives a PDF with raw HRV data for their athlete, that is third-party sharing of HealthKit data. Could trigger App Store rejection or post-launch removal.
 
 **Prevention:**
-- Require minimum 8 weeks of data with at least 3 workouts/week before enabling periodization detection.
-- Show "Collecting data..." placeholder with a progress indicator (e.g., "6 of 8 weeks recorded") instead of attempting early detection.
-- Use a rolling window of at least 12 weeks for pattern matching.
-- Never auto-label a phase unless confidence exceeds a defined threshold (e.g., volume variance between candidate phases > 20%).
+- PDF export MUST use the same data boundary as CSVExportEngine: only composite scores (recovery score, ACWR, ATL, CTL), never raw HRV/RHR/sleep values
+- Add a compile-time or code-review gate: any export function that touches `HKQuantityType` or raw health values is a violation
+- Document the rule in the export engine's header comment (as CSVExportEngine already does)
+- Coach-shared exports should only contain: session summaries, load metrics, composite recovery scores, training phase labels
 
-**Detection:** Test periodization feature with 2-week, 4-week, and 8-week synthetic data. If it produces labels for the 2-week case, the threshold is too low.
+**Detection:** Grep any new export code for `HKQuantity`, `heartRateVariabilitySDNN`, `restingHeartRate`, `sleepAnalysis`. If found in export path, it is a violation.
 
-**Phase relevance:** Training cycle detection phase. Gate behind data sufficiency check from day one.
+**App Store Guidelines:** 5.1.2(vi), 5.1.3(i)
+
+**Phase relevance:** PDF export feature.
 
 ---
 
-### Pitfall 3: Fatigue Pattern Correlation Presented as Causation
+### Pitfall 3: Push Notification Permission Prompt at Wrong Time
 
-**What goes wrong:** The app detects that recovery dips follow training spikes (which is obvious by definition -- that is what fatigue IS) and presents this as an insight. Or worse, it finds spurious correlations (e.g., "your recovery drops on Tuesdays") driven by confounders like Monday being a heavy training day for most athletes.
+**What goes wrong:** The app requests notification permission on first launch or immediately after signup. Users who are not yet invested in the app decline, and iOS does not re-prompt. The weekly summary notification feature becomes permanently unavailable without the user digging into Settings.
 
-**Why it happens:** Correlation between load and recovery is built into the EWMA model itself -- ATL rising while CTL lags IS the mathematical definition of the load-recovery relationship. Finding it is circular, not insightful. Additionally, HRV has high day-to-day variability (CV of 15-30%) unrelated to training, and confounders like alcohol, stress, illness, and travel are invisible to the app.
+**Why it happens:** Developers add `UNUserNotificationCenter.requestAuthorization()` early in the app lifecycle for simplicity. Apple's guidelines (4.5.4) state push notifications must not be required for app functionality, but poor timing means the feature is silently disabled for most users.
 
-**Consequences:** Athletes optimize for meaningless patterns. "I always feel bad after Thursday sessions" might actually be because they drink on Wednesdays. False insights erode trust in the analytics suite.
+**Consequences:** Low notification opt-in rate (industry average for poorly-timed prompts is 40-50% vs 70-80% for contextual prompts). Users never see the weekly summary feature they are paying for with Pro.
 
 **Prevention:**
-- Focus fatigue analysis on multi-week trends, not day-to-day correlations.
-- Use at least 7-day rolling averages for recovery trends before correlating with load.
-- Frame insights as observations, not explanations: "Recovery trended down during weeks with 20%+ load increases" not "High training load caused poor recovery."
-- Consider adding confounders to wellness check-ins (travel, illness, alcohol) so correlations can be filtered. But do NOT block the feature on this -- just be honest about limitations.
+- Use a "pre-permission" pattern: show an in-app screen explaining what notifications will deliver ("Weekly training summary every Monday at 8am") with a "Turn On" button. Only call `requestAuthorization()` when the user taps that button.
+- Place the prompt contextually: after the user completes their first week of training (has >= 2 sessions), offer notifications. They now understand the value.
+- If the user has previously denied, detect via `UNUserNotificationCenter.current().getNotificationSettings()` and show a "Notifications are off -- go to Settings" nudge instead of silently failing.
+- Never gate app functionality behind notification permission per Guideline 4.5.4.
 
-**Detection:** If the fatigue analysis ever outputs an insight that is definitionally true from the EWMA model, it is circular and should be removed.
+**Detection:** Test the full flow with notifications denied. Ensure the app never crashes or shows broken UI.
 
-**Phase relevance:** Fatigue pattern analysis. Design insights carefully during implementation.
+**App Store Guidelines:** 4.5.4
+
+**Phase relevance:** Push notifications feature.
 
 ---
 
-### Pitfall 4: PDF/CSV Export Crashes on Real-World Data Volumes
+### Pitfall 4: Missing AppDelegate for Push Notification Registration
 
-**What goes wrong:** Export works in development with 2 weeks of data but crashes or hangs on a real athlete's phone with 6+ months of daily snapshots, hundreds of workout sessions, and thousands of set records. PDF generation with SwiftUI Charts is particularly memory-intensive.
+**What goes wrong:** The app is pure SwiftUI with `@main` App struct and no AppDelegate. Push notifications require `application(_:didRegisterForRemoteNotificationsWithDeviceToken:)` and `application(_:didFailToRegisterForRemoteNotificationsWithError:)` which only exist on UIApplicationDelegate. Developers try to use only local notifications to avoid this, but the weekly summary sent from Supabase Edge Functions requires remote (APNs) push.
 
-**Why it happens:** SwiftUI Charts performance degrades sharply above ~10,000 data points. PDF rendering via `UIGraphicsPDFRenderer` or `ImageRenderer` loads the entire view hierarchy into memory. CSV string concatenation for large datasets creates excessive allocations. All of this runs on `@MainActor` because of SwiftData context isolation.
+**Why it happens:** SwiftUI's `@main` App protocol does not expose APNs delegate methods. Adding an AppDelegate to an existing SwiftUI app requires `@UIApplicationDelegateAdaptor` which is a non-trivial retrofit that touches the app's entry point.
 
-**Consequences:** App crashes during export -- the worst possible UX for a "pro" feature users are paying for. Users lose trust. App Store reviews tank.
+**Consequences:** Remote push notifications silently fail. Device tokens are never registered. The Supabase Edge Function sends notifications that never arrive.
 
 **Prevention:**
-- Set hard limits on export date ranges (max 12 weeks per PDF, unlimited for CSV but paginated).
-- For PDF: render charts as pre-aggregated data (weekly averages, not daily points). Use `UIGraphicsPDFRenderer` with page breaks, not a single massive view.
-- For CSV: stream to file using `OutputStream` instead of building a giant String in memory. Write in chunks of 100 rows.
-- Profile export on-device with 6 months of synthetic data (180 recovery snapshots, 150 workload snapshots, 500 workout sessions, 2000 set records) before shipping.
-- Show progress indicator during export. Run export work off the main actor where possible (prepare data on main actor, render PDF on background thread).
+- Add `@UIApplicationDelegateAdaptor(AppDelegate.self) var appDelegate` to `WorkloadApp.swift`
+- Create an `AppDelegate` class conforming to `UIApplicationDelegate` with the three required methods: `didRegisterForRemoteNotifications`, `didFailToRegisterForRemoteNotifications`, and `didReceiveRemoteNotification`
+- Store the device token in Supabase (in a user_devices table) so Edge Functions can target it
+- Alternative: use only local notifications scheduled on-device (avoids APNs entirely) if the weekly summary can be computed locally. This is simpler but means notifications only fire if the app has been opened recently.
 
-**Detection:** If export takes >3 seconds with 3 months of data during development, it will crash with 12 months on a real device.
+**Detection:** After implementing, test on a physical device (simulators can receive test pushes since Xcode 14 but do not register real APNs tokens).
 
-**Phase relevance:** Data export phase. Build with streaming/pagination from the start -- do not retrofit.
+**Phase relevance:** Push notifications feature.
 
 ---
 
-### Pitfall 5: Weekly Summary Aggregation Ignores Rest Days and Creates Misleading Averages
+### Pitfall 5: App Store Rejection for Incomplete Demo During Review
 
-**What goes wrong:** Weekly training summary divides total load by 7 days, making a 4-day-per-week athlete look like they train at moderate intensity daily. Or it reports "average session load" that conflates strength and cardio sessions with wildly different TSS scales.
+**What goes wrong:** The app requires Supabase authentication and the reviewer cannot create a meaningful account. They see empty dashboards, no workout history, no recovery data. They reject under Guideline 2.1 (App Completeness).
 
-**Why it happens:** Tonus currently computes daily TSS and EWMA but has no concept of "training days vs rest days" or session type categorization for aggregation purposes. The `WorkloadSnapshot` stores a single `loadSource` (sRPE or TRIMP) but weekly summaries need to handle mixed sources.
+**Why it happens:** The app's value proposition requires accumulated data over days/weeks. A fresh account shows nothing. The reviewer has ~5 minutes to evaluate the app.
 
-**Consequences:** Athletes misinterpret weekly summaries. A coach comparing two athletes sees misleading averages. Weekly volume comparisons across different training modalities are meaningless.
+**Consequences:** Rejection under Guideline 2.1. Apple's message: "We were unable to review your app as it requires an account and we were not able to verify the app's features."
 
 **Prevention:**
-- Report training days separately from rest days in weekly summaries: "4 training days, 3 rest days."
-- Show total weekly load AND per-session average (total / training days, not total / 7).
-- If mixing sRPE and TRIMP sessions, normalize before aggregating or report them separately.
-- Include session count and training frequency as first-class metrics in the weekly summary, not just load totals.
+- Create a dedicated demo account with pre-seeded data (2-3 weeks of workouts, wellness check-ins, recovery snapshots, workload data). Provide credentials in App Store Connect Review Notes.
+- Ensure the demo account's Supabase data includes: sessions across multiple sport types, at least one PR, recovery snapshots with varying scores, workload snapshots showing ACWR zones, a coach-athlete relationship (if demonstrating coach features)
+- Verify the demo account credentials work before EVERY submission (sessions can expire, Supabase can have issues)
+- Add a note: "Demo account pre-loaded with sample data. HealthKit integration requires Apple Watch -- screenshots of live HealthKit data included."
+- SCREENSHOT_MODE is debug-only; it cannot be used for App Review. The demo account must be a real Supabase account.
 
-**Detection:** Generate a weekly summary for an athlete who trains 3x/week. If the "daily average" looks like light training, the denominator is wrong.
+**Detection:** Before each submission, log into the demo account on a clean device and walk through every tab.
 
-**Phase relevance:** Weekly training summary. Design the aggregation model before building the UI.
+**App Store Guidelines:** 2.1
+
+**Phase relevance:** App Store submission phase.
 
 ---
 
-### Pitfall 6: HealthKit Authorization Revocation Silently Corrupts Analytics
+### Pitfall 6: Subscription Compliance -- Not Clearly Communicating What is Free vs Pro
 
-**What goes wrong:** User grants HealthKit access, builds 8 weeks of recovery baselines, then revokes access (or gets a new phone and forgets to re-authorize). The app continues computing recovery scores using stale baselines that drift further from reality. Weekly summaries and fatigue analysis use outdated biometric data without any indication.
+**What goes wrong:** Apple rejects because the app does not clearly indicate which features require a subscription before the user encounters a paywall. Or worse, the app appears to offer functionality that immediately hits a purchase gate.
 
-**Why it happens:** This is already flagged in CONCERNS.md as existing tech debt: `RecoveryPipeline.run()` uses `try?` and swallows HealthKit authorization errors. The analytics layer would inherit this silent failure.
+**Why it happens:** Two-tier subscriptions (Athlete Pro + Coach) with feature gating across multiple screens makes it easy to present a feature and then gate it behind a paywall without prior disclosure.
 
-**Consequences:** Recovery scores become fictional. Fatigue pattern analysis correlates training load with stale recovery data, producing completely wrong insights. Athlete makes training decisions based on phantom recovery status.
+**Consequences:** Rejection under Guidelines 3.1.2(a) and 2.3.2. Apple may also flag the app for "bait-and-switch" if screenshots show features that require purchase.
 
 **Prevention:**
-- Before building any analytics features, fix the existing HealthKit error handling in RecoveryPipeline (distinguish "no data" from "no permission").
-- Add a `lastHealthKitSync` timestamp to the Athlete model. If >48 hours stale, show a prominent warning on any analytics view.
-- In weekly summaries, include a "data quality" indicator: "Recovery data: Complete" vs "Recovery data: Partial (HealthKit disconnected since [date])."
-- Never include stale recovery data (>7 days old) in fatigue pattern correlations.
+- In App Store metadata (description and screenshots), clearly state which features are free and which require Pro/Coach subscription
+- In-app: show lock icons or "Pro" badges on gated features BEFORE the user taps them. Do not let them enter a full flow and then hit a paywall at the last step.
+- Ensure the UpgradeSheet clearly states: subscription duration, price, what is included, auto-renewal terms
+- Verify the free tier is genuinely usable -- Apple requires that subscription apps provide meaningful free functionality
+- RevenueCat's paywall must display Apple-required terms: price, duration, auto-renewal disclosure
 
-**Detection:** Revoke HealthKit access in Settings during testing. If analytics views show no warning, this pitfall is active.
+**Detection:** Walk through the app as a free user. Count how many times you hit a paywall. If any paywall appears without prior visual indication that the feature is paid, fix it.
 
-**Phase relevance:** Must be fixed BEFORE fatigue pattern analysis and weekly summaries. Prerequisite work.
+**App Store Guidelines:** 3.1.2(a), 3.1.2(c), 2.3.2
+
+**Phase relevance:** App Store submission phase.
+
+---
 
 ## Moderate Pitfalls
 
-### Pitfall 7: Sync Conflicts Corrupt Aggregated Analytics
+### Pitfall 7: Streak Tracking Creates Toxic Anxiety Instead of Motivation
 
-**What goes wrong:** Coach edits a workout's RPE on their device while the athlete is viewing a weekly summary. Last-write-wins sync overwrites the RPE. The weekly summary now shows different numbers than what the athlete saw 5 minutes ago. With no conflict resolution (flagged in CONCERNS.md), aggregated analytics become unreliable.
+**What goes wrong:** A rigid daily streak counter (like Duolingo's) creates anxiety, guilt, and eventual app abandonment for athletes who need rest days as part of their training program. Breaking a streak after 30+ days causes users to stop opening the app entirely.
+
+**Why it happens:** Streak mechanics are borrowed from language learning or meditation apps where daily engagement is the goal. In athletic training, rest days are physiologically necessary. A streak that demands daily workouts contradicts the app's own recovery recommendations.
 
 **Prevention:**
-- Make analytics computations idempotent: re-derive weekly summaries from source data, never cache aggregated values.
-- Add `updatedAt` checks when displaying analytics. If underlying data changed since last computation, re-compute.
-- For PDF exports, snapshot the data at export time (copy values, do not reference live objects). A PDF should represent a point-in-time view.
+- Define streaks around "training consistency" not "daily activity." A streak should survive planned rest days. Options: (a) count weeks where >= N sessions were completed, (b) count consecutive wellness check-ins (which can happen on rest days), (c) count "training blocks" where athlete stayed in their target load range.
+- Implement streak freezes (1-2 per week, automatic or manual). Research shows streak freezes improve long-term retention by 40-60%.
+- Never punish rest days. If the autoregulation engine recommends a rest day, the streak must not break.
+- Make streaks optional/supplementary -- never the primary metric on the dashboard.
+- Consider "consistency score" (percentage of target sessions completed this month) instead of binary streak.
 
-**Phase relevance:** All analytics phases. Use a compute-on-read pattern, not cached aggregations.
+**Detection:** Ask: "Does this streak design punish an athlete for following the app's own recovery advice?" If yes, redesign.
+
+**Phase relevance:** Streak tracking feature.
 
 ---
 
-### Pitfall 8: Periodization Labels Confuse Non-Expert Users
+### Pitfall 8: PDF Export Memory Pressure on Large Training Histories
 
-**What goes wrong:** The app labels training phases as "Accumulation," "Intensification," or "Realization" -- terms that mean nothing to 80% of recreational athletes. Users see jargon they don't understand and ignore the feature entirely, or worse, misinterpret it.
+**What goes wrong:** Generating a PDF report for an athlete with 6+ months of training data (100+ sessions, thousands of sets) loads all records into memory at once. On older iPhones, this causes memory warnings or crashes.
+
+**Why it happens:** SwiftData's `@Query` and `FetchDescriptor` load full object graphs. A naive implementation fetches all WorkoutSessions with their ExerciseEntries and SetRecords, then renders them to a PDF context. SwiftData has known memory issues with large datasets (documented in Apple Developer Forums).
+
+**Consequences:** App crashes during export on devices with limited RAM. Users lose trust.
 
 **Prevention:**
-- Use plain language: "Building" (accumulation), "Pushing" (intensification), "Tapering/Recovery" (realization/deload).
-- Include a one-line explanation with each label: "Building: Higher volume, moderate intensity -- growing your base."
-- Provide a "Learn More" sheet explaining the concept, not just the label.
-- For coaches (who know the terminology), offer a "scientific labels" toggle in settings.
+- Paginate data fetching: process sessions in batches of 20-30, render each batch to the PDF context, then release
+- Use `FetchDescriptor` with `fetchLimit` and `fetchOffset` for batched loading
+- For PDF rendering, use `UIGraphicsPDFRenderer` which streams pages rather than building the entire document in memory
+- Consider offering date-range filters (last 30 days, last 90 days, custom) to limit export scope
+- Profile memory usage with Instruments before shipping; set a ceiling of 100MB for the export operation
 
-**Phase relevance:** Training cycle detection UI design.
+**Detection:** Test PDF export with 200+ sessions. Monitor memory in Instruments. If peak exceeds 150MB, optimize.
+
+**Phase relevance:** PDF export feature.
 
 ---
 
-### Pitfall 9: CSV Export Leaks Sensitive HealthKit Data
+### Pitfall 9: SwiftUI ImageRenderer Limitations for PDF Generation
 
-**What goes wrong:** The CSV export includes raw HRV, RHR, and sleep data. The user shares the CSV with their coach via email. This may violate Apple's HealthKit guidelines (raw HealthKit data must not leave the device) and creates privacy liability.
+**What goes wrong:** Developers try to use SwiftUI's `ImageRenderer` (iOS 16+) to render SwiftUI views directly to PDF. This works for simple views but fails silently or produces incorrect output for views that depend on `@Environment`, `@Query`, or async data loading. Charts may render blank. Custom fonts may not load.
+
+**Why it happens:** `ImageRenderer` captures a snapshot of the view hierarchy at render time. Views that rely on SwiftUI's runtime environment (EnvironmentValues, ModelContext) are not fully resolved during off-screen rendering. The DM Sans custom font may not be available in the render context.
+
+**Consequences:** PDFs contain blank charts, missing fonts (falls back to system font), or incomplete data. Users receive broken exports.
 
 **Prevention:**
-- Export only composite scores (recovery score, ACWR, TSB) and training metrics (session load, volume, RPE), never raw HealthKit values.
-- If users request raw biometric data, direct them to Apple Health's native export.
-- Add a clear disclaimer: "This export contains training metrics only. Raw health data stays on your device."
-- Review Apple's HealthKit guidelines before implementing export: raw sample data cannot be shared with third parties or transmitted off-device.
+- Use `UIGraphicsPDFRenderer` with manual Core Graphics drawing instead of trying to render SwiftUI views. This is more work but completely reliable.
+- If using `ImageRenderer`, create self-contained views with all data passed as parameters (no @Environment, no @Query, no @Observable). Inject the font explicitly.
+- Test PDF output on both simulator and physical device -- rendering differences exist.
+- For charts: render chart data to Core Graphics paths directly rather than trying to snapshot a SwiftUI Charts view.
 
-**Detection:** Check every column in the CSV output against the HealthKit guidelines. If `hrvSDNN` or `restingHR` appears as a raw column, it violates the policy.
+**Detection:** Generate a PDF and open it. Check: are fonts correct? Are charts populated? Is all data present? Compare against the on-screen view.
 
-**Phase relevance:** Data export phase. Design the export schema before writing code.
+**Phase relevance:** PDF export feature.
 
 ---
 
-### Pitfall 10: MainActor Bottleneck During Analytics Computation
+### Pitfall 10: Push Notification Token Lifecycle Mismanagement
 
-**What goes wrong:** Computing 12 weeks of aggregated analytics (weekly summaries, periodization detection, fatigue correlations) requires reading hundreds of SwiftData objects. Since SwiftData ModelContext is MainActor-isolated in iOS 17, all this computation blocks the UI thread.
+**What goes wrong:** The app registers the APNs device token once and stores it in Supabase. Over time, the token changes (device restore, OS update, app reinstall) but the stored token is never updated. Supabase Edge Functions send to stale tokens, which APNs rejects. Notifications silently stop working.
+
+**Why it happens:** `application(_:didRegisterForRemoteNotificationsWithDeviceToken:)` is called on every app launch, but developers only store the token on first registration. Token rotation is not handled.
+
+**Consequences:** Notifications work for early adopters but gradually stop working. No error is visible to the user or developer without APNs feedback monitoring.
 
 **Prevention:**
-- Fetch data on MainActor, but immediately copy values into plain structs (not @Model objects).
-- Perform all analytics computation (aggregation, pattern matching, correlation) on plain structs in a background Task.
-- Use the existing pure-struct engine pattern (WorkloadCalculator, RecoveryScoreEngine) for all new analytics engines.
-- Profile with Instruments: if analytics computation exceeds 100ms on MainActor, it needs to be moved.
+- Store/update the device token in Supabase on EVERY call to `didRegisterForRemoteNotifications`, not just the first time. Use an upsert on (user_id, device_token).
+- When the user logs out, delete their device token from Supabase.
+- When the user logs in on a new device, register the new token.
+- Handle `didFailToRegisterForRemoteNotifications` -- log the error, do not crash.
+- APNs sandbox tokens do not work in production and vice versa. Ensure the Edge Function targets the correct APNs environment.
 
-**Detection:** Open the weekly summary view with 6 months of data. If there is any frame drop or delay, computation is blocking the main thread.
+**Detection:** Log token registration events. After a month, check how many stored tokens are still valid by monitoring APNs feedback.
 
-**Phase relevance:** All analytics phases. Establish the pattern in the first analytics feature (weekly summary).
+**Phase relevance:** Push notifications feature.
 
 ---
 
-### Pitfall 11: Export Feature Bypasses Subscription Gating
+### Pitfall 11: Performance Regression from @Query Overuse in Complex Views
 
-**What goes wrong:** Data export is a "Pro" feature but the implementation generates the file before checking the subscription. A determined user could intercept the file, or the export runs (consuming resources) before showing the paywall.
+**What goes wrong:** The app already has 80+ files with heavy `@Query` usage. Adding streak tracking and enhanced dashboard views adds more queries. SwiftData re-evaluates ALL active `@Query` properties whenever the ModelContext changes. A single workout save can trigger re-evaluation of queries across Dashboard, WorkoutLog, Recovery, Workload, and now Streak views simultaneously.
+
+**Why it happens:** SwiftData's `@Query` is reactive -- any write to the ModelContext triggers observation notifications. With 15+ active queries across tabs, a single insert causes a cascade of fetch operations. SwiftData on iOS 17 has documented memory issues with concurrent query evaluation.
+
+**Consequences:** Jank when saving workouts (noticeable frame drops). Increased memory usage. On older devices (iPhone 12 and earlier), potential OOM kills.
 
 **Prevention:**
-- Check `isPro` entitlement before beginning any export computation, not after.
-- Follow the existing pattern: check subscription -> show UpgradeSheet if needed -> only then run export.
-- For coach exports of athlete data, verify both `isCoach` entitlement and that the coach-athlete relationship is active.
+- Audit active `@Query` usage across all visible views. Views in non-visible tabs should NOT have active queries (lazy loading).
+- Use `FetchDescriptor` in ViewModels for one-shot data loading instead of reactive `@Query` where real-time updates are not needed (e.g., streak calculation, export data).
+- Add `fetchLimit` to ALL queries that display lists -- never fetch unbounded result sets.
+- Profile with Instruments (SwiftData template) before and after adding new features. Set a performance budget: main thread should not block > 16ms for any query.
 
-**Phase relevance:** Data export phase.
+**Detection:** Save a workout and monitor frame rate across all tabs using Instruments. Any frame drop > 50ms during save is a red flag.
+
+**Phase relevance:** Performance optimization phase.
+
+---
+
+### Pitfall 12: Privacy Manifest Not Updated for New Features
+
+**What goes wrong:** Adding push notifications changes the data collection profile (device tokens are PII). Adding streak tracking may use UserDefaults for persistence. The existing PrivacyInfo.xcprivacy is not updated, causing App Store rejection during the automated privacy review.
+
+**Why it happens:** The privacy manifest was written for the current feature set and covers Health data, Fitness data, purchase history, user ID, email, and name. New features that collect or access additional data require manifest updates.
+
+**Consequences:** Binary rejection during automated App Store processing (before human review even begins).
+
+**Prevention:**
+- If adding push notifications: no new NSPrivacyCollectedDataType needed (device tokens are not a declared category), but ensure the UserDefaults API reason (CA92.1) covers any new UserDefaults usage for notification preferences
+- If storing device tokens in Supabase: this is covered under existing "UserID" collection since it is linked to the user account
+- If adding any new Required Reason API usage (disk space, file timestamps, etc.), add the corresponding entry
+- Review Apple's "Required Reason APIs" list before each submission: https://developer.apple.com/documentation/bundleresources/describing-use-of-required-reason-api
+
+**Detection:** Before submission, diff the PrivacyInfo.xcprivacy against the feature set. Every piece of collected data must be declared.
+
+**App Store Guidelines:** 5.1.1(i)
+
+**Phase relevance:** App Store submission phase.
+
+---
 
 ## Minor Pitfalls
 
-### Pitfall 12: Weekly Summary Timezone Handling
+### Pitfall 13: PDF Export File Sharing Fails Silently on iPad
 
-**What goes wrong:** "This week" means different things depending on the user's timezone and locale (week starts Monday in most of the world, Sunday in the US). Workout timestamps from HealthKit use UTC. If the app doesn't normalize to the user's local calendar, weekly boundaries split sessions incorrectly.
+**What goes wrong:** `UIActivityViewController` presentation behaves differently on iPad vs iPhone. On iPad, it requires a `popoverPresentationController` sourceView/sourceRect or it crashes. SwiftUI's `ShareLink` handles this automatically, but if using UIKit presentation (common for PDF export), the iPad crash is not caught during iPhone-only testing.
 
 **Prevention:**
-- Use `Calendar.current` for all week boundary calculations.
-- Store and compare dates using the user's local calendar, not UTC day boundaries.
-- Test with timezones that straddle midnight (e.g., US Pacific where a late-night workout is the next UTC day).
+- Use SwiftUI's `ShareLink` (iOS 16+) instead of manual UIActivityViewController presentation. It handles iPad popover automatically.
+- If UIKit is needed, always set `popoverPresentationController.sourceView` and `sourceRect`.
+- Test on iPad simulator before submission.
 
-**Phase relevance:** Weekly training summary.
+**Phase relevance:** PDF export feature.
 
 ---
 
-### Pitfall 13: PDF Export Doesn't Match Screen Appearance
+### Pitfall 14: Weekly Summary Notification Scheduled at Wrong Time Zone
 
-**What goes wrong:** Charts rendered in PDF look different from the in-app charts. SwiftUI Charts renders differently in `ImageRenderer` context vs live views. Colors may shift, dark mode charts rendered on white PDF background look wrong, and text sizing differs.
+**What goes wrong:** The weekly summary notification is scheduled for "Monday 8am" but uses UTC instead of the user's local time zone. Users in UTC-8 receive their notification at midnight Sunday. Users in UTC+12 receive it Tuesday morning.
 
 **Prevention:**
-- Force light mode for PDF chart rendering regardless of system appearance.
-- Use `ImageRenderer` with explicit size and scale factor, test on multiple device sizes.
-- Provide a PDF preview screen before export so users can verify appearance.
+- For local notifications: use `DateComponents` with explicit `Calendar.current` (which respects the device's time zone) when creating `UNCalendarNotificationTrigger`.
+- For remote notifications from Supabase Edge Functions: store the user's timezone in Supabase (during onboarding or from device settings) and schedule the Edge Function cron job to send at the user's local 8am. Alternatively, compute the UTC offset per user.
+- Test with device set to multiple time zones.
 
-**Phase relevance:** Data export phase.
+**Phase relevance:** Push notifications feature.
 
 ---
 
-### Pitfall 14: Fatigue Analysis Recommends Deload During Planned Peaking
+### Pitfall 15: App Store Screenshots Show Debug/Test Data
 
-**What goes wrong:** The fatigue pattern engine detects sustained high load and recommends recovery. But the athlete is intentionally peaking for a competition. The app's recommendation contradicts their (or their coach's) plan.
+**What goes wrong:** Screenshots captured via SCREENSHOT_MODE show mock data that is obviously fake ("John Doe", perfectly round numbers, suspiciously clean charts). Apple may reject for Guideline 2.3 (Accurate Metadata) if screenshots do not represent the actual app experience.
 
 **Prevention:**
-- Allow athletes/coaches to mark "competition prep" or "planned overreach" periods that suppress deload recommendations.
-- Frame fatigue insights as observations, not directives: "Your load has been elevated for 3 weeks" not "You should take a recovery week."
-- For coached athletes, never auto-generate recommendations -- let the coach interpret the data.
+- Use realistic mock data in SCREENSHOT_MODE: varied names, imperfect numbers, realistic date distributions.
+- Ensure screenshots show the same UI the reviewer will see with the demo account (minus HealthKit data).
+- Never show placeholder images or Lorem Ipsum text in screenshots.
+- Include a mix of populated states and appropriate empty states (e.g., new user with welcome card).
 
-**Phase relevance:** Fatigue pattern analysis.
+**App Store Guidelines:** 2.3
+
+**Phase relevance:** App Store submission phase.
+
+---
+
+### Pitfall 16: Streak Data Not Syncing Between Devices via Supabase
+
+**What goes wrong:** Streak state is stored locally (UserDefaults or SwiftData) but not synced to Supabase. A user who logs workouts on their iPad does not see the streak update on their iPhone.
+
+**Prevention:**
+- Store streak data (current streak count, last qualifying date, freeze count) in the Athlete model or a dedicated SwiftData model that syncs via the existing SyncService.
+- Compute streaks from the source of truth (WorkoutSession dates + WellnessCheckIn dates) rather than maintaining a separate counter that can drift.
+- If computing from source data, ensure the computation handles timezone-aware day boundaries correctly.
+
+**Phase relevance:** Streak tracking feature.
+
+---
+
+### Pitfall 17: App Thinning and Binary Size Bloat from PDF Resources
+
+**What goes wrong:** Embedding large template images, fonts, or static assets for PDF generation inflates the app binary. Apple has a 200MB cellular download limit. While Tonus is unlikely to hit this, unnecessary binary growth slows downloads and updates.
+
+**Prevention:**
+- PDF templates should be generated programmatically (Core Graphics), not from embedded template files.
+- DM Sans fonts are already bundled (~55KB each); do not add additional font weights for PDF generation.
+- If including chart images in PDFs, render them at export time rather than bundling pre-rendered assets.
+
+**Phase relevance:** PDF export feature.
+
+---
 
 ## Phase-Specific Warnings
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|---------------|------------|
-| Weekly training summary | Rest day averaging (Pitfall 5), timezone issues (Pitfall 12), MainActor blocking (Pitfall 10) | Design aggregation model first; use training-day denominators; normalize to local calendar |
-| Periodization detection | Insufficient data threshold (Pitfall 2), jargon labels (Pitfall 8) | Require 8+ weeks minimum; use plain language with scientific toggle |
-| Fatigue pattern analysis | Circular correlations (Pitfall 3), stale HealthKit data (Pitfall 6), competition conflicts (Pitfall 14) | Fix HealthKit error handling first; use multi-week trends only; frame as observations |
-| Data export (PDF/CSV) | Memory crashes (Pitfall 4), HealthKit data leakage (Pitfall 9), appearance mismatch (Pitfall 13), subscription bypass (Pitfall 11) | Stream CSV; paginate PDF; export only composite scores; check entitlement first |
-| All analytics | ACWR overstatement (Pitfall 1), sync conflicts (Pitfall 7) | Frame as trends not predictions; compute-on-read pattern |
+| App Store Submission | Rejection for empty HealthKit data during review | Pre-seed demo account, detailed Review Notes (Pitfall 1, 5) |
+| App Store Submission | Subscription disclosure insufficient | Clear free vs Pro delineation in metadata and UI (Pitfall 6) |
+| App Store Submission | Privacy manifest outdated | Audit PrivacyInfo.xcprivacy against new features (Pitfall 12) |
+| App Store Submission | Screenshots misrepresent app | Use realistic mock data, match reviewer experience (Pitfall 15) |
+| Push Notifications | Permission prompt at wrong time | Contextual pre-permission after first training week (Pitfall 3) |
+| Push Notifications | No AppDelegate for APNs | Add UIApplicationDelegateAdaptor to WorkloadApp (Pitfall 4) |
+| Push Notifications | Token staleness over time | Upsert token on every launch (Pitfall 10) |
+| Push Notifications | Wrong timezone for weekly summary | Use Calendar.current or store user timezone (Pitfall 14) |
+| Streak Tracking | Punishes rest days, contradicts recovery advice | Define streaks around consistency, not daily activity (Pitfall 7) |
+| Streak Tracking | Data not syncing cross-device | Compute from source data, sync via SyncService (Pitfall 16) |
+| PDF Export | Raw HealthKit data in export | Mirror CSVExportEngine's data boundary (Pitfall 2) |
+| PDF Export | Memory crash on large histories | Batch fetch, stream PDF pages (Pitfall 8) |
+| PDF Export | ImageRenderer fails for complex views | Use UIGraphicsPDFRenderer with manual drawing (Pitfall 9) |
+| Performance | @Query cascade on ModelContext writes | Audit query count, use fetchLimit, lazy tab loading (Pitfall 11) |
 
-## Prerequisite Work Before Analytics
+## App Store Review Guidelines Quick Reference
 
-The following existing tech debt (from CONCERNS.md) must be addressed before building analytics features, or the analytics will inherit and amplify these problems:
+Sections most relevant to Tonus v1.1 submission:
 
-1. **HealthKit error handling** -- RecoveryPipeline's `try?` swallowing must be fixed. Analytics built on silently-stale data are worse than no analytics.
-2. **SyncService error suppression** -- Silent sync failures mean coach and athlete see different data. Analytics computed from inconsistent local state produce different results per device.
-3. **MainActor contention** -- Existing sync already has performance concerns. Adding analytics computation on top will make the UI thread situation worse.
+| Section | Topic | Risk to Tonus |
+|---------|-------|---------------|
+| **2.1** | App Completeness | Demo account must show full functionality |
+| **2.3** | Accurate Metadata | Screenshots must reflect real app experience |
+| **2.3.2** | In-App Purchase Metadata | Must clearly indicate paid features in description |
+| **3.1.2(a)** | Subscriptions | Must provide ongoing value, clear terms |
+| **3.1.2(c)** | Subscription Information | Must describe what user gets for the price |
+| **4.5.4** | Push Notifications | Not required for function, opt-in for marketing, visible opt-out |
+| **5.1.1(i)** | Privacy Policy | Must be in App Store Connect AND in-app |
+| **5.1.2(vi)** | HealthKit Data Restrictions | No marketing, advertising, or data mining |
+| **5.1.3(i)** | Health Data Use | No third-party sharing except for health improvement |
+| **5.1.3(ii)** | HealthKit Accuracy | No false data, no iCloud storage of health data |
 
 ## Sources
 
-- [Science for Sport: ACWR Overview](https://www.scienceforsport.com/acutechronic-workload-ratio/) - ACWR methodology and limitations
-- [PMC: ACWR Systematic Review and Meta-Analysis](https://pmc.ncbi.nlm.nih.gov/articles/PMC12487117/) - Evidence for ACWR predictive limitations
-- [gpexe: ACWR Rolling Average vs EWMA](https://www.gpexe.com/acutechronic-workload-ratio-part-2/) - EWMA practical limitations in sport
-- [Medium: Training Load & Strain Wearable Limitations](https://medium.com/@CuriousCatalyst/training-load-strain-understanding-your-wearables-injury-prevention-system-and-its-7c9aa456e53a) - Wearable load monitoring false confidence
-- [arXiv: Fatigue Monitoring Using Wearables and AI](https://arxiv.org/html/2412.16847v1) - HRV false positives, confounders
-- [Apple Developer Forums: Swift Charts Performance](https://developer.apple.com/forums/thread/740314) - Chart rendering limits at scale
-- [Joyfill: PDF Limitations in Native Swift](https://joyfill.io/blog/overcoming-the-pdf-limitations-in-native-swift-mobile-apps) - iOS PDF generation constraints
-- [Apple: Understanding SwiftUI Performance](https://developer.apple.com/documentation/Xcode/understanding-and-improving-swiftui-performance) - MainActor and rendering performance
-
----
-
-*Pitfalls audit: 2026-04-20*
+- [App Store Review Guidelines](https://developer.apple.com/app-store/review/guidelines/) -- Apple (2025)
+- [HealthKit Privacy Documentation](https://developer.apple.com/documentation/healthkit/protecting-user-privacy) -- Apple
+- [iOS App Store Requirements for Health Apps](https://blog.dashsdk.com/app-store-requirements-for-health-apps/) -- Dash Solutions
+- [App Store Review Guidelines Checklist](https://nextnative.dev/blog/app-store-review-guidelines) -- NextNative (2025)
+- [The Ultimate Guide to App Store Rejections](https://www.revenuecat.com/blog/growth/the-ultimate-guide-to-app-store-rejections/) -- RevenueCat
+- [High Performance SwiftData Apps](https://blog.jacobstechtavern.com/p/high-performance-swiftdata) -- Jacob's Tech Tavern
+- [SwiftData Performance Optimization](https://www.hackingwithswift.com/quick-start/swiftdata/how-to-optimize-the-performance-of-your-swiftdata-apps) -- Hacking with Swift
+- [How to Render a SwiftUI View to PDF](https://www.hackingwithswift.com/quick-start/swiftui/how-to-render-a-swiftui-view-to-a-pdf) -- Hacking with Swift
+- [Designing Streaks for Long-Term User Growth](https://trophy.so/blog/designing-streaks-for-long-term-user-growth) -- Trophy
+- [Breaking the Chain: Why Streak Features Fail ADHD Users](https://www.helloklarity.com/post/breaking-the-chain-why-streak-features-fail-adhd-users-and-how-to-design-better-alternatives/) -- Klarity Health
+- [Supabase Push Notifications Documentation](https://supabase.com/docs/guides/functions/examples/push-notifications) -- Supabase
+- [Sending Push Notifications from Supabase](https://www.pingram.io/blog/send-custom-notifications-from-supabase-with-examples-2025) -- Pingram (2025)
+- [SwiftData Large Data Performance](https://developer.apple.com/forums/thread/742336) -- Apple Developer Forums
+- [SwiftData Memory Issues iOS 18](https://developer.apple.com/forums/thread/761522) -- Apple Developer Forums

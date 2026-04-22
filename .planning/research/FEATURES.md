@@ -1,116 +1,121 @@
 # Feature Landscape
 
-**Domain:** Athlete training analytics (weekly summaries, periodization, fatigue analysis, data export)
-**Researched:** 2026-04-20
-**Context:** Tonus already ships recovery scoring, ACWR/EWMA load tracking, autoregulation recommendations, PR detection, coach-athlete relationships, and two-tier subscriptions. This research covers what to build next.
+**Domain:** iOS fitness/training app — v1.1 App Store launch readiness features
+**Researched:** 2026-04-22
+**Context:** Tonus is functionally complete (auth, sync, subscriptions, analytics, intelligence, onboarding). This research covers only what remains for App Store submission: ASO, push notifications, streak tracking, PDF export, QA, and performance audit.
 
 ## Table Stakes
 
-Features users expect from any app that claims to offer "training analytics." Missing any of these and power users will switch to TrainingPeaks, WHOOP, or HRV4Training.
+Features users expect at App Store launch. Missing = product feels incomplete, gets rejected, or is invisible in search.
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Weekly training summary** | WHOOP, Oura, TrainingPeaks all deliver automated weekly recaps. Athletes expect a Monday-morning snapshot of their week. | Medium | Tonus already has WorkloadSnapshot (ATL, CTL, ACWR, TSB, weeklyVolume) and RecoverySnapshot (HRV, RHR, sleep, recovery score) per day -- aggregation is straightforward. Show: total sessions, total volume, avg recovery score, load trend direction, ACWR zone distribution. |
-| **Multi-week trend charts** | Every competitor shows 4-week, 12-week, and 6-month views. Athletes need to see whether their fitness is building or stalling. | Low | Tonus already has 28-day HRV trend on dashboard. Extend to CTL/ATL/TSB trend lines on the Workload tab with a time-range picker (4w / 12w / 6m). Data already exists in WorkloadSnapshot history. |
-| **Week-over-week load comparison** | TrainingPeaks and AthleteMonitoring show this. Coaches especially need "this week vs last week" at a glance. | Low | Compute delta of weekly volume and session count. Display as simple +/- percentage on the weekly summary card. |
-| **CSV data export** | Strong, StrongLifts, FitNotes, TrainingPeaks all offer CSV export. Athletes with data portability expectations will not stay without it. | Medium | Export WorkoutSession history (date, exercise, sets, reps, weight, RPE, volume, load). Standard CSV format compatible with Strong/TrainingPeaks import conventions. Gate behind Pro subscription. |
-| **Recovery-load correlation view** | HRV4Training and WHOOP both show how load spikes affect recovery. This is the core promise of Tonus (combining recovery + load). | Medium | Plot recovery score as a line overlaid on daily load bars. 28-day view. The data is already collected -- this is a visualization feature, not a computation feature. Highlight periods where high load preceded recovery dips. |
+| **App Store metadata (title, subtitle, keywords, description)** | Required for submission; primary discovery mechanism. Apple indexes title (30 chars) + subtitle (30 chars) + keyword field (100 chars). Description is NOT indexed -- write for humans only. | Low | Copywriting task in App Store Connect. No code changes. |
+| **App Store screenshots (6.7" + 6.5")** | Required for submission; most influential conversion factor. Users decide to install in 3 seconds based on screenshots. | Medium | Screenshot automation framework already exists. Need final marketing-quality captures with benefit-oriented captions. |
+| **App Review compliance pass** | Common rejections: incomplete features, missing privacy labels, broken links, crash on launch, HealthKit misuse. One rejection delays launch by 1-2 weeks. | Medium | Must verify: PrivacyInfo.xcprivacy matches actual data usage, all links work (privacy policy, ToS, support), no placeholder text, HealthKit NSHealthShareUsageDescription accurate, subscription metadata matches RevenueCat offerings. |
+| **Systematic QA pass** | App Store reviewers test edge cases. Crashes during review = automatic rejection. Users rate 1-star for bugs. | Medium | Unknown scope until bugs found. Must test: empty states, first-run without data, HealthKit denied, no network, subscription states, coach vs athlete mode switching. |
+| **Performance audit** | Reviewers test on older devices. Launch time >5s or scroll hitches = poor first impression. Memory leaks crash on devices with 3GB RAM. | Medium | Profile on oldest supported device (iPhone X class, iOS 17). Target <2s cold launch. Check SwiftData @Query performance with 100+ sessions. |
+| **Accessibility baseline** | Apple frequently rejects apps with insufficient VoiceOver support. Also legally advisable. Tonus uses custom fonts (DM Sans) which need explicit accessibility sizing. | Medium | VoiceOver labels on all interactive elements, Dynamic Type support for DM Sans via custom scaling, color contrast verification against DESIGN.md tokens. |
 
 ## Differentiators
 
-Features that set Tonus apart. Not expected by default, but create real competitive advantage -- especially vs. WHOOP (no strength training depth) and TrainingPeaks (no recovery scoring).
+Features that set Tonus apart from competitors. Not expected by every user, but valued by target audience and improve retention/conversion.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Fatigue pattern detection** | Automatically identify recurring patterns: "Your recovery drops 2 days after high-volume upper body sessions" or "Sleep quality degrades during consecutive high-load weeks." No competitor does this for strength athletes at the individual level. | High | Requires a FatiguePatternEngine (pure struct, static methods) that analyzes 4+ weeks of paired load/recovery data. Pattern types: post-session recovery lag, cumulative load threshold, sleep-load interaction. Output human-readable insights. |
-| **Training block detection (periodization awareness)** | Detect whether the athlete is in an accumulation, intensification, or deload phase based on volume and intensity trends -- without them manually configuring mesocycles. TrainingPeaks requires manual ATP setup; Tonus can infer it. | High | Analyze rolling 3-4 week windows of volume trend (increasing = accumulation, decreasing = deload, intensity-shifting = intensification). Display current detected phase on dashboard. Useful for autoregulation: "You appear to be in week 3 of a building phase -- consider a deload next week." |
-| **Coach PDF report** | Coaches can generate a branded PDF summary for an athlete covering a date range. AthleteMonitoring charges enterprise prices for this. Tonus can offer it in the Coach tier. | Medium | Use iOS native PDFKit or UIGraphicsRenderer. Include: period summary stats, load chart, recovery chart, PR highlights, session log. Gate behind Coach subscription. |
-| **Readiness-adjusted weekly plan suggestion** | Based on current recovery trend and load history, suggest how many sessions and at what intensity for the upcoming week. WHOOP does "strain target" but not session-level. | Medium | Extend AutoregulationEngine to output a weekly recommendation (e.g., "3 sessions, moderate intensity, avoid heavy lower body until recovery improves"). Requires the existing ACWR + recovery zone inputs plus a simple rule engine. |
-| **Behavior tagging with correlation** | Let athletes tag daily behaviors (caffeine, alcohol, travel, menstrual cycle phase, stress) and after 2+ weeks show correlations with recovery. WHOOP added this in 2026 ("Behavior Insights"); Oura has "Tags." | Medium | New BehaviorTag model (date, tag name, boolean). After sufficient data (5+ yes/5+ no within 90 days per WHOOP's approach), run simple correlation against recovery score. Display as "Recovery is X% higher on days after you [tag]." |
+| **PDF report export** | Coaches need formatted reports to share with athletes, parents, or staff. CSV is for data analysis; PDF is for communication. TrainingPeaks and TeamBuildr offer PDF exports -- coaches expect it at the Coach tier price point. | Medium | Use UIGraphicsPDFRenderer (Core Graphics) for generation -- NOT PDFKit which is viewing/modifying only. Include: date range header, weekly load summary, recovery trend, ACWR zone history, PR highlights, session log. Gate behind Pro/Coach subscription. Builds on existing CSVExportEngine data queries. |
+| **Push notifications (weekly summary)** | Retention driver. Data shows 1-3 pushes/week is the safe range for fitness apps. Athlytic alerts on abnormal metrics; Alpha Progression notifies on monthly reports. A weekly summary is the minimum viable notification. | Medium | Use local notifications via UNUserNotificationCenter -- NOT remote push (APNs). Zero server infrastructure needed. Schedule recurring Monday morning delivery. Rich content: "Your week: 4 sessions, 2 PRs, recovery trending up." Ask permission in-context (after first completed week), not on first launch. |
+| **Streak tracking** | Behavioral hook exploiting loss aversion -- the strongest gamification mechanic in fitness (Core Drive 8). Athlytic shows calendar streaks. Duolingo proved streaks drive daily retention. Serious athletes track consistency as a meta-metric. | Low-Medium | Track two streaks: workout streak (sessions logged) and check-in streak (wellness check-ins completed). 48-hour forgiveness window (not midnight reset) -- punishing streaks cause churn. Display on Dashboard hero area. Pure computation engine + SwiftData model + UI component. |
+| **ASO-optimized listing** | Tonus competes against TrainingPeaks ("training plan"), Athlytic ("AI fitness coach"), HRV4Training ("HRV"). Long-tail keywords are winnable: "workload management", "training load tracker", "ACWR", "recovery score". | Low | Keyword research + copywriting in App Store Connect. Consider Custom Product Pages (CPPs) for separate coach vs athlete search intents -- different screenshots for "coach training app" vs "workout recovery tracker". |
+| **Share cards (visual summaries)** | Athlytic's share cards got a 2025 design refresh -- athletes post recovery/workout cards to Instagram stories. Organic growth channel at zero CAC. | Low | Render SwiftUI view to image via ImageRenderer (iOS 16+). Include: readiness score, week summary, Tonus branding. Share via UIActivityViewController. Could be deferred to post-launch but low effort. |
 
 ## Anti-Features
 
-Features to explicitly NOT build. Each has a clear reason.
+Features to explicitly NOT build for this milestone.
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| **Manual mesocycle/ATP planner** | TrainingPeaks owns this space with deep coach tooling. Building a full periodization planner is 3+ months of work and competes on their turf. Tonus's value is automated detection, not manual planning. | Detect training phases automatically from data. Show "You appear to be in [phase]" rather than asking users to configure mesocycles. |
-| **AI chatbot / conversational coach** | WHOOP and Type to Run are investing heavily here. It requires LLM infrastructure, costs per query, and the liability of giving training advice. Not core to Tonus's data-centric value. | Keep autoregulation engine rule-based and transparent. Show reasoning ("because your HRV is 15% below baseline and ACWR is 1.4") rather than a chatbot. |
-| **Social/leaderboard features** | Strava owns social fitness. Adding social features fragments focus and raises moderation burden. PROJECT.md explicitly lists this as out of scope. | Focus on coach-athlete relationship depth instead. Coaches are the "social" layer. |
-| **Workout programming / plan builder** | Tonus already has PrescribedWorkout and WorkoutTemplate for coaches. Do NOT build a full plan-builder with progressive overload schemes -- that is a separate product (Juggernaut AI, Dr. Muscle). | Keep templates simple. The value is tracking what was done and analyzing it, not prescribing what to do. |
-| **Real-time session analytics (live HR zones, tempo tracking)** | Requires Apple Watch companion app (explicitly out of scope). Phone-only real-time tracking during lifting is impractical. | Focus on post-session analysis. Recovery and load insights happen after the workout, not during. |
-| **Calorie/nutrition tracking** | Different product category entirely. MyFitnessPal and MacroFactor own this. Adding it would bloat scope massively. | Could add body weight as a behavior tag for correlation analysis, but do not build food logging. |
+| **Daily push notifications** | More than 1-3/week causes opt-out and uninstalls. Aggressive notifications are the #1 reason users disable them in fitness apps. | Weekly summary only. Streaks visible on app open handle daily motivation passively. |
+| **Remote push notifications (APNs)** | Requires server infrastructure (Supabase Edge Functions or dedicated push service). Over-engineered for a weekly local reminder. Adds App Review complexity (push certificate, server-side logic). | Local notifications via UNUserNotificationCenter. Scheduled on-device. Zero server cost. |
+| **Leaderboards / social comparison** | Out of scope per PROJECT.md. High complexity, moderation burden, privacy concerns with health data. | Streaks are personal only. PRs serve as self-improvement achievements. |
+| **Badges / achievement system** | Over-engineered gamification for a data-driven training app. Serious athletes find it patronizing. Tonus's audience is analytical. | Streaks + PRs are the natural gamification layer. Two mechanics, not twenty. |
+| **Complex PDF templates with coach branding** | Custom branding is a feature for established platforms (TrainingPeaks Enterprise, TeamBuildr). Premature for launch. | Single clean PDF template with Tonus branding. Revisit coach-customizable templates if requested post-launch. |
+| **Streak shields / streak freeze purchases** | IAP gamification mechanics conflict with Tonus's serious athlete brand. Adds StoreKit complexity for minimal revenue. | 48-hour forgiveness window baked into streak logic. Merciful by default. |
+| **Apple Watch companion app** | Explicitly out of scope per PROJECT.md. Separate binary, separate review, 2-3 weeks of work minimum. | HealthKit reads from Apple Watch data that syncs to iPhone automatically. |
+| **Onboarding-time notification permission** | Asking for notification permission on first launch before the user sees value causes 40-60% denial rate. | Ask after the user's first completed week -- contextual permission request with preview of what they will receive. |
 
 ## Feature Dependencies
 
 ```
-Multi-week trend charts (table stakes)
-  --> no dependencies, data exists in WorkloadSnapshot
+App Store Metadata ──> Screenshots (metadata informs screenshot captions/story)
+Performance Audit ──> QA Pass (perf issues found during audit become QA items)
+QA Pass ──> App Review Compliance (bugs must be fixed before compliance check)
+App Review Compliance ──> Final Screenshots (capture after all fixes)
 
-Weekly training summary (table stakes)
-  --> no dependencies, aggregates existing snapshots
+Streak Tracking ──> Dashboard UI update (display streak counters)
+Streak Tracking ──> Weekly Summary content (notification includes streak count)
+Weekly Summary ──> Push Notification scheduling (notification delivers summary)
 
-Week-over-week load comparison (table stakes)
-  --> Weekly training summary (displayed within it)
+CSV Export (already exists) ──> PDF Export (PDF reuses same data queries, adds layout)
+PDF Export ──> Coach value prop (PDF is the coach-facing export format)
 
-Recovery-load correlation view (table stakes)
-  --> no dependencies, overlays existing data
-
-CSV data export (table stakes)
-  --> no dependencies, serializes WorkoutSession + snapshots
-
-Fatigue pattern detection (differentiator)
-  --> Multi-week trend charts (needs 4+ weeks of data, uses same data source)
-  --> Recovery-load correlation view (pattern detection is the algorithmic layer on top of correlation visualization)
-
-Training block detection (differentiator)
-  --> Multi-week trend charts (analyzes the same volume/intensity trends)
-
-Readiness-adjusted weekly plan (differentiator)
-  --> Weekly training summary (provides context for the suggestion)
-  --> Fatigue pattern detection (patterns inform weekly plan adjustments)
-
-Coach PDF report (differentiator)
-  --> Weekly training summary (report includes summary data)
-  --> Multi-week trend charts (report includes chart images)
-
-Behavior tagging with correlation (differentiator)
-  --> Recovery-load correlation view (extends correlation to include tags)
-  --> New BehaviorTag model (new SwiftData entity)
+All features ──> Final QA Pass (regression check before submission)
 ```
+
+## Competitor Feature Matrix
+
+| Feature | TrainingPeaks | HRV4Training | Athlytic | Alpha Progression | Tonus (current) | Tonus (v1.1 target) |
+|---------|--------------|--------------|----------|-------------------|-----------------|---------------------|
+| Weekly summary | Compliance bar (premium) | In-app weekly/monthly views | Calendar + streaks | Monthly reports | Weekly summary card (exists) | Weekly summary + notification |
+| Push notifications | Workout/coach alerts (premium) | Not prominent | Abnormal metric alerts | Report availability | None | Weekly local notification |
+| Streak tracking | Compliance colors | Not featured | Calendar streaks | Not featured | None | Workout + check-in streaks |
+| Data export | Full CSV/FIT | CSV via Dropbox/email | Share cards only | CSV | CSV (exists) | CSV + PDF |
+| PDF reports | Via WKO5 integration | Not found | Not found | Not found | None | Branded PDF with charts |
+| ASO optimization | Strong (dominant keywords) | Niche ("HRV") | "AI Fitness Coach" | "Gym Workout" | Not submitted | Long-tail keywords |
 
 ## MVP Recommendation
 
-**Phase 1 -- Analytics Foundation (table stakes):**
-1. Multi-week trend charts (Low complexity, high value, data already exists)
-2. Weekly training summary with week-over-week comparison (Medium complexity, expected by every competitor)
-3. Recovery-load correlation view (Medium complexity, fulfills Tonus's core promise)
+**Priority order for App Store launch (build sequence):**
 
-**Phase 2 -- Export and Intelligence (mix of table stakes + differentiators):**
-4. CSV data export (Medium complexity, table stakes for data-savvy athletes)
-5. Fatigue pattern detection (High complexity, key differentiator -- builds on Phase 1 visualization)
-6. Training block detection (High complexity, unique value vs. competitors)
+1. **Streak tracking** (Low-Med) -- Pure engine + model + UI. Ships fast, adds visible engagement feature for screenshots, provides data for notifications.
+2. **Push notifications - weekly summary** (Medium) -- Depends on streak data for rich content. Local-only via UNUserNotificationCenter.
+3. **PDF report export** (Medium) -- Builds on existing CSVExportEngine data queries. Coach-tier differentiator.
+4. **ASO metadata** (Low) -- Copywriting in App Store Connect. Informs screenshot captions. Can be done in parallel with code work.
+5. **Systematic QA pass** (Medium) -- Find and fix bugs across all features including new ones.
+6. **Performance audit** (Medium) -- Profile, optimize, verify on older devices.
+7. **App Review compliance** (Low-Med) -- Final checklist after all features and fixes land.
+8. **Final screenshots** (Medium) -- Capture with all features in place, marketing captions, real-looking data.
 
-**Phase 3 -- Coach Value and Personalization (differentiators):**
-7. Coach PDF report (Medium complexity, monetization lever for Coach tier)
-8. Readiness-adjusted weekly plan suggestion (Medium complexity, extends autoregulation)
-9. Behavior tagging with correlation (Medium complexity, engagement driver)
+**Defer to post-launch:** Share cards (low effort but not blocking submission).
 
-**Defer:** AI chatbot, manual periodization planner, social features, real-time analytics.
+## Complexity Estimates
 
-**Rationale:** Phase 1 gets Tonus to competitive parity on analytics. Phase 2 creates genuine differentiation -- no strength-focused app does automatic fatigue pattern detection or periodization awareness. Phase 3 deepens coach monetization and personal engagement. Each phase builds on the data and visualization foundation of the previous one.
+| Feature | New Files | Existing File Changes | Subscription Gate | Risk |
+|---------|-----------|----------------------|-------------------|------|
+| Streak tracking | ~3 (StreakEngine.swift, streak UI component, possible StreakRecord model) | DashboardView, DashboardViewModel, possibly Athlete model (streak fields) | Free (engagement) | Low -- pure computation + UI display |
+| Push notifications | ~2 (NotificationService.swift, WeeklySummaryBuilder.swift) | AppRouter (permission flow), ProfileView (settings toggle), Info.plist (notification usage) | Free (retention) | Low -- local only, no server dependency |
+| PDF report export | ~2 (PDFReportEngine.swift, export UI trigger) | WorkloadView or ProfileView (export button), UpgradeSheet (gate) | Pro/Coach | Medium -- Core Graphics coordinate math, chart rendering to PDF context |
+| ASO metadata | 0 (App Store Connect) | None | N/A | Low -- copywriting, iterative |
+| QA pass | 0 new | Bug fixes across codebase | N/A | Medium -- unknown scope |
+| Performance audit | 0 new | Optimizations | N/A | Medium -- depends on findings |
+| App Review compliance | 0-1 | Minor fixes | N/A | Low -- checklist |
+| Screenshots | 0 new | ScreenshotTests updates | N/A | Low -- framework exists |
 
 ## Sources
 
-- [WHOOP Weekly Performance Assessment](https://www.whoop.com/eu/en/thelocker/new-weekly-performance-assessment/)
-- [WHOOP 2026 Feature Updates -- Behavior Trends and Insights](https://www.whoop.com/us/en/thelocker/2026-whats-new/)
-- [WHOOP Trend Views](https://www.whoop.com/us/en/thelocker/track-progress-with-new-trend-views/)
-- [TrainingPeaks Athlete Features](https://www.trainingpeaks.com/athlete-features/)
-- [TrainingPeaks Annual Training Plan Guide](https://www.trainingpeaks.com/learn/articles/the-comprehensive-guide-to-creating-an-annual-training-plan/)
-- [TrainingPeaks Data Export](https://help.trainingpeaks.com/hc/en-us/articles/204985370-Data-Export)
-- [HRV4Training -- Longitudinal Load Analysis (ResearchGate)](https://www.researchgate.net/publication/309338230_HRV4Training_Large-scale_longitudinal_training_load_analysis_in_unconstrained_free-living_settings_using_a_smartphone_application)
-- [Strong App CSV Export](https://help.strongapp.io/article/235-export-workout-data)
-- [Oura Reports](https://support.ouraring.com/hc/en-us/articles/360046061373-Oura-Reports)
-- [AthleteMonitoring Sample Reports](https://www.athletemonitoring.com/athlete-monitoring-sample-reports/)
-- [Monitoring Training Load to Understand Fatigue in Athletes (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC4213373/)
-- [myTrainingForecast -- ACR Injury Prevention](https://mytrainingforecast.run)
+- [TrainingPeaks notification management](https://help.trainingpeaks.com/hc/en-us/articles/360053198451-Manage-Alerts-Notifications-on-the-TrainingPeaks-Mobile-App)
+- [TrainingPeaks premium features](https://www.trainingpeaks.com/blog/best-trainingpeaks-premium-features/)
+- [Athlytic App Store listing](https://apps.apple.com/us/app/athlytic-ai-fitness-coach/id1543571755)
+- [Athlytic review 2026](https://newzapiens.com/brands/athlytic)
+- [Alpha Progression review 2026](https://fitnessdrum.com/alpha-progression-app-review/)
+- [HRV4Training App Store listing](https://apps.apple.com/us/app/hrv4training/id686923970)
+- [ASO complete guide 2026](https://asomobile.net/en/blog/aso-in-2026-the-complete-guide-to-app-optimization/)
+- [iOS metadata and keyword strategy](https://dev.to/arshtechpro/ios-app-store-optimization-metadata-keyword-strategy-3f6p)
+- [ASO best practices 2026 (AppTweak)](https://www.apptweak.com/en/aso-blog/app-store-optimization-aso-best-practices)
+- [iOS push notification best practices 2026](https://evangelistsoftware.com/blog/the-role-of-push-notifications-in-ios-apps/)
+- [UNUserNotificationCenter documentation](https://developer.apple.com/documentation/usernotifications/unusernotificationcenter)
+- [Creating PDFs in Swift (Kodeco)](https://www.kodeco.com/4023941-creating-a-pdf-in-swift-with-pdfkit)
+- [PDFKit Apple documentation](https://developer.apple.com/documentation/pdfkit)
+- [Gamification in fitness apps (Yu-kai Chou)](https://yukaichou.com/gamification-analysis/top-10-gamification-in-fitness/)
+- [Fitness app features 2025](https://geeksofkolachi.com/blogs/fitness-app-features-2025-user-engagement/)
+- [Trainerize PDF export feature request](https://ideas.trainerize.com/forums/167887-coach-trainer-abc-trainerize/suggestions/45589054-exporting-workouts-programs-to-pdf)
