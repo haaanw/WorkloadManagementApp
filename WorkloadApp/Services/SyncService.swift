@@ -85,6 +85,12 @@ struct SyncService {
         )
         athlete.supabaseUserId = row.userId
         athlete.isCoach = row.isCoach ?? false
+        if let freq = row.trainingFrequency {
+            athlete.trainingFrequency = TrainingFrequency(rawValue: freq)
+        }
+        if let exp = row.experienceLevel {
+            athlete.experienceLevel = ExperienceLevel(rawValue: exp)
+        }
         athlete.updatedAt = row.updatedAt
         context.insert(athlete)
         try? context.save()
@@ -104,6 +110,8 @@ struct SyncService {
             maxHeartRate: athlete.maxHeartRate,
             dateOfBirth: athlete.dateOfBirth,
             isCoach: athlete.isCoach,
+            trainingFrequency: athlete.trainingFrequency?.rawValue,
+            experienceLevel: athlete.experienceLevel?.rawValue,
             createdAt: athlete.createdAt,
             updatedAt: athlete.updatedAt
         )
@@ -123,6 +131,12 @@ struct SyncService {
         if existingAthlete.updatedAt > row.updatedAt { return }
         existingAthlete.displayName = row.displayName ?? existingAthlete.displayName
         existingAthlete.isCoach = row.isCoach ?? existingAthlete.isCoach
+        if let freq = row.trainingFrequency {
+            existingAthlete.trainingFrequency = TrainingFrequency(rawValue: freq)
+        }
+        if let exp = row.experienceLevel {
+            existingAthlete.experienceLevel = ExperienceLevel(rawValue: exp)
+        }
         existingAthlete.updatedAt = row.updatedAt
         try? context.save()
     }
@@ -369,6 +383,12 @@ struct SyncService {
             existing.displayName = row.displayName ?? existing.displayName
             existing.sportType = SportType(rawValue: row.sportType ?? "") ?? existing.sportType
             existing.isCoach = row.isCoach ?? existing.isCoach
+            if let freq = row.trainingFrequency {
+                existing.trainingFrequency = TrainingFrequency(rawValue: freq)
+            }
+            if let exp = row.experienceLevel {
+                existing.experienceLevel = ExperienceLevel(rawValue: exp)
+            }
             existing.updatedAt = row.updatedAt
         } else {
             let athlete = Athlete(
@@ -378,6 +398,12 @@ struct SyncService {
             )
             athlete.supabaseUserId = row.userId
             athlete.isCoach = row.isCoach ?? false
+            if let freq = row.trainingFrequency {
+                athlete.trainingFrequency = TrainingFrequency(rawValue: freq)
+            }
+            if let exp = row.experienceLevel {
+                athlete.experienceLevel = ExperienceLevel(rawValue: exp)
+            }
             athlete.updatedAt = row.updatedAt
             context.insert(athlete)
         }
@@ -482,6 +508,8 @@ struct AthleteRow: Codable {
     let maxHeartRate: Int?
     let dateOfBirth: Date?
     let isCoach: Bool?
+    let trainingFrequency: String?
+    let experienceLevel: String?
     let createdAt: Date
     let updatedAt: Date
 }
