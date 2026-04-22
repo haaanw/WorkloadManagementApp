@@ -409,7 +409,7 @@ static func buildNotificationBody(
 | A1 | Streak should be computed on every dashboard load rather than persisted | Anti-Patterns | LOW -- computation is O(n) on session count, which is small; if performance becomes an issue, caching is trivial to add |
 | A2 | Notification content should be refreshed on each app foreground to avoid staleness | Pitfalls | MEDIUM -- if user doesn't open app for weeks, stale content fires; reschedule-on-foreground mitigates this |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **PR count in notification: query strategy**
    - What we know: AnalyticsEngine.WeeklySummary lacks a prCount field. PersonalRecord model has achievedAt date that can be filtered by week.
