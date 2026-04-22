@@ -41,8 +41,8 @@
 
 Plans:
 - [x] 05-01-PLAN.md -- StreakEngine + NotificationService foundation
-- [ ] 05-02-PLAN.md -- Dashboard streak display + pre-permission card
-- [ ] 05-03-PLAN.md -- Profile notification settings
+- [x] 05-02-PLAN.md -- Dashboard streak display + pre-permission card
+- [x] 05-03-PLAN.md -- Profile notification settings
 
 **UI hint**: yes
 
