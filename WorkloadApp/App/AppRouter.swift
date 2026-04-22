@@ -107,8 +107,9 @@ struct AppRouter: View {
                 }
 
                 #if DEBUG
-                // Seed mock data for screenshots if no sessions exist
-                if let athlete = (try? modelContext.fetch(FetchDescriptor<Athlete>()))?.first {
+                // Seed mock data only in SCREENSHOT_MODE — prevents masking welcome card for real users
+                if ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE"),
+                   let athlete = (try? modelContext.fetch(FetchDescriptor<Athlete>()))?.first {
                     MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
                 }
                 #endif
