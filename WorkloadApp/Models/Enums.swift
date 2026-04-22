@@ -96,8 +96,8 @@ enum ACWRZone: String, Codable {
         guard ctl > 0 else { return .noData }
         switch acwr {
         case ..<0.8: return .undertrained
-        case 0.8...1.3: return .optimal
-        case 1.3...1.5: return .caution
+        case 0.8..<1.3: return .optimal
+        case 1.3..<1.5: return .caution
         default: return .danger
         }
     }
