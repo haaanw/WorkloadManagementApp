@@ -117,6 +117,7 @@
 		CC0301010000000000000007 /* FatiguePatternEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0301010000000000000008 /* FatiguePatternEngine.swift */; };
 		CC0301010000000000000009 /* BehaviorCorrelationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC030101000000000000000A /* BehaviorCorrelationEngine.swift */; };
 		EE0501020000000000000001 /* StreakEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0501010000000000000001 /* StreakEngine.swift */; };
+		EE0501020000000000000002 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0501010000000000000002 /* NotificationService.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -149,6 +150,7 @@
 		5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		596CFF167B4680D856FE2C46 /* RevenueCatConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RevenueCatConfig.swift; sourceTree = "<group>"; };
 		EE0501010000000000000001 /* StreakEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakEngine.swift; sourceTree = "<group>"; };
+		EE0501010000000000000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		62324B4E2F66C5F600A9C2BE /* workload management.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "workload management.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		62324BE02F66CB0E00A9C2BE /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		62324BE12F66CB0E00A9C2BE /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
@@ -420,6 +422,7 @@
 				CC0301010000000000000008 /* FatiguePatternEngine.swift */,
 				CC030101000000000000000A /* BehaviorCorrelationEngine.swift */,
 				EE0501010000000000000001 /* StreakEngine.swift */,
+				EE0501010000000000000002 /* NotificationService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -841,6 +844,7 @@
 				CC0301010000000000000007 /* FatiguePatternEngine.swift in Sources */,
 				CC0301010000000000000009 /* BehaviorCorrelationEngine.swift in Sources */,
 				EE0501020000000000000001 /* StreakEngine.swift in Sources */,
+				EE0501020000000000000002 /* NotificationService.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
