@@ -13,6 +13,7 @@ struct DashboardView: View {
     @Query private var athletes: [Athlete]
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
     private var recentSessions: [WorkoutSession]
+    @Query private var allCheckIns: [WellnessCheckIn]
     @State private var showActiveWorkout = false
     @State private var showWellnessCheckIn = false
     @State private var viewModel = DashboardViewModel()
@@ -20,8 +21,8 @@ struct DashboardView: View {
     private var athlete: Athlete? { athletes.first }
 
     private var showWelcomeCard: Bool {
-        guard let athlete else { return false }
-        return athlete.sessions.isEmpty && athlete.wellnessCheckIns.isEmpty
+        guard athlete != nil else { return false }
+        return recentSessions.isEmpty && allCheckIns.isEmpty
     }
 
     var body: some View {
