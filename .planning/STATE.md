@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: App Store Launch
-status: defining
-stopped_at: Defining requirements
+status: roadmapped
+stopped_at: Roadmap created, ready to plan Phase 5
 last_updated: "2026-04-22"
 last_activity: 2026-04-22
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,31 @@ progress:
 See: .planning/PROJECT.md (updated 2026-04-22)
 
 **Core value:** Recovery + load tracked over time -- long-term insight into how the body responds to training
-**Current focus:** Milestone v1.1 — App Store Launch
+**Current focus:** Phase 5 — Streaks & Notifications
 
 ## Current Position
 
-Phase: Not started (defining requirements)
+Phase: 5 of 8 (Streaks & Notifications)
 Plan: —
-Status: Defining requirements
-Last activity: 2026-04-22 — Milestone v1.1 started
+Status: Ready to plan
+Last activity: 2026-04-22 — Roadmap created for v1.1 milestone
+
+Progress: [░░░░░░░░░░] 0%
+
+## Performance Metrics
+
+**Velocity:**
+- Total plans completed: 14 (v1.0)
+- Average duration: carried from v1.0
+- Total execution time: carried from v1.0
+
+**By Phase:**
+
+| Phase | Plans | Total | Avg/Plan |
+|-------|-------|-------|----------|
+| v1.0 phases 1-4 | 14/14 | — | — |
+
+*Updated after each plan completion*
 
 ## Accumulated Context
 
@@ -39,6 +56,10 @@ Recent decisions affecting current work:
 
 - [v1.0]: Depth-first post-launch strategy -- analytics before onboarding polish
 - [v1.0]: @Query over relationship arrays for welcome card visibility
+- [v1.1]: Weekly streaks (not daily) to avoid punishing rest days
+- [v1.1]: Local-only notifications via UNCalendarNotificationTrigger -- no APNs needed
+- [v1.1]: UIGraphicsPDFRenderer for PDF export -- vector quality, no new SPM deps
+- [v1.1]: Zero new SPM packages for v1.1 -- all Apple-native frameworks
 
 ### Pending Todos
 
@@ -46,7 +67,8 @@ None yet.
 
 ### Blockers/Concerns
 
-None yet.
+- ASO keyword selection needs product owner input before Phase 7
+- Demo account seeding strategy needs definition during Phase 8 planning
 
 ### Quick Tasks Completed
 
@@ -63,5 +85,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-04-22
-Stopped at: Milestone v1.1 requirements definition
+Stopped at: Roadmap created for v1.1, ready to plan Phase 5
 Resume file: —

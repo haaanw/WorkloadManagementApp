@@ -73,33 +73,33 @@ Requirements for App Store launch. Each maps to roadmap phases.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| STRK-01 | — | Pending |
-| STRK-02 | — | Pending |
-| NOTF-01 | — | Pending |
-| NOTF-02 | — | Pending |
-| NOTF-03 | — | Pending |
-| EXPRT-01 | — | Pending |
-| EXPRT-02 | — | Pending |
-| EXPRT-03 | — | Pending |
-| ASO-01 | — | Pending |
-| ASO-02 | — | Pending |
-| ASO-03 | — | Pending |
-| ASO-04 | — | Pending |
-| CMPL-01 | — | Pending |
-| CMPL-02 | — | Pending |
-| CMPL-03 | — | Pending |
-| CMPL-04 | — | Pending |
-| CMPL-05 | — | Pending |
-| QA-01 | — | Pending |
-| QA-02 | — | Pending |
-| QA-03 | — | Pending |
-| QA-04 | — | Pending |
+| STRK-01 | Phase 5 | Pending |
+| STRK-02 | Phase 5 | Pending |
+| NOTF-01 | Phase 5 | Pending |
+| NOTF-02 | Phase 5 | Pending |
+| NOTF-03 | Phase 5 | Pending |
+| EXPRT-01 | Phase 6 | Pending |
+| EXPRT-02 | Phase 6 | Pending |
+| EXPRT-03 | Phase 6 | Pending |
+| ASO-01 | Phase 7 | Pending |
+| ASO-02 | Phase 7 | Pending |
+| ASO-03 | Phase 7 | Pending |
+| ASO-04 | Phase 7 | Pending |
+| CMPL-01 | Phase 8 | Pending |
+| CMPL-02 | Phase 8 | Pending |
+| CMPL-03 | Phase 8 | Pending |
+| CMPL-04 | Phase 8 | Pending |
+| CMPL-05 | Phase 8 | Pending |
+| QA-01 | Phase 8 | Pending |
+| QA-02 | Phase 8 | Pending |
+| QA-03 | Phase 8 | Pending |
+| QA-04 | Phase 8 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 21 total
-- Mapped to phases: 0
-- Unmapped: 21 ⚠️
+- Mapped to phases: 21
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-04-22 after initial definition*
+*Last updated: 2026-04-22 after roadmap creation*
