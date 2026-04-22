@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0B040200000000000000000A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B040100000000000000000A /* OnboardingView.swift */; };
 		AA0202020000000000000001 /* WorkloadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000001 /* WorkloadViewModel.swift */; };
 		AA0202020000000000000002 /* TimeRangeSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */; };
 		AA0202020000000000000003 /* ChartTooltipOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000003 /* ChartTooltipOverlay.swift */; };
@@ -182,6 +183,7 @@
 		62324C082F66CB0E00A9C2BE /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
 		62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryViewModel.swift; sourceTree = "<group>"; };
 		62324C0A2F66CB0E00A9C2BE /* WorkoutLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLogViewModel.swift; sourceTree = "<group>"; };
+		0B040100000000000000000A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		62324C0D2F66CB0E00A9C2BE /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		62324C0E2F66CB0E00A9C2BE /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 		62324C102F66CB0E00A9C2BE /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -472,6 +474,7 @@
 		62324C132F66CB0E00A9C2BE /* Onboarding */ = {
 			isa = PBXGroup;
 			children = (
+				0B040100000000000000000A /* OnboardingView.swift */,
 			);
 			path = Onboarding;
 			sourceTree = "<group>";
@@ -735,6 +738,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0B040200000000000000000A /* OnboardingView.swift in Sources */,
 				62324C232F66CB0E00A9C2BE /* LoginView.swift in Sources */,
 				62324C242F66CB0E00A9C2BE /* PreviewData.swift in Sources */,
 				62324C252F66CB0E00A9C2BE /* ExercisePickerView.swift in Sources */,
