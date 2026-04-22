@@ -1,5 +1,6 @@
 import Foundation
 import SwiftData
+import UserNotifications
 
 /// ViewModel for the Dashboard tab.
 /// Runs recovery pipeline and autoregulation engine on appear/foreground.
@@ -42,6 +43,9 @@ final class DashboardViewModel {
 
     // Weekly summary (ANLYT-02, ANLYT-03)
     var weeklySummary: AnalyticsEngine.WeeklySummary?
+
+    // Streak (STRK-01, STRK-02)
+    var currentStreak: Int = 0
 
     var isLoading = true
 
@@ -174,6 +178,10 @@ final class DashboardViewModel {
             currentWeekWorkloadSnapshots: currentWorkload
         )
 
+        // Streak computation (STRK-01) — uses all sessions up to 1 year for streak history
+        let streakSessions = (try? workoutRepo.fetchSessions(last: 365)) ?? []
+        currentStreak = StreakEngine.computeStreak(sessions: streakSessions)
+
         // Compute consecutive training days
         let daysSinceRest = computeDaysSinceRest(workoutRepo: workoutRepo)
 
@@ -206,6 +214,36 @@ final class DashboardViewModel {
         }
 
         isLoading = false
+    }
+
+    /// Refresh the pending weekly notification with current summary data (NOTF-01 staleness prevention).
+    func refreshNotificationContent(notificationService: NotificationService, modelContext: ModelContext) {
+        let notificationsEnabled = UserDefaults.standard.bool(forKey: "notificationsEnabled")
+        guard notificationsEnabled else { return }
+
+        let prCount: Int = {
+            let weekStart = Calendar.current.date(byAdding: .day, value: -7, to: Date.now)!
+            let desc = FetchDescriptor<PersonalRecord>(
+                predicate: #Predicate<PersonalRecord> { $0.achievedAt >= weekStart }
+            )
+            return (try? modelContext.fetch(desc).count) ?? 0
+        }()
+
+        let body = NotificationService.buildNotificationBody(
+            sessionCount: weeklySummary?.sessionCount ?? 0,
+            streak: currentStreak,
+            prCount: prCount,
+            volumeDelta: weeklySummary?.volumeDelta ?? 0
+        )
+
+        let day = UserDefaults.standard.integer(forKey: "notificationDay")
+        let timeString = UserDefaults.standard.string(forKey: "notificationTime") ?? "19:00"
+        let timeParts = timeString.split(separator: ":").compactMap { Int($0) }
+        let hour = timeParts.first ?? 19
+        let minute = timeParts.count > 1 ? timeParts[1] : 0
+        let weekday = day > 0 ? day : 1
+
+        notificationService.scheduleWeeklySummary(weekday: weekday, hour: hour, minute: minute, body: body)
     }
 
     private func computeDaysSinceRest(workoutRepo: WorkoutRepository) -> Int {
