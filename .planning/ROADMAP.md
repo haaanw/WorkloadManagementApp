@@ -37,7 +37,13 @@
   2. User receives a weekly local notification summarizing sessions, PRs, and streak
   3. User sees a pre-permission screen before the iOS notification permission dialog
   4. User can toggle notifications on/off and configure day/time in Profile settings
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 05-01-PLAN.md -- StreakEngine + NotificationService foundation
+- [ ] 05-02-PLAN.md -- Dashboard streak display + pre-permission card
+- [ ] 05-03-PLAN.md -- Profile notification settings
+
 **UI hint**: yes
 
 ### Phase 6: PDF Report Export
@@ -84,7 +90,7 @@ Phases execute in numeric order: 5 -> 6 -> 7 -> 8
 | 2. Analytics & Export | v1.0 | 4/4 | Complete | 2026-04-20 |
 | 3. Training Intelligence | v1.0 | 4/4 | Complete | 2026-04-21 |
 | 4. Onboarding & Polish | v1.0 | 3/3 | Complete | 2026-04-22 |
-| 5. Streaks & Notifications | v1.1 | 0/0 | Not started | - |
+| 5. Streaks & Notifications | v1.1 | 0/3 | Planning complete | - |
 | 6. PDF Report Export | v1.1 | 0/0 | Not started | - |
 | 7. App Store Metadata | v1.1 | 0/0 | Not started | - |
 | 8. QA, Performance & Compliance | v1.1 | 0/0 | Not started | - |
