@@ -10,6 +10,7 @@ struct AppRouter: View {
     @State private var container = AppContainer()
     @State private var isCheckingSession = true
     @State private var pendingInviteCode: PendingInvite?
+    @State private var needsOnboarding = false
     @Environment(\.modelContext) private var modelContext
 
     var body: some View {
@@ -18,6 +19,8 @@ struct AppRouter: View {
                 ProgressView("Loading...")
             } else if !container.isAuthenticated {
                 LoginView()
+            } else if needsOnboarding {
+                OnboardingView(onComplete: { needsOnboarding = false })
             } else {
                 MainTabView()
             }
@@ -50,6 +53,7 @@ struct AppRouter: View {
                     MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
                 }
                 container.setAuthenticated(true)
+                needsOnboarding = false
                 container.subscriptionService.overrideForScreenshots(isPro: true, isCoach: false)
                 isCheckingSession = false
                 return
@@ -87,6 +91,12 @@ struct AppRouter: View {
                     }
                 }
                 container.setAuthenticated(true)
+
+                // Check if onboarding is needed (D-06)
+                let onboardingAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
+                if let a = onboardingAthletes?.first {
+                    needsOnboarding = (a.trainingFrequency == nil || a.experienceLevel == nil)
+                }
 
                 #if DEBUG
                 // Seed mock data for screenshots if no sessions exist
