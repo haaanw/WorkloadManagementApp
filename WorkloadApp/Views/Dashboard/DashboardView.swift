@@ -14,15 +14,28 @@ struct DashboardView: View {
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
     private var recentSessions: [WorkoutSession]
     @State private var showActiveWorkout = false
+    @State private var showWellnessCheckIn = false
     @State private var viewModel = DashboardViewModel()
 
     private var athlete: Athlete? { athletes.first }
+
+    private var showWelcomeCard: Bool {
+        guard let athlete else { return false }
+        return athlete.sessions.isEmpty && athlete.wellnessCheckIns.isEmpty
+    }
 
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
                     HeroReadinessCard(viewModel: viewModel)
+
+                    if showWelcomeCard {
+                        WelcomeActionCard(
+                            onLogWorkout: { showActiveWorkout = true },
+                            onWellnessCheckIn: { showWellnessCheckIn = true }
+                        )
+                    }
 
                     if !viewModel.hasRealData {
                         EmptyStateCard {
@@ -84,6 +97,9 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet()
+            }
+            .sheet(isPresented: $showWellnessCheckIn) {
+                MorningCheckInSheet()
             }
             .navigationDestination(for: TrendDestination.self) { dest in
                 switch dest {

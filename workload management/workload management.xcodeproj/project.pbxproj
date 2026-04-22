@@ -99,6 +99,7 @@
 		CC0302010000000000000007 /* BehaviorCorrelationRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0302010000000000000008 /* BehaviorCorrelationRow.swift */; };
 		BB0203010000000000000001 /* DeltaIndicator.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0203010000000000000002 /* DeltaIndicator.swift */; };
 		BB0203010000000000000003 /* WeeklySummaryCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB0203010000000000000004 /* WeeklySummaryCard.swift */; };
+		DD0403010000000000000001 /* WelcomeActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0403010000000000000002 /* WelcomeActionCard.swift */; };
 		AA0201010000000000000005 /* CSVExportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0201010000000000000006 /* CSVExportEngine.swift */; };
 		7B421978B0C35067216FEBE5 /* InviteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06ABB878A70046BADB172CF6 /* InviteService.swift */; };
 		967C08594573E46A4E6C03AC /* CoachRosterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE6662043B66D8EF333D9 /* CoachRosterViewModel.swift */; };
@@ -226,6 +227,7 @@
 		CC0302010000000000000008 /* BehaviorCorrelationRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorCorrelationRow.swift; sourceTree = "<group>"; };
 		BB0203010000000000000002 /* DeltaIndicator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DeltaIndicator.swift; sourceTree = "<group>"; };
 		BB0203010000000000000004 /* WeeklySummaryCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeeklySummaryCard.swift; sourceTree = "<group>"; };
+		DD0403010000000000000002 /* WelcomeActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeActionCard.swift; sourceTree = "<group>"; };
 		AA0201010000000000000006 /* CSVExportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExportEngine.swift; sourceTree = "<group>"; };
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		CC0301010000000000000002 /* BehaviorTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorTag.swift; sourceTree = "<group>"; };
@@ -465,6 +467,7 @@
 				62F32CB82F71849300B6135F /* SleepDetailView.swift */,
 				62324C102F66CB0E00A9C2BE /* DashboardView.swift */,
 				BB0203010000000000000004 /* WeeklySummaryCard.swift */,
+				DD0403010000000000000002 /* WelcomeActionCard.swift */,
 			);
 			path = Dashboard;
 			sourceTree = "<group>";
@@ -759,6 +762,7 @@
 				CC0302010000000000000007 /* BehaviorCorrelationRow.swift in Sources */,
 				BB0203010000000000000001 /* DeltaIndicator.swift in Sources */,
 				BB0203010000000000000003 /* WeeklySummaryCard.swift in Sources */,
+				DD0403010000000000000001 /* WelcomeActionCard.swift in Sources */,
 				62F32D7DC317C2EF8C0400B6 /* SpikeAlertBanner.swift in Sources */,
 				62324C322F66CB0E00A9C2BE /* WorkoutLogViewModel.swift in Sources */,
 				62324C332F66CB0E00A9C2BE /* SleepTrendChart.swift in Sources */,
