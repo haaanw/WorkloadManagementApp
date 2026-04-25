@@ -38,12 +38,13 @@ The combination of recovery and load tracked over time — giving athletes long-
 - ✓ Data sufficiency gating for intelligence features — v1.0 Phase 3
 - ✓ First-run guidance (welcome card with workout/wellness CTAs) — v1.0 Phase 4
 - ✓ Sport/training preference setup during onboarding — v1.0 Phase 4
+- ✓ Streak tracking for training consistency (consecutive week counting) — v1.1 Phase 5
+- ✓ Weekly local push notifications with training summary — v1.1 Phase 5
+- ✓ Notification pre-permission card and profile settings — v1.1 Phase 5
 
 ### Active
 
 - [ ] Data export (PDF reports or CSV for coaches)
-- [ ] Push notifications for weekly summary
-- [ ] Streak tracking for training/check-in consistency
 - [ ] Systematic QA pass (bugs, edge cases, crash testing)
 - [ ] App Store metadata (description, keywords, categories, screenshots)
 - [ ] Preemptive App Review compliance
@@ -121,4 +122,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-22 after v1.1 milestone start*
+*Last updated: 2026-04-25 after Phase 5 (Streaks & Notifications) complete*
