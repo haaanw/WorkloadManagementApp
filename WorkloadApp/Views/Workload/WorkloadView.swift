@@ -16,6 +16,7 @@ struct WorkloadView: View {
     @State private var showShareSheet = false
     @State private var showUpgradeForExport = false
     @State private var exportFileURL: URL?
+    @State private var showPDFSheet = false
     @State private var viewModel = WorkloadViewModel()
     @State private var selectedTrendDate: Date?
 
@@ -154,12 +155,18 @@ struct WorkloadView: View {
                 Button("Detailed Sets") {
                     exportCSV(format: .detailedSets)
                 }
+                Button("PDF Report (Pro)") {
+                    showPDFSheet = true
+                }
                 Button("Cancel", role: .cancel) {}
             }
             .sheet(isPresented: $showShareSheet) {
                 if let url = exportFileURL {
                     ShareSheet(items: [url])
                 }
+            }
+            .sheet(isPresented: $showPDFSheet) {
+                PDFGenerationSheet()
             }
             .sheet(isPresented: $showUpgradeForExport) {
                 UpgradeSheet(trigger: .export)
