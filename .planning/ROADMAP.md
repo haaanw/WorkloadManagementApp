@@ -57,7 +57,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md -- PDFReportEngine core engine (athlete + coach report generation)
+- [x] 06-01-PLAN.md -- PDFReportEngine core engine (athlete + coach report generation)
 - [ ] 06-02-PLAN.md -- Athlete PDF export UI (WorkloadView integration + PDFGenerationSheet)
 - [ ] 06-03-PLAN.md -- Coach PDF export UI (CoachRosterView integration + CoachExportSheet)
 
