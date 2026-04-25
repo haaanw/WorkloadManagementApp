@@ -105,6 +105,7 @@
 		AA0201010000000000000005 /* CSVExportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0201010000000000000006 /* CSVExportEngine.swift */; };
 		FF0601010000000000000001 /* PDFReportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0601010000000000000002 /* PDFReportEngine.swift */; };
 		FF0603010000000000000001 /* CoachExportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0603010000000000000002 /* CoachExportSheet.swift */; };
+		FF0602010000000000000001 /* PDFGenerationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0602010000000000000002 /* PDFGenerationSheet.swift */; };
 		7B421978B0C35067216FEBE5 /* InviteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06ABB878A70046BADB172CF6 /* InviteService.swift */; };
 		967C08594573E46A4E6C03AC /* CoachRosterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE6662043B66D8EF333D9 /* CoachRosterViewModel.swift */; };
 		A44B7F1B2647EC7086EE54B9 /* CoachRelationshipModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2B9F3391AC5FE598FD31F7 /* CoachRelationshipModelTests.swift */; };
@@ -241,6 +242,7 @@
 		AA0201010000000000000006 /* CSVExportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExportEngine.swift; sourceTree = "<group>"; };
 		FF0601010000000000000002 /* PDFReportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFReportEngine.swift; sourceTree = "<group>"; };
 		FF0603010000000000000002 /* CoachExportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachExportSheet.swift; sourceTree = "<group>"; };
+		FF0602010000000000000002 /* PDFGenerationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGenerationSheet.swift; sourceTree = "<group>"; };
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		CC0301010000000000000002 /* BehaviorTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorTag.swift; sourceTree = "<group>"; };
 		CC0301010000000000000004 /* BehaviorTagRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorTagRepository.swift; sourceTree = "<group>"; };
@@ -516,6 +518,14 @@
 			path = Recovery;
 			sourceTree = "<group>";
 		};
+		FF0602010000000000000003 /* Export */ = {
+			isa = PBXGroup;
+			children = (
+				FF0602010000000000000002 /* PDFGenerationSheet.swift */,
+			);
+			path = Export;
+			sourceTree = "<group>";
+		};
 		62324C1A2F66CB0E00A9C2BE /* Workload */ = {
 			isa = PBXGroup;
 			children = (
@@ -545,6 +555,7 @@
 				62324C0C2F66CB0E00A9C2BE /* Analytics */,
 				62324C0F2F66CB0E00A9C2BE /* Auth */,
 				62324C112F66CB0E00A9C2BE /* Dashboard */,
+				FF0602010000000000000003 /* Export */,
 				62324C132F66CB0E00A9C2BE /* Onboarding */,
 				62324C152F66CB0E00A9C2BE /* Profile */,
 				62324C182F66CB0E00A9C2BE /* Recovery */,
@@ -865,6 +876,7 @@
 				EE0501020000000000000002 /* NotificationService.swift in Sources */,
 				FF0601010000000000000001 /* PDFReportEngine.swift in Sources */,
 				FF0603010000000000000001 /* CoachExportSheet.swift in Sources */,
+				FF0602010000000000000001 /* PDFGenerationSheet.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
