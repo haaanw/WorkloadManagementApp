@@ -8,6 +8,8 @@ struct CoachRosterView: View {
 
     @State private var viewModel = CoachRosterViewModel()
     @State private var showAddClient = false
+    @State private var showCoachExport = false
+    @State private var showUpgradeForExport = false
 
     private var athlete: Athlete? { athletes.first }
 
@@ -33,12 +35,32 @@ struct CoachRosterView: View {
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                 }
+                ToolbarItem(placement: .topBarLeading) {
+                    Button {
+                        if container.subscriptionService.isCoach {
+                            showCoachExport = true
+                        } else {
+                            showUpgradeForExport = true
+                        }
+                    } label: {
+                        Image(systemName: "doc.text")
+                            .foregroundStyle(ColorTokens.text1)
+                    }
+                    .accessibilityLabel("Export roster report")
+                    .accessibilityHint("Generates a PDF report of your training data")
+                }
             }
             .sheet(isPresented: $showAddClient) {
                 Text("Invite an athlete — see Profile for invite options")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(24)
+            }
+            .sheet(isPresented: $showCoachExport) {
+                CoachExportSheet(viewModel: viewModel)
+            }
+            .sheet(isPresented: $showUpgradeForExport) {
+                UpgradeSheet(trigger: .export)
             }
         }
         .task {
