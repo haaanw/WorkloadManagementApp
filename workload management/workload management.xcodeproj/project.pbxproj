@@ -103,6 +103,7 @@
 		DD0403010000000000000001 /* WelcomeActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0403010000000000000002 /* WelcomeActionCard.swift */; };
 		EE0502010000000000000001 /* NotificationPrePermissionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0502010000000000000002 /* NotificationPrePermissionCard.swift */; };
 		AA0201010000000000000005 /* CSVExportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0201010000000000000006 /* CSVExportEngine.swift */; };
+		FF0601010000000000000001 /* PDFReportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0601010000000000000002 /* PDFReportEngine.swift */; };
 		7B421978B0C35067216FEBE5 /* InviteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06ABB878A70046BADB172CF6 /* InviteService.swift */; };
 		967C08594573E46A4E6C03AC /* CoachRosterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE6662043B66D8EF333D9 /* CoachRosterViewModel.swift */; };
 		A44B7F1B2647EC7086EE54B9 /* CoachRelationshipModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2B9F3391AC5FE598FD31F7 /* CoachRelationshipModelTests.swift */; };
@@ -237,6 +238,7 @@
 		DD0403010000000000000002 /* WelcomeActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeActionCard.swift; sourceTree = "<group>"; };
 		EE0502010000000000000002 /* NotificationPrePermissionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPrePermissionCard.swift; sourceTree = "<group>"; };
 		AA0201010000000000000006 /* CSVExportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExportEngine.swift; sourceTree = "<group>"; };
+		FF0601010000000000000002 /* PDFReportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFReportEngine.swift; sourceTree = "<group>"; };
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		CC0301010000000000000002 /* BehaviorTag.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorTag.swift; sourceTree = "<group>"; };
 		CC0301010000000000000004 /* BehaviorTagRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BehaviorTagRepository.swift; sourceTree = "<group>"; };
@@ -425,6 +427,7 @@
 				CC030101000000000000000A /* BehaviorCorrelationEngine.swift */,
 				EE0501010000000000000001 /* StreakEngine.swift */,
 				EE0501010000000000000002 /* NotificationService.swift */,
+				FF0601010000000000000002 /* PDFReportEngine.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -849,6 +852,7 @@
 				CC0301010000000000000009 /* BehaviorCorrelationEngine.swift in Sources */,
 				EE0501020000000000000001 /* StreakEngine.swift in Sources */,
 				EE0501020000000000000002 /* NotificationService.swift in Sources */,
+				FF0601010000000000000001 /* PDFReportEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
