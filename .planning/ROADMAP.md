@@ -54,7 +54,13 @@ Plans:
   1. User can generate a PDF report containing recovery scores, workload trends, and PRs (composite data only, no raw HealthKit values)
   2. Coach can generate a multi-athlete PDF summary report
   3. PDF export is gated behind Pro/Coach subscription; free users retain CSV export
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 06-01-PLAN.md -- PDFReportEngine core engine (athlete + coach report generation)
+- [ ] 06-02-PLAN.md -- Athlete PDF export UI (WorkloadView integration + PDFGenerationSheet)
+- [ ] 06-03-PLAN.md -- Coach PDF export UI (CoachRosterView integration + CoachExportSheet)
+
 **UI hint**: yes
 
 ### Phase 7: App Store Metadata
@@ -91,6 +97,6 @@ Phases execute in numeric order: 5 -> 6 -> 7 -> 8
 | 3. Training Intelligence | v1.0 | 4/4 | Complete | 2026-04-21 |
 | 4. Onboarding & Polish | v1.0 | 3/3 | Complete | 2026-04-22 |
 | 5. Streaks & Notifications | v1.1 | 0/3 | Planning complete | - |
-| 6. PDF Report Export | v1.1 | 0/0 | Not started | - |
+| 6. PDF Report Export | v1.1 | 0/3 | Planning complete | - |
 | 7. App Store Metadata | v1.1 | 0/0 | Not started | - |
 | 8. QA, Performance & Compliance | v1.1 | 0/0 | Not started | - |
