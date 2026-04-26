@@ -22,7 +22,7 @@ struct ProfileView: View {
     @State private var generatedCode: String?
     @State private var isGeneratingCode = false
     @State private var pendingInviteFromProfile: PendingInvite?
-    @State private var nfcCoordinator = NFCSessionCoordinator()
+
     @State private var errorMessage: String?
     @State private var showUpgrade = false
 
@@ -277,10 +277,6 @@ struct ProfileView: View {
                             }
                         }
 
-                        divider()
-                        actionButton("Link via NFC") {
-                            Task { await startNFC(athlete: athlete) }
-                        }
 
                         // Linked Coaches
                         let myCoachRels = relationships.filter {
@@ -526,21 +522,6 @@ struct ProfileView: View {
             errorMessage = error.localizedDescription
         }
         isGeneratingCode = false
-    }
-
-    private func startNFC(athlete: Athlete) async {
-        do {
-            if athlete.isCoach {
-                let athleteId = try await nfcCoordinator.startScan()
-                pendingInviteFromProfile = PendingInvite(code: athleteId.uuidString)
-            } else {
-                try await nfcCoordinator.startWrite(athleteId: athlete.id)
-            }
-        } catch is CancellationError {
-            // User cancelled
-        } catch {
-            errorMessage = error.localizedDescription
-        }
     }
 
     private func removeRelationship(_ rel: CoachAthleteRelationship) async {

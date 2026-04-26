@@ -3,7 +3,7 @@ import SwiftData
 
 enum InviteConfirmationMode {
     case athleteAccepting   // athlete tapped a deep link from coach email
-    case coachConfirming    // coach entered a code or scanned NFC
+    case coachConfirming    // coach entered a code
 }
 
 struct InviteConfirmationSheet: View {
