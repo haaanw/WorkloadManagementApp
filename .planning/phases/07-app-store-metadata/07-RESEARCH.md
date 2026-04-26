@@ -130,6 +130,7 @@ WorkloadApp/
     SocialLoginButtons.swift # NEW: shared Apple + Google button components
   App/
     AppRouter.swift          # ADD: .onOpenURL handler for Google OAuth callback
+                             # ADD: COACH_MODE launch argument handler for screenshots
     AppContainer.swift       # No changes needed (AuthService already injected)
 
 workload management/
@@ -342,7 +343,7 @@ SignInWithAppleButton(.signIn) { request in
 // 2. Workload charts -- tab: Load
 // 3. Recovery view -- tab: Recovery
 // 4. Workout log -- tab: Log
-// 5. Coach roster -- requires mode switch to .coach
+// 5. Coach roster -- requires mode switch to .coach via COACH_MODE launch argument
 // 6. PDF export -- requires navigation to export feature
 ```
 
@@ -368,32 +369,37 @@ SignInWithAppleButton(.signIn) { request in
 | A4 | Coach roster and PDF export views are accessible in SCREENSHOT_MODE | Pitfall 5 | MockDataSeeder may need updates to seed coach relationships and PDF-related data |
 | A5 | Supabase project is running Auth >= v2.177.0 (Apple issuer fix) | State of the Art | Apple Sign-In could fail with OIDC issuer mismatch if Supabase project is on older auth version |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Supabase dashboard: Apple provider configured?**
    - What we know: Apple Sign-In requires the App ID (com.tonus.app) to be registered in Supabase Auth > Providers > Apple
    - What's unclear: Whether this has already been configured in the Supabase project
    - Recommendation: User must verify/configure in Supabase dashboard before implementing
+   - RESOLVED: Surfaced as `user_setup` in Plan 01. User will configure Apple provider in Supabase dashboard as a prerequisite before execution. Plan cannot verify this programmatically -- it is a human-action prerequisite.
 
 2. **Supabase dashboard: Google provider configured?**
    - What we know: Google OAuth requires a Google Cloud OAuth client ID in Supabase Auth > Providers > Google, plus redirect URL allowlist
    - What's unclear: Whether Google OAuth credentials exist for this project
    - Recommendation: User must create Google Cloud OAuth client and configure in Supabase dashboard
+   - RESOLVED: Surfaced as `user_setup` in Plan 01. User will create Google Cloud OAuth client ID and configure in Supabase dashboard as a prerequisite. Plan cannot verify this programmatically -- it is a human-action prerequisite.
 
 3. **Apple Developer portal: Sign in with Apple capability enabled?**
    - What we know: Entitlements file currently only has HealthKit
    - What's unclear: Whether the App ID has Sign in with Apple enabled in Apple Developer portal
    - Recommendation: User must enable in Certificates, Identifiers & Profiles > App IDs
+   - RESOLVED: Surfaced as `user_setup` in Plan 01. Plan 01 Task 1 adds the entitlement to the Xcode project file. User must also enable the capability in Apple Developer portal as a prerequisite.
 
 4. **Coach roster screenshot in SCREENSHOT_MODE**
    - What we know: Current SCREENSHOT_MODE sets athlete mode and seeds athlete data
    - What's unclear: Whether MockDataSeeder creates CoachAthleteRelationship records for the coach roster view
    - Recommendation: May need to extend MockDataSeeder or add a second screenshot run in coach mode
+   - RESOLVED: Plan 01 Task 1 adds COACH_MODE launch argument handling to AppRouter.swift. When SCREENSHOT_MODE and COACH_MODE are both present, AppRouter calls `container.setMode(.coach)` and `container.subscriptionService.overrideForScreenshots(isPro: true, isCoach: true)`. Plan 02 screenshot test05_CoachRoster terminates and relaunches with both flags. MockDataSeeder already seeds athlete data; coach roster will show the seeded athlete in the roster view.
 
 5. **GoogleService-Info.plist: NOT needed?**
    - What we know: D-11 in CONTEXT.md mentions GoogleService-Info.plist, but Supabase OAuth flow doesn't require it
    - What's unclear: Whether user specifically wants native Google SDK (which needs plist) or Supabase OAuth (which doesn't)
    - Recommendation: Use Supabase OAuth approach -- no GoogleService-Info.plist, no new SPM package. Aligns with "zero new SPM packages" decision.
+   - RESOLVED: Using Supabase `signInWithOAuth(provider: .google)` which delegates to `ASWebAuthenticationSession`. No GoogleService-Info.plist needed, no new SPM package. D-11 mention of GoogleService-Info.plist was based on native SDK approach; Supabase OAuth approach supersedes this. Verified in Supabase docs.
 
 ## Environment Availability
 
