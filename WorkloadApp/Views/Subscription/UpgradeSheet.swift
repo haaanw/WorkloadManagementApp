@@ -354,7 +354,7 @@ enum SubscriptionTier: String, CaseIterable {
                 "Workout template builder with exercise groups",
                 "Log workouts on behalf of any athlete",
                 "Coach-only mode (hide athlete tabs entirely)",
-                "Link athletes via invite code, email, or NFC",
+                "Link athletes via invite code or email",
             ]
         }
     }

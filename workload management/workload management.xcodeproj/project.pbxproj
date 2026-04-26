@@ -18,7 +18,7 @@
 		18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */; };
 		3656850E68D35D36B9204A8A /* ContextSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */; };
 		51E4BE53358600B414056677 /* CoachRosterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30598D5C0D296A3B5343AFF /* CoachRosterView.swift */; };
-		59881BC9C8890B491E7D3603 /* NFCSessionCoordinator.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2E3ECA23709AF06AC23972B /* NFCSessionCoordinator.swift */; };
+
 		62324C232F66CB0E00A9C2BE /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C0D2F66CB0E00A9C2BE /* LoginView.swift */; };
 		62324C242F66CB0E00A9C2BE /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF22F66CB0E00A9C2BE /* PreviewData.swift */; };
 		62324C252F66CB0E00A9C2BE /* ExercisePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */; };
@@ -253,7 +253,7 @@
 		88A4956488E0ECB2BC93FD3F /* CoachWorkoutEntrySheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoachWorkoutEntrySheet.swift; path = Coach/CoachWorkoutEntrySheet.swift; sourceTree = "<group>"; };
 		8DCB08A3880509F52F7419E9 /* InviteConfirmationSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InviteConfirmationSheet.swift; sourceTree = "<group>"; };
 		A20BE6662043B66D8EF333D9 /* CoachRosterViewModel.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoachRosterViewModel.swift; sourceTree = "<group>"; };
-		A2E3ECA23709AF06AC23972B /* NFCSessionCoordinator.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = NFCSessionCoordinator.swift; sourceTree = "<group>"; };
+
 		A30598D5C0D296A3B5343AFF /* CoachRosterView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoachRosterView.swift; path = Coach/CoachRosterView.swift; sourceTree = "<group>"; };
 		DA2B9F3391AC5FE598FD31F7 /* CoachRelationshipModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoachRelationshipModelTests.swift; path = ../WorkloadAppTests/CoachRelationshipModelTests.swift; sourceTree = "<group>"; };
 		F3A9D4C7E2B1058A63F7921D /* UpgradeSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UpgradeSheet.swift; path = Subscription/UpgradeSheet.swift; sourceTree = "<group>"; };
@@ -422,7 +422,7 @@
 				62324C012F66CB0E00A9C2BE /* WorkloadCalculator.swift */,
 				62324C022F66CB0E00A9C2BE /* WorkoutPipeline.swift */,
 				06ABB878A70046BADB172CF6 /* InviteService.swift */,
-				A2E3ECA23709AF06AC23972B /* NFCSessionCoordinator.swift */,
+
 				5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */,
 				AA0201010000000000000004 /* AnalyticsEngine.swift */,
 				AA0201010000000000000006 /* CSVExportEngine.swift */,
@@ -854,7 +854,7 @@
 				627EC18F2F75917900B89262 /* PrescribeWorkoutSheet.swift in Sources */,
 				627EC1902F75917900B89262 /* TemplateEditorSheet.swift in Sources */,
 				7B421978B0C35067216FEBE5 /* InviteService.swift in Sources */,
-				59881BC9C8890B491E7D3603 /* NFCSessionCoordinator.swift in Sources */,
+
 				18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */,
 				627EC1962F76622300B89262 /* WorkoutImportBanner.swift in Sources */,
 				053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */,
@@ -1050,7 +1050,7 @@
 				INFOPLIST_FILE = "workload-management-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Tonus;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NFCReaderUsageDescription = "Tonus uses NFC to link athletes and coaches in person.";
+
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tonus reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training readiness.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tonus writes workout data to Apple Health to keep your training history synced across health apps.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -1088,7 +1088,7 @@
 				INFOPLIST_FILE = "workload-management-Info.plist";
 				INFOPLIST_KEY_CFBundleDisplayName = Tonus;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NFCReaderUsageDescription = "Tonus uses NFC to link athletes and coaches in person.";
+
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tonus reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training readiness.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tonus writes workout data to Apple Health to keep your training history synced across health apps.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
