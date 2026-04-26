@@ -28,7 +28,7 @@ See: .planning/PROJECT.md (updated 2026-04-22)
 Phase: 7
 Plan: Not started
 Status: Executing Phase 06
-Last activity: 2026-04-26
+Last activity: 2026-04-26 - Completed quick task 260426-jnx: Remove NFC functionality to resolve App Store rejection
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -78,6 +78,7 @@ None yet.
 | # | Description | Date | Commit | Directory |
 |---|-------------|------|--------|-----------|
 | 260420-qax | Fix App Store rejection: harden launch path, remove NFC | 2026-04-20 | f41845b | [260420-qax-fix-app-store-rejection-harden-launch-pa](./quick/260420-qax-fix-app-store-rejection-harden-launch-pa/) |
+| 260426-jnx | Remove NFC functionality to resolve App Store rejection | 2026-04-26 | 29bf733 | [260426-jnx-remove-nfc-functionality-to-resolve-app-](./quick/260426-jnx-remove-nfc-functionality-to-resolve-app-/) |
 
 ## Deferred Items
 
