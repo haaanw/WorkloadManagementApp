@@ -350,11 +350,10 @@ struct PDFReportEngine {
         let rosterColumns: [(text: String, width: CGFloat)] = [
             ("ATHLETE", 140),
             ("RECOVERY", 80),
-            ("ACWR", 70),
-            ("ZONE", 80),
-            ("SESSIONS", 70),
-            ("STREAK", 50),
-            ("FLAG", 26)
+            ("ZONE", 70),
+            ("SESSIONS", 80),
+            ("STREAK", 70),
+            ("FLAG", 76)
         ]
 
         return renderer.pdfData { pdfContext in
@@ -382,27 +381,19 @@ struct PDFReportEngine {
                     }
 
                     let recoveryText = athlete.recoveryScore.map { String(format: "%.0f", $0) } ?? "--"
-                    let acwrText = athlete.acwrZone.displayName
-                    let flag = athlete.isOverreaching ? "!" : ""
+                    let zoneText = athlete.acwrZone.displayName
 
                     let rowData: [(text: String, width: CGFloat)] = [
                         (athlete.name, 140),
                         (recoveryText, 80),
-                        (acwrText, 70),
-                        (acwrText, 80),
-                        ("\(athlete.sessionsCount)", 70),
-                        ("\(athlete.streakCount)", 50),
-                        (flag, 26)
+                        (zoneText, 70),
+                        ("\(athlete.sessionsCount)", 80),
+                        ("\(athlete.streakCount)", 70),
+                        (athlete.isOverreaching ? "!" : "", 76)
                     ]
 
-                    drawTableRow(context: cgContext, columns: rowData, y: cursorY, font: fontRegular(13), color: textPrimary)
-
-                    // Draw flag in danger color if overreaching
-                    if athlete.isOverreaching {
-                        let flagX = marginH + 140 + 80 + 70 + 80 + 70 + 50
-                        let flagRect = CGRect(x: flagX, y: cursorY, width: 26, height: 24)
-                        drawText("!", in: flagRect, font: fontRegular(13), color: zoneDanger)
-                    }
+                    let rowColor = athlete.isOverreaching ? zoneDanger : textPrimary
+                    drawTableRow(context: cgContext, columns: rowData, y: cursorY, font: fontRegular(13), color: rowColor)
 
                     cursorY += 24
                 }

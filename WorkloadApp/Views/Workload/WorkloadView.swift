@@ -39,7 +39,7 @@ struct WorkloadView: View {
 
     private var visibleRecords: [PersonalRecord] {
         guard !container.subscriptionService.isPro else { return Array(personalRecords.prefix(5)) }
-        let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: .now)!
+        let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now
         return personalRecords.filter { $0.achievedAt >= cutoff }.prefix(5).map { $0 }
     }
 

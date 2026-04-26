@@ -212,53 +212,56 @@ struct CoachExportSheet: View {
     private func generateReport() {
         isGenerating = true
 
-        let selectedAthletes = viewModel.linkedAthletes.filter {
-            selectedAthleteIds.contains($0.id)
-        }
-
-        let rosterData: [PDFReportEngine.RosterAthleteData] = selectedAthletes.map { athlete in
-            let workload = viewModel.latestWorkloadSnapshot[athlete.id]
-            let recovery = viewModel.latestRecoverySnapshot[athlete.id]
-
-            let cutoffDate = Calendar.current.date(
-                byAdding: .day, value: -selectedRange.days, to: .now
-            ) ?? .now
-            let recentSessions = athlete.sessions.filter {
-                $0.sessionDate >= cutoffDate
+        Task {
+            let selectedAthletes = viewModel.linkedAthletes.filter {
+                selectedAthleteIds.contains($0.id)
             }
 
-            let streak = StreakEngine.computeStreak(sessions: Array(athlete.sessions))
+            let rosterData: [PDFReportEngine.RosterAthleteData] = selectedAthletes.map { athlete in
+                let workload = viewModel.latestWorkloadSnapshot[athlete.id]
+                let recovery = viewModel.latestRecoverySnapshot[athlete.id]
 
-            return PDFReportEngine.RosterAthleteData(
-                name: athlete.displayName,
-                recoveryScore: recovery?.recoveryScore,
-                acwrZone: workload?.zone ?? .noData,
-                sessionsCount: recentSessions.count,
-                streakCount: streak,
-                isOverreaching: workload?.zone == .danger
-            )
+                let cutoffDate = Calendar.current.date(
+                    byAdding: .day, value: -selectedRange.days, to: .now
+                ) ?? .now
+                let recentSessions = athlete.sessions.filter {
+                    $0.sessionDate >= cutoffDate
+                }
+
+                let streak = StreakEngine.computeStreak(sessions: Array(athlete.sessions))
+
+                return PDFReportEngine.RosterAthleteData(
+                    name: athlete.displayName,
+                    recoveryScore: recovery?.recoveryScore,
+                    acwrZone: workload?.zone ?? .noData,
+                    sessionsCount: recentSessions.count,
+                    streakCount: streak,
+                    isOverreaching: workload?.zone == .danger
+                )
+            }
+
+            let coachName = athletes.first?.displayName ?? "Coach"
+            let dateString = Date.now.formatted(.dateTime.year().month().day())
+
+            do {
+                let pdfData = PDFReportEngine.generateCoachRosterReport(
+                    coachName: coachName,
+                    athletes: rosterData,
+                    dateRange: selectedRange
+                )
+
+                let tempURL = FileManager.default.temporaryDirectory
+                    .appendingPathComponent("Tonus_Roster_\(dateString).pdf")
+                try pdfData.write(to: tempURL)
+                exportFileURL = tempURL
+                showShareSheet = true
+            } catch {
+                print("Coach export error: \(error)")
+                errorMessage = "Report generation failed. Please try again."
+            }
+
+            isGenerating = false
         }
-
-        let coachName = athletes.first?.displayName ?? "Coach"
-
-        do {
-            let pdfData = PDFReportEngine.generateCoachRosterReport(
-                coachName: coachName,
-                athletes: rosterData,
-                dateRange: selectedRange
-            )
-
-            let tempURL = FileManager.default.temporaryDirectory
-                .appendingPathComponent("Tonus_Roster_Report.pdf")
-            try pdfData.write(to: tempURL)
-            exportFileURL = tempURL
-            showShareSheet = true
-        } catch {
-            print("Coach export error: \(error)")
-            errorMessage = "Report generation failed. Please try again."
-        }
-
-        isGenerating = false
     }
 
     // MARK: - Helpers
