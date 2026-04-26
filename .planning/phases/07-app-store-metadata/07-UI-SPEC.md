@@ -52,8 +52,7 @@ Source: DESIGN.md spacing section
 | Role | Size | Weight | Line Height | Notes |
 |------|------|--------|-------------|-------|
 | Page title | 28pt | 400 (Regular) | 1.2 | Login/SignUp headers |
-| Section head | 17pt | 500 (Medium) | 1.3 | OR divider label |
-| Body | 15pt | 400 (Regular) | 1.6 | Button labels, descriptions |
+| Body | 15pt | 400 (Regular) | 1.6 | Button labels, descriptions, OR divider label |
 | Label | 13pt | 400 (Regular) | 1.4 | Secondary info, social button sublabels |
 | Micro | 11pt | 400 (Regular) | 1.2 | Field labels, all-caps, +0.08em tracking |
 
@@ -95,7 +94,7 @@ This section is added below the existing "Sign In" / "Create Account" button, se
 #### OR Divider
 - Full-width horizontal layout: hairline rule -- "OR" text -- hairline rule
 - Hairline: 0.5pt `ColorTokens.divider`
-- "OR" text: 11pt DM Sans Regular, `ColorTokens.text3`, +0.08em tracking, all-caps
+- "OR" text: 15pt DM Sans Regular, `ColorTokens.text3`
 - Vertical padding: 24pt above and below
 
 #### Sign in with Apple Button
