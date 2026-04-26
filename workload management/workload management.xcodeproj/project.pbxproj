@@ -19,6 +19,7 @@
 		3656850E68D35D36B9204A8A /* ContextSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */; };
 		51E4BE53358600B414056677 /* CoachRosterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30598D5C0D296A3B5343AFF /* CoachRosterView.swift */; };
 
+		F08C62E71BE8AC6A8D4B7192 /* SocialLoginButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */; };
 		62324C232F66CB0E00A9C2BE /* LoginView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C0D2F66CB0E00A9C2BE /* LoginView.swift */; };
 		62324C242F66CB0E00A9C2BE /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF22F66CB0E00A9C2BE /* PreviewData.swift */; };
 		62324C252F66CB0E00A9C2BE /* ExercisePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */; };
@@ -193,6 +194,7 @@
 		62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryViewModel.swift; sourceTree = "<group>"; };
 		62324C0A2F66CB0E00A9C2BE /* WorkoutLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLogViewModel.swift; sourceTree = "<group>"; };
 		0B040100000000000000000A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
+		8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialLoginButtons.swift; sourceTree = "<group>"; };
 		62324C0D2F66CB0E00A9C2BE /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		62324C0E2F66CB0E00A9C2BE /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 		62324C102F66CB0E00A9C2BE /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
@@ -473,6 +475,7 @@
 			children = (
 				62324C0D2F66CB0E00A9C2BE /* LoginView.swift */,
 				62324C0E2F66CB0E00A9C2BE /* SignUpView.swift */,
+				8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */,
 			);
 			path = Auth;
 			sourceTree = "<group>";
@@ -777,6 +780,7 @@
 			files = (
 				0B040200000000000000000A /* OnboardingView.swift in Sources */,
 				62324C232F66CB0E00A9C2BE /* LoginView.swift in Sources */,
+				F08C62E71BE8AC6A8D4B7192 /* SocialLoginButtons.swift in Sources */,
 				62324C242F66CB0E00A9C2BE /* PreviewData.swift in Sources */,
 				62324C252F66CB0E00A9C2BE /* ExercisePickerView.swift in Sources */,
 				627EC19A2F76858300B89262 /* TextTemplateImportSheet.swift in Sources */,

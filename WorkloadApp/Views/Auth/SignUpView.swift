@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AuthenticationServices
 
 struct SignUpView: View {
     @Environment(AppContainer.self) private var container
@@ -9,6 +10,7 @@ struct SignUpView: View {
     @State private var password = ""
     @State private var selectedSport: SportType = .lifting
     @State private var isLoading = false
+    @State private var isSocialLoading = false
     @State private var errorMessage: String?
 
     var body: some View {
@@ -131,7 +133,23 @@ struct SignUpView: View {
                     .padding(.vertical, 16)
                     .background(ColorTokens.surface)
                 }
-                .disabled(!isFormValid || isLoading)
+                .disabled(!isFormValid || isLoading || isSocialLoading)
+
+                Rectangle()
+                    .fill(ColorTokens.divider)
+                    .frame(height: 0.5)
+
+                // Social login buttons
+                SocialLoginButtons(
+                    mode: .signUp,
+                    isLoading: isSocialLoading,
+                    onAppleCredential: { credential in
+                        Task { await handleAppleSignIn(credential: credential) }
+                    },
+                    onGoogleTap: {
+                        Task { await handleGoogleSignIn() }
+                    }
+                )
 
                 Rectangle()
                     .fill(ColorTokens.divider)
@@ -179,6 +197,69 @@ struct SignUpView: View {
             errorMessage = error.localizedDescription
         }
         isLoading = false
+    }
+
+    private func handleAppleSignIn(credential: ASAuthorizationAppleIDCredential) async {
+        isSocialLoading = true
+        errorMessage = nil
+        do {
+            try await container.authService.signInWithApple(credential: credential)
+            let localAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
+            if localAthletes?.isEmpty != false {
+                guard let userId = await container.authService.currentUserId() else {
+                    throw SignUpSocialError.noUserId
+                }
+                let athlete = await container.syncService.bootstrapAthlete(
+                    context: modelContext, userId: userId
+                )
+                if athlete == nil {
+                    throw SignUpSocialError.athleteNotFound
+                }
+            }
+            await container.syncService.pullAll(context: modelContext)
+            isSocialLoading = false
+            container.setAuthenticated(true)
+        } catch {
+            errorMessage = error.localizedDescription
+            isSocialLoading = false
+        }
+    }
+
+    private func handleGoogleSignIn() async {
+        isSocialLoading = true
+        errorMessage = nil
+        do {
+            try await container.authService.signInWithGoogle()
+            let localAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
+            if localAthletes?.isEmpty != false {
+                guard let userId = await container.authService.currentUserId() else {
+                    throw SignUpSocialError.noUserId
+                }
+                let athlete = await container.syncService.bootstrapAthlete(
+                    context: modelContext, userId: userId
+                )
+                if athlete == nil {
+                    throw SignUpSocialError.athleteNotFound
+                }
+            }
+            await container.syncService.pullAll(context: modelContext)
+            isSocialLoading = false
+            container.setAuthenticated(true)
+        } catch {
+            errorMessage = error.localizedDescription
+            isSocialLoading = false
+        }
+    }
+}
+
+private enum SignUpSocialError: LocalizedError {
+    case noUserId
+    case athleteNotFound
+    var errorDescription: String? {
+        switch self {
+        case .noUserId: return "Could not retrieve your account. Please try again."
+        case .athleteNotFound: return "Account profile not found. Please contact support."
+        }
     }
 }
 

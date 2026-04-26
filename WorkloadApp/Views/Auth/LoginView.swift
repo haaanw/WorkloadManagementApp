@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import AuthenticationServices
 
 struct LoginView: View {
     @Environment(AppContainer.self) private var container
@@ -8,6 +9,7 @@ struct LoginView: View {
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var isSocialLoading = false
     @State private var showSignUp = false
 
     var body: some View {
@@ -111,7 +113,23 @@ struct LoginView: View {
                         .padding(.vertical, 16)
                         .background(ColorTokens.surface)
                     }
-                    .disabled(email.isEmpty || password.isEmpty || isLoading)
+                    .disabled(email.isEmpty || password.isEmpty || isLoading || isSocialLoading)
+
+                    Rectangle()
+                        .fill(ColorTokens.divider)
+                        .frame(height: 0.5)
+
+                    // Social login buttons
+                    SocialLoginButtons(
+                        mode: .signIn,
+                        isLoading: isSocialLoading,
+                        onAppleCredential: { credential in
+                            Task { await handleAppleSignIn(credential: credential) }
+                        },
+                        onGoogleTap: {
+                            Task { await handleGoogleSignIn() }
+                        }
+                    )
 
                     Rectangle()
                         .fill(ColorTokens.divider)
@@ -172,6 +190,59 @@ struct LoginView: View {
         } catch {
             errorMessage = error.localizedDescription
             isLoading = false
+        }
+    }
+
+    private func handleAppleSignIn(credential: ASAuthorizationAppleIDCredential) async {
+        isSocialLoading = true
+        errorMessage = nil
+        do {
+            try await container.authService.signInWithApple(credential: credential)
+            // Same bootstrap as email sign-in
+            let localAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
+            if localAthletes?.isEmpty != false {
+                guard let userId = await container.authService.currentUserId() else {
+                    throw AuthBootstrapError.noUserId
+                }
+                let athlete = await container.syncService.bootstrapAthlete(
+                    context: modelContext, userId: userId
+                )
+                if athlete == nil {
+                    throw AuthBootstrapError.athleteNotFound
+                }
+            }
+            await container.syncService.pullAll(context: modelContext)
+            isSocialLoading = false
+            container.setAuthenticated(true)
+        } catch {
+            errorMessage = error.localizedDescription
+            isSocialLoading = false
+        }
+    }
+
+    private func handleGoogleSignIn() async {
+        isSocialLoading = true
+        errorMessage = nil
+        do {
+            try await container.authService.signInWithGoogle()
+            let localAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
+            if localAthletes?.isEmpty != false {
+                guard let userId = await container.authService.currentUserId() else {
+                    throw AuthBootstrapError.noUserId
+                }
+                let athlete = await container.syncService.bootstrapAthlete(
+                    context: modelContext, userId: userId
+                )
+                if athlete == nil {
+                    throw AuthBootstrapError.athleteNotFound
+                }
+            }
+            await container.syncService.pullAll(context: modelContext)
+            isSocialLoading = false
+            container.setAuthenticated(true)
+        } catch {
+            errorMessage = error.localizedDescription
+            isSocialLoading = false
         }
     }
 }
