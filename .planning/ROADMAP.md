@@ -75,7 +75,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 07-01-PLAN.md -- Social authentication (Apple Sign-In + Google Sign-In)
+- [x] 07-01-PLAN.md -- Social authentication (Apple Sign-In + Google Sign-In)
 - [ ] 07-02-PLAN.md -- Screenshot test automation (6 marketing screens)
 - [ ] 07-03-PLAN.md -- App Store Connect metadata entry
 
