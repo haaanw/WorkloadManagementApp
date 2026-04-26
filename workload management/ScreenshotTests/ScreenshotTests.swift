@@ -2,15 +2,12 @@ import XCTest
 
 /// Automated App Store screenshot capture.
 ///
-/// Setup (one-time in Xcode):
-/// 1. File → New → Target → UI Testing Bundle → name it "ScreenshotTests"
-/// 2. Add this file to the new target
-/// 3. Run: Product → Test (or Cmd+U) on iPhone 17 Pro Max simulator
+/// Run on two simulators for both required device sizes:
+///   - iPhone 15 Pro Max (6.7") -- required by ASO-03
+///   - iPhone 11 Pro Max (6.5") -- required by ASO-03
 ///
-/// Screenshots are saved as XCTAttachments in the xcresult bundle.
-/// Extract with: `xcrun xcresulttool` or the `xcparse` CLI:
-///   brew install chargepoint/xcparse/xcparse
-///   xcparse screenshots /tmp/ScreenshotTests.xcresult ~/Desktop/AppStoreScreenshots
+/// Extract screenshots from xcresult bundle:
+///   xcparse screenshots <path-to>.xcresult ~/Desktop/AppStoreScreenshots
 ///
 final class ScreenshotTests: XCTestCase {
 
@@ -21,62 +18,92 @@ final class ScreenshotTests: XCTestCase {
         app.launchArguments = ["SCREENSHOT_MODE"]
         app.launch()
 
-        // Wait for app to finish loading
         let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "App failed to load — tab bar not found")
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "App failed to load -- tab bar not found")
     }
 
-    // MARK: - Screenshots
+    // MARK: - Athlete Mode Screenshots (1-4, 6)
 
     func test01_Dashboard() throws {
-        // Dashboard is the first tab, should already be visible
         app.tabBars.buttons["Home"].tap()
         sleep(2)
         saveScreenshot("01_Dashboard")
     }
 
-    func test02_WorkoutLog() throws {
-        app.tabBars.buttons["Log"].tap()
-        sleep(2)
-        saveScreenshot("02_WorkoutLog")
-    }
-
-    func test03_ActiveWorkout() throws {
-        app.tabBars.buttons["Log"].tap()
-        sleep(1)
-
-        // Tap the + button to open active workout sheet
-        let addButton = app.navigationBars.buttons.matching(identifier: "plus").firstMatch
-        if addButton.waitForExistence(timeout: 3) {
-            addButton.tap()
-        } else {
-            // Fallback: find any + button in the nav bar
-            app.navigationBars.buttons.element(boundBy: app.navigationBars.buttons.count - 1).tap()
-        }
-        sleep(2)
-        saveScreenshot("03_ActiveWorkout")
-
-        // Dismiss the sheet
-        let cancelButton = app.buttons["Cancel"]
-        if cancelButton.exists { cancelButton.tap() }
-    }
-
-    func test04_Recovery() throws {
-        app.tabBars.buttons["Recovery"].tap()
-        sleep(2)
-        saveScreenshot("04_Recovery")
-    }
-
-    func test05_WorkloadACWR() throws {
+    func test02_Workload() throws {
         app.tabBars.buttons["Load"].tap()
         sleep(2)
-        saveScreenshot("05_Workload")
+        saveScreenshot("02_Workload")
     }
 
-    func test06_Profile() throws {
-        app.tabBars.buttons["Profile"].tap()
+    func test03_Recovery() throws {
+        app.tabBars.buttons["Recovery"].tap()
         sleep(2)
-        saveScreenshot("06_Profile")
+        saveScreenshot("03_Recovery")
+    }
+
+    func test04_WorkoutLog() throws {
+        app.tabBars.buttons["Log"].tap()
+        sleep(2)
+        saveScreenshot("04_WorkoutLog")
+    }
+
+    // MARK: - Coach Mode Screenshot (5)
+
+    func test05_CoachRoster() throws {
+        // Coach roster requires relaunching in coach mode.
+        // Plan 01 added COACH_MODE launch argument handling to AppRouter:
+        //   - Sets container.setMode(.coach)
+        //   - Overrides subscription with isCoach: true
+        app.terminate()
+        app.launchArguments = ["SCREENSHOT_MODE", "COACH_MODE"]
+        app.launch()
+
+        let tabBar = app.tabBars.firstMatch
+        XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "Coach mode failed to load")
+
+        // Coach mode shows "Roster" tab
+        let rosterTab = app.tabBars.buttons["Roster"]
+        if rosterTab.waitForExistence(timeout: 5) {
+            rosterTab.tap()
+        }
+        sleep(2)
+        saveScreenshot("05_CoachRoster")
+
+        // Restore athlete mode for next test
+        app.terminate()
+        app.launchArguments = ["SCREENSHOT_MODE"]
+        app.launch()
+        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 10))
+    }
+
+    // MARK: - PDF Export Screenshot (6)
+
+    func test06_PDFExport() throws {
+        // Navigate to Load tab where PDF export is accessible via toolbar
+        app.tabBars.buttons["Load"].tap()
+        sleep(2)
+
+        // Tap the export button in the navigation bar toolbar
+        let exportButton = app.buttons["Export workout data"]
+        if exportButton.waitForExistence(timeout: 3) {
+            exportButton.tap()
+            sleep(1)
+
+            // Tap "PDF Report (Pro)" in the confirmation dialog
+            let pdfButton = app.buttons["PDF Report (Pro)"]
+            if pdfButton.waitForExistence(timeout: 3) {
+                pdfButton.tap()
+                sleep(2)
+                saveScreenshot("06_PDFExport")
+            } else {
+                // Fallback: capture the export dialog itself
+                saveScreenshot("06_PDFExport")
+            }
+        } else {
+            // Fallback: capture the Load view as PDF export context
+            saveScreenshot("06_PDFExport")
+        }
     }
 
     // MARK: - Helpers
