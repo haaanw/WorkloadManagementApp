@@ -76,8 +76,8 @@ Plans:
 
 Plans:
 - [x] 07-01-PLAN.md -- Social authentication (Apple Sign-In + Google Sign-In)
-- [ ] 07-02-PLAN.md -- Screenshot test automation (6 marketing screens)
-- [ ] 07-03-PLAN.md -- App Store Connect metadata entry
+- [x] 07-02-PLAN.md -- Screenshot test automation (6 marketing screens)
+- [x] 07-03-PLAN.md -- App Store Connect metadata entry
 
 **UI hint**: yes
 
