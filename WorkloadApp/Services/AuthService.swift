@@ -1,5 +1,6 @@
 import Foundation
 import Supabase
+import AuthenticationServices
 
 /// Wraps Supabase authentication.
 @MainActor
@@ -42,11 +43,50 @@ final class AuthService {
         (try? await client.auth.session) != nil
     }
 
+    // MARK: - Social Auth
+
+    /// Sign in with Apple using the credential from ASAuthorizationController.
+    func signInWithApple(credential: ASAuthorizationAppleIDCredential) async throws {
+        guard let tokenData = credential.identityToken,
+              let idToken = String(data: tokenData, encoding: .utf8) else {
+            throw AuthError.noIdentityToken
+        }
+
+        _ = try await client.auth.signInWithIdToken(
+            credentials: .init(provider: .apple, idToken: idToken)
+        )
+
+        // Capture display name on first sign-in (Apple only sends it once)
+        if let fullName = credential.fullName {
+            let parts = [fullName.givenName, fullName.familyName].compactMap { $0 }
+            let name = parts.joined(separator: " ")
+            if !name.isEmpty {
+                try? await client.auth.update(
+                    user: UserAttributes(data: ["display_name": .string(name)])
+                )
+            }
+        }
+    }
+
+    /// Sign in with Google via Supabase OAuth (opens ASWebAuthenticationSession).
+    func signInWithGoogle() async throws {
+        _ = try await client.auth.signInWithOAuth(
+            provider: .google,
+            redirectTo: URL(string: "com.tonus.app://login-callback")
+        ) { (session: ASWebAuthenticationSession) in
+            session.prefersEphemeralWebBrowserSession = false
+        }
+    }
+
     enum AuthError: LocalizedError {
         case noUserReturned
+        case noIdentityToken
+        case socialSignInFailed(String)
         var errorDescription: String? {
             switch self {
             case .noUserReturned: return "Sign up succeeded but no user was returned. Please try again."
+            case .noIdentityToken: return "Apple sign in failed. Could not retrieve identity token."
+            case .socialSignInFailed(let message): return message
             }
         }
     }

@@ -29,6 +29,11 @@ struct AppRouter: View {
         .onOpenURL { url in
             if let code = InviteService.handleDeepLink(url) {
                 pendingInviteCode = PendingInvite(code: code)
+                return
+            }
+            // Google OAuth callback -- Supabase handles session extraction
+            Task {
+                try? await container.supabase.auth.session(from: url)
             }
         }
         .sheet(item: $pendingInviteCode) { pending in
@@ -47,8 +52,10 @@ struct AppRouter: View {
             #if DEBUG
             // Screenshot mode: bypass auth, seed mock data, show app immediately
             if ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE") {
-                // Force athlete mode (override persisted UserDefaults from prior runs)
-                container.setMode(.athlete)
+                // Check for coach mode BEFORE setting default athlete mode
+                let isCoachMode = ProcessInfo.processInfo.arguments.contains("COACH_MODE")
+                container.setMode(isCoachMode ? .coach : .athlete)
+
                 let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
                 if athletes.isEmpty {
                     let athlete = Athlete(displayName: "Alex", sportType: .lifting)
@@ -56,13 +63,16 @@ struct AppRouter: View {
                     try? modelContext.save()
                     MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
                 } else if let athlete = athletes.first {
-                    athlete.isCoachOnly = false
+                    athlete.isCoachOnly = isCoachMode
                     try? modelContext.save()
                     MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
                 }
                 container.setAuthenticated(true)
                 needsOnboarding = false
-                container.subscriptionService.overrideForScreenshots(isPro: true, isCoach: false)
+                container.subscriptionService.overrideForScreenshots(
+                    isPro: true,
+                    isCoach: isCoachMode
+                )
                 isCheckingSession = false
                 return
             }
