@@ -72,7 +72,14 @@ Plans:
   2. App Store description clearly communicates the recovery + load tracking value proposition
   3. Marketing screenshots with benefit-oriented captions exist for 6.7" and 6.5" device sizes
   4. App Store categories and age rating are configured correctly in App Store Connect
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 07-01-PLAN.md -- Social authentication (Apple Sign-In + Google Sign-In)
+- [ ] 07-02-PLAN.md -- Screenshot test automation (6 marketing screens)
+- [ ] 07-03-PLAN.md -- App Store Connect metadata entry
+
+**UI hint**: yes
 
 ### Phase 8: QA, Performance & Compliance
 **Goal**: App passes systematic testing, meets performance targets, and satisfies all App Review requirements for first-submission approval
@@ -98,5 +105,5 @@ Phases execute in numeric order: 5 -> 6 -> 7 -> 8
 | 4. Onboarding & Polish | v1.0 | 3/3 | Complete | 2026-04-22 |
 | 5. Streaks & Notifications | v1.1 | 0/3 | Planning complete | - |
 | 6. PDF Report Export | v1.1 | 0/3 | Planning complete | - |
-| 7. App Store Metadata | v1.1 | 0/0 | Not started | - |
+| 7. App Store Metadata | v1.1 | 0/3 | Planning complete | - |
 | 8. QA, Performance & Compliance | v1.1 | 0/0 | Not started | - |
