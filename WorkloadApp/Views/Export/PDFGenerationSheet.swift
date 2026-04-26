@@ -10,7 +10,7 @@ struct PDFGenerationSheet: View {
     @Environment(AppContainer.self) private var container
     @Query private var athletes: [Athlete]
 
-    @State private var selectedRange: ReportDateRange = .fourWeeks
+    @State private var selectedRange: PDFReportEngine.ReportDateRange = .fourWeeks
     @State private var isGenerating = false
     @State private var showShareSheet = false
     @State private var exportFileURL: URL?
@@ -77,7 +77,7 @@ struct PDFGenerationSheet: View {
 
     private var dateRangeChips: some View {
         HStack(spacing: 8) {
-            ForEach(ReportDateRange.allCases, id: \.self) { range in
+            ForEach(PDFReportEngine.ReportDateRange.allCases, id: \.self) { range in
                 Button {
                     selectedRange = range
                 } label: {

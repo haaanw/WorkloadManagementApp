@@ -22,6 +22,8 @@ struct UpgradeSheet: View {
     @State private var selectedTier: SubscriptionTier
     @State private var selectedPlan: PlanOption = .annual
     @State private var isPurchasing = false
+    @State private var isLoadingOffering = false
+    @State private var offeringUnavailable = false
     @State private var errorMessage: String?
 
     enum PlanOption { case annual, monthly }
@@ -145,24 +147,46 @@ struct UpgradeSheet: View {
                                 .multilineTextAlignment(.center)
                         }
 
-                        Button {
-                            guard let pkg = activePackage else { return }
-                            Task { await doPurchase(pkg) }
-                        } label: {
-                            if isPurchasing {
-                                ProgressView()
-                                    .tint(ColorTokens.background)
-                                    .frame(maxWidth: .infinity, minHeight: 48)
-                            } else {
-                                Text(trialAvailable ? "Start 7-Day Free Trial" : "Subscribe")
+                        if isLoadingOffering {
+                            ProgressView()
+                                .tint(ColorTokens.text2)
+                                .frame(maxWidth: .infinity, minHeight: 48)
+                        } else if offeringUnavailable {
+                            Text("Subscriptions unavailable — check your connection and try again")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text2)
+                                .multilineTextAlignment(.center)
+
+                            Button {
+                                Task { await loadOffering() }
+                            } label: {
+                                Text("Retry")
                                     .font(.Tokens.bodyMedium)
                                     .foregroundStyle(ColorTokens.background)
                                     .frame(maxWidth: .infinity, minHeight: 48)
                                     .background(ColorTokens.text1)
                             }
+                            .buttonStyle(.plain)
+                        } else {
+                            Button {
+                                guard let pkg = activePackage else { return }
+                                Task { await doPurchase(pkg) }
+                            } label: {
+                                if isPurchasing {
+                                    ProgressView()
+                                        .tint(ColorTokens.background)
+                                        .frame(maxWidth: .infinity, minHeight: 48)
+                                } else {
+                                    Text(trialAvailable ? "Start 7-Day Free Trial" : "Subscribe")
+                                        .font(.Tokens.bodyMedium)
+                                        .foregroundStyle(ColorTokens.background)
+                                        .frame(maxWidth: .infinity, minHeight: 48)
+                                        .background(ColorTokens.text1)
+                                }
+                            }
+                            .disabled(isPurchasing || activePackage == nil)
+                            .buttonStyle(.plain)
                         }
-                        .disabled(isPurchasing || activePackage == nil)
-                        .buttonStyle(.plain)
                     }
                     .padding(.horizontal, 24)
                     .padding(.vertical, 24)
@@ -254,7 +278,11 @@ struct UpgradeSheet: View {
     // MARK: - Actions
 
     private func loadOffering() async {
+        isLoadingOffering = true
+        offeringUnavailable = false
         offering = try? await container.subscriptionService.fetchOffering(for: selectedTier)
+        offeringUnavailable = offering == nil
+        isLoadingOffering = false
     }
 
     private func doPurchase(_ package: Package) async {
