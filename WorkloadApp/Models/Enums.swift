@@ -107,7 +107,7 @@ enum ACWRZone: String, Codable {
         case .undertrained: "Undertrained"
         case .optimal: "Optimal"
         case .caution: "Caution"
-        case .danger: "Danger"
+        case .danger: "High Load"
         case .noData: "No Data"
         }
     }

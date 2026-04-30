@@ -102,6 +102,14 @@ struct DashboardView: View {
                         Spacer().frame(height: 8)
                     }
 
+                    // Fatigue attention signal (D-FAT)
+                    if let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
+                       zone != .low {
+                        FatigueAttentionBanner(fatigueIndex: fi, zone: zone)
+                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                        Spacer().frame(height: 8)
+                    }
+
                     TrainingLoadSection(viewModel: viewModel)
 
                     Rectangle()

@@ -26,6 +26,10 @@ final class DashboardViewModel {
     // Recommendation
     var recommendation: AutoregulationEngine.TrainingRecommendation?
 
+    // Fatigue Accumulation Index
+    var fatigueIndex: Double?
+    var fatigueZone: FatigueIndexEngine.FatigueZone?
+
     // Periodization
     var trainingPhaseLabel: String?
     var periodizationSufficiency: PeriodizationEngine.SufficiencyResult?
@@ -185,14 +189,53 @@ final class DashboardViewModel {
         // Compute consecutive training days
         let daysSinceRest = computeDaysSinceRest(workoutRepo: workoutRepo)
 
-        // Generate recommendation
+        // Compute Fatigue Accumulation Index
+        let recentSessionTSS = allSessions.suffix(14).map(\.trainingStress)
+        let baselineTSS: Double? = {
+            let allTSS = allSessions.map(\.trainingStress).filter { $0 > 0 }
+            guard !allTSS.isEmpty else { return nil }
+            return allTSS.reduce(0, +) / Double(allTSS.count)
+        }()
+        let sessionsIn14Days = allSessions.filter {
+            $0.sessionDate >= Calendar.current.date(byAdding: .day, value: -14, to: .now)!
+        }.count
+        let baselineSessions14d: Double? = {
+            let total = allSessions.count
+            let days = min(90, max(14, total > 0 ? Int(Date.now.timeIntervalSince(allSessions.last?.sessionDate ?? .now) / 86400) : 90))
+            guard days >= 14 else { return nil }
+            return Double(total) / Double(days) * 14.0
+        }()
+        let recentRecoveryScores = recentSnapshots
+            .sorted { $0.date < $1.date }
+            .suffix(7)
+            .map(\.recoveryScore)
+        let recentWellnessScores: [Double] = []  // TODO: fetch from WellnessCheckIn history
+
+        let fatigueInput = FatigueIndexEngine.FatigueInput(
+            recentSessionTSS: recentSessionTSS,
+            baselineSessionTSS: baselineTSS,
+            sessionsIn14Days: sessionsIn14Days,
+            baselineSessionsIn14Days: baselineSessions14d,
+            trainingStreakDays: daysSinceRest,
+            daysSinceRestPeriod: nil,
+            recentRecoveryScores: recentRecoveryScores,
+            recentWellnessScores: recentWellnessScores,
+            softTissueInjuryCount: 0,
+            daysSinceLastInjury: nil
+        )
+        let fatigueResult = FatigueIndexEngine.compute(input: fatigueInput)
+        fatigueIndex = fatigueResult.index
+        fatigueZone = fatigueResult.zone
+
+        // Generate recommendation (with fatigue index)
         let autoInput = AutoregulationEngine.DailyInput(
             recoveryZone: recoveryZone,
             recoveryScore: recoveryScore,
             acwrZone: acwrZone,
             acwr: acwr,
             wellnessScore: nil,
-            daysSinceLastRest: daysSinceRest
+            daysSinceLastRest: daysSinceRest,
+            fatigueIndex: fatigueResult.index
         )
         recommendation = AutoregulationEngine.recommend(input: autoInput)
 

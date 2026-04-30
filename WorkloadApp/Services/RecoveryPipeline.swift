@@ -61,14 +61,18 @@ struct RecoveryPipeline {
         let todayCheckIn = try recoveryRepo.fetchTodayWellnessCheckIn()
         let wellnessScore = todayCheckIn?.wellnessScore
 
-        // 4. Compute recovery score
+        // 4. Compute recovery score (with trend from recent history)
+        let recentScores = recoveryHistory
+            .sorted { $0.date < $1.date }
+            .map(\.recoveryScore)
         let input = RecoveryScoreEngine.RecoveryInput(
             hrvSDNN: hrv,
             restingHR: rhr,
             sleepDurationMinutes: sleep,
             wellnessScore: wellnessScore,
             hrvBaseline: hrvBaseline,
-            restingHRBaseline: rhrBaseline
+            restingHRBaseline: rhrBaseline,
+            recentScores: recentScores
         )
         let result = RecoveryScoreEngine.compute(input: input)
 
