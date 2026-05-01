@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Training Onboarding & Templates
-status: defining_requirements
+status: ready_to_plan
 stopped_at: null
 last_updated: "2026-05-01T00:00:00.000Z"
-last_activity: 2026-05-01 -- Milestone v1.2 started
+last_activity: 2026-05-01 -- Roadmap created for v1.2 (4 phases, 19 requirements)
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-01)
 
 **Core value:** Recovery + load tracked over time -- long-term insight into how the body responds to training
-**Current focus:** Defining requirements for v1.2
+**Current focus:** Phase 9 - Foundation & Cold-Start Engine
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-01 — Milestone v1.2 started
+Phase: 9 of 12 (Foundation & Cold-Start Engine)
+Plan: --
+Status: Ready to plan
+Last activity: 2026-05-01 -- Roadmap created for v1.2
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -36,17 +36,17 @@ Progress: [░░░░░░░░░░] 0%
 
 **Velocity:**
 
-- Total plans completed: 20 (v1.0)
-- Average duration: carried from v1.0
-- Total execution time: carried from v1.0
+- Total plans completed: 20 (v1.0: 14, v1.1: 6+)
+- Average duration: carried from v1.1
+- Total execution time: carried from v1.1
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| v1.0 phases 1-4 | 14/14 | — | — |
-| 05 | 3 | - | - |
-| 06 | 3 | - | - |
+| v1.0 phases 1-4 | 14/14 | -- | -- |
+| v1.1 phases 5-8 | 9+ | -- | -- |
+| 09 | 0 | - | - |
 
 *Updated after each plan completion*
 
@@ -57,12 +57,12 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.0]: Depth-first post-launch strategy -- analytics before onboarding polish
-- [v1.0]: @Query over relationship arrays for welcome card visibility
-- [v1.1]: Weekly streaks (not daily) to avoid punishing rest days
-- [v1.1]: Local-only notifications via UNCalendarNotificationTrigger -- no APNs needed
-- [v1.1]: UIGraphicsPDFRenderer for PDF export -- vector quality, no new SPM deps
-- [v1.1]: Zero new SPM packages for v1.1 -- all Apple-native frameworks
+- [v1.2]: Parallel data tracks for cold-start -- estimated ATL/CTL on TrainingProfile only, never WorkloadSnapshot
+- [v1.2]: Hybrid switchover threshold (3wk + 8 sessions) -- ATL needs 3 weeks to stabilize, 8 sessions for density
+- [v1.2]: Standalone TrainingProfile model -- keep Athlete model clean, preserve raw answers for bias analysis
+- [v1.2]: Reuse coach template models for athletes -- WorkoutTemplate + ExerciseGroup already model the right structure
+- [v1.2]: Templates free, intelligence Pro-gated -- friction reduction for all users, smarts as upgrade path
+- [v1.2]: Defer LLM import + sharing to v1.3 -- battle-test template model first
 
 ### Pending Todos
 
@@ -70,8 +70,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- ASO keyword selection needs product owner input before Phase 7
-- Demo account seeding strategy needs definition during Phase 8 planning
+- EWMA contamination prevention: estimated ATL/CTL must never touch WorkloadSnapshot
+- Supabase RLS must be updated BEFORE any template sync code (silent failure risk via try?)
+- SwiftData additive-only changes required (no field renames on existing models)
+- ProgressionEngine overlay UX design needs decision before Phase 12 (template baseline vs modifier visual layering)
 
 ### Quick Tasks Completed
 
@@ -88,6 +90,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-04-26T07:10:57.575Z
-Stopped at: Phase 7 UI-SPEC approved
-Resume file: .planning/phases/07-app-store-metadata/07-UI-SPEC.md
+Last session: 2026-05-01
+Stopped at: Roadmap created for v1.2, ready to plan Phase 9
+Resume file: None

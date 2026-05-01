@@ -3,7 +3,8 @@
 ## Milestones
 
 - ✅ **v1.0 Post-Launch** — Phases 1-4 (shipped 2026-04-22)
-- 🚧 **v1.1 App Store Launch** — Phases 5-8 (in progress)
+- ✅ **v1.1 App Store Launch** — Phases 5-8 (shipped 2026-04-30)
+- 🚧 **v1.2 Training Onboarding & Templates** — Phases 9-12 (in progress)
 
 ## Phases
 
@@ -17,85 +18,81 @@
 
 </details>
 
-### 🚧 v1.1 App Store Launch (In Progress)
+<details>
+<summary>✅ v1.1 App Store Launch (Phases 5-8) — SHIPPED 2026-04-30</summary>
 
-**Milestone Goal:** Get Tonus submitted and approved on App Store -- streaks, notifications, PDF export, metadata, QA, and compliance.
+- [x] Phase 5: Streaks & Notifications (3/3 plans)
+- [x] Phase 6: PDF Report Export (3/3 plans)
+- [x] Phase 7: App Store Metadata (3/3 plans)
+- [x] Phase 8: QA, Performance & Compliance
 
-- [ ] **Phase 5: Streaks & Notifications** - Training consistency tracking and weekly push notification summaries
-- [ ] **Phase 6: PDF Report Export** - Formatted athlete and coach reports with subscription gating
-- [ ] **Phase 7: App Store Metadata** - Optimized listing, keywords, screenshots, and categories
-- [ ] **Phase 8: QA, Performance & Compliance** - Systematic testing, performance audit, accessibility, and App Review readiness
+</details>
+
+### 🚧 v1.2 Training Onboarding & Templates (In Progress)
+
+**Milestone Goal:** Bridge the cold-start data gap and streamline workout logging -- new athletes get useful guidance from day one, and returning athletes log sessions in seconds via reusable templates.
+
+- [ ] **Phase 9: Foundation & Cold-Start Engine** - Data models, pure engines, Supabase schema, and RLS policies that everything else depends on
+- [ ] **Phase 10: Cold-Start Questionnaire** - Questionnaire UI with parallel-track ATL/CTL seeding, switchover logic, and silent bias capture
+- [ ] **Phase 11: Template Management & Creation** - Athlete-owned template CRUD, manual creation, and save-from-session
+- [ ] **Phase 12: Template-Driven Workouts & Smart Suggestions** - Template picker, dynamic targets, dashboard quick-start cards, and schedule-aware suggestions
 
 ## Phase Details
 
-### Phase 5: Streaks & Notifications
-**Goal**: Athletes can track training consistency and receive weekly summary notifications that reinforce engagement
-**Depends on**: Phase 4
-**Requirements**: STRK-01, STRK-02, NOTF-01, NOTF-02, NOTF-03
+### Phase 9: Foundation & Cold-Start Engine
+**Goal**: All data models, pure computation engines, Supabase schema migrations, and RLS policies are in place so that cold-start and template features can be built without infrastructure blockers
+**Depends on**: Phase 8
+**Requirements**: FOUND-01, FOUND-02, FOUND-03, FOUND-04, COLD-03
 **Success Criteria** (what must be TRUE):
-  1. User sees their current workout streak count on the dashboard
-  2. User receives a weekly local notification summarizing sessions, PRs, and streak
-  3. User sees a pre-permission screen before the iOS notification permission dialog
-  4. User can toggle notifications on/off and configure day/time in Profile settings
-**Plans**: 3 plans
+  1. TrainingProfile model persists questionnaire answers, seeded ATL/CTL, and bias fields locally via SwiftData and syncs to Supabase
+  2. WorkoutTemplate model accepts athlete ownership (isAthleteOwned, isFavorite, isArchived, lastUsedAt, usageCount, scheduledDays) with zero migration errors for existing users
+  3. ColdStartEngine computes seeded ATL/CTL from questionnaire inputs (sessions/week, avg duration, sRPE) using the sRPE TSS formula, producing values compatible with the existing EWMA chain
+  4. TemplateRepository provides fetch, save, duplicate, archive, and delete operations filtered by athlete ownership
+  5. Supabase RLS policies allow athlete-owned template CRUD without breaking existing coach template policies
+**Plans**: TBD
 
-Plans:
-- [x] 05-01-PLAN.md -- StreakEngine + NotificationService foundation
-- [x] 05-02-PLAN.md -- Dashboard streak display + pre-permission card
-- [x] 05-03-PLAN.md -- Profile notification settings
-
+### Phase 10: Cold-Start Questionnaire
+**Goal**: New athletes can answer a brief training questionnaire and immediately see estimated workload data on their dashboard, with automatic switchover to real data as they log sessions
+**Depends on**: Phase 9
+**Requirements**: COLD-01, COLD-02, COLD-04, COLD-05, COLD-06, COLD-07
+**Success Criteria** (what must be TRUE):
+  1. User can complete 4 required questions (sessions/week, avg duration, typical sRPE, weeks at current level) via a training profile card after onboarding
+  2. User can optionally answer 4 additional questions (training age, periodization preference, movement types, injury history) without blocking progress
+  3. Dashboard displays estimated ATL/CTL values during the cold-start window, and these values never appear on WorkloadSnapshot
+  4. Dashboard automatically switches from estimated to real ATL/CTL after 3+ weeks elapsed AND 8+ sessions logged, with no user action required
+  5. FatigueIndex shows an "insufficient data" state during the cold-start window instead of computing from incomplete baselines
+**Plans**: TBD
 **UI hint**: yes
 
-### Phase 6: PDF Report Export
-**Goal**: Athletes and coaches can generate professional PDF reports of training data for review and sharing
-**Depends on**: Phase 5
-**Requirements**: EXPRT-01, EXPRT-02, EXPRT-03
+### Phase 11: Template Management & Creation
+**Goal**: Athletes can build a personal library of reusable training templates and manage them with full CRUD operations
+**Depends on**: Phase 9
+**Requirements**: TMPL-01, TMPL-02, TMPL-05
 **Success Criteria** (what must be TRUE):
-  1. User can generate a PDF report containing recovery scores, workload trends, and PRs (composite data only, no raw HealthKit values)
-  2. Coach can generate a multi-athlete PDF summary report
-  3. PDF export is gated behind Pro/Coach subscription; free users retain CSV export
-**Plans**: 3 plans
-
-Plans:
-- [x] 06-01-PLAN.md -- PDFReportEngine core engine (athlete + coach report generation)
-- [x] 06-02-PLAN.md -- Athlete PDF export UI (WorkloadView integration + PDFGenerationSheet)
-- [x] 06-03-PLAN.md -- Coach PDF export UI (CoachRosterView integration + CoachExportSheet)
-
+  1. User can manually create a training template with named exercise groups (A/B/C/D), each containing exercises with target sets/reps/weight
+  2. User can save a completed workout session as a new template with an editable confirmation step before saving
+  3. User can edit, duplicate, archive, favorite/pin, and delete templates from a dedicated template management view
+**Plans**: TBD
 **UI hint**: yes
 
-### Phase 7: App Store Metadata
-**Goal**: App Store listing is optimized for discoverability and conversion with polished screenshots and copy
-**Depends on**: Phase 6
-**Requirements**: ASO-01, ASO-02, ASO-03, ASO-04
+### Phase 12: Template-Driven Workouts & Smart Suggestions
+**Goal**: Athletes can start sessions from templates in one tap with auto-filled targets, and the app learns their schedule to suggest the right template at the right time
+**Depends on**: Phase 10, Phase 11
+**Requirements**: TMPL-03, TMPL-04, TMPL-06, TMPL-07, TMPL-08
 **Success Criteria** (what must be TRUE):
-  1. App Store title (30 chars), subtitle (30 chars), and keyword field (100 chars) are populated with targeted terms
-  2. App Store description clearly communicates the recovery + load tracking value proposition
-  3. Marketing screenshots with benefit-oriented captions exist for 6.7" and 6.5" device sizes
-  4. App Store categories and age rating are configured correctly in App Store Connect
-**Plans**: 3 plans
-
-Plans:
-- [x] 07-01-PLAN.md -- Social authentication (Apple Sign-In + Google Sign-In)
-- [x] 07-02-PLAN.md -- Screenshot test automation (6 marketing screens)
-- [x] 07-03-PLAN.md -- App Store Connect metadata entry
-
+  1. User can select a saved template when starting a new session via a template picker accessible from the "+" button
+  2. Template-loaded session pre-fills exercises with last-used actual values as ghost targets
+  3. Dashboard and workout log tab show favorite/recent templates as quick-start cards for one-tap session start
+  4. When loading a template, ProgressionEngine overlays recovery-aware suggested targets alongside last-used values (Pro-gated)
+  5. TemplateSuggestionEngine suggests the most likely template based on day-of-week usage patterns when the user opens the app (Pro-gated, requires 2+ weeks of usage data)
+**Plans**: TBD
 **UI hint**: yes
-
-### Phase 8: QA, Performance & Compliance
-**Goal**: App passes systematic testing, meets performance targets, and satisfies all App Review requirements for first-submission approval
-**Depends on**: Phase 7
-**Requirements**: QA-01, QA-02, QA-03, QA-04, CMPL-01, CMPL-02, CMPL-03, CMPL-04, CMPL-05
-**Success Criteria** (what must be TRUE):
-  1. All user flows, edge cases, and empty states tested with no P0/P1 bugs remaining
-  2. Cold launch under 2 seconds, 60fps scrolling, no memory leaks on oldest supported device
-  3. VoiceOver navigation works on all screens, Dynamic Type scales correctly, contrast meets WCAG AA
-  4. Pre-seeded demo account with 2-3 weeks of data exists and credentials are documented for App Review
-  5. All compliance items pass: PrivacyInfo.xcprivacy audit, subscription restore/cancel flows, in-app links resolve, HealthKit usage descriptions are accurate in Review Notes
 
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 5 -> 6 -> 7 -> 8
+Phases execute in numeric order: 9 -> 10 -> 11 -> 12
+Note: Phase 10 and Phase 11 both depend on Phase 9 and could execute in parallel if desired.
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -103,7 +100,11 @@ Phases execute in numeric order: 5 -> 6 -> 7 -> 8
 | 2. Analytics & Export | v1.0 | 4/4 | Complete | 2026-04-20 |
 | 3. Training Intelligence | v1.0 | 4/4 | Complete | 2026-04-21 |
 | 4. Onboarding & Polish | v1.0 | 3/3 | Complete | 2026-04-22 |
-| 5. Streaks & Notifications | v1.1 | 0/3 | Planning complete | - |
-| 6. PDF Report Export | v1.1 | 0/3 | Planning complete | - |
-| 7. App Store Metadata | v1.1 | 0/3 | Planning complete | - |
-| 8. QA, Performance & Compliance | v1.1 | 0/0 | Not started | - |
+| 5. Streaks & Notifications | v1.1 | 3/3 | Complete | - |
+| 6. PDF Report Export | v1.1 | 3/3 | Complete | - |
+| 7. App Store Metadata | v1.1 | 3/3 | Complete | - |
+| 8. QA, Performance & Compliance | v1.1 | 0/0 | Complete | - |
+| 9. Foundation & Cold-Start Engine | v1.2 | 0/0 | Not started | - |
+| 10. Cold-Start Questionnaire | v1.2 | 0/0 | Not started | - |
+| 11. Template Management & Creation | v1.2 | 0/0 | Not started | - |
+| 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 0/0 | Not started | - |

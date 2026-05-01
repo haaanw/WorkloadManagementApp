@@ -1,7 +1,7 @@
 # Requirements: Tonus
 
 **Defined:** 2026-04-22
-**Core Value:** Recovery + load tracked over time — giving athletes long-term insight into how their body responds to training, so they can train smarter and avoid injury.
+**Core Value:** Recovery + load tracked over time -- giving athletes long-term insight into how their body responds to training, so they can train smarter and avoid injury.
 
 ## v1.1 Requirements
 
@@ -42,8 +42,8 @@ Requirements for App Store launch. Each maps to roadmap phases.
 ### QA & Performance
 
 - [ ] **QA-01**: Systematic QA pass across all user flows, edge cases, and empty states
-- [ ] **QA-02**: Performance audit — cold launch < 2s, 60fps scroll, no memory leaks
-- [ ] **QA-03**: Accessibility audit — VoiceOver navigation, Dynamic Type support, contrast compliance
+- [ ] **QA-02**: Performance audit -- cold launch < 2s, 60fps scroll, no memory leaks
+- [ ] **QA-03**: Accessibility audit -- VoiceOver navigation, Dynamic Type support, contrast compliance
 - [ ] **QA-04**: MetricKit telemetry integrated for post-launch crash and performance reporting
 
 ## v1.2 Requirements
@@ -61,7 +61,7 @@ Requirements for Training Onboarding & Templates milestone. Each maps to roadmap
 
 - [ ] **COLD-01**: User can complete 4 required questions (sessions/week, avg duration, typical sRPE 1-10, weeks at current level) via training profile card post-onboarding
 - [ ] **COLD-02**: User can optionally answer 4 additional questions (training age in years, periodized vs steady schedule, current movement types, injury history with body region picker + free text)
-- [ ] **COLD-03**: ColdStartEngine computes seeded ATL/CTL from questionnaire answers using sRPE TSS formula (hours × RPE × RPE/10)
+- [ ] **COLD-03**: ColdStartEngine computes seeded ATL/CTL from questionnaire answers using sRPE TSS formula (hours x RPE x RPE/10)
 - [ ] **COLD-04**: Estimated ATL/CTL stored on TrainingProfile only (never on WorkloadSnapshot), displayed on dashboard during cold-start window
 - [ ] **COLD-05**: Dashboard switches from estimated to real ATL/CTL after 3+ weeks elapsed AND 8+ sessions logged
 - [ ] **COLD-06**: App stores perceptual bias metric (estimated vs actual load) silently at 8-week mark on TrainingProfile
@@ -107,7 +107,7 @@ Requirements for Training Onboarding & Templates milestone. Each maps to roadmap
 | Apple Watch companion app | Defer until core iOS experience is polished |
 | Manual mesocycle/ATP planner | TrainingPeaks owns this space; Tonus's value is automated detection |
 | AI chatbot / conversational coach | LLM cost + liability; keep autoregulation rule-based |
-| Pre-built template library / marketplace | Content work, not engineering — defer post-v1.3 |
+| Pre-built template library / marketplace | Content work, not engineering -- defer post-v1.3 |
 
 ## Traceability
 
@@ -134,31 +134,31 @@ Requirements for Training Onboarding & Templates milestone. Each maps to roadmap
 | QA-02 | Phase 8 | Pending |
 | QA-03 | Phase 8 | Pending |
 | QA-04 | Phase 8 | Pending |
-| FOUND-01 | TBD | Pending |
-| FOUND-02 | TBD | Pending |
-| FOUND-03 | TBD | Pending |
-| FOUND-04 | TBD | Pending |
-| COLD-01 | TBD | Pending |
-| COLD-02 | TBD | Pending |
-| COLD-03 | TBD | Pending |
-| COLD-04 | TBD | Pending |
-| COLD-05 | TBD | Pending |
-| COLD-06 | TBD | Pending |
-| COLD-07 | TBD | Pending |
-| TMPL-01 | TBD | Pending |
-| TMPL-02 | TBD | Pending |
-| TMPL-03 | TBD | Pending |
-| TMPL-04 | TBD | Pending |
-| TMPL-05 | TBD | Pending |
-| TMPL-06 | TBD | Pending |
-| TMPL-07 | TBD | Pending |
-| TMPL-08 | TBD | Pending |
+| FOUND-01 | Phase 9 | Pending |
+| FOUND-02 | Phase 9 | Pending |
+| FOUND-03 | Phase 9 | Pending |
+| FOUND-04 | Phase 9 | Pending |
+| COLD-01 | Phase 10 | Pending |
+| COLD-02 | Phase 10 | Pending |
+| COLD-03 | Phase 9 | Pending |
+| COLD-04 | Phase 10 | Pending |
+| COLD-05 | Phase 10 | Pending |
+| COLD-06 | Phase 10 | Pending |
+| COLD-07 | Phase 10 | Pending |
+| TMPL-01 | Phase 11 | Pending |
+| TMPL-02 | Phase 11 | Pending |
+| TMPL-03 | Phase 12 | Pending |
+| TMPL-04 | Phase 12 | Pending |
+| TMPL-05 | Phase 11 | Pending |
+| TMPL-06 | Phase 12 | Pending |
+| TMPL-07 | Phase 12 | Pending |
+| TMPL-08 | Phase 12 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 21 total, mapped: 21
-- v1.2 requirements: 19 total, mapped: 0 (awaiting roadmap)
+- v1.2 requirements: 19 total, mapped: 19
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-05-01 — v1.2 requirements added*
+*Last updated: 2026-05-01 -- v1.2 traceability updated (all 19 requirements mapped to Phases 9-12)*
