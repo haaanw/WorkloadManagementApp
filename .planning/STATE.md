@@ -1,34 +1,34 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: App Store Launch
-status: executing
-stopped_at: Phase 7 UI-SPEC approved
-last_updated: "2026-04-26T09:00:22.169Z"
-last_activity: 2026-04-26 -- Phase 07 execution started
+milestone: v1.2
+milestone_name: Training Onboarding & Templates
+status: defining_requirements
+stopped_at: null
+last_updated: "2026-05-01T00:00:00.000Z"
+last_activity: 2026-05-01 -- Milestone v1.2 started
 progress:
-  total_phases: 4
-  completed_phases: 2
-  total_plans: 9
-  completed_plans: 6
-  percent: 67
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-04-22)
+See: .planning/PROJECT.md (updated 2026-05-01)
 
 **Core value:** Recovery + load tracked over time -- long-term insight into how the body responds to training
-**Current focus:** Phase 07 — app-store-metadata
+**Current focus:** Defining requirements for v1.2
 
 ## Current Position
 
-Phase: 07 (app-store-metadata) — EXECUTING
-Plan: 1 of 3
-Status: Executing Phase 07
-Last activity: 2026-04-26 -- Phase 07 execution started
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-01 — Milestone v1.2 started
 
 Progress: [░░░░░░░░░░] 0%
 

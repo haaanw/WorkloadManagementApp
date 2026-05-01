@@ -44,41 +44,55 @@ The combination of recovery and load tracked over time — giving athletes long-
 
 ### Active
 
-- [ ] Data export (PDF reports or CSV for coaches)
-- [ ] Systematic QA pass (bugs, edge cases, crash testing)
-- [ ] App Store metadata (description, keywords, categories, screenshots)
-- [ ] Preemptive App Review compliance
-- [ ] Performance & UX audit (launch time, scrolling, accessibility)
+- [ ] Cold-start questionnaire with ATL/CTL seeding
+- [ ] Perceptual bias measurement (estimated vs actual at 8 weeks)
+- [ ] TrainingProfile model with Supabase sync
+- [ ] Athlete-owned training templates (reuse coach template models)
+- [ ] Manual template creation with exercise group structure
+- [ ] Save-as-template from completed sessions
+- [ ] Template selection UX (dashboard cards + picker)
+- [ ] HealthKit workout → template matching
+- [ ] Schedule-aware template suggestions (TemplateSuggestionEngine)
+- [ ] Dynamic template targets (last-used + ProgressionEngine overlay)
+- [ ] Template management (edit, duplicate, archive, favorite, delete)
 
-## Current Milestone: v1.1 App Store Launch
+## Current Milestone: v1.2 Training Onboarding & Templates
 
-**Goal:** Get Tonus submitted and approved on App Store — polish, metadata, preemptive review compliance, performance audit, plus carry-over features (export, notifications, streaks).
+**Goal:** Bridge the cold-start data gap and streamline workout logging — new athletes get useful guidance from day one, and returning athletes log sessions in seconds via reusable templates.
 
 **Target features:**
-- Systematic QA pass (bugs, edge cases, crash testing)
-- App Store metadata (description, keywords, categories, screenshots)
-- Preemptive App Review compliance (common rejection reasons)
-- Performance & UX audit (launch time, scrolling, accessibility)
-- PDF/CSV data export for coaches
-- Push notifications for weekly summary
-- Streak tracking for training/check-in consistency
+- Cold-start questionnaire (4 required + 4 optional Qs) seeding initial ATL/CTL estimates
+- Perceptual bias capture: compare estimated vs actual load after 8 weeks (silent metric)
+- Training templates with exercise group structure (A/B/C/D) for athletes (reusing coach template models)
+- Manual template creation + save-from-session
+- Dashboard quick-start cards + template picker for frictionless logging
+- HealthKit workout detection → template matching
+- Schedule-aware day-of-week template suggestions (TemplateSuggestionEngine)
+- Dynamic template targets: auto-update to last-used + ProgressionEngine overlay (Pro)
+- Template management: edit, duplicate, archive, favorite, delete
 
 ### Out of Scope
 
 - Real-time chat between coach and athlete — high complexity, not core to training insight
-- Social/sharing features — focus on individual athlete value first
 - Video analysis — different product category
 - Android — iOS-first, revisit after establishing market fit
 - Apple Watch companion app — defer until core iOS experience is polished
 - Manual mesocycle/ATP planner — TrainingPeaks owns this space; Tonus's value is automated detection
 - AI chatbot / conversational coach — LLM cost + liability; keep autoregulation rule-based
+- LLM-powered file/image workout import — deferred to v1.3, needs model research
+- Template sharing between users/coaches — deferred to v1.3, needs battle-tested template model first
+- Perceptual bias continuous calibration — deferred, needs research on longitudinal sRPE adjustment
+- Injury-aware loading management — deferred, needs deep longitudinal data + dedicated research
 
 ## Context
 
 - v1.0 Post-Launch milestone complete (4 phases, 14 plans shipped 2026-04-22)
-- v1.1 App Store Launch milestone started 2026-04-22
-- App is functionally complete: auth, sync, subscriptions, analytics, intelligence, onboarding
-- ~15,700 LOC Swift across 80+ files
+- v1.1 App Store Launch milestone in progress (App Store submission pending review)
+- v1.2 Training Onboarding & Templates started 2026-05-01
+- Evidence-based fatigue tracking system shipped (FatigueIndexEngine, 6 components, replaces ACWR as primary risk signal)
+- Coach template system exists: WorkoutTemplate → ExerciseGroup → TemplateExercise → TemplateSet
+- HealthKit workout import exists: WorkoutImportBanner + WorkoutImportService (pull-based, no background delivery)
+- ProgressionEngine exists for recovery-aware overload suggestions (Pro-gated)
 - HealthKit provides raw biometric data; app computes composite scores locally (never uploads raw HealthKit data)
 - Design system enforced: 0pt border radius, no shadows, DM Sans font, accent only on readiness score
 
@@ -103,6 +117,13 @@ The combination of recovery and load tracked over time — giving athletes long-
 | Depth-first post-launch | Power user analytics before onboarding polish | ✓ Good — intelligence features shipped before onboarding |
 | ZStack over TabView for onboarding | TabView swipe disable unreliable on iOS 17 | ✓ Good |
 | @Query over relationship arrays for welcome card | SwiftData relationships may not resolve on first render | ✓ Good |
+| Parallel data tracks for cold-start | Keep estimated ATL/CTL separate from real for bias comparison | Pending |
+| Hybrid switchover threshold (3wk + 8 sessions) | ATL needs 3 weeks to stabilize, 8 sessions for density | Pending |
+| Standalone TrainingProfile model | Keep Athlete model clean, preserve raw answers for bias analysis | Pending |
+| Reuse coach template models for athletes | WorkoutTemplate + ExerciseGroup already model the right structure | Pending |
+| Templates free, intelligence Pro-gated | Friction reduction for all users, smarts as upgrade path | Pending |
+| Dynamic targets: last-used + ProgressionEngine | Template evolves with athlete, recovery-aware suggestions overlay | Pending |
+| Defer LLM import + sharing to v1.3 | Battle-test template model first, LLM needs model research | Pending |
 
 ## Evolution
 
@@ -122,4 +143,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-25 after Phase 5 (Streaks & Notifications) complete*
+*Last updated: 2026-05-01 — Milestone v1.2 Training Onboarding & Templates started*
