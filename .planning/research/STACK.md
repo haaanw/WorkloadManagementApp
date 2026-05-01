@@ -1,298 +1,468 @@
 # Technology Stack
 
-**Project:** Tonus v1.1 - App Store Launch
-**Researched:** 2026-04-22
+**Project:** Tonus v1.2 - Training Onboarding & Templates
+**Researched:** 2026-05-01
 
 ## Current Stack (Keep As-Is)
 
-Already in the project. No changes needed.
+Already in the project. No changes needed for any of these.
 
 | Technology | Purpose | Status |
 |------------|---------|--------|
 | SwiftUI + SwiftData | UI + persistence | Existing, keep |
 | Swift Charts | Data visualization | Existing, keep |
-| HealthKit | Biometric data (HRV, RHR, sleep) | Existing, keep |
+| HealthKit | Biometric data + workout detection | Existing, keep |
 | Supabase Swift SDK | Auth + sync | Existing, keep |
 | RevenueCat | Subscriptions | Existing, keep |
-| Accelerate (vDSP) | Vectorized math for analytics | Added in v1.0, keep |
-| ImageRenderer + UIGraphicsPDFRenderer | PDF report generation | Planned in v1.0 research, keep |
-| UniformTypeIdentifiers | File type declarations for export | Planned in v1.0 research, keep |
+| Accelerate (vDSP) | Vectorized math | Existing, keep |
+| UserNotifications | Local push notifications | Existing, keep |
+| MetricKit | Production telemetry | Existing, keep |
+| ImageRenderer + UIGraphicsPDFRenderer | PDF reports | Existing, keep |
 
-## New Stack Additions for v1.1
+## New Stack Additions for v1.2
 
-### Push Notifications: Local Notifications via UserNotifications
+### Zero new SPM dependencies. Zero new Apple frameworks.
 
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| UserNotifications (Apple framework) | iOS 17+ | Weekly summary notification | Local scheduling is the right fit. The weekly summary is computed on-device from local data (workload snapshots, recovery scores, session counts). No server-side trigger needed. | HIGH |
+v1.2 requires no new libraries or framework imports. Every new capability is built from:
 
-**Architecture decision: Local, not remote.**
+1. **New SwiftData models** (TrainingProfile) -- lightweight migration handles new @Model classes automatically
+2. **New pure struct engines** (ColdStartEngine, TemplateSuggestionEngine) -- zero dependencies, pure computation
+3. **Extensions to existing models** (WorkoutTemplate gains `ownerId` field, new template-ownership semantics)
+4. **Extensions to existing services** (WorkoutPipeline gets parallel-track EWMA, SyncService gets new table sync)
 
-The v1.1 notification requirement is a weekly summary ("You trained 4 times this week, recovery trending up"). This data is already on-device in SwiftData. Using APNs remote push for this would require:
-1. Supabase Edge Function (Deno) to call APNs or FCM
-2. Device token registration and storage in Supabase
-3. APNs certificate management (.p8 key in Supabase secrets)
-4. Server-side weekly cron job via pg_cron or external scheduler
+This is the right call because the new features are **domain logic and data modeling**, not new technical capabilities. The existing stack already provides everything needed.
 
-All of that complexity for a notification whose content is computed locally. Local notifications eliminate all of it.
+---
 
-**Implementation approach:**
-- `UNCalendarNotificationTrigger` with `DateComponents(weekday: 2, hour: 9)` for Monday 9 AM
-- Content populated by a `WeeklySummaryService` that queries the last 7 days of `WorkoutSession` and `RecoverySnapshot` from SwiftData
-- Schedule on app launch / foreground (refresh content each time)
-- Request `UNUserNotificationCenter.requestAuthorization(options: [.alert, .badge, .sound])`
-- Add `UNNotificationCategory` with "View Summary" action to deep-link to dashboard
+## Feature 1: Cold-Start Questionnaire & ATL/CTL Seeding
 
-**When to add remote push (NOT now):**
-Remote push via APNs becomes necessary when the app needs to notify about events the user did not initiate locally -- e.g., "Your coach assigned a new workout" or "Your athlete logged a session." That is a v1.2+ concern (coach-initiated actions). When that time comes, the recommended path is Supabase Edge Function calling APNs directly (not FCM -- the app is iOS-only, FCM adds unnecessary Google dependency).
+### What's Needed: New Model + Pure Engine
 
-**What NOT to use:**
-- **Firebase Cloud Messaging (FCM):** iOS-only app. FCM is a wrapper around APNs that adds the Firebase SDK (~10MB), Google service account management, and a dependency on Google infrastructure. Zero benefit for a single-platform app.
-- **OneSignal:** SaaS push service. Overkill for local weekly summaries. Adds SDK, dashboard dependency, and a third-party data processor (privacy policy implications for a health app).
-- **Supabase Edge Functions + APNs (for now):** Correct architecture for remote push, but unnecessary for the weekly summary use case. Defer to v1.2.
+| Technology | Purpose | Why | Confidence |
+|------------|---------|-----|------------|
+| SwiftData `@Model` (TrainingProfile) | Store questionnaire answers + seeded values + bias tracking | Separate model keeps Athlete clean. Preserves raw answers for perceptual bias comparison at 8 weeks. One-to-one relationship with Athlete. | HIGH |
+| Pure struct engine (ColdStartEngine) | Convert questionnaire answers to initial ATL/CTL estimates | Pure computation, no dependencies. Takes (sport, frequency, experience, avgSessionDuration, avgRPE, sessionsPerWeek) and returns (estimatedATL, estimatedCTL). Follows existing engine pattern. | HIGH |
 
-### Streak Tracking: Pure SwiftData + Engine Pattern
+**TrainingProfile Model Design:**
 
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| No new dependencies | N/A | Streak calculation and persistence | Streaks are a simple domain concept (consecutive days with qualifying events). Fits the existing pure-engine pattern perfectly. | HIGH |
+```swift
+@Model
+final class TrainingProfile {
+    @Attribute(.unique) var id: UUID
+    var athleteId: UUID
 
-**Implementation approach:**
-- New `StreakEngine` (pure struct, static methods) computes current streak, longest streak, and streak status from date arrays
-- New `StreakSnapshot` SwiftData model stores daily streak state (avoids recomputing from full history each time)
-- Streaks computed in `WorkoutPipeline.processSession()` and `RecoveryPipeline.run()` (after wellness check-in)
-- Two streak types: Training streak (days with sessions) and Check-in streak (days with wellness check-ins)
-- Reset logic: streak breaks at midnight if no qualifying event the prior calendar day
+    // Raw questionnaire answers (preserved for bias measurement)
+    var sportType: SportType
+    var trainingFrequency: TrainingFrequency
+    var experienceLevel: ExperienceLevel
+    var sessionsPerWeek: Int            // Required Q: "How many sessions per week?"
+    var avgSessionMinutes: Int?         // Optional Q: typical session duration
+    var avgPerceivedIntensity: Double?  // Optional Q: typical RPE (1-10 scale)
+    var bodyweightKg: Double?           // Optional Q: for load normalization
+    var trainingAge: Int?               // Optional Q: years of structured training
 
-**What NOT to use:**
-- No third-party gamification libraries. Streak logic is ~50 lines of date arithmetic. Adding a dependency would be absurd.
-- No server-side streak tracking. Streaks are local-first, synced to Supabase like other snapshots.
+    // Computed seeds from ColdStartEngine
+    var seededATL: Double
+    var seededCTL: Double
+    var seededDate: Date                // When seeding happened
 
-### PDF Report Generation (Carried from v1.0 Research)
+    // Bias tracking fields
+    var estimatedWeeklyLoad: Double?    // Athlete's self-reported weekly load perception
+    var actualWeeklyLoadAt8Weeks: Double? // Computed actual load after 8 weeks
+    var biasRatio: Double?              // estimatedWeeklyLoad / actualWeeklyLoadAt8Weeks
+    var biasMeasuredDate: Date?         // When bias was computed
 
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| ImageRenderer | iOS 16+ (SwiftUI) | Snapshot SwiftUI views to image | Captures existing chart views pixel-perfectly into PDF context | HIGH |
-| UIGraphicsPDFRenderer | UIKit | Multi-page PDF creation | Apple's blessed PDF document builder, handles pages and metadata | HIGH |
+    // Switchover tracking
+    var hasRealDataTakeover: Bool       // True once real data replaces seeded values
+    var realDataTakeoverDate: Date?     // When switchover happened
 
-**No changes from v1.0 research.** The approach remains: compose report pages as SwiftUI views, render via ImageRenderer into UIGraphicsPDFRenderer pages, export via ShareLink/UIActivityViewController.
-
-**Coach PDF export addition:** For coach users, the PDF should aggregate multiple athletes. This means the `PDFReportService` needs to accept an array of athlete data, not just the current athlete. Architecture consideration, not a stack change.
-
-### App Store Metadata / ASO: Manual + fastlane deliver
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| fastlane deliver | Latest (via Homebrew/Bundler) | Upload metadata and screenshots to App Store Connect | The app already has a screenshot automation framework (Phase 5). fastlane deliver automates uploading those screenshots plus metadata (title, subtitle, keywords, description) to ASC. Avoids manual upload of 10+ screenshots across device sizes. | HIGH |
-| fastlane snapshot | Latest | Automated screenshot capture | Integrates with existing XCUITest screenshot tests to capture across simulators | MEDIUM |
-
-**ASO metadata is content work, not code.** The stack need is just the delivery pipeline:
-
-1. **Metadata files:** `fastlane/metadata/en-US/` directory with `name.txt`, `subtitle.txt`, `keywords.txt`, `description.txt`, `promotional_text.txt`, `release_notes.txt`
-2. **Screenshots:** Already generated by existing `ScreenshotTests` XCUITest target. fastlane snapshot can orchestrate multi-device capture. fastlane deliver uploads them.
-3. **Keywords research:** Use ASO.dev ($0 free tier for basic keyword tracking) or manual App Store Connect keyword field. No code dependency.
-
-**2025-2026 ASO considerations:**
-- Apple now indexes screenshot caption text for keyword ranking. Captions in screenshots should include target keywords naturally.
-- Custom Product Pages (CPPs) entered organic search mid-2025 with keyword linking. Worth creating 2-3 CPPs targeting different user intents (athlete vs coach vs runner).
-- AI-generated App Store Tags are derived from metadata. Ensure metadata is clear and category-specific.
-
-**What NOT to use:**
-- **App Store Connect API directly:** fastlane wraps it. No need to build custom API integration for a single app.
-- **Paid ASO tools (AppTweak, Sensor Tower, data.ai):** Overkill for launch. Start with free ASO.dev keyword tracking. Upgrade if the app reaches 1K+ downloads and needs competitive intelligence.
-- **AppDrift or similar AI metadata generators:** The app's domain (athletic training load management) is niche enough that generic AI-generated descriptions will be too generic. Write metadata manually with domain expertise.
-
-### QA Testing: XCTest + XCUITest + Accessibility Audits
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| XCTest | Apple framework | Unit tests for engines and repositories | Already available in project. Engines are pure structs with static methods -- trivially testable. | HIGH |
-| XCUITest | Apple framework | UI integration tests and screenshot automation | Already have ScreenshotTests target. Extend for critical user flows (onboarding, workout logging, recovery check-in). | HIGH |
-| performAccessibilityAudit() | Xcode 15+ / iOS 17+ | Automated accessibility compliance | Built into XCUITest since Xcode 15. Call on XCUIApplication to audit current view for VoiceOver, Dynamic Type, contrast issues. Tests fail automatically on violations. | HIGH |
-
-**Testing strategy (no new dependencies):**
-
-1. **Unit tests (XCTest):** Cover all pure engines -- WorkloadCalculator, RecoveryScoreEngine, AutoregulationEngine, PRDetector, StreakEngine (new). These are deterministic functions with known inputs/outputs.
-2. **Integration tests (XCTest):** Cover pipelines with in-memory SwiftData ModelContainer. Test WorkoutPipeline.processSession() and RecoveryPipeline.run() end-to-end.
-3. **UI tests (XCUITest):** Cover critical flows -- sign up, log workout, complete wellness check-in, view dashboard, export data. Use SCREENSHOT_MODE for deterministic data.
-4. **Accessibility audits:** Add `try app.performAccessibilityAudit()` to each UI test. Audit types: `.dynamicType`, `.contrast`, `.elementDetection`, `.hitRegion`.
-5. **Crash testing:** Test edge cases -- empty states (no workouts), boundary dates, nil HealthKit permissions, no network.
-
-**What NOT to use:**
-- **Third-party testing frameworks (Quick/Nimble, ViewInspector):** XCTest is sufficient. The app's architecture (pure engines + SwiftData repositories) maps cleanly to standard XCTest assertions. Adding Quick/Nimble creates a learning curve for a solo developer with no benefit.
-- **Snapshot testing libraries (swift-snapshot-testing by Point-Free):** Good for UI regression testing at scale, but the v1.1 priority is functional correctness and crash prevention, not pixel-perfect regression. Defer to v1.2+ if UI churn becomes a problem.
-- **BrowserStack / Firebase Test Lab:** Cloud device testing services. Not needed for a single-developer iOS app targeting iOS 17+. Test on simulator + one physical device.
-
-### Performance Profiling: Xcode Instruments + XCTMetric
-
-| Technology | Version | Purpose | Why | Confidence |
-|------------|---------|---------|-----|------------|
-| Xcode Instruments | Xcode 16+ | Profile CPU, memory, energy, Core Animation | Apple's built-in profiler. Time Profiler for CPU hotspots, Allocations for memory leaks, Core Animation for scroll performance, Energy Log for background impact. | HIGH |
-| XCTApplicationLaunchMetric | XCTest (iOS 14+) | Measure app launch time | Automated launch time measurement in XCTest. Apple recommends < 400ms cold launch, < 200ms warm launch. Run as performance test with baseline. | HIGH |
-| XCTOSSignpostMetric | XCTest (iOS 14+) | Measure specific code paths | Place os_signpost markers around pipeline execution (WorkoutPipeline, RecoveryPipeline, DashboardViewModel.load) to measure and regress-test performance. | HIGH |
-| MetricKit | iOS 14+ | Production performance monitoring | Collects aggregated diagnostic and performance data from real user devices. Reports launch times, hang rates, disk writes, battery drain. Requires opt-in via MXMetricManager. | MEDIUM |
-
-**Performance audit approach:**
-
-1. **Launch time:** Add XCTest performance test with `XCTApplicationLaunchMetric`. Set baseline. Ensure < 400ms cold start.
-2. **Dashboard load:** Instrument `DashboardViewModel.load()` with os_signpost. This is the heaviest operation (RecoveryPipeline + AutoregulationEngine + data queries). Target < 500ms.
-3. **Scroll performance:** Use Core Animation instrument on workout history list (potentially hundreds of sessions) and recovery history. Target 60fps sustained.
-4. **Memory:** Profile with Allocations instrument. Check for SwiftData relationship leaks (common pitfall with @Relationship cascade chains).
-5. **Energy:** Run Energy Log instrument during typical 5-minute session. Check for unnecessary background work, timer leaks, or excessive HealthKit queries.
-6. **Production telemetry:** Adopt MetricKit to receive weekly performance reports from real devices after App Store launch.
-
-**What NOT to use:**
-- **Firebase Performance Monitoring:** Adds Firebase SDK dependency for a single metric category. MetricKit provides equivalent data with zero dependencies.
-- **Datadog / New Relic mobile SDK:** Enterprise monitoring. Way too heavy for a solo-developer app at launch stage.
-
-### App Review Compliance: No Stack Additions
-
-App Review compliance is a process concern, not a technology concern. Key areas to verify:
-
-| Area | Tool | Notes |
-|------|------|-------|
-| Privacy manifest | PrivacyInfo.xcprivacy (already exists) | Verify all required domains and API reasons are declared |
-| HealthKit usage description | Info.plist | Already configured. Ensure descriptions are specific and accurate |
-| Subscription metadata | RevenueCat + App Store Connect | Ensure subscription descriptions match App Review guidelines |
-| Data deletion | Supabase RPC | Apple requires account deletion capability. Need a "Delete Account" flow |
-| Export compliance | Info.plist ITSAppUsesNonExemptEncryption | Set to NO (HTTPS-only encryption is exempt) |
-
-## Full Dependency List
-
-### SPM Dependencies (existing, NO additions for v1.1)
-
-```
-https://github.com/supabase/supabase-swift
-https://github.com/RevenueCat/purchases-ios.git
+    var createdAt: Date
+    var updatedAt: Date
+}
 ```
 
-### Apple Frameworks (existing + new usage)
+**Why a standalone model (not Athlete properties):**
+- Athlete model already has 20+ properties and 7 relationships. Adding 15+ questionnaire/bias fields would bloat it.
+- Raw questionnaire answers must be preserved indefinitely for bias analysis. They are not "settings" that get updated.
+- TrainingProfile has its own lifecycle (created once during onboarding, bias measured once at 8 weeks, switchover once at 3 weeks).
+- Supabase sync is simpler with a separate `training_profiles` table than adding 15 nullable columns to `athletes`.
+
+**ColdStartEngine Seeding Formula:**
+
+The engine converts human-readable questionnaire answers into EWMA-compatible ATL/CTL seeds using the sRPE-based TSS formula that the app already uses:
+
+```
+TSS_per_session = (duration_hours) * RPE * (RPE / 10)
+weekly_TSS = TSS_per_session * sessions_per_week
+daily_TSS_avg = weekly_TSS / 7
+
+seededCTL = daily_TSS_avg  (steady-state EWMA converges to daily average)
+seededATL = daily_TSS_avg  (assume TSB = 0 at seed time)
+```
+
+Default RPE by experience level (when athlete skips the optional RPE question):
+- Beginner: RPE 5 (moderate effort, learning movements)
+- Intermediate: RPE 6.5 (established training habits, moderate-hard)
+- Advanced: RPE 7.5 (structured periodized training, hard)
+
+Default session duration by sport type (when athlete skips the optional duration question):
+- Lifting: 60 min
+- Running: 45 min
+- Cycling: 75 min
+- Swimming: 45 min
+- CrossFit: 50 min
+- Team Sport: 90 min
+- Custom: 60 min
+
+These defaults come from typical sRPE literature values. They produce CTL seeds that align with the TrainingPeaks CTL ranges validated in sport science: beginners ~15-30 CTL, intermediates ~30-60 CTL, advanced ~60-100+ CTL.
+
+**Parallel Data Tracks (Estimated vs. Real):**
+
+The WorkloadSnapshot model does NOT change. Instead, WorkoutPipeline is modified:
+
+1. **Before switchover:** When computing EWMA after a session, the pipeline initializes EWMA with `previousATL = seededATL` and `previousCTL = seededCTL` instead of 0. This way seeded values bootstrap the EWMA warm-up period.
+2. **Switchover threshold:** After 3 weeks AND 8+ sessions, real data has sufficient density for EWMA to stabilize. At this point, `hasRealDataTakeover = true` and the pipeline stops referencing seeded values.
+3. **Bias measurement:** At 8 weeks, a background check in DashboardViewModel compares `estimatedWeeklyLoad` (from questionnaire: `TSS_per_session * sessions_per_week`) to actual computed weekly average load. The ratio is stored silently -- no UI surfacing in v1.2.
+
+**What NOT to build:**
+- No separate "estimated" WorkloadSnapshot model. The real snapshots are computed from real sessions; the seeds just bootstrap the EWMA starting point. One data track, not two parallel snapshot tables.
+- No continuous bias recalibration. The single 8-week check is sufficient for v1.2. Continuous calibration needs longitudinal sRPE research (deferred to v1.3+).
+- No ML model for seeding. The sRPE formula is deterministic and validated. An ML model would need training data we do not have.
+
+### Integration Points
+
+| Existing Component | Change Required |
+|---------------------|-----------------|
+| Athlete model | Add optional `@Relationship` to TrainingProfile (one-to-one) |
+| OnboardingView | Extend from 3 steps to 7 steps (4 required + 3 optional + HealthKit) |
+| WorkoutPipeline.processSession() | Initialize EWMA from seeded ATL/CTL when < 3 weeks of data |
+| WorkloadCalculator.computeHistoryEWMA() | Add `initialATL`/`initialCTL` parameters (default 0 to preserve existing behavior) |
+| DashboardViewModel.load() | At 8 weeks, compute bias ratio silently |
+| SyncService | Add `training_profiles` table push/pull |
+| Supabase schema | New `training_profiles` table with RLS |
+
+### SwiftData Migration
+
+Adding a new `TrainingProfile` model class is a **lightweight migration** in SwiftData. Adding a new model is one of the simplest schema changes SwiftData handles automatically. Adding an optional relationship property on Athlete (`var trainingProfile: TrainingProfile?`) is also lightweight.
+
+Recommendation: Still define a `VersionedSchema` (V3 or whatever the current version is) for this change, because the project will continue evolving and having versioned schemas makes future complex migrations possible.
+
+---
+
+## Feature 2: Athlete-Owned Templates
+
+### What's Needed: Model Extension + New Engine
+
+| Technology | Purpose | Why | Confidence |
+|------------|---------|-----|------------|
+| WorkoutTemplate model (existing) | Reuse for athlete-owned templates | Already models the right structure: Template -> ExerciseGroup -> TemplateExercise -> TemplateSet. Adding an `ownerId` field + `ownerType` enum is cleaner than creating a parallel model hierarchy. | HIGH |
+| Pure struct engine (TemplateSuggestionEngine) | Day-of-week and context-aware template ranking | Pure computation. Takes (templates, usage history, day of week, recovery context) and returns ranked suggestions. Same pattern as all other engines. | HIGH |
+| ProgressionEngine (existing) | Dynamic target overlay for template sets | Already provides recovery-aware weight/rep suggestions per exercise. Template targets feed last-used values to ProgressionEngine for overlay. No changes to ProgressionEngine itself. | HIGH |
+
+**WorkoutTemplate Model Changes:**
+
+The existing `WorkoutTemplate` has `coachId: UUID` which assumes coach ownership. For athlete-owned templates, two options:
+
+**Option A (Recommended): Add `ownerId: UUID` + `ownerType: TemplateOwnerType`**
+```swift
+// New enum
+enum TemplateOwnerType: String, Codable {
+    case coach
+    case athlete
+}
+
+// Changes to WorkoutTemplate
+var ownerId: UUID       // replaces coachId semantically
+var ownerType: TemplateOwnerType
+var isFavorite: Bool = false
+var isArchived: Bool = false
+var lastUsedDate: Date?
+var useCount: Int = 0
+var scheduledDays: [Int]? // 1=Sun...7=Sat, nil = no schedule
+```
+
+**Why Option A over a separate AthleteTemplate model:**
+- Identical structure (groups, exercises, sets). Duplicating the model hierarchy would mean duplicating ExerciseGroup, TemplateExercise, TemplateSet relationships or adding more polymorphism.
+- Coach templates already have the full structure. Adding `ownerType` is a field addition, not an architectural change.
+- SyncService already knows how to sync WorkoutTemplate. Adding a filter on `ownerType` is trivial.
+- Template sharing (v1.3) becomes natural: a shared template just changes `ownerId`/`ownerType`.
+
+**Migration concern:** The `coachId` field is non-optional and existing templates all have it set. Approach:
+1. Add `ownerId` and `ownerType` with defaults (ownerType defaults to `.coach`, ownerId defaults to coachId value).
+2. Keep `coachId` as a computed property that returns `ownerId` when `ownerType == .coach`.
+3. Or simply: rename `coachId` to `ownerId` in a VersionedSchema migration. This is a rename + default value addition, which SwiftData can handle as a custom migration.
+
+**Recommendation:** Use the additive approach (add `ownerId` + `ownerType` with defaults, deprecate `coachId` over time). This avoids a custom migration and keeps existing coach template code working. The `coachId` property can become a computed alias.
+
+**Save-From-Session Flow:**
+
+When an athlete completes a workout and taps "Save as Template":
+1. Create a new `WorkoutTemplate` with `ownerType = .athlete`, `ownerId = athlete.supabaseUserId`
+2. Deep-copy the session's exercise structure into ExerciseGroup -> TemplateExercise -> TemplateSet
+3. Use the session's actual weights/reps/durations as the initial template target values
+4. Template name defaults to session name (editable)
+
+This uses the existing `deepCopyGroups()` pattern on WorkoutTemplate, adapted from session ExerciseEntry structure.
+
+**Template Selection UX Data Flow:**
+
+Dashboard quick-start cards and the template picker need these queries:
+- Favorite templates: `@Query` with `isFavorite == true && isArchived == false && ownerType == .athlete`
+- Recently used: `@Query` sorted by `lastUsedDate` descending
+- Suggested for today: TemplateSuggestionEngine result (see below)
+
+**Dynamic Targets:**
+
+When starting a workout from a template:
+1. Load template's target sets (base values)
+2. For each exercise, call `ProgressionEngine.suggest()` with the athlete's training history
+3. Overlay ProgressionEngine suggestions onto template targets
+4. Show both: template target (gray) and suggested target (primary text)
+5. Pro-gated: free users see template targets only; Pro users see ProgressionEngine overlay
+
+This requires NO changes to ProgressionEngine. The engine already accepts `exerciseName`, `category`, `context`, and `recentEntries` and returns `ExerciseSuggestion` with `SetSuggestion` values.
+
+### TemplateSuggestionEngine Design
+
+```swift
+struct TemplateSuggestionEngine {
+
+    struct SuggestionInput {
+        let templates: [TemplateInfo]
+        let usageHistory: [UsageRecord]  // (templateId, date, dayOfWeek)
+        let currentDayOfWeek: Int        // 1=Sun...7=Sat
+        let recoveryZone: RecoveryZone
+        let fatigueZone: FatigueIndexEngine.FatigueZone
+    }
+
+    struct TemplateInfo {
+        let id: UUID
+        let name: String
+        let sportType: SportType
+        let sessionType: SessionType
+        let isFavorite: Bool
+        let scheduledDays: [Int]?
+        let lastUsedDate: Date?
+        let useCount: Int
+    }
+
+    struct UsageRecord {
+        let templateId: UUID
+        let date: Date
+        let dayOfWeek: Int
+    }
+
+    struct RankedTemplate {
+        let templateId: UUID
+        let score: Double       // 0-1, higher = better match
+        let reason: String      // "Scheduled for today", "You usually do this on Mondays"
+    }
+
+    static func rank(input: SuggestionInput) -> [RankedTemplate]
+}
+```
+
+Scoring factors (weighted):
+1. **Scheduled for today** (weight 0.40): If template has `scheduledDays` containing today's day, big boost. This is the primary scheduling mechanism.
+2. **Day-of-week frequency** (weight 0.25): From usage history, compute P(template | dayOfWeek). Templates the athlete habitually does on this day of week get boosted.
+3. **Recency penalty** (weight 0.15): Templates used in the last 24h get penalized (avoid suggesting the same workout back-to-back unless it is explicitly scheduled).
+4. **Favorite boost** (weight 0.10): Favorites get a flat boost.
+5. **Recovery-awareness** (weight 0.10): If recovery is red, deprioritize high-intensity templates (strength, HIIT) and boost recovery/cardio templates.
+
+**Why build a custom engine instead of using a library:**
+- The ranking logic is ~100 lines of weighted scoring. No library needed.
+- Domain-specific scoring (recovery-aware, sport-type aware) would not be served by a generic recommendation library.
+- Follows the project's pure struct engine pattern -- deterministic, testable, no dependencies.
+
+---
+
+## Feature 3: HealthKit Workout-Template Matching
+
+### What's Needed: Extension to Existing WorkoutImportService
+
+| Technology | Purpose | Why | Confidence |
+|------------|---------|-----|------------|
+| HealthKit HKWorkout (existing) | Detect external workouts | Already fetched by `WorkoutImportService.findUnmatchedWorkouts()`. No new HealthKit capabilities needed. | HIGH |
+| WorkoutImportBanner (existing) | Show import suggestions with template matching | Extend the existing banner to suggest which template the detected workout likely maps to. | HIGH |
+
+**Matching Algorithm:**
+
+The existing `WorkoutImportSuggestion` already maps `HKWorkoutActivityType` to `SportType` and `SessionType`. Template matching adds one more layer:
+
+```swift
+extension WorkoutImportService {
+    /// Find the best-matching template for a detected HealthKit workout
+    static func matchTemplate(
+        suggestion: WorkoutImportSuggestion,
+        templates: [WorkoutTemplate],
+        usageHistory: [(templateId: UUID, date: Date)]
+    ) -> WorkoutTemplate? {
+        // 1. Filter by sport type match
+        // 2. Filter by session type match
+        // 3. Among matches, prefer: scheduled for today > most frequently used > most recently used
+        // 4. Return nil if no match (athlete logs manually)
+    }
+}
+```
+
+The matching is simple because `WorkoutImportSuggestion` already provides `sportType` and `sessionType`, and templates have the same fields. The match is:
+- `suggestion.sportType == template.sportType` AND `suggestion.sessionType == template.sessionType`
+
+When a match is found, the WorkoutImportBanner shows "Looks like your [Strength Training] -- use [Push Day A] template?" alongside the existing "Add" / "X" buttons.
+
+**What NOT to build:**
+- No exercise-level matching from HealthKit. HealthKit workouts from Apple Watch do not contain exercise names or sets -- only activity type, duration, calories, and HR. Exercise-level matching requires the Apple Watch companion app (out of scope).
+- No automatic session creation from HealthKit. The existing manual-confirm flow (banner + RPE prompt) is correct for data quality. Auto-creating sessions without RPE would break the sRPE-based TSS calculation.
+
+---
+
+## Template Management Operations
+
+Template management (edit, duplicate, archive, favorite, delete) requires no stack additions. These are CRUD operations on the existing SwiftData model:
+
+| Operation | Implementation | Notes |
+|-----------|----------------|-------|
+| Edit | Update template properties in-place | Existing TemplateEditorSheet, adapted for athlete ownership |
+| Duplicate | `template.deepCopyGroups()` into new template | Existing method on WorkoutTemplate |
+| Archive | Set `isArchived = true` | New boolean field, filtered out of active queries |
+| Favorite | Toggle `isFavorite` | New boolean field, used for quick-start cards |
+| Delete | `modelContext.delete(template)` | Cascade deletes groups/exercises/sets |
+
+---
+
+## Full Stack Change Summary
+
+### SwiftData Model Changes
+
+| Model | Change | Migration |
+|-------|--------|-----------|
+| TrainingProfile (NEW) | New `@Model` class | Lightweight (new model) |
+| Athlete | Add optional `trainingProfile: TrainingProfile?` relationship | Lightweight (new optional property) |
+| WorkoutTemplate | Add `ownerId`, `ownerType`, `isFavorite`, `isArchived`, `lastUsedDate`, `useCount`, `scheduledDays` | Lightweight (new properties with defaults) |
+
+### New Pure Engines
+
+| Engine | Type | Responsibility |
+|--------|------|----------------|
+| ColdStartEngine | `struct` with static methods | Convert questionnaire answers to ATL/CTL seeds |
+| TemplateSuggestionEngine | `struct` with static methods | Rank templates for today based on schedule, history, recovery |
+
+### Modified Existing Components
+
+| Component | Modification |
+|-----------|--------------|
+| WorkloadCalculator.computeHistoryEWMA() | Accept optional `initialATL`/`initialCTL` parameters |
+| WorkoutPipeline.processSession() | Bootstrap EWMA from seeded values when real data is insufficient |
+| WorkoutImportService | Add template matching to detected workouts |
+| SyncService | Add `training_profiles` table sync; extend `workout_templates` sync with new fields |
+| OnboardingView | Extend to include cold-start questionnaire steps |
+| DashboardViewModel | Add template suggestion loading; add 8-week bias check |
+
+### Supabase Schema Additions
+
+| Table | Purpose |
+|-------|---------|
+| `training_profiles` | Store questionnaire answers + seeded values + bias tracking |
+| `workout_templates` (alter) | Add `owner_id`, `owner_type`, `is_favorite`, `is_archived`, `last_used_date`, `use_count`, `scheduled_days` columns |
+
+RLS policies:
+- `training_profiles`: Read/write own profile only (`auth.uid() = user_id`)
+- `workout_templates`: Athletes can CRUD their own templates (`owner_type = 'athlete' AND owner_id = auth.uid()`). Coach template policies remain unchanged.
+
+### No New Enums
+
+Existing enums cover all needs:
+- `SportType`, `SessionType`, `ExerciseCategory`, `MuscleGroup` -- already complete
+- `TrainingFrequency`, `ExperienceLevel` -- already exist in Enums.swift
+- New: `TemplateOwnerType` (2 cases, trivial)
+
+---
+
+## SPM Dependencies (NO additions for v1.2)
+
+```
+https://github.com/supabase/supabase-swift     -- existing
+https://github.com/RevenueCat/purchases-ios.git -- existing
+```
+
+## Apple Frameworks (NO new imports for v1.2)
 
 ```
 SwiftUI              -- UI
-SwiftData            -- Persistence
+SwiftData            -- Persistence (new models use existing framework)
 Charts               -- Visualization
-HealthKit            -- Biometrics
-Accelerate           -- Vectorized math (added v1.0)
-UIKit                -- PDF rendering (UIGraphicsPDFRenderer, ImageRenderer)
-UniformTypeIdentifiers -- File type declarations for export
-UserNotifications    -- NEW: Local push notifications for weekly summary
-MetricKit            -- NEW: Production performance telemetry
-XCTest               -- EXPANDED: Unit + integration + performance + accessibility tests
+HealthKit            -- Biometrics + workout detection (existing usage)
+Accelerate           -- Vectorized math
+UserNotifications    -- Local push notifications
+MetricKit            -- Production telemetry
+UIKit                -- PDF rendering
+UniformTypeIdentifiers -- File type declarations
 ```
 
-### Dev/CI Dependencies (new)
+Every new v1.2 capability is pure Swift + SwiftData. Zero new imports.
 
-```
-fastlane             -- Metadata and screenshot upload to App Store Connect
-```
-
-### No New SPM Dependencies
-
-v1.1 adds zero new third-party SPM packages. Every new capability uses Apple frameworks:
-- Notifications: UserNotifications (Apple)
-- Streaks: Pure Swift + SwiftData (no library)
-- PDF: ImageRenderer + UIGraphicsPDFRenderer (Apple)
-- QA: XCTest + XCUITest (Apple)
-- Performance: Instruments + XCTMetric + MetricKit (Apple)
-- ASO: fastlane (dev tool, not compiled into app)
-
-This is intentional:
-1. **Zero additional binary size** -- no new frameworks shipped to users
-2. **Zero dependency risk** -- no third-party breakage on Xcode/iOS updates
-3. **App Review friendly** -- fewer dependencies = fewer potential rejection vectors
-4. **Privacy compliant** -- no new third-party SDKs to declare in privacy manifest
+---
 
 ## Alternatives Considered
 
 | Category | Recommended | Alternative | Why Not |
 |----------|-------------|-------------|---------|
-| Weekly notification | UserNotifications (local) | Supabase Edge Function + APNs | Weekly summary is computed from local data; remote push adds server complexity for no benefit |
-| Weekly notification | UserNotifications (local) | Firebase Cloud Messaging | iOS-only app; FCM adds ~10MB Firebase SDK and Google dependency |
-| Weekly notification | UserNotifications (local) | OneSignal | SaaS dependency; privacy implications for health app; overkill for one notification type |
-| Streak tracking | Pure Swift engine | Third-party gamification library | 50 lines of date math; a library adds dependency overhead |
-| PDF reports | ImageRenderer + UIGraphicsPDFRenderer | TPPDF | Reports mirror existing SwiftUI views; TPPDF duplicates layout code |
-| QA testing | XCTest + XCUITest | Quick/Nimble | Extra learning curve; XCTest covers all needs for pure-engine architecture |
-| QA testing | XCTest + XCUITest | swift-snapshot-testing | Good tool, but v1.1 priority is functional correctness, not pixel regression |
-| Performance | Instruments + MetricKit | Firebase Performance | Adds Firebase SDK for one metric category; MetricKit is zero-dependency |
-| ASO delivery | fastlane deliver | App Store Connect API direct | fastlane wraps the API; no need to build custom integration |
-| ASO research | ASO.dev (free tier) | AppTweak/Sensor Tower | Overkill at launch; upgrade after reaching meaningful download volume |
-| Accessibility | performAccessibilityAudit() | Deque axe DevTools | Built-in Xcode solution is sufficient; third-party adds complexity |
+| Cold-start seeding | sRPE formula with questionnaire inputs | ML model from training data | No training dataset available; deterministic formula is validated by sport science literature and uses the same TSS formula the app already runs |
+| Cold-start seeding | ColdStartEngine (pure struct) | TrainingPeaks API integration | Adds external dependency, requires user to have TP account, data format mismatch |
+| Training profile storage | Standalone TrainingProfile model | Additional Athlete properties | Athlete model already has 20+ properties; lifecycle is different (write-once vs settings); Supabase sync cleaner with separate table |
+| Parallel data tracks | Single EWMA track with seeded initial values | Two separate WorkloadSnapshot streams (estimated vs real) | Doubles storage/sync/query complexity for a transitional 3-week period; single track with bootstrapped start is mathematically equivalent |
+| Template ownership | Extend WorkoutTemplate with ownerType | Separate AthleteTemplate model | Would duplicate 4 model classes (Template, Group, Exercise, Set) and all their sync logic; identical structure should use identical models |
+| Template suggestions | TemplateSuggestionEngine (pure struct) | CoreML on-device model | Scoring logic is ~100 lines of weighted arithmetic; ML adds model training/maintenance burden for a simple ranking problem |
+| Template suggestions | TemplateSuggestionEngine (pure struct) | Third-party recommendation library | No Swift recommendation library fits this domain; scoring is exercise-type and recovery-aware |
+| HealthKit matching | SportType + SessionType match | Exercise-name fuzzy matching | HKWorkout from Apple Watch contains no exercise names; matching is limited to activity type |
+| Dynamic targets | ProgressionEngine overlay (existing) | Separate template progression system | ProgressionEngine already computes recovery-aware suggestions per exercise; calling it per template exercise avoids duplicating logic |
+| Bias measurement | Silent 8-week single check | Continuous rolling calibration | Needs research on longitudinal sRPE adjustment that does not exist yet; deferred to v1.3+ |
+| Day-of-week scheduling | Array of weekday integers on template | Full calendar/recurring event system | YAGNI for v1.2; athletes need "I do Push on Mon/Thu", not iCal-level recurrence |
 
-## Installation
+---
 
-### Apple Frameworks (add imports where needed)
+## What NOT to Add
 
-```swift
-import UserNotifications  // In NotificationService
-import MetricKit          // In AppDelegate or AppContainer
-import os                 // For os_signpost in performance instrumentation
-```
+These were considered and explicitly rejected:
 
-### Dev Tools (one-time setup)
+| Technology | Why Not |
+|------------|---------|
+| CoreML / CreateML | No training data for seeding model; deterministic formula is sufficient and interpretable |
+| Firebase Analytics | Already have MetricKit for production telemetry; adding Firebase SDK adds ~10MB and Google dependency |
+| Full calendar framework (EventKit) | Template scheduling is day-of-week, not calendar events; EventKit is overkill |
+| Background App Refresh | Not needed for template suggestions or bias checks; these run on foreground app launch |
+| CloudKit | Already using Supabase; adding CloudKit creates two sync systems |
+| Third-party form/survey library | Questionnaire is 4-8 questions with simple SwiftUI pickers; no library needed |
+| Workout plan / periodization library | Template suggestions are simple ranking; periodization detection is already built |
+| WidgetKit for template quick-start | Possible future enhancement but not v1.2 scope; requires separate widget extension target |
 
-```bash
-# Install fastlane (if not already installed)
-brew install fastlane
+---
 
-# Initialize fastlane in project
-cd /Users/hanwen/Desktop/Tonus
-fastlane init
+## Integration Checklist
 
-# Create metadata directory structure
-mkdir -p fastlane/metadata/en-US
-mkdir -p fastlane/screenshots/en-US
-```
+Pre-implementation verification points:
 
-### MetricKit Setup (minimal)
-
-```swift
-// In AppContainer or App init
-import MetricKit
-
-class MetricSubscriber: NSObject, MXMetricManagerSubscriber {
-    func didReceive(_ payloads: [MXMetricPayload]) {
-        // Log or forward to analytics
-        for payload in payloads {
-            print("Launch time: \(payload.applicationLaunchMetrics)")
-        }
-    }
-
-    func didReceive(_ payloads: [MXDiagnosticPayload]) {
-        // Crash and hang diagnostics
-        for payload in payloads {
-            print("Diagnostics: \(payload)")
-        }
-    }
-}
-
-// Register on app launch
-MXMetricManager.shared.add(subscriber)
-```
-
-## Integration Points with Existing Stack
-
-| New Feature | Touches Existing | Integration Notes |
-|-------------|------------------|-------------------|
-| Local notifications | AppContainer, WorkoutPipeline, RecoveryPipeline | Schedule/refresh notification on pipeline completion |
-| Streak tracking | WorkoutPipeline, RecoveryPipeline, SwiftData models | New StreakSnapshot model; compute in pipelines alongside existing snapshots |
-| PDF export | Existing SwiftUI chart views, ShareLink | Render existing views to PDF; add share button to relevant screens |
-| fastlane | ScreenshotTests XCUITest target | Orchestrate existing screenshot tests across device sizes |
-| Performance tests | XCTest target, DashboardViewModel, pipelines | Add os_signpost instrumentation to hot paths |
-| Accessibility audits | XCUITest target | Add performAccessibilityAudit() calls to existing UI tests |
-| MetricKit | AppContainer | One-time subscriber registration on app launch |
+- [ ] SwiftData ModelContainer schema includes TrainingProfile in model list
+- [ ] VersionedSchema defined for migration (V2 -> V3 or appropriate version bump)
+- [ ] WorkoutTemplate new properties have default values for lightweight migration
+- [ ] Supabase `training_profiles` table created with RLS policies
+- [ ] Supabase `workout_templates` table altered with new columns (nullable for existing rows)
+- [ ] SyncService extended with training_profiles push/pull
+- [ ] SyncService extended with new workout_templates fields
+- [ ] ColdStartEngine unit tests cover all experience/frequency/sport combinations
+- [ ] TemplateSuggestionEngine unit tests cover scheduling, recency, recovery-awareness
+- [ ] WorkloadCalculator.computeHistoryEWMA() backward-compatible (default initialATL/CTL = 0)
+- [ ] WorkoutPipeline.processSession() backward-compatible (no TrainingProfile = existing behavior)
 
 ## Sources
 
-- [Apple UserNotifications - Scheduling Local Notifications](https://developer.apple.com/documentation/usernotifications/scheduling-a-notification-locally-from-your-app) -- HIGH confidence
-- [Supabase Push Notifications Docs](https://supabase.com/docs/guides/functions/examples/push-notifications) -- HIGH confidence (evaluated and deferred)
-- [Apple XCTest Performance Tests](https://developer.apple.com/documentation/xctest/performance-tests) -- HIGH confidence
-- [Apple XCTApplicationLaunchMetric](https://developer.apple.com/documentation/xcode/writing-and-running-performance-tests) -- HIGH confidence
-- [Apple performAccessibilityAudit (WWDC23)](https://developer.apple.com/videos/play/wwdc2023/10035/) -- HIGH confidence
-- [Apple MetricKit](https://developer.apple.com/documentation/metrickit) -- HIGH confidence
-- [fastlane deliver](https://docs.fastlane.tools/actions/deliver/) -- HIGH confidence
-- [Apple ImageRenderer](https://developer.apple.com/documentation/swiftui/imagerenderer) -- HIGH confidence
-- [UIGraphicsPDFRenderer](https://developer.apple.com/documentation/uikit/uigraphicspdfrenderer) -- HIGH confidence
-- [App Store Algorithm Update 2025 - Appfigures](https://appfigures.com/resources/guides/app-store-algorithm-update-2025) -- MEDIUM confidence
-- [ASO.dev](https://aso.dev/) -- MEDIUM confidence
-- [App Store Connect API Metadata](https://developer.apple.com/documentation/appstoreconnectapi/app-metadata) -- HIGH confidence
+- [Apple SwiftData Schema Migration](https://developer.apple.com/forums/thread/738812) -- HIGH confidence (lightweight migration for new models confirmed)
+- [SwiftData Lightweight vs Complex Migrations (Hacking with Swift)](https://www.hackingwithswift.com/quick-start/swiftdata/lightweight-vs-complex-migrations) -- HIGH confidence
+- [TrainingPeaks: Estimate Starting Fitness (CTL)](https://help.trainingpeaks.com/hc/en-us/articles/230903988-Estimate-Starting-Fitness-CTL) -- MEDIUM confidence (formula validated but access restricted)
+- [TrainingPeaks: Science of the Performance Manager](https://www.trainingpeaks.com/learn/articles/the-science-of-the-performance-manager/) -- HIGH confidence (EWMA cold-start seeding approach)
+- [TrainingPeaks: Estimating Training Stress Score (TSS)](https://www.trainingpeaks.com/learn/articles/estimating-training-stress-score-tss/) -- HIGH confidence (sRPE-based TSS formula)
+- [TrainingPeaks: Suggested Weekly TSS and Target CTL](https://help.trainingpeaks.com/hc/en-us/articles/230904648-Suggested-Weekly-TSS-and-Target-CTL) -- HIGH confidence (CTL ranges by athlete level)
+- [HKWorkout Documentation](https://developer.apple.com/documentation/healthkit/hkworkout) -- HIGH confidence
+- [HKWorkoutActivityType Documentation](https://developer.apple.com/documentation/healthkit/hkworkoutactivitytype) -- HIGH confidence
+- [Apple WWDC23: Model your schema with SwiftData](https://developer.apple.com/videos/play/wwdc2023/10195/) -- HIGH confidence
+- [sRPE Literature: Research on session-RPE monitoring](https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2024.1341972/full) -- MEDIUM confidence (academic, supports RPE defaults by level)
