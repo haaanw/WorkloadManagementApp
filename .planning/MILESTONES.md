@@ -21,3 +21,26 @@
 - D-15 (HealthKit re-prompt on Recovery tab if skipped during onboarding) not implemented — existing EmptyStateCard covers general case
 
 ---
+
+## v1.1 App Store Launch (Shipped: 2026-04-30)
+
+**Phases completed:** 4 phases (5-8), 9+ plans
+**Timeline:** 2026-04-22 → 2026-04-30
+**Codebase:** ~17,000+ LOC Swift
+
+**Key accomplishments:**
+
+- Streak tracking (consecutive week counting) on dashboard
+- Weekly local push notifications with training summary
+- PDF report export (athlete + coach) with subscription gating
+- App Store metadata (title, subtitle, keywords, description, screenshots)
+- Social authentication (Apple Sign-In + Google Sign-In)
+- Evidence-based fatigue tracking system (FatigueIndexEngine, 6-component model replacing ACWR as primary risk signal)
+- App Store submission (v1.0 build submitted 2026-04-30)
+
+**Known gaps at close:**
+
+- App Store submission pending review / rejected — fix being addressed in parallel session
+- v1.1 traceability checkboxes not updated during execution
+
+---
