@@ -526,16 +526,6 @@ struct BehaviorTagRow: Codable {
     let createdAt: Date
     let updatedAt: Date
 
-    enum CodingKeys: String, CodingKey {
-        case id, date
-        case athleteId = "athlete_id"
-        case tagName = "tag_name"
-        case isActive = "is_active"
-        case isCustom = "is_custom"
-        case createdAt = "created_at"
-        case updatedAt = "updated_at"
-    }
-
     init(from tag: BehaviorTag, athleteId: UUID) {
         self.id = tag.id
         self.athleteId = athleteId
