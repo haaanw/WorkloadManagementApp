@@ -79,10 +79,60 @@ struct WorkoutPipeline {
         session.chronicLoad = latestResult.ctl
         try modelContext.save()
 
+        // --- Cold-start switchover check (COLD-05, D-11, D-13) ---
+        let profilePredicate = #Predicate<TrainingProfile> { $0.athleteId == athlete.id }
+        let profileDescriptor = FetchDescriptor<TrainingProfile>(predicate: profilePredicate)
+        if let profile = try? modelContext.fetch(profileDescriptor).first,
+           profile.coldStartCompletedAt == nil {
+
+            // Count ALL sessions for this athlete (not just recent -- lifetime total)
+            let allSessionsDescriptor = FetchDescriptor<WorkoutSession>(
+                sortBy: [SortDescriptor(\.sessionDate)]
+            )
+            let totalSessionCount = (try? modelContext.fetch(allSessionsDescriptor).count) ?? 0
+
+            // Calculate weeks elapsed since seeding
+            let weeksSinceSeeded = Calendar.current.dateComponents(
+                [.day], from: profile.seededAt, to: .now
+            ).day.map { $0 / 7 } ?? 0
+
+            // Threshold: 3+ weeks AND 8+ sessions (D-11)
+            if weeksSinceSeeded >= 3 && totalSessionCount >= 8 {
+                profile.coldStartCompletedAt = .now
+                profile.updatedAt = .now
+                try? modelContext.save()
+            }
+        }
+
+        // --- Bias capture at 8-week mark (COLD-06, D-14) ---
+        if let profile = try? modelContext.fetch(profileDescriptor).first,
+           profile.biasCapturedAt == nil,
+           profile.coldStartCompletedAt != nil {
+
+            let daysSinceSeeded = Calendar.current.dateComponents(
+                [.day], from: profile.seededAt, to: .now
+            ).day ?? 0
+
+            // 8 weeks = 56 days
+            if daysSinceSeeded >= 56 {
+                if let latestSnapshot = try? workloadRepo.fetchLatestSnapshot() {
+                    profile.biasEstimatedATL = profile.seededATL
+                    profile.biasEstimatedCTL = profile.seededCTL
+                    profile.biasActualATL = latestSnapshot.acuteLoad
+                    profile.biasActualCTL = latestSnapshot.chronicLoad
+                    profile.biasCapturedAt = .now
+                    profile.updatedAt = .now
+                    try? modelContext.save()
+                }
+            }
+        }
+
         if let syncService {
             let athleteId = athlete.id
             Task {
                 await syncService.pushWorkloadSnapshots(context: modelContext, athleteId: athleteId)
+                // Sync updated TrainingProfile (switchover/bias may have changed it)
+                await syncService.pushTrainingProfile(context: modelContext, athleteId: athleteId)
             }
         }
 
