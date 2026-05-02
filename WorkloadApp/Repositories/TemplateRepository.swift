@@ -13,26 +13,28 @@ final class TemplateRepository {
 
     /// Fetch non-archived athlete-owned templates, sorted by most recently updated
     func fetchAthleteTemplates(athleteId: UUID) throws -> [WorkoutTemplate] {
+        // Use a simple predicate (athleteId match) and filter in memory.
+        // Multi-condition #Predicate expressions exceed Swift type-checker limits
+        // when compiled alongside large batched files.
         let predicate = #Predicate<WorkoutTemplate> {
-            $0.isAthleteOwned == true && $0.athleteId == athleteId && $0.isArchived == false
+            $0.athleteId == athleteId
         }
         let descriptor = FetchDescriptor<WorkoutTemplate>(
             predicate: predicate,
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )
         return try modelContext.fetch(descriptor)
+            .filter { $0.isAthleteOwned && !$0.isArchived }
     }
 
     /// Fetch only favorited athlete-owned templates
     func fetchFavorites(athleteId: UUID) throws -> [WorkoutTemplate] {
-        let predicate = #Predicate<WorkoutTemplate> {
-            $0.isAthleteOwned == true && $0.athleteId == athleteId && $0.isFavorite == true && $0.isArchived == false
-        }
-        let descriptor = FetchDescriptor<WorkoutTemplate>(
-            predicate: predicate,
-            sortBy: [SortDescriptor(\.lastUsedAt, order: .reverse)]
-        )
-        return try modelContext.fetch(descriptor)
+        // Fetch athlete-owned templates first, then filter favorites in memory.
+        // A 4-condition #Predicate exceeds the Swift type-checker's complexity budget.
+        let all = try fetchAthleteTemplates(athleteId: athleteId)
+        return all
+            .filter { $0.isFavorite && !$0.isArchived }
+            .sorted { ($0.lastUsedAt ?? .distantPast) > ($1.lastUsedAt ?? .distantPast) }
     }
 
     /// Save a new athlete-owned template
