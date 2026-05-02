@@ -80,7 +80,8 @@ struct WorkoutPipeline {
         try modelContext.save()
 
         // --- Cold-start switchover check (COLD-05, D-11, D-13) ---
-        let profilePredicate = #Predicate<TrainingProfile> { $0.athleteId == athlete.id }
+        let athleteIdForProfile = athlete.id
+        let profilePredicate = #Predicate<TrainingProfile> { $0.athleteId == athleteIdForProfile }
         let profileDescriptor = FetchDescriptor<TrainingProfile>(predicate: profilePredicate)
         if let profile = try? modelContext.fetch(profileDescriptor).first,
            profile.coldStartCompletedAt == nil {
