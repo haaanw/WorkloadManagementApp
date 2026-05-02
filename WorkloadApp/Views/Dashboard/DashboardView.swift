@@ -14,8 +14,10 @@ struct DashboardView: View {
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
     private var recentSessions: [WorkoutSession]
     @Query private var allCheckIns: [WellnessCheckIn]
+    @Query private var trainingProfiles: [TrainingProfile]
     @State private var showActiveWorkout = false
     @State private var showWellnessCheckIn = false
+    @State private var showTrainingProfile = false
     @State private var viewModel = DashboardViewModel()
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
 
@@ -24,6 +26,11 @@ struct DashboardView: View {
     private var showWelcomeCard: Bool {
         guard athlete != nil else { return false }
         return recentSessions.isEmpty && allCheckIns.isEmpty
+    }
+
+    private var showTrainingProfileCard: Bool {
+        guard athlete != nil else { return false }
+        return trainingProfiles.isEmpty
     }
 
     var body: some View {
@@ -37,6 +44,10 @@ struct DashboardView: View {
                             onLogWorkout: { showActiveWorkout = true },
                             onWellnessCheckIn: { showWellnessCheckIn = true }
                         )
+                    }
+
+                    if showTrainingProfileCard {
+                        TrainingProfileCard(onComplete: { showTrainingProfile = true })
                     }
 
                     if !viewModel.hasRealData {
@@ -102,9 +113,20 @@ struct DashboardView: View {
                         Spacer().frame(height: 8)
                     }
 
-                    // Fatigue attention signal (D-FAT)
-                    if let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
-                       zone != .low {
+                    // Fatigue attention signal (D-FAT, COLD-07)
+                    if viewModel.isColdStartActive {
+                        // D-16: Show "Building baseline..." during cold-start
+                        Text("Building baseline...")
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text2)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+                            .background(ColorTokens.surface)
+                            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                        Spacer().frame(height: 8)
+                    } else if let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
+                              zone != .low {
                         FatigueAttentionBanner(fatigueIndex: fi, zone: zone)
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                         Spacer().frame(height: 8)
@@ -141,6 +163,9 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showWellnessCheckIn) {
                 MorningCheckInSheet()
+            }
+            .sheet(isPresented: $showTrainingProfile) {
+                TrainingProfileSheet()
             }
             .navigationDestination(for: TrendDestination.self) { dest in
                 switch dest {
@@ -439,10 +464,26 @@ struct TrainingLoadSection: View {
             }
 
             HStack(spacing: 24) {
-                LoadStatCell(label: "ACWR", value: viewModel.acwrZone == .noData ? "—" : String(format: "%.2f", viewModel.acwr))
-                LoadStatCell(label: "ATL",  value: viewModel.acwrZone == .noData ? "—" : String(format: "%.0f", viewModel.atl))
-                LoadStatCell(label: "CTL",  value: viewModel.acwrZone == .noData ? "—" : String(format: "%.0f", viewModel.ctl))
-                LoadStatCell(label: "TSB",  value: viewModel.acwrZone == .noData ? "—" : String(format: "%+.0f", viewModel.tsb))
+                LoadStatCell(
+                    label: "ACWR",
+                    value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%.2f", viewModel.acwr),
+                    isEstimated: viewModel.isColdStartActive
+                )
+                LoadStatCell(
+                    label: "ATL",
+                    value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%.0f", viewModel.atl),
+                    isEstimated: viewModel.isColdStartActive
+                )
+                LoadStatCell(
+                    label: "CTL",
+                    value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%.0f", viewModel.ctl),
+                    isEstimated: viewModel.isColdStartActive
+                )
+                LoadStatCell(
+                    label: "TSB",
+                    value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%+.0f", viewModel.tsb),
+                    isEstimated: viewModel.isColdStartActive
+                )
             }
         }
         .padding(.horizontal, 16)
@@ -454,6 +495,7 @@ struct TrainingLoadSection: View {
 struct LoadStatCell: View {
     let label: String
     let value: String
+    var isEstimated: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: 2) {
@@ -465,7 +507,15 @@ struct LoadStatCell: View {
                 .font(.Tokens.label)
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text1)
+            if isEstimated {
+                Text("EST")
+                    .font(.Tokens.micro)
+                    .tracking(0.88)
+                    .foregroundStyle(ColorTokens.text3)
+            }
         }
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel(isEstimated ? "\(label) \(value), estimated" : "\(label) \(value)")
     }
 }
 
