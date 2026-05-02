@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Supabase
 
 struct PendingInvite: Identifiable {
     let id = UUID()
@@ -138,8 +139,13 @@ struct MainTabView: View {
     private var athlete: Athlete? { athletes.first }
 
     /// Coach-only users always see coach mode — no toggle needed.
+    /// Falls back to athlete mode if the coach subscription has expired.
     private var effectiveMode: AppMode {
-        athlete?.isCoachOnly == true ? .coach : container.currentMode
+        let requested = athlete?.isCoachOnly == true ? .coach : container.currentMode
+        if requested == .coach && !container.subscriptionService.isCoach {
+            return .athlete
+        }
+        return requested
     }
 
     var body: some View {
@@ -177,7 +183,7 @@ struct MainTabView: View {
             container.subscriptionService.refreshEntitlement()
             guard container.syncService.shouldForegroundSync else { return }
             Task {
-                if container.currentMode == .coach, let id = athlete?.id {
+                if effectiveMode == .coach, let id = athlete?.id {
                     await container.syncService.pullLinkedAthletes(context: modelContext)
                     let rels = (try? modelContext.fetch(FetchDescriptor<CoachAthleteRelationship>())) ?? []
                     for rel in rels where rel.coachId == id && rel.status == .accepted {
