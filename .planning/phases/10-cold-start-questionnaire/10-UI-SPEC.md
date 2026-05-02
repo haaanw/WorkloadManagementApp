@@ -36,7 +36,7 @@ Declared values (8pt base, all multiples of 4):
 |-------|-------|-------|
 | 2xs | 4pt | Tight vertical gaps (e.g., numeric value to EST annotation) |
 | xs | 8pt | Icon-label gaps, inline element spacing, tight HStack spacing |
-| sm | 16pt | Card internal horizontal padding, horizontal margins, small gaps |
+| sm | 16pt | Card internal horizontal padding, horizontal margins, form row vertical padding, small gaps |
 | md | 24pt | Card internal vertical padding, standard section gaps |
 | lg | 32pt | Section gaps between major content blocks |
 | xl | 48pt | Major section breaks |
@@ -62,6 +62,8 @@ Uses the existing `Font.Tokens` extension. All sizes below reference those token
 | Micro | `.micro` | 12pt | 400 (Regular) | 1.3 | Section micro-caps ("GET STARTED", "TRAINING LOAD", "REQUIRED", "OPTIONAL"), all-caps with `.tracking(1.2)` |
 
 **Active font sizes in this phase: 4** -- 32pt (pageTitle), 17pt (body), 15pt (label), 12pt (micro).
+
+**Note on 17pt/15pt proximity:** The 2pt difference between body and label is intentional. These are inherited project-wide tokens with distinct semantic roles -- body (17pt) is used for primary content and interactive labels, while label (15pt) is used for secondary/supporting text. The separation is maintained across the entire app for consistency.
 
 Source: FontTokens.swift, DESIGN.md type scale
 
@@ -163,7 +165,7 @@ All form rows follow the `editablePicker` / `editableTextField` pattern from Pro
 |----------|-------|
 | Row height | Auto (content-driven), minimum 48pt touch target |
 | Horizontal padding | 16pt |
-| Vertical padding | 12pt |
+| Vertical padding | 16pt |
 | Label font | `Font.Tokens.body` (17pt Regular) |
 | Label color | `ColorTokens.text2` |
 | Value font | `Font.Tokens.body` (17pt Regular) |
@@ -255,7 +257,7 @@ This is a simple single-line text card, not the full banner with zone color and 
 | Section header | "TRAINING PROFILE" -- micro-caps, same pattern as other ProfileView sections |
 | Content (if profile exists) | Summary row showing "Sessions/week: X", "Duration: Xmin", "Effort: X/10" as read-only rows. "Edit Profile" button to re-open TrainingProfileSheet |
 | Content (if no profile) | Single row: "Set up training profile" with trailing chevron. Taps to open TrainingProfileSheet |
-| Row styling | Same as existing ProfileView rows (16pt horizontal padding, 12pt vertical padding, `Font.Tokens.body`) |
+| Row styling | Same as existing ProfileView rows (16pt horizontal padding, 16pt vertical padding, `Font.Tokens.body`) |
 
 ---
 
@@ -359,7 +361,7 @@ This is a simple single-line text card, not the full banner with zone color and 
 |-------------|---------------|
 | VoiceOver for "EST" label | Combine value + annotation into single accessibility label: "ATL 142, estimated" |
 | Form input labels | Each picker/field has `.accessibilityLabel` matching the question label |
-| Touch targets | All form rows minimum 48pt height (12pt vertical padding + 17pt text + 12pt padding = 41pt minimum, add 7pt if needed) |
+| Touch targets | All form rows minimum 48pt height (16pt vertical padding + 17pt body text + 16pt vertical padding = 49pt, exceeds 48pt minimum) |
 | Dynamic Type | Use `Font.Tokens` which are fixed-size custom fonts. Dynamic Type not supported per existing app pattern (custom font bundling). VoiceOver remains primary accessibility channel |
 | Color contrast | All text/background combinations meet WCAG AA 4.5:1 per DESIGN.md verified tokens |
 
