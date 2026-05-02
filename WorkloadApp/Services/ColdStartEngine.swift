@@ -51,7 +51,8 @@ struct ColdStartEngine {
     ///
     /// Input validation:
     /// - RPE clamped to [1.0, 10.0]
-    /// - Zero sessions or zero duration returns all-zero result
+    /// - Zero or negative sessions/duration returns all-zero result
+    /// - weeksAtLevel clamped to minimum 1
     ///
     /// - Parameter input: Questionnaire answers from the athlete
     /// - Returns: Seeded workload values for TrainingProfile storage
@@ -79,8 +80,10 @@ struct ColdStartEngine {
         let seededATL = dailyTSS * 7.0
 
         // D-05: CTL discount for athletes who recently changed programs
+        // Clamp weeksAtLevel to minimum 1 (defensive against negative/zero input)
+        let clampedWeeks = max(1, input.weeksAtLevel)
         // ramp linearly increases from 0.3 (floor) to 1.0 over 6 weeks
-        let ramp = max(0.3, min(1.0, Double(input.weeksAtLevel) / 6.0))
+        let ramp = max(0.3, min(1.0, Double(clampedWeeks) / 6.0))
         // CTL lambda = 1/28, steady-state CTL = dailyTSS * 28, then discounted
         let seededCTL = dailyTSS * 28.0 * ramp
 
