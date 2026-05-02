@@ -790,6 +790,7 @@ struct WorkoutSessionRow: Codable {
                 seededCTL: row.seededCtl,
                 seededAt: row.seededAt
             )
+            profile.createdAt = row.createdAt
             profile.trainingAgeYears = row.trainingAgeYears
             profile.periodizationPreference = row.periodizationPreference
             profile.movementTypes = row.movementTypes
