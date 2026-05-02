@@ -495,22 +495,22 @@ if let data = profile.injuryHistory,
 
 **Note:** A1 is very likely correct based on standard SwiftData behavior but should be verified during implementation. A2 is an iOS 15+ API that is definitely available on our iOS 17+ target. A3 needs verification -- `.weekOfYear` may have edge cases around year boundaries; `.day` / 7 may be more reliable.
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **Session count for switchover threshold: total lifetime or since seededAt?**
    - What we know: D-13 says "3 weeks + 8 sessions" but doesn't specify whether sessions count from seededAt or from all time
    - What's unclear: A user who had the app installed before Phase 10, then fills the questionnaire, might already have 8+ sessions
-   - Recommendation: Count sessions since `seededAt` only. The purpose of the threshold is to ensure enough real data exists from the current training period. If the user already has 8+ sessions and 3+ weeks of data, the switchover should trigger immediately (which is correct -- they don't need estimated values).
+   - RESOLVED: Count ALL sessions (lifetime total). The purpose of the threshold is to ensure enough real data exists. If the user already has 8+ sessions and 3+ weeks of data, the switchover triggers immediately (correct -- they don't need estimated values). Plan 03 Task 1 implements this as total session count.
 
 2. **What happens when user fills questionnaire but already has WorkloadSnapshot data?**
    - What we know: An existing user who upgrades to this version might already have real snapshots. The cold-start path only activates when NO WorkloadSnapshot exists.
    - What's unclear: Should we skip the cold-start window entirely for users with existing snapshots?
-   - Recommendation: Yes. If WorkloadSnapshot exists, use it regardless of TrainingProfile state. The cold-start data path is a fallback for the empty-snapshot case only.
+   - RESOLVED: Yes. If WorkloadSnapshot exists, use it regardless of TrainingProfile state. The cold-start data path is a fallback for the empty-snapshot case only. Plan 02 Task 1 implements this -- the `else` branch in DashboardViewModel.load() only executes when no WorkloadSnapshot is found.
 
 3. **Re-edit behavior after switchover**
    - What we know: D-03 says questionnaire is accessible from Profile for re-editing. UI-SPEC says re-runs computeSeed() but dashboard continues using real data post-switchover.
    - What's unclear: Whether re-editing should update seeded values (which are no longer displayed) or just the raw questionnaire answers.
-   - Recommendation: Re-run computeSeed() and update seeded values for data completeness, but since coldStartCompletedAt is set, dashboard ignores them. Raw answers are always updated.
+   - RESOLVED: Re-run computeSeed() and update seeded values for data completeness, but since coldStartCompletedAt is set, dashboard ignores them. Raw answers are always updated. Plan 01 Task 2 implements this in the save handler's `existingProfile` branch.
 
 ## Environment Availability
 
