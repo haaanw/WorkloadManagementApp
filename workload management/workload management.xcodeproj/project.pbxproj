@@ -126,6 +126,7 @@
 		FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000002 /* FatigueAttentionBanner.swift */; };
 		EE0501020000000000000002 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0501010000000000000002 /* NotificationService.swift */; };
 		DD0901010000000000000001 /* TrainingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0901010000000000000002 /* TrainingProfile.swift */; };
+		AA0901010000000000000001 /* ColdStartEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0901010000000000000002 /* ColdStartEngine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -266,6 +267,7 @@
 		DA2B9F3391AC5FE598FD31F7 /* CoachRelationshipModelTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = CoachRelationshipModelTests.swift; path = ../WorkloadAppTests/CoachRelationshipModelTests.swift; sourceTree = "<group>"; };
 		F3A9D4C7E2B1058A63F7921D /* UpgradeSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UpgradeSheet.swift; path = Subscription/UpgradeSheet.swift; sourceTree = "<group>"; };
 		FB199F37B561BBDD9395C435 /* SubscriptionGatingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SubscriptionGatingTests.swift; path = ../WorkloadAppTests/SubscriptionGatingTests.swift; sourceTree = "<group>"; };
+		AA0901010000000000000002 /* ColdStartEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColdStartEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -443,6 +445,7 @@
 				EE0501010000000000000001 /* StreakEngine.swift */,
 				EE0501010000000000000002 /* NotificationService.swift */,
 				FF0601010000000000000002 /* PDFReportEngine.swift */,
+				AA0901010000000000000002 /* ColdStartEngine.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -893,6 +896,7 @@
 				FF0603010000000000000001 /* CoachExportSheet.swift in Sources */,
 				FF0602010000000000000001 /* PDFGenerationSheet.swift in Sources */,
 				DD0901010000000000000001 /* TrainingProfile.swift in Sources */,
+				AA0901010000000000000001 /* ColdStartEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
