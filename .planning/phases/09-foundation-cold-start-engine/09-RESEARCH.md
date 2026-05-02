@@ -647,22 +647,22 @@ func pullTrainingProfile(context: ModelContext, athleteId: UUID) async {
 | A3 | `[String]?` property (movementTypes) properly serializes in SwiftData without custom transformer | Code Examples | movementTypes field inaccessible after save |
 | A4 | PostgreSQL `INT[]` column works with Supabase Swift SDK's JSONDecoder without custom handling | Code Examples | scheduledDays sync fails silently |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **SwiftData array property migration safety**
+1. **SwiftData array property migration safety** (RESOLVED)
    - What we know: Simple optionals and booleans with defaults are safe for lightweight migration
-   - What's unclear: Whether `[Int] = []` and `[String]? = nil` survive migration on devices with existing v1.1 data without requiring transformable attribute configuration
-   - Recommendation: Test on simulator with pre-existing data before App Store submission. If issues arise, use `Data?` with manual JSON encode/decode (same pattern as `injuryHistory`).
+   - What was unclear: Whether `[Int] = []` and `[String]? = nil` survive migration on devices with existing v1.1 data without requiring transformable attribute configuration
+   - Resolution: Proceed with `[Int] = []` and `[String]? = nil` as declared. SwiftData treats these as Codable transformable attributes with defaults, which is safe for lightweight migration. If a crash is observed during pre-submission QA testing on a device with pre-existing v1.1 data, fall back to `Data?` with manual JSON encode/decode (same pattern as `injuryHistory`). This is a test-and-verify risk, not a design risk.
 
-2. **Supabase INT[] column compatibility with Swift SDK**
+2. **Supabase INT[] column compatibility with Swift SDK** (RESOLVED)
    - What we know: The Supabase Swift SDK uses `JSONDecoder` for response parsing
-   - What's unclear: Whether PostgreSQL `INT[]` serializes as `[1,2,3]` in JSON response or requires special handling
-   - Recommendation: If issues arise, store as `TEXT` with JSON encoding (e.g., `"[1,2,3]"`) and decode manually. This matches the `groups_json` pattern already in use.
+   - What was unclear: Whether PostgreSQL `INT[]` serializes as `[1,2,3]` in JSON response or requires special handling
+   - Resolution: Proceed with PostgreSQL `INT[]` column type. In `WorkoutTemplateRow`, declare `scheduledDays` as `[Int]?` (optional) for decode safety. If SDK decode fails during sync testing, fall back to `TEXT` column with JSON string encoding (e.g., `"[1,2,3]"`) and manual decode. The fallback matches the existing `groups_json` pattern in SyncService.
 
-3. **Existing coach RLS policy interaction with new athlete policy**
+3. **Existing coach RLS policy interaction with new athlete policy** (RESOLVED)
    - What we know: PostgreSQL RLS uses OR semantics between multiple policies for the same command. Multiple `USING` policies for SELECT are combined with OR.
-   - What's unclear: Whether the existing "Coaches manage own templates" policy (which uses `FOR ALL`) conflicts with the new "Athletes manage own templates" policy when both evaluate for the same user
-   - Recommendation: Verify in Supabase SQL editor that a non-coach athlete user can INSERT a template with `is_athlete_owned=true`. The OR semantics should allow it, but test explicitly.
+   - What was unclear: Whether the existing "Coaches manage own templates" policy (which uses `FOR ALL`) conflicts with the new "Athletes manage own templates" policy when both evaluate for the same user
+   - Resolution: OR semantics between policies means the new athlete policy is strictly additive. An athlete INSERT with `is_athlete_owned=true` will pass the new "Athletes manage own templates" policy regardless of the coach policy evaluation. The Plan 03 checkpoint task (Supabase migration deployment) includes verification queries to confirm this works. No design change needed.
 
 ## Environment Availability
 
