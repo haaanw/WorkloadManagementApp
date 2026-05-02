@@ -61,7 +61,13 @@
   3. Dashboard displays estimated ATL/CTL values during the cold-start window, and these values never appear on WorkloadSnapshot
   4. Dashboard automatically switches from estimated to real ATL/CTL after 3+ weeks elapsed AND 8+ sessions logged, with no user action required
   5. FatigueIndex shows an "insufficient data" state during the cold-start window instead of computing from incomplete baselines
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 10-01-PLAN.md — Questionnaire form, dashboard card, and TrainingProfile repository
+- [ ] 10-02-PLAN.md — Dashboard cold-start data path, EST annotations, and FatigueIndex suppression
+- [ ] 10-03-PLAN.md — Switchover logic, bias capture, and ProfileView re-edit section
+
 **UI hint**: yes
 
 ### Phase 11: Template Management & Creation
@@ -105,6 +111,6 @@ Note: Phase 10 and Phase 11 both depend on Phase 9 and could execute in parallel
 | 7. App Store Metadata | v1.1 | 3/3 | Complete | - |
 | 8. QA, Performance & Compliance | v1.1 | 0/0 | Complete | - |
 | 9. Foundation & Cold-Start Engine | v1.2 | 0/0 | Not started | - |
-| 10. Cold-Start Questionnaire | v1.2 | 0/0 | Not started | - |
+| 10. Cold-Start Questionnaire | v1.2 | 0/3 | Planned | - |
 | 11. Template Management & Creation | v1.2 | 0/0 | Not started | - |
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 0/0 | Not started | - |
