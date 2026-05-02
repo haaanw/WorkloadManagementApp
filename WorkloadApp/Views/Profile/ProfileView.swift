@@ -6,6 +6,7 @@ struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Query private var athletes: [Athlete]
     @Query private var relationships: [CoachAthleteRelationship]
+    @Query private var trainingProfiles: [TrainingProfile]
 
     private var athlete: Athlete? { athletes.first }
 
@@ -25,6 +26,7 @@ struct ProfileView: View {
 
     @State private var errorMessage: String?
     @State private var showUpgrade = false
+    @State private var showTrainingProfileSheet = false
 
     var body: some View {
         NavigationStack {
@@ -52,6 +54,29 @@ struct ProfileView: View {
                             get: { athlete.experienceLevel ?? .intermediate },
                             set: { athlete.experienceLevel = $0; saveAthlete(athlete) }
                         ), options: ExperienceLevel.allCases) { $0.displayName }
+                        sectionDivider()
+
+                        // Training Profile (D-03)
+                        sectionHeader("TRAINING PROFILE")
+                        if let profile = trainingProfiles.first {
+                            // Profile exists: show summary rows
+                            profileRow("Sessions / week", value: "\(profile.sessionsPerWeek)")
+                            divider()
+                            profileRow("Avg duration", value: "\(profile.avgDurationMinutes) min")
+                            divider()
+                            profileRow("Typical effort", value: "\(Int(profile.typicalSRPE))/10")
+                            divider()
+                            profileRow("Weeks at level", value: "\(profile.weeksAtLevel)")
+                            divider()
+                            actionButton("Edit Profile") {
+                                showTrainingProfileSheet = true
+                            }
+                        } else {
+                            // No profile: show setup prompt
+                            actionButton("Set up training profile") {
+                                showTrainingProfileSheet = true
+                            }
+                        }
                         sectionDivider()
 
                         // Preferences
@@ -374,6 +399,10 @@ struct ProfileView: View {
             }
             .sheet(isPresented: $showUpgrade) {
                 UpgradeSheet(trigger: .coach)
+                    .environment(container)
+            }
+            .sheet(isPresented: $showTrainingProfileSheet) {
+                TrainingProfileSheet(existingProfile: trainingProfiles.first)
                     .environment(container)
             }
             // Error
