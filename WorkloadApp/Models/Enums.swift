@@ -340,3 +340,37 @@ enum ExperienceLevel: String, Codable, CaseIterable, Identifiable {
         }
     }
 }
+
+// MARK: - Injury Enums
+
+enum BodyRegion: String, Codable, CaseIterable, Identifiable {
+    case shoulder
+    case knee
+    case back
+    case hip
+    case ankle
+    case wrist
+    case elbow
+    case neck
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .shoulder: "Shoulder"
+        case .knee: "Knee"
+        case .back: "Back"
+        case .hip: "Hip"
+        case .ankle: "Ankle"
+        case .wrist: "Wrist"
+        case .elbow: "Elbow"
+        case .neck: "Neck"
+        }
+    }
+}
+
+struct InjuryEntry: Codable {
+    let bodyRegion: BodyRegion
+    let notes: String?
+    let isActive: Bool
+}

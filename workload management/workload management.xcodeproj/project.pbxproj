@@ -125,6 +125,7 @@
 		FF0801020000000000000001 /* FatigueIndexEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000001 /* FatigueIndexEngine.swift */; };
 		FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000002 /* FatigueAttentionBanner.swift */; };
 		EE0501020000000000000002 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0501010000000000000002 /* NotificationService.swift */; };
+		DD0901010000000000000001 /* TrainingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0901010000000000000002 /* TrainingProfile.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -160,6 +161,7 @@
 		FF0801010000000000000001 /* FatigueIndexEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueIndexEngine.swift; sourceTree = "<group>"; };
 		FF0801010000000000000002 /* FatigueAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueAttentionBanner.swift; sourceTree = "<group>"; };
 		EE0501010000000000000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
+		DD0901010000000000000002 /* TrainingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingProfile.swift; sourceTree = "<group>"; };
 		62324B4E2F66C5F600A9C2BE /* workload management.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "workload management.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		62324BE02F66CB0E00A9C2BE /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		62324BE12F66CB0E00A9C2BE /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
@@ -379,6 +381,7 @@
 				62324BEF2F66CB0E00A9C2BE /* WorkloadSnapshot.swift */,
 				62324BF02F66CB0E00A9C2BE /* WorkoutSession.swift */,
 				4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */,
+				DD0901010000000000000002 /* TrainingProfile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -889,6 +892,7 @@
 				FF0601010000000000000001 /* PDFReportEngine.swift in Sources */,
 				FF0603010000000000000001 /* CoachExportSheet.swift in Sources */,
 				FF0602010000000000000001 /* PDFGenerationSheet.swift in Sources */,
+				DD0901010000000000000001 /* TrainingProfile.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
