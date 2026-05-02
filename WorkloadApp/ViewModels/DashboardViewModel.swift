@@ -23,6 +23,9 @@ final class DashboardViewModel {
     var atl: Double = 0
     var ctl: Double = 0
 
+    /// True when displaying seeded ATL/CTL from TrainingProfile (cold-start window active)
+    var isColdStartActive: Bool = false
+
     // Recommendation
     var recommendation: AutoregulationEngine.TrainingRecommendation?
 
@@ -146,6 +149,21 @@ final class DashboardViewModel {
             atl = snapshot.acuteLoad
             ctl = snapshot.chronicLoad
             latestWorkloadSnapshot = snapshot
+            isColdStartActive = false
+        } else {
+            // Cold-start fallback: use seeded values from TrainingProfile (per D-08, COLD-04)
+            let profileRepo = TrainingProfileRepository(modelContext: modelContext)
+            if let profile = try? profileRepo.fetchProfile(athleteId: athlete.id),
+               profile.coldStartCompletedAt == nil {
+                atl = profile.seededATL
+                ctl = profile.seededCTL
+                acwr = profile.seededCTL > 0 ? profile.seededATL / profile.seededCTL : 0
+                tsb = profile.seededCTL - profile.seededATL
+                acwrZone = ACWRZone.classify(acwr: acwr, ctl: ctl)
+                isColdStartActive = true
+            } else {
+                isColdStartActive = false
+            }
         }
 
         // Periodization detection (INTEL-01, INTEL-02, INTEL-03)
@@ -211,21 +229,27 @@ final class DashboardViewModel {
             .map(\.recoveryScore)
         let recentWellnessScores: [Double] = []  // TODO: fetch from WellnessCheckIn history
 
-        let fatigueInput = FatigueIndexEngine.FatigueInput(
-            recentSessionTSS: recentSessionTSS,
-            baselineSessionTSS: baselineTSS,
-            sessionsIn14Days: sessionsIn14Days,
-            baselineSessionsIn14Days: baselineSessions14d,
-            trainingStreakDays: daysSinceRest,
-            daysSinceRestPeriod: nil,
-            recentRecoveryScores: recentRecoveryScores,
-            recentWellnessScores: recentWellnessScores,
-            softTissueInjuryCount: 0,
-            daysSinceLastInjury: nil
-        )
-        let fatigueResult = FatigueIndexEngine.compute(input: fatigueInput)
-        fatigueIndex = fatigueResult.index
-        fatigueZone = fatigueResult.zone
+        if isColdStartActive {
+            // COLD-07: suppress FatigueIndex during cold-start window (D-16, D-17)
+            fatigueIndex = nil
+            fatigueZone = nil
+        } else {
+            let fatigueInput = FatigueIndexEngine.FatigueInput(
+                recentSessionTSS: recentSessionTSS,
+                baselineSessionTSS: baselineTSS,
+                sessionsIn14Days: sessionsIn14Days,
+                baselineSessionsIn14Days: baselineSessions14d,
+                trainingStreakDays: daysSinceRest,
+                daysSinceRestPeriod: nil,
+                recentRecoveryScores: recentRecoveryScores,
+                recentWellnessScores: recentWellnessScores,
+                softTissueInjuryCount: 0,
+                daysSinceLastInjury: nil
+            )
+            let fatigueResult = FatigueIndexEngine.compute(input: fatigueInput)
+            fatigueIndex = fatigueResult.index
+            fatigueZone = fatigueResult.zone
+        }
 
         // Generate recommendation (with fatigue index)
         let autoInput = AutoregulationEngine.DailyInput(
@@ -235,7 +259,7 @@ final class DashboardViewModel {
             acwr: acwr,
             wellnessScore: nil,
             daysSinceLastRest: daysSinceRest,
-            fatigueIndex: fatigueResult.index
+            fatigueIndex: fatigueIndex
         )
         recommendation = AutoregulationEngine.recommend(input: autoInput)
 
