@@ -27,6 +27,7 @@ struct SyncService {
         await pushBehaviorTags(context: context, athleteId: athlete.id)
         await pushWorkoutTemplates(context: context, coachId: athlete.id)
         await pushPrescribedWorkouts(context: context)
+        await pushTrainingProfile(context: context, athleteId: athlete.id)
         UserDefaults.standard.set(Date(), forKey: "lastSyncedAt")
     }
 
@@ -42,6 +43,7 @@ struct SyncService {
         await pullBehaviorTags(context: context, athlete: athlete)
         await pullWorkoutTemplates(context: context, coachId: athlete.id)
         await pullPrescribedWorkouts(context: context, athleteId: athlete.id)
+        await pullTrainingProfile(context: context, athleteId: athlete.id)
         UserDefaults.standard.set(Date(), forKey: "lastSyncedAt")
     }
 
@@ -722,6 +724,13 @@ struct WorkoutSessionRow: Codable {
             template.notes = row.notes
             template.updatedAt = row.updatedAt
             template.createdAt = row.createdAt
+            template.isAthleteOwned = row.isAthleteOwned
+            template.athleteId = row.athleteId
+            template.isFavorite = row.isFavorite
+            template.isArchived = row.isArchived
+            template.lastUsedAt = row.lastUsedAt
+            template.usageCount = row.usageCount
+            template.scheduledDays = row.scheduledDays ?? []
 
             // Replace groups from JSON
             if existing != nil {
@@ -733,6 +742,76 @@ struct WorkoutSessionRow: Codable {
             }
 
             if existing == nil { context.insert(template) }
+        }
+        try? context.save()
+    }
+
+    // MARK: - Training Profile push/pull
+
+    func pushTrainingProfile(context: ModelContext, athleteId: UUID) async {
+        let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }
+        guard let profile = try? context.fetch(FetchDescriptor(predicate: predicate)).first else { return }
+        let row = TrainingProfileRow(from: profile)
+        _ = try? await client.from("training_profiles").upsert(row).execute()
+    }
+
+    private func pullTrainingProfile(context: ModelContext, athleteId: UUID) async {
+        guard let row: TrainingProfileRow = try? await client
+            .from("training_profiles")
+            .select()
+            .eq("athlete_id", value: athleteId)
+            .single()
+            .execute()
+            .value
+        else { return }
+
+        let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }
+        let existing = try? context.fetch(FetchDescriptor(predicate: predicate)).first
+        if let existing, existing.updatedAt > row.updatedAt { return }
+
+        if let existing {
+            existing.sessionsPerWeek = row.sessionsPerWeek
+            existing.avgDurationMinutes = row.avgDurationMinutes
+            existing.typicalSRPE = row.typicalSrpe
+            existing.weeksAtLevel = row.weeksAtLevel
+            existing.trainingAgeYears = row.trainingAgeYears
+            existing.periodizationPreference = row.periodizationPreference
+            existing.movementTypes = row.movementTypes
+            existing.injuryHistory = row.injuryHistory?.data(using: .utf8)
+            existing.seededATL = row.seededAtl
+            existing.seededCTL = row.seededCtl
+            existing.seededAt = row.seededAt
+            existing.biasEstimatedATL = row.biasEstimatedAtl
+            existing.biasEstimatedCTL = row.biasEstimatedCtl
+            existing.biasActualATL = row.biasActualAtl
+            existing.biasActualCTL = row.biasActualCtl
+            existing.biasCapturedAt = row.biasCapturedAt
+            existing.coldStartCompletedAt = row.coldStartCompletedAt
+            existing.updatedAt = row.updatedAt
+        } else {
+            let profile = TrainingProfile(
+                id: row.id,
+                athleteId: row.athleteId,
+                sessionsPerWeek: row.sessionsPerWeek,
+                avgDurationMinutes: row.avgDurationMinutes,
+                typicalSRPE: row.typicalSrpe,
+                weeksAtLevel: row.weeksAtLevel,
+                seededATL: row.seededAtl,
+                seededCTL: row.seededCtl,
+                seededAt: row.seededAt
+            )
+            profile.trainingAgeYears = row.trainingAgeYears
+            profile.periodizationPreference = row.periodizationPreference
+            profile.movementTypes = row.movementTypes
+            profile.injuryHistory = row.injuryHistory?.data(using: .utf8)
+            profile.biasEstimatedATL = row.biasEstimatedAtl
+            profile.biasEstimatedCTL = row.biasEstimatedCtl
+            profile.biasActualATL = row.biasActualAtl
+            profile.biasActualCTL = row.biasActualCtl
+            profile.biasCapturedAt = row.biasCapturedAt
+            profile.coldStartCompletedAt = row.coldStartCompletedAt
+            profile.updatedAt = row.updatedAt
+            context.insert(profile)
         }
         try? context.save()
     }
@@ -911,6 +990,13 @@ struct WorkoutTemplateRow: Codable {
     let groupsJson: String?
     let createdAt: Date
     let updatedAt: Date
+    let isAthleteOwned: Bool
+    let athleteId: UUID?
+    let isFavorite: Bool
+    let isArchived: Bool
+    let lastUsedAt: Date?
+    let usageCount: Int
+    let scheduledDays: [Int]?
 
     init(from model: WorkoutTemplate) {
         self.id = model.id
@@ -920,6 +1006,63 @@ struct WorkoutTemplateRow: Codable {
         self.sessionType = model.sessionType.rawValue
         self.notes = model.notes
         self.groupsJson = SyncService.encodeGroups(model.groups)
+        self.createdAt = model.createdAt
+        self.updatedAt = model.updatedAt
+        self.isAthleteOwned = model.isAthleteOwned
+        self.athleteId = model.athleteId
+        self.isFavorite = model.isFavorite
+        self.isArchived = model.isArchived
+        self.lastUsedAt = model.lastUsedAt
+        self.usageCount = model.usageCount
+        self.scheduledDays = model.scheduledDays.isEmpty ? nil : model.scheduledDays
+    }
+}
+
+// MARK: - Training Profile Row
+
+struct TrainingProfileRow: Codable {
+    let id: UUID
+    let athleteId: UUID
+    let sessionsPerWeek: Int
+    let avgDurationMinutes: Int
+    let typicalSrpe: Double
+    let weeksAtLevel: Int
+    let trainingAgeYears: Int?
+    let periodizationPreference: String?
+    let movementTypes: [String]?
+    let injuryHistory: String?  // JSON string for JSONB column
+    let seededAtl: Double
+    let seededCtl: Double
+    let seededAt: Date
+    let biasEstimatedAtl: Double?
+    let biasEstimatedCtl: Double?
+    let biasActualAtl: Double?
+    let biasActualCtl: Double?
+    let biasCapturedAt: Date?
+    let coldStartCompletedAt: Date?
+    let createdAt: Date
+    let updatedAt: Date
+
+    init(from model: TrainingProfile) {
+        self.id = model.id
+        self.athleteId = model.athleteId
+        self.sessionsPerWeek = model.sessionsPerWeek
+        self.avgDurationMinutes = model.avgDurationMinutes
+        self.typicalSrpe = model.typicalSRPE
+        self.weeksAtLevel = model.weeksAtLevel
+        self.trainingAgeYears = model.trainingAgeYears
+        self.periodizationPreference = model.periodizationPreference
+        self.movementTypes = model.movementTypes
+        self.injuryHistory = model.injuryHistory.flatMap { String(data: $0, encoding: .utf8) }
+        self.seededAtl = model.seededATL
+        self.seededCtl = model.seededCTL
+        self.seededAt = model.seededAt
+        self.biasEstimatedAtl = model.biasEstimatedATL
+        self.biasEstimatedCtl = model.biasEstimatedCTL
+        self.biasActualAtl = model.biasActualATL
+        self.biasActualCtl = model.biasActualCTL
+        self.biasCapturedAt = model.biasCapturedAt
+        self.coldStartCompletedAt = model.coldStartCompletedAt
         self.createdAt = model.createdAt
         self.updatedAt = model.updatedAt
     }
