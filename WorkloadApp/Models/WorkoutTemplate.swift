@@ -14,6 +14,19 @@ final class WorkoutTemplate {
     var createdAt: Date
     var updatedAt: Date
 
+    // MARK: - Athlete Ownership (D-01)
+
+    var isAthleteOwned: Bool = false
+    var athleteId: UUID? = nil
+
+    // MARK: - Template Management (D-02)
+
+    var isFavorite: Bool = false
+    var isArchived: Bool = false
+    var lastUsedAt: Date? = nil
+    var usageCount: Int = 0
+    var scheduledDays: [Int] = []  // ISO 8601: 1=Mon...7=Sun
+
     @Relationship(deleteRule: .cascade, inverse: \ExerciseGroup.template)
     var groups: [ExerciseGroup] = []
 

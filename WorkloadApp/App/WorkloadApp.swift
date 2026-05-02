@@ -36,6 +36,7 @@ struct WorkloadApp: App {
                 PrescribedWorkout.self,
                 CustomExercise.self,
                 BehaviorTag.self,
+                TrainingProfile.self,
             ])
             let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
             container = try ModelContainer(for: schema, configurations: [config])
