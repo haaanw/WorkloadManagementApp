@@ -162,7 +162,7 @@ struct SignUpView: View {
     }
 
     private var isFormValid: Bool {
-        !displayName.isEmpty && !email.isEmpty && !password.isEmpty
+        !displayName.isEmpty && !email.isEmpty && password.count >= 8
     }
 
     private func signUp() async {
@@ -209,11 +209,23 @@ struct SignUpView: View {
                 guard let userId = await container.authService.currentUserId() else {
                     throw SignUpSocialError.noUserId
                 }
-                let athlete = await container.syncService.bootstrapAthlete(
+                let existingAthlete = await container.syncService.bootstrapAthlete(
                     context: modelContext, userId: userId
                 )
-                if athlete == nil {
-                    throw SignUpSocialError.athleteNotFound
+                if existingAthlete == nil {
+                    // New user — create Athlete profile locally and push to Supabase
+                    let name = [credential.fullName?.givenName, credential.fullName?.familyName]
+                        .compactMap { $0 }
+                        .joined(separator: " ")
+                    let athlete = Athlete(
+                        id: userId,
+                        displayName: name.isEmpty ? "Athlete" : name,
+                        sportType: .custom,
+                        supabaseUserId: userId
+                    )
+                    modelContext.insert(athlete)
+                    try modelContext.save()
+                    await container.syncService.pushAthlete(athlete)
                 }
             }
             await container.syncService.pullAll(context: modelContext)
@@ -235,11 +247,20 @@ struct SignUpView: View {
                 guard let userId = await container.authService.currentUserId() else {
                     throw SignUpSocialError.noUserId
                 }
-                let athlete = await container.syncService.bootstrapAthlete(
+                let existingAthlete = await container.syncService.bootstrapAthlete(
                     context: modelContext, userId: userId
                 )
-                if athlete == nil {
-                    throw SignUpSocialError.athleteNotFound
+                if existingAthlete == nil {
+                    // New user — create Athlete profile locally and push to Supabase
+                    let athlete = Athlete(
+                        id: userId,
+                        displayName: "Athlete",
+                        sportType: .custom,
+                        supabaseUserId: userId
+                    )
+                    modelContext.insert(athlete)
+                    try modelContext.save()
+                    await container.syncService.pushAthlete(athlete)
                 }
             }
             await container.syncService.pullAll(context: modelContext)
