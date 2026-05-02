@@ -50,6 +50,7 @@
 		62324C3E2F66CB0E00A9C2BE /* RecoverySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEC2F66CB0E00A9C2BE /* RecoverySnapshot.swift */; };
 		62324C3F2F66CB0E00A9C2BE /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C142F66CB0E00A9C2BE /* ProfileView.swift */; };
 		62324C402F66CB0E00A9C2BE /* Athlete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE82F66CB0E00A9C2BE /* Athlete.swift */; };
+		CC0903010000000000000001 /* TemplateRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CC0903000000000000000001 /* TemplateRepository.swift */; };
 		62324C412F66CB0E00A9C2BE /* WorkoutRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF72F66CB0E00A9C2BE /* WorkoutRepository.swift */; };
 		62324C422F66CB0E00A9C2BE /* PersonalRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEB2F66CB0E00A9C2BE /* PersonalRecord.swift */; };
 		62324C432F66CB0E00A9C2BE /* RecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C172F66CB0E00A9C2BE /* RecoveryView.swift */; };
@@ -183,6 +184,7 @@
 		62324BF42F66CB0E00A9C2BE /* AthleteRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AthleteRepository.swift; sourceTree = "<group>"; };
 		62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryRepository.swift; sourceTree = "<group>"; };
 		62324BF62F66CB0E00A9C2BE /* WorkloadRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadRepository.swift; sourceTree = "<group>"; };
+		CC0903000000000000000001 /* TemplateRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateRepository.swift; sourceTree = "<group>"; };
 		62324BF72F66CB0E00A9C2BE /* WorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRepository.swift; sourceTree = "<group>"; };
 		62324BFA2F66CB0E00A9C2BE /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		62324BFB2F66CB0E00A9C2BE /* AutoregulationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoregulationEngine.swift; sourceTree = "<group>"; };
@@ -403,6 +405,7 @@
 				CC0301010000000000000004 /* BehaviorTagRepository.swift */,
 				62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */,
 				62324BF62F66CB0E00A9C2BE /* WorkloadRepository.swift */,
+				CC0903000000000000000001 /* TemplateRepository.swift */,
 				62324BF72F66CB0E00A9C2BE /* WorkoutRepository.swift */,
 			);
 			path = Repositories;
@@ -840,6 +843,7 @@
 				62324C3F2F66CB0E00A9C2BE /* ProfileView.swift in Sources */,
 				62324C402F66CB0E00A9C2BE /* Athlete.swift in Sources */,
 				62324C412F66CB0E00A9C2BE /* WorkoutRepository.swift in Sources */,
+				CC0903010000000000000001 /* TemplateRepository.swift in Sources */,
 				62324C422F66CB0E00A9C2BE /* PersonalRecord.swift in Sources */,
 				62324C432F66CB0E00A9C2BE /* RecoveryView.swift in Sources */,
 				62324C442F66CB0E00A9C2BE /* WorkoutLogView.swift in Sources */,
