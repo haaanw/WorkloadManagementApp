@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-05-02
+revised: 2026-05-02
 ---
 
 # Phase 10 — UI Design Contract
@@ -29,10 +30,11 @@ Source: DESIGN.md, CLAUDE.md
 
 ## Spacing Scale
 
-Declared values (8pt base, all multiples of 8):
+Declared values (8pt base, all multiples of 4):
 
 | Token | Value | Usage |
 |-------|-------|-------|
+| 2xs | 4pt | Tight vertical gaps (e.g., numeric value to EST annotation) |
 | xs | 8pt | Icon-label gaps, inline element spacing, tight HStack spacing |
 | sm | 16pt | Card internal horizontal padding, horizontal margins, small gaps |
 | md | 24pt | Card internal vertical padding, standard section gaps |
@@ -40,7 +42,7 @@ Declared values (8pt base, all multiples of 8):
 | xl | 48pt | Major section breaks |
 | 2xl | 64pt | Page-level top/bottom breathing room |
 
-Exceptions: none
+Exceptions: none. All values are multiples of 4.
 
 Source: DESIGN.md spacing tokens
 
@@ -54,10 +56,12 @@ Uses the existing `Font.Tokens` extension. All sizes below reference those token
 |------|-------|------|--------|-------------|---------------------|
 | Hero score | `.heroScore` | 64pt | 400 (Regular) | 1.0 | Not used in this phase |
 | Page title | `.pageTitle` | 32pt | 400 (Regular) | 1.2 | Sheet title "Training Profile" |
-| Section head | `.sectionHead` | 19pt | 500 (Medium) | 1.3 | "Required" / "Optional" divider labels |
+| Section head | `.sectionHead` | 19pt | 500 (Medium) | 1.3 | Not used in this phase |
 | Body | `.body` | 17pt | 400 (Regular) | 1.5 | Question labels, picker display values |
 | Label | `.label` | 15pt | 400 (Regular) | 1.5 | Description text, help text, "Estimated" annotation |
-| Micro | `.micro` | 12pt | 400 (Regular) | 1.3 | Section micro-caps ("GET STARTED", "TRAINING LOAD"), all-caps with `.tracking(1.2)` |
+| Micro | `.micro` | 12pt | 400 (Regular) | 1.3 | Section micro-caps ("GET STARTED", "TRAINING LOAD", "REQUIRED", "OPTIONAL"), all-caps with `.tracking(1.2)` |
+
+**Active font sizes in this phase: 4** -- 32pt (pageTitle), 17pt (body), 15pt (label), 12pt (micro).
 
 Source: FontTokens.swift, DESIGN.md type scale
 
@@ -65,17 +69,17 @@ Source: FontTokens.swift, DESIGN.md type scale
 
 ## Color
 
-| Role | Dark Mode | Light Mode | Usage |
-|------|-----------|------------|-------|
-| Dominant (60%) | `#0B0B0A` (--bg) | `#F4F1ED` | ScrollView background, sheet background |
-| Secondary (30%) | `#131312` (--surface) | `#EDEAE6` | Dashboard card surface, questionnaire form rows |
-| Elevated (modal) | `#1A1A19` (--surface-el) | `#E4E0DB` | Questionnaire sheet surface |
-| Divider | `#232321` | `#CFCBC5` | Hairline separators between form rows, card borders |
-| Text primary | `#C2BEB7` (--text-1) | `#1C1915` | Question labels, CTA button text, input values |
-| Text secondary | `#7C7972` (--text-2) | `#696560` | Help text, "Estimated" annotation label, field descriptions |
-| Text tertiary | `#3A3835` (--text-3) | `#AFABA5` | Micro-caps section labels, placeholder text |
-| Accent | `#A8A090` | `#7A6E5C` | Hero readiness score ONLY -- not used anywhere in this phase |
-| Destructive | n/a | n/a | No destructive actions in this phase |
+| Role | Dark Mode | Light Mode | Usage | Split |
+|------|-----------|------------|-------|-------|
+| Dominant (60%) | `#0B0B0A` (--bg) | `#F4F1ED` | ScrollView background, sheet background | 60% |
+| Secondary (30%) | `#131312` (--surface) | `#EDEAE6` | Dashboard card surface, questionnaire form rows | 30% |
+| Elevated (modal) | `#1A1A19` (--surface-el) | `#E4E0DB` | Questionnaire sheet surface | 30% (subset) |
+| Divider | `#232321` | `#CFCBC5` | Hairline separators between form rows, card borders | 30% (subset) |
+| Text primary | `#C2BEB7` (--text-1) | `#1C1915` | Question labels, CTA button text, input values | 10% |
+| Text secondary | `#7C7972` (--text-2) | `#696560` | Help text, "Estimated" annotation label, field descriptions | 10% |
+| Text tertiary | `#3A3835` (--text-3) | `#AFABA5` | Micro-caps section labels, placeholder text | 10% |
+| Accent | `#A8A090` | `#7A6E5C` | Hero readiness score ONLY -- not used anywhere in this phase | 10% (reserved) |
+| Destructive | n/a | n/a | No destructive actions in this phase | n/a |
 
 Accent reserved for: the hero readiness score number only. The "Estimated" label, CTA buttons, and form controls must NOT use accent color.
 
@@ -98,7 +102,7 @@ Source: ColorTokens.swift, DESIGN.md accent rule
 | Horizontal padding | 16pt |
 | Vertical padding (top/bottom) | 16pt |
 | Micro-caps header | "TRAINING PROFILE" -- `Font.Tokens.micro`, `.tracking(1.2)`, `ColorTokens.text3` |
-| Title | "Set up your training profile" -- `Font.Tokens.sectionHead`, `ColorTokens.text1` |
+| Title | "Set up your training profile" -- `Font.Tokens.body` (17pt Regular), `ColorTokens.text1` |
 | Description | "Answer a few questions about your training to get estimated workload data right away." -- `Font.Tokens.label`, `ColorTokens.text2` |
 | CTA button | Single button spanning full width, text "Complete Profile", 8pt vertical padding, hairline border stroke |
 | Spacing: header to title | 8pt |
@@ -113,21 +117,23 @@ Source: ColorTokens.swift, DESIGN.md accent rule
 
 **Pattern:** `.sheet(isPresented:)` presented from DashboardView and ProfileView. Single scrollable form. Not multi-step paged (D-04).
 
+**Focal point:** The four required fields (Sessions per week, Average duration, Typical effort, Weeks at current level) are the primary interaction surface. The "Save Profile" button enables only when all four are valid, drawing the user's completion focus to that trailing nav action.
+
 | Property | Value |
 |----------|-------|
 | Presentation | `.sheet(isPresented: $showTrainingProfile)` |
 | Background | `ColorTokens.background` |
 | Navigation | Inline navigation bar with title "Training Profile" (`.pageTitle` size via `.navigationTitle`) |
-| Dismiss | "Cancel" leading nav button (text, `ColorTokens.text2`), "Save" trailing nav button (text, `ColorTokens.text1`, disabled until all 4 required fields valid) |
+| Dismiss | "Discard Changes" leading nav button (text, `ColorTokens.text2`), "Save Profile" trailing nav button (text, `ColorTokens.text1`, disabled until all 4 required fields valid) |
 | Corner radius | 0pt (system sheet chrome is acceptable) |
 | Content | `ScrollView` > `VStack(spacing: 0)` with form rows |
 
 **Layout structure (top to bottom):**
 
 ```
-[Nav bar: Cancel --- Training Profile --- Save]
+[Nav bar: Discard Changes --- Training Profile --- Save Profile]
 [ScrollView]
-  [Section: "REQUIRED" micro-caps header]
+  [Section: "REQUIRED" micro-caps header (12pt, .tracking(1.2), ColorTokens.text3)]
   [Row: Sessions per week]
   [Divider]
   [Row: Average duration]
@@ -136,7 +142,7 @@ Source: ColorTokens.swift, DESIGN.md accent rule
   [Divider]
   [Row: Weeks at current level]
   [Section divider (full-width)]
-  [Section: "OPTIONAL" micro-caps header]
+  [Section: "OPTIONAL" micro-caps header (12pt, .tracking(1.2), ColorTokens.text3)]
   [Row: Training age]
   [Divider]
   [Row: Schedule type]
@@ -146,6 +152,8 @@ Source: ColorTokens.swift, DESIGN.md accent rule
   [Row: Injury history]
 [/ScrollView]
 ```
+
+**Section labels:** "REQUIRED" and "OPTIONAL" use `Font.Tokens.micro` (12pt Regular) all-caps with `.tracking(1.2)` and `ColorTokens.text3`. This replaces the 19pt sectionHead, keeping the active type count to 4.
 
 ### 3. Form Row Components
 
@@ -202,7 +210,7 @@ All form rows follow the `editablePicker` / `editableTextField` pattern from Pro
 | Font | `Font.Tokens.micro` (12pt Regular) |
 | Tracking | 0.88 |
 | Color | `ColorTokens.text3` |
-| Position | Directly below the numeric value in `LoadStatCell`, with 2pt spacing |
+| Position | Directly below the numeric value in `LoadStatCell`, with 4pt spacing |
 | Visibility | Shown when `TrainingProfile.coldStartCompletedAt == nil` AND `TrainingProfile` exists with seeded values |
 
 **Modified LoadStatCell layout during cold-start:**
@@ -245,7 +253,7 @@ This is a simple single-line text card, not the full banner with zone color and 
 | Property | Value |
 |----------|-------|
 | Section header | "TRAINING PROFILE" -- micro-caps, same pattern as other ProfileView sections |
-| Content (if profile exists) | Summary row showing "Sessions/week: X", "Duration: Xmin", "Effort: X/10" as read-only rows. "Edit" button to re-open TrainingProfileSheet |
+| Content (if profile exists) | Summary row showing "Sessions/week: X", "Duration: Xmin", "Effort: X/10" as read-only rows. "Edit Profile" button to re-open TrainingProfileSheet |
 | Content (if no profile) | Single row: "Set up training profile" with trailing chevron. Taps to open TrainingProfileSheet |
 | Row styling | Same as existing ProfileView rows (16pt horizontal padding, 12pt vertical padding, `Font.Tokens.body`) |
 
@@ -255,11 +263,11 @@ This is a simple single-line text card, not the full banner with zone color and 
 
 ### Questionnaire Flow
 
-1. User taps "Complete Profile" on TrainingProfileCard (dashboard) OR "Set up training profile" / "Edit" in ProfileView
+1. User taps "Complete Profile" on TrainingProfileCard (dashboard) OR "Set up training profile" / "Edit Profile" in ProfileView
 2. TrainingProfileSheet appears as `.sheet`
-3. User fills required fields (all 4 must have non-default values for "Save" to enable)
+3. User fills required fields (all 4 must have non-default values for "Save Profile" to enable)
 4. User optionally fills additional fields
-5. User taps "Save"
+5. User taps "Save Profile"
 6. On save: call `ColdStartEngine.computeSeed(input:)`, create/update `TrainingProfile` with answers + seeded ATL/CTL, dismiss sheet (D-07)
 7. Dashboard immediately reflects estimated values on next `DashboardViewModel.load()` cycle
 
@@ -283,7 +291,7 @@ This is a simple single-line text card, not the full banner with zone color and 
 
 ### Re-editing
 
-1. User navigates to Profile > Training Profile > Edit
+1. User navigates to Profile > Training Profile > Edit Profile
 2. TrainingProfileSheet opens pre-filled with existing answers
 3. On save: re-runs `ColdStartEngine.computeSeed()` with updated answers, updates seeded values
 4. If cold-start already completed: seeded values update but dashboard continues using real data (no regression)
@@ -299,17 +307,17 @@ This is a simple single-line text card, not the full banner with zone color and 
 | Dashboard card body | "Answer a few questions about your training to get estimated workload data right away." |
 | Dashboard card micro-caps | "TRAINING PROFILE" |
 | Sheet title | "Training Profile" |
-| Sheet save button | "Save" |
-| Sheet cancel button | "Cancel" |
+| Sheet save button | "Save Profile" |
+| Sheet dismiss button | "Discard Changes" |
 | Required section label | "REQUIRED" |
 | Optional section label | "OPTIONAL" |
 | Estimated annotation | "EST" |
 | FatigueIndex cold-start | "Building baseline..." |
 | Profile section (no profile) | "Set up training profile" |
 | Profile section (has profile) | Row labels: "Sessions / week", "Avg duration", "Typical effort", "Weeks at level" |
-| Profile edit action | "Edit" |
+| Profile edit action | "Edit Profile" |
 | Empty state (no training data, no profile) | Existing `WelcomeActionCard` + new `TrainingProfileCard` shown together. No additional empty state needed |
-| Error state | If save fails: "Couldn't save your training profile. Please try again." (inline, below Save button, `ColorTokens.zoneDanger` text) |
+| Error state | If save fails: "Couldn't save your training profile. Please try again." (inline, below Save Profile button, `ColorTokens.zoneDanger` text) |
 
 ### Question Labels (Inside Sheet)
 
