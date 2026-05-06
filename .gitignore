@@ -34,3 +34,4 @@ build/
 .Spotlight-V100
 .Trashes
 .superpowers/
+.gstack/
