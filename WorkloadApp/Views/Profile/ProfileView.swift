@@ -27,6 +27,8 @@ struct ProfileView: View {
     @State private var errorMessage: String?
     @State private var showUpgrade = false
     @State private var showTrainingProfileSheet = false
+    @State private var showDeleteConfirmation = false
+    @State private var isDeletingAccount = false
 
     var body: some View {
         NavigationStack {
@@ -354,6 +356,18 @@ struct ProfileView: View {
                                 .padding(.vertical, 16)
                         }
                         divider()
+                        Button {
+                            showDeleteConfirmation = true
+                        } label: {
+                            Text(isDeletingAccount ? "Deleting..." : "Delete Account")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.zoneDanger)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 16)
+                                .padding(.vertical, 16)
+                        }
+                        .disabled(isDeletingAccount)
+                        divider()
                     } else {
                         Text("No athlete profile found.")
                             .font(.Tokens.body)
@@ -404,6 +418,23 @@ struct ProfileView: View {
             .sheet(isPresented: $showTrainingProfileSheet) {
                 TrainingProfileSheet(existingProfile: trainingProfiles.first)
                     .environment(container)
+            }
+            // Delete account confirmation
+            .alert("Delete Account", isPresented: $showDeleteConfirmation) {
+                Button("Cancel", role: .cancel) { }
+                Button("Delete", role: .destructive) {
+                    isDeletingAccount = true
+                    Task {
+                        do {
+                            try await container.deleteAccount(modelContext: modelContext)
+                        } catch {
+                            errorMessage = "Failed to delete account: \(error.localizedDescription)"
+                            isDeletingAccount = false
+                        }
+                    }
+                }
+            } message: {
+                Text("This will permanently delete your account and all associated data. This action cannot be undone.")
             }
             // Error
             .alert("Error", isPresented: Binding(

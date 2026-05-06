@@ -87,4 +87,23 @@ final class AppContainer {
         try modelContext.save()
         isAuthenticated = false
     }
+
+    /// Permanently deletes the user's account (Supabase auth + all data) then signs out locally.
+    func deleteAccount(modelContext: ModelContext) async throws {
+        try await authService.deleteAccount()
+        // Clear all local SwiftData — Athlete cascade covers most, but some models
+        // reference by raw UUID and won't cascade. Delete them explicitly.
+        let athletes = try modelContext.fetch(FetchDescriptor<Athlete>())
+        for athlete in athletes { modelContext.delete(athlete) }
+        let relationships = try modelContext.fetch(FetchDescriptor<CoachAthleteRelationship>())
+        for rel in relationships { modelContext.delete(rel) }
+        let templates = try modelContext.fetch(FetchDescriptor<WorkoutTemplate>())
+        for tmpl in templates { modelContext.delete(tmpl) }
+        let prescribed = try modelContext.fetch(FetchDescriptor<PrescribedWorkout>())
+        for pw in prescribed { modelContext.delete(pw) }
+        let profiles = try modelContext.fetch(FetchDescriptor<TrainingProfile>())
+        for p in profiles { modelContext.delete(p) }
+        try modelContext.save()
+        isAuthenticated = false
+    }
 }

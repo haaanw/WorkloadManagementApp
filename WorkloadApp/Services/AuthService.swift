@@ -38,6 +38,13 @@ final class AuthService {
         try await client.auth.signOut()
     }
 
+    /// Deletes the authenticated user's account via a Supabase RPC function.
+    /// The RPC function `delete_own_account` runs with security definer privileges
+    /// to remove the user from auth.users after cleaning up public data.
+    func deleteAccount() async throws {
+        try await client.rpc("delete_own_account").execute()
+    }
+
     /// Returns true if a valid session exists (checks Keychain — does not make a network request).
     func hasSession() async -> Bool {
         (try? await client.auth.session) != nil

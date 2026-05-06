@@ -280,8 +280,15 @@ struct UpgradeSheet: View {
     private func loadOffering() async {
         isLoadingOffering = true
         offeringUnavailable = false
-        offering = try? await container.subscriptionService.fetchOffering(for: selectedTier)
-        offeringUnavailable = offering == nil
+        errorMessage = nil
+        do {
+            offering = try await container.subscriptionService.fetchOffering(for: selectedTier)
+            offeringUnavailable = offering == nil
+        } catch {
+            offering = nil
+            offeringUnavailable = true
+            errorMessage = error.localizedDescription
+        }
         isLoadingOffering = false
     }
 

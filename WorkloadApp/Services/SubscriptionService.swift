@@ -35,12 +35,17 @@ final class SubscriptionService {
     func refreshEntitlement() {
         guard isConfigured else { return }
         Task {
-            do {
-                let info = try await Purchases.shared.customerInfo()
-                apply(info)
-            } catch {
-                print("RevenueCat entitlement refresh error: \(error)")
-            }
+            await refreshEntitlementAsync()
+        }
+    }
+
+    func refreshEntitlementAsync() async {
+        guard isConfigured else { return }
+        do {
+            let info = try await Purchases.shared.customerInfo()
+            apply(info)
+        } catch {
+            print("RevenueCat entitlement refresh error: \(error)")
         }
     }
 

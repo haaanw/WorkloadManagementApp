@@ -180,9 +180,9 @@ struct MainTabView: View {
         }
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
-            container.subscriptionService.refreshEntitlement()
-            guard container.syncService.shouldForegroundSync else { return }
             Task {
+                await container.subscriptionService.refreshEntitlementAsync()
+                guard container.syncService.shouldForegroundSync else { return }
                 if effectiveMode == .coach, let id = athlete?.id {
                     await container.syncService.pullLinkedAthletes(context: modelContext)
                     let rels = (try? modelContext.fetch(FetchDescriptor<CoachAthleteRelationship>())) ?? []
