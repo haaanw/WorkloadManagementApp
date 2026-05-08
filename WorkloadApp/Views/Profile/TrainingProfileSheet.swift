@@ -42,8 +42,14 @@ struct TrainingProfileSheet: View {
         sessionsPerWeek != nil && avgDurationMinutes != nil && typicalSRPE != nil && weeksAtLevel != nil
     }
 
+    /// Track whether user has interacted with any field (not just pre-populated from re-edit)
+    @State private var userHasEdited = false
+
     private var hasChanges: Bool {
-        sessionsPerWeek != nil || avgDurationMinutes != nil || typicalSRPE != nil || weeksAtLevel != nil ||
+        if existingProfile != nil {
+            return userHasEdited
+        }
+        return sessionsPerWeek != nil || avgDurationMinutes != nil || typicalSRPE != nil || weeksAtLevel != nil ||
         trainingAgeYears != nil || scheduleType != nil || !selectedMovementTypes.isEmpty || !selectedBodyRegions.isEmpty ||
         !injuryNotes.isEmpty
     }
@@ -235,6 +241,7 @@ struct TrainingProfileSheet: View {
                 ForEach(options, id: \.self) { option in
                     Button(displayName(option)) {
                         selection.wrappedValue = option
+                        userHasEdited = true
                     }
                 }
             } label: {
@@ -273,6 +280,7 @@ struct TrainingProfileSheet: View {
                         } else {
                             selectedMovementTypes.insert(sport)
                         }
+                        userHasEdited = true
                     } label: {
                         HStack {
                             Text(sport.displayName)
@@ -349,6 +357,7 @@ struct TrainingProfileSheet: View {
                             } else {
                                 selectedBodyRegions.insert(region)
                             }
+                            userHasEdited = true
                         } label: {
                             HStack {
                                 Text(region.displayName)
@@ -384,6 +393,7 @@ struct TrainingProfileSheet: View {
                         .foregroundStyle(ColorTokens.text1)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
+                        .onChange(of: injuryNotes) { userHasEdited = true }
                 }
                 .background(ColorTokens.surface)
             }
@@ -438,6 +448,10 @@ struct TrainingProfileSheet: View {
             existing.seededCTL = result.seededCTL
             do {
                 try repo.updateProfile(existing)
+                // WR-01: sync re-edited profile to Supabase
+                if let athlete {
+                    Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
+                }
                 dismiss()
             } catch {
                 saveError = "Couldn't save your training profile. Please try again."

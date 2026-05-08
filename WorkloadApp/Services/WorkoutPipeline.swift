@@ -86,11 +86,10 @@ struct WorkoutPipeline {
         if let profile = try? modelContext.fetch(profileDescriptor).first,
            profile.coldStartCompletedAt == nil {
 
-            // Count ALL sessions for this athlete (not just recent -- lifetime total)
-            let allSessionsDescriptor = FetchDescriptor<WorkoutSession>(
-                sortBy: [SortDescriptor(\.sessionDate)]
-            )
-            let totalSessionCount = (try? modelContext.fetch(allSessionsDescriptor).count) ?? 0
+            // Count sessions for THIS athlete only (CR-01: was fetching all users' sessions)
+            let allSessionsDescriptor = FetchDescriptor<WorkoutSession>()
+            let totalSessionCount = (try? modelContext.fetch(allSessionsDescriptor)
+                .filter { $0.athlete?.id == athleteIdForProfile }.count) ?? 0
 
             // Calculate weeks elapsed since seeding
             let weeksSinceSeeded = Calendar.current.dateComponents(
