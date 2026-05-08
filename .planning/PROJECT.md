@@ -44,8 +44,8 @@ The combination of recovery and load tracked over time — giving athletes long-
 
 ### Active
 
-- [ ] Cold-start questionnaire with ATL/CTL seeding
-- [ ] Perceptual bias measurement (estimated vs actual at 8 weeks)
+- ✓ Cold-start questionnaire with ATL/CTL seeding — v1.2 Phase 10
+- ✓ Perceptual bias measurement (estimated vs actual at 8 weeks) — v1.2 Phase 10
 - ✓ TrainingProfile model with Supabase sync — Phase 9
 - ✓ Athlete-owned training templates (reuse coach template models) — Phase 9
 - [ ] Manual template creation with exercise group structure
