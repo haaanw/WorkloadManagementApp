@@ -55,6 +55,11 @@ The combination of recovery and load tracked over time — giving athletes long-
 - [ ] Schedule-aware template suggestions (TemplateSuggestionEngine)
 - [ ] Dynamic template targets (last-used + ProgressionEngine overlay)
 - [ ] Template management (edit, duplicate, archive, favorite, delete)
+- [ ] Cycle data foundation: CycleTrackingService reading HealthKit menstrual data from existing apps
+- [ ] Same-phase recovery baselines with confidence gating (measurement correction, not modifier)
+- [ ] Cycle context UI: dashboard phase indicator, recovery card explanations, fueling prompts
+- [ ] RED-S cycle irregularity monitoring with clinician-referral language
+- [ ] Shadow-mode cycle analytics validating prediction improvement before algorithmic modifiers
 
 ## Current Milestone: v1.2 Training Onboarding & Templates
 
@@ -83,12 +88,14 @@ The combination of recovery and load tracked over time — giving athletes long-
 - Template sharing between users/coaches — deferred to v1.3, needs battle-tested template model first
 - Perceptual bias continuous calibration — deferred, needs research on longitudinal sRPE adjustment
 - Injury-aware loading management — deferred, needs deep longitudinal data + dedicated research
+- Cycle-driven algorithmic modifiers (AutoregulationEngine, FatigueIndex, ProgressionEngine volume overrides) — deferred to v1.4 Wave 2 pending shadow-mode validation; ship context/baselines first
 
 ## Context
 
 - v1.0 Post-Launch milestone complete (4 phases, 14 plans shipped 2026-04-22)
 - v1.1 App Store Launch milestone in progress (App Store submission pending review)
-- v1.2 Training Onboarding & Templates started 2026-05-01, Phase 9 (foundation) complete 2026-05-02
+- v1.2 Training Onboarding & Templates started 2026-05-01, Phase 9 (foundation) complete 2026-05-02, Phase 10 complete 2026-05-08
+- v1.4 Female Athlete Optimization planned — research complete (696 lines, 60+ sources), Claude-Codex adversarial review completed, 4 phases scoped
 - Evidence-based fatigue tracking system shipped (FatigueIndexEngine, 6 components, replaces ACWR as primary risk signal)
 - Coach template system exists: WorkoutTemplate → ExerciseGroup → TemplateExercise → TemplateSet
 - HealthKit workout import exists: WorkoutImportBanner + WorkoutImportService (pull-based, no background delivery)
@@ -124,6 +131,10 @@ The combination of recovery and load tracked over time — giving athletes long-
 | Templates free, intelligence Pro-gated | Friction reduction for all users, smarts as upgrade path | Pending |
 | Dynamic targets: last-used + ProgressionEngine | Template evolves with athlete, recovery-aware suggestions overlay | Pending |
 | Defer LLM import + sharing to v1.3 | Battle-test template model first, LLM needs model research | Pending |
+| CycleContext over CycleModifier for v1.4 Wave 1 | Codex adversarial review: phase modifiers double-count since luteal effects already flow through HRV/RHR/sleep; ship context + corrected baselines first | Pending |
+| Same-phase baseline is measurement correction, not modifier | Claude-Codex consensus after Round 2: 7-day rolling baseline is male-normative bias for cycling women; same-phase comparison removes predictable variance | Pending |
+| Zero-friction cycle data via HealthKit | Read existing data from Clue/Flo/Apple Cycle Tracking — never ask user to re-enter; reduces adoption friction | Pending |
+| RED-S alerts use clinician-referral language only | Missed periods have many causes (pregnancy, OC, PCOS, perimenopause); never imply diagnosis | Pending |
 
 ## Evolution
 

@@ -5,6 +5,8 @@
 - ✅ **v1.0 Post-Launch** — Phases 1-4 (shipped 2026-04-22)
 - ✅ **v1.1 App Store Launch** — Phases 5-8 (shipped 2026-04-30)
 - 🚧 **v1.2 Training Onboarding & Templates** — Phases 9-12 (in progress)
+- 📋 **v1.3 LLM Import & Template Sharing** — Phases 13-14 (planned)
+- 📋 **v1.4 Female Athlete Optimization** — Phases 15-18 (planned)
 
 ## Phases
 
@@ -94,11 +96,82 @@ Plans:
 **Plans**: TBD
 **UI hint**: yes
 
+### 📋 v1.4 Female Athlete Optimization
+
+**Milestone Goal:** Make Tonus the first workload management app with evidence-based cycle-aware training intelligence. Read existing HealthKit cycle data from other apps (zero friction), correct male-normative baseline bias in recovery scoring, and provide cycle-contextual guidance — all while working identically for users who don't track cycles.
+
+**Research:** `.planning/research/female-athlete-optimization-research.md` (696 lines, 60+ sources)
+**Cross-AI Review:** Claude + Codex adversarial review completed. Consensus: CycleContext-first (explanations), same-phase baselines as measurement correction (not modifier), defer algorithmic modifiers to Wave 2 pending shadow-mode validation.
+
+- [ ] **Phase 15: Cycle Data Foundation** - CycleTrackingService (HealthKit menstrual + wrist temp reader), MenstrualCycleSnapshot model, CyclePhase enum, contraceptive status in profile, HealthKit permission flow
+- [ ] **Phase 16: Cycle-Aware Recovery Baselines** - RecoveryScoreEngine same-phase baseline with confidence gating, dual baseline (7-day + same-phase), graceful degradation for <3 cycles / irregular / anovulatory / OC users
+- [ ] **Phase 17: Cycle Context UI & Guidance** - Dashboard cycle day indicator, phase context in recovery card, fueling/recovery prompts (avoid fasted workouts, post-training nutrition), RED-S cycle irregularity alerts with clinician-referral language
+- [ ] **Phase 18: Cycle Intelligence (Shadow Mode)** - Shadow-mode analytics measuring cycle context prediction value, evidence-gated AutoregulationEngine soft modifiers (yellow zone only), FatigueIndex phase-aware dampening (validated), ProgressionEngine phase awareness
+
+## Phase Details — v1.4
+
+### Phase 15: Cycle Data Foundation
+**Goal**: Zero-friction cycle data integration — read existing HealthKit menstrual data from apps users already use (Clue, Flo, Apple Cycle Tracking), compute cycle day/phase with confidence scoring, and handle all edge cases (irregular, anovulatory, contraceptive, perimenopause, pregnancy, lactation)
+**Depends on**: Phase 9 (TrainingProfile model)
+**Requirements**: CYCLE-01, CYCLE-02, CYCLE-03
+**Success Criteria** (what must be TRUE):
+  1. CycleTrackingService reads .menstrualFlow (with HKMetadataKeyMenstrualCycleStart), .appleSleepingWristTemperature, .contraceptive, .pregnancy, .lactation, .irregularMenstrualCycles, .ovulationTestResult from HealthKit
+  2. MenstrualCycleSnapshot model stores daily cycle state (cycleDay, estimatedPhase, confidence, cycleLength, contraceptiveStatus, wristTempDeviation, exclusionFlags)
+  3. CycleContext struct provides confidence-scored phase estimation with exclusion flags (pregnancy, lactation, OC, perimenopause)
+  4. Users who already track cycles in Apple Health see their data automatically — zero manual re-entry
+  5. Users who don't track cycles experience zero change to existing app behavior
+  6. Raw menstrual data never syncs to Supabase — only derivative scores (cycle phase, cycle day) influence algorithms
+  7. Contraceptive status settable in ProfileView; OC users skip all phase-based adjustments
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 16: Cycle-Aware Recovery Baselines
+**Goal**: Replace the male-normative 7-day rolling HRV/RHR baseline with a confidence-gated same-phase baseline that removes predictable within-athlete cyclic variance, preserving genuine fatigue detection while eliminating false warnings during normal luteal-phase HRV suppression
+**Depends on**: Phase 15
+**Requirements**: CYCLE-04, CYCLE-05
+**Success Criteria** (what must be TRUE):
+  1. RecoveryScoreEngine accepts CycleContext as optional input; nil/unknown behaves identically to current engine
+  2. When cycle confidence is high (3+ regular cycles), HRV and RHR baselines use same-phase historical average from prior cycles as denominator
+  3. When cycle confidence is low (<3 cycles, irregular, anovulatory), engine falls back to existing 7-day rolling baseline
+  4. OC users always use 7-day baseline (hormonal environment is stable)
+  5. A woman with consistent 35ms late-luteal HRV (vs 42ms follicular) scores normally during luteal, not as "declining recovery"
+  6. A woman with genuine 28ms HRV during luteal (vs her 36ms same-phase average) still triggers fatigue detection
+  7. RecoveryPipeline.run() queries CycleTrackingService and passes CycleContext to engine
+**Plans**: TBD
+
+### Phase 17: Cycle Context UI & Guidance
+**Goal**: Surface cycle awareness in the dashboard and recommendations as context and explanations — not deterministic overrides — following Dr. Sims's evolved position of "train by readiness, use cycle as context"
+**Depends on**: Phase 15, Phase 16
+**Requirements**: CYCLE-06, CYCLE-07, CYCLE-08
+**Success Criteria** (what must be TRUE):
+  1. Dashboard shows unobtrusive cycle day/phase indicator when data available (opt-in HealthKit permission)
+  2. Recovery card includes phase context when cycle influences interpretation (e.g., "You're in your luteal phase — lower HRV and higher heart rate are expected")
+  3. Fueling/recovery prompts: suggest avoiding fasted hard workouts, post-training protein timing (within 45 min per Sims), hydration/cooling in luteal heat-sensitivity window
+  4. RED-S monitoring: alert when 3+ consecutive missed periods OR cycle length >35 days consistently, with clinician-referral language and exclusion handling (pregnancy, OC, perimenopause, PCOS)
+  5. Cycle context never says "deload because luteal" — always readiness-first with cycle as explanation
+  6. All cycle UI elements are 100% optional and invisible to users who don't grant HealthKit menstrual permissions
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 18: Cycle Intelligence (Shadow Mode)
+**Goal**: Validate whether cycle context improves training outcome prediction before shipping algorithmic modifiers — evidence-gated approach prevents overconfident adjustments from unvalidated research
+**Depends on**: Phase 16, Phase 17
+**Requirements**: CYCLE-09, CYCLE-10
+**Success Criteria** (what must be TRUE):
+  1. Shadow-mode analytics silently measure: does cycle phase improve prediction of next-day readiness, wellness score, workout completion rate, or reported pain?
+  2. If shadow mode shows signal: AutoregulationEngine accepts CycleContext, applies soft volume modifier (5-15%) only in yellow recovery zone, never overrides rest or green-zone recommendations
+  3. FatigueIndex phase-aware dampening ships only if shadow mode confirms double-counting between luteal biomarker effects and trend components
+  4. ProgressionEngine phase awareness: bias toward maintain (not increase) in late luteal when progression rate is marginal
+  5. No upward training boost from cycle phase alone; no reduction from phase alone without readiness or symptom support
+  6. All modifiers require 3+ usable cycles, no hormonal contraception exclusion, detected regularity, confidence threshold, and user-visible explanation
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 9 -> 10 -> 11 -> 12
-Note: Phase 10 and Phase 11 both depend on Phase 9 and could execute in parallel if desired.
+- v1.2: 9 -> 10 -> 11 -> 12 (Phase 10 and 11 both depend on Phase 9, could execute in parallel)
+- v1.3: 13 -> 14 (LLM import + template sharing)
+- v1.4: 15 -> 16 -> 17 -> 18 (Phase 17 depends on both 15 and 16; Phase 18 depends on 16 and 17)
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
@@ -111,6 +184,12 @@ Note: Phase 10 and Phase 11 both depend on Phase 9 and could execute in parallel
 | 7. App Store Metadata | v1.1 | 3/3 | Complete | - |
 | 8. QA, Performance & Compliance | v1.1 | 0/0 | Complete | - |
 | 9. Foundation & Cold-Start Engine | v1.2 | 0/0 | Not started | - |
-| 10. Cold-Start Questionnaire | v1.2 | 3/3 | Complete    | 2026-05-08 |
+| 10. Cold-Start Questionnaire | v1.2 | 3/3 | Complete | 2026-05-08 |
 | 11. Template Management & Creation | v1.2 | 0/0 | Not started | - |
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 0/0 | Not started | - |
+| 13. LLM Workout Import | v1.3 | 0/0 | Not started | - |
+| 14. Template Sharing | v1.3 | 0/0 | Not started | - |
+| 15. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
+| 16. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
+| 17. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
+| 18. Cycle Intelligence (Shadow Mode) | v1.4 | 0/0 | Not started | - |
