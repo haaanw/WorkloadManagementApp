@@ -8,14 +8,16 @@ struct TemplateCarouselSection: View {
 
     // Callbacks for parent coordination
     var onEditTemplate: (WorkoutTemplate) -> Void
-    var onPreviewTemplate: (WorkoutTemplate) -> Void
+    var onStartFromTemplate: (WorkoutTemplate) -> Void
     var onCreateTemplate: () -> Void
+    var onPreviewTemplate: ((WorkoutTemplate) -> Void)? = nil
 
     @State private var centeredId: UUID?
     @State private var showDeleteConfirmation = false
     @State private var templateToDelete: WorkoutTemplate?
     @State private var swipeOffset: CGFloat = 0
     @State private var swipedTemplateId: UUID?
+    @State private var suggestionResult: TemplateSuggestionEngine.SuggestionResult?
 
     // MARK: - Template Fetching
 
@@ -132,6 +134,7 @@ struct TemplateCarouselSection: View {
                 if centeredId == nil {
                     centeredId = initialCenteredId()
                 }
+                computeSuggestion()
             }
         }
         .confirmationDialog("Delete Template?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
@@ -242,6 +245,26 @@ struct TemplateCarouselSection: View {
             .frame(height: 160)
             .background(ColorTokens.surface)
             .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+            .overlay(alignment: .topTrailing) {
+                if container.subscriptionService.isPro,
+                   let suggestion = suggestionResult,
+                   suggestion.template.id == template.id {
+                    Text(suggestion.isRecoveryAdjusted ? "RECOVERY-ADJUSTED" : "SUGGESTED")
+                        .font(.Tokens.micro)
+                        .tracking(1.2)
+                        .textCase(.uppercase)
+                        .foregroundStyle(ColorTokens.text2)
+                        .padding(.horizontal, 4)
+                        .padding(.vertical, 2)
+                        .overlay(
+                            Rectangle().stroke(
+                                suggestion.isRecoveryAdjusted ? ColorTokens.zoneCaution : ColorTokens.zoneOptimal,
+                                lineWidth: 0.5
+                            )
+                        )
+                        .padding(8)
+                }
+            }
             .offset(x: isCentered && swipedTemplateId == template.id ? swipeOffset : 0)
             .gesture(
                 isCentered
@@ -272,7 +295,7 @@ struct TemplateCarouselSection: View {
                     return
                 }
                 if isCentered {
-                    onPreviewTemplate(template)
+                    onStartFromTemplate(template)
                 } else {
                     withAnimation(.easeOut(duration: 0.25)) {
                         centeredId = template.id
@@ -280,6 +303,11 @@ struct TemplateCarouselSection: View {
                 }
             }
             .contextMenu {
+                if let onPreviewTemplate {
+                    Button { onPreviewTemplate(template) } label: {
+                        Label("Preview", systemImage: "eye")
+                    }
+                }
                 Button { onEditTemplate(template) } label: {
                     Label("Edit Template", systemImage: "pencil")
                 }
@@ -341,6 +369,41 @@ struct TemplateCarouselSection: View {
                         ? ColorTokens.text1
                         : ColorTokens.text3)
             }
+        }
+    }
+
+    // MARK: - Suggestion
+
+    private func computeSuggestion() {
+        guard container.subscriptionService.isPro else { return }
+        guard let athleteId = athletes.first?.id else { return }
+        let allTemplates = (try? TemplateRepository(modelContext: modelContext)
+            .fetchAthleteTemplates(athleteId: athleteId)) ?? []
+        guard !allTemplates.isEmpty else { return }
+
+        let fourWeeksAgo = Calendar.current.date(byAdding: .weekOfYear, value: -4, to: .now)!
+        let sessionDescriptor = FetchDescriptor<WorkoutSession>(
+            predicate: #Predicate<WorkoutSession> { $0.sessionDate >= fourWeeksAgo },
+            sortBy: [SortDescriptor(\.sessionDate, order: .reverse)]
+        )
+        let sessions = (try? modelContext.fetch(sessionDescriptor)) ?? []
+
+        var recoveryDescriptor = FetchDescriptor<RecoverySnapshot>(
+            sortBy: [SortDescriptor<RecoverySnapshot>(\.date, order: .reverse)]
+        )
+        recoveryDescriptor.fetchLimit = 1
+        let latestRecovery = (try? modelContext.fetch(recoveryDescriptor))?.first
+        let recoveryZone = latestRecovery.map { RecoveryZone.classify(score: $0.recoveryScore) } ?? .green
+
+        suggestionResult = TemplateSuggestionEngine.suggest(
+            templates: allTemplates,
+            recentSessions: sessions,
+            currentRecoveryZone: recoveryZone
+        )
+
+        // Auto-center on suggested template
+        if let suggestion = suggestionResult {
+            centeredId = suggestion.template.id
         }
     }
 

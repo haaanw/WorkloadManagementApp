@@ -65,12 +65,16 @@ struct WorkoutLogView: View {
                                 editingTemplate = template
                                 showTemplateEditor = true
                             },
-                            onPreviewTemplate: { template in
-                                selectedTemplateForPreview = template
+                            onStartFromTemplate: { template in
+                                selectedTemplateForSession = template
+                                showActiveWorkout = true
                             },
                             onCreateTemplate: {
                                 editingTemplate = nil
                                 showTemplateEditor = true
+                            },
+                            onPreviewTemplate: { template in
+                                selectedTemplateForPreview = template
                             }
                         )
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
