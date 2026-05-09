@@ -3,8 +3,8 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Training Onboarding & Templates
 status: executing
-stopped_at: Phase 11 UI-SPEC approved
-last_updated: "2026-05-09T15:00:17.843Z"
+stopped_at: Phase 12 context gathered
+last_updated: "2026-05-09T15:41:59.751Z"
 last_activity: 2026-05-09
 progress:
   total_phases: 4
@@ -92,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-09T02:58:28.276Z
-Stopped at: Phase 11 UI-SPEC approved
-Resume file: .planning/phases/11-template-management-creation/11-UI-SPEC.md
+Last session: 2026-05-09T15:41:59.747Z
+Stopped at: Phase 12 context gathered
+Resume file: .planning/phases/12-template-driven-workouts-smart-suggestions/12-CONTEXT.md
