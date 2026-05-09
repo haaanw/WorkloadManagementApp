@@ -61,6 +61,8 @@ Phase 11 uses 4 sizes from the project type scale. See DESIGN.md for the full pr
 | Label | 15pt | 400 (Regular) | 1.4 | `.Tokens.label` |
 | Micro | 12pt | 400 (Regular) | 1.3 | `.Tokens.micro` |
 
+**19pt rationale:** DESIGN.md specifies 17pt for section head, but the shipped codebase token in `FontTokens.swift` defines `.Tokens.sectionHead` as 19pt. All existing views reference this token. Phase 11 follows the implemented token value to maintain visual consistency with the rest of the app. If DESIGN.md is updated in a future pass, the token will propagate the change automatically.
+
 Rules:
 - All numeric displays use `.monospacedDigit()`
 - Micro labels use `.tracking(1.2)` and `.textCase(.uppercase)`
@@ -127,7 +129,7 @@ Source: DESIGN.md color tables, ColorTokens.swift
 **Interactions:**
 - **Tap centered card:** Open template preview sheet (see Component 2)
 - **Tap non-centered card:** Scroll to center that card (with 250ms easeOut animation)
-- **Long-press any card:** iOS `.contextMenu` with: Edit Template, Duplicate, Favorite/Unfavorite, Archive, Delete
+- **Long-press any card:** iOS `.contextMenu` with: Edit Template, Duplicate Template, Favorite/Unfavorite, Archive Template, Delete Template
 - **Swipe left on centered card:** Reveal archive and delete action buttons (custom implementation since not a List row)
 - Carousel uses `.scrollTargetBehavior(.viewAligned)` for snap-to-center
 
@@ -166,8 +168,9 @@ Source: DESIGN.md color tables, ColorTokens.swift
 - Add a `Toggle` row below the RPE display: "Save as Template" with `.Tokens.body` label, `ColorTokens.text1`
 - Toggle is OFF by default
 - When toggled ON, show an editable `TextField` for template name, pre-filled with session name or sport type display name
-- When user taps "Save", if toggle is ON: create `WorkoutTemplate` with `isAthleteOwned=true`, auto-generate groups (all exercises in one "Main" group), actuals become targets
+- When user taps "Finish Workout", if toggle is ON: create `WorkoutTemplate` with `isAthleteOwned=true`, auto-generate groups (all exercises in one "Main" group), actuals become targets
 - After save, show a brief confirmation: "Template saved" (toast-style banner, 2s auto-dismiss)
+- If template save fails, show error toast: "Couldn't save template. Try again." (toast-style banner, 3s auto-dismiss)
 - Template name field: `.Tokens.body` / `ColorTokens.text1`, placeholder in `ColorTokens.text3`
 
 **Finish dialog revised layout:**
@@ -176,7 +179,7 @@ Source: DESIGN.md color tables, ColorTokens.swift
 - Divider: 0.5pt
 - Save-as-template toggle row
 - Template name field (visible only when toggle is ON)
-- Action buttons: "Save" (primary, `ColorTokens.text1`), "Keep Editing" (secondary, `ColorTokens.text2`)
+- Action buttons: "Finish Workout" (primary, `ColorTokens.text1`), "Keep Editing" (secondary, `ColorTokens.text2`)
 
 ### 4. TemplateEditorSheet Modifications (existing component)
 
@@ -210,10 +213,10 @@ Long-press on any carousel card shows:
 | Action | SF Symbol | Label | Color |
 |--------|-----------|-------|-------|
 | Edit | `pencil` | "Edit Template" | `ColorTokens.text1` |
-| Duplicate | `doc.on.doc` | "Duplicate" | `ColorTokens.text1` |
+| Duplicate | `doc.on.doc` | "Duplicate Template" | `ColorTokens.text1` |
 | Favorite | `star.fill` / `star` | "Favorite" / "Unfavorite" | `ColorTokens.text1` |
-| Archive | `archivebox` | "Archive" | `ColorTokens.text1` |
-| Delete | `trash` | "Delete" | `ColorTokens.zoneDanger` |
+| Archive | `archivebox` | "Archive Template" | `ColorTokens.text1` |
+| Delete | `trash` | "Delete Template" | `ColorTokens.zoneDanger` |
 
 **Delete confirmation (D-14):**
 - `.alert` with title: "Delete Template?" in system alert style
@@ -238,7 +241,7 @@ Long-press on any carousel card shows:
 |---------|------|
 | Primary CTA | "Create Template" (new template card in carousel) |
 | Secondary CTA | "Save as Template" (toggle label in finish dialog) |
-| Finish dialog primary action | "Save" |
+| Finish dialog primary action | "Finish Workout" |
 | Finish dialog secondary action | "Keep Editing" (dismisses dialog without saving, returns to workout) |
 | Empty state heading | "No Templates Yet" |
 | Empty state body | "Create your first template to speed up workout logging." |
@@ -246,12 +249,13 @@ Long-press on any carousel card shows:
 | Save-as-template field placeholder | "Template name" |
 | Save-as-template auto-name | Session name if set, otherwise sport type display name (e.g., "Lifting") |
 | Save confirmation toast | "Template saved" |
+| Save failure toast | "Couldn't save template. Try again." |
 | Delete confirmation title | "Delete Template?" |
 | Delete confirmation message | "This will permanently remove '[name]'. This cannot be undone." |
 | Delete confirmation action | "Delete" |
 | Delete confirmation cancel | "Cancel" (system alert convention) |
-| Archive context menu label | "Archive" |
-| Duplicate context menu label | "Duplicate" |
+| Archive context menu label | "Archive Template" |
+| Duplicate context menu label | "Duplicate Template" |
 | Edit context menu label | "Edit Template" |
 | Carousel section label | "MY TEMPLATES" |
 | Template preview edit button | "Edit Template" |
@@ -315,7 +319,8 @@ Long-press on any carousel card shows:
 | Card scale on scroll | continuous | linear | GeometryReader-driven scale transform |
 | Swipe-to-reveal actions | 250ms | easeOut | Drag gesture threshold: 72pt |
 | Save-as-template field appear | 150ms | easeOut | Toggle expansion |
-| Toast auto-dismiss | 2000ms | - | "Template saved" banner |
+| Toast auto-dismiss (success) | 2000ms | - | "Template saved" banner |
+| Toast auto-dismiss (failure) | 3000ms | - | "Couldn't save template. Try again." banner |
 | Toast entrance | 250ms | easeOut | Slide up from bottom |
 | Toast exit | 150ms | easeIn | Fade out |
 | Context menu | system | system | iOS native `.contextMenu` timing |
