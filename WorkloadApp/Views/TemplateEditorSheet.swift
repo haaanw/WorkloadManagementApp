@@ -348,8 +348,6 @@ struct TemplateExerciseCard: View {
                     .frame(maxWidth: .infinity)
                 Text("REPS")
                     .frame(maxWidth: .infinity)
-                Text("RPE")
-                    .frame(width: 48)
             }
             .font(.Tokens.micro)
             .tracking(1.2)
@@ -399,11 +397,7 @@ struct TargetSetRow: View {
                 .textFieldStyle(.roundedBorder)
                 .frame(maxWidth: .infinity)
 
-            TextField("RPE", value: $set.targetRPE, format: .number)
-                .keyboardType(.decimalPad)
-                .textFieldStyle(.roundedBorder)
-                .frame(width: 48)
-        }
+}
         .font(.Tokens.label)
         .padding(.horizontal, 16)
         .padding(.vertical, 6)

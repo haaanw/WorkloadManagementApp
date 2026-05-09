@@ -6,6 +6,7 @@
 - ✅ **v1.1 App Store Launch** — Phases 5-8 (shipped 2026-04-30)
 - 🚧 **v1.2 Training Onboarding & Templates** — Phases 9-12 (in progress)
 - 📋 **v1.3 LLM Import & Template Sharing** — Phases 13-14 (planned)
+- 📋 **v1.5 UX Interaction Polish** — Phases 19-20 (planned)
 - 📋 **v1.4 Female Athlete Optimization** — Phases 15-18 (planned)
 
 ## Phases
@@ -171,6 +172,44 @@ Plans:
   6. All modifiers require 3+ usable cycles, no hormonal contraception exclusion, detected regularity, confidence threshold, and user-visible explanation
 **Plans**: TBD
 
+### 📋 v1.5 UX Interaction Polish
+
+**Milestone Goal:** Elevate Tonus's interaction design with novel gesture-driven controls and anatomically precise muscle targeting, differentiating the app from generic fitness trackers.
+
+- [ ] **Phase 19: Radial Gesture Picker** - iPod-wheel-inspired circular menu for sport type and session type selection — long press triggers radial ring, drag to select, release to confirm
+- [ ] **Phase 20: Granular Muscle Group Taxonomy** - Replace coarse MuscleGroup enum (Chest/Back/Legs/Arms) with anatomically specific groups (quads, hamstrings, glutes, calves, hip flexors, psoas, anterior/posterior delts, long/short head biceps, etc.)
+
+## Phase Details — v1.5
+
+### Phase 19: Radial Gesture Picker
+**Goal**: Replace segmented pickers for sport type and session type with an iPod-wheel-inspired radial menu — long press triggers a circular ring of 6-8 customizable options, user drags finger to select, release confirms
+**Depends on**: Phase 11
+**Requirements**: UX-01
+**Success Criteria** (what must be TRUE):
+  1. RadialPicker is a reusable SwiftUI component accepting any CaseIterable enum
+  2. Long press on sport/session type triggers circular overlay with options arranged evenly around a ring
+  3. Drag gesture highlights option under finger with haptic feedback
+  4. Release on an option selects it and dismisses the ring with animation
+  5. Release outside ring cancels selection (no change)
+  6. Works in both TemplateEditorSheet and ActiveWorkoutSheet
+  7. Options are customizable per enum (icon + label around ring)
+  8. Follows design system: 0pt corners, no shadows, DM Sans, 8pt grid
+**Plans**: TBD
+**UI hint**: yes
+
+### Phase 20: Granular Muscle Group Taxonomy
+**Goal**: Replace the coarse 7-value MuscleGroup enum with an anatomically precise taxonomy that serious athletes expect, organized by body region with sub-groups
+**Depends on**: Phase 11
+**Requirements**: UX-02
+**Success Criteria** (what must be TRUE):
+  1. MuscleGroup enum expanded to ~25-30 specific muscles: quads, hamstrings, glutes, calves, hip flexors, psoas, adductors, anterior delts, lateral delts, posterior delts, pecs (upper/lower), lats, traps (upper/mid/lower), rhomboids, erectors, biceps, triceps, forearms, obliques, rectus abdominis, transverse abdominis, hip rotators, tibialis anterior
+  2. Muscle groups organized by body region for picker UI (Legs, Back, Chest, Shoulders, Arms, Core)
+  3. Existing exercises using old groups migrate gracefully (e.g., "Legs" → user prompted to specify or defaults to "Quads")
+  4. ExercisePickerView muscle group selector updated to show region → sub-group hierarchy
+  5. Supabase sync handles new enum values without breaking existing data
+  6. TemplatePreviewSheet and workout views display specific muscle group names
+**Plans**: TBD
+
 ## Progress
 
 **Execution Order:**
@@ -198,3 +237,5 @@ Plans:
 | 16. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
 | 17. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
 | 18. Cycle Intelligence (Shadow Mode) | v1.4 | 0/0 | Not started | - |
+| 19. Radial Gesture Picker | v1.5 | 0/0 | Not started | - |
+| 20. Granular Muscle Group Taxonomy | v1.5 | 0/0 | Not started | - |
