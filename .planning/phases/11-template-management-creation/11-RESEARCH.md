@@ -498,17 +498,13 @@ HStack(spacing: 8) {
 | A3 | Custom DragGesture on carousel cards does not conflict with ScrollView horizontal panning when applied only to centered card | Common Pitfalls | Swipe-to-reveal may need alternative approach (e.g., context menu is always available as fallback) |
 | A4 | FinishWorkoutSheet as `.sheet` replacement for `.alert` provides enough UI space for toggle + name field | Architecture Patterns | Could use `.fullScreenCover` or inline view instead |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
 1. **scrollTransition vs GeometryReader for card transforms**
-   - What we know: `.scrollTransition` is the iOS 17 way to apply transforms based on scroll phase. The UI-SPEC calls for GeometryReader + scaleEffect.
-   - What's unclear: Whether `.scrollTransition` provides sufficient control over the exact scale (0.85x) and opacity (0.6) values, or if manual GeometryReader calculation is needed.
-   - Recommendation: Try `.scrollTransition` first -- it is simpler and more performant. Fall back to GeometryReader only if the transform behavior doesn't match the UI-SPEC exactly.
+   - RESOLVED: Use `.scrollTransition` exclusively (Plan 11-02 Task 1). It provides `phase.isIdentity` for centered detection and supports custom scale (0.85x) and opacity (0.6) values directly. Simpler and more performant than manual GeometryReader. Fall back to GeometryReader only if runtime testing reveals insufficient control.
 
 2. **Swipe gesture conflict with ScrollView**
-   - What we know: Custom DragGesture on a child of horizontal ScrollView can cause gesture ambiguity (Pitfall 1).
-   - What's unclear: Whether restricting swipe to centered card only fully resolves the conflict, or if additional gesture configuration is needed.
-   - Recommendation: Implement swipe on centered card only. If gesture conflicts arise, fall back to context menu as the primary management interface (D-13 is always available). Swipe is a convenience, not the sole action path.
+   - RESOLVED: Apply DragGesture only to the centered card (Plan 11-02 Task 1, following Pitfall 1 recommendation). Non-centered cards rely on context menu (D-13) for management actions. Swipe is a convenience on the active card, not the sole action path.
 
 ## Sources
 
