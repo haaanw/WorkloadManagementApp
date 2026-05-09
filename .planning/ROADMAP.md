@@ -99,11 +99,11 @@ Plans:
   3. Dashboard and workout log tab show favorite/recent templates as quick-start cards for one-tap session start
   4. When loading a template, ProgressionEngine overlays recovery-aware suggested targets alongside last-used values (Pro-gated)
   5. TemplateSuggestionEngine suggests the most likely template based on day-of-week usage patterns when the user opens the app (Pro-gated, requires 2+ weeks of usage data)
-**Plans:** 3 plans
+**Plans:** 2/3 plans executed
 
 Plans:
-- [ ] 12-01-PLAN.md — TemplateSuggestionEngine (pure logic) and WorkoutSession.sourceTemplateId field
-- [ ] 12-02-PLAN.md — ActiveWorkoutSheet template loading, ghost targets, fill buttons, ProgressionEngine overlay
+- [x] 12-01-PLAN.md — TemplateSuggestionEngine (pure logic) and WorkoutSession.sourceTemplateId field
+- [x] 12-02-PLAN.md — ActiveWorkoutSheet template loading, ghost targets, fill buttons, ProgressionEngine overlay
 - [ ] 12-03-PLAN.md — Template picker sheet, carousel tap-to-start, suggestion badges, dashboard quick-start cards
 
 **UI hint**: yes
@@ -236,7 +236,7 @@ Plans:
 | 9. Foundation & Cold-Start Engine | v1.2 | 0/0 | Not started | - |
 | 10. Cold-Start Questionnaire | v1.2 | 3/3 | Complete | 2026-05-08 |
 | 11. Template Management & Creation | v1.2 | 2/2 | Complete    | 2026-05-09 |
-| 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 0/3 | Not started | - |
+| 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 2/3 | In Progress|  |
 | 13. LLM Workout Import | v1.3 | 0/0 | Not started | - |
 | 14. Template Sharing | v1.3 | 0/0 | Not started | - |
 | 15. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |

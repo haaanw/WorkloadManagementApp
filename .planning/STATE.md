@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Training Onboarding & Templates
 status: executing
-stopped_at: Phase 12 context gathered
-last_updated: "2026-05-09T15:41:59.751Z"
-last_activity: 2026-05-09
+stopped_at: Phase 12 UI-SPEC approved
+last_updated: "2026-05-09T20:01:44.982Z"
+last_activity: 2026-05-09 -- Phase 12 execution started
 progress:
   total_phases: 4
   completed_phases: 3
-  total_plans: 8
+  total_plans: 11
   completed_plans: 8
-  percent: 100
+  percent: 73
 ---
 
 # Project State
@@ -21,14 +21,14 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-01)
 
 **Core value:** Recovery + load tracked over time -- long-term insight into how the body responds to training
-**Current focus:** Phase 11 — template-management-creation
+**Current focus:** Phase 12 — template-driven-workouts-smart-suggestions
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Executing Phase 11
-Last activity: 2026-05-09
+Phase: 12 (template-driven-workouts-smart-suggestions) — EXECUTING
+Plan: 1 of 3
+Status: Executing Phase 12
+Last activity: 2026-05-09 -- Phase 12 execution started
 
 Progress: [░░░░░░░░░░] 0%
 
@@ -92,6 +92,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-09T15:41:59.747Z
-Stopped at: Phase 12 context gathered
-Resume file: .planning/phases/12-template-driven-workouts-smart-suggestions/12-CONTEXT.md
+Last session: 2026-05-09T15:58:17.694Z
+Stopped at: Phase 12 UI-SPEC approved
+Resume file: .planning/phases/12-template-driven-workouts-smart-suggestions/12-UI-SPEC.md
