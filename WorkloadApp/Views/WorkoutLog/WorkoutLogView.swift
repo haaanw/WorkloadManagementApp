@@ -18,6 +18,8 @@ struct WorkoutLogView: View {
     @State private var selectedTemplateForPreview: WorkoutTemplate?
     @State private var showTemplateEditor = false
     @State private var editingTemplate: WorkoutTemplate?
+    @State private var showTemplatePicker = false
+    @State private var selectedTemplateForSession: WorkoutTemplate?
 
     private var visibleSessions: [WorkoutSession] {
         let base = container.subscriptionService.isPro
@@ -189,7 +191,7 @@ struct WorkoutLogView: View {
                                 .foregroundStyle(ColorTokens.text2)
                         }
                         Button {
-                            showActiveWorkout = true
+                            showTemplatePicker = true
                         } label: {
                             Image(systemName: "plus")
                                 .foregroundStyle(ColorTokens.text1)
@@ -198,10 +200,34 @@ struct WorkoutLogView: View {
                 }
             }
             .sheet(isPresented: $showActiveWorkout) {
-                ActiveWorkoutSheet(prescription: activePrescription)
+                ActiveWorkoutSheet(
+                    prescription: activePrescription,
+                    template: selectedTemplateForSession
+                )
             }
             .onChange(of: showActiveWorkout) { _, isPresented in
-                if !isPresented { activePrescription = nil }
+                if !isPresented {
+                    activePrescription = nil
+                    selectedTemplateForSession = nil
+                }
+            }
+            .sheet(isPresented: $showTemplatePicker) {
+                TemplatePickerSheet(
+                    onSelectTemplate: { template in
+                        selectedTemplateForSession = template
+                        showActiveWorkout = true
+                    },
+                    onStartBlank: {
+                        activePrescription = nil
+                        selectedTemplateForSession = nil
+                        showActiveWorkout = true
+                    },
+                    onCreateTemplate: {
+                        editingTemplate = nil
+                        showTemplateEditor = true
+                    }
+                )
+                .environment(container)
             }
             .sheet(isPresented: $showUpgrade) {
                 UpgradeSheet(trigger: .history(lockedWeeks: lockedWeeks))

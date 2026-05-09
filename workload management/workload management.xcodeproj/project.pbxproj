@@ -11,6 +11,7 @@
 		1101010100000000000000B1 /* ToastBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000B2 /* ToastBanner.swift */; };
 		1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000C2 /* TemplateCarouselSection.swift */; };
 		1101010100000000000000D1 /* TemplatePreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000D2 /* TemplatePreviewSheet.swift */; };
+		1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000E2 /* TemplatePickerSheet.swift */; };
 		02B5342D87238056790C2CB7 /* CoachWorkoutEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A4956488E0ECB2BC93FD3F /* CoachWorkoutEntrySheet.swift */; };
 		053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCB08A3880509F52F7419E9 /* InviteConfirmationSheet.swift */; };
 		0A62FC4DEF95E871C3EA1C86 /* CoachAthleteRelationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */; };
@@ -241,6 +242,7 @@
 		1101010100000000000000B2 /* ToastBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastBanner.swift; sourceTree = "<group>"; };
 		1101010100000000000000C2 /* TemplateCarouselSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCarouselSection.swift; sourceTree = "<group>"; };
 		1101010100000000000000D2 /* TemplatePreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewSheet.swift; sourceTree = "<group>"; };
+		1101010100000000000000E2 /* TemplatePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePickerSheet.swift; sourceTree = "<group>"; };
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		62F32DF65C7F3C5307D700B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialLoginButtons.swift; sourceTree = "<group>"; };
@@ -573,6 +575,7 @@
 				1101010100000000000000A2 /* FinishWorkoutSheet.swift */,
 				1101010100000000000000C2 /* TemplateCarouselSection.swift */,
 				1101010100000000000000D2 /* TemplatePreviewSheet.swift */,
+				1101010100000000000000E2 /* TemplatePickerSheet.swift */,
 				62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */,
 				62324C1D2F66CB0E00A9C2BE /* SessionDetailView.swift */,
 				62324C1E2F66CB0E00A9C2BE /* WorkoutLogView.swift */,
@@ -848,6 +851,7 @@
 				1101010100000000000000B1 /* ToastBanner.swift in Sources */,
 				1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */,
 				1101010100000000000000D1 /* TemplatePreviewSheet.swift in Sources */,
+				1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */,
 				FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */,
 				62324C322F66CB0E00A9C2BE /* WorkoutLogViewModel.swift in Sources */,
 				62324C332F66CB0E00A9C2BE /* SleepTrendChart.swift in Sources */,
