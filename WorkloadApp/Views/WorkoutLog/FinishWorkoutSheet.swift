@@ -64,8 +64,8 @@ struct FinishWorkoutSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Finish") {
-                        dismiss()
                         onFinish()
+                        dismiss()
                     }
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)

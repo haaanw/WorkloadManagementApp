@@ -348,27 +348,43 @@ struct TemplateCarouselSection: View {
 
     private func duplicateTemplate(_ template: WorkoutTemplate) {
         guard let athleteId = athletes.first?.id else { return }
-        _ = try? TemplateRepository(modelContext: modelContext).duplicate(template, athleteId: athleteId)
-        Task { await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId) }
+        do {
+            _ = try TemplateRepository(modelContext: modelContext).duplicate(template, athleteId: athleteId)
+            Task { await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId) }
+        } catch {
+            print("Duplicate template error: \(error)")
+        }
     }
 
     private func toggleFavorite(_ template: WorkoutTemplate) {
         template.isFavorite.toggle()
         template.updatedAt = .now
-        try? modelContext.save()
-        guard let athleteId = athletes.first?.id else { return }
-        Task { await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId) }
+        do {
+            try modelContext.save()
+            guard let athleteId = athletes.first?.id else { return }
+            Task { await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId) }
+        } catch {
+            print("Toggle favorite error: \(error)")
+        }
     }
 
     private func archiveTemplate(_ template: WorkoutTemplate) {
-        try? TemplateRepository(modelContext: modelContext).archive(template)
-        guard let athleteId = athletes.first?.id else { return }
-        Task { await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId) }
+        do {
+            try TemplateRepository(modelContext: modelContext).archive(template)
+            guard let athleteId = athletes.first?.id else { return }
+            Task { await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId) }
+        } catch {
+            print("Archive template error: \(error)")
+        }
     }
 
     private func deleteTemplate(_ template: WorkoutTemplate) {
-        try? TemplateRepository(modelContext: modelContext).delete(template)
-        guard let athleteId = athletes.first?.id else { return }
-        Task { await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId) }
+        do {
+            try TemplateRepository(modelContext: modelContext).delete(template)
+            guard let athleteId = athletes.first?.id else { return }
+            Task { await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId) }
+        } catch {
+            print("Delete template error: \(error)")
+        }
     }
 }

@@ -20,7 +20,7 @@ struct ToastBanner: View {
         .background(ColorTokens.surface)
         .overlay(
             Rectangle()
-                .stroke(ColorTokens.divider, lineWidth: 0.5)
+                .stroke(isError ? ColorTokens.zoneDanger : ColorTokens.divider, lineWidth: 0.5)
         )
         .contentShape(Rectangle())
         .transition(.move(edge: .bottom).combined(with: .opacity))

@@ -18,6 +18,7 @@ struct TemplateEditorSheet: View {
     @State private var isFavorite: Bool = false
     @State private var showExercisePicker = false
     @State private var activeGroupIndex: Int = 0
+    @State private var saveError: String?
 
     init(coachId: UUID, existingTemplate: WorkoutTemplate?) {
         self.coachId = coachId
@@ -122,7 +123,9 @@ struct TemplateEditorSheet: View {
 
                     // Add group button
                     Button {
-                        let nextName = "Group \(Character(UnicodeScalar(65 + min(groups.count, 25))!))"
+                        let nextName = groups.count < 26
+                            ? "Group \(Character(UnicodeScalar(65 + groups.count)!))"
+                            : "Group \(groups.count + 1)"
                         groups.append(GroupDraft(groupName: nextName))
                     } label: {
                         Label("Add Group", systemImage: "plus")
@@ -134,6 +137,14 @@ struct TemplateEditorSheet: View {
                     .background(ColorTokens.background)
 
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+
+                    // Save error
+                    if let saveError {
+                        Text(saveError)
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.zoneDanger)
+                            .padding(16)
+                    }
                 }
             }
             .background(ColorTokens.background)
@@ -149,9 +160,9 @@ struct TemplateEditorSheet: View {
                     Button("Save") { save() }
                         .font(.Tokens.label)
                         .foregroundStyle(
-                            templateName.isEmpty ? ColorTokens.text3 : ColorTokens.text1
+                            templateName.trimmingCharacters(in: .whitespaces).isEmpty ? ColorTokens.text3 : ColorTokens.text1
                         )
-                        .disabled(templateName.isEmpty)
+                        .disabled(templateName.trimmingCharacters(in: .whitespaces).isEmpty)
                 }
             }
             .sheet(isPresented: $showExercisePicker) {
@@ -190,7 +201,8 @@ struct TemplateEditorSheet: View {
                     TargetSetDraft(
                         targetReps: set.targetReps,
                         targetWeightKg: set.targetWeightKg,
-                        targetRPE: set.targetRPE,
+                        targetDurationSeconds: set.targetDurationSeconds,
+                        targetDistanceMeters: set.targetDistanceMeters,
                         targetRIR: set.targetRIR,
                         isWarmup: set.isWarmup
                     )
@@ -206,18 +218,19 @@ struct TemplateEditorSheet: View {
         let template: WorkoutTemplate
         if let existing = existingTemplate {
             template = existing
-            template.templateName = templateName
+            template.templateName = templateName.trimmingCharacters(in: .whitespaces)
             template.sportType = sportType
             template.sessionType = sessionType
             template.notes = notes.isEmpty ? nil : notes
             template.updatedAt = .now
-            // Remove old groups
-            for group in template.groups { modelContext.delete(group) }
+            // Snapshot then clear to avoid mutating during iteration (CR-01)
+            let oldGroups = Array(template.groups)
             template.groups = []
+            for group in oldGroups { modelContext.delete(group) }
         } else {
             template = WorkoutTemplate(
                 coachId: coachId,
-                templateName: templateName,
+                templateName: templateName.trimmingCharacters(in: .whitespaces),
                 sportType: sportType,
                 sessionType: sessionType,
                 notes: notes.isEmpty ? nil : notes
@@ -247,7 +260,9 @@ struct TemplateEditorSheet: View {
                         setIndex: sIdx,
                         targetReps: sDraft.targetReps,
                         targetWeightKg: sDraft.targetWeightKg,
-                        targetRPE: sDraft.targetRPE,
+                        targetDurationSeconds: sDraft.targetDurationSeconds,
+                        targetDistanceMeters: sDraft.targetDistanceMeters,
+                        targetRPE: nil,
                         targetRIR: sDraft.targetRIR,
                         isWarmup: sDraft.isWarmup
                     )
@@ -258,7 +273,13 @@ struct TemplateEditorSheet: View {
             template.groups.append(group)
         }
 
-        try? modelContext.save()
+        do {
+            try modelContext.save()
+        } catch {
+            print("Template save error: \(error)")
+            saveError = "Couldn't save template. Please try again."
+            return
+        }
 
         Task {
             await container.syncService.pushWorkoutTemplates(
@@ -324,6 +345,10 @@ struct GroupEditorCard: View {
 struct TemplateExerciseCard: View {
     @Binding var exercise: ExerciseDraft
 
+    private var inputMode: ExerciseInputMode {
+        exercise.exerciseCategory.inputMode
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             HStack {
@@ -340,24 +365,17 @@ struct TemplateExerciseCard: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
 
-            // Set headers
-            HStack {
-                Text("SET")
-                    .frame(width: 32)
-                Text("WEIGHT")
-                    .frame(maxWidth: .infinity)
-                Text("REPS")
-                    .frame(maxWidth: .infinity)
-            }
-            .font(.Tokens.micro)
-            .tracking(1.2)
-            .foregroundStyle(ColorTokens.text3)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 4)
+            // Set headers — adapt to exercise category
+            setHeaderRow
+                .font(.Tokens.micro)
+                .tracking(1.2)
+                .foregroundStyle(ColorTokens.text3)
+                .padding(.horizontal, 16)
+                .padding(.vertical, 4)
 
             ForEach($exercise.sets) { $set in
                 let idx = exercise.sets.firstIndex(where: { $0.id == set.id }) ?? 0
-                TargetSetRow(set: $set, index: idx)
+                TargetSetRow(set: $set, index: idx, inputMode: inputMode)
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
             }
 
@@ -372,6 +390,32 @@ struct TemplateExerciseCard: View {
             .padding(.vertical, 8)
         }
     }
+
+    @ViewBuilder
+    private var setHeaderRow: some View {
+        HStack {
+            Text("SET")
+                .frame(width: 32)
+            switch inputMode {
+            case .weightReps:
+                Text("WEIGHT")
+                    .frame(maxWidth: .infinity)
+                Text("REPS")
+                    .frame(maxWidth: .infinity)
+            case .repsOnly:
+                Text("REPS")
+                    .frame(maxWidth: .infinity)
+            case .distanceDuration:
+                Text("DISTANCE")
+                    .frame(maxWidth: .infinity)
+                Text("DURATION")
+                    .frame(maxWidth: .infinity)
+            case .durationOnly:
+                Text("DURATION")
+                    .frame(maxWidth: .infinity)
+            }
+        }
+    }
 }
 
 // MARK: - Target Set Row
@@ -379,6 +423,7 @@ struct TemplateExerciseCard: View {
 struct TargetSetRow: View {
     @Binding var set: TargetSetDraft
     let index: Int
+    let inputMode: ExerciseInputMode
 
     var body: some View {
         HStack {
@@ -387,17 +432,42 @@ struct TargetSetRow: View {
                 .font(.Tokens.label)
                 .foregroundStyle(set.isWarmup ? ColorTokens.zoneCaution : ColorTokens.text2)
 
-            TextField("kg", value: $set.targetWeightKg, format: .number)
-                .keyboardType(.decimalPad)
-                .textFieldStyle(.roundedBorder)
-                .frame(maxWidth: .infinity)
+            switch inputMode {
+            case .weightReps:
+                TextField("kg", value: $set.targetWeightKg, format: .number)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
 
-            TextField("reps", value: $set.targetReps, format: .number)
-                .keyboardType(.numberPad)
-                .textFieldStyle(.roundedBorder)
-                .frame(maxWidth: .infinity)
+                TextField("reps", value: $set.targetReps, format: .number)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
 
-}
+            case .repsOnly:
+                TextField("reps", value: $set.targetReps, format: .number)
+                    .keyboardType(.numberPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
+
+            case .distanceDuration:
+                TextField("meters", value: $set.targetDistanceMeters, format: .number)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
+
+                TextField("min", value: $set.targetDurationMinutes, format: .number)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
+
+            case .durationOnly:
+                TextField("min", value: $set.targetDurationMinutes, format: .number)
+                    .keyboardType(.decimalPad)
+                    .textFieldStyle(.roundedBorder)
+                    .frame(maxWidth: .infinity)
+            }
+        }
         .font(.Tokens.label)
         .padding(.horizontal, 16)
         .padding(.vertical, 6)
@@ -424,7 +494,14 @@ struct TargetSetDraft: Identifiable {
     let id = UUID()
     var targetReps: Int? = nil
     var targetWeightKg: Double? = nil
-    var targetRPE: Double? = nil
+    var targetDurationSeconds: Int? = nil
+    var targetDistanceMeters: Double? = nil
     var targetRIR: Int? = nil
     var isWarmup: Bool = false
+
+    /// Duration in minutes for UI display (stored as seconds internally)
+    var targetDurationMinutes: Double? {
+        get { targetDurationSeconds.map { Double($0) / 60.0 } }
+        set { targetDurationSeconds = newValue.map { Int($0 * 60) } }
+    }
 }
