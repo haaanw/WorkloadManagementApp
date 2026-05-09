@@ -59,8 +59,8 @@
 **Depends on**: Phase 9
 **Requirements**: COLD-01, COLD-02, COLD-04, COLD-05, COLD-06, COLD-07
 **Success Criteria** (what must be TRUE):
-  1. User can complete 4 required questions (sessions/week, avg duration, typical sRPE, weeks at current level) via a training profile card after onboarding
-  2. User can optionally answer 4 additional questions (training age, periodization preference, movement types, injury history) without blocking progress
+  1. User can complete 4 required questions (sessions/week, avg duration, typical sRPE 1-10, weeks at current level) via a training profile card after onboarding
+  2. User can optionally answer 4 additional questions (training age in years, periodized vs steady schedule, movement types, injury history with body region picker + free text)
   3. Dashboard displays estimated ATL/CTL values during the cold-start window, and these values never appear on WorkloadSnapshot
   4. Dashboard automatically switches from estimated to real ATL/CTL after 3+ weeks elapsed AND 8+ sessions logged, with no user action required
   5. FatigueIndex shows an "insufficient data" state during the cold-start window instead of computing from incomplete baselines
@@ -99,7 +99,13 @@ Plans:
   3. Dashboard and workout log tab show favorite/recent templates as quick-start cards for one-tap session start
   4. When loading a template, ProgressionEngine overlays recovery-aware suggested targets alongside last-used values (Pro-gated)
   5. TemplateSuggestionEngine suggests the most likely template based on day-of-week usage patterns when the user opens the app (Pro-gated, requires 2+ weeks of usage data)
-**Plans**: TBD
+**Plans:** 3 plans
+
+Plans:
+- [ ] 12-01-PLAN.md — TemplateSuggestionEngine (pure logic) and WorkoutSession.sourceTemplateId field
+- [ ] 12-02-PLAN.md — ActiveWorkoutSheet template loading, ghost targets, fill buttons, ProgressionEngine overlay
+- [ ] 12-03-PLAN.md — Template picker sheet, carousel tap-to-start, suggestion badges, dashboard quick-start cards
+
 **UI hint**: yes
 
 ### 📋 v1.4 Female Athlete Optimization
@@ -204,8 +210,8 @@ Plans:
 **Success Criteria** (what must be TRUE):
   1. MuscleGroup enum expanded to ~25-30 specific muscles: quads, hamstrings, glutes, calves, hip flexors, psoas, adductors, anterior delts, lateral delts, posterior delts, pecs (upper/lower), lats, traps (upper/mid/lower), rhomboids, erectors, biceps, triceps, forearms, obliques, rectus abdominis, transverse abdominis, hip rotators, tibialis anterior
   2. Muscle groups organized by body region for picker UI (Legs, Back, Chest, Shoulders, Arms, Core)
-  3. Existing exercises using old groups migrate gracefully (e.g., "Legs" → user prompted to specify or defaults to "Quads")
-  4. ExercisePickerView muscle group selector updated to show region → sub-group hierarchy
+  3. Existing exercises using old groups migrate gracefully (e.g., "Legs" -> user prompted to specify or defaults to "Quads")
+  4. ExercisePickerView muscle group selector updated to show region -> sub-group hierarchy
   5. Supabase sync handles new enum values without breaking existing data
   6. TemplatePreviewSheet and workout views display specific muscle group names
 **Plans**: TBD
@@ -230,7 +236,7 @@ Plans:
 | 9. Foundation & Cold-Start Engine | v1.2 | 0/0 | Not started | - |
 | 10. Cold-Start Questionnaire | v1.2 | 3/3 | Complete | 2026-05-08 |
 | 11. Template Management & Creation | v1.2 | 2/2 | Complete    | 2026-05-09 |
-| 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 0/0 | Not started | - |
+| 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 0/3 | Not started | - |
 | 13. LLM Workout Import | v1.3 | 0/0 | Not started | - |
 | 14. Template Sharing | v1.3 | 0/0 | Not started | - |
 | 15. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
