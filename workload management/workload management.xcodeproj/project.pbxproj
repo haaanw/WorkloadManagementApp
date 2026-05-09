@@ -23,6 +23,7 @@
 		62324C242F66CB0E00A9C2BE /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF22F66CB0E00A9C2BE /* PreviewData.swift */; };
 		62324C252F66CB0E00A9C2BE /* ExercisePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */; };
 		62324C262F66CB0E00A9C2BE /* AutoregulationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFB2F66CB0E00A9C2BE /* AutoregulationEngine.swift */; };
+		F2AAEAD8C17EB4A97EBF3401 /* TemplateSuggestionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */; };
 		62324C272F66CB0E00A9C2BE /* WorkloadSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEF2F66CB0E00A9C2BE /* WorkloadSnapshot.swift */; };
 		62324C282F66CB0E00A9C2BE /* PRDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */; };
 		62324C292F66CB0E00A9C2BE /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C002F66CB0E00A9C2BE /* SyncService.swift */; };
@@ -186,6 +187,7 @@
 		62324BF72F66CB0E00A9C2BE /* WorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRepository.swift; sourceTree = "<group>"; };
 		62324BFA2F66CB0E00A9C2BE /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		62324BFB2F66CB0E00A9C2BE /* AutoregulationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoregulationEngine.swift; sourceTree = "<group>"; };
+		EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSuggestionEngine.swift; sourceTree = "<group>"; };
 		62324BFC2F66CB0E00A9C2BE /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
 		62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRDetector.swift; sourceTree = "<group>"; };
 		62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryPipeline.swift; sourceTree = "<group>"; };
@@ -443,6 +445,7 @@
 				62F32C982F7167EA00B6135F /* ReasoningEngine.swift */,
 				62324BFA2F66CB0E00A9C2BE /* AuthService.swift */,
 				62324BFB2F66CB0E00A9C2BE /* AutoregulationEngine.swift */,
+				EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */,
 				62324BFC2F66CB0E00A9C2BE /* HealthKitService.swift */,
 				62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */,
 				62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */,
@@ -818,6 +821,7 @@
 				62324C252F66CB0E00A9C2BE /* ExercisePickerView.swift in Sources */,
 				627EC19A2F76858300B89262 /* TextTemplateImportSheet.swift in Sources */,
 				62324C262F66CB0E00A9C2BE /* AutoregulationEngine.swift in Sources */,
+				F2AAEAD8C17EB4A97EBF3401 /* TemplateSuggestionEngine.swift in Sources */,
 				627EC19C2F76917500B89262 /* MockDataSeeder.swift in Sources */,
 				62324C272F66CB0E00A9C2BE /* WorkloadSnapshot.swift in Sources */,
 				62324C282F66CB0E00A9C2BE /* PRDetector.swift in Sources */,

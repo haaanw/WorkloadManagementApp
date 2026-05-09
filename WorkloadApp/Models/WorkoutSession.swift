@@ -12,6 +12,7 @@ final class WorkoutSession {
     var notes: String?
     var sessionType: SessionType = SessionType.strength
     var loggedByCoachId: UUID?          // nil = athlete self-logged
+    var sourceTemplateId: UUID? = nil    // template this session was started from
     var isSynced: Bool
 
     // External load (the work done)
