@@ -3,6 +3,7 @@ import SwiftData
 
 struct ActiveWorkoutSheet: View {
     var prescription: PrescribedWorkout?
+    var template: WorkoutTemplate?
 
     @Environment(AppContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
@@ -24,11 +25,13 @@ struct ActiveWorkoutSheet: View {
     @State private var templateName = ""
     @State private var showTemplateSavedToast = false
     @State private var templateSaveError = false
+    @State private var sourceTemplate: WorkoutTemplate?
 
     private var athlete: Athlete? { athletes.first }
 
-    init(prescription: PrescribedWorkout? = nil) {
+    init(prescription: PrescribedWorkout? = nil, template: WorkoutTemplate? = nil) {
         self.prescription = prescription
+        self.template = template
     }
 
     var elapsed: TimeInterval {
@@ -77,6 +80,17 @@ struct ActiveWorkoutSheet: View {
                     Rectangle()
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
+
+                    // Fill buttons (template-loaded sessions only)
+                    if sourceTemplate != nil {
+                        FillButtonBar(
+                            entries: $entries,
+                            isPro: container.subscriptionService.isPro
+                        )
+                        Rectangle()
+                            .fill(ColorTokens.divider)
+                            .frame(height: 0.5)
+                    }
 
                     // Exercise entries
                     ForEach($entries) { $entry in
@@ -182,7 +196,12 @@ struct ActiveWorkoutSheet: View {
                 }
             }
             .animation(.easeOut(duration: 0.25), value: showTemplateSavedToast)
-            .onAppear { loadPrescription() }
+            .onAppear {
+                loadPrescription()
+                if template != nil && entries.isEmpty {
+                    loadFromTemplate()
+                }
+            }
         }
     }
 
@@ -353,6 +372,88 @@ struct ActiveWorkoutSheet: View {
         }
     }
 
+    // MARK: - Template Loading
+
+    private func loadFromTemplate() {
+        guard let tmpl = template else { return }
+        sessionName = tmpl.templateName
+        sportType = tmpl.sportType
+        sessionType = tmpl.sessionType
+        sourceTemplate = tmpl
+
+        let isPro = container.subscriptionService.isPro
+        let context = isPro ? buildTrainingContext() : nil
+
+        entries = tmpl.sortedGroups.flatMap { group in
+            group.sortedExercises.map { exercise in
+                var draft = ExerciseEntryDraft(
+                    exerciseName: exercise.exerciseName,
+                    exerciseCategory: exercise.exerciseCategory,
+                    muscleGroup: exercise.muscleGroup
+                )
+                draft.groupName = group.groupName
+
+                let history = ProgressionEngine.fetchHistory(
+                    exerciseName: exercise.exerciseName,
+                    modelContext: modelContext
+                )
+
+                if !history.isEmpty, let lastEntry = history.first {
+                    // Ghost targets from last session actuals
+                    draft.sets = exercise.sortedSets.enumerated().map { idx, templateSet in
+                        let historySet = idx < lastEntry.sets.count ? lastEntry.sets[idx] : nil
+                        return SetDraft(
+                            targetReps: historySet?.reps ?? templateSet.targetReps,
+                            targetWeightKg: historySet?.weightKg ?? templateSet.targetWeightKg,
+                            targetRPE: historySet?.rpe ?? templateSet.targetRPE,
+                            isFromHistory: true
+                        )
+                    }
+                    // Add extra sets from history if template has fewer
+                    if lastEntry.sets.count > exercise.sortedSets.count {
+                        for idx in exercise.sortedSets.count..<lastEntry.sets.count {
+                            let historySet = lastEntry.sets[idx]
+                            draft.sets.append(SetDraft(
+                                targetReps: historySet.reps,
+                                targetWeightKg: historySet.weightKg,
+                                targetRPE: historySet.rpe,
+                                isFromHistory: true
+                            ))
+                        }
+                    }
+
+                    // Pro users get ProgressionEngine suggestions
+                    if isPro, let ctx = context {
+                        let suggestion = ProgressionEngine.suggest(
+                            exerciseName: exercise.exerciseName,
+                            category: exercise.exerciseCategory,
+                            context: ctx,
+                            recentEntries: history
+                        )
+                        draft.suggestionRationale = suggestion.rationale
+                        draft.progressionType = suggestion.progressionType
+                        if !suggestion.suggestedSets.isEmpty {
+                            draft.progressionSuggestions = suggestion.suggestedSets
+                        }
+                    }
+                } else {
+                    // No history: use template defaults as ghost targets
+                    draft.sets = exercise.sortedSets.map { templateSet in
+                        SetDraft(
+                            targetReps: templateSet.targetReps,
+                            targetWeightKg: templateSet.targetWeightKg,
+                            targetRPE: templateSet.targetRPE,
+                            isFromHistory: false
+                        )
+                    }
+                }
+
+                if draft.sets.isEmpty { draft.sets = [SetDraft()] }
+                return draft
+            }
+        }
+    }
+
     // MARK: - Save
 
     private func saveSession() {
@@ -391,6 +492,7 @@ struct ActiveWorkoutSheet: View {
         }
 
         session.recalculateDerivedFields()
+        session.sourceTemplateId = sourceTemplate?.id
         session.athlete = athlete
         modelContext.insert(session)
 
@@ -408,6 +510,14 @@ struct ActiveWorkoutSheet: View {
             print("Failed to save session: \(error)")
             dismiss()
             return
+        }
+
+        // Update template usage stats
+        if let source = sourceTemplate {
+            source.lastUsedAt = .now
+            source.usageCount += 1
+            source.updatedAt = .now
+            try? modelContext.save()
         }
 
         if let athlete {
@@ -562,6 +672,7 @@ struct ExerciseEntryDraft: Identifiable {
     var sets: [SetDraft] = [SetDraft()]
     var suggestionRationale: String?
     var progressionType: ProgressionEngine.ProgressionType?
+    var progressionSuggestions: [ProgressionEngine.SetSuggestion]?
 }
 
 struct SetDraft: Identifiable {
@@ -641,11 +752,19 @@ struct ExerciseEntryCard: View {
             }
 
             ForEach($entry.sets) { $set in
-                SetEntryRow(
-                    set: $set,
-                    index: entry.sets.firstIndex(where: { $0.id == set.id }) ?? 0,
-                    inputMode: inputMode
-                )
+                let setIndex = entry.sets.firstIndex(where: { $0.id == set.id }) ?? 0
+                VStack(spacing: 0) {
+                    SetEntryRow(
+                        set: $set,
+                        index: setIndex,
+                        inputMode: inputMode,
+                        suggestion: entry.progressionSuggestions.flatMap { suggestions in
+                            setIndex < suggestions.count ? suggestions[setIndex] : nil
+                        },
+                        progressionType: entry.progressionType,
+                        showSuggestion: entry.progressionSuggestions != nil
+                    )
+                }
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
@@ -688,6 +807,9 @@ struct SetEntryRow: View {
     @Binding var set: SetDraft
     let index: Int
     var inputMode: ExerciseInputMode = .weightReps
+    var suggestion: ProgressionEngine.SetSuggestion? = nil
+    var progressionType: ProgressionEngine.ProgressionType? = nil
+    var showSuggestion: Bool = false
 
     private var weightPlaceholder: String {
         if let t = set.targetWeightKg { return String(format: "%.0f", t) }
@@ -704,71 +826,197 @@ struct SetEntryRow: View {
         return "RPE"
     }
 
+    private var suggestionText: String? {
+        guard showSuggestion, let s = suggestion, let weight = s.weightKg else { return nil }
+        let formatted = String(format: "%.1f", weight)
+        switch progressionType {
+        case .increase:
+            return "\(formatted)kg suggested"
+        case .maintain, .deload, .returnFromBreak, .none:
+            return "maintain \(formatted)kg"
+        }
+    }
+
+    private var suggestionIcon: String {
+        switch progressionType {
+        case .increase: return "arrow.up"
+        default: return "arrow.right"
+        }
+    }
+
     var body: some View {
-        HStack {
-            Text("\(index + 1)")
-                .frame(width: 32)
+        VStack(alignment: .leading, spacing: 0) {
+            HStack {
+                Text("\(index + 1)")
+                    .frame(width: 32)
+                    .font(.Tokens.label)
+                    .foregroundStyle(set.isWarmup ? ColorTokens.zoneCaution : ColorTokens.text2)
+
+                switch inputMode {
+                case .weightReps:
+                    TextField(weightPlaceholder, value: $set.weightKg, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: .infinity)
+
+                    TextField(repsPlaceholder, value: $set.reps, format: .number)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: .infinity)
+
+                    TextField(rpePlaceholder, value: $set.rpe, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 48)
+
+                case .repsOnly:
+                    TextField(repsPlaceholder, value: $set.reps, format: .number)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: .infinity)
+
+                    TextField(rpePlaceholder, value: $set.rpe, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 48)
+
+                case .distanceDuration:
+                    TextField("m", value: $set.distanceMeters, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: .infinity)
+
+                    TextField("sec", value: $set.durationSeconds, format: .number)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: .infinity)
+
+                    TextField(rpePlaceholder, value: $set.rpe, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 48)
+
+                case .durationOnly:
+                    TextField("min", value: $set.durationSeconds, format: .number)
+                        .keyboardType(.numberPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(maxWidth: .infinity)
+
+                    TextField(rpePlaceholder, value: $set.rpe, format: .number)
+                        .keyboardType(.decimalPad)
+                        .textFieldStyle(.roundedBorder)
+                        .frame(width: 48)
+                }
+            }
+            .font(.Tokens.label)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 8)
+
+            // Progression suggestion label (Pro users only)
+            if let text = suggestionText {
+                HStack(spacing: 4) {
+                    Image(systemName: suggestionIcon)
+                    Text(text)
+                }
                 .font(.Tokens.label)
-                .foregroundStyle(set.isWarmup ? ColorTokens.zoneCaution : ColorTokens.text2)
-
-            switch inputMode {
-            case .weightReps:
-                TextField(weightPlaceholder, value: $set.weightKg, format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: .infinity)
-
-                TextField(repsPlaceholder, value: $set.reps, format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: .infinity)
-
-                TextField(rpePlaceholder, value: $set.rpe, format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 48)
-
-            case .repsOnly:
-                TextField(repsPlaceholder, value: $set.reps, format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: .infinity)
-
-                TextField(rpePlaceholder, value: $set.rpe, format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 48)
-
-            case .distanceDuration:
-                TextField("m", value: $set.distanceMeters, format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: .infinity)
-
-                TextField("sec", value: $set.durationSeconds, format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: .infinity)
-
-                TextField(rpePlaceholder, value: $set.rpe, format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 48)
-
-            case .durationOnly:
-                TextField("min", value: $set.durationSeconds, format: .number)
-                    .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: .infinity)
-
-                TextField(rpePlaceholder, value: $set.rpe, format: .number)
-                    .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
-                    .frame(width: 48)
+                .foregroundStyle(ColorTokens.text3)
+                .padding(.horizontal, 48)
+                .padding(.bottom, 8)
+                .accessibilityLabel("Suggested: \(text)")
             }
         }
-        .font(.Tokens.label)
+    }
+}
+
+// MARK: - Fill Button Bar
+
+struct FillButtonBar: View {
+    @Binding var entries: [ExerciseEntryDraft]
+    let isPro: Bool
+
+    var body: some View {
+        HStack(spacing: 16) {
+            Button {
+                fillLast()
+            } label: {
+                Text("Fill last")
+                    .font(.Tokens.bodyMedium)
+                    .foregroundStyle(ColorTokens.text1)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+            }
+            .buttonStyle(.plain)
+
+            if isPro {
+                Button {
+                    fillSuggested()
+                } label: {
+                    Text("Fill suggested")
+                        .font(.Tokens.bodyMedium)
+                        .foregroundStyle(ColorTokens.text1)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                }
+                .buttonStyle(.plain)
+            }
+
+            Spacer()
+        }
         .padding(.horizontal, 16)
         .padding(.vertical, 8)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ColorTokens.surface)
+    }
+
+    private func fillLast() {
+        for i in entries.indices {
+            for j in entries[i].sets.indices {
+                if entries[i].sets[j].reps == nil, let target = entries[i].sets[j].targetReps {
+                    entries[i].sets[j].reps = target
+                }
+                if entries[i].sets[j].weightKg == nil, let target = entries[i].sets[j].targetWeightKg {
+                    entries[i].sets[j].weightKg = target
+                }
+                if entries[i].sets[j].rpe == nil, let target = entries[i].sets[j].targetRPE {
+                    entries[i].sets[j].rpe = target
+                }
+            }
+        }
+    }
+
+    private func fillSuggested() {
+        for i in entries.indices {
+            if let suggestions = entries[i].progressionSuggestions {
+                for j in entries[i].sets.indices {
+                    if j < suggestions.count {
+                        let s = suggestions[j]
+                        if entries[i].sets[j].weightKg == nil, let w = s.weightKg {
+                            entries[i].sets[j].weightKg = w
+                        }
+                        if entries[i].sets[j].reps == nil, let r = s.reps {
+                            entries[i].sets[j].reps = r
+                        }
+                        if entries[i].sets[j].rpe == nil, let r = s.rpe {
+                            entries[i].sets[j].rpe = r
+                        }
+                    }
+                }
+            } else {
+                // Fallback to ghost targets
+                for j in entries[i].sets.indices {
+                    if entries[i].sets[j].reps == nil, let target = entries[i].sets[j].targetReps {
+                        entries[i].sets[j].reps = target
+                    }
+                    if entries[i].sets[j].weightKg == nil, let target = entries[i].sets[j].targetWeightKg {
+                        entries[i].sets[j].weightKg = target
+                    }
+                    if entries[i].sets[j].rpe == nil, let target = entries[i].sets[j].targetRPE {
+                        entries[i].sets[j].rpe = target
+                    }
+                }
+            }
+        }
     }
 }
