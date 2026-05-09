@@ -46,19 +46,22 @@ Exceptions: 44pt minimum touch target for "Fill last" / "Fill suggested" buttons
 
 All text uses `Font.Tokens.*` from `FontTokens.swift`. No `.system()` or semantic styles.
 
+Active sizes: 4 (32, 17, 15, 12). Section headings use 17pt Medium weight for hierarchy via weight, not size.
+
 | Role | Token | Size | Weight | Line Height | Usage in Phase 12 |
 |------|-------|------|--------|-------------|--------------------|
 | Hero | `.heroScore` | 64pt | 400 | 1.0 | Not used in this phase |
 | Page title | `.pageTitle` | 32pt | 400 | 1.2 | Template picker sheet title |
-| Section head | `.sectionHead` | 19pt | 500 | 1.3 | "Quick Start", "Your Templates" section labels |
 | Body | `.body` | 17pt | 400 | 1.5 | Template names, exercise names, weight/reps input fields |
-| Body medium | `.bodyMedium` | 17pt | 500 | 1.5 | "Fill last" / "Fill suggested" button labels |
+| Body medium | `.bodyMedium` | 17pt | 500 | 1.5 | "Quick Start", "Your Templates" section labels, "Fill last" / "Fill suggested" button labels |
 | Label | `.label` | 15pt | 400 | 1.4 | Ghost placeholder text, ProgressionEngine suggestion text, template metadata |
 | Micro | `.micro` | 12pt | 400 | 1.0 | "SUGGESTED" / "RECOVERY-ADJUSTED" badge labels, "PRO" badge |
 
 ---
 
 ## Color
+
+60/30/10 split: background (60%), surface (30%), zone/divider tokens (10%).
 
 | Role | Token | Dark Hex | Light Hex | Usage in Phase 12 |
 |------|-------|----------|-----------|---------------------|
@@ -107,6 +110,14 @@ Accent reserved for: Hero readiness score number only. Phase 12 uses NO accent c
 | Engine | Purpose | Decision |
 |--------|---------|----------|
 | `TemplateSuggestionEngine` | Pure struct, static methods. Day-of-week frequency + recovery zone to pick best template. | D-15, D-16, D-17, TMPL-08 |
+
+---
+
+## Visual Hierarchy — Focal Points
+
+**TemplatePickerSheet:** Primary focal point is the template card grid (largest visual area, interactive). Sheet title ("Templates") at 32pt is secondary orientation anchor. "Start blank workout" button is lowest hierarchy, positioned at bottom as escape hatch.
+
+**Dashboard QuickStartSection:** Cards are secondary focal point below HeroReadinessCard. Section heading "Quick Start" at 17pt Medium provides label context.
 
 ---
 
