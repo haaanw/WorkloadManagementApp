@@ -15,6 +15,9 @@ struct WorkoutLogView: View {
     @State private var importRPESheet: WorkoutImportSuggestion?
     @State private var showMyPrograms = false
     @State private var showTextImport = false
+    @State private var selectedTemplateForPreview: WorkoutTemplate?
+    @State private var showTemplateEditor = false
+    @State private var editingTemplate: WorkoutTemplate?
 
     private var visibleSessions: [WorkoutSession] {
         let base = container.subscriptionService.isPro
@@ -47,106 +50,112 @@ struct WorkoutLogView: View {
 
     var body: some View {
         NavigationStack {
-            Group {
-                if sessions.isEmpty && importSuggestions.isEmpty {
-                    VStack(spacing: 16) {
-                        Text("No Workouts Yet")
-                            .font(.Tokens.sectionHead)
-                            .foregroundStyle(ColorTokens.text1)
-                        Text("Tap + to log your first workout session.")
-                            .font(.Tokens.label)
-                            .foregroundStyle(ColorTokens.text2)
-                    }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(ColorTokens.background)
-                } else {
+            VStack(spacing: 0) {
+                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                SessionTypeFilterBar(selectedType: $selectedSessionType)
+                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+
+                ScrollView {
                     VStack(spacing: 0) {
+                        // Template carousel
+                        TemplateCarouselSection(
+                            onEditTemplate: { template in
+                                editingTemplate = template
+                                showTemplateEditor = true
+                            },
+                            onPreviewTemplate: { template in
+                                selectedTemplateForPreview = template
+                            },
+                            onCreateTemplate: {
+                                editingTemplate = nil
+                                showTemplateEditor = true
+                            }
+                        )
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                        SessionTypeFilterBar(selectedType: $selectedSessionType)
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+
+                        // HealthKit import suggestions
+                        if !importSuggestions.isEmpty {
+                            WorkoutImportBanner(
+                                imports: importSuggestions,
+                                onAccept: { suggestion in
+                                    importRPESheet = suggestion
+                                },
+                                onDismiss: { suggestion in
+                                    WorkoutImportService.dismissSuggestion(suggestion)
+                                    withAnimation {
+                                        importSuggestions.removeAll { $0.id == suggestion.id }
+                                    }
+                                }
+                            )
+                            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                        }
+
+                        // Prescribed workouts
+                        if !upcomingPrescriptions.isEmpty {
+                            Text("PRESCRIBED")
+                                .font(.Tokens.micro)
+                                .tracking(1.2)
+                                .foregroundStyle(ColorTokens.text3)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, 16)
+                                .padding(.top, 12)
+                                .padding(.bottom, 8)
+
+                            ForEach(upcomingPrescriptions, id: \.id) { rx in
+                                PrescribedWorkoutCard(
+                                    prescription: rx,
+                                    onStart: {
+                                        activePrescription = rx
+                                        showActiveWorkout = true
+                                    },
+                                    onSkip: {
+                                        rx.markSkipped()
+                                        try? modelContext.save()
+                                        Task {
+                                            await container.syncService.pushPrescribedWorkout(rx)
+                                        }
+                                    }
+                                )
+                                .padding(.horizontal, 16)
+                                .padding(.bottom, 8)
+                            }
+
+                            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                        }
+
+                        // Session history
                         if visibleSessions.isEmpty && importSuggestions.isEmpty {
-                            VStack(spacing: 8) {
-                                Text("No \(selectedSessionType?.displayName ?? "matching") sessions yet.")
+                            VStack(spacing: 16) {
+                                Text("No Workouts Yet")
+                                    .font(.Tokens.sectionHead)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Text("Tap + to log your first workout session.")
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
                             }
-                            .frame(maxWidth: .infinity, maxHeight: .infinity)
-                            .background(ColorTokens.background)
+                            .padding(.vertical, 48)
+                            .frame(maxWidth: .infinity)
                         } else {
-                            ScrollView {
-                                VStack(spacing: 0) {
-                                    // HealthKit import suggestions
-                                    if !importSuggestions.isEmpty {
-                                        WorkoutImportBanner(
-                                            imports: importSuggestions,
-                                            onAccept: { suggestion in
-                                                importRPESheet = suggestion
-                                            },
-                                            onDismiss: { suggestion in
-                                                WorkoutImportService.dismissSuggestion(suggestion)
-                                                withAnimation {
-                                                    importSuggestions.removeAll { $0.id == suggestion.id }
-                                                }
-                                            }
-                                        )
-                                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                                    }
+                            ForEach(visibleSessions, id: \.id) { session in
+                                NavigationLink(value: session.id) {
+                                    SessionRow(session: session)
+                                }
+                                .buttonStyle(.plain)
 
-                                    // Prescribed workouts
-                                    if !upcomingPrescriptions.isEmpty {
-                                        Text("PRESCRIBED")
-                                            .font(.Tokens.micro)
-                                            .tracking(1.2)
-                                            .foregroundStyle(ColorTokens.text3)
-                                            .frame(maxWidth: .infinity, alignment: .leading)
-                                            .padding(.horizontal, 16)
-                                            .padding(.top, 12)
-                                            .padding(.bottom, 8)
+                                Rectangle()
+                                    .fill(ColorTokens.divider)
+                                    .frame(height: 0.5)
+                            }
 
-                                        ForEach(upcomingPrescriptions, id: \.id) { rx in
-                                            PrescribedWorkoutCard(
-                                                prescription: rx,
-                                                onStart: {
-                                                    activePrescription = rx
-                                                    showActiveWorkout = true
-                                                },
-                                                onSkip: {
-                                                    rx.markSkipped()
-                                                    try? modelContext.save()
-                                                    Task {
-                                                        await container.syncService.pushPrescribedWorkout(rx)
-                                                    }
-                                                }
-                                            )
-                                            .padding(.horizontal, 16)
-                                            .padding(.bottom, 8)
-                                        }
-
-                                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                                    }
-
-                                    ForEach(visibleSessions, id: \.id) { session in
-                                        NavigationLink(value: session.id) {
-                                            SessionRow(session: session)
-                                        }
-                                        .buttonStyle(.plain)
-
-                                        Rectangle()
-                                            .fill(ColorTokens.divider)
-                                            .frame(height: 0.5)
-                                    }
-
-                                    if lockedWeeks > 0 {
-                                        HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
-                                            showUpgrade = true
-                                        }
-                                    }
+                            if lockedWeeks > 0 {
+                                HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
+                                    showUpgrade = true
                                 }
                             }
-                            .background(ColorTokens.background)
                         }
                     }
                 }
+                .background(ColorTokens.background)
             }
             .navigationTitle("Workout Log")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
@@ -211,6 +220,26 @@ struct WorkoutLogView: View {
             .sheet(isPresented: $showTextImport) {
                 TextTemplateImportSheet()
                     .environment(container)
+            }
+            .sheet(item: $selectedTemplateForPreview) { template in
+                TemplatePreviewSheet(
+                    template: template,
+                    onEdit: {
+                        selectedTemplateForPreview = nil
+                        editingTemplate = template
+                        showTemplateEditor = true
+                    }
+                )
+                .environment(container)
+            }
+            .sheet(isPresented: $showTemplateEditor) {
+                if let athleteId = athletes.first?.id {
+                    TemplateEditorSheet(
+                        coachId: athleteId,
+                        existingTemplate: editingTemplate
+                    )
+                    .environment(container)
+                }
             }
             .task {
                 await loadImportSuggestions()
