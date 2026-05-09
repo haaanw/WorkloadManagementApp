@@ -20,6 +20,10 @@ struct ActiveWorkoutSheet: View {
     @State private var showPRCelebration = false
     @State private var spikeAlert: WorkloadCalculator.SpikeAlert?
     @State private var showSpikeAlert = false
+    @State private var saveAsTemplate = false
+    @State private var templateName = ""
+    @State private var showTemplateSavedToast = false
+    @State private var templateSaveError = false
 
     private var athlete: Athlete? { athletes.first }
 
@@ -130,11 +134,20 @@ struct ActiveWorkoutSheet: View {
                     entries.append(draft)
                 }
             }
-            .alert("Finish Workout", isPresented: $showFinishConfirmation) {
-                Button("Save") { saveSession() }
-                Button("Cancel", role: .cancel) { }
-            } message: {
-                Text("Rate your session RPE (1-10): \(Int(sessionRPE))")
+            .sheet(isPresented: $showFinishConfirmation) {
+                FinishWorkoutSheet(
+                    rpe: $sessionRPE,
+                    saveAsTemplate: $saveAsTemplate,
+                    templateName: $templateName,
+                    sessionName: sessionName.isEmpty ? sportType.displayName : sessionName,
+                    sportType: sportType,
+                    onFinish: {
+                        if saveAsTemplate {
+                            saveAsTemplateFromSession()
+                        }
+                        saveSession()
+                    }
+                )
             }
             .overlay {
                 if showPRCelebration {
@@ -157,6 +170,18 @@ struct ActiveWorkoutSheet: View {
                 }
             }
             .animation(.easeOut(duration: 0.25), value: showSpikeAlert)
+            .overlay(alignment: .bottom) {
+                if showTemplateSavedToast {
+                    ToastBanner(
+                        message: templateSaveError ? "Couldn't save template. Try again." : "Template saved",
+                        isError: templateSaveError,
+                        isPresented: $showTemplateSavedToast
+                    )
+                    .padding(.bottom, 16)
+                    .padding(.horizontal, 16)
+                }
+            }
+            .animation(.easeOut(duration: 0.25), value: showTemplateSavedToast)
             .onAppear { loadPrescription() }
         }
     }
@@ -412,6 +437,66 @@ struct ActiveWorkoutSheet: View {
         }
 
         dismiss()
+    }
+
+    // MARK: - Save as Template
+
+    private func saveAsTemplateFromSession() {
+        guard let athleteId = athlete?.id else { return }
+        let name = templateName.isEmpty ? (sessionName.isEmpty ? sportType.displayName : sessionName) : templateName
+
+        let template = WorkoutTemplate(
+            coachId: athleteId,
+            templateName: name,
+            sportType: sportType,
+            sessionType: sessionType
+        )
+        template.isAthleteOwned = true
+        template.athleteId = athleteId
+
+        // All exercises in one "Main" group per TMPL-02
+        let group = ExerciseGroup(groupName: "Main", orderIndex: 0)
+        for (idx, entry) in entries.enumerated() {
+            // Skip entries with no valid sets (per RESEARCH.md Pitfall 5)
+            let validSets = entry.sets.filter { s in
+                s.reps != nil || s.weightKg != nil || s.durationSeconds != nil || s.distanceMeters != nil
+            }
+            guard !validSets.isEmpty else { continue }
+
+            let exercise = TemplateExercise(
+                exerciseName: entry.exerciseName,
+                exerciseCategory: entry.exerciseCategory,
+                muscleGroup: entry.muscleGroup,
+                orderIndex: idx
+            )
+            for (sIdx, set) in validSets.enumerated() {
+                let targetSet = TemplateSet(
+                    setIndex: sIdx,
+                    targetReps: set.reps,
+                    targetWeightKg: set.weightKg,
+                    targetRPE: set.rpe,
+                    targetRIR: set.rir,
+                    isWarmup: set.isWarmup
+                )
+                exercise.sets.append(targetSet)
+            }
+            group.exercises.append(exercise)
+        }
+        template.groups.append(group)
+
+        modelContext.insert(template)
+        do {
+            try modelContext.save()
+            showTemplateSavedToast = true
+            templateSaveError = false
+            Task {
+                await container.syncService.pushWorkoutTemplates(context: modelContext, coachId: athleteId)
+            }
+        } catch {
+            print("Failed to save template: \(error)")
+            showTemplateSavedToast = true
+            templateSaveError = true
+        }
     }
 }
 

@@ -14,6 +14,8 @@ struct TemplateEditorSheet: View {
     @State private var sessionType: SessionType = .strength
     @State private var notes = ""
     @State private var groups: [GroupDraft] = [GroupDraft(groupName: "Main")]
+    @State private var scheduledDays: [Int] = []
+    @State private var isFavorite: Bool = false
     @State private var showExercisePicker = false
     @State private var activeGroupIndex: Int = 0
 
@@ -56,6 +58,49 @@ struct TemplateEditorSheet: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
                     .background(ColorTokens.surface)
+
+                    // Schedule picker
+                    Text("SCHEDULE")
+                        .font(.Tokens.micro)
+                        .tracking(1.2)
+                        .textCase(.uppercase)
+                        .foregroundStyle(ColorTokens.text3)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 16)
+
+                    HStack(spacing: 8) {
+                        ForEach(Array(zip([1, 2, 3, 4, 5, 6, 7], ["M", "T", "W", "T", "F", "S", "S"])), id: \.0) { value, label in
+                            Button {
+                                if scheduledDays.contains(value) {
+                                    scheduledDays.removeAll { $0 == value }
+                                } else {
+                                    scheduledDays.append(value)
+                                    scheduledDays.sort()
+                                }
+                            } label: {
+                                Text(label)
+                                    .font(.Tokens.label)
+                                    .foregroundStyle(scheduledDays.contains(value) ? ColorTokens.text1 : ColorTokens.text2)
+                                    .frame(width: 40, height: 40)
+                                    .background(scheduledDays.contains(value) ? ColorTokens.surface : ColorTokens.background)
+                                    .overlay(Rectangle().stroke(scheduledDays.contains(value) ? ColorTokens.text1 : ColorTokens.divider, lineWidth: 0.5))
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
+
+                    // Favorite toggle
+                    Toggle(isOn: $isFavorite) {
+                        Text("Favorite")
+                            .font(.Tokens.body)
+                            .foregroundStyle(ColorTokens.text1)
+                    }
+                    .tint(ColorTokens.zoneCaution)
+                    .padding(.horizontal, 16)
+                    .padding(.vertical, 8)
 
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -131,6 +176,8 @@ struct TemplateEditorSheet: View {
         sportType = t.sportType
         sessionType = t.sessionType
         notes = t.notes ?? ""
+        scheduledDays = t.scheduledDays
+        isFavorite = t.isFavorite
         groups = t.sortedGroups.map { group in
             var draft = GroupDraft(groupName: group.groupName)
             draft.exercises = group.sortedExercises.map { exercise in
@@ -176,6 +223,13 @@ struct TemplateEditorSheet: View {
                 notes: notes.isEmpty ? nil : notes
             )
             modelContext.insert(template)
+        }
+
+        template.scheduledDays = scheduledDays
+        template.isFavorite = isFavorite
+        if existingTemplate == nil || existingTemplate?.isAthleteOwned == true {
+            template.isAthleteOwned = true
+            template.athleteId = coachId
         }
 
         // Build groups from drafts
