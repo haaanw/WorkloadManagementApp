@@ -80,10 +80,10 @@ Plans:
   1. User can manually create a training template with named exercise groups (A/B/C/D), each containing exercises with target sets/reps/weight
   2. User can save a completed workout session as a new template with an editable confirmation step before saving
   3. User can edit, duplicate, archive, favorite/pin, and delete templates from a dedicated template management view
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] 11-01-PLAN.md — Template creation paths: editor enhancements (schedule picker, favorite toggle) and save-as-template from finished workouts
+- [x] 11-01-PLAN.md — Template creation paths: editor enhancements (schedule picker, favorite toggle) and save-as-template from finished workouts
 - [ ] 11-02-PLAN.md — Template carousel display, preview sheet, and management actions (context menu, swipe, CRUD)
 
 **UI hint**: yes
@@ -190,7 +190,7 @@ Plans:
 | 8. QA, Performance & Compliance | v1.1 | 0/0 | Complete | - |
 | 9. Foundation & Cold-Start Engine | v1.2 | 0/0 | Not started | - |
 | 10. Cold-Start Questionnaire | v1.2 | 3/3 | Complete | 2026-05-08 |
-| 11. Template Management & Creation | v1.2 | 0/2 | Planned | - |
+| 11. Template Management & Creation | v1.2 | 1/2 | In Progress|  |
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 0/0 | Not started | - |
 | 13. LLM Workout Import | v1.3 | 0/0 | Not started | - |
 | 14. Template Sharing | v1.3 | 0/0 | Not started | - |
