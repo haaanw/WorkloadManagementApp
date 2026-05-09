@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-05-09
+revised: 2026-05-09
 ---
 
 # Phase 11 — UI Design Contract
@@ -51,13 +52,12 @@ Source: DESIGN.md spacing table
 
 ## Typography
 
+Phase 11 uses 4 sizes from the project type scale. See DESIGN.md for the full project type scale (Hero score 56pt, Page title 28pt, etc.) which Phase 11 does not use.
+
 | Role | Size | Weight | Line Height | Font Token |
 |------|------|--------|-------------|------------|
-| Hero score | 64pt | 400 (Regular) | 1.0 | `.Tokens.heroScore` |
-| Page title | 32pt | 400 (Regular) | 1.2 | `.Tokens.pageTitle` |
 | Section head | 19pt | 500 (Medium) | 1.3 | `.Tokens.sectionHead` |
-| Body | 17pt | 400 (Regular) | 1.5 | `.Tokens.body` |
-| Body Medium | 17pt | 500 (Medium) | 1.5 | `.Tokens.bodyMedium` |
+| Body / Body Medium | 17pt | 400 (Regular) / 500 (Medium) | 1.5 | `.Tokens.body` / `.Tokens.bodyMedium` |
 | Label | 15pt | 400 (Regular) | 1.4 | `.Tokens.label` |
 | Micro | 12pt | 400 (Regular) | 1.3 | `.Tokens.micro` |
 
@@ -83,8 +83,8 @@ Source: DESIGN.md type scale, FontTokens.swift
 | Text secondary | `ColorTokens.text2` | #7C7972 | #696560 | Metadata (sets x reps), notes, secondary labels |
 | Text tertiary | `ColorTokens.text3` | #3A3835 | #AFABA5 | Micro labels, disabled states, placeholder text |
 | Accent | `ColorTokens.accent` | #A8A090 | #7A6E5C | Hero readiness score ONLY -- never on template UI |
-| Destructive | `ColorTokens.zoneDanger` | #9A5050 | #8B2E2E | Delete button text/icon in swipe actions and context menu |
-| Favorite | `ColorTokens.zoneCaution` | #9A8240 | #7A5F10 | Star icon fill when template is favorited |
+| Destructive | `ColorTokens.zoneDanger` | #7E5C5C | #6E3A3A | Delete button text/icon in swipe actions and context menu |
+| Favorite | `ColorTokens.zoneCaution` | #7E7252 | #6B5828 | Star icon fill when template is favorited |
 
 Accent reserved for: Hero readiness score number on Dashboard only. Template UI uses `text1` for primary interactive elements and `text2` for secondary actions.
 
@@ -127,7 +127,7 @@ Source: DESIGN.md color tables, ColorTokens.swift
 **Interactions:**
 - **Tap centered card:** Open template preview sheet (see Component 2)
 - **Tap non-centered card:** Scroll to center that card (with 250ms easeOut animation)
-- **Long-press any card:** iOS `.contextMenu` with: Edit, Duplicate, Favorite/Unfavorite, Archive, Delete
+- **Long-press any card:** iOS `.contextMenu` with: Edit Template, Duplicate, Favorite/Unfavorite, Archive, Delete
 - **Swipe left on centered card:** Reveal archive and delete action buttons (custom implementation since not a List row)
 - Carousel uses `.scrollTargetBehavior(.viewAligned)` for snap-to-center
 
@@ -176,7 +176,7 @@ Source: DESIGN.md color tables, ColorTokens.swift
 - Divider: 0.5pt
 - Save-as-template toggle row
 - Template name field (visible only when toggle is ON)
-- Action buttons: "Save" (primary, `ColorTokens.text1`), "Cancel" (secondary, `ColorTokens.text2`)
+- Action buttons: "Save" (primary, `ColorTokens.text1`), "Keep Editing" (secondary, `ColorTokens.text2`)
 
 ### 4. TemplateEditorSheet Modifications (existing component)
 
@@ -209,7 +209,7 @@ Long-press on any carousel card shows:
 
 | Action | SF Symbol | Label | Color |
 |--------|-----------|-------|-------|
-| Edit | `pencil` | "Edit" | `ColorTokens.text1` |
+| Edit | `pencil` | "Edit Template" | `ColorTokens.text1` |
 | Duplicate | `doc.on.doc` | "Duplicate" | `ColorTokens.text1` |
 | Favorite | `star.fill` / `star` | "Favorite" / "Unfavorite" | `ColorTokens.text1` |
 | Archive | `archivebox` | "Archive" | `ColorTokens.text1` |
@@ -219,14 +219,14 @@ Long-press on any carousel card shows:
 - `.alert` with title: "Delete Template?" in system alert style
 - Message: "This will permanently remove '[template name]'. This cannot be undone."
 - Destructive button: "Delete" (system destructive role)
-- Cancel button: "Cancel" (cancel role)
+- Cancel button: "Cancel" (cancel role -- system alert convention, not a custom CTA)
 
 ### 6. Swipe Actions (D-12)
 
 **Swipe left on centered carousel card reveals:**
-- Archive button: `archivebox` icon, `ColorTokens.text1` text on `ColorTokens.surface` background
-- Delete button: `trash` icon, `ColorTokens.zoneDanger` text on `ColorTokens.surface` background
-- Each button: 72pt wide
+- Archive button: `archivebox` icon + "Archive" text label, `ColorTokens.text1` on `ColorTokens.surface` background. VoiceOver accessibility label: "Archive template"
+- Delete button: `trash` icon + "Delete" text label, `ColorTokens.zoneDanger` on `ColorTokens.surface` background. VoiceOver accessibility label: "Delete template"
+- Each button: 72pt wide, icon above text, icon at 17pt, text in `.Tokens.micro` (12pt)
 - Swipe uses custom drag gesture (not `.swipeActions` -- carousel cards are not List rows)
 - 250ms easeOut animation for reveal/hide
 
@@ -238,6 +238,8 @@ Long-press on any carousel card shows:
 |---------|------|
 | Primary CTA | "Create Template" (new template card in carousel) |
 | Secondary CTA | "Save as Template" (toggle label in finish dialog) |
+| Finish dialog primary action | "Save" |
+| Finish dialog secondary action | "Keep Editing" (dismisses dialog without saving, returns to workout) |
 | Empty state heading | "No Templates Yet" |
 | Empty state body | "Create your first template to speed up workout logging." |
 | Empty state CTA | "Create Template" (button below body text) |
@@ -247,8 +249,10 @@ Long-press on any carousel card shows:
 | Delete confirmation title | "Delete Template?" |
 | Delete confirmation message | "This will permanently remove '[name]'. This cannot be undone." |
 | Delete confirmation action | "Delete" |
+| Delete confirmation cancel | "Cancel" (system alert convention) |
 | Archive context menu label | "Archive" |
 | Duplicate context menu label | "Duplicate" |
+| Edit context menu label | "Edit Template" |
 | Carousel section label | "MY TEMPLATES" |
 | Template preview edit button | "Edit Template" |
 | Schedule label | "SCHEDULE" |
@@ -256,6 +260,8 @@ Long-press on any carousel card shows:
 | No scheduled day state | Weekday initials all in `text3` (no explicit text needed) |
 | Template card exercise summary | "[N] exercises, [N] sets" |
 | Template card last used | "Last used [relative date]" |
+| Swipe archive button | "Archive" (icon + text label) |
+| Swipe delete button | "Delete" (icon + text label) |
 
 ---
 
@@ -379,6 +385,7 @@ This is a native iOS project using SwiftUI. No shadcn, no npm registries, no thi
 |-------------|---------------|
 | VoiceOver carousel navigation | Each card is an `AccessibilityElement` with label "[template name], [sport type], [N exercises]" |
 | VoiceOver favorite state | Card label includes "favorited" when `isFavorite=true` |
+| VoiceOver swipe actions | Archive button: accessibility label "Archive template". Delete button: accessibility label "Delete template". Both include icon + text label for sighted users. |
 | Context menu | `.contextMenu` is natively VoiceOver accessible |
 | Delete confirmation | `.alert` is natively VoiceOver accessible |
 | Dynamic Type | Font tokens use fixed sizes per DESIGN.md -- Dynamic Type not applied (existing project pattern) |
