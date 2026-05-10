@@ -24,12 +24,11 @@ struct ToastBanner: View {
         )
         .contentShape(Rectangle())
         .transition(.move(edge: .bottom).combined(with: .opacity))
-        .onAppear {
-            let delay: Double = isError ? 3.0 : 2.0
-            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                withAnimation(.easeIn(duration: 0.15)) {
-                    isPresented = false
-                }
+        .task {
+            let delay: Duration = isError ? .seconds(3) : .seconds(2)
+            try? await Task.sleep(for: delay)
+            withAnimation(.easeIn(duration: 0.15)) {
+                isPresented = false
             }
         }
     }
