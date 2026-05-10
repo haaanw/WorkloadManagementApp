@@ -2,12 +2,12 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: LLM Import, Sharing & Polish
-status: defining-requirements
+status: ready-to-plan
 stopped_at: ""
 last_updated: "2026-05-10"
 last_activity: 2026-05-10
 progress:
-  total_phases: 0
+  total_phases: 4
   completed_phases: 0
   total_plans: 0
   completed_plans: 0
@@ -21,14 +21,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10)
 
 **Core value:** Recovery + load tracked over time -- long-term insight into how the body responds to training
-**Current focus:** Defining requirements for v1.3
+**Current focus:** Phase 13: Design Polish (v1.3)
 
 ## Current Position
 
-Phase: Not started (defining requirements)
-Plan: —
-Status: Defining requirements
-Last activity: 2026-05-10 — Milestone v1.3 started
+Phase: 13 of 22 (Design Polish)
+Plan: 0 of 0 in current phase
+Status: Ready to plan
+Last activity: 2026-05-10 — v1.3 roadmap created (4 phases: 13-16)
+
+Progress: [████████████████░░░░░░░░░░░░░░] 55% (12/22 phases complete)
 
 ## Performance Metrics
 
@@ -55,10 +57,11 @@ Last activity: 2026-05-10 — Milestone v1.3 started
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.2]: Reuse coach template models for athletes -- WorkoutTemplate + ExerciseGroup already model the right structure
-- [v1.2]: Templates free, intelligence Pro-gated -- friction reduction for all users, smarts as upgrade path
-- [v1.3]: LLM import needs model research -- which provider, on-device vs cloud, cost structure
-- [v1.3]: Template sharing via link/code -- needs sharing format design (deep link vs code vs both)
+- [v1.3 Research]: Design polish ships first so all new v1.3 UI inherits correct font/borders
+- [v1.3 Research]: 30-day share link expiry, 8-char alphanumeric codes
+- [v1.3 Research]: All LLM calls via Supabase Edge Function proxy -- API key never in iOS binary
+- [v1.3 Research]: Apple Vision for OCR, PDFKit for PDF extraction -- zero new iOS dependencies
+- [v1.3 Research]: gpt-4o-mini with JSON Schema structured output for workout parsing
 
 ### Pending Todos
 
@@ -66,10 +69,9 @@ None yet.
 
 ### Blockers/Concerns
 
-- LLM model selection: on-device (Apple Intelligence) vs cloud (Claude/GPT) — cost, privacy, latency tradeoffs
-- SyncService pull-side `try?` hardening scope needs audit to identify all affected call sites
-- Alpino font licensing: verify FontShare free license covers App Store distribution
-- Template sharing format: deep link vs invite code vs both
+- Alpino PostScript name must be verified with Font Book before writing Font.custom() strings
+- AASA file hosting on tutrice.app domain needs verification for universal links (share codes are fallback)
+- OCR accuracy on handwritten content is unreliable -- scope Phase 16 as "printed/typed text only"
 
 ### Quick Tasks Completed
 
@@ -82,10 +84,13 @@ None yet.
 
 | Category | Item | Status | Deferred At |
 |----------|------|--------|-------------|
-| *(none)* | | | |
+| Template | TMPL-11: HealthKit workout auto-matching | Deferred | v1.2 close |
+| Template | TMPL-12: Template folders/organization | Deferred | v1.2 close |
+| Algorithm | COLD-08: Continuous perceptual bias calibration | Deferred | v1.2 close |
+| Algorithm | COLD-09: Injury-aware loading management | Deferred | v1.2 close |
 
 ## Session Continuity
 
 Last session: 2026-05-10
-Stopped at: Starting milestone v1.3
-Resume file: —
+Stopped at: v1.3 roadmap created (4 phases: 13-16), ready to plan Phase 13
+Resume file: None

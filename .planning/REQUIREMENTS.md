@@ -185,12 +185,29 @@ Requirements for LLM Import, Sharing & Polish milestone. Each maps to roadmap ph
 | TMPL-06 | Phase 12 | Pending |
 | TMPL-07 | Phase 12 | Pending |
 | TMPL-08 | Phase 12 | Pending |
+| DESGN-01 | Phase 13 | Pending |
+| DESGN-02 | Phase 13 | Pending |
+| SYNC-01 | Phase 14 | Pending |
+| SYNC-02 | Phase 14 | Pending |
+| SYNC-03 | Phase 14 | Pending |
+| SHARE-01 | Phase 15 | Pending |
+| SHARE-02 | Phase 15 | Pending |
+| SHARE-03 | Phase 15 | Pending |
+| SHARE-04 | Phase 15 | Pending |
+| SHARE-05 | Phase 15 | Pending |
+| LLM-01 | Phase 16 | Pending |
+| LLM-02 | Phase 16 | Pending |
+| LLM-03 | Phase 16 | Pending |
+| LLM-04 | Phase 16 | Pending |
+| LLM-05 | Phase 16 | Pending |
+| LLM-06 | Phase 16 | Pending |
 
 **Coverage:**
 - v1.1 requirements: 21 total, mapped: 21
 - v1.2 requirements: 19 total, mapped: 19
+- v1.3 requirements: 16 total, mapped: 16
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-05-10 -- v1.3 requirements added (16 requirements across 4 categories)*
+*Last updated: 2026-05-10 -- v1.3 requirements mapped to phases 13-16*
