@@ -1,44 +1,42 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Training Onboarding & Templates
-status: executing
-stopped_at: Phase 12 UI-SPEC approved
-last_updated: "2026-05-10T03:11:17.938Z"
+milestone: v1.3
+milestone_name: LLM Import, Sharing & Polish
+status: defining-requirements
+stopped_at: ""
+last_updated: "2026-05-10"
 last_activity: 2026-05-10
 progress:
-  total_phases: 4
-  completed_phases: 4
-  total_plans: 11
-  completed_plans: 11
-  percent: 100
+  total_phases: 0
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
+  percent: 0
 ---
 
 # Project State
 
 ## Project Reference
 
-See: .planning/PROJECT.md (updated 2026-05-01)
+See: .planning/PROJECT.md (updated 2026-05-10)
 
 **Core value:** Recovery + load tracked over time -- long-term insight into how the body responds to training
-**Current focus:** Phase 12 — template-driven-workouts-smart-suggestions
+**Current focus:** Defining requirements for v1.3
 
 ## Current Position
 
-Phase: 12
-Plan: Not started
-Status: Executing Phase 12
-Last activity: 2026-05-10
-
-Progress: [░░░░░░░░░░] 0%
+Phase: Not started (defining requirements)
+Plan: —
+Status: Defining requirements
+Last activity: 2026-05-10 — Milestone v1.3 started
 
 ## Performance Metrics
 
 **Velocity:**
 
-- Total plans completed: 31 (v1.0: 14, v1.1: 6+)
-- Average duration: carried from v1.1
-- Total execution time: carried from v1.1
+- Total plans completed: 42 (v1.0: 14, v1.1: 9+, v1.2: 11)
+- Average duration: carried from v1.2
+- Total execution time: carried from v1.2
 
 **By Phase:**
 
@@ -46,10 +44,7 @@ Progress: [░░░░░░░░░░] 0%
 |-------|-------|-------|----------|
 | v1.0 phases 1-4 | 14/14 | -- | -- |
 | v1.1 phases 5-8 | 9+ | -- | -- |
-| 09 | 3 | - | - |
-| 10 | 3 | - | - |
-| 11 | 2 | - | - |
-| 12 | 3 | - | - |
+| v1.2 phases 9-12 | 11/11 | -- | -- |
 
 *Updated after each plan completion*
 
@@ -60,12 +55,10 @@ Progress: [░░░░░░░░░░] 0%
 Decisions are logged in PROJECT.md Key Decisions table.
 Recent decisions affecting current work:
 
-- [v1.2]: Parallel data tracks for cold-start -- estimated ATL/CTL on TrainingProfile only, never WorkloadSnapshot
-- [v1.2]: Hybrid switchover threshold (3wk + 8 sessions) -- ATL needs 3 weeks to stabilize, 8 sessions for density
-- [v1.2]: Standalone TrainingProfile model -- keep Athlete model clean, preserve raw answers for bias analysis
 - [v1.2]: Reuse coach template models for athletes -- WorkoutTemplate + ExerciseGroup already model the right structure
 - [v1.2]: Templates free, intelligence Pro-gated -- friction reduction for all users, smarts as upgrade path
-- [v1.2]: Defer LLM import + sharing to v1.3 -- battle-test template model first
+- [v1.3]: LLM import needs model research -- which provider, on-device vs cloud, cost structure
+- [v1.3]: Template sharing via link/code -- needs sharing format design (deep link vs code vs both)
 
 ### Pending Todos
 
@@ -73,10 +66,10 @@ None yet.
 
 ### Blockers/Concerns
 
-- EWMA contamination prevention: estimated ATL/CTL must never touch WorkloadSnapshot
-- Supabase RLS must be updated BEFORE any template sync code (silent failure risk via try?)
-- SwiftData additive-only changes required (no field renames on existing models)
-- ProgressionEngine overlay UX design needs decision before Phase 12 (template baseline vs modifier visual layering)
+- LLM model selection: on-device (Apple Intelligence) vs cloud (Claude/GPT) — cost, privacy, latency tradeoffs
+- SyncService pull-side `try?` hardening scope needs audit to identify all affected call sites
+- Alpino font licensing: verify FontShare free license covers App Store distribution
+- Template sharing format: deep link vs invite code vs both
 
 ### Quick Tasks Completed
 
@@ -93,6 +86,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-09T15:58:17.694Z
-Stopped at: Phase 12 UI-SPEC approved
-Resume file: .planning/phases/12-template-driven-workouts-smart-suggestions/12-UI-SPEC.md
+Last session: 2026-05-10
+Stopped at: Starting milestone v1.3
+Resume file: —

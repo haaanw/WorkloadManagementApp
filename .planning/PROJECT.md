@@ -41,40 +41,41 @@ The combination of recovery and load tracked over time — giving athletes long-
 - ✓ Streak tracking for training consistency (consecutive week counting) — v1.1 Phase 5
 - ✓ Weekly local push notifications with training summary — v1.1 Phase 5
 - ✓ Notification pre-permission card and profile settings — v1.1 Phase 5
+- ✓ Cold-start questionnaire with ATL/CTL seeding — v1.2 Phase 10
+- ✓ Perceptual bias measurement (estimated vs actual at 8 weeks) — v1.2 Phase 10
+- ✓ TrainingProfile model with Supabase sync — v1.2 Phase 9
+- ✓ Athlete-owned training templates (reuse coach template models) — v1.2 Phase 9
+- ✓ Manual template creation with exercise group structure — v1.2 Phase 11
+- ✓ Save-as-template from completed sessions — v1.2 Phase 11
+- ✓ Template selection UX (dashboard cards + picker) — v1.2 Phase 12
+- ✓ HealthKit workout → template matching — v1.2 Phase 12
+- ✓ Schedule-aware template suggestions (TemplateSuggestionEngine) — v1.2 Phase 12
+- ✓ Dynamic template targets (last-used + ProgressionEngine overlay) — v1.2 Phase 12
+- ✓ Template management (edit, duplicate, archive, favorite, delete) — v1.2 Phase 11
 
 ### Active
 
-- ✓ Cold-start questionnaire with ATL/CTL seeding — v1.2 Phase 10
-- ✓ Perceptual bias measurement (estimated vs actual at 8 weeks) — v1.2 Phase 10
-- ✓ TrainingProfile model with Supabase sync — Phase 9
-- ✓ Athlete-owned training templates (reuse coach template models) — Phase 9
-- [ ] Manual template creation with exercise group structure
-- [ ] Save-as-template from completed sessions
-- [ ] Template selection UX (dashboard cards + picker)
-- [ ] HealthKit workout → template matching
-- [ ] Schedule-aware template suggestions (TemplateSuggestionEngine)
-- [ ] Dynamic template targets (last-used + ProgressionEngine overlay)
-- [ ] Template management (edit, duplicate, archive, favorite, delete)
+- [ ] LLM-powered workout import (PDF/image/text → templates)
+- [ ] Template sharing between users/coaches via link/code
+- [ ] Alpino font replacement (DM Sans → Alpino from FontShare)
+- [ ] SyncService pull-side `try?` hardening (silent failure fix)
+- [ ] Rounded border fix (`.roundedBorder` → 0pt corners per design system)
 - [ ] Cycle data foundation: CycleTrackingService reading HealthKit menstrual data from existing apps
 - [ ] Same-phase recovery baselines with confidence gating (measurement correction, not modifier)
 - [ ] Cycle context UI: dashboard phase indicator, recovery card explanations, fueling prompts
 - [ ] RED-S cycle irregularity monitoring with clinician-referral language
 - [ ] Shadow-mode cycle analytics validating prediction improvement before algorithmic modifiers
 
-## Current Milestone: v1.2 Training Onboarding & Templates
+## Current Milestone: v1.3 LLM Import, Sharing & Polish
 
-**Goal:** Bridge the cold-start data gap and streamline workout logging — new athletes get useful guidance from day one, and returning athletes log sessions in seconds via reusable templates.
+**Goal:** Enable AI-powered workout import from any format, let users share templates, rebrand typography to Alpino, and harden remaining tech debt from code review.
 
 **Target features:**
-- Cold-start questionnaire (4 required + 4 optional Qs) seeding initial ATL/CTL estimates
-- Perceptual bias capture: compare estimated vs actual load after 8 weeks (silent metric)
-- Training templates with exercise group structure (A/B/C/D) for athletes (reusing coach template models)
-- Manual template creation + save-from-session
-- Dashboard quick-start cards + template picker for frictionless logging
-- HealthKit workout detection → template matching
-- Schedule-aware day-of-week template suggestions (TemplateSuggestionEngine)
-- Dynamic template targets: auto-update to last-used + ProgressionEngine overlay (Pro)
-- Template management: edit, duplicate, archive, favorite, delete
+- LLM-powered workout import (PDF/image/text → templates)
+- Template sharing between users/coaches via link/code
+- Alpino font replacement (DM Sans → Alpino from FontShare)
+- SyncService pull-side `try?` hardening (silent failure fix)
+- Rounded border fix (`.roundedBorder` → 0pt corners per design system)
 
 ### Out of Scope
 
@@ -84,8 +85,8 @@ The combination of recovery and load tracked over time — giving athletes long-
 - Apple Watch companion app — defer until core iOS experience is polished
 - Manual mesocycle/ATP planner — TrainingPeaks owns this space; Tonus's value is automated detection
 - AI chatbot / conversational coach — LLM cost + liability; keep autoregulation rule-based
-- LLM-powered file/image workout import — deferred to v1.3, needs model research
-- Template sharing between users/coaches — deferred to v1.3, needs battle-tested template model first
+- LLM-powered file/image workout import — promoted to v1.3
+- Template sharing between users/coaches — promoted to v1.3
 - Perceptual bias continuous calibration — deferred, needs research on longitudinal sRPE adjustment
 - Injury-aware loading management — deferred, needs deep longitudinal data + dedicated research
 - Cycle-driven algorithmic modifiers (AutoregulationEngine, FatigueIndex, ProgressionEngine volume overrides) — deferred to v1.4 Wave 2 pending shadow-mode validation; ship context/baselines first
@@ -93,15 +94,16 @@ The combination of recovery and load tracked over time — giving athletes long-
 ## Context
 
 - v1.0 Post-Launch milestone complete (4 phases, 14 plans shipped 2026-04-22)
-- v1.1 App Store Launch milestone in progress (App Store submission pending review)
-- v1.2 Training Onboarding & Templates started 2026-05-01, Phase 9 (foundation) complete 2026-05-02, Phase 10 complete 2026-05-08
+- v1.1 App Store Launch milestone complete (4 phases shipped 2026-04-30)
+- v1.2 Training Onboarding & Templates complete (4 phases, 11 plans shipped 2026-05-10)
 - v1.4 Female Athlete Optimization planned — research complete (696 lines, 60+ sources), Claude-Codex adversarial review completed, 4 phases scoped
 - Evidence-based fatigue tracking system shipped (FatigueIndexEngine, 6 components, replaces ACWR as primary risk signal)
 - Coach template system exists: WorkoutTemplate → ExerciseGroup → TemplateExercise → TemplateSet
 - HealthKit workout import exists: WorkoutImportBanner + WorkoutImportService (pull-based, no background delivery)
 - ProgressionEngine exists for recovery-aware overload suggestions (Pro-gated)
 - HealthKit provides raw biometric data; app computes composite scores locally (never uploads raw HealthKit data)
-- Design system enforced: 0pt border radius, no shadows, DM Sans font, accent only on readiness score
+- Template model battle-tested across v1.2 (WorkoutTemplate → ExerciseGroup → TemplateExercise → TemplateSet)
+- Design system enforced: 0pt border radius, no shadows, DM Sans font (switching to Alpino in v1.3), accent only on readiness score
 
 ## Constraints
 
@@ -130,7 +132,7 @@ The combination of recovery and load tracked over time — giving athletes long-
 | Reuse coach template models for athletes | WorkoutTemplate + ExerciseGroup already model the right structure | ✓ Good — Phase 9 |
 | Templates free, intelligence Pro-gated | Friction reduction for all users, smarts as upgrade path | Pending |
 | Dynamic targets: last-used + ProgressionEngine | Template evolves with athlete, recovery-aware suggestions overlay | Pending |
-| Defer LLM import + sharing to v1.3 | Battle-test template model first, LLM needs model research | Pending |
+| Defer LLM import + sharing to v1.3 | Battle-test template model first, LLM needs model research | ✓ Good — template model validated in v1.2, now building v1.3 |
 | CycleContext over CycleModifier for v1.4 Wave 1 | Codex adversarial review: phase modifiers double-count since luteal effects already flow through HRV/RHR/sleep; ship context + corrected baselines first | Pending |
 | Same-phase baseline is measurement correction, not modifier | Claude-Codex consensus after Round 2: 7-day rolling baseline is male-normative bias for cycling women; same-phase comparison removes predictable variance | Pending |
 | Zero-friction cycle data via HealthKit | Read existing data from Clue/Flo/Apple Cycle Tracking — never ask user to re-enter; reduces adoption friction | Pending |
@@ -154,4 +156,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-01 — Milestone v1.2 Training Onboarding & Templates started*
+*Last updated: 2026-05-10 — Milestone v1.3 LLM Import, Sharing & Polish started*
