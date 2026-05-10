@@ -32,9 +32,7 @@ struct TemplateEditorSheet: View {
                     // Header fields
                     VStack(spacing: 16) {
                         TextField("Template Name", text: $templateName)
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text1)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(SharpTextFieldStyle())
 
                         Picker("Sport", selection: $sportType) {
                             ForEach(SportType.allCases) { sport in
@@ -53,7 +51,7 @@ struct TemplateEditorSheet: View {
                         TextField("Notes (optional)", text: $notes, axis: .vertical)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(SharpTextFieldStyle())
                             .lineLimit(2...4)
                     }
                     .padding(.horizontal, 16)
@@ -436,35 +434,35 @@ struct TargetSetRow: View {
             case .weightReps:
                 TextField("kg", value: $set.targetWeightKg, format: .number)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(SharpTextFieldStyle())
                     .frame(maxWidth: .infinity)
 
                 TextField("reps", value: $set.targetReps, format: .number)
                     .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(SharpTextFieldStyle())
                     .frame(maxWidth: .infinity)
 
             case .repsOnly:
                 TextField("reps", value: $set.targetReps, format: .number)
                     .keyboardType(.numberPad)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(SharpTextFieldStyle())
                     .frame(maxWidth: .infinity)
 
             case .distanceDuration:
                 TextField("meters", value: $set.targetDistanceMeters, format: .number)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(SharpTextFieldStyle())
                     .frame(maxWidth: .infinity)
 
                 TextField("min", value: $set.targetDurationMinutes, format: .number)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(SharpTextFieldStyle())
                     .frame(maxWidth: .infinity)
 
             case .durationOnly:
                 TextField("min", value: $set.targetDurationMinutes, format: .number)
                     .keyboardType(.decimalPad)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(SharpTextFieldStyle())
                     .frame(maxWidth: .infinity)
             }
         }

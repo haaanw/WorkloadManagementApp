@@ -45,9 +45,7 @@ struct ActiveWorkoutSheet: View {
                     // Session info
                     VStack(spacing: 16) {
                         TextField("Session Name (optional)", text: $sessionName)
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text1)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(SharpTextFieldStyle())
 
                         Picker("Sport Type", selection: $sportType) {
                             ForEach(SportType.allCases) { sport in
@@ -856,55 +854,55 @@ struct SetEntryRow: View {
                 case .weightReps:
                     TextField(weightPlaceholder, value: $set.weightKg, format: .number)
                         .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(maxWidth: .infinity)
 
                     TextField(repsPlaceholder, value: $set.reps, format: .number)
                         .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(maxWidth: .infinity)
 
                     TextField(rpePlaceholder, value: $set.rpe, format: .number)
                         .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(width: 48)
 
                 case .repsOnly:
                     TextField(repsPlaceholder, value: $set.reps, format: .number)
                         .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(maxWidth: .infinity)
 
                     TextField(rpePlaceholder, value: $set.rpe, format: .number)
                         .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(width: 48)
 
                 case .distanceDuration:
                     TextField("m", value: $set.distanceMeters, format: .number)
                         .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(maxWidth: .infinity)
 
                     TextField("sec", value: $set.durationSeconds, format: .number)
                         .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(maxWidth: .infinity)
 
                     TextField(rpePlaceholder, value: $set.rpe, format: .number)
                         .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(width: 48)
 
                 case .durationOnly:
                     TextField("min", value: $set.durationSeconds, format: .number)
                         .keyboardType(.numberPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(maxWidth: .infinity)
 
                     TextField(rpePlaceholder, value: $set.rpe, format: .number)
                         .keyboardType(.decimalPad)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .frame(width: 48)
                 }
             }

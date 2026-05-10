@@ -135,9 +135,7 @@ struct MorningCheckInSheet: View {
                     // Notes field
                     TextField("Notes (optional)", text: $notes, axis: .vertical)
                         .lineLimit(3...6)
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
 

@@ -93,6 +93,7 @@
 		62F32D6D64E26B3830FD00B6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 62F32DF65C7F3C5307D700B6 /* Assets.xcassets */; };
 		62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */; };
 		62F32D7DC317C2EF8C0400B6 /* SpikeAlertBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */; };
+		DD1303010000000000000001 /* SharpTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1303010000000000000002 /* SharpTextFieldStyle.swift */; };
 		7B421978B0C35067216FEBE5 /* InviteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06ABB878A70046BADB172CF6 /* InviteService.swift */; };
 		967C08594573E46A4E6C03AC /* CoachRosterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE6662043B66D8EF333D9 /* CoachRosterViewModel.swift */; };
 		A44B7F1B2647EC7086EE54B9 /* CoachRelationshipModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2B9F3391AC5FE598FD31F7 /* CoachRelationshipModelTests.swift */; };
@@ -243,6 +244,7 @@
 		62F32CB82F71849300B6135F /* SleepDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailView.swift; sourceTree = "<group>"; };
 		62F32CC02F72716500B6135F /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeAlertBanner.swift; sourceTree = "<group>"; };
+		DD1303010000000000000002 /* SharpTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpTextFieldStyle.swift; sourceTree = "<group>"; };
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		62F32DF65C7F3C5307D700B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialLoginButtons.swift; sourceTree = "<group>"; };
@@ -377,6 +379,7 @@
 				62324BE42F66CB0E00A9C2BE /* HRVTrendChart.swift */,
 				62324BE52F66CB0E00A9C2BE /* MetricTile.swift */,
 				62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */,
+				DD1303010000000000000002 /* SharpTextFieldStyle.swift */,
 				62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */,
 				1101010100000000000000B2 /* ToastBanner.swift */,
 				FF0801010000000000000002 /* FatigueAttentionBanner.swift */,
@@ -851,6 +854,7 @@
 				DD0403010000000000000001 /* WelcomeActionCard.swift in Sources */,
 				EE0502010000000000000001 /* NotificationPrePermissionCard.swift in Sources */,
 				62F32D7DC317C2EF8C0400B6 /* SpikeAlertBanner.swift in Sources */,
+				DD1303010000000000000001 /* SharpTextFieldStyle.swift in Sources */,
 				1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */,
 				1101010100000000000000B1 /* ToastBanner.swift in Sources */,
 				1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */,
