@@ -222,6 +222,38 @@ struct ProfileView: View {
                             .padding(.vertical, 16)
                         sectionDivider()
 
+                        // Data Sync
+                        sectionHeader("DATA SYNC")
+                        NavigationLink {
+                            SyncStatusView()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 14))
+                                    .foregroundStyle(ColorTokens.text2)
+                                    .frame(width: 24)
+                                Text("Sync Status")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                if SyncTimestampStore.shared.hasAnyFailure {
+                                    Text("Issues")
+                                        .font(.Tokens.label)
+                                        .foregroundStyle(ColorTokens.zoneCaution)
+                                } else {
+                                    Text("All data synced")
+                                        .font(.Tokens.label)
+                                        .foregroundStyle(ColorTokens.text2)
+                                }
+                                Image(systemName: "chevron.right")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(ColorTokens.text3)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+                        }
+                        sectionDivider()
+
                         // Coach
                         sectionHeader("COACH")
                         if !athlete.isCoach {
