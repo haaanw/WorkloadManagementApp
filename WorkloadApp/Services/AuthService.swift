@@ -79,7 +79,7 @@ final class AuthService {
     func signInWithGoogle() async throws {
         _ = try await client.auth.signInWithOAuth(
             provider: .google,
-            redirectTo: URL(string: "com.tonus.app://login-callback")
+            redirectTo: URL(string: "com.faros.app://login-callback")
         ) { (session: ASWebAuthenticationSession) in
             session.prefersEphemeralWebBrowserSession = false
         }
