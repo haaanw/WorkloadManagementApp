@@ -19,7 +19,6 @@ struct DashboardView: View {
     @State private var showWellnessCheckIn = false
     @State private var showTrainingProfile = false
     @State private var viewModel = DashboardViewModel()
-    @State private var showQuickStartWorkout = false
     @State private var quickStartTemplate: WorkoutTemplate?
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
 
@@ -44,7 +43,6 @@ struct DashboardView: View {
                     QuickStartSection(
                         onSelectTemplate: { template in
                             quickStartTemplate = template
-                            showQuickStartWorkout = true
                         }
                     )
 
@@ -170,11 +168,9 @@ struct DashboardView: View {
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet()
             }
-            .sheet(isPresented: $showQuickStartWorkout) {
-                if let template = quickStartTemplate {
-                    ActiveWorkoutSheet(template: template)
-                        .environment(container)
-                }
+            .sheet(item: $quickStartTemplate) { template in
+                ActiveWorkoutSheet(template: template)
+                    .environment(container)
             }
             .sheet(isPresented: $showWellnessCheckIn) {
                 MorningCheckInSheet()
