@@ -25,8 +25,8 @@
 	<string>586655911402-aac4g06mefj65vv8j55pa8jdsgqnrofs.apps.googleusercontent.com</string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>DMSans-Regular.ttf</string>
-		<string>DMSans-Medium.ttf</string>
+		<string>Alpino-Regular.otf</string>
+		<string>Alpino-Medium.otf</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

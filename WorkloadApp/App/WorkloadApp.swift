@@ -9,12 +9,12 @@ struct WorkloadApp: App {
     init() {
         #if DEBUG
         assert(
-            UIFont(name: "DMSans-Regular", size: 15) != nil,
-            "DMSans-Regular font not found. Add DMSans-Regular.ttf to the project and UIAppFonts in Info.plist."
+            UIFont(name: "Alpino-Regular", size: 15) != nil,
+            "Alpino-Regular font not found. Add Alpino-Regular.otf to the project and UIAppFonts in Info.plist."
         )
         assert(
-            UIFont(name: "DMSans-Medium", size: 15) != nil,
-            "DMSans-Medium font not found. Add DMSans-Medium.ttf to the project and UIAppFonts in Info.plist."
+            UIFont(name: "Alpino-Medium", size: 15) != nil,
+            "Alpino-Medium font not found. Add Alpino-Medium.otf to the project and UIAppFonts in Info.plist."
         )
         #endif
 
