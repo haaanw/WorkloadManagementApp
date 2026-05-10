@@ -4,7 +4,7 @@ milestone: v1.2
 milestone_name: Training Onboarding & Templates
 status: executing
 stopped_at: Phase 12 UI-SPEC approved
-last_updated: "2026-05-10T01:59:33.959Z"
+last_updated: "2026-05-10T03:11:17.938Z"
 last_activity: 2026-05-10
 progress:
   total_phases: 4

@@ -1,5 +1,18 @@
 # Milestones
 
+## v1.2 Training Onboarding & Templates (Shipped: 2026-05-10)
+
+**Phases completed:** 4 phases, 11 plans, 15 tasks
+
+**Key accomplishments:**
+
+- 1. [Rule 3 - Blocking] Copied gitignored config files for build verification
+- Commit:
+- Commit:
+- Commit:
+
+---
+
 ## v1.0 Post-Launch (Shipped: 2026-04-22)
 
 **Phases completed:** 4 phases, 14 plans
