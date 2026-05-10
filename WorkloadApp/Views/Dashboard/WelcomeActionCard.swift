@@ -16,7 +16,7 @@ struct WelcomeActionCard: View {
                 .padding(.top, 16)
                 .padding(.bottom, 8)
 
-            Text("Welcome to Tutrice")
+            Text("Welcome to Tuwa")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
                 .padding(.horizontal, 16)

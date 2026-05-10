@@ -142,7 +142,7 @@ struct ProfileView: View {
 
                         // System denied warning
                         if notificationsDenied {
-                            Text("Notifications are disabled in Settings. Go to Settings > Tutrice to enable them.")
+                            Text("Notifications are disabled in Settings. Go to Settings > Tuwa to enable them.")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text3)
                                 .padding(.horizontal, 16)
@@ -775,7 +775,7 @@ struct HealthKitPermissionsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                Text("Tutrice reads data from HealthKit to calculate your recovery score and TRIMP. We never write data to HealthKit.")
+                Text("Tuwa reads data from HealthKit to calculate your recovery score and TRIMP. We never write data to HealthKit.")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(.horizontal, 16)
