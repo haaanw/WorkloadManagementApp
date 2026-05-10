@@ -9,7 +9,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>com.faros.app</string>
+				<string>com.farosapp.ios</string>
 			</array>
 		</dict>
 		<dict>
