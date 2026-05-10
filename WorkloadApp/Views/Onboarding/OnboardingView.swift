@@ -148,7 +148,7 @@ struct OnboardingView: View {
         VStack(alignment: .leading, spacing: 0) {
             stepHeader(
                 title: "Connect Health Data",
-                subtitle: "Faros uses your HRV, resting heart rate, and sleep data to calculate your daily recovery score."
+                subtitle: "Tutrice uses your HRV, resting heart rate, and sleep data to calculate your daily recovery score."
             )
 
             VStack(spacing: 24) {

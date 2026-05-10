@@ -333,7 +333,7 @@ enum SubscriptionTier: String, CaseIterable {
     var subtitle: String {
         switch self {
         case .athletePro:
-            return "Unlock the full power of Faros to push your training forward with data-driven precision."
+            return "Unlock the full power of Tutrice to push your training forward with data-driven precision."
         case .coach:
             return "Manage your roster, prescribe workouts, and monitor every athlete's load and recovery in real time."
         }

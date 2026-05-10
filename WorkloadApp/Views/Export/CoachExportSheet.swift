@@ -251,7 +251,7 @@ struct CoachExportSheet: View {
                 )
 
                 let tempURL = FileManager.default.temporaryDirectory
-                    .appendingPathComponent("Faros_Roster_\(dateString).pdf")
+                    .appendingPathComponent("Tutrice_Roster_\(dateString).pdf")
                 try pdfData.write(to: tempURL)
                 exportFileURL = tempURL
                 showShareSheet = true
