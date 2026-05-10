@@ -51,14 +51,14 @@ struct RecoveryPipeline {
         let staleness = HealthKitStaleness(lastHRVDate: hrvDate, lastSleepDate: sleepDate, lastRHRDate: rhrDate)
 
         // 2. Fetch 7-day history for baselines
-        let recoveryHistory = try recoveryRepo.fetchRecoveryHistory(days: 7)
+        let recoveryHistory = try recoveryRepo.fetchRecoveryHistory(days: 7, athlete: athlete)
         let hrvValues = recoveryHistory.compactMap(\.hrvSDNN)
         let rhrValues = recoveryHistory.compactMap(\.restingHR)
         let hrvBaseline = RecoveryScoreEngine.computeBaseline(values: hrvValues)
         let rhrBaseline = RecoveryScoreEngine.computeBaseline(values: rhrValues)
 
         // 3. Fetch today's wellness check-in
-        let todayCheckIn = try recoveryRepo.fetchTodayWellnessCheckIn()
+        let todayCheckIn = try recoveryRepo.fetchTodayWellnessCheckIn(athlete: athlete)
         let wellnessScore = todayCheckIn?.wellnessScore
 
         // 4. Compute recovery score (with trend from recent history)
@@ -85,17 +85,9 @@ struct RecoveryPipeline {
             vo2Max: vo2Max,
             recoveryScore: result.score,
             hrvBaseline: hrvBaseline,
-            restingHRBaseline: rhrBaseline
+            restingHRBaseline: rhrBaseline,
+            athlete: athlete
         )
-
-        // 6. Link snapshot to athlete
-        let today = Calendar.current.startOfDay(for: .now)
-        let predicate = #Predicate<RecoverySnapshot> { $0.date == today }
-        let descriptor = FetchDescriptor<RecoverySnapshot>(predicate: predicate)
-        if let snapshot = try modelContext.fetch(descriptor).first {
-            snapshot.athlete = athlete
-            try modelContext.save()
-        }
 
         if let syncService {
             let athleteId = athlete.id

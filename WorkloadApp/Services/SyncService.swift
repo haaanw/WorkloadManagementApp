@@ -26,7 +26,7 @@ struct SyncService {
         await pushWorkoutSessions(context: context, athleteId: athlete.id)
         await pushBehaviorTags(context: context, athleteId: athlete.id)
         await pushWorkoutTemplates(context: context, coachId: athlete.id)
-        await pushPrescribedWorkouts(context: context)
+        await pushPrescribedWorkouts(context: context, ownerId: athlete.id)
         await pushTrainingProfile(context: context, athleteId: athlete.id)
         UserDefaults.standard.set(Date(), forKey: "lastSyncedAt")
     }
@@ -49,9 +49,19 @@ struct SyncService {
 
     /// Push only WorkloadSnapshot records (called after WorkoutPipeline).
     func pushWorkloadSnapshots(context: ModelContext, athleteId: UUID) async {
-        guard let snapshots = try? context.fetch(FetchDescriptor<WorkloadSnapshot>()) else { return }
+        let snapshots: [WorkloadSnapshot]
+        do {
+            snapshots = try context.fetch(FetchDescriptor<WorkloadSnapshot>())
+                .filter { $0.athlete?.id == athleteId }
+        } catch {
+            logFailure("fetch workload snapshots", error)
+            return
+        }
+        guard !snapshots.isEmpty else { return }
         let rows = snapshots.map { WorkloadSnapshotRow(from: $0, athleteId: athleteId) }
-        _ = try? await client.from("workload_snapshots").upsert(rows).execute()
+        await run("push workload snapshots") {
+            _ = try await client.from("workload_snapshots").upsert(rows).execute()
+        }
     }
 
     /// Push only RecoverySnapshot + WellnessCheckIn (called after RecoveryPipeline).
@@ -64,6 +74,18 @@ struct SyncService {
     var shouldForegroundSync: Bool {
         guard let last = UserDefaults.standard.object(forKey: "lastSyncedAt") as? Date else { return true }
         return Date().timeIntervalSince(last) > 15 * 60
+    }
+
+    private func logFailure(_ operation: String, _ error: Error) {
+        print("SyncService \(operation) error: \(error)")
+    }
+
+    private func run(_ operation: String, _ action: () async throws -> Void) async {
+        do {
+            try await action()
+        } catch {
+            logFailure(operation, error)
+        }
     }
 
     // MARK: - Athlete push/pull
@@ -146,27 +168,67 @@ struct SyncService {
     // MARK: - Push helpers
 
     private func pushRecoverySnapshots(context: ModelContext, athleteId: UUID) async {
-        guard let snapshots = try? context.fetch(FetchDescriptor<RecoverySnapshot>()) else { return }
+        let snapshots: [RecoverySnapshot]
+        do {
+            snapshots = try context.fetch(FetchDescriptor<RecoverySnapshot>())
+                .filter { $0.athlete?.id == athleteId }
+        } catch {
+            logFailure("fetch recovery snapshots", error)
+            return
+        }
+        guard !snapshots.isEmpty else { return }
         let rows = snapshots.map { RecoverySnapshotRow(from: $0, athleteId: athleteId) }
-        _ = try? await client.from("recovery_snapshots").upsert(rows).execute()
+        await run("push recovery snapshots") {
+            _ = try await client.from("recovery_snapshots").upsert(rows).execute()
+        }
     }
 
     private func pushWellnessCheckIns(context: ModelContext, athleteId: UUID) async {
-        guard let checkIns = try? context.fetch(FetchDescriptor<WellnessCheckIn>()) else { return }
+        let checkIns: [WellnessCheckIn]
+        do {
+            checkIns = try context.fetch(FetchDescriptor<WellnessCheckIn>())
+                .filter { $0.athlete?.id == athleteId }
+        } catch {
+            logFailure("fetch wellness check-ins", error)
+            return
+        }
+        guard !checkIns.isEmpty else { return }
         let rows = checkIns.map { WellnessCheckInRow(from: $0, athleteId: athleteId) }
-        _ = try? await client.from("wellness_check_ins").upsert(rows).execute()
+        await run("push wellness check-ins") {
+            _ = try await client.from("wellness_check_ins").upsert(rows).execute()
+        }
     }
 
     private func pushPersonalRecords(context: ModelContext, athleteId: UUID) async {
-        guard let prs = try? context.fetch(FetchDescriptor<PersonalRecord>()) else { return }
+        let prs: [PersonalRecord]
+        do {
+            prs = try context.fetch(FetchDescriptor<PersonalRecord>())
+                .filter { $0.athlete?.id == athleteId }
+        } catch {
+            logFailure("fetch personal records", error)
+            return
+        }
+        guard !prs.isEmpty else { return }
         let rows = prs.map { PersonalRecordRow(from: $0, athleteId: athleteId) }
-        _ = try? await client.from("personal_records").upsert(rows).execute()
+        await run("push personal records") {
+            _ = try await client.from("personal_records").upsert(rows).execute()
+        }
     }
 
     private func pushWorkoutSessions(context: ModelContext, athleteId: UUID) async {
-        guard let sessions = try? context.fetch(FetchDescriptor<WorkoutSession>()) else { return }
+        let sessions: [WorkoutSession]
+        do {
+            sessions = try context.fetch(FetchDescriptor<WorkoutSession>())
+                .filter { $0.athlete?.id == athleteId }
+        } catch {
+            logFailure("fetch workout sessions", error)
+            return
+        }
+        guard !sessions.isEmpty else { return }
         let rows = sessions.map { WorkoutSessionRow(from: $0, athleteId: athleteId) }
-        _ = try? await client.from("workout_sessions").upsert(rows).execute()
+        await run("push workout sessions") {
+            _ = try await client.from("workout_sessions").upsert(rows).execute()
+        }
     }
 
     // MARK: - Pull helpers
@@ -298,9 +360,19 @@ struct SyncService {
     // MARK: - BehaviorTag push/pull
 
     private func pushBehaviorTags(context: ModelContext, athleteId: UUID) async {
-        guard let tags = try? context.fetch(FetchDescriptor<BehaviorTag>()) else { return }
+        let tags: [BehaviorTag]
+        do {
+            tags = try context.fetch(FetchDescriptor<BehaviorTag>())
+                .filter { $0.athlete?.id == athleteId }
+        } catch {
+            logFailure("fetch behavior tags", error)
+            return
+        }
+        guard !tags.isEmpty else { return }
         let rows = tags.map { BehaviorTagRow(from: $0, athleteId: athleteId) }
-        _ = try? await client.from("behavior_tags").upsert(rows).execute()
+        await run("push behavior tags") {
+            _ = try await client.from("behavior_tags").upsert(rows).execute()
+        }
     }
 
     private func pullBehaviorTags(context: ModelContext, athlete: Athlete) async {
@@ -685,11 +757,20 @@ struct WorkoutSessionRow: Codable {
     // MARK: - Template push/pull
 
     func pushWorkoutTemplates(context: ModelContext, coachId: UUID) async {
-        guard let templates = try? context.fetch(
-            FetchDescriptor<WorkoutTemplate>(predicate: #Predicate { $0.coachId == coachId })
-        ) else { return }
+        let templates: [WorkoutTemplate]
+        do {
+            templates = try context.fetch(
+                FetchDescriptor<WorkoutTemplate>(predicate: #Predicate { $0.coachId == coachId })
+            )
+        } catch {
+            logFailure("fetch workout templates", error)
+            return
+        }
+        guard !templates.isEmpty else { return }
         let rows = templates.map { WorkoutTemplateRow(from: $0) }
-        _ = try? await client.from("workout_templates").upsert(rows).execute()
+        await run("push workout templates") {
+            _ = try await client.from("workout_templates").upsert(rows).execute()
+        }
     }
 
     private func pullWorkoutTemplates(context: ModelContext, coachId: UUID) async {
@@ -740,9 +821,18 @@ struct WorkoutSessionRow: Codable {
 
     func pushTrainingProfile(context: ModelContext, athleteId: UUID) async {
         let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }
-        guard let profile = try? context.fetch(FetchDescriptor(predicate: predicate)).first else { return }
+        let profile: TrainingProfile?
+        do {
+            profile = try context.fetch(FetchDescriptor(predicate: predicate)).first
+        } catch {
+            logFailure("fetch training profile", error)
+            return
+        }
+        guard let profile else { return }
         let row = TrainingProfileRow(from: profile)
-        _ = try? await client.from("training_profiles").upsert(row).execute()
+        await run("push training profile") {
+            _ = try await client.from("training_profiles").upsert(row).execute()
+        }
     }
 
     private func pullTrainingProfile(context: ModelContext, athleteId: UUID) async {
@@ -809,15 +899,31 @@ struct WorkoutSessionRow: Codable {
 
     // MARK: - Prescription push/pull
 
-    func pushPrescribedWorkouts(context: ModelContext) async {
-        guard let prescriptions = try? context.fetch(FetchDescriptor<PrescribedWorkout>()) else { return }
+    func pushPrescribedWorkouts(context: ModelContext, ownerId: UUID? = nil) async {
+        let prescriptions: [PrescribedWorkout]
+        do {
+            let fetched = try context.fetch(FetchDescriptor<PrescribedWorkout>())
+            if let ownerId {
+                prescriptions = fetched.filter { $0.athleteId == ownerId || $0.coachId == ownerId }
+            } else {
+                prescriptions = fetched
+            }
+        } catch {
+            logFailure("fetch prescribed workouts", error)
+            return
+        }
+        guard !prescriptions.isEmpty else { return }
         let rows = prescriptions.map { PrescribedWorkoutRow(from: $0) }
-        _ = try? await client.from("prescribed_workouts").upsert(rows).execute()
+        await run("push prescribed workouts") {
+            _ = try await client.from("prescribed_workouts").upsert(rows).execute()
+        }
     }
 
     func pushPrescribedWorkout(_ prescription: PrescribedWorkout) async {
         let row = PrescribedWorkoutRow(from: prescription)
-        _ = try? await client.from("prescribed_workouts").upsert(row).execute()
+        await run("push prescribed workout") {
+            _ = try await client.from("prescribed_workouts").upsert(row).execute()
+        }
     }
 
     private func pullPrescribedWorkouts(context: ModelContext, athleteId: UUID) async {

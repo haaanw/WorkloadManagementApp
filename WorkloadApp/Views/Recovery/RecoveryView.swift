@@ -14,12 +14,22 @@ struct RecoveryView: View {
 
     private var athlete: Athlete? { athletes.first }
 
+    private var scopedRecoverySnapshots: [RecoverySnapshot] {
+        guard let athleteId = athlete?.id else { return [] }
+        return recoverySnapshots.filter { $0.athlete?.id == athleteId }
+    }
+
+    private var scopedWellnessCheckIns: [WellnessCheckIn] {
+        guard let athleteId = athlete?.id else { return [] }
+        return wellnessCheckIns.filter { $0.athlete?.id == athleteId }
+    }
+
     private var todayCheckIn: WellnessCheckIn? {
-        wellnessCheckIns.first { Calendar.current.isDateInToday($0.date) }
+        scopedWellnessCheckIns.first { Calendar.current.isDateInToday($0.date) }
     }
 
     private var todayRecovery: RecoverySnapshot? {
-        recoverySnapshots.first { Calendar.current.isDateInToday($0.date) }
+        scopedRecoverySnapshots.first { Calendar.current.isDateInToday($0.date) }
     }
 
     var body: some View {
@@ -49,16 +59,16 @@ struct RecoveryView: View {
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
 
-                    SleepTrendChart(recoverySnapshots: Array(recoverySnapshots.prefix(28).reversed()))
+                    SleepTrendChart(recoverySnapshots: Array(scopedRecoverySnapshots.prefix(28).reversed()))
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
 
-                    if !wellnessCheckIns.isEmpty {
+                    if !scopedWellnessCheckIns.isEmpty {
                         Rectangle()
                             .fill(ColorTokens.divider)
                             .frame(height: 0.5)
 
-                        WellnessHistorySection(checkIns: Array(wellnessCheckIns.prefix(7)))
+                        WellnessHistorySection(checkIns: Array(scopedWellnessCheckIns.prefix(7)))
                     }
 
                     // INSIGHTS section (INTEL-05, D-07)

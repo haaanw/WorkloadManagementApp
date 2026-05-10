@@ -28,7 +28,7 @@ final class RecoveryViewModel {
         let recoveryRepo = RecoveryRepository(modelContext: modelContext)
 
         // Fetch 28-day recovery history
-        recoveryHistory = (try? recoveryRepo.fetchRecoveryHistory(days: 28)) ?? []
+        recoveryHistory = (try? recoveryRepo.fetchRecoveryHistory(days: 28, athlete: athlete)) ?? []
 
         // Fetch HRV history from HealthKit
         if healthKitService.isAuthorized {
@@ -48,9 +48,9 @@ final class RecoveryViewModel {
         let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: .now)!
         let workloadRepo = WorkloadRepository(modelContext: modelContext)
         let workoutRepo = WorkoutRepository(modelContext: modelContext)
-        let workloadSnapshots = (try? workloadRepo.fetchSnapshots(from: ninetyDaysAgo, to: .now)) ?? []
-        let sessions = (try? workoutRepo.fetchSessions(from: ninetyDaysAgo, to: .now)) ?? []
-        let recoverySnaps = (try? recoveryRepo.fetchSnapshots(from: ninetyDaysAgo, to: .now)) ?? []
+        let workloadSnapshots = (try? workloadRepo.fetchSnapshots(from: ninetyDaysAgo, to: .now, athlete: athlete)) ?? []
+        let sessions = (try? workoutRepo.fetchSessions(from: ninetyDaysAgo, to: .now, athlete: athlete)) ?? []
+        let recoverySnaps = (try? recoveryRepo.fetchSnapshots(from: ninetyDaysAgo, to: .now, athlete: athlete)) ?? []
 
         fatigueInsights = FatiguePatternEngine.detectPatterns(
             workloadSnapshots: workloadSnapshots,
@@ -60,7 +60,7 @@ final class RecoveryViewModel {
 
         // Behavior correlation (INTEL-07)
         let behaviorTagRepo = BehaviorTagRepository(modelContext: modelContext)
-        let allTags = (try? behaviorTagRepo.fetchAllTags(days: 90)) ?? []
+        let allTags = (try? behaviorTagRepo.fetchAllTags(days: 90, athlete: athlete)) ?? []
         if !allTags.isEmpty {
             behaviorCorrelations = BehaviorCorrelationEngine.computeCorrelations(
                 tags: allTags,

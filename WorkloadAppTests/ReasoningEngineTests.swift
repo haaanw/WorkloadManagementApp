@@ -6,11 +6,15 @@ final class ReasoningEngineTests: XCTestCase {
     private func makeResult(hrv: Double? = nil, sleep: Double? = nil) -> RecoveryScoreEngine.RecoveryResult {
         RecoveryScoreEngine.RecoveryResult(
             score: 70,
+            baseScore: 70,
             zone: .green,
             hrvContribution: hrv,
             rhrContribution: nil,
             sleepContribution: sleep,
-            wellnessContribution: nil
+            wellnessContribution: nil,
+            trendSlope3Day: nil,
+            trendSlope7Day: nil,
+            trendModifier: 0
         )
     }
 
@@ -246,5 +250,37 @@ final class ReasoningEngineTests: XCTestCase {
         )
         let factors = ReasoningEngine.summarize(input: input)
         XCTAssertTrue(factors.isEmpty)
+    }
+}
+
+final class FatigueIndexEngineTests: XCTestCase {
+
+    func test_baselineSessionsPer14Days_usesFullObservedSpan() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let sessions = makeSessions(daysAgo: [80, 70, 60, 50, 40, 30, 20, 10], from: now)
+
+        let baseline = FatigueIndexEngine.baselineSessionsPer14Days(sessions: sessions, asOf: now)
+
+        XCTAssertEqual(baseline ?? 0, 8.0 / 81.0 * 14.0, accuracy: 0.0001)
+    }
+
+    func test_baselineSessionsPer14Days_usesMinimumFourteenDayWindow() {
+        let now = Date(timeIntervalSince1970: 1_700_000_000)
+        let sessions = makeSessions(daysAgo: [2, 1, 0], from: now)
+
+        let baseline = FatigueIndexEngine.baselineSessionsPer14Days(sessions: sessions, asOf: now)
+
+        XCTAssertEqual(baseline ?? 0, 3.0, accuracy: 0.0001)
+    }
+
+    func test_baselineSessionsPer14Days_emptyHistory() {
+        XCTAssertNil(FatigueIndexEngine.baselineSessionsPer14Days(sessions: []))
+    }
+
+    private func makeSessions(daysAgo: [Int], from now: Date) -> [WorkoutSession] {
+        daysAgo.map { daysAgo in
+            let date = Calendar.current.date(byAdding: .day, value: -daysAgo, to: now)!
+            return WorkoutSession(sessionDate: date)
+        }
     }
 }

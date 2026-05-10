@@ -198,17 +198,28 @@ struct LoginView: View {
         errorMessage = nil
         do {
             try await container.authService.signInWithApple(credential: credential)
-            // Same bootstrap as email sign-in
             let localAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
             if localAthletes?.isEmpty != false {
                 guard let userId = await container.authService.currentUserId() else {
                     throw AuthBootstrapError.noUserId
                 }
-                let athlete = await container.syncService.bootstrapAthlete(
+                let existingAthlete = await container.syncService.bootstrapAthlete(
                     context: modelContext, userId: userId
                 )
-                if athlete == nil {
-                    throw AuthBootstrapError.athleteNotFound
+                if existingAthlete == nil {
+                    // New user via Apple — create Athlete profile
+                    let name = [credential.fullName?.givenName, credential.fullName?.familyName]
+                        .compactMap { $0 }
+                        .joined(separator: " ")
+                    let athlete = Athlete(
+                        id: userId,
+                        displayName: name.isEmpty ? "Athlete" : name,
+                        sportType: .custom,
+                        supabaseUserId: userId
+                    )
+                    modelContext.insert(athlete)
+                    try modelContext.save()
+                    await container.syncService.pushAthlete(athlete)
                 }
             }
             await container.syncService.pullAll(context: modelContext)
@@ -230,11 +241,20 @@ struct LoginView: View {
                 guard let userId = await container.authService.currentUserId() else {
                     throw AuthBootstrapError.noUserId
                 }
-                let athlete = await container.syncService.bootstrapAthlete(
+                let existingAthlete = await container.syncService.bootstrapAthlete(
                     context: modelContext, userId: userId
                 )
-                if athlete == nil {
-                    throw AuthBootstrapError.athleteNotFound
+                if existingAthlete == nil {
+                    // New user via Google — create Athlete profile
+                    let athlete = Athlete(
+                        id: userId,
+                        displayName: "Athlete",
+                        sportType: .custom,
+                        supabaseUserId: userId
+                    )
+                    modelContext.insert(athlete)
+                    try modelContext.save()
+                    await container.syncService.pushAthlete(athlete)
                 }
             }
             await container.syncService.pullAll(context: modelContext)

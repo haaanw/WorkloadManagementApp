@@ -162,6 +162,24 @@ struct FatigueIndexEngine {
         )
     }
 
+    /// Estimate the athlete's normal 14-day session density from the available history.
+    /// Sessions must already be scoped to a single athlete.
+    static func baselineSessionsPer14Days(
+        sessions: [WorkoutSession],
+        asOf now: Date = .now,
+        maxHistoryDays: Int = 90
+    ) -> Double? {
+        guard let earliestSessionDate = sessions.map(\.sessionDate).min() else { return nil }
+
+        let calendar = Calendar.current
+        let start = calendar.startOfDay(for: earliestSessionDate)
+        let end = calendar.startOfDay(for: now)
+        let observedDays = (calendar.dateComponents([.day], from: start, to: end).day ?? 0) + 1
+        let days = min(maxHistoryDays, max(14, observedDays))
+
+        return Double(sessions.count) / Double(days) * 14.0
+    }
+
     // MARK: - Component Scoring (each returns 0-1, higher = more fatigued)
 
     /// Load elevation: how much recent load exceeds personal baseline.

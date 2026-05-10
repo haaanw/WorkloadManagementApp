@@ -9,25 +9,58 @@ final class BehaviorTagRepository {
         self.modelContext = modelContext
     }
 
-    func fetchTagsForDate(_ date: Date) throws -> [BehaviorTag] {
+    func fetchTagsForDate(_ date: Date, athlete: Athlete? = nil) throws -> [BehaviorTag] {
         let start = Calendar.current.startOfDay(for: date)
         let end = Calendar.current.date(byAdding: .day, value: 1, to: start)!
-        let predicate = #Predicate<BehaviorTag> { $0.date >= start && $0.date < end }
-        let descriptor = FetchDescriptor<BehaviorTag>(predicate: predicate, sortBy: [SortDescriptor(\.tagName)])
+        let descriptor: FetchDescriptor<BehaviorTag>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<BehaviorTag>(
+                predicate: #Predicate { $0.date >= start && $0.date < end && $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.tagName)]
+            )
+        } else {
+            descriptor = FetchDescriptor<BehaviorTag>(
+                predicate: #Predicate { $0.date >= start && $0.date < end },
+                sortBy: [SortDescriptor(\.tagName)]
+            )
+        }
         return try modelContext.fetch(descriptor)
     }
 
-    func fetchAllTags(days: Int = 90) throws -> [BehaviorTag] {
+    func fetchAllTags(days: Int = 90, athlete: Athlete? = nil) throws -> [BehaviorTag] {
         let start = Calendar.current.date(byAdding: .day, value: -days, to: .now)!
-        let predicate = #Predicate<BehaviorTag> { $0.date >= start }
-        let descriptor = FetchDescriptor<BehaviorTag>(predicate: predicate, sortBy: [SortDescriptor(\.date)])
+        let descriptor: FetchDescriptor<BehaviorTag>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<BehaviorTag>(
+                predicate: #Predicate { $0.date >= start && $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.date)]
+            )
+        } else {
+            descriptor = FetchDescriptor<BehaviorTag>(
+                predicate: #Predicate { $0.date >= start },
+                sortBy: [SortDescriptor(\.date)]
+            )
+        }
         return try modelContext.fetch(descriptor)
     }
 
-    func fetchActiveTags(days: Int = 90) throws -> [BehaviorTag] {
+    func fetchActiveTags(days: Int = 90, athlete: Athlete? = nil) throws -> [BehaviorTag] {
         let start = Calendar.current.date(byAdding: .day, value: -days, to: .now)!
-        let predicate = #Predicate<BehaviorTag> { $0.date >= start && $0.isActive }
-        let descriptor = FetchDescriptor<BehaviorTag>(predicate: predicate, sortBy: [SortDescriptor(\.date)])
+        let descriptor: FetchDescriptor<BehaviorTag>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<BehaviorTag>(
+                predicate: #Predicate { $0.date >= start && $0.isActive && $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.date)]
+            )
+        } else {
+            descriptor = FetchDescriptor<BehaviorTag>(
+                predicate: #Predicate { $0.date >= start && $0.isActive },
+                sortBy: [SortDescriptor(\.date)]
+            )
+        }
         return try modelContext.fetch(descriptor)
     }
 

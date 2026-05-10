@@ -141,21 +141,24 @@ struct PDFGenerationSheet: View {
         Task {
             do {
                 let workoutRepo = WorkoutRepository(modelContext: modelContext)
-                let sessions = try workoutRepo.fetchSessions(last: selectedRange.days)
+                let sessions = try workoutRepo.fetchSessions(last: selectedRange.days, athlete: athlete)
 
                 let workloadRepo = WorkloadRepository(modelContext: modelContext)
-                let workloadSnapshots = try workloadRepo.fetchSnapshots(last: selectedRange.days)
+                let workloadSnapshots = try workloadRepo.fetchSnapshots(last: selectedRange.days, athlete: athlete)
 
                 let recoveryRepo = RecoveryRepository(modelContext: modelContext)
-                let recoverySnapshots = try recoveryRepo.fetchRecoveryHistory(days: selectedRange.days)
+                let recoverySnapshots = try recoveryRepo.fetchRecoveryHistory(days: selectedRange.days, athlete: athlete)
 
                 let cutoff = Calendar.current.date(
                     byAdding: .day,
                     value: -selectedRange.days,
                     to: .now
                 ) ?? .now
+                let athleteId = athlete.id
                 var prDescriptor = FetchDescriptor<PersonalRecord>(
-                    predicate: #Predicate<PersonalRecord> { $0.achievedAt >= cutoff }
+                    predicate: #Predicate<PersonalRecord> {
+                        $0.achievedAt >= cutoff && $0.athlete?.id == athleteId
+                    }
                 )
                 prDescriptor.sortBy = [SortDescriptor(\.achievedAt, order: .reverse)]
                 let personalRecords = (try? modelContext.fetch(prDescriptor)) ?? []

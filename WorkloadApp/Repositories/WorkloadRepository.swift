@@ -10,10 +10,24 @@ final class WorkloadRepository {
     }
 
     /// Upsert today's workload snapshot
-    func upsertSnapshot(_ result: WorkloadCalculator.WorkloadResult, weeklyVolume: Double, loadSource: LoadSource) throws {
+    func upsertSnapshot(
+        _ result: WorkloadCalculator.WorkloadResult,
+        weeklyVolume: Double,
+        loadSource: LoadSource,
+        athlete: Athlete? = nil
+    ) throws {
         let today = Calendar.current.startOfDay(for: .now)
-        let predicate = #Predicate<WorkloadSnapshot> { $0.snapshotDate == today }
-        let descriptor = FetchDescriptor<WorkloadSnapshot>(predicate: predicate)
+        let descriptor: FetchDescriptor<WorkloadSnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<WorkloadSnapshot>(
+                predicate: #Predicate { $0.snapshotDate == today && $0.athlete?.id == athleteId }
+            )
+        } else {
+            descriptor = FetchDescriptor<WorkloadSnapshot>(
+                predicate: #Predicate { $0.snapshotDate == today }
+            )
+        }
 
         if let existing = try modelContext.fetch(descriptor).first {
             existing.acuteLoad = result.atl
@@ -22,6 +36,7 @@ final class WorkloadRepository {
             existing.tsb = result.tsb
             existing.weeklyVolume = weeklyVolume
             existing.loadSource = loadSource
+            existing.athlete = athlete ?? existing.athlete
             existing.updatedAt = .now
         } else {
             let snapshot = WorkloadSnapshot(
@@ -33,35 +48,63 @@ final class WorkloadRepository {
                 weeklyVolume: weeklyVolume,
                 loadSource: loadSource
             )
+            snapshot.athlete = athlete
             modelContext.insert(snapshot)
         }
         try modelContext.save()
     }
 
-    func fetchSnapshots(last days: Int) throws -> [WorkloadSnapshot] {
+    func fetchSnapshots(last days: Int, athlete: Athlete? = nil) throws -> [WorkloadSnapshot] {
         let startDate = Calendar.current.date(byAdding: .day, value: -days, to: .now)!
-        let predicate = #Predicate<WorkloadSnapshot> { $0.snapshotDate >= startDate }
-        let descriptor = FetchDescriptor<WorkloadSnapshot>(
-            predicate: predicate,
-            sortBy: [SortDescriptor(\.snapshotDate)]
-        )
+        let descriptor: FetchDescriptor<WorkloadSnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<WorkloadSnapshot>(
+                predicate: #Predicate { $0.snapshotDate >= startDate && $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.snapshotDate)]
+            )
+        } else {
+            descriptor = FetchDescriptor<WorkloadSnapshot>(
+                predicate: #Predicate { $0.snapshotDate >= startDate },
+                sortBy: [SortDescriptor(\.snapshotDate)]
+            )
+        }
         return try modelContext.fetch(descriptor)
     }
 
     /// Fetch workload snapshots within a date range (for weekly summary computation).
-    func fetchSnapshots(from startDate: Date, to endDate: Date) throws -> [WorkloadSnapshot] {
-        let predicate = #Predicate<WorkloadSnapshot> { $0.snapshotDate >= startDate && $0.snapshotDate < endDate }
-        let descriptor = FetchDescriptor<WorkloadSnapshot>(
-            predicate: predicate,
-            sortBy: [SortDescriptor(\.snapshotDate)]
-        )
+    func fetchSnapshots(from startDate: Date, to endDate: Date, athlete: Athlete? = nil) throws -> [WorkloadSnapshot] {
+        let descriptor: FetchDescriptor<WorkloadSnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<WorkloadSnapshot>(
+                predicate: #Predicate {
+                    $0.snapshotDate >= startDate && $0.snapshotDate < endDate && $0.athlete?.id == athleteId
+                },
+                sortBy: [SortDescriptor(\.snapshotDate)]
+            )
+        } else {
+            descriptor = FetchDescriptor<WorkloadSnapshot>(
+                predicate: #Predicate { $0.snapshotDate >= startDate && $0.snapshotDate < endDate },
+                sortBy: [SortDescriptor(\.snapshotDate)]
+            )
+        }
         return try modelContext.fetch(descriptor)
     }
 
-    func fetchLatestSnapshot() throws -> WorkloadSnapshot? {
-        let descriptor = FetchDescriptor<WorkloadSnapshot>(
-            sortBy: [SortDescriptor(\.snapshotDate, order: .reverse)]
-        )
+    func fetchLatestSnapshot(athlete: Athlete? = nil) throws -> WorkloadSnapshot? {
+        let descriptor: FetchDescriptor<WorkloadSnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<WorkloadSnapshot>(
+                predicate: #Predicate { $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.snapshotDate, order: .reverse)]
+            )
+        } else {
+            descriptor = FetchDescriptor<WorkloadSnapshot>(
+                sortBy: [SortDescriptor(\.snapshotDate, order: .reverse)]
+            )
+        }
         return try modelContext.fetch(descriptor).first
     }
 }

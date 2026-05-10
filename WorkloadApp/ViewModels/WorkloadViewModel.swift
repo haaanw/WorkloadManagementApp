@@ -28,17 +28,17 @@ final class WorkloadViewModel {
     var correlationRecoverySnapshots: [RecoverySnapshot] = []
     var isLoading = true
 
-    func loadTrendData(modelContext: ModelContext) {
+    func loadTrendData(modelContext: ModelContext, athlete: Athlete) {
         isLoading = true
         let workloadRepo = WorkloadRepository(modelContext: modelContext)
         let recoveryRepo = RecoveryRepository(modelContext: modelContext)
 
         // Trend data filtered by selected range
-        trendSnapshots = (try? workloadRepo.fetchSnapshots(last: selectedRange.days)) ?? []
+        trendSnapshots = (try? workloadRepo.fetchSnapshots(last: selectedRange.days, athlete: athlete)) ?? []
 
         // Correlation data always 28 days
-        correlationLoadSnapshots = (try? workloadRepo.fetchSnapshots(last: 28)) ?? []
-        correlationRecoverySnapshots = (try? recoveryRepo.fetchRecoveryHistory(days: 28)) ?? []
+        correlationLoadSnapshots = (try? workloadRepo.fetchSnapshots(last: 28, athlete: athlete)) ?? []
+        correlationRecoverySnapshots = (try? recoveryRepo.fetchRecoveryHistory(days: 28, athlete: athlete)) ?? []
 
         isLoading = false
     }

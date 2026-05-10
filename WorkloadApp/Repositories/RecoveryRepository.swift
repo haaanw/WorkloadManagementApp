@@ -20,11 +20,21 @@ final class RecoveryRepository {
         recoveryScore: Double,
         hrvBaseline: Double? = nil,
         restingHRBaseline: Double? = nil,
-        dataSource: RecoveryDataSource = .healthKit
+        dataSource: RecoveryDataSource = .healthKit,
+        athlete: Athlete? = nil
     ) throws {
         let today = Calendar.current.startOfDay(for: .now)
-        let predicate = #Predicate<RecoverySnapshot> { $0.date == today }
-        let descriptor = FetchDescriptor<RecoverySnapshot>(predicate: predicate)
+        let descriptor: FetchDescriptor<RecoverySnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date == today && $0.athlete?.id == athleteId }
+            )
+        } else {
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date == today }
+            )
+        }
 
         if let existing = try modelContext.fetch(descriptor).first {
             existing.hrvSDNN = hrvSDNN ?? existing.hrvSDNN
@@ -36,6 +46,7 @@ final class RecoveryRepository {
             existing.recoveryScore = recoveryScore
             existing.hrvBaseline = hrvBaseline ?? existing.hrvBaseline
             existing.restingHRBaseline = restingHRBaseline ?? existing.restingHRBaseline
+            existing.athlete = athlete ?? existing.athlete
             existing.updatedAt = .now
         } else {
             let snapshot = RecoverySnapshot(
@@ -51,45 +62,98 @@ final class RecoveryRepository {
                 restingHRBaseline: restingHRBaseline,
                 dataSource: dataSource
             )
+            snapshot.athlete = athlete
             modelContext.insert(snapshot)
         }
         try modelContext.save()
     }
 
     /// Fetch today's recovery snapshot if it exists.
-    func fetchTodaySnapshot() throws -> RecoverySnapshot? {
+    func fetchTodaySnapshot(athlete: Athlete? = nil) throws -> RecoverySnapshot? {
         let today = Calendar.current.startOfDay(for: .now)
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
-        let predicate = #Predicate<RecoverySnapshot> { $0.date >= today && $0.date < tomorrow }
-        let descriptor = FetchDescriptor<RecoverySnapshot>(predicate: predicate)
+        let descriptor: FetchDescriptor<RecoverySnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow && $0.athlete?.id == athleteId }
+            )
+        } else {
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow }
+            )
+        }
         return try modelContext.fetch(descriptor).first
     }
 
-    func fetchRecoveryHistory(days: Int) throws -> [RecoverySnapshot] {
+    func fetchRecoveryHistory(days: Int, athlete: Athlete? = nil) throws -> [RecoverySnapshot] {
         let startDate = Calendar.current.date(byAdding: .day, value: -days, to: .now)!
-        let predicate = #Predicate<RecoverySnapshot> { $0.date >= startDate }
-        let descriptor = FetchDescriptor<RecoverySnapshot>(
-            predicate: predicate,
-            sortBy: [SortDescriptor(\.date)]
-        )
+        let descriptor: FetchDescriptor<RecoverySnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date >= startDate && $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.date)]
+            )
+        } else {
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date >= startDate },
+                sortBy: [SortDescriptor(\.date)]
+            )
+        }
         return try modelContext.fetch(descriptor)
     }
 
     /// Fetch recovery snapshots within a date range (for weekly summary computation).
-    func fetchSnapshots(from startDate: Date, to endDate: Date) throws -> [RecoverySnapshot] {
-        let predicate = #Predicate<RecoverySnapshot> { $0.date >= startDate && $0.date < endDate }
-        let descriptor = FetchDescriptor<RecoverySnapshot>(
-            predicate: predicate,
-            sortBy: [SortDescriptor(\.date)]
-        )
+    func fetchSnapshots(from startDate: Date, to endDate: Date, athlete: Athlete? = nil) throws -> [RecoverySnapshot] {
+        let descriptor: FetchDescriptor<RecoverySnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate {
+                    $0.date >= startDate && $0.date < endDate && $0.athlete?.id == athleteId
+                },
+                sortBy: [SortDescriptor(\.date)]
+            )
+        } else {
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date >= startDate && $0.date < endDate },
+                sortBy: [SortDescriptor(\.date)]
+            )
+        }
         return try modelContext.fetch(descriptor)
     }
 
-    func fetchTodayWellnessCheckIn() throws -> WellnessCheckIn? {
+    func fetchLatestSnapshot(athlete: Athlete? = nil) throws -> RecoverySnapshot? {
+        let descriptor: FetchDescriptor<RecoverySnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.date, order: .reverse)]
+            )
+        } else {
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                sortBy: [SortDescriptor(\.date, order: .reverse)]
+            )
+        }
+        return try modelContext.fetch(descriptor).first
+    }
+
+    func fetchTodayWellnessCheckIn(athlete: Athlete? = nil) throws -> WellnessCheckIn? {
         let today = Calendar.current.startOfDay(for: .now)
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
-        let predicate = #Predicate<WellnessCheckIn> { $0.date >= today && $0.date < tomorrow }
-        let descriptor = FetchDescriptor<WellnessCheckIn>(predicate: predicate)
+        let descriptor: FetchDescriptor<WellnessCheckIn>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<WellnessCheckIn>(
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow && $0.athlete?.id == athleteId }
+            )
+        } else {
+            descriptor = FetchDescriptor<WellnessCheckIn>(
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow }
+            )
+        }
         return try modelContext.fetch(descriptor).first
     }
 }

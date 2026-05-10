@@ -92,16 +92,13 @@ final class DashboardViewModel {
         // Fetch today's recovery snapshot for raw values and baselines
         let recoveryRepo = RecoveryRepository(modelContext: modelContext)
         let todaySnapshot: RecoverySnapshot? = {
-            if let today = try? recoveryRepo.fetchTodaySnapshot() { return today }
+            if let today = try? recoveryRepo.fetchTodaySnapshot(athlete: athlete) { return today }
             // Fallback: latest snapshot (for mock data or missed days)
-            let desc = FetchDescriptor<RecoverySnapshot>(
-                sortBy: [SortDescriptor(\RecoverySnapshot.date, order: .reverse)]
-            )
-            return try? modelContext.fetch(desc).first
+            return try? recoveryRepo.fetchLatestSnapshot(athlete: athlete)
         }()
 
         // Fetch trend history for detail views
-        recentSnapshots = (try? recoveryRepo.fetchRecoveryHistory(days: 28)) ?? []
+        recentSnapshots = (try? recoveryRepo.fetchRecoveryHistory(days: 28, athlete: athlete)) ?? []
         if isScreenshotMode {
             // SCREENSHOT_MODE: HealthKit unauthorized — derive HRV trend from seeded snapshots
             hrv28Days = recentSnapshots.compactMap { snap in
@@ -142,7 +139,7 @@ final class DashboardViewModel {
         // Fetch latest workload snapshot
         let workloadRepo = WorkloadRepository(modelContext: modelContext)
         var latestWorkloadSnapshot: WorkloadSnapshot?
-        if let snapshot = try? workloadRepo.fetchLatestSnapshot() {
+        if let snapshot = try? workloadRepo.fetchLatestSnapshot(athlete: athlete) {
             acwr = snapshot.acwr
             acwrZone = snapshot.zone
             tsb = snapshot.tsb
@@ -168,8 +165,8 @@ final class DashboardViewModel {
 
         // Periodization detection (INTEL-01, INTEL-02, INTEL-03)
         let workoutRepo = WorkoutRepository(modelContext: modelContext)
-        let allSessions = (try? workoutRepo.fetchSessions(last: 90)) ?? []
-        let allWorkloadSnapshots = (try? workloadRepo.fetchSnapshots(last: 90)) ?? []
+        let allSessions = (try? workoutRepo.fetchSessions(last: 90, athlete: athlete)) ?? []
+        let allWorkloadSnapshots = (try? workloadRepo.fetchSnapshots(last: 90, athlete: athlete)) ?? []
         let sufficiency = PeriodizationEngine.checkSufficiency(sessions: allSessions)
         periodizationSufficiency = sufficiency
         if sufficiency.isSufficient {
@@ -186,11 +183,11 @@ final class DashboardViewModel {
         let weekStart = Calendar.current.date(byAdding: .day, value: -7, to: now)!
         let prevWeekStart = Calendar.current.date(byAdding: .day, value: -14, to: now)!
 
-        let currentWeekSessions = (try? workoutRepo.fetchSessions(from: weekStart, to: now)) ?? []
-        let previousWeekSessions = (try? workoutRepo.fetchSessions(from: prevWeekStart, to: weekStart)) ?? []
-        let currentRecovery = (try? recoveryRepo.fetchSnapshots(from: weekStart, to: now)) ?? []
-        let previousRecovery = (try? recoveryRepo.fetchSnapshots(from: prevWeekStart, to: weekStart)) ?? []
-        let currentWorkload = (try? workloadRepo.fetchSnapshots(from: weekStart, to: now)) ?? []
+        let currentWeekSessions = (try? workoutRepo.fetchSessions(from: weekStart, to: now, athlete: athlete)) ?? []
+        let previousWeekSessions = (try? workoutRepo.fetchSessions(from: prevWeekStart, to: weekStart, athlete: athlete)) ?? []
+        let currentRecovery = (try? recoveryRepo.fetchSnapshots(from: weekStart, to: now, athlete: athlete)) ?? []
+        let previousRecovery = (try? recoveryRepo.fetchSnapshots(from: prevWeekStart, to: weekStart, athlete: athlete)) ?? []
+        let currentWorkload = (try? workloadRepo.fetchSnapshots(from: weekStart, to: now, athlete: athlete)) ?? []
 
         weeklySummary = AnalyticsEngine.computeWeeklySummary(
             currentWeekSessions: currentWeekSessions,
@@ -201,28 +198,23 @@ final class DashboardViewModel {
         )
 
         // Streak computation (STRK-01) — uses all sessions up to 1 year for streak history
-        let streakSessions = (try? workoutRepo.fetchSessions(last: 365)) ?? []
+        let streakSessions = (try? workoutRepo.fetchSessions(last: 365, athlete: athlete)) ?? []
         currentStreak = StreakEngine.computeStreak(sessions: streakSessions)
 
         // Compute consecutive training days
-        let daysSinceRest = computeDaysSinceRest(workoutRepo: workoutRepo)
+        let daysSinceRest = computeDaysSinceRest(workoutRepo: workoutRepo, athlete: athlete)
 
         // Compute Fatigue Accumulation Index
-        let recentSessionTSS = allSessions.suffix(14).map(\.trainingStress)
+        let fourteenDaysAgo = Calendar.current.date(byAdding: .day, value: -14, to: .now) ?? .now
+        let recentSessions14d = allSessions.filter { $0.sessionDate >= fourteenDaysAgo }
+        let recentSessionTSS = recentSessions14d.map(\.trainingStress)
         let baselineTSS: Double? = {
             let allTSS = allSessions.map(\.trainingStress).filter { $0 > 0 }
             guard !allTSS.isEmpty else { return nil }
             return allTSS.reduce(0, +) / Double(allTSS.count)
         }()
-        let sessionsIn14Days = allSessions.filter {
-            $0.sessionDate >= Calendar.current.date(byAdding: .day, value: -14, to: .now)!
-        }.count
-        let baselineSessions14d: Double? = {
-            let total = allSessions.count
-            let days = min(90, max(14, total > 0 ? Int(Date.now.timeIntervalSince(allSessions.last?.sessionDate ?? .now) / 86400) : 90))
-            guard days >= 14 else { return nil }
-            return Double(total) / Double(days) * 14.0
-        }()
+        let sessionsIn14Days = recentSessions14d.count
+        let baselineSessions14d = FatigueIndexEngine.baselineSessionsPer14Days(sessions: allSessions)
         let recentRecoveryScores = recentSnapshots
             .sorted { $0.date < $1.date }
             .suffix(7)
@@ -313,8 +305,8 @@ final class DashboardViewModel {
         notificationService.scheduleWeeklySummary(weekday: weekday, hour: hour, minute: minute, body: body)
     }
 
-    private func computeDaysSinceRest(workoutRepo: WorkoutRepository) -> Int {
-        guard let sessions = try? workoutRepo.fetchSessions(last: 14) else { return 0 }
+    private func computeDaysSinceRest(workoutRepo: WorkoutRepository, athlete: Athlete) -> Int {
+        guard let sessions = try? workoutRepo.fetchSessions(last: 14, athlete: athlete) else { return 0 }
         let calendar = Calendar.current
         var days = 0
         var checkDate = calendar.startOfDay(for: .now)

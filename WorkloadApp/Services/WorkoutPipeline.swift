@@ -31,7 +31,7 @@ struct WorkoutPipeline {
         }
 
         // 2. Fetch last 35 days of sessions, build daily load array
-        let sessions = try workoutRepo.fetchSessions(last: 35)
+        let sessions = try workoutRepo.fetchSessions(last: 35, athlete: athlete)
         let dailyLoads = buildDailyLoads(from: sessions, days: 35)
 
         // 3. Compute EWMA workload history
@@ -63,16 +63,9 @@ struct WorkoutPipeline {
         try workloadRepo.upsertSnapshot(
             latestResult,
             weeklyVolume: weeklyVol,
-            loadSource: athlete.loadMetricPreference
+            loadSource: athlete.loadMetricPreference,
+            athlete: athlete
         )
-
-        // Link today's snapshot to athlete
-        let today = Calendar.current.startOfDay(for: .now)
-        let predicate = #Predicate<WorkloadSnapshot> { $0.snapshotDate == today }
-        let descriptor = FetchDescriptor<WorkloadSnapshot>(predicate: predicate)
-        if let snap = try modelContext.fetch(descriptor).first {
-            snap.athlete = athlete
-        }
 
         // 7. Stamp session with current ATL/CTL
         session.acuteLoad = latestResult.atl
@@ -115,7 +108,7 @@ struct WorkoutPipeline {
 
             // 8 weeks = 56 days
             if daysSinceSeeded >= 56 {
-                if let latestSnapshot = try? workloadRepo.fetchLatestSnapshot() {
+                if let latestSnapshot = try? workloadRepo.fetchLatestSnapshot(athlete: athlete) {
                     profile.biasEstimatedATL = profile.seededATL
                     profile.biasEstimatedCTL = profile.seededCTL
                     profile.biasActualATL = latestSnapshot.acuteLoad
@@ -152,7 +145,7 @@ struct WorkoutPipeline {
         let workoutRepo = WorkoutRepository(modelContext: modelContext)
         let workloadRepo = WorkloadRepository(modelContext: modelContext)
 
-        let sessions = try workoutRepo.fetchSessions(last: 35)
+        let sessions = try workoutRepo.fetchSessions(last: 35, athlete: athlete)
         let dailyLoads = buildDailyLoads(from: sessions, days: 35)
         let history = WorkloadCalculator.computeHistoryEWMA(loads: dailyLoads)
 
@@ -163,7 +156,8 @@ struct WorkoutPipeline {
             try workloadRepo.upsertSnapshot(
                 latest,
                 weeklyVolume: weeklyVol,
-                loadSource: athlete.loadMetricPreference
+                loadSource: athlete.loadMetricPreference,
+                athlete: athlete
             )
         }
     }

@@ -9,6 +9,7 @@ struct WorkloadView: View {
     private var personalRecords: [PersonalRecord]
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
     private var allSessions: [WorkoutSession]
+    @Query private var athletes: [Athlete]
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @State private var showUpgrade = false
@@ -20,17 +21,34 @@ struct WorkloadView: View {
     @State private var viewModel = WorkloadViewModel()
     @State private var selectedTrendDate: Date?
 
+    private var athlete: Athlete? { athletes.first }
+
+    private var scopedSnapshots: [WorkloadSnapshot] {
+        guard let athleteId = athlete?.id else { return [] }
+        return snapshots.filter { $0.athlete?.id == athleteId }
+    }
+
+    private var scopedPersonalRecords: [PersonalRecord] {
+        guard let athleteId = athlete?.id else { return [] }
+        return personalRecords.filter { $0.athlete?.id == athleteId }
+    }
+
+    private var scopedSessions: [WorkoutSession] {
+        guard let athleteId = athlete?.id else { return [] }
+        return allSessions.filter { $0.athlete?.id == athleteId }
+    }
+
     private var visibleSnapshots: [WorkloadSnapshot] {
         container.subscriptionService.isPro
-            ? snapshots
-            : SubscriptionService.filterSnapshotsForFree(snapshots)
+            ? scopedSnapshots
+            : SubscriptionService.filterSnapshotsForFree(scopedSnapshots)
     }
 
     private var lockedWeeks: Int {
         guard !container.subscriptionService.isPro else { return 0 }
-        let visible = SubscriptionService.filterSnapshotsForFree(snapshots)
+        let visible = SubscriptionService.filterSnapshotsForFree(scopedSnapshots)
         return SubscriptionService.lockedWeeks(
-            totalSessions: snapshots.count,
+            totalSessions: scopedSnapshots.count,
             visibleSessions: visible.count
         )
     }
@@ -38,9 +56,9 @@ struct WorkloadView: View {
     private var latestSnapshot: WorkloadSnapshot? { visibleSnapshots.first }
 
     private var visibleRecords: [PersonalRecord] {
-        guard !container.subscriptionService.isPro else { return Array(personalRecords.prefix(5)) }
+        guard !container.subscriptionService.isPro else { return Array(scopedPersonalRecords.prefix(5)) }
         let cutoff = Calendar.current.date(byAdding: .day, value: -7, to: .now) ?? .now
-        return personalRecords.filter { $0.achievedAt >= cutoff }.prefix(5).map { $0 }
+        return scopedPersonalRecords.filter { $0.achievedAt >= cutoff }.prefix(5).map { $0 }
     }
 
     /// Trend snapshots filtered by selected time range
@@ -175,11 +193,15 @@ struct WorkloadView: View {
                 UpgradeSheet(trigger: .history(lockedWeeks: lockedWeeks))
             }
             .onAppear {
-                viewModel.loadTrendData(modelContext: modelContext)
+                if let athlete {
+                    viewModel.loadTrendData(modelContext: modelContext, athlete: athlete)
+                }
             }
             .onChange(of: viewModel.selectedRange) { _, _ in
                 withAnimation(.easeOut(duration: 0.25)) {
-                    viewModel.loadTrendData(modelContext: modelContext)
+                    if let athlete {
+                        viewModel.loadTrendData(modelContext: modelContext, athlete: athlete)
+                    }
                 }
             }
         }
@@ -199,10 +221,10 @@ struct WorkloadView: View {
 
         switch format {
         case .sessionSummary:
-            csvString = CSVExportEngine.sessionSummaryCSV(sessions: allSessions)
+            csvString = CSVExportEngine.sessionSummaryCSV(sessions: scopedSessions)
             filename = "tonus_sessions_\(dateString).csv"
         case .detailedSets:
-            csvString = CSVExportEngine.detailedSetsCSV(sessions: allSessions)
+            csvString = CSVExportEngine.detailedSetsCSV(sessions: scopedSessions)
             filename = "tonus_sets_\(dateString).csv"
         }
 
