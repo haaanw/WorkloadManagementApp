@@ -235,7 +235,7 @@ Plans:
 | 10. Cold-Start Questionnaire | v1.2 | 3/3 | Complete | 2026-05-08 |
 | 11. Template Management & Creation | v1.2 | 2/2 | Complete | 2026-05-09 |
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 3/3 | Complete | 2026-05-10 |
-| 13. Design Polish | v1.3 | 3/3 | Complete   | 2026-05-10 |
+| 13. Design Polish | v1.3 | 3/3 | Complete    | 2026-05-10 |
 | 14. Sync Hardening | v1.3 | 0/0 | Not started | - |
 | 15. Template Sharing | v1.3 | 0/0 | Not started | - |
 | 16. LLM Workout Import | v1.3 | 0/0 | Not started | - |
