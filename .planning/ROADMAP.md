@@ -98,7 +98,7 @@ Plans:
   4. `lastSyncedAt` for a given entity type is only updated when that entity's pull succeeds — a failed pull never advances its timestamp
 **Plans**: 2 plans
 Plans:
-- [ ] 14-01-PLAN.md — SyncEntity enum, SyncTimestampStore, SyncService do/catch hardening with Bool returns and per-entity orchestration
+- [x] 14-01-PLAN.md — SyncEntity enum, SyncTimestampStore, SyncService do/catch hardening with Bool returns and per-entity orchestration
 - [ ] 14-02-PLAN.md — SyncStatusView, Profile tab dot badge, AppContainer sign-out cleanup
 **UI hint**: yes
 
@@ -240,7 +240,7 @@ Plans:
 | 11. Template Management & Creation | v1.2 | 2/2 | Complete | 2026-05-09 |
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 3/3 | Complete | 2026-05-10 |
 | 13. Design Polish | v1.3 | 3/3 | Complete    | 2026-05-10 |
-| 14. Sync Hardening | v1.3 | 0/2 | Planned | - |
+| 14. Sync Hardening | v1.3 | 1/2 | In Progress|  |
 | 15. Template Sharing | v1.3 | 0/0 | Not started | - |
 | 16. LLM Workout Import | v1.3 | 0/0 | Not started | - |
 | 17. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
