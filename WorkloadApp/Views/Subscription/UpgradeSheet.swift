@@ -89,7 +89,7 @@ struct UpgradeSheet: View {
                             ForEach(selectedTier.features, id: \.self) { feature in
                                 HStack(alignment: .top, spacing: 10) {
                                     Image(systemName: "checkmark")
-                                        .font(.system(size: 11, weight: .medium))
+                                        .font(.Tokens.micro)
                                         .foregroundStyle(ColorTokens.text2)
                                         .frame(width: 16)
                                         .padding(.top, 2)
