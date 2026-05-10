@@ -95,7 +95,7 @@ struct PrescribeWorkoutSheet: View {
                         TextField("Optional notes...", text: $notes, axis: .vertical)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
-                            .textFieldStyle(.roundedBorder)
+                            .textFieldStyle(SharpTextFieldStyle())
                             .lineLimit(2...4)
                     }
                     .padding(.horizontal, 16)

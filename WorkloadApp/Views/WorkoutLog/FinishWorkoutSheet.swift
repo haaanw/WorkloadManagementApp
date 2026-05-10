@@ -44,9 +44,7 @@ struct FinishWorkoutSheet: View {
                 // Template name field (visible when toggle is ON)
                 if saveAsTemplate {
                     TextField("Template name", text: $templateName)
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
-                        .textFieldStyle(.roundedBorder)
+                        .textFieldStyle(SharpTextFieldStyle())
                         .transition(.opacity)
                 }
 

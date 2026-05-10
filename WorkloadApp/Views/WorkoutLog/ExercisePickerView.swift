@@ -197,8 +197,7 @@ struct AddCustomExerciseSheet: View {
         NavigationStack {
             VStack(spacing: 16) {
                 TextField("Exercise name", text: $name)
-                    .font(.Tokens.body)
-                    .textFieldStyle(.roundedBorder)
+                    .textFieldStyle(SharpTextFieldStyle())
 
                 Picker("Category", selection: $category) {
                     ForEach(ExerciseCategory.allCases) { cat in
