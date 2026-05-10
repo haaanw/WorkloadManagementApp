@@ -608,7 +608,14 @@ struct QuickStartSection: View {
         let repo = TemplateRepository(modelContext: modelContext)
         let favorites = (try? repo.fetchFavorites(athleteId: athleteId)) ?? []
 
-        var result = Array(favorites.prefix(3))
+        var result: [WorkoutTemplate]
+        if favorites.isEmpty {
+            // Fallback: show most recently used templates when none are favorited
+            let all = (try? repo.fetchAthleteTemplates(athleteId: athleteId)) ?? []
+            result = Array(all.prefix(3))
+        } else {
+            result = Array(favorites.prefix(3))
+        }
 
         // Add suggestion if Pro and not already in favorites
         if container.subscriptionService.isPro,
