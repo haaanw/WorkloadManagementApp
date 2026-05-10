@@ -150,6 +150,7 @@ struct MainTabView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
     @Query private var athletes: [Athlete]
+    private let syncStore = SyncTimestampStore.shared  // Required for @Observable tracking
 
     private var athlete: Athlete? { athletes.first }
 
@@ -174,6 +175,17 @@ struct MainTabView: View {
                     .tabItem { Label("Templates", systemImage: "doc.text.fill") }
                 ProfileView()
                     .tabItem { Label("Profile", systemImage: "person.fill") }
+                    .overlay(alignment: .topTrailing) {
+                        if syncStore.hasAnyFailure {
+                            Circle()
+                                .fill(ColorTokens.zoneCaution)
+                                .frame(width: 8, height: 8)
+                                .offset(x: 8, y: -8)
+                                .transition(.opacity.animation(.linear(duration: 0.15)))
+                                .accessibilityLabel("Sync issues detected")
+                                .accessibilityAddTraits(.isStatusElement)
+                        }
+                    }
             } else {
                 DashboardView()
                     .tabItem { Label("Home", systemImage: "house.fill") }
@@ -185,6 +197,17 @@ struct MainTabView: View {
                     .tabItem { Label("Load", systemImage: "chart.line.uptrend.xyaxis") }
                 ProfileView()
                     .tabItem { Label("Profile", systemImage: "person.fill") }
+                    .overlay(alignment: .topTrailing) {
+                        if syncStore.hasAnyFailure {
+                            Circle()
+                                .fill(ColorTokens.zoneCaution)
+                                .frame(width: 8, height: 8)
+                                .offset(x: 8, y: -8)
+                                .transition(.opacity.animation(.linear(duration: 0.15)))
+                                .accessibilityLabel("Sync issues detected")
+                                .accessibilityAddTraits(.isStatusElement)
+                        }
+                    }
             }
         }
         .onAppear {

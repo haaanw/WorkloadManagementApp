@@ -79,6 +79,7 @@ final class AppContainer {
     /// modelContext is passed from the calling view.
     func signOut(modelContext: ModelContext) async throws {
         try await authService.signOut()
+        SyncTimestampStore.shared.clearAll()  // Clear sync timestamps on sign-out
         // Cascade delete: Athlete has deleteRule: .cascade on all relationships
         let athletes = try modelContext.fetch(FetchDescriptor<Athlete>())
         for athlete in athletes {
@@ -91,6 +92,7 @@ final class AppContainer {
     /// Permanently deletes the user's account (Supabase auth + all data) then signs out locally.
     func deleteAccount(modelContext: ModelContext) async throws {
         try await authService.deleteAccount()
+        SyncTimestampStore.shared.clearAll()  // Clear sync timestamps on account deletion
         // Clear all local SwiftData — Athlete cascade covers most, but some models
         // reference by raw UUID and won't cascade. Delete them explicitly.
         let athletes = try modelContext.fetch(FetchDescriptor<Athlete>())
