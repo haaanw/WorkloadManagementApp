@@ -19,7 +19,6 @@ struct DashboardView: View {
     @State private var showWellnessCheckIn = false
     @State private var showTrainingProfile = false
     @State private var viewModel = DashboardViewModel()
-    @State private var quickStartTemplate: WorkoutTemplate?
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
 
     private var athlete: Athlete? { athletes.first }
@@ -39,12 +38,6 @@ struct DashboardView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     HeroReadinessCard(viewModel: viewModel)
-
-                    QuickStartSection(
-                        onSelectTemplate: { template in
-                            quickStartTemplate = template
-                        }
-                    )
 
                     if showWelcomeCard {
                         WelcomeActionCard(
@@ -167,10 +160,6 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet()
-            }
-            .sheet(item: $quickStartTemplate) { template in
-                ActiveWorkoutSheet(template: template)
-                    .environment(container)
             }
             .sheet(isPresented: $showWellnessCheckIn) {
                 MorningCheckInSheet()
@@ -588,137 +577,3 @@ struct RecentSessionsSection: View {
     }
 }
 
-// MARK: - Quick Start Section
-
-struct QuickStartSection: View {
-    @Environment(AppContainer.self) private var container
-    @Environment(\.modelContext) private var modelContext
-    @Query private var athletes: [Athlete]
-
-    let onSelectTemplate: (WorkoutTemplate) -> Void
-
-    @State private var suggestionResult: TemplateSuggestionEngine.SuggestionResult?
-
-    private var quickStartTemplates: [WorkoutTemplate] {
-        guard let athleteId = athletes.first?.id else { return [] }
-        let repo = TemplateRepository(modelContext: modelContext)
-        let favorites = (try? repo.fetchFavorites(athleteId: athleteId)) ?? []
-
-        var result: [WorkoutTemplate]
-        if favorites.isEmpty {
-            // Fallback: show most recently used templates when none are favorited
-            let all = (try? repo.fetchAthleteTemplates(athleteId: athleteId)) ?? []
-            result = Array(all.prefix(3))
-        } else {
-            result = Array(favorites.prefix(3))
-        }
-
-        // Add suggestion if Pro and not already in favorites
-        if container.subscriptionService.isPro,
-           let suggestion = suggestionResult,
-           !result.contains(where: { $0.id == suggestion.template.id }) {
-            result.append(suggestion.template)
-        }
-
-        return Array(result.prefix(4))
-    }
-
-    var body: some View {
-        let templates = quickStartTemplates
-        if !templates.isEmpty {
-            VStack(alignment: .leading, spacing: 0) {
-                Text("Quick Start")
-                    .font(.Tokens.bodyMedium)
-                    .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
-                    .padding(.bottom, 8)
-
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        ForEach(templates, id: \.id) { template in
-                            quickStartCard(template)
-                        }
-                    }
-                    .padding(.horizontal, 16)
-                }
-                .padding(.bottom, 16)
-            }
-            .background(ColorTokens.background)
-            .overlay(alignment: .bottom) {
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-            }
-            .onAppear { computeSuggestion() }
-        }
-    }
-
-    private func quickStartCard(_ template: WorkoutTemplate) -> some View {
-        let isSuggested = container.subscriptionService.isPro
-            && suggestionResult?.template.id == template.id
-
-        return Button {
-            onSelectTemplate(template)
-        } label: {
-            VStack(alignment: .leading, spacing: 8) {
-                HStack {
-                    Image(systemName: template.sportType.systemImage)
-                        .font(.system(size: 13))
-                        .foregroundStyle(ColorTokens.text2)
-                    Spacer()
-                    if isSuggested {
-                        Text("SUGGESTED")
-                            .font(.Tokens.micro)
-                            .tracking(1.2)
-                            .textCase(.uppercase)
-                            .foregroundStyle(ColorTokens.text2)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 2)
-                            .overlay(
-                                Rectangle().stroke(ColorTokens.zoneOptimal, lineWidth: 0.5)
-                            )
-                    }
-                }
-
-                Text(template.templateName)
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text1)
-                    .lineLimit(2)
-                    .multilineTextAlignment(.leading)
-            }
-            .frame(width: 140, alignment: .leading)
-            .padding(16)
-            .background(ColorTokens.surface)
-            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("Quick start \(template.templateName)")
-    }
-
-    private func computeSuggestion() {
-        guard container.subscriptionService.isPro else { return }
-        guard let athleteId = athletes.first?.id else { return }
-        let allTemplates = (try? TemplateRepository(modelContext: modelContext)
-            .fetchAthleteTemplates(athleteId: athleteId)) ?? []
-        guard !allTemplates.isEmpty else { return }
-
-        let fourWeeksAgo = Calendar.current.date(byAdding: .weekOfYear, value: -4, to: .now)!
-        let sessionDescriptor = FetchDescriptor<WorkoutSession>(
-            predicate: #Predicate<WorkoutSession> { $0.sessionDate >= fourWeeksAgo },
-            sortBy: [SortDescriptor(\.sessionDate, order: .reverse)]
-        )
-        let sessions = (try? modelContext.fetch(sessionDescriptor)) ?? []
-
-        var recoveryDescriptor = FetchDescriptor<RecoverySnapshot>(
-            sortBy: [SortDescriptor<RecoverySnapshot>(\.date, order: .reverse)]
-        )
-        recoveryDescriptor.fetchLimit = 1
-        let latestRecovery = (try? modelContext.fetch(recoveryDescriptor))?.first
-        let recoveryZone = latestRecovery.map { RecoveryZone.classify(score: $0.recoveryScore) } ?? .green
-
-        suggestionResult = TemplateSuggestionEngine.suggest(
-            templates: allTemplates,
-            recentSessions: sessions,
-            currentRecoveryZone: recoveryZone
-        )
-    }
-}
