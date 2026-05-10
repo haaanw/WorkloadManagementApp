@@ -417,7 +417,7 @@ struct HistoryTeaserBanner: View {
                     .foregroundStyle(ColorTokens.text3)
             }
             .padding(.horizontal, 16)
-            .padding(.vertical, 14)
+            .padding(.vertical, 16)
             .background(ColorTokens.surface)
             .overlay(alignment: .top) {
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
