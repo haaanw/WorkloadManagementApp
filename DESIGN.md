@@ -22,24 +22,26 @@ All hierarchy is achieved through size and one weight variation. No bold, no ita
 
 - **Typeface:** Alpino — geometric, neutral, precise. Sharp terminals, excellent numerics. Bundle as `.otf` from FontShare (ITF FFL license).
 - **Weights used:** Regular (400) and Medium (500) only. No other weights. No italic.
-- **Hero score:** Alpino Regular, 56pt (or 64pt on larger devices), tabular numerals. Color: Accent only. This is the single colored text element in the UI.
-- **Page title:** Alpino Regular, 28pt, `--text-1`
-- **Section header:** Alpino Medium, 17pt, `--text-1`
-- **Body / metric labels:** Alpino Regular, 15pt, `--text-1` or `--text-2`
-- **Secondary info:** Alpino Regular, 13pt, `--text-2`
-- **Micro / caps:** Alpino Regular, 11pt, `--text-3`, letter-spacing +0.08em, all-caps
+- **Hero score:** Alpino Regular, 64pt, tabular numerals. Color: Accent only. This is the single colored text element in the UI.
+- **Page title:** Alpino Regular, 32pt, `--text-1`
+- **Section header:** Alpino Medium, 19pt, `--text-1`
+- **Body / metric labels:** Alpino Regular, 17pt, `--text-1` or `--text-2`
+- **Secondary info (label):** Alpino Regular, 15pt, `--text-2`
+- **Small label:** Alpino Regular, 13pt, `--text-2`
+- **Micro / caps:** Alpino Regular, 12pt, `--text-3`, letter-spacing +0.08em, all-caps
 - **Tabular numerals:** Apply `font-feature-settings: "tnum"` (CSS) or `.monospacedDigit()` (SwiftUI) to all numeric metric displays.
 
 ### Type Scale
 
 | Role          | Size | Weight | Color Token | Notes                  |
 |---------------|------|--------|-------------|------------------------|
-| Hero score    | 56pt | 400    | --accent    | Tabular, line-height 1 |
-| Page title    | 28pt | 400    | --text-1    |                        |
-| Section head  | 17pt | 500    | --text-1    |                        |
-| Body          | 15pt | 400    | --text-1    | Line-height 1.6        |
-| Label         | 13pt | 400    | --text-2    |                        |
-| Micro / cap   | 11pt | 400    | --text-3    | +0.08em tracking, caps |
+| Hero score    | 64pt | 400    | --accent    | Tabular, line-height 1 |
+| Page title    | 32pt | 400    | --text-1    |                        |
+| Section head  | 19pt | 500    | --text-1    |                        |
+| Body          | 17pt | 400    | --text-1    | Line-height 1.6        |
+| Label         | 15pt | 400    | --text-2    |                        |
+| Small label   | 13pt | 400    | --text-2    |                        |
+| Micro / cap   | 12pt | 400    | --text-3    | +0.08em tracking, caps |
 
 ### Font Loading (iOS)
 
