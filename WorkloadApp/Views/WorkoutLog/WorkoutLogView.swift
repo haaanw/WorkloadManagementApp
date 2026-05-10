@@ -448,7 +448,7 @@ private struct SessionFilterChip: View {
     var body: some View {
         Button(action: action) {
             Text(label)
-                .font(isSelected ? .custom("DMSans-Medium", size: 13) : .custom("DMSans-Regular", size: 13))
+                .font(isSelected ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
                 .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)

@@ -29,34 +29,34 @@ struct SpikeAlertBanner: View {
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(severityLabel)
-                    .font(.custom("DMSans-Medium", size: 11))
+                    .font(.Tokens.micro)
                     .tracking(0.88)
                     .foregroundStyle(borderColor)
 
                 Text("This session's load was \(String(format: "%.1f", alert.ratio))x your 28-day average. Consider extra recovery.")
-                    .font(.custom("DMSans-Regular", size: 13))
+                    .font(.Tokens.smallLabel)
                     .foregroundStyle(ColorTokens.text1)
                     .fixedSize(horizontal: false, vertical: true)
 
                 HStack(spacing: 16) {
                     Label {
                         Text(String(format: "%.0f", alert.sessionTSS))
-                            .font(.custom("DMSans-Medium", size: 13))
+                            .font(.Tokens.smallLabelMedium)
                             .monospacedDigit()
                     } icon: {
                         Text("SESSION")
-                            .font(.custom("DMSans-Regular", size: 11))
+                            .font(.Tokens.micro)
                             .tracking(0.88)
                     }
                     .foregroundStyle(ColorTokens.text1)
 
                     Label {
                         Text(String(format: "%.0f", alert.averageTSS))
-                            .font(.custom("DMSans-Medium", size: 13))
+                            .font(.Tokens.smallLabelMedium)
                             .monospacedDigit()
                     } icon: {
                         Text("AVG")
-                            .font(.custom("DMSans-Regular", size: 11))
+                            .font(.Tokens.micro)
                             .tracking(0.88)
                     }
                     .foregroundStyle(ColorTokens.text2)

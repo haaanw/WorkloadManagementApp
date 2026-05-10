@@ -38,7 +38,7 @@ struct TextTemplateImportSheet: View {
                         .foregroundStyle(ColorTokens.text2)
 
                     TextEditor(text: $inputText)
-                        .font(.custom("DMSans-Regular", size: 14))
+                        .font(.Tokens.label)
                         .frame(minHeight: 200)
                         .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
 

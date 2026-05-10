@@ -30,7 +30,7 @@ struct InviteConfirmationSheet: View {
                         .padding(.top, 64)
                 } else if let error = errorMessage {
                     Text(error)
-                        .font(.custom("DMSans-Regular", size: 15))
+                        .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.zoneDanger)
                         .padding(.horizontal, 16)
                         .padding(.top, 64)
@@ -40,14 +40,14 @@ struct InviteConfirmationSheet: View {
 
                         VStack(alignment: .leading, spacing: 8) {
                             Text(mode == .athleteAccepting ? "COACH REQUEST" : "LINK ATHLETE")
-                                .font(.custom("DMSans-Medium", size: 11))
+                                .font(.Tokens.micro)
                                 .tracking(1.2)
                                 .foregroundStyle(ColorTokens.text3)
                             Text(resolved.otherPartyName)
-                                .font(.custom("DMSans-Medium", size: 28))
+                                .font(.Tokens.pageTitle)
                                 .foregroundStyle(ColorTokens.text1)
                             Text(resolved.otherPartySport.displayName)
-                                .font(.custom("DMSans-Regular", size: 13))
+                                .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                         }
                         .padding(16)
@@ -62,7 +62,7 @@ struct InviteConfirmationSheet: View {
                                     ProgressView()
                                 } else {
                                     Text("Confirm Link")
-                                        .font(.custom("DMSans-Regular", size: 15))
+                                        .font(.Tokens.label)
                                         .foregroundStyle(ColorTokens.text1)
                                 }
                             }
@@ -77,7 +77,7 @@ struct InviteConfirmationSheet: View {
                             dismiss()
                         } label: {
                             Text("Cancel")
-                                .font(.custom("DMSans-Regular", size: 13))
+                                .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)

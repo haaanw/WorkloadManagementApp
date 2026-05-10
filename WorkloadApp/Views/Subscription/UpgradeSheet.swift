@@ -253,7 +253,7 @@ struct UpgradeSheet: View {
                         .foregroundStyle(ColorTokens.text3)
                     if let badge {
                         Text(badge)
-                            .font(.custom("DMSans-Medium", size: 9))
+                            .font(.Tokens.micro)
                             .tracking(0.8)
                             .foregroundStyle(ColorTokens.text3)
                             .padding(.horizontal, 4)

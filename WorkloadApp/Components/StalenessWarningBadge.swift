@@ -8,7 +8,7 @@ struct StalenessWarningBadge: View {
     var body: some View {
         HStack(spacing: 4) {
             Image(systemName: "exclamationmark.triangle.fill")
-                .font(.custom("DMSans-Regular", size: 11))
+                .font(.Tokens.micro)
                 .foregroundStyle(ColorTokens.zoneCaution)
             Text("Updated \(daysAgo)d ago")
                 .font(.Tokens.micro)

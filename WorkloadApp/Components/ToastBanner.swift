@@ -10,7 +10,7 @@ struct ToastBanner: View {
     var body: some View {
         HStack(spacing: 8) {
             Text(message)
-                .font(.custom("DMSans-Regular", size: 13))
+                .font(.Tokens.smallLabel)
                 .foregroundStyle(ColorTokens.text1)
 
             Spacer()

@@ -47,20 +47,20 @@ struct FatigueAttentionBanner: View {
             VStack(alignment: .leading, spacing: 8) {
                 HStack(spacing: 8) {
                     Text(zoneLabel)
-                        .font(.custom("DMSans-Medium", size: 11))
+                        .font(.Tokens.micro)
                         .tracking(0.88)
                         .foregroundStyle(borderColor)
 
                     Spacer()
 
                     Text("\(Int(fatigueIndex))")
-                        .font(.custom("DMSans-Medium", size: 15))
+                        .font(.Tokens.labelMedium)
                         .monospacedDigit()
                         .foregroundStyle(borderColor)
                 }
 
                 Text(message)
-                    .font(.custom("DMSans-Regular", size: 13))
+                    .font(.Tokens.smallLabel)
                     .foregroundStyle(ColorTokens.text2)
                     .fixedSize(horizontal: false, vertical: true)
             }
