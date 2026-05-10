@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-05-10
+revised: 2026-05-10
 ---
 
 # Phase 14 -- UI Design Contract
@@ -38,13 +39,13 @@ Declared values per DESIGN.md (multiples of 8pt):
 | xl | 48pt | Major section breaks |
 | 2xl | 64pt | Page-level breathing room |
 
-Exceptions: 6pt diameter for sync health dot badge (see below -- intentionally sub-grid for a dot indicator that must not dominate the tab bar icon).
+No exceptions. All dimensions in this phase are grid-aligned (multiples of 8pt).
 
 ---
 
 ## Typography
 
-Per DESIGN.md type scale. Only these roles are used in Phase 14 UI:
+Per DESIGN.md type scale. Only these 4 roles are used in Phase 14 UI:
 
 | Role | Size | Weight | Line Height | Color Token |
 |------|------|--------|-------------|-------------|
@@ -52,7 +53,8 @@ Per DESIGN.md type scale. Only these roles are used in Phase 14 UI:
 | Body | 17pt | 400 (Regular) | 1.6 | --text-1 |
 | Label | 15pt | 400 (Regular) | 1.4 | --text-2 |
 | Small label | 13pt | 400 (Regular) | 1.4 | --text-2 |
-| Micro / caps | 12pt | 400 (Regular) | 1.2 | --text-3 |
+
+The "SYNC STATUS" section header uses the Small label role (13pt Regular) with letter-spacing +0.08em and all-caps treatment, rendered in `ColorTokens.text2`. This gives the caps header visual distinction without introducing a fifth font size.
 
 All text rendered in Alpino via `Font.Tokens` extension. No system fonts.
 
@@ -67,8 +69,8 @@ All text rendered in Alpino via `Font.Tokens` extension. No system fonts.
 | Accent (10%) | #A8A090 | #7A6E5C | Hero readiness score ONLY -- not used in this phase |
 | Zone Caution | #7E7252 | #6B5828 | Sync warning dot badge, failed entity row indicator |
 | Zone Optimal | #607869 | #3E5C49 | Successful entity row indicator |
-| Text 2 | #7C7972 | #696560 | Timestamp labels, secondary info |
-| Text 3 | #3A3835 | #AFABA5 | Micro labels |
+| Text 2 | #7C7972 | #696560 | Timestamp labels, secondary info, section header caps |
+| Text 3 | #3A3835 | #AFABA5 | Tertiary labels |
 | Divider | #232321 | #CFCBC5 | Hairline separators between entity rows |
 
 Accent reserved for: hero readiness score number only (unchanged -- Phase 14 does not introduce any new accent usage).
@@ -79,9 +81,15 @@ Sync warning indicator uses `zoneCaution` (barely-amber) -- not accent. This fol
 
 ## Phase 14 UI Components
 
-This phase has minimal UI surface. Two new elements:
+This phase has minimal UI surface. Two new elements.
+
+**Focal points:**
+- **Discovery trigger:** Sync health dot badge on Profile tab icon -- draws attention to sync issues.
+- **Per-row anchor:** Leading status indicator circle in each entity row -- immediate pass/fail signal per entity.
 
 ### 1. Sync Health Dot Badge (Profile Tab Icon)
+
+**Focal point:** This dot badge is the discovery trigger -- the single element that alerts the user to navigate into sync status details.
 
 **Location:** Profile tab bar item, top-trailing corner of the SF Symbol icon.
 
@@ -91,7 +99,7 @@ This phase has minimal UI surface. Two new elements:
 - No animation on appearance -- simply present or absent (150ms linear fade per DESIGN.md motion rules)
 
 **Visual spec:**
-- Shape: `Circle()` -- 6pt diameter (exception to 8pt grid, documented above)
+- Shape: `Circle()` -- 8pt diameter (grid-aligned)
 - Fill: `ColorTokens.zoneCaution` (barely-amber, same as ACWR caution zone)
 - Position: offset(x: 8, y: -8) from tab icon center
 - No border, no shadow, no pulse animation
@@ -108,10 +116,13 @@ This phase has minimal UI surface. Two new elements:
 - 16pt horizontal padding, 24pt vertical padding
 
 **Section header:**
-- Text: "SYNC STATUS" -- Alpino Regular, 12pt, `ColorTokens.text3`, letter-spacing +0.08em, all-caps
+- Text: "SYNC STATUS" -- Alpino Regular, 13pt, `ColorTokens.text2`, letter-spacing +0.08em, all-caps
 - 8pt bottom margin before first row
 
 **Entity row (repeated for each of 10 SyncEntity types):**
+
+**Focal point:** The leading status indicator circle is the per-row anchor -- immediate visual signal of pass/fail state for each entity.
+
 - Height: 48pt (fits touch target)
 - Layout: HStack with 8pt spacing
   - Leading: Status indicator circle -- 8pt diameter, filled `zoneCaution` (failed) or `zoneOptimal` (succeeded)
