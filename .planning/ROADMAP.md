@@ -46,7 +46,7 @@
 **Milestone Goal:** Enable AI-powered workout import from any format, let users share templates, rebrand typography to Alpino, and harden remaining tech debt from code review.
 
 - [x] **Phase 13: Design Polish** - Alpino font migration and rounded border fix across all views (completed 2026-05-10)
-- [ ] **Phase 14: Sync Hardening** - Replace silent try? calls with structured error handling and per-entity sync timestamps
+- [x] **Phase 14: Sync Hardening** - Replace silent try? calls with structured error handling and per-entity sync timestamps (completed 2026-05-10)
 - [ ] **Phase 15: Template Sharing** - Share codes, universal links, preview-before-import for template exchange
 - [ ] **Phase 16: LLM Workout Import** - AI-powered text/PDF/image parsing into templates via Supabase Edge Function
 
@@ -99,7 +99,7 @@ Plans:
 **Plans**: 2 plans
 Plans:
 - [x] 14-01-PLAN.md — SyncEntity enum, SyncTimestampStore, SyncService do/catch hardening with Bool returns and per-entity orchestration
-- [ ] 14-02-PLAN.md — SyncStatusView, Profile tab dot badge, AppContainer sign-out cleanup
+- [x] 14-02-PLAN.md — SyncStatusView, Profile tab dot badge, AppContainer sign-out cleanup
 **UI hint**: yes
 
 ### Phase 15: Template Sharing
@@ -240,7 +240,7 @@ Plans:
 | 11. Template Management & Creation | v1.2 | 2/2 | Complete | 2026-05-09 |
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 3/3 | Complete | 2026-05-10 |
 | 13. Design Polish | v1.3 | 3/3 | Complete    | 2026-05-10 |
-| 14. Sync Hardening | v1.3 | 1/2 | In Progress|  |
+| 14. Sync Hardening | v1.3 | 2/2 | Complete   | 2026-05-10 |
 | 15. Template Sharing | v1.3 | 0/0 | Not started | - |
 | 16. LLM Workout Import | v1.3 | 0/0 | Not started | - |
 | 17. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
