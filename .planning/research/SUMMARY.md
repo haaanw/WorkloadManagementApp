@@ -1,187 +1,199 @@
 # Project Research Summary
 
-**Project:** Tonus v1.2 — Training Onboarding & Templates
-**Domain:** iOS fitness app — cold-start questionnaire with ATL/CTL seeding + athlete-owned training templates
-**Researched:** 2026-05-01
+**Project:** Tonus v1.3 — LLM Import, Sharing & Polish
+**Domain:** iOS fitness app — AI feature addition, typography rebrand, infrastructure hardening
+**Researched:** 2026-05-10
 **Confidence:** HIGH
 
 ## Executive Summary
 
-Tonus v1.2 adds two interrelated systems to an already-working SwiftUI/SwiftData fitness app: a cold-start questionnaire that seeds the EWMA workload engine for new users, and athlete-owned training templates with intelligent suggestions. Both features extend the existing layer architecture (Views → ViewModels → Pipelines → Engines → Repositories → Models) without requiring new SPM dependencies or Apple frameworks. The recommended approach is purely additive schema changes — new models, new optional fields with defaults, and new pure-struct engines following the existing WorkloadCalculator/RecoveryScoreEngine patterns — which keeps the migration story safe for all existing users upgrading from v1.1.
+Tonus v1.3 adds four capabilities to an already-shipped app: LLM-powered workout import, template sharing between athletes and coaches, a typography rebrand from DM Sans to Alpino, and SyncService error handling hardening. Research consistently shows this release is an infrastructure and polish cycle as much as a feature cycle — the LLM import is genuinely differentiated (no competitor imports from arbitrary PDFs and photos), but it carries the highest risk and should ship last, after the simpler high-value items are complete. The recommended build order is: design polish first (font and border fix), then sync hardening, then template sharing, then LLM import. Each phase unlocks or de-risks the next.
 
-The primary risk is data contamination between the estimated ATL/CTL values (from the questionnaire) and the real EWMA chain (computed from logged sessions). Research is unambiguous: estimated values must live only on `TrainingProfile`, never on `WorkloadSnapshot`. A parallel-track architecture where the dashboard reads from `TrainingProfile` during the cold-start window and switches to `WorkloadSnapshot` after 3 weeks + 8 sessions is the correct design. The secondary risk is a SwiftData crash on update if any model field is renamed rather than added — the `coachId` → `ownerId` refactor must be avoided in favor of an additive `isAthleteOwned` boolean flag.
+The critical architectural decision for LLM import is the Edge Function proxy pattern: all LLM calls route through Supabase Edge Functions, and the OpenAI API key lives in Supabase secrets — never in the iOS binary. This is not optional; iOS binaries can be decompiled and keys extracted within hours of App Store release. The proxy also enables rate limiting, Pro subscription validation, and model swaps without app updates. Importantly, zero new iOS dependencies are required: LLM calls go through the existing `client.functions.invoke()` in supabase-swift, OCR uses Apple Vision, and PDF extraction uses Apple PDFKit — all bundled with iOS 17+.
 
-Template features are simpler architecturally but require discipline on ownership semantics. The existing `WorkoutTemplate` model's `coachId` field already stores "who owns this," and athletes should reuse it by storing their own UUID in that field alongside an `isAthleteOwned: Bool = false` discriminator. This avoids schema migrations and keeps existing coach template code unchanged. Supabase RLS policies must be updated before any template sync code is written — the current policies are scoped to coach role and will silently drop all athlete template upserts due to the SyncService's pervasive `try?` error suppression.
+The main risk cluster is LLM output quality. LLMs hallucinate exercise names, invent impossible rep schemes, and misinterpret coach shorthand. The mitigation is mandatory human review before any LLM-generated template is saved — never auto-save. Combine this with a constrained JSON Schema output, sanity bounds on weights and reps, and fuzzy matching against the existing exercise catalog. A secondary risk is the Alpino font migration: Alpino has a smaller x-height than DM Sans, and text may require 1-2pt size bumps. The existing UIFont DEBUG assertion in `WorkloadApp.swift` provides a safety net if font names are wrong.
 
 ## Key Findings
 
 ### Recommended Stack
 
-No new dependencies are required for v1.2. The full feature set — cold-start seeding, template management, day-of-week suggestions, ProgressionEngine overlay — is buildable with existing SwiftUI, SwiftData, HealthKit, Charts, and the Supabase/RevenueCat SDKs already in the project. Two new pure-struct engines (ColdStartEngine, TemplateSuggestionEngine) and one new repository (TemplateRepository) are the only architectural additions. All schema changes are additive with defaults, enabling SwiftData lightweight migration throughout.
+No new iOS dependencies are needed. All LLM functionality routes through the existing Supabase Swift SDK. OCR uses Apple Vision (VNRecognizeTextRequest), PDF text extraction uses Apple PDFKit, and file picking uses SwiftUI's `.fileImporter()`. The Supabase Edge Function (Deno/TypeScript) requires no npm packages — the OpenAI API is called via native `fetch()`. For template sharing, a new `shared_templates` Supabase table with RLS policies covers all backend needs.
+
+For the font migration, Alpino is available from FontShare under the ITF Free Font License, which permits commercial use and app embedding. It provides exact weight parity: Alpino-Regular maps to DM Sans Regular, Alpino-Medium maps to DM Sans Medium. The migration affects `FontTokens.swift` (2 string replacements), `Info.plist` (UIAppFonts array), `WorkloadApp.swift` (DEBUG font assertion), and any hardcoded font strings outside FontTokens (one confirmed in `TextTemplateImportSheet` line 42).
 
 **Core technologies:**
-- SwiftData `@Model` (TrainingProfile, new): store questionnaire answers + seeded ATL/CTL + bias tracking — avoids bloating the Athlete model with 15+ write-once questionnaire fields that have a separate lifecycle
-- ColdStartEngine (new pure struct): converts questionnaire answers to ATL/CTL seeds using the identical sRPE TSS formula already in WorkloadCalculator — deterministic, sport-science validated, no ML or external API needed
-- WorkoutTemplate model (extended): reused for athlete ownership via `isAthleteOwned` discriminator and new `isFavorite`, `isArchived`, `lastUsedAt`, `usageCount`, `scheduledDays` additive fields with defaults
-- TemplateSuggestionEngine (new pure struct): day-of-week frequency + recovery-aware ranking, ~100 lines of weighted scoring — no recommendation library needed, follows existing engine pattern
-- ProgressionEngine (existing, unchanged): called per-exercise when loading a template; overlay approach (template = baseline, Progression = modifier) avoids dual-number confusion in the UI
+- **gpt-4o-mini via Supabase Edge Function:** LLM structured text extraction — best cost/quality ratio at $0.15/1M input tokens; JSON Schema mode guarantees valid output; API key never on device; ~$0.30/month at 1,000 imports
+- **Apple Vision (VNRecognizeTextRequest):** On-device OCR for images and scanned PDFs — free, private, iOS 17+ compatible; eliminates per-image LLM vision costs ($0.003–0.01/image)
+- **Apple PDFKit:** On-device PDF text extraction — `PDFDocument.page(at:).string` for digital PDFs; Vision OCR fallback for scanned/image-based PDFs only
+- **Supabase `shared_templates` table + RLS:** Template snapshot storage with opaque 8-char share codes; 30-day expiry; no new iOS dependency; uses existing client
+- **Alpino-Regular.otf + Alpino-Medium.otf:** Typography replacement — commercial license confirmed; direct 1:1 weight mapping from DM Sans
+
+**Rejected options (confirmed by research):**
+- OpenAI/SwiftOpenAI SDK on iOS: API key exposure risk; use Edge Function proxy instead
+- Universal Links as sole sharing mechanism: requires AASA file setup on `tutrice.app` domain; share codes are the reliable fallback that works in all conditions
+- Apple Foundation Models: iOS 26+ only; app targets iOS 17+, making this a non-starter for v1.3
+- GPT-4o full model for text parsing: 10x more expensive than gpt-4o-mini with no quality improvement for structured extraction from workout text
+- Third-party OCR (Google ML Kit, Tesseract): Apple Vision handles printed text excellently on iOS 17+ at zero cost
 
 ### Expected Features
 
-From competitor analysis (Strong, Hevy, JEFIT, Fitbod, Juggernaut AI, TrainingPeaks), the following features define user expectations for this milestone:
-
 **Must have (table stakes):**
-- Training frequency + experience questions in onboarding — every serious fitness app collects these; Tonus already has them
-- Typical session duration + intensity (sRPE) — the two missing inputs needed for the TSS seeding formula (hours × RPE × RPE/10)
-- Save-from-session — Strong and Hevy both auto-prompt at workout completion; this is the primary template creation path in every competitor
-- Template picker with last-used auto-fill — the core template usage loop; Hevy shows a PREVIOUS column, Strong pre-fills inputs
-- Template CRUD (edit, duplicate, archive, favorite, delete) — basic hygiene for a growing template library
+- Text paste workout import — lowest-friction LLM entry point; handles freeform formats (3x10 bench 135lbs, coach shorthand, AMRAP/EMOM notation)
+- PDF file import — coaches distribute programs as PDFs; PDFKit then LLM pipeline
+- Image/screenshot import — users capture workouts from Instagram, whiteboards, coach apps; Vision OCR then LLM
+- Review-before-save screen — LLM output is probabilistic; non-negotiable human verification before any template is committed
+- Exercise name normalization — canonical matching against existing catalog (CustomExercise + built-in exercises)
+- Unit detection (kg vs lbs) — default to user's preference when ambiguous; flag explicit conversions
+- Clear error state for unparseable input — "couldn't parse" message with retry or manual entry fallback
+- Share template via system share sheet — `UIActivityViewController` with share code + URL
+- Import shared template by tapping link or entering code manually — both mechanisms required
+- Template preview before import — show name, exercise count, group structure before committing
+- Shared templates exclude personal weight data — structure-only export (exercises, target sets/reps/RPE); no actual logged weights
+- All text renders in Alpino consistently — mixed fonts = broken design; must be 100% or 0%
+- SyncService pull errors surfaced, not swallowed — 40+ silent `try?` calls are a data integrity risk
 
 **Should have (competitive differentiators):**
-- Dashboard quick-start cards — no competitor puts templates on the dashboard; reduces session-start from 3 taps to 1
-- Dynamic targets with ProgressionEngine overlay (Pro-gated) — "last-used" baseline + recovery-aware adjustment is unique to Tonus
-- Schedule-aware suggestions — day-of-week pattern detection after 2+ weeks of data; "you usually do Push on Tuesdays"
-- Perceptual bias measurement (silent) — questionnaire estimate vs. actual at switchover; no competitor does this
-- Training age + periodization preference (optional) — enriches TrainingProfile for future intelligence features at zero engineering cost
+- Multi-format LLM import in a single flow (text + image + PDF) — no competitor does this from arbitrary sources
+- Automatic exercise matching to existing PR history — continuity for strength tracking
+- Coach-to-athlete template push via existing CoachAthleteRelationship — more direct than generic link sharing
+- Shareable link with web fallback page (App Store CTA when app not installed) — acquisition driver
 
-**Defer to v1.3+:**
-- Template sharing between users (explicitly scoped to v1.3 in PROJECT.md)
-- LLM-powered workout import from photos/text (explicitly deferred in PROJECT.md)
-- Template folders/organization (premature before users have 10+ templates)
-- Pre-built template library / program marketplace (content work, not engineering)
-- HealthKit workout-to-template matching (high false-positive risk; HealthKit provides no exercise-level data; demoted from differentiator to post-v1.2)
-
-**Free vs Pro gate strategy:**
-- Free: create templates, save from session, picker, last-used auto-fill, management, dashboard cards
-- Pro: ProgressionEngine overlay on targets, suggestion reasoning text, schedule-aware suggestions
+**Defer to v1.4:**
+- Batch multi-week program import — too complex for v1.3; single template first
+- Template folders/organization — premature
+- Social feed or public template marketplace — different product direction
+- On-device LLM via Core ML or Apple Foundation Models — quality insufficient for structured extraction at available model sizes on iOS 17+
 
 ### Architecture Approach
 
-The new features integrate into the existing five-layer stack without new patterns. Cold-start adds a `TrainingProfile` model with a parallel data track: estimated ATL/CTL lives on `TrainingProfile` and is displayed on the dashboard during the cold-start window; real ATL/CTL accumulates in `WorkloadSnapshot` as always; switchover at 3 weeks + 8 sessions transitions the dashboard to the real track permanently. Template features add a `TemplateRepository`, extend `ActiveWorkoutSheet` to accept a `WorkoutTemplate?` alongside the existing `PrescribedWorkout?`, and introduce a new `TemplateManagementView` for athlete mode (distinct from the coach `TemplateListView`).
+Three features slot into the existing layer stack without requiring any SwiftData model changes. LLM import adds `LLMImportService` (a stateless `@MainActor struct` following the existing engine pattern) plus a Supabase Edge Function. Template sharing adds `TemplateSharingService` plus two views and a new Supabase table. Font migration and border fixes are purely in `FontTokens.swift`, `Info.plist`, and view files — zero logic changes. Sync hardening modifies `SyncService.swift` only, upgrading bare `try?` calls to `do/catch` with per-entity sync tracking.
 
-**Major new/modified components:**
-1. TrainingProfile (`@Model`) — write-once questionnaire answers + seeded ATL/CTL + bias tracking; fetched by DashboardViewModel and WorkoutPipeline during cold-start window
-2. ColdStartEngine (pure struct) — sRPE TSS formula → ATL/CTL seeds; same formula as WorkloadCalculator so seeds are EWMA-compatible from day one
-3. TemplateSuggestionEngine (pure struct) — ranks non-archived templates by schedule, frequency, recency, favorite flag, and recovery-awareness; returns top-3 for dashboard cards
-4. TemplateRepository (`@MainActor final class`) — CRUD for athlete-owned templates; all queries include ownership filter to prevent coach/athlete data leakage
-5. WorkoutPipeline (modified) — real EWMA track unchanged; parallel estimated track added as conditional block when `TrainingProfile` exists and `switchoverDate == nil`
-6. DashboardViewModel (modified) — reads from `TrainingProfile` for estimated display vs. `WorkloadSnapshot` for real; gates FatigueIndex behind minimum real session count
+The existing `decodeGroups(from:)` in SyncService is directly reusable for LLM response decoding. The existing `deepCopyGroups()` on `WorkoutTemplate` is the correct import path for shared templates (new UUIDs, owner set to current user). The preview-then-save pattern already exists in `TextTemplateImportSheet` — mirror it in `LLMImportSheet`.
 
-**Recommended build order (from dependency analysis):**
-Phase 1 → Foundation (models + engines + Supabase schema)
-Phase 2 → Cold-start integration (questionnaire UI + pipeline parallel track)
-Phase 3 → Template management (list/edit/archive/favorite)
-Phase 4 → Template-driven workouts (picker + ActiveWorkoutSheet + save-from-session)
-Phase 5 → Smart suggestions (TemplateSuggestionEngine + dashboard cards)
-Phase 6 → Bias measurement + polish
+**Conflict resolution:** STACK.md proposes 90-day share link expiry and 6-char share code. ARCHITECTURE.md proposes 30-day expiry and 8-char code. Resolution: use **30-day expiry** (limits unbounded table growth) and **8-char alphanumeric code** (lower collision probability). Both values can be tuned post-launch without schema changes.
+
+**Major components:**
+
+1. **`LLMImportService`** (`@MainActor struct`, Service layer) — Coordinates on-device OCR, invokes `parse-workout` Edge Function, decodes response to `[ParsedTemplateDTO]`, hands off to TemplateRepository
+2. **`parse-workout` Edge Function** (Deno/TypeScript, Supabase) — Validates Supabase JWT, verifies Pro subscription, calls OpenAI with JSON Schema mode, returns normalized template JSON
+3. **`TemplateSharingService`** (`@MainActor struct`, Service layer) — Generates share codes, snapshots template JSON to `shared_templates` table, resolves codes on import
+4. **`LLMImportSheet`** (View) — Multi-step UI: source picker (text/photo/PDF) → OCR progress → LLM parse → editable preview → save
+5. **`ShareTemplateSheet` + `ImportSharedTemplateSheet`** (Views) — Share code display/copy and code entry/preview/import
+6. **`shared_templates` table** (Supabase) — Stores template JSON snapshots with RLS (authenticated read by code, owner-only insert/delete), 30-day expiry, pg_cron cleanup job
 
 ### Critical Pitfalls
 
-1. **EWMA contamination via parallel track** — estimated ATL/CTL must live only on `TrainingProfile`, never written to `WorkloadSnapshot`. The moment estimated values enter the real snapshot chain, every downstream recommendation engine inherits the error for 84+ days (3 EWMA time constants). Dashboard must read from `TrainingProfile` during cold-start, not from snapshots.
+1. **Foundation Models is iOS 26+, app targets iOS 17** — Use cloud LLM API (gpt-4o-mini) as the sole path for v1.3. Design `LLMImportService` against a protocol so a Foundation Models implementation can be added later without rewriting the UI.
 
-2. **SwiftData migration crash on update** — any field rename (e.g., `coachId` → `ownerId`) requires a custom `SchemaMigrationPlan` that the app currently has no infrastructure for. Without it, existing users hit the `fatalError` in `WorkloadApp.swift` on update. All model changes must be additive with defaults. Use `isAthleteOwned: Bool = false` instead of renaming.
+2. **LLM hallucination creates garbage templates** — Mitigate with: constrained JSON Schema (enums for exerciseCategory and muscleGroup matching existing app enums exactly), sanity bounds (reject weight > 500kg, reps > 100, sets > 20, RPE > 10), fuzzy exercise name matching against the exercise catalog, and mandatory editable preview before save. Never auto-save LLM output.
 
-3. **Supabase RLS silently blocking athlete template sync** — existing `workout_templates` RLS policies are scoped to coach role. Athlete template upserts fail silently because SyncService uses `try?` throughout. Templates appear to save locally but never reach Supabase; data is lost on device change. RLS must be updated before any template sync code is written.
+3. **LLM API key exposure in iOS binary** — All LLM calls must route through the Supabase Edge Function. The iOS app never holds an OpenAI key. Gate LLM import behind Pro subscription to add a financial barrier to abuse and make API costs sustainable.
 
-4. **coachId semantics collision** — reusing `coachId` for athlete templates without an explicit discriminator causes coach-mode views that query all `WorkoutTemplate` records to return athlete templates (and vice versa). Every `@Query` and `FetchDescriptor` on `WorkoutTemplate` must include an ownership filter from the moment athlete templates exist.
+4. **`try?` hardening that masks the real sync architecture problem** — Simply adding `catch { log(error) }` is insufficient. `pullAll()` currently marks `lastSyncedAt` as complete even when individual entity pulls fail. Fix requires per-entity sync timestamps and a `SyncResult` return value. Do not update any entity's `lastSyncedAt` if its pull threw an error.
 
-5. **TemplateSuggestionEngine noisy early suggestions** — with fewer than 2 occurrences of the same template on the same day-of-week, suggestions are noise that erodes user trust in the feature. Gate behind 3 weeks of data AND 2+ pattern occurrences; show "recently used" cards instead of "suggested" when below threshold.
+5. **Cascade delete removes shared template data** — Sharing must snapshot the template JSON at share time (not reference the live template). Import must create a fully independent `WorkoutTemplate` (new UUID, current user as owner) via `deepCopyGroups()`. No foreign key to the original template.
+
+6. **Font PostScript name mismatch causes silent system font fallback** — Verify Alpino's PostScript name with Font Book on macOS before writing any `Font.custom()` calls. Update the UIFont DEBUG assertion in `WorkloadApp.swift` for Alpino. Test on a physical device (simulator is case-insensitive; device is not).
+
+7. **`.textFieldStyle(.roundedBorder)` missed in rounded corner fix** — Grepping for `RoundedRectangle` and `cornerRadius` will miss the ~25 instances of `.roundedBorder` across 6 files. Create a custom `TextFieldStyle` conformance with `Rectangle` background and replace all instances. Grep for `.roundedBorder` specifically.
 
 ## Implications for Roadmap
 
-Based on combined research, the dependency graph enforces a clear 6-phase build order. Skipping phases or reordering will introduce data contamination (cold-start parallel track), migration crashes (model renames), or silent data loss (RLS before sync).
+Based on combined research, suggested phase structure:
 
-### Phase 1: Foundation — Models, Engines, Supabase Schema
-**Rationale:** Every subsequent phase depends on models existing and Supabase being updated. The RLS update must happen before any template sync. The `TrainingProfile` model must exist before the questionnaire UI can save answers. Starting here de-risks the migration story for all existing users before any user-facing code is written.
-**Delivers:** TrainingProfile model, WorkloadSnapshot.isEstimated field, WorkoutTemplate additive fields (isFavorite, isArchived, lastUsedAt, usageCount, scheduledDays, isAthleteOwned), WorkoutSession.templateId, ColdStartEngine pure struct, TemplateRepository, Supabase migration SQL, SyncService additions, WorkloadApp schema registration
-**Addresses:** Template list prerequisites, cold-start questionnaire prerequisites
-**Avoids:** Pitfall 3 (migration crash) — additive-only changes, no renames; Pitfall 10 (RLS denial) — Supabase updated before sync code; Pitfall 2 (coachId collision) — isAthleteOwned discriminator established from the start
+### Phase 1: Design Polish (Font Migration + Border Fix)
+**Rationale:** Zero dependencies on other phases. Purely mechanical changes. Establishes the correct design baseline before any new UI is built — mistakes here are cheap; mistakes in font handling cascade into every new view added later.
+**Delivers:** App-wide Alpino typography, zero rounded corners in all views and text fields, updated DESIGN.md spec
+**Addresses:** Alpino font migration (table stakes), rounded border fix (tech debt), `.roundedBorder` TextFieldStyle cleanup
+**Avoids:** Pitfall 5 (font layout breakage from x-height difference), Pitfall 10 (`.roundedBorder` missed in search), Pitfall 11 (PostScript name mismatch causing silent system font fallback)
+**Note:** Font swap and border fix ship together as one atomic commit. Visual QA pass on every screen is mandatory before closing this phase.
 
-### Phase 2: Cold-Start Questionnaire Integration
-**Rationale:** New user experience must be complete before templates, because seeded ATL/CTL values improve the quality of ProgressionEngine suggestions that templates will display. New users who skip cold-start see worse dynamic targets in Phase 4.
-**Delivers:** ColdStartQuestionnaireView (sub-flow), OnboardingView extension (4 required + optional steps, max 5 screens total), WorkoutPipeline parallel track logic, WorkloadRepository estimated filtering, DashboardViewModel switchover display logic, FatigueIndex data gating (min 5 real sessions)
-**Addresses:** Session duration + sRPE questions (table stakes), weeks-at-level question (differentiator), estimated vs. actual ATL/CTL parallel tracking (differentiator)
-**Avoids:** Pitfall 1 (EWMA contamination) — estimated values on TrainingProfile only, never WorkloadSnapshot; Pitfall 4 (pipeline contamination) — real pipeline unchanged; Pitfall 5 (onboarding friction) — merged into existing flow, max 5 screens; Pitfall 13 (FatigueIndex confusion) — gated on real session count
+### Phase 2: Sync Hardening
+**Rationale:** Template sharing (Phase 3) adds new sync surface area. Building sharing on a foundation with 40+ silent error swallows creates debugging nightmares. Fixing sync first makes template sharing testable and trustworthy. This is also the lowest-risk change — no user-visible behavior changes, only surfacing errors that were previously hidden.
+**Delivers:** Per-entity sync timestamps, `SyncResult` return type from `pullAll()`, structured error logging in all pull methods, `lastSyncedAt` only updated for entities that actually synced
+**Addresses:** SyncService hardening (table stakes)
+**Avoids:** Pitfall 4 (partial sync treated as complete sync), Pitfall 13 (import race condition compounded by silent sync failures)
+**Note:** Verify via console logging and a debug sync-status view. No App Store submission needed to validate.
 
-### Phase 3: Template Management
-**Rationale:** Templates must be creatable and manageable before they can drive workouts. Establishing the management layer first ensures ownership filters are in place on all queries before any template-driven workout flows are built on top.
-**Delivers:** TemplateManagementView (list/edit/archive/favorite/delete), TemplateEditorSheet athlete adaptation, MainTabView Templates tab for athlete mode, TemplateDetailView (usage stats, scheduled days)
-**Addresses:** Template list/library (table stakes), template deletion (table stakes), template creation from scratch (table stakes), template editing (table stakes), template duplication (differentiator), template archiving (differentiator), template favoriting (differentiator)
-**Avoids:** Pitfall 15 (coach query breakage) — ownership filters on all template queries; Pitfall 6 (cascade deletion bugs) — always deep-copy via deepCopyGroups(), never share ExerciseGroup instances between template and prescription parents
+### Phase 3: Template Sharing
+**Rationale:** Lower complexity than LLM import, high value for coach-athlete workflows. Builds on existing template infrastructure and hardened sync from Phase 2. Establishes the Supabase deployment pipeline and any universal link infrastructure that LLM import can reuse. Lower-risk way to exercise the new backend infrastructure before adding LLM complexity.
+**Delivers:** `shared_templates` Supabase table and RLS policies, migration SQL, `TemplateSharingService`, `ShareTemplateSheet`, `ImportSharedTemplateSheet`, `onOpenURL` handler in AppRouter, 8-char share codes with 30-day expiry
+**Addresses:** Template sharing (all table stakes), template preview before import, privacy-safe export (structure only, no personal weights)
+**Avoids:** Pitfall 3 (private data leakage in share payload), Pitfall 7 (deep links failing without app installed), Pitfall 8 (cascade delete on shared template data), Pitfall 13 (sync race on immediate post-import push)
+**Note:** Implement share codes before universal links. Universal links require AASA file on `tutrice.app` — one-time setup, must be verified before App Store submission if desired.
 
-### Phase 4: Template-Driven Workouts
-**Rationale:** Depends on Phase 3 templates being manageable. The save-from-session and template picker flows are the core usage loop that generates the usage data Phase 5 needs for pattern detection.
-**Delivers:** TemplatePickerSheet, ActiveWorkoutSheet dual-init (template + prescription paths), loadTemplate() with ProgressionEngine overlay (Pro), post-session template target refresh (lastUsedAt + usageCount + target values), SaveAsTemplateSheet with editable confirmation
-**Addresses:** Template picker + last-used auto-fill (table stakes), save-from-session (table stakes), dynamic targets with ProgressionEngine overlay (Pro differentiator), "Update routine after workout" Hevy pattern (differentiator)
-**Avoids:** Anti-pattern 4 (eager ProgressionEngine evaluation) — load base targets immediately, overlay suggestions in background Task; Pitfall 8 (conflicting numbers) — template = baseline, ProgressionEngine = modifier with explicit UI layering; Pitfall 14 (atypical session captured as default) — show editable confirmation before saving
-
-### Phase 5: Smart Suggestions
-**Rationale:** Suggestion quality depends on template usage data accumulated in Phase 4. Building TemplateSuggestionEngine before templates have usage history would produce the noisy-early-suggestions pitfall with no recovery path and would erode trust in the feature permanently.
-**Delivers:** TemplateSuggestionEngine (day-of-week + recovery + schedule scoring), TemplateQuickStartCard component, DashboardView quick-start section (top-3 templates), schedule-aware suggestions with day-of-week pattern detection
-**Addresses:** Dashboard quick-start cards (differentiator), schedule-aware template suggestions (differentiator)
-**Avoids:** Pitfall 7 (noisy early suggestions) — minimum 3-week + 2-occurrence data gate, shows "recently used" before threshold; Pitfall 9 (HealthKit false positives) — no auto-match from HealthKit since HKWorkout contains no exercise-level data
-
-### Phase 6: Bias Measurement + Polish
-**Rationale:** Bias measurement is a silent background metric with no user-facing urgency and no dependencies on user action. Profile settings and template duplication are polish items that can ship any time without blocking other features.
-**Delivers:** Switchover-time bias capture (store estimated vs. real ATL/CTL at transition moment on TrainingProfile), profile settings to view or re-trigger cold-start questionnaire, template duplication flow
-**Addresses:** Perceptual bias measurement (differentiator), training age + optional questionnaire questions (differentiator)
-**Avoids:** Pitfall 11 (bias timing mismatch) — capture at switchover moment, not a fixed 8-week clock; Pitfall 12 (favorite/archive sync state inconsistency) — these fields were included in Phase 1 Supabase migration
+### Phase 4: LLM Workout Import
+**Rationale:** Highest complexity and highest differentiation. Requires Edge Function infrastructure (established in Phase 3), stable sync (Phase 2), and correct design baseline (Phase 1). Riskiest feature — LLM quality, cost management, and multi-format OCR all need testing time. Shipping last ensures all other infrastructure is stable and any delays do not block the rest of the release.
+**Delivers:** `parse-workout` Supabase Edge Function (Deno), `LLMImportService`, `LLMImportSheet` (text/photo/PDF tabs), Vision OCR + PDFKit pipeline, exercise fuzzy matching, editable review-before-save UI, Pro subscription gate, per-user rate limiting in Edge Function
+**Addresses:** Text import, PDF import, image/screenshot import, review-before-save, exercise normalization, unit detection, error states (all table stakes)
+**Avoids:** Pitfall 1 (Foundation Models iOS version requirement), Pitfall 2 (LLM hallucination), Pitfall 6 (OCR pipeline missing for images/PDFs), Pitfall 9 (API key in binary), Pitfall 12 (cost scaling without rate limits)
+**Note:** Build the review UI and Edge Function proxy first. Then add OCR pipeline (Vision + PDFKit). LLM parsing is the final piece. Pro gate must ship with the feature — do not launch unrestricted.
 
 ### Phase Ordering Rationale
 
-The dependency graph is strict: models before UI, Supabase schema before sync code, cold-start before templates (for ProgressionEngine quality on new users), template management before template-driven workouts (for ownership model integrity), usage data before suggestions. The only flexibility is the ordering of optional questionnaire questions (Phase 2 or later) and bias capture (Phase 6). The parallel-track architecture in Phases 1-2 is the most novel technical work and should be validated with unit tests of the EWMA contamination boundary before template features build on top of it.
+- **Design before features:** Every new view built after Phase 1 automatically uses the correct font and border style. Retrofitting after would require revisiting every new screen.
+- **Sync before sharing:** Template sharing involves new sync paths (push immediately after import, new entity type). Hardened per-entity sync makes this reliable and debuggable.
+- **Sharing before LLM:** Template sharing establishes the Supabase Edge Function deployment pipeline and exercises the template serialization/deserialization code that LLM import reuses. Lower risk to validate backend infrastructure without LLM complexity first.
+- **LLM import last:** It has the most unknowns (LLM output quality, OCR accuracy on real-world content, cost management). All other infrastructure should be stable before adding this surface area.
 
 ### Research Flags
 
-Phases likely needing deeper research during planning:
-- **Phase 2 (Cold-Start Pipeline):** WorkoutPipeline parallel track interaction with WorkloadRepository.upsertSnapshot has subtle edge cases — specifically, existing users who already have WorkloadSnapshot history before completing cold-start. The conditional branching ("pre-existing real data = skip seeding entirely") needs precise specification before implementation.
-- **Phase 4 (Dynamic Targets UX):** The visual design for showing template baseline vs. ProgressionEngine modifier simultaneously in set entry cells is not specified. A design decision is required before implementation to avoid the conflicting-numbers anti-pattern manifesting in the UI.
+**Needs deeper research during planning:**
+- **Phase 3 (Template Sharing):** Universal Links / AASA file setup on `tutrice.app` domain needs verification — confirm the domain can serve AASA with `Content-Type: application/json` and no redirects. Use Apple's AASA validator tool. Share codes are the safe fallback if universal links prove complex.
+- **Phase 4 (LLM Import):** OCR accuracy on real-world gym content (handwritten whiteboards, low-contrast PDFs) needs empirical testing before committing to scope. Vision handles printed text well but handwriting is unreliable — scope the v1.3 feature as "printed text and digital PDFs only" and set user expectations accordingly.
+- **Phase 4 (LLM Import):** Rate limiting implementation in the Edge Function needs design — per-user counters, storage mechanism (Supabase table with daily reset vs KV), and specific limits per Pro vs free tier need specification before building.
+- **Phase 4 (LLM Import):** Structured output schema (JSON Schema for OpenAI) needs iterative prompt testing with real workout PDFs and screenshots before the schema is finalized. This cannot be designed in the abstract.
 
-Phases with standard patterns (skip research-phase):
-- **Phase 1 (Foundation):** SwiftData lightweight migration for additive fields is well-documented. Supabase ALTER TABLE operations are standard SQL. Pure-struct engine pattern is established in the codebase.
-- **Phase 3 (Template Management):** Standard SwiftUI CRUD with existing deepCopyGroups() method. No novel architecture.
-- **Phase 5 (Suggestions):** TemplateSuggestionEngine is ~100 lines of weighted scoring. Follows existing FatigueIndexEngine data-sufficiency gating pattern.
-- **Phase 6 (Polish):** Bias capture is two numbers compared at a known event. No research needed.
+**Standard patterns (can skip research-phase):**
+- **Phase 1 (Design Polish):** Font swap and `Rectangle()` replacement are fully mechanical. Patterns are well-established. No research needed.
+- **Phase 2 (Sync Hardening):** Internal Swift refactor of existing code. Do/catch patterns and per-entity timestamp tracking are standard. No research needed.
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Zero new dependencies confirmed by checking all v1.2 feature requirements against existing framework capabilities. Lightweight migration confirmed by Apple WWDC23 documentation and Hacking with Swift guides. |
-| Features | HIGH | Competitor matrix covers 6 direct competitors with source links. sRPE TSS formula validated by TrainingPeaks documentation and sport science literature. Free/Pro gating decision grounded in Hevy/Strong pricing comparison. |
-| Architecture | HIGH | All decisions derived from direct codebase analysis — actual source files read for WorkloadCalculator.swift, WorkoutPipeline.swift, WorkoutTemplate.swift, SyncService.swift, FatigueIndexEngine.swift, OnboardingView.swift, ActiveWorkoutSheet.swift, DashboardViewModel.swift, WorkloadApp.swift. |
-| Pitfalls | HIGH | 10 of 15 pitfalls rated HIGH confidence with direct code file + line number citations. EWMA contamination verified via WorkloadCalculator.swift. Migration crash verified via WorkloadApp.swift (no VersionedSchema). RLS issue verified via SyncService.swift try? pattern. |
+| Stack | HIGH | All technologies verified: Supabase Edge Functions in existing SDK, Apple Vision and PDFKit are first-party iOS 17+ frameworks, gpt-4o-mini pricing and JSON Schema mode confirmed in OpenAI docs. No new iOS SPM packages required. |
+| Features | HIGH | Competitive analysis (Hevy, Strong) confirms table stakes. Feature scope is well-bounded by existing REQUIREMENTS.md. Deferred items are clearly justified. |
+| Architecture | HIGH | Edge Function proxy is the standard mobile-LLM pattern. Template sharing via share codes and JSON snapshots is simple database work. Integration into existing layer stack requires no model changes. |
+| Pitfalls | HIGH | Critical pitfalls are grounded in direct codebase analysis (40+ `try?` instances in SyncService, ~25 `.roundedBorder` instances across 6 files, hardcoded font string in TextTemplateImportSheet line 42 all confirmed). LLM pitfalls are well-documented from external sources and practitioner experience. |
 
 **Overall confidence:** HIGH
 
 ### Gaps to Address
 
-- **SwiftData VersionedSchema infrastructure:** The app has no existing VersionedSchema. Even though v1.2 uses only additive changes (no migration needed), establishing VersionedSchema infrastructure now prevents future migration debt when a field rename eventually becomes necessary. Decision needed in Phase 1: invest in V2/V3 schema versioning now, or defer until a rename is truly required.
-- **Existing-user cold-start edge case:** Users who already have WorkloadSnapshot history before completing the cold-start questionnaire should skip the parallel-track seeding entirely (they already have real data). This boundary condition is not fully specified and must be defined before Phase 2 implementation.
-- **ProgressionEngine overlay UX design:** How to visually layer "template target" and "ProgressionEngine modifier" in the same set entry cell is unspecified. DESIGN.md constraints (0pt corners, DM Sans, 8pt grid, no color as sole indicator) apply. A design decision is required before Phase 4 to avoid the conflicting-numbers anti-pattern.
-- **TemplateSuggestionEngine seeding for users with prior coach templates:** Users who had coach-prescribed templates before v1.2 will have zero usage history in the new athlete template system. The suggestion engine must degrade gracefully to "recently used" mode for all users in the first 3 weeks regardless of prior template history — this edge case should be explicitly handled in Phase 5.
+- **Alpino PostScript name:** Cannot be confirmed without downloading the font files. Must verify with Font Book before writing `Font.custom()` strings. The UIFont DEBUG assertion in `WorkloadApp.swift` will catch wrong names at launch in DEBUG builds.
+- **AASA file hosting for universal links:** `tutrice.app` domain must be configured to serve the apple-app-site-association file correctly. Verify before committing to universal links as the primary share mechanism. Share codes are the always-works fallback.
+- **OCR accuracy on handwritten content:** Research indicates Vision handles printed text well but handwriting is unreliable. Scope Phase 4 with an explicit "printed/typed text only" caveat in the UI for v1.3. Do not promise handwriting support.
+- **Share code collision probability:** 8-char alphanumeric codes provide ~2.8 trillion combinations, making collision negligible. The Supabase `UNIQUE` constraint provides enforcement. No action needed.
+- **Share link expiry duration:** 30-day expiry is the recommendation. This is a product decision and can be adjusted post-launch via an Edge Function config change without schema migration.
 
 ## Sources
 
 ### Primary (HIGH confidence)
-- Apple WWDC23: Model your schema with SwiftData — lightweight migration behavior for new models and additive properties
-- TrainingPeaks: Science of the Performance Manager — EWMA cold-start seeding approach, CTL steady-state approximation
-- TrainingPeaks: Estimating Training Stress Score (TSS) — sRPE-based TSS formula (hours × RPE × RPE/10), CTL ranges by athlete level
-- HKWorkout / HKWorkoutActivityType documentation — HealthKit workout data limitations (activity type, duration, calories only — no exercise-level data)
-- Existing codebase (WorkloadCalculator.swift, WorkoutPipeline.swift, WorkoutTemplate.swift, SyncService.swift, WorkloadApp.swift, OnboardingView.swift, ActiveWorkoutSheet.swift, DashboardViewModel.swift, FatigueIndexEngine.swift, AutoregulationEngine.swift, ProgressionEngine.swift, WorkoutImportBanner.swift, PrescribedWorkout.swift) — all architecture decisions verified against actual source lines
+- [Supabase Edge Functions Swift invocation](https://supabase.com/docs/reference/swift/functions-invoke) — `client.functions.invoke()` usage pattern
+- [Supabase Edge Functions overview](https://supabase.com/docs/guides/functions) — Edge Function secrets management, Deno runtime
+- [Apple VNRecognizeTextRequest](https://developer.apple.com/documentation/vision/vnrecognizetextrequest) — on-device OCR API, iOS 17+ compatibility
+- [Apple PDFKit](https://developer.apple.com/documentation/pdfkit) — `PDFDocument.page(at:).string` text extraction
+- [SwiftUI fileImporter](https://developer.apple.com/documentation/swiftui/view/fileimporter(ispresented:allowedcontenttypes:allowsmultipleselection:oncompletion:)) — native file picker
+- [OpenAI API pricing](https://openai.com/api/pricing/) — gpt-4o-mini cost verification
+- [OpenAI Structured Outputs](https://platform.openai.com/docs/guides/structured-outputs) — JSON Schema mode reliability
+- [Apple Foundation Models](https://developer.apple.com/documentation/FoundationModels) — iOS 26+ minimum confirmed
+- [FontShare ITF Free Font License](https://www.fontshare.com/licenses/itf-ffl) — commercial use and app embedding confirmed
+- [Apple custom fonts guide](https://developer.apple.com/documentation/uikit/adding-a-custom-font-to-your-app) — Info.plist UIAppFonts registration pattern
+- Codebase analysis: SyncService.swift (40+ `try?`), FontTokens.swift, WorkoutTemplate.swift, TextTemplateImportSheet.swift line 42, TemplateEditorSheet.swift — direct code review (HIGH confidence)
 
 ### Secondary (MEDIUM confidence)
-- Hevy, Strong app feature analysis — template/routine feature expectations and competitor matrix; free vs. Pro gating models
-- Juggernaut AI App Store reviews — onboarding questionnaire depth, training age and periodization preference collection
-- Fitbod algorithm blog — cold-start population-data approach (Tonus uses formula instead; different but validated approach)
-- sRPE validity research (Frontiers Neuroscience) — sRPE overestimates by ~15%, substantial interindividual variability, justifies using RPE defaults slightly conservative
-- SwiftData migration guides (Hacking with Swift, Donny Wals, Atomic Robot) — VersionedSchema patterns and lightweight vs. custom migration boundaries
+- [FontShare Alpino](https://www.fontshare.com/fonts/alpino) — weight availability (JavaScript required to browse; verified via befonts.com mirror)
+- [Universal Links on iOS](https://www.avanderlee.com/swiftui/universal-links-ios/) — AASA file setup and in-app deep link routing
+- [Apple: Allowing apps and websites to link to your content](https://developer.apple.com/documentation/xcode/allowing-apps-and-websites-to-link-to-your-content/) — universal links official guide
+- [Foundation Models capabilities](https://www.natashatherobot.com/p/apple-foundation-models) — 4K context window, no image input confirmed
+- [SwiftUI custom font pitfalls](https://blog.eidinger.info/what-can-go-wrong-when-using-custom-fonts-in-swiftui) — PostScript name mismatch, simulator vs device behavior
+- [Hevy routine sharing](https://www.hevyapp.com/features/share-folders-routines/) — exercises shared without personal weights; validates privacy model
+- [Strong template sharing](https://help.strongapp.io/article/109-share-workout-or-template) — requires app installed; validates need for share code fallback
 
 ### Tertiary (LOW confidence)
-- ProCyclingCoaching CTL Calculator — CTL target ranges by athlete type (secondary validation only, access restricted)
-- EWMA theory (Towards Data Science) — mathematical basis for 84-day error persistence from bad seed value
-- MadAppGang / Dataconomy fitness app UX articles — onboarding friction thresholds and 80% completion target benchmarks
+- [LLM Fitness App Lessons](https://dev.to/justinschroeder/building-bodcoach-llm-lessons-learned-the-hard-way-59kf) — practitioner experience with LLM hallucination in fitness context (single source, but findings align with general LLM behavior)
 
 ---
-*Research completed: 2026-05-01*
+*Research completed: 2026-05-10*
 *Ready for roadmap: yes*

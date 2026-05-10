@@ -1,249 +1,249 @@
-# Feature Landscape
+# Feature Landscape: v1.3 LLM Import, Sharing & Polish
 
-**Domain:** iOS fitness/training app -- v1.2 Cold-Start Questionnaire & Athlete Training Templates
-**Researched:** 2026-05-01
-**Context:** Tonus has a working 3-step onboarding (frequency, experience, HealthKit), coach template models (WorkoutTemplate/ExerciseGroup/TemplateExercise/TemplateSet), HealthKit import, ProgressionEngine, and EWMA workload calculation. This research covers what the ecosystem does for cold-start data collection and template/routine management, to inform building both features into Tonus.
+**Domain:** Fitness app -- AI workout import, template sharing, typography rebrand, tech debt
+**Researched:** 2026-05-10
+**Focus:** NEW features only (existing template, HealthKit import, coach, subscription systems already built)
 
 ## Table Stakes
 
-Features users expect. Missing = product feels incomplete or confusing.
+Features users expect once they see these capabilities advertised. Missing = broken or frustrating.
 
-### Cold-Start Questionnaire
-
-| Feature | Why Expected | Complexity | Notes |
-|---------|--------------|------------|-------|
-| **Training frequency (sessions/week)** | Every serious fitness app asks this: Fitbod, Juggernaut AI, Hevy Trainer, JEFIT. Required to estimate weekly training volume. Tonus already collects this (TrainingFrequency enum: 1-2, 3-4, 5-6, 7+). | Already built | Extend existing onboarding step; map to numeric midpoint for seeding math. |
-| **Experience level** | Universal onboarding Q across Fitbod (beginner/intermediate/advanced), Juggernaut AI, JEFIT. Sets expectations for load tolerance. Tonus already collects this (ExperienceLevel enum). | Already built | Use as modifier for initial load estimates (beginners tolerate less absolute load). |
-| **Typical session duration** | Fitbod asks "how long do you want to train." sRPE x duration is the core TSS formula (Foster method). Without duration, you cannot estimate session load. TrainingPeaks seeds CTL from weekly training hours. | Low | Single slider or segmented control (30/45/60/75/90+ min). Critical for TSS estimation: TSS = hours x RPE x (RPE/10). |
-| **Typical session intensity (sRPE estimate)** | Juggernaut AI collects perceived effort context. sRPE is the other half of the TSS formula. Most athletes can estimate "how hard are your typical sessions" even if they have never used RPE before. | Low | Visual RPE scale (1-10) with anchor descriptions ("light conversation" to "maximal effort"). Default to 6-7 for most users since research shows sRPE tends to overestimate by ~15%. |
-| **Save-from-session (template creation)** | Strong, Hevy, JEFIT all offer "Save as Template/Routine" after completing a workout. This is the #1 template creation path -- users build their first template from real sessions, not from scratch. Strong prompts this automatically at workout completion. | Medium | Post-workout sheet shows "Save as Template?" prompt. Map WorkoutSession exercises/sets to WorkoutTemplate/ExerciseGroup structure. Must handle the coach template model's `coachId` field (repurpose as `ownerId` or add `athleteId`). |
-| **Template picker (start workout from template)** | Strong's primary Start Workout tab shows templates front and center. Hevy shows routines in the Workout tab with "Start Routine" button. Every workout tracker app with templates has this -- it is the primary way users begin sessions. | Medium | List view of templates with "Start Workout" action. Must convert template exercises/sets into a new WorkoutSession with pre-filled entries. Needs to work in the existing WorkoutLog tab or as a sheet from dashboard. |
-| **Last-used values auto-fill** | Strong auto-populates previous weights for each exercise. Hevy shows a "PREVIOUS" column during logging with last-used weight/reps that users can tap to fill. This is THE core template feature -- without it, templates are just exercise lists. | Medium | When starting from template, look up last WorkoutSession containing each exercise and pre-fill weight/reps/duration. Hevy shows this as a column; Strong pre-fills the input fields. Either approach works. Depends on ProgressionEngine.fetchHistory() which already exists. |
-| **Template editing (add/remove exercises, reorder)** | Every template system allows modification. Hevy asks "Update routine?" after completing a modified workout. Strong allows direct editing via template detail screen. Without editing, templates become stale fast. | Medium | Full CRUD on template structure: add/remove exercises, add/remove sets, reorder via drag-and-drop, rename. Hevy's "Update routine with changes?" prompt after workout completion is excellent UX -- reduces explicit editing friction. |
-
-### Training Templates (Management)
+### LLM Workout Import
 
 | Feature | Why Expected | Complexity | Notes |
 |---------|--------------|------------|-------|
-| **Template list/library** | All apps show templates in a scrollable list. Users accumulate 5-15 templates over time. Without organization, templates become unwieldy. | Low | Simple list view with template name, sport type, exercise count, last-used date. Sorted by most-recently-used by default. |
-| **Template deletion** | Basic CRUD. SwiftData cascade delete handles ExerciseGroup/TemplateExercise/TemplateSet relationships automatically. | Low | Swipe-to-delete or context menu with confirmation. |
-| **Template creation from scratch** | While save-from-session is the primary path, some users want to plan workouts in advance. Strong and Hevy both offer a "+ Template" / "New Routine" button. | Medium | Exercise picker (search existing exercise database), set configuration (weight/reps/RPE targets), group structure (A/B/C/D). Reuse existing exercise search from ActiveWorkoutSheet. |
+| Text input parsing (paste workout text) | Lowest friction entry point; copy from notes/messages/Reddit | Medium | Simplest LLM call -- text-only, no OCR needed. Must handle freeform formats: "3x10 bench 135lbs", "Bench Press: 3 sets of 10 @ 60kg", coach shorthand |
+| PDF file import | Coaches distribute programs as PDFs constantly | High | Requires PDF text extraction before LLM. Use iOS `PDFKit` for text-based PDFs. Image-based PDFs need OCR pipeline |
+| Image/screenshot import | Users screenshot workouts from Instagram, coaching apps, spreadsheets | High | Requires sending image to vision-capable LLM (GPT-4o, Claude). Base64 encode and send with structured output schema |
+| Review-before-save screen | Users must verify parsed data before it becomes a template | Low | Non-negotiable. LLM output is probabilistic -- user MUST confirm exercise names, sets, reps, weights before commit |
+| Exercise name normalization | "Barbell Bench" vs "Bench Press" vs "BB Bench" must map correctly | Medium | LLM should output canonical exercise names matching app's exercise library. Fuzzy match against existing exercises + custom exercises |
+| Unit detection (kg vs lbs) | Workout sources mix units freely | Low | LLM prompt should extract units; app converts to user's preferred unit. Default to user's existing preference if ambiguous |
+| Error state for unparseable input | Garbled text, unrelated content, empty images | Low | Show clear "couldn't parse" message with option to retry or enter manually. Never silently fail |
+
+### Template Sharing
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| Share via system share sheet | iOS standard -- users expect share button producing a link | Low | Use `UIActivityViewController` with a shareable URL. Industry standard (Hevy, Strong both do this) |
+| Import shared template by tapping link | Receiver taps link, template appears in their library | Medium | Requires Universal Links or custom URL scheme + backend endpoint to store/retrieve shared template data |
+| Template preview before import | See what you're getting before adding to library | Low | Show template name, exercise count, group structure. Same pattern as review-before-save in LLM import |
+| Shared templates exclude personal weight data | Privacy -- don't leak the sharer's actual weights | Low | Share structure only (exercises, sets, reps, RPE targets). Hevy explicitly does this. Weights are personal |
+
+### Font Migration (Alpino)
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| All text renders in new font consistently | Mixed fonts = broken design. Must be 100% or 0% | Low | Existing `Font.Tokens` abstraction makes this a ~2-file change (FontTokens.swift + Info.plist). Swap "DMSans-Regular/Medium" to "Alpino-Regular/Medium" |
+| Font weights match existing hierarchy | Regular + Medium weights must exist in Alpino | Low | Alpino has Thin/Light/Regular/Medium/Bold/Black. Regular + Medium map 1:1 from DM Sans |
+
+### Tech Debt Fixes
+
+| Feature | Why Expected | Complexity | Notes |
+|---------|--------------|------------|-------|
+| SyncService pull errors surfaced, not swallowed | Silent `try?` means data can silently fail to sync | Medium | 40+ `try?` calls in SyncService.swift. Each pull function silently drops errors. Need `do/catch` with logging and optional retry. Prioritize pull-side (data loss risk) over push-side (retried on next sync) |
+| 0pt border radius enforced everywhere | Design system violation -- 23 occurrences of `RoundedRectangle` across 6 files | Low | Find-and-replace `RoundedRectangle` with `Rectangle` in overlay/stroke modifiers. Mechanical change |
 
 ## Differentiators
 
-Features that set Tonus apart. Not expected by every app user, but valued by Tonus's target audience (data-driven athletes) and align with the app's core value proposition.
-
-### Cold-Start Questionnaire Differentiators
+Features that set the product apart. Not expected, but valuable.
 
 | Feature | Value Proposition | Complexity | Notes |
 |---------|-------------------|------------|-------|
-| **Weeks-at-current-level question** | No competitor asks this directly. TrainingPeaks says to interpret seeded CTL "cautiously until 4-6 weeks of data." Knowing "I've been training at this level for 6 months" vs "I just started 2 weeks ago" dramatically changes CTL confidence. Tonus can weight its switchover threshold accordingly. | Low | Segmented control: <2 weeks / 2-4 weeks / 1-3 months / 3-6 months / 6+ months. Longer = higher confidence in seeded values, shorter = more conservative seed. |
-| **Parallel data tracks (estimated vs actual)** | TrainingPeaks warns to "reset starting values back to zero" after 4-6 weeks. That is disruptive and lossy. Tonus's approach of maintaining estimated ATL/CTL alongside real values, then blending at switchover, is more sophisticated than any competitor. TrainingPeaks just overwrites. | High | Requires WorkloadSnapshot to carry both estimated and real ATL/CTL. Blending function at switchover (3wk + 8 sessions). Most architecturally complex piece -- need clear data model. |
-| **Perceptual bias measurement (silent)** | No fitness app does this. Research shows sRPE overestimates by ~15% on average, but with "substantial interindividual variability." Comparing user's estimated sRPE (from questionnaire) with actual logged sRPE after 8 weeks gives a personalized bias coefficient. This could feed into more accurate load estimates long-term. | Low (capture) / High (use) | Capture is just comparing two numbers. Using it to calibrate future estimates is v1.3+ territory. For now, store the delta as a silent metric in TrainingProfile. |
-| **Training age (optional)** | Juggernaut AI asks this. Training age (years of structured training) is a better predictor of load tolerance than experience level (beginner/intermediate/advanced). A 2-year lifter who trains 6x/week is very different from a 10-year lifter who trains 3x/week. | Low | Optional numeric input or segmented (<1yr / 1-3yr / 3-5yr / 5-10yr / 10+yr). Modifies initial ATL/CTL estimates -- higher training age = higher load tolerance for same frequency/intensity. |
-| **Periodization preference (optional)** | Juggernaut AI asks this and offers block/undulating/alternating. Tonus already has PeriodizationDetector. Knowing user's intended approach lets the app compare detected vs intended periodization -- another calibration signal. | Low | Optional selection from existing periodization types. Does not drive functionality in v1.2 but enriches TrainingProfile for future intelligence features. |
-| **Movement type preference (optional)** | Fitbod asks about equipment and training type. Knowing whether someone primarily does compound barbell, machines, bodyweight, or cardio helps contextualize load. A powerlifter doing 4 sessions/week at RPE 8 generates very different TSS than a runner doing the same. | Low | Multi-select from exercise categories (compound, isolation, cardio, plyometric, etc.) or sport-specific movements. Feeds into more nuanced TSS estimation. |
-| **Injury history flag (optional)** | Juggernaut AI asks about weaknesses and injury concerns. Tonus has deferred injury-aware loading to future versions, but capturing the flag now (yes/no + optional area) costs nothing and enriches the profile. | Low | Boolean + optional body area tag. No functional impact in v1.2. Stored in TrainingProfile for future injury-aware features. |
-
-### Training Template Differentiators
-
-| Feature | Value Proposition | Complexity | Notes |
-|---------|-------------------|------------|-------|
-| **Exercise group structure (A/B/C/D)** | Strong and Hevy have flat exercise lists in templates. Tonus already has ExerciseGroup in the coach template model with `groupName` (e.g., "Group A", "Group B") and `orderIndex`. Exposing this to athletes enables superset/circuit organization that competitors lack in their template UX. | Low | Model exists. Just needs UI -- collapsible group headers with drag-and-drop between groups. Coaches already use this structure for prescribed workouts. |
-| **Dashboard quick-start cards** | No competitor puts templates on the dashboard as tap-to-start cards. Strong and Hevy both require navigating to a separate Workout/Routines tab. Putting the most-used 2-3 templates on the Dashboard reduces workout-start friction from 3 taps to 1. | Medium | Horizontal scroll of template cards on DashboardView. Show template name, exercise count, last-used date. Tap to start session with pre-filled data. Requires dashboard layout changes. |
-| **HealthKit workout-to-template matching** | No competitor does this. When a HealthKit workout is imported (from Apple Watch, Garmin, etc.), Tonus can try to match it against existing templates by activity type, duration, and exercise patterns. This auto-associates imported workouts with the user's template library, enabling template-based analytics even for watch-logged sessions. | High | Fuzzy matching: compare HKWorkout.workoutActivityType against template.sportType, duration within range, exercise overlap if available. May need to match by title string (many watch apps set workout title). WorkoutImportService already imports workouts; needs template-matching layer. |
-| **Schedule-aware template suggestions (TemplateSuggestionEngine)** | Fitbod suggests muscle groups based on recovery; Juggernaut AI plans specific days. But suggesting "it's Tuesday, you usually do Push on Tuesdays" based on actual usage patterns is simple, personal, and not done by workout trackers (only by program-based apps like Juggernaut). | Medium | Analyze template usage by day-of-week. After 2+ weeks of pattern data, suggest today's most-likely template on dashboard. Pure computation engine -- no ML needed, just day-of-week frequency counting per template. |
-| **Dynamic targets (last-used + ProgressionEngine overlay)** | Fitbod auto-adjusts weight/reps. PumpX suggests weights. But combining "what you actually did last time" (last-used values) with "what your recovery state allows" (ProgressionEngine, Pro-gated) is Tonus's unique angle. Templates that evolve with the athlete AND respond to recovery state. | Medium | Free tier: show last-used values as defaults. Pro tier: overlay ProgressionEngine suggestions (increase/maintain/deload with rationale). ProgressionEngine.suggest() already exists and produces SetSuggestion with weight/reps/RPE. |
-| **Template duplication** | Hevy supports this. Users want to create "Push A" and "Push B" variants without rebuilding from scratch. | Low | Deep copy via existing `deepCopyGroups()` method on WorkoutTemplate. |
-| **Template archiving** | Prevent template list bloat without losing data. Hevy has unlimited routines but no archive concept -- old routines clutter the list. | Low | Boolean `isArchived` flag on WorkoutTemplate. Filter archived from main list, show in separate "Archived" section. |
-| **Template favoriting** | Quick access to most-used templates. Complements dashboard cards -- favorites feed the quick-start card selection. | Low | Boolean `isFavorite` flag. Favorited templates appear first in list and on dashboard cards. |
+| Multi-format LLM import (text + image + PDF in one flow) | Most apps support CSV import only (Hevy, Strong). AI-powered import from ANY format is rare | High | Hevy has HevyGPT but it generates plans, not imports existing ones. Strong only shares via proprietary links. Importing from coach PDFs/screenshots is an unmet need |
+| Automatic exercise matching to existing library | Parsed exercises auto-link to user's exercise history for PR tracking continuity | Medium | Match LLM-extracted exercise names against user's ExerciseEntry history + CustomExercise list. Fallback to creating new exercise |
+| Coach-to-athlete template sharing | Coach shares template, athlete receives it directly in app with coach attribution | Medium | Extends existing CoachAthleteRelationship. Coach's template becomes athlete-owned copy on import. Differentiated from generic link sharing |
+| Batch import (multi-week program) | Import entire training program at once, not one workout at a time | High | LLM parses multi-day structure from PDF. Creates multiple templates with day labels. Defer to v1.4 -- single template import first |
+| Shareable template link works without app installed | Web preview page for shared templates with App Store download link | Medium | Requires a web endpoint (Supabase Edge Function or static page) that renders template preview + deep link into app |
 
 ## Anti-Features
 
-Features to explicitly NOT build for this milestone.
+Features to explicitly NOT build in v1.3.
 
 | Anti-Feature | Why Avoid | What to Do Instead |
 |--------------|-----------|-------------------|
-| **Pre-built template library / program marketplace** | JEFIT has 850+ plans; Hevy has 25+ programs. Building or curating a library is content work, not engineering. Premature before the template model is battle-tested. Also conflicts with Tonus's "your data, your insights" positioning. | Let users build their own templates from sessions. Coach templates already exist for coached athletes. Revisit content library in v1.4+. |
-| **AI-generated workout plans** | Fitbod generates entire workouts via algorithm. Juggernaut AI plans full periodization blocks. This requires massive training data (Fitbod uses 150M+ logged workouts) or sophisticated periodization logic. Tonus has neither the data nor the mandate. | ProgressionEngine provides per-exercise suggestions within user-created templates. Intelligence overlays on user structure, not wholesale generation. |
-| **Template sharing between users** | Explicitly deferred to v1.3 per PROJECT.md. Needs "battle-tested template model first." Sharing adds social/privacy complexity and Supabase schema work. | Build solid local template system first. Sharing is a natural v1.3 follow-up after the model proves stable. |
-| **Complex periodization programming** | Juggernaut AI plans entire mesocycles with block/undulating periodization. TrainingPeaks Annual Training Plans are coach-driven. Manual mesocycle planning is explicitly out of scope per PROJECT.md ("TrainingPeaks owns this space"). | Tonus already detects periodization patterns passively. Templates are workout-level, not program-level. Keep it simple. |
-| **Mandatory onboarding questionnaire** | Strong's 2-step onboarding with mandatory sign-up "introduces friction early on." Long questionnaires cause drop-off. Juggernaut AI's 20-minute onboarding is justified because it generates your entire program -- Tonus does not. | 4 required questions + 4 optional. Required Qs map to onboarding steps like existing flow. Optional Qs appear as "tell us more" expandable section or separate profile screen. User can skip optional Qs entirely. |
-| **Muscle recovery heat map** | Fitbod's signature feature: color-coded body map showing recovery status per muscle group. Cool but orthogonal to Tonus's recovery model (composite score from HRV/RHR/sleep, not per-muscle). Would require a fundamentally different recovery architecture. | Tonus's whole-body recovery score is the right abstraction for workload management. Per-muscle recovery is a workout-planning feature, not a load-management feature. |
-| **Equipment/gym filtering** | Fitbod asks what equipment you have. Tonus's template model does not constrain by equipment -- exercises are user-chosen. Equipment filtering matters for AI-generated workouts, not for user-built templates. | Not needed. Users select their own exercises when building templates. |
-| **LLM-powered workout import from photos/text** | Explicitly deferred to v1.3 per PROJECT.md. Needs model research and introduces LLM cost/latency concerns. | Templates are manual-creation or save-from-session for v1.2. |
-| **Rest timer per template set** | Strong and Hevy both have sophisticated rest timers. Nice-to-have but orthogonal to the template intelligence story. The existing rest timer in ActiveWorkoutSheet works independently of templates. | Rest timer is already in the workout logging flow. Template sets define targets (weight/reps/RPE), not rest periods. |
+| On-device LLM processing | No viable on-device model handles structured extraction from images reliably on iPhone. Apple Intelligence APIs do not expose structured extraction. Model size (2-7B minimum for quality) exceeds practical mobile deployment | Use server-side API (OpenAI GPT-4o-mini for text, GPT-4o for images). Cost per parse: ~$0.01-0.05. Acceptable for Pro-gated feature |
+| AI chatbot for workout design | LLM cost per conversation is high, liability for training advice, out of scope for v1.3 | Keep import-only. User brings the workout, LLM structures it. No generative workout creation (Hevy already has HevyGPT for this) |
+| Template marketplace / public library | Content curation burden, moderation, discoverability UX -- all premature | Stick to direct sharing (link/code). Social discovery is a v2+ feature |
+| Background LLM processing | Complexity of background task management + API timeout risk | Process synchronously with loading indicator. Typical parse completes in 2-5 seconds |
+| CSV import/export of templates | Engineering effort for niche use case. LLM import subsumes most CSV scenarios | LLM text import handles pasted CSV data naturally. Dedicated CSV parser is redundant |
+| Real-time collaborative template editing | Massive sync complexity for minimal value | Templates are personal copies. Share -> import creates independent copy |
+| Social feed of shared templates | Community features are a different product direction | Direct sharing only. No public browsing, no likes/comments |
 
 ## Feature Dependencies
 
 ```
-Cold-Start Dependencies:
-  TrainingFrequency (exists) ─┐
-  ExperienceLevel (exists) ───┤
-  Session Duration (new Q) ───┼──> TrainingProfile model ──> ColdStartSeedingEngine
-  Typical sRPE (new Q) ───────┤        │
-  Weeks at Level (new Q) ─────┘        │
-                                        ├──> Parallel ATL/CTL tracks ──> WorkloadSnapshot changes
-  Training Age (optional) ─────────────┤
-  Periodization Pref (optional) ───────┤
-  Movement Types (optional) ───────────┤
-  Injury History (optional) ───────────┘
+Font Migration (Alpino)
+  No dependencies. Can ship independently.
 
-  Seeded ATL/CTL ──> Switchover logic (3wk + 8 sessions) ──> Real ATL/CTL
-  Seeded sRPE (questionnaire) ──> Actual sRPE (8 weeks) ──> Perceptual Bias (silent metric)
+SyncService Hardening
+  No dependencies. Can ship independently.
 
-Template Dependencies:
-  WorkoutTemplate model (exists) ──> Athlete ownership (coachId → ownerId refactor or athleteId add)
-       │
-       ├──> Save-from-session ──> Post-workout prompt
-       │
-       ├──> Create from scratch ──> Exercise picker + set configuration
-       │
-       ├──> Template picker ──> Start Workout from template
-       │        │
-       │        └──> Last-used auto-fill ──> ProgressionEngine overlay (Pro)
-       │
-       ├──> Dashboard quick-start cards
-       │
-       ├──> Template management (edit, duplicate, archive, favorite, delete)
-       │
-       ├──> HealthKit workout → template matching (depends on WorkoutImportService)
-       │
-       └──> TemplateSuggestionEngine (depends on 2+ weeks of template usage data)
+Rounded Border Fix
+  No dependencies. Can ship independently.
 
-Cross-Feature:
-  Cold-start seeded ATL/CTL ──> ProgressionEngine context (recovery zone, ACWR zone)
-       └──> Dynamic template targets benefit from accurate cold-start values
+LLM Workout Import
+  Depends on: WorkoutTemplate model (EXISTS)
+  Depends on: ExerciseGroup/TemplateExercise/TemplateSet models (EXIST)
+  Depends on: TemplateRepository.save() (EXISTS)
+  New: LLM API integration (OpenAI Swift client or raw URLSession)
+  New: Import parsing engine (text -> structured template)
+  New: Image/PDF preprocessing pipeline
+  New: Review/confirm UI sheet
+  New: Import entry point UI (button in template management view)
+
+Template Sharing
+  Depends on: WorkoutTemplate model (EXISTS)
+  Depends on: TemplateRepository.save() + duplicate() (EXIST)
+  Depends on: Supabase backend (EXISTS)
+  New: Supabase table for shared template payloads (or serialized JSON in URL)
+  New: Share link generation (Universal Links preferred)
+  New: Deep link handler in AppRouter
+  New: Template import/preview sheet
+  Optional: Web preview page (Supabase Edge Function)
+
+LLM Import --X--> Template Sharing (independent, no cross-dependency)
 ```
-
-## Competitor Feature Matrix
-
-### Cold-Start / Onboarding
-
-| Feature | TrainingPeaks | Juggernaut AI | Fitbod | Strong | Hevy | JEFIT | Tonus (current) | Tonus (v1.2 target) |
-|---------|--------------|---------------|--------|--------|------|-------|-----------------|---------------------|
-| Training frequency Q | Via ATP wizard | Yes | Yes | No (minimal onboarding) | No (minimal) | Yes | Yes (exists) | Yes |
-| Experience level Q | No | Yes (detailed) | Yes | No | No | No | Yes (exists) | Yes |
-| Session duration Q | Via weekly hours | Implied | Yes | No | No | No | No | Yes (new) |
-| Intensity/RPE Q | No | Per-session readiness | No | No | No | No | No | Yes (new) |
-| Weeks at level Q | No | No | No | No | No | No | No | Yes (differentiator) |
-| Training age Q | No | Yes | No | No | No | No | No | Yes (optional) |
-| Periodization Q | Via ATP | Yes (block/undulating) | No | No | No | No | No | Yes (optional) |
-| Movement/equipment Q | No | Lift technique | Yes (equipment) | No | No | No | No | Yes (optional) |
-| Injury history Q | No | Yes (weaknesses) | No | No | No | No | No | Yes (optional flag) |
-| CTL/load seeding | Yes (manual) | Implicit (AI plans) | Implicit (population data) | No | No | No | No | Yes (formula-based) |
-| Estimated vs actual comparison | Reset after 4-6 weeks | No (AI adapts continuously) | No | No | No | No | No | Yes (silent bias metric) |
-
-### Template / Routine Management
-
-| Feature | Strong | Hevy | JEFIT | Fitbod | Tonus (current) | Tonus (v1.2 target) |
-|---------|--------|------|-------|--------|-----------------|---------------------|
-| Save from session | Yes (prompt at end) | Yes (profile > save as routine) | Yes | N/A (AI-generated) | No | Yes |
-| Create from scratch | Yes | Yes | Yes (web + mobile) | N/A | Coach only | Yes (athletes) |
-| Template picker | Yes (Start Workout tab) | Yes (Workout tab) | Yes | N/A | Coach prescribed only | Yes |
-| Folders/organization | Yes (folders + drag-drop) | Yes (folders + drag-drop) | Yes (categories) | N/A | No | No (v1.3 if needed) |
-| Last-used auto-fill | Yes (auto-populate) | Yes (PREVIOUS column) | Yes | Yes (algorithm) | No | Yes |
-| Progressive suggestions | No (manual only) | No | Yes (AI overload) | Yes (auto-adjust) | ProgressionEngine (Pro) | Yes, overlaid on templates (Pro) |
-| Update routine after workout | No (separate edit) | Yes ("Update routine?") | No | N/A | No | Yes (Hevy pattern) |
-| Exercise groups (supersets) | Supersets (implicit) | Supersets | Yes | Yes | ExerciseGroup (coach model) | Yes (A/B/C/D groups) |
-| Dashboard quick-start | No (separate tab) | No (separate tab) | No | N/A | No | Yes (differentiator) |
-| HealthKit workout matching | No | No | No | No | Import only | Yes (differentiator) |
-| Schedule suggestions | No | No | No | Muscle-based | No | Yes (day-of-week, differentiator) |
-| Dynamic targets | No | AI-driven entire plan | No | AI-driven per exercise | ProgressionEngine exists | Yes, per template (differentiator) |
-| Free template limit | 3 | Unlimited | Unknown | N/A (subscription) | N/A | Unlimited (templates free) |
-| Sharing | Yes | Yes (links + images) | Community | No | No | No (v1.3) |
 
 ## MVP Recommendation
 
-### Must-have for v1.2 (build in this order):
+**Priority order based on value/complexity ratio:**
 
-**Cold-Start Questionnaire:**
-1. **TrainingProfile model + 4 required questions** (Low) -- Session duration and sRPE are the two new data points needed for seeding. Frequency and experience already exist. Weeks-at-level is one segmented control. Wire into existing onboarding flow after experience step, before HealthKit.
-2. **ColdStartSeedingEngine** (Medium) -- Pure struct that takes TrainingProfile inputs and produces initial ATL/CTL estimates using TSS = hours x RPE x (RPE/10), mapped to EWMA equivalents. Reference TrainingPeaks CTL estimation methodology (weekly hours -> CTL via TSS).
-3. **Parallel data track storage** (Medium-High) -- WorkloadSnapshot gains `estimatedATL`/`estimatedCTL` fields. Switchover logic at 3 weeks + 8 sessions.
+1. **Font migration (Alpino)** -- Immediate visual rebrand, ~2 hours of work. Existing `Font.Tokens` abstraction means changing 2 filenames in one file. Register new fonts in Info.plist. Delete old font files.
 
-**Training Templates:**
-4. **Template ownership for athletes** (Low) -- Refactor `coachId` on WorkoutTemplate to `ownerId` or add `athleteId` so athletes can own templates. Critical prerequisite for all template features.
-5. **Save-from-session** (Medium) -- Post-workout "Save as Template?" prompt. Highest-value template creation path. Maps session exercises/sets to template structure using existing model.
-6. **Template picker + last-used auto-fill** (Medium) -- Start workout from template with pre-filled values from history. This is the core template UX loop: create from session -> reuse from picker -> update from changes.
-7. **Dashboard quick-start cards** (Medium) -- 2-3 most recent/favorite templates as tap-to-start cards on dashboard. Differentiator that reduces friction.
-8. **Template management (edit, duplicate, archive, favorite, delete)** (Medium) -- Full CRUD. Duplicate uses existing `deepCopyGroups()`. Archive/favorite are boolean flags.
+2. **Rounded border fix** -- 23 occurrences across 6 files. Mechanical find-and-replace. Ship with font migration as a single "design polish" phase.
 
-### Build if time permits:
-9. **Dynamic targets with ProgressionEngine overlay** (Medium) -- Pro-gated. ProgressionEngine.suggest() already produces suggestions. Wire suggestions into template auto-fill alongside last-used values.
-10. **TemplateSuggestionEngine** (Medium) -- Day-of-week frequency analysis. Only useful after 2+ weeks of template usage data, so can ship slightly after core template features.
-11. **Optional questionnaire questions (4)** (Low each) -- Training age, periodization pref, movement types, injury flag. Stored in TrainingProfile. No functional impact in v1.2 but enriches data.
+3. **SyncService `try?` hardening** -- Silent data loss is a serious bug. Convert pull-side `try?` to `do/catch` with structured error logging. Does not change behavior for users (data still syncs), but surfaces failures for debugging.
 
-### Defer to v1.3+:
-- HealthKit workout -> template matching (High complexity, needs fuzzy matching logic)
-- Perceptual bias calibration (use case unclear until more data)
-- Template sharing between users (PROJECT.md scope)
-- Template folders (premature optimization -- users need 10+ templates first)
-- LLM-powered import (PROJECT.md scope)
+4. **Template sharing** -- Lower complexity than LLM import, high user value for coach-athlete workflows. Builds on existing template + Supabase infrastructure. Ship before LLM import.
 
-## Complexity Estimates
+5. **LLM workout import** -- Highest complexity, highest differentiation. Requires new API dependency (OpenAI), new parsing logic, new UI flow. Gate behind Pro subscription to offset API costs.
 
-| Feature | New Files | Existing File Changes | Subscription Gate | Risk |
-|---------|-----------|----------------------|-------------------|------|
-| TrainingProfile model | 1 (TrainingProfile.swift) | ModelContainer schema, Supabase sync | Free | Low -- simple @Model class |
-| Cold-start questionnaire UI | 1-2 (new onboarding steps) | OnboardingView.swift (add steps), Enums.swift (new enums) | Free | Low -- follows existing onboarding pattern |
-| ColdStartSeedingEngine | 1 (ColdStartSeedingEngine.swift) | WorkoutPipeline (invoke at onboarding), AppRouter (trigger seeding) | Free | Medium -- math must be validated |
-| Parallel ATL/CTL tracks | 0 new | WorkloadSnapshot model, WorkloadCalculator, WorkloadRepository | Free | High -- most risky change, touches core data model |
-| Template ownership refactor | 0 new | WorkoutTemplate model (coachId -> ownerId or add athleteId), sync schema | Free | Medium -- schema migration |
-| Save-from-session | 1 (SaveAsTemplateSheet.swift) | ActiveWorkoutSheet (prompt trigger) | Free | Low -- model mapping |
-| Template picker | 1 (TemplatePickerView.swift) | WorkoutLogView (entry point) | Free | Low -- list + start action |
-| Last-used auto-fill | 0 new | ActiveWorkoutSheet (pre-fill logic), ProgressionEngine.fetchHistory() | Free | Low -- query exists |
-| Dashboard quick-start cards | 1 (TemplateQuickStartCard.swift) | DashboardView, DashboardViewModel | Free | Low -- UI component |
-| Template management CRUD | 1-2 (TemplateDetailView, TemplateEditorView) | WorkoutTemplate model (archive/favorite flags) | Free | Medium -- drag-drop reorder |
-| Dynamic targets overlay | 0 new | Template auto-fill logic, ProgressionEngine integration | Pro | Medium -- UX for showing suggestion vs last-used |
-| TemplateSuggestionEngine | 1 (TemplateSuggestionEngine.swift) | DashboardViewModel (suggestion query) | Free (suggestions) / Pro (reasoning) | Low -- day-of-week counting |
-| Optional Qs (4) | 0 new | OnboardingView or ProfileView, TrainingProfile model, Enums.swift | Free | Low -- UI + storage only |
-| Perceptual bias capture | 0 new | TrainingProfile (bias field), ColdStartSeedingEngine (comparison at 8wk) | Free | Low -- two numbers compared |
+**Defer to v1.4:**
+- Batch multi-week program import (too complex for v1.3)
+- Web preview page for shared links (nice-to-have, not launch-critical)
+- Template folders/organization (premature per REQUIREMENTS.md)
 
-## Key Design Decisions for Implementation
+## Detailed Feature Specifications
 
-### Template Ownership Model
-The existing `WorkoutTemplate.coachId` needs to work for athletes too. Two options:
-- **Option A:** Rename `coachId` to `ownerId` (cleaner, but migration needed)
-- **Option B:** Add optional `athleteId` alongside `coachId` (additive, no migration)
+### LLM Workout Import -- UX Flow
 
-Recommend **Option A** -- `ownerId` is semantically correct for both coaches and athletes. Worth the migration.
+**Entry point:** Button in template management view ("Import Workout") + option in "+" menu
 
-### Questionnaire Placement
-The 4 required questions should extend the existing 3-step onboarding:
-- Step 1: Training frequency (exists)
-- Step 2: Experience level (exists)
-- Step 3: Session duration (NEW)
-- Step 4: Typical sRPE (NEW)
-- Step 5: Weeks at current level (NEW)
-- Step 6: HealthKit permission (exists, stays last)
+**Step 1: Input selection**
+- Three tabs/segments: "Text" | "Photo" | "File"
+- Text: Multi-line text field with paste support + placeholder showing example format
+- Photo: Camera or photo library picker (PHPickerViewController)
+- File: Document picker (UIDocumentPickerViewController) for PDF/DOCX
 
-Optional questions belong in Profile settings, not onboarding. Reduce onboarding friction.
+**Step 2: Processing**
+- Send to OpenAI API with structured output schema matching WorkoutTemplate structure
+- Show loading indicator ("Analyzing workout...")
+- Timeout after 30 seconds with retry option
 
-### Free vs Pro Gate Strategy
-Following the PROJECT.md decision: **templates free, intelligence Pro-gated**.
-- Free: create templates, save from session, picker, last-used auto-fill, management, dashboard cards
-- Pro: ProgressionEngine overlay on targets (increase/maintain/deload), suggestion reasoning text, schedule-aware suggestions
+**Step 3: Review & Confirm**
+- Display parsed template: name, sport type, groups, exercises, sets/reps/weight
+- Editable fields -- user can fix any LLM errors before saving
+- "Save as Template" button creates WorkoutTemplate via TemplateRepository
+- Exercise names highlighted if they match existing exercises (continuity signal)
 
-This mirrors Hevy's model (unlimited free routines, analytics behind Pro) and Strong's inverse (3 free templates, unlimited Pro). Tonus's approach is more generous on templates but gates the intelligence layer.
+**Edge cases:**
+- Multiple workouts in one document: parse first only, show "We found multiple workouts. Import one at a time." (v1.3 limitation)
+- No exercises detected: "Couldn't find workout data. Try pasting the workout text directly."
+- Mixed units in same document: normalize to user's preference, flag any ambiguous conversions
+- Non-English input: GPT-4o handles multilingual well. No special handling needed.
+- Very long documents (10+ pages): truncate to first 5 pages with warning
+
+**API choice:** OpenAI GPT-4o-mini for text-only (fast, cheap at ~$0.15/1M input tokens). GPT-4o for images (vision capability, ~$2.50/1M input tokens). A single workout parse: ~500-2000 tokens input, ~200-500 tokens output = $0.001-0.01 per parse for text, $0.01-0.05 for images.
+
+**Subscription gating:** Pro feature. Free users see the button but hit upgrade sheet on tap. API costs justify Pro-only access.
+
+### Template Sharing -- UX Flow
+
+**Sharing (sender):**
+1. Template management view: tap "..." menu on template, select "Share"
+2. App serializes template structure to JSON (exercises, groups, sets -- NO personal weights)
+3. Upload JSON payload to Supabase `shared_templates` table, get back a UUID
+4. Generate Universal Link: `https://app.farosapp.com/template/{uuid}` (or custom URL scheme fallback)
+5. Present system share sheet with the link
+
+**Receiving (recipient):**
+1. Tap link -> app opens (Universal Link) or App Store (deferred deep link)
+2. App fetches shared template JSON from Supabase by UUID
+3. Show preview sheet: template name, exercise list, group structure
+4. "Add to My Templates" creates athlete-owned copy via TemplateRepository.duplicate()
+5. Template appears in recipient's library with "(Shared)" suffix
+
+**Data format (shared payload):**
+```json
+{
+  "templateName": "Push Day A",
+  "sportType": "lifting",
+  "sessionType": "strength",
+  "notes": "Heavy compound focus",
+  "groups": [
+    {
+      "groupName": "Group A",
+      "orderIndex": 0,
+      "exercises": [
+        {
+          "exerciseName": "Bench Press",
+          "exerciseCategory": "compound",
+          "muscleGroup": "chest",
+          "orderIndex": 0,
+          "sets": [
+            { "setIndex": 0, "targetReps": 5, "targetRPE": 8.0, "isWarmup": false }
+          ]
+        }
+      ]
+    }
+  ]
+}
+```
+
+**Expiration:** Shared links expire after 90 days (configurable). Prevents unbounded storage growth.
+
+**Privacy:** No user identification in shared payload. Template is anonymous once shared. Coach templates shared via coach-athlete relationship retain attribution.
+
+**Coach-specific flow:** Coach can share directly to linked athlete (skips link, pushes template to athlete's library via existing sync). Uses existing CoachAthleteRelationship infrastructure.
+
+### Font Migration -- Execution Plan
+
+**Alpino font family (from FontShare):**
+- License: Free for commercial use (ITF/FontShare license)
+- Weights needed: Alpino-Regular + Alpino-Medium (matching current DM Sans usage)
+- Available weights: Thin, Light, Regular, Medium, Bold, Black
+
+**Changes required:**
+1. Download Alpino-Regular.otf and Alpino-Medium.otf from FontShare
+2. Add to Xcode project Resources/ folder (replace DMSans files)
+3. Update Info.plist: swap DMSans filenames for Alpino filenames in UIAppFonts array
+4. Update FontTokens.swift: change all `"DMSans-Regular"` to `"Alpino-Regular"` and `"DMSans-Medium"` to `"Alpino-Medium"`
+5. Update DESIGN.md to reference Alpino instead of DM Sans
+6. Run app, visually verify all screens (font metrics differ -- check for text truncation or layout shifts)
+7. Delete old DMSans font files from project
+
+**Risk:** Alpino has a "small x-height optimised for magazine design" (per ITF description). This means body text at the same point size may appear slightly smaller than DM Sans. May need to bump body/label sizes by 1pt. Test on device before finalizing.
+
+### SyncService Hardening -- Scope
+
+**Problem:** 40+ `try?` calls in SyncService.swift silently swallow errors. Pull-side failures (fetching from Supabase) mean user data never arrives locally. Push-side failures (uploading to Supabase) mean local changes never sync.
+
+**Fix approach:**
+- Pull-side `try?` on Supabase queries: convert to `do/catch`, log error with context (entity type, athlete ID)
+- Pull-side `try?` on context.fetch: keep `try?` (local fetch, if this fails something is catastrophically wrong)
+- Pull-side `try?` on context.save: convert to `do/catch` with error log
+- Push-side `try?`: lower priority, already retried on next sync cycle. Log but don't block.
+
+**Deliverable:** Structured logging for sync failures. No user-facing changes. Future: surface sync status indicator on profile screen.
 
 ## Sources
 
-- [Strong Help Center - About Templates](https://help.strongapp.io/article/105-about-templates) -- template definition, creation methods, free vs Pro limits (3 free, unlimited Pro)
-- [Hevy - Gym Routines](https://www.hevyapp.com/features/gym-routines/) -- routine creation, folder organization, drag-and-drop, duplication
-- [Hevy - Exercise Programming](https://www.hevyapp.com/features/exercise-programming-options/) -- PREVIOUS column, auto-fill from last session
-- [Hevy - Track Exercises](https://www.hevyapp.com/features/track-exercises/) -- previous workout values display
-- [TrainingPeaks - Estimate Starting Fitness CTL](https://help.trainingpeaks.com/hc/en-us/articles/230903988-Estimate-Starting-Fitness-CTL) -- CTL seeding from weekly training hours, 4-6 week cautious interpretation period
-- [TrainingPeaks - Suggested Weekly TSS and Target CTL](https://help.trainingpeaks.com/hc/en-us/articles/230904648-Suggested-Weekly-TSS-and-Target-CTL) -- TSS-to-CTL mapping tables
-- [TrainingPeaks - A Coach's Guide to ATL, CTL, TSB](https://www.trainingpeaks.com/coach-blog/a-coachs-guide-to-atl-ctl-tsb/) -- EWMA methodology, time constants
-- [ProCyclingCoaching CTL Calculator](https://www.procyclingcoaching.com/resources/fitness-ctl-calculator) -- CTL = 42-day exponential average, TSS-to-CTL target table
-- [Juggernaut AI App Store](https://apps.apple.com/us/app/juggernautai/id1515756471) -- 10 Quadrillion permutations from intake questionnaire
-- [Juggernaut AI Review (PowerliftingTechnique)](https://powerliftingtechnique.com/juggernaut-ai-review/) -- onboarding covers gender, age, size, strength, experience, recovery
-- [Fitbod Algorithm](https://fitbod.me/blog/fitbod-algorithm/) -- cold-start uses population data from 150M+ workouts, muscle recovery model
-- [Fitbod FAQ](https://fitbod.me/faqs/) -- onboarding quiz covers goals, experience, equipment
-- [Strong App Review 2025](https://repreturn.com/strong-app-review/) -- contextual onboarding, minimal questionnaire
-- [Strong App Showcase](https://screensdesign.com/showcase/strong-workout-tracker-gym-log) -- 2-step onboarding, mandatory sign-up friction
-- [Strong vs Hevy 2026 comparison](https://setgraph.app/ai-blog/hevy-vs-strong-app-comparison-2026) -- pricing, free vs Pro limits
-- [sRPE validity research (Frontiers)](https://www.frontiersin.org/journals/neuroscience/articles/10.3389/fnins.2017.00612/full) -- sRPE overestimates by ~15%, substantial interindividual variability
-- [sRPE CrossFit validity 2025](https://www.mdpi.com/2076-3417/15/22/12159) -- sRPE valid but overestimates, learning curve effect
-- [JEFIT features](https://www.jefit.com/) -- 850+ plans, AI progressive overload, 1500+ exercises
+- [Hevy routine sharing](https://www.hevyapp.com/features/share-folders-routines/) -- link-based sharing, exercises shared without weights
+- [HevyGPT](https://www.hevyapp.com/features/hevy-gpt/) -- ChatGPT integration for plan generation (not import)
+- [Strong template sharing](https://help.strongapp.io/article/109-share-workout-or-template) -- share sheet with URL, requires app installed
+- [OpenAI Structured Outputs](https://developers.openai.com/api/docs/guides/structured-outputs) -- JSON schema enforcement for reliable parsing
+- [OpenAI Vision API](https://developers.openai.com/api/docs/guides/images-vision) -- image input for workout screenshot parsing
+- [Alpino font (Befonts)](https://befonts.com/alpino-font-family.html) -- 6 weights, free commercial use, ITF design
+- [Apple custom fonts guide](https://developer.apple.com/documentation/uikit/adding-a-custom-font-to-your-app) -- Info.plist registration, Font.custom() usage
+- [Apple Universal Links](https://developer.apple.com/documentation/xcode/allowing-apps-and-websites-to-link-to-your-content/) -- deep linking for template sharing
+- [SwiftOpenAI package](https://github.com/jamesrochabrun/SwiftOpenAI) -- Swift client for OpenAI API

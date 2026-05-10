@@ -1,377 +1,250 @@
-# Domain Pitfalls
+# Domain Pitfalls: v1.3 LLM Import, Sharing & Polish
 
-**Domain:** Cold-start questionnaire with ATL/CTL seeding, athlete-owned training templates, and integration with existing EWMA workload tracking
-**Researched:** 2026-05-01
+**Domain:** Adding LLM-powered import, template sharing, font migration, and sync hardening to existing iOS fitness app
+**Researched:** 2026-05-10
+**Confidence:** HIGH (based on codebase analysis + verified external sources)
+
+---
 
 ## Critical Pitfalls
 
-Mistakes that cause data corruption, incorrect training recommendations, or require architectural rewrites.
+Mistakes that cause rewrites, data loss, or App Store rejection.
 
-### Pitfall 1: EWMA Initialization Bias from Questionnaire-Seeded ATL/CTL
+### Pitfall 1: Foundation Models Requires iOS 26 -- Your App Targets iOS 17
 
-**What goes wrong:** The cold-start questionnaire seeds initial ATL/CTL values, but these estimated values are injected into the same EWMA pipeline that computes real load. The EWMA decay formula `atl = atl * (1 - lambda) + tss * lambda` treats the seeded value as a genuine historical average. If the estimate is wrong (and self-reported training history is notoriously inaccurate due to recall bias), every subsequent EWMA calculation inherits and propagates this error. The seeded CTL (lambda=1/28) persists for approximately 84 days (3 time constants) before the estimate fully washes out.
+**What goes wrong:** Apple's Foundation Models framework (on-device LLM with `@Generable` structured output) is iOS 26+ only. The app currently deploys to iOS 17+. Using Foundation Models means either raising the deployment target (losing users) or maintaining two code paths.
 
-**Why it happens:** EWMA has no "memory" concept -- it treats its current state as ground truth regardless of origin. Unlike a rolling average where old data drops off after N days, EWMA exponentially decays but never fully forgets. A badly seeded CTL of 200 (when real is 50) will still contribute ~5% error after 84 days.
+**Why it happens:** Developers see the Foundation Models WWDC sessions and assume they can use it. The framework does not exist on iOS 17-25.
 
-**Consequences:**
-- ACWR zone classification is wrong for weeks, producing incorrect autoregulation recommendations
-- FatigueIndexEngine receives inflated/deflated load elevation scores
-- AutoregulationEngine suggests inappropriate intensity caps and session types
-- Athlete loses trust in the app's core value proposition (accurate readiness)
+**Consequences:** Either you ship an LLM feature that only works on iOS 26+ (most users on older iOS get nothing), or you rely on a cloud LLM API for all users and the on-device path becomes a future optimization.
 
 **Prevention:**
-- The decision to use parallel data tracks (estimated vs real ATL/CTL) is correct and essential -- implement it rigorously
-- The estimated track must be stored on `TrainingProfile`, NOT on `WorkloadSnapshot`
-- `WorkloadSnapshot` must only ever contain EWMA values computed from actual logged sessions
-- During cold-start period, the dashboard must show estimated values clearly labeled "Estimated" and never mix them into the real EWMA chain
-- When the hybrid switchover occurs (3 weeks + 8 sessions), transition by seeding the real EWMA with the current estimated values PLUS real session data, not by retroactively modifying snapshots
+- Use a cloud LLM API (OpenAI, Claude, etc.) as the primary path for v1.3. Every user gets the feature regardless of iOS version.
+- Design the import engine as a protocol (`WorkoutImportEngine`) with a cloud implementation now. Add a Foundation Models implementation later when iOS 26 adoption is high enough.
+- If you want zero cloud dependency, consider shipping a smaller on-device model via Core ML, but this is significantly more work and the model quality for structured extraction will be worse.
 
-**Detection:** Compare estimated ATL/CTL against real computed values after 8 sessions. If the ratio exceeds 2.0x or falls below 0.5x, the questionnaire answers were significantly off (expected for many users -- self-reported training load has 30-50% recall error in studies).
+**Detection:** Check deployment target in Xcode. If it says iOS 17, Foundation Models is not available.
 
-**Phase relevance:** Cold-start implementation (Phase 1 of milestone). This is the single most important architectural decision.
+**Phase:** LLM Import phase must decide cloud vs on-device on day one. This is an architectural decision, not a detail.
 
-**Confidence:** HIGH -- based on EWMA mathematics, existing `WorkloadCalculator.computeHistoryEWMA` code review, and sport science literature on recall bias.
+### Pitfall 2: LLM Output Hallucination Creates Garbage Templates
 
----
+**What goes wrong:** The LLM invents exercises that do not exist in your exercise catalog, hallucinates rep/set schemes (e.g., "10x100 deadlifts at 500kg"), or misinterprets rest periods as sets. The imported template looks plausible but contains nonsense data that flows into workload calculations.
 
-### Pitfall 2: WorkoutTemplate.coachId Field Semantics Collision
+**Why it happens:** LLMs are probabilistic text generators. Workout PDFs have wildly inconsistent formats (coach shorthand, abbreviations like "3x8@75%", supersets denoted with "+", "AMRAP", "EMOM"). The LLM guesses when uncertain rather than admitting confusion.
 
-**What goes wrong:** The existing `WorkoutTemplate` model uses `coachId: UUID` as its owner field. The plan is to reuse this model for athlete-owned templates by interpreting `coachId` as a generic `ownerId`. However, the SyncService already has hardcoded assumptions about this field:
-- `pushWorkoutTemplates` filters by `coachId == athlete.id`
-- `pullWorkoutTemplates` fetches from Supabase with `.eq("coach_id", value: coachId)`
-- The Supabase `workout_templates` table has a `coach_id` column with RLS policies tied to the coach role
-
-Simply reusing `coachId` for athletes means:
-1. Athlete-created templates are pushed to Supabase as `coach_id = athlete.id`
-2. RLS policies designed for coach access may block athlete reads/writes
-3. When a coached athlete creates their own templates, there is ambiguity: which templates belong to the coach's library vs the athlete's personal templates?
-4. Coach-side sync may accidentally pull athlete templates (or vice versa)
-
-**Why it happens:** The field name `coachId` was semantic -- it meant "the coach who created this." Repurposing it as "whoever owns this" breaks the semantic contract without changing the field name, leading to bugs that are hard to catch in code review.
-
-**Consequences:**
-- Supabase RLS violations: athlete templates fail to sync silently (SyncService uses `try?` which swallows errors)
-- Coach pulls athlete's personal templates into their template library
-- Athlete templates disappear after sync because RLS denies the upsert
-- Data loss is silent due to the `try?` error suppression pattern in SyncService
+**Consequences:** Bad data enters the WorkoutTemplate model, which then flows into WorkoutPipeline, WorkloadCalculator, and ProgressionEngine. A template with 10x100 deadlifts at 500kg produces absurd TSS values and breaks ACWR calculations. Users lose trust in the app.
 
 **Prevention:**
-- Rename the field from `coachId` to `ownerId` on the model. This is a SwiftData schema change requiring migration.
-- Add an `ownerType` field (enum: `.athlete`, `.coach`) to disambiguate template ownership
-- Update Supabase table: rename column `coach_id` to `owner_id`, add `owner_type` column
-- Update RLS policies to allow athletes to CRUD their own templates (where `owner_id = auth.uid()` AND `owner_type = 'athlete'`)
-- Update all SyncService template push/pull methods to handle both ownership types
-- Alternatively: keep `coachId` but add a separate `isAthleteOwned: Bool` flag. Less clean but avoids SwiftData migration complexity.
+- **Constrained output schema:** Define a strict JSON schema for the LLM response. Use enums for `exerciseCategory` and `muscleGroup` that match your existing `ExerciseCategory` and `MuscleGroup` enums exactly. Do not let the LLM free-text these fields.
+- **Exercise name fuzzy matching:** After LLM extraction, run exercise names through a fuzzy matcher against your existing exercise catalog (CustomExercise + built-in exercises). Surface unmatched names for user confirmation rather than silently creating new exercises.
+- **Sanity bounds:** Reject or flag any set with weight > 500kg, reps > 100, sets > 20, or RPE > 10. These are physical impossibilities.
+- **Human-in-the-loop review:** Always show the parsed template to the user for confirmation before saving. Never auto-save an LLM-generated template.
 
-**Detection:** After implementing template sync, test the following scenario: (1) Coach creates template, (2) Athlete creates template, (3) Both sync, (4) Coach views templates -- should NOT see athlete's templates. (5) Athlete views templates -- should see only their own, plus any prescribed by coach.
+**Detection:** Unit test the import engine with 20+ real-world workout PDFs/screenshots in various formats. Track the "user edited after import" rate -- if users always edit, the parsing is bad.
 
-**Phase relevance:** Template model phase. Must be addressed before any template CRUD is built.
+**Phase:** LLM Import phase. Build the review UI before the parsing engine.
 
-**Confidence:** HIGH -- directly verified in `WorkoutTemplate.swift` (line 9: `var coachId: UUID`) and `SyncService.swift` (lines 696-738: template push/pull filtering on `coachId`).
+### Pitfall 3: Template Sharing Exposes Private Data via Deep Links
 
----
+**What goes wrong:** The shared template link/code contains or reveals data it should not: the sharer's athlete ID, their actual weights/reps (from `lastUsedAt` / usage history), or internal UUIDs that could be used to enumerate users.
 
-### Pitfall 3: SwiftData Schema Migration Crash on App Update
+**Why it happens:** Developers serialize the full `WorkoutTemplate` model (including `coachId`, `athleteId`, `usageCount`, `lastUsedAt`, `scheduledDays`) into the share payload. Or they use the template's real UUID in the share URL, which is also the Supabase row ID.
 
-**What goes wrong:** Adding `TrainingProfile` as a new `@Model` class and modifying `WorkoutTemplate` (adding fields like `ownerId`, `lastUsedDate`, `isFavorite`, `isArchived`) requires a SwiftData schema migration. The existing app does NOT use `VersionedSchema` -- it passes a raw `Schema` array to `ModelContainer`. When an existing user updates from v1.1 to v1.2:
-- Adding a new model (`TrainingProfile`) is a lightweight migration -- SwiftData handles this automatically
-- Adding new stored properties with defaults to existing models is also lightweight
-- BUT renaming `coachId` to `ownerId` is NOT a lightweight migration -- it requires a custom `SchemaMigrationPlan`
-- Without a migration plan, the app will crash on launch with `"Failed to create ModelContainer"` -- which hits the existing `fatalError()` in `WorkloadApp.swift` line 43
-
-**Why it happens:** SwiftData's lightweight migration can handle additive changes (new models, new optional properties, new properties with defaults) but cannot handle renames, type changes, or relationship restructuring. The app currently uses no `VersionedSchema` at all, meaning there is zero migration infrastructure.
-
-**Consequences:** App crashes on launch for every existing user who updates. Since this hits a `fatalError`, there is no recovery path -- the user must delete and reinstall, losing all local data.
+**Consequences:** Privacy violation. If template shares include actual weights, a coach sharing a template reveals their athlete's training data. If UUIDs are predictable or enumerable, an attacker can fetch other users' templates.
 
 **Prevention:**
-- Option A (recommended): Do NOT rename `coachId` to `ownerId`. Instead, keep `coachId` and add new fields (`isAthleteOwned: Bool = false`, `lastUsedDate: Date?`, `isFavorite: Bool = false`, `isArchived: Bool = false`). All new fields must have defaults. This stays within lightweight migration.
-- Option B: Implement `VersionedSchema` with a migration plan. Define `SchemaV1` (current schema) and `SchemaV2` (new schema). Write a `SchemaMigrationPlan` that maps `coachId` to `ownerId`. This is significant implementation complexity and requires testing on devices with real v1.1 data.
-- Regardless of option: Add `TrainingProfile.self` to the schema array in `WorkloadApp.swift` (currently lines 22-39). Missing this causes a crash.
-- Test migration by: (1) building v1.1, (2) populating data, (3) updating to v1.2, (4) verifying no crash and data preserved.
+- Generate a separate `shareCode` (short alphanumeric, 8-12 chars) that maps to the template in Supabase. Never expose the template's `id` (UUID) in the share URL.
+- When exporting for sharing, strip all personal fields: `coachId`, `athleteId`, `lastUsedAt`, `usageCount`, `scheduledDays`, and any set-level actual values. Share only the template structure (name, sport type, groups, exercises, target sets/reps/weight).
+- Supabase RLS policy on the share table: anyone can read a shared template by its share code, but only the owner can create/delete shares.
+- Rate-limit share code lookups to prevent enumeration.
 
-**Detection:** Build v1.2, install on a device/simulator that already has v1.1 data. If the app crashes on launch, migration is broken. This MUST be tested before App Store submission.
+**Detection:** Review the share payload JSON before shipping. Search for any field containing "Id", "athlete", "coach", "usage", or "actual".
 
-**Phase relevance:** Model creation phase (first phase). Must be decided before writing any model code.
+**Phase:** Template Sharing phase. Design the share schema before building the UI.
 
-**Confidence:** HIGH -- verified that `WorkloadApp.swift` uses no `VersionedSchema`, confirmed by checking lines 22-43. SwiftData migration behavior documented in Apple's WWDC23/25 sessions and community guides.
+### Pitfall 4: SyncService `try?` Hardening Masks the Real Problem
 
----
+**What goes wrong:** You replace `try?` with `do { try } catch { log(error) }` and call it done. But the real issue is that a single pull function failure (e.g., `pullWorkoutTemplates` throws) silently corrupts the sync state. The `lastSyncedAt` timestamp still updates even though templates were not pulled, so the next sync skips them.
 
-### Pitfall 4: Parallel Track Contamination via WorkoutPipeline
+**Why it happens:** The current `pullAll()` method calls 10+ pull functions sequentially and sets `lastSyncedAt` at the end regardless of individual failures. Replacing `try?` with logged errors does not fix the architectural issue: partial sync completion is treated as full sync completion.
 
-**What goes wrong:** The existing `WorkoutPipeline.processSession()` computes EWMA from real sessions and writes to `WorkloadSnapshot`. During cold-start, estimated ATL/CTL values need to be shown on the dashboard. If the estimated values are written to `WorkloadSnapshot` (even temporarily), they permanently contaminate the real EWMA chain because:
-1. `computeHistoryEWMA` rebuilds from `WorkloadSnapshot` data
-2. `WorkloadRepository.upsertSnapshot` overwrites today's snapshot
-3. `DashboardViewModel.load()` reads the latest `WorkloadSnapshot` -- it does not distinguish estimated from real
-
-The moment a real session is logged, the pipeline reads the contaminated snapshot as "previous ATL/CTL" and propagates the error forward.
-
-**Why it happens:** The data architecture was designed for a single source of truth (real sessions). The parallel track is a new concept that doesn't fit the existing write path.
-
-**Consequences:**
-- Estimated values leak into real workload history
-- Charts show discontinuities at switchover
-- Bias metric (estimated vs actual comparison at 8 weeks) is meaningless because both tracks are contaminated
+**Consequences:** Data goes missing on one device but not another. Users see stale templates or missing workout sessions. The bug is intermittent and hard to reproduce because it depends on which specific pull function failed.
 
 **Prevention:**
-- Estimated ATL/CTL must live ONLY on `TrainingProfile` (never on `WorkloadSnapshot`)
-- `DashboardViewModel.load()` must be modified to: (1) check if athlete is in cold-start period, (2) if yes, display estimated values from `TrainingProfile` instead of from `WorkloadSnapshot`, (3) if no, display real values from `WorkloadSnapshot` as before
-- `WorkoutPipeline.processSession()` must NOT be modified to use estimated values as seed -- it should always start EWMA from 0 with real sessions only
-- The switchover logic must live in a new `ColdStartEngine` or similar, NOT in the existing pipeline
+- **Track per-entity sync status:** Instead of one `lastSyncedAt`, track `lastSyncedAt` per entity type (workouts, templates, snapshots, etc.). Only update the timestamp for entities that actually synced successfully.
+- **Return a sync result:** Change `pullAll()` to return a `SyncResult` struct listing which entities succeeded and which failed, with error details. The caller (AppRouter / MainTabView) can then decide whether to retry or show a subtle indicator.
+- **Do not update `lastSyncedAt` on partial failure:** If any pull function throws, the overall sync should be marked incomplete.
+- **Add exponential backoff for failed entities:** If templates fail to pull, retry them sooner than the full 15-minute sync interval.
 
-**Detection:** After implementing cold-start, log 3 sessions. Check `WorkloadSnapshot` records: they should reflect EWMA computed only from those 3 sessions (ATL/CTL near 0 for first session). If values are higher, contamination has occurred.
+**Detection:** Add a debug view (or console log) showing per-entity sync timestamps. If any entity's timestamp is significantly older than others, there is a silent failure.
 
-**Phase relevance:** Cold-start implementation phase. Must be enforced during both cold-start engine and dashboard modifications.
-
-**Confidence:** HIGH -- directly traced through `WorkoutPipeline.processSession()` (lines 33-38: fetches 35 days of sessions, builds daily loads), `WorkloadRepository.upsertSnapshot()` (overwrites today's snapshot), and `DashboardViewModel.load()` (lines 140-149: reads latest snapshot).
+**Phase:** Sync Hardening phase. This is the core of the fix, not just adding `catch` blocks.
 
 ---
 
 ## Moderate Pitfalls
 
-Mistakes that cause user confusion, reduced trust, or significant rework.
+### Pitfall 5: Font Migration Breaks Layout Without Visible Errors
 
-### Pitfall 5: Questionnaire Length Kills Onboarding Completion
+**What goes wrong:** Alpino has a different x-height, letter spacing, and line height than DM Sans. After swapping the font name in `FontTokens.swift`, text overflows containers, truncates in buttons, or creates awkward spacing. The app looks "off" but nothing crashes.
 
-**What goes wrong:** The cold-start questionnaire is designed with 4 required + 4 optional questions. Combined with the existing 3-step onboarding (frequency, experience, HealthKit), new users face 7-11 screens before seeing their first dashboard. Research consistently shows that fitness app users decide whether to stay within the first 20 seconds to 3 minutes. Each additional screen reduces completion rate by 10-20%.
-
-**Why it happens:** Each question feels necessary from a data perspective (every answer improves the estimate), but the cumulative friction compounds. The existing onboarding already asks training frequency and experience level -- questions that overlap with what the cold-start questionnaire needs.
-
-**Consequences:**
-- Drop-off during onboarding: users who never reach the dashboard never log a workout
-- Users who skip optional questions get worse estimates, defeating the purpose
-- The app feels academic rather than action-oriented
+**Why it happens:** Alpino is described as having a "small x-height optimized for magazine design." DM Sans has a larger x-height typical of UI fonts. Same point size renders differently -- Alpino text will appear smaller and may need size adjustments. Additionally, Alpino has "slightly rounded corners" on strokes which may clash with the 0pt border radius design system if the rounding is visible at body text sizes.
 
 **Prevention:**
-- Merge the cold-start questionnaire INTO the existing onboarding flow, replacing/extending the existing 2 steps (frequency + experience) rather than adding a separate flow
-- The existing frequency and experience questions ARE cold-start data -- reuse them directly as inputs to the ATL/CTL estimation
-- Keep the total to 4-5 screens maximum: (1) training frequency (already exists), (2) experience level (already exists), (3) typical session duration + intensity (new, combines 2 questions into 1), (4) HealthKit permission (already exists), (5) optional sport-specific detail (skippable)
-- Show immediate value after: "Based on your answers, here's your estimated training profile" -- a mini dashboard preview
+- **Do not just swap the font name.** Compare DM Sans and Alpino at every size in the type scale (12, 15, 17, 19, 32, 64pt) side by side. Adjust sizes if needed to maintain visual hierarchy.
+- **Test both Regular and Medium weights.** Alpino has both, but the Medium weight may be heavier or lighter than DM Sans Medium. Verify the weight mapping is correct.
+- **Check Info.plist font registration.** Remove DM Sans entries, add Alpino entries. The font file names must match exactly (case-sensitive on device, case-insensitive on simulator -- this causes "works on simulator, breaks on device" bugs).
+- **Verify font files are in Copy Bundle Resources.** Missing from build phases = silent fallback to system font. The existing `WorkloadApp.swift` has UIFont assertions for DM Sans -- update these for Alpino.
+- **Test Dynamic Type interaction.** Custom fonts with fixed sizes do not respond to Dynamic Type by default. This is already the case with DM Sans, but verify Alpino does not introduce new accessibility issues.
 
-**Detection:** Track onboarding completion rate. If it drops below 80%, the flow is too long.
+**Detection:** The existing UIFont assertion in `WorkloadApp.swift` will crash in DEBUG if the font name is wrong. Keep this assertion and update it for Alpino font names.
 
-**Phase relevance:** Questionnaire design phase.
+**Phase:** Font Migration phase. Do this in a single atomic commit and visually QA every screen.
 
-**Confidence:** MEDIUM -- based on fitness app UX research and the existing `OnboardingView.swift` flow analysis.
+### Pitfall 6: LLM Import Needs OCR Pipeline for Images/PDFs, Not Just Text
 
----
+**What goes wrong:** The LLM import feature is built to accept text input only. Users expect to photograph a whiteboard workout or import a PDF from their coach. Text-only import misses the primary use case.
 
-### Pitfall 6: ExerciseGroup Shared Between Template and Prescription Causes Cascade Deletion Bugs
+**Why it happens:** Developers build the LLM parsing engine first (text in, template out) and defer image handling. But the hardest part is not the LLM parsing -- it is extracting text from messy real-world images (handwritten whiteboards, low-contrast PDFs, screenshots of Instagram stories).
 
-**What goes wrong:** `ExerciseGroup` currently has TWO optional parent relationships: `template: WorkoutTemplate?` and `prescription: PrescribedWorkout?`. When athlete templates reuse this model, a single `ExerciseGroup` instance could theoretically be shared between a template and a prescribed workout (if the code doesn't properly deep-copy). If the template is deleted, `deleteRule: .cascade` on `WorkoutTemplate.groups` deletes the shared `ExerciseGroup`, which orphans the prescription's reference.
-
-More subtly: when creating an athlete template from a completed session ("save-as-template"), the code must deep-copy exercise data from `ExerciseEntry`/`SetRecord` (session models) into `ExerciseGroup`/`TemplateExercise`/`TemplateSet` (template models). These are completely different model hierarchies. A shallow reference or incorrect relationship assignment will crash or corrupt data.
-
-**Why it happens:** SwiftData cascade delete follows relationship graphs. The dual-parent pattern on `ExerciseGroup` creates an implicit data dependency that is easy to violate.
-
-**Consequences:**
-- Deleting a template crashes the app if groups are shared with a prescription
-- "Save from session" creates template with orphaned or nil exercise data
-- SwiftData relationship resolution fails silently, showing empty template groups
+**Consequences:** The feature launches but users cannot actually use it for their most common scenario (photographing a gym whiteboard or importing a coach's PDF).
 
 **Prevention:**
-- The existing `deepCopyGroups()` method on `WorkoutTemplate` is the right pattern. ALWAYS use it for any operation that copies template structure.
-- For "save-from-session": create a new `SessionToTemplateConverter` engine (pure struct) that maps `ExerciseEntry` -> `TemplateExercise` and `SetRecord` -> `TemplateSet`. Never try to reuse session model instances.
-- For athlete templates: when a template is created, its `ExerciseGroup` instances must have `template` set and `prescription` nil. Never share instances across parents.
-- Write a unit test that: (1) creates template with groups, (2) duplicates template, (3) deletes original, (4) verifies copy's groups still exist.
+- **Use Vision framework's VNRecognizeTextRequest** for OCR. It handles printed text well on iOS 17+ with `.accurate` recognition level. Handwritten text support is weaker -- set expectations accordingly.
+- **Build the pipeline as: Image/PDF -> Vision OCR -> cleaned text -> LLM parsing -> review UI.** Each step is independently testable.
+- **For PDFs:** Use PDFKit to extract text first (much faster and more accurate than OCR for digital PDFs). Fall back to Vision OCR only for scanned/image-based PDFs.
+- **Support three input modes:** (1) camera capture, (2) photo library pick, (3) paste/type text. All three funnel into the same LLM parsing engine.
 
-**Detection:** In DEBUG builds, add assertions in `ExerciseGroup` that either `template != nil` XOR `prescription != nil` (never both, never neither). If both are set, log a warning.
+**Detection:** Test with 10 real photos of gym whiteboards, 5 coach PDFs, and 5 screenshots. If OCR accuracy is below 80%, the feature is not ready.
 
-**Phase relevance:** Template CRUD phase. Must be enforced when building save-from-session and template duplication.
+**Phase:** LLM Import phase. Build OCR pipeline before LLM parsing.
 
-**Confidence:** HIGH -- verified in `WorkoutTemplate.swift` (line 86: `var template: WorkoutTemplate?`, line 87: `var prescription: PrescribedWorkout?`) and `PrescribedWorkout.swift` (line 24: `@Relationship(deleteRule: .cascade)`).
+### Pitfall 7: Template Share Deep Links Break When App Not Installed
 
----
+**What goes wrong:** You implement custom URL scheme (`faros://template/ABC123`) for sharing. User receives link, taps it, iOS says "no app can handle this" or silently does nothing. Even with Universal Links, the AASA (Apple App Site Association) file must be configured correctly on your domain.
 
-### Pitfall 7: TemplateSuggestionEngine Day-of-Week Table Gives Bad Suggestions Early
+**Why it happens:** Custom URL schemes do not work when the app is not installed. Universal Links require server-side configuration (AASA file on your domain) that is easy to misconfigure.
 
-**What goes wrong:** The TemplateSuggestionEngine uses a day-of-week frequency table to suggest templates. In the first 2-3 weeks, the frequency table has so few data points that suggestions are essentially random. Worse, if a user happens to do "Leg Day" on Monday in week 1 and "Upper Body" on Monday in week 2, the engine concludes "Monday = Leg Day AND Upper Body" with equal confidence. This creates noisy, unhelpful suggestions that erode trust in the intelligence features.
-
-**Why it happens:** Frequency-based pattern detection requires statistical significance. With N=1 or N=2 observations per day slot, every pattern is noise.
-
-**Consequences:**
-- Wrong template suggested prominently on dashboard -- user ignores suggestions permanently
-- User who rejects suggestions repeatedly trains the system that "suggestions are always wrong" (negative feedback loop)
-- Feature appears broken rather than data-insufficient
+**Consequences:** Shared templates only work if the recipient already has the app installed. The sharing feature fails at its primary goal of acquisition/virality.
 
 **Prevention:**
-- Require a minimum threshold before showing suggestions: at least 3 weeks of data AND 2+ occurrences of the same template on the same day-of-week
-- Below threshold, show "Quick Start" cards with recently used templates instead of "Suggested for today"
-- Use recency weighting: last 4 weeks count more than weeks 5-8. This prevents stale patterns from persisting.
-- Label early suggestions with lower confidence: "You often train on Mondays" vs "Based on your pattern, try Leg Day"
-- FatigueIndex "insufficient data" pattern already exists -- follow the same gating approach
+- **Use a simple share code** (e.g., "PUSH-PULL-42") that users can manually enter in-app, alongside any deep link approach. This always works regardless of app installation.
+- **If using Universal Links:** Host the AASA file at `https://yourdomain.com/.well-known/apple-app-site-association`. Test with Apple's AASA validator. The file must be served with `Content-Type: application/json` and no redirects.
+- **Fallback web page:** If the user does not have the app, the Universal Link should load a web page showing the template and a download CTA. This requires a minimal web page on your domain.
+- **Do not use `UIApplication.open()` with your own Universal Links** inside the app -- iOS opens them in Safari instead of routing internally. Use in-app navigation directly.
 
-**Detection:** If suggestion acceptance rate (user picks suggested template) is below 20% after 4 weeks, the engine is not useful yet.
+**Detection:** Test the full flow on a device without the app installed. Test with iMessage, WhatsApp, email, and Notes -- each app handles links differently.
 
-**Phase relevance:** Template suggestion engine phase (later phase). Non-critical early but should be designed for graceful degradation from the start.
+**Phase:** Template Sharing phase. Decide on share mechanism (code vs deep link vs both) before building.
 
-**Confidence:** MEDIUM -- based on pattern recognition data sufficiency principles. No direct sport science source, but analogous to PeriodizationEngine.checkSufficiency pattern already in codebase.
+### Pitfall 8: SwiftData Cascade Deletes on Shared Templates
 
----
+**What goes wrong:** When a user who shared a template deletes it locally, the cascade delete removes ExerciseGroups, TemplateExercises, and TemplateSets. If the sharing mechanism stores references to the original template (rather than copies), recipients lose access.
 
-### Pitfall 8: Dynamic Template Targets Conflict with ProgressionEngine Suggestions
+**Why it happens:** The existing `WorkoutTemplate` model uses `@Relationship(deleteRule: .cascade)` for groups. If sharing works by reference (pointing to the original template row in Supabase), deletion propagates.
 
-**What goes wrong:** The plan calls for two overlapping systems:
-1. Dynamic targets: templates auto-update to last-used values (e.g., last bench press was 80kg x 8, so template shows 80kg x 8)
-2. ProgressionEngine overlay: recovery-aware suggestions that may increase, maintain, or deload (e.g., ProgressionEngine says "deload to 70kg today")
-
-If both run independently, the template shows "80kg x 8" (from last-used) but the ProgressionEngine badge says "try 70kg" (recovery-based deload). The user sees contradictory information on the same screen.
-
-**Why it happens:** These are two different optimization goals: (1) "what did I do last time" (historical) vs (2) "what should I do today" (recovery-aware). Both are valid but must be layered, not competing.
-
-**Consequences:**
-- User confusion: "Which number should I follow?"
-- Users ignore ProgressionEngine suggestions because template targets "look right"
-- During deload periods, templates suggest too much weight -- exactly when the athlete should be going lighter
+**Consequences:** User A shares a template, User B imports it, User A deletes it, User B's imported template disappears on next sync.
 
 **Prevention:**
-- Make it explicit that the template target IS the last-used value (static baseline) and the ProgressionEngine IS the intelligent adjustment
-- UI design: show template targets as the "plan" and ProgressionEngine as the "adjustment" modifier (e.g., "80kg --> 70kg (recovery deload)")
-- When displaying templates, ALWAYS apply the ProgressionEngine overlay as the final step before showing to the user (if Pro)
-- For free users: show only template targets (last-used). For Pro: show adjusted targets with explanation.
-- Never store ProgressionEngine suggestions back into the template -- they are ephemeral, computed per-session
+- **Sharing must create a full deep copy.** When User B imports a shared template, create a completely independent `WorkoutTemplate` with new UUIDs, owned by User B. No foreign key relationship to the original.
+- **The `deepCopyGroups()` method already exists** on `WorkoutTemplate` -- use it. But also generate new UUIDs for the copied template itself (not just groups).
+- **Supabase sharing table** should store a snapshot of the template data at share time, not a reference to the live template. If the sharer updates their template later, existing shares are unaffected.
 
-**Detection:** Review the template display code: if template targets and progression suggestions render in separate, non-connected UI components, this confusion will manifest.
+**Detection:** Test: User A shares template, User A deletes template, User B tries to import via share code. Should succeed with the snapshot from share time.
 
-**Phase relevance:** Dynamic targets + ProgressionEngine overlay phase (later phase). Design the data flow early.
+**Phase:** Template Sharing phase. Deep copy is the only safe approach.
 
-**Confidence:** HIGH -- based on existing `ProgressionEngine.suggest()` code review (returns `ExerciseSuggestion` with `suggestedSets` and `rationale`) and the milestone context describing both features.
+### Pitfall 9: LLM API Key Exposure in iOS Binary
 
----
+**What goes wrong:** The OpenAI/Claude API key is hardcoded in the app binary or stored in a plist. Anyone can extract it by decompiling the IPA.
 
-### Pitfall 9: HealthKit Workout Import and Template Matching False Positives
+**Why it happens:** Developers treat LLM API keys like Supabase anon keys (which are designed to be public). LLM API keys are secret -- they have direct cost implications (attacker racks up your bill).
 
-**What goes wrong:** The plan includes "HealthKit workout detection to template matching." The existing `WorkoutImportBanner` detects unmatched HealthKit workouts and offers to import them. The new feature would auto-match imported workouts to templates (e.g., "This looks like your Upper Body template"). However, HealthKit workout data is sparse: it provides activity type, duration, calories, and optionally heart rate. It does NOT provide exercise names, sets, reps, or weights. Matching a HealthKit "Traditional Strength Training" workout to a specific template based only on duration and activity type will produce many false positives.
-
-**Why it happens:** HealthKit is designed for aggregate workout tracking, not exercise-level logging. The semantic gap between "45-minute strength session" and "Upper Body: Bench 4x8, Rows 4x10, OHP 3x8" is too wide for reliable matching.
-
-**Consequences:**
-- Template matched to wrong workout: user's last-used values get overwritten with incorrect data
-- Template suggestion engine learns wrong day-of-week patterns
-- If auto-matching triggers template target updates, the athlete's template degrades over time
+**Consequences:** Financial loss from unauthorized API usage. API key revocation disrupts the feature for all users.
 
 **Prevention:**
-- Do NOT auto-match HealthKit workouts to templates. Instead:
-  - When importing a HealthKit workout, suggest it as a "session log" (the existing import flow)
-  - After the user manually selects a template for their next session, offer to link the HealthKit import to that template as a usage record
-  - Template matching should only work for sessions logged WITHIN the app (where exercise data exists)
-- If matching is desired, require a minimum of 3 matching criteria: (1) activity type matches template sport type, (2) duration within 20% of template average, (3) day-of-week matches pattern. Even then, present as a suggestion, not an auto-link.
-- Never update template last-used values from a HealthKit-imported session -- only from sessions logged through the template flow
+- **Proxy through Supabase Edge Functions.** The iOS app calls your Supabase function, which calls the LLM API with the key stored server-side. The app never sees the LLM API key.
+- **Rate limit per user** at the proxy level. One import per minute, 20 per day. This limits damage from abuse.
+- **Gate behind Pro subscription.** Only paying users can use LLM import. This adds a financial barrier to abuse and makes the cost sustainable.
+- **Follow the RevenueCatConfig pattern:** if any API key must be in the app, use a gitignored config file. But prefer server-side keys entirely.
 
-**Detection:** If template matching runs on HealthKit imports, check the match confidence distribution. If >50% of matches have low confidence, the feature is creating noise.
+**Detection:** Search the IPA/binary for API key patterns (`sk-`, `Bearer`). Use `strings` command on the compiled binary.
 
-**Phase relevance:** Template matching phase. Can be deferred or simplified to "recently used" rather than "pattern matched."
-
-**Confidence:** HIGH -- verified that `WorkoutImportSuggestion` (lines 91-181 in WorkoutImportBanner.swift) contains only `sportType`, `durationSeconds`, `activeCalories`, `distanceMeters` -- no exercise-level data.
-
----
-
-### Pitfall 10: Supabase RLS Policies Not Updated for Athlete Template Ownership
-
-**What goes wrong:** The existing Supabase `workout_templates` table has RLS policies designed for coach ownership. When athletes create templates, the sync upsert to `workout_templates` will fail silently because:
-1. The RLS INSERT policy likely requires `coach_id = auth.uid()` AND the user has the coach role
-2. Athletes do not have the coach role in the auth context
-3. The SyncService uses `try?` for all Supabase operations, swallowing the RLS denial
-
-The template appears to save locally (SwiftData succeeds) but never reaches Supabase. When the user logs into a new device, their templates are gone.
-
-**Why it happens:** RLS policies are invisible to the app code. The SyncService pattern of silent error suppression (`try?`) means RLS denials produce no user-visible error and no developer-visible log.
-
-**Consequences:**
-- Athlete templates never sync to Supabase
-- Data loss on device change/reinstall
-- Coach templates sync fine, creating an inconsistent experience
-- Bug is invisible during development (local SwiftData always works)
-
-**Prevention:**
-- Before writing any template code, update Supabase RLS policies:
-  ```sql
-  -- Allow owner (coach OR athlete) to manage their own templates
-  CREATE POLICY "owner_templates" ON workout_templates
-  FOR ALL USING (owner_id = auth.uid());
-  ```
-- Add a `SyncService` diagnostic: for template sync specifically, use `try await` (not `try?`) and log failures. Template sync failure should be surfaced as a non-blocking warning.
-- Test sync with both coach and athlete accounts in Supabase
-- If using the `isAthleteOwned` flag approach (Pitfall 3), the RLS policy must be: `(coach_id = auth.uid() AND NOT is_athlete_owned) OR (coach_id = auth.uid() AND is_athlete_owned)`
-
-**Detection:** After implementing template sync, create a template as an athlete. Check Supabase dashboard: if the row is not in `workout_templates`, RLS is blocking it.
-
-**Phase relevance:** Template model + sync phase. Must be addressed alongside model changes.
-
-**Confidence:** HIGH -- verified SyncService pushWorkoutTemplates (line 696-700) uses `try?` and filters on `coachId`.
+**Phase:** LLM Import phase. Set up the proxy before building the import UI.
 
 ---
 
 ## Minor Pitfalls
 
-### Pitfall 11: Bias Metric (8-Week Comparison) Not Useful If Switchover Already Happened
+### Pitfall 10: `.textFieldStyle(.roundedBorder)` is a System Style, Not Custom
 
-**What goes wrong:** The plan captures a silent bias metric at 8 weeks: comparing estimated ATL/CTL from the questionnaire against actual computed values. However, the hybrid switchover threshold is 3 weeks + 8 sessions. For an athlete training 3-4x/week, switchover happens around week 2-3. By week 8, the estimated values have been dormant for 5+ weeks and the real values have fully stabilized. The comparison is between a stale estimate and a mature EWMA -- it measures questionnaire accuracy at a single historical point, not ongoing bias.
+**What goes wrong:** Developers grep for `RoundedRectangle` and `cornerRadius` but miss `.textFieldStyle(.roundedBorder)` which is a built-in SwiftUI style that renders rounded corners. The design system mandates 0pt corners everywhere.
 
-**Prevention:**
-- Capture the bias comparison at the moment of switchover (when the system transitions from estimated to real), not at a fixed 8-week mark
-- Store both the estimated and real ATL/CTL at switchover time on `TrainingProfile` for later analysis
-- The 8-week mark can still be used as a secondary checkpoint, but the primary comparison should be at switchover
+**Why it happens:** `.roundedBorder` is a SwiftUI enum case, not a custom modifier. It is easy to miss in a search for "rounded" because it does not contain "Rectangle" or "cornerRadius".
 
-**Phase relevance:** Cold-start engine phase.
-
----
-
-### Pitfall 12: Template "Favorite" and "Archive" State Not Synced Creates Inconsistency
-
-**What goes wrong:** If `isFavorite` and `isArchived` are added as local-only flags (not synced to Supabase), the user's template organization is lost on device change. If they ARE synced, the Supabase schema needs new columns and the sync row struct (`WorkoutTemplateRow`) needs updating.
+**Consequences:** Text fields across the app (there are 25+ instances in ActiveWorkoutSheet, TemplateEditorSheet, ExercisePickerView, etc.) retain rounded corners even after the "border fix" phase.
 
 **Prevention:**
-- Decide sync strategy upfront: these fields SHOULD sync (they represent meaningful user intent)
-- Add `is_favorite` and `is_archived` columns to Supabase `workout_templates` table
-- Update `WorkoutTemplateRow` struct in SyncService to include these fields
-- Include in the same Supabase migration that adds `owner_type` / `is_athlete_owned`
+- Create a custom `TextFieldStyle` conformance with 0pt corners (using `Rectangle` background) and replace all `.textFieldStyle(.roundedBorder)` instances.
+- Search for `.roundedBorder` specifically (already identified: ~25 instances across 6 files).
+- Apply the custom style via a ViewModifier or extension so future text fields automatically get the correct style.
 
-**Phase relevance:** Template management phase.
+**Detection:** Visual QA pass on every screen with text input fields. Grep for `.roundedBorder` -- count should be zero after the fix.
 
----
+**Phase:** Design Fix phase. Simple find-and-replace but needs the custom style defined first.
 
-### Pitfall 13: Cold-Start Estimated Values Confuse the FatigueIndexEngine
+### Pitfall 11: Font File Name vs PostScript Name Mismatch
 
-**What goes wrong:** `FatigueIndexEngine` uses `baselineSessionTSS` (from 90-day average) and `sessionsIn14Days` as inputs. During cold-start, there is no real session history. If the cold-start estimated ATL/CTL are passed as FatigueIndex inputs, the engine will compute a fatigue score based on imaginary data.
+**What goes wrong:** The font file is named `Alpino-Regular.otf` but `Font.custom()` requires the PostScript name (which might be `Alpino-Regular`, `AlpinoRegular`, or `Alpino Regular`). Using the wrong name causes silent fallback to system font.
 
-**Prevention:**
-- During cold-start period, FatigueIndex should show "Insufficient Data" (the `FatigueZone` already supports this conceptually, though no explicit "noData" case exists)
-- Add a `hasRealData` check in `DashboardViewModel.load()` before computing fatigue -- use session count as the gate (minimum 5 sessions)
-- This aligns with the existing pattern: `PeriodizationEngine.checkSufficiency` gates periodization detection behind data thresholds
+**Why it happens:** SwiftUI's `Font.custom()` takes the font's PostScript name, not the filename. These often differ. DM Sans files are `DMSans-Regular.ttf` and the PostScript name is `DMSans-Regular` -- they happen to match. Alpino may not.
 
-**Phase relevance:** Cold-start engine integration with dashboard.
-
----
-
-### Pitfall 14: Save-From-Session Template Captures Workout-Specific Data as Template Defaults
-
-**What goes wrong:** When saving a template from a completed session, the code must decide which data to carry over. If it naively copies ALL set data (including the specific weights/reps performed that day), the template targets become "what I did on a particular day" rather than "what I normally do." If the session was a deload day, the template targets are permanently low. If it was a PR day, they are permanently high.
+**Consequences:** App renders in San Francisco (system font) instead of Alpino. Looks completely wrong but does not crash. Easy to miss on simulator if the fallback font looks similar at a glance.
 
 **Prevention:**
-- When creating a template from a session, copy exercise structure (names, categories, set count) but treat weight/rep values as initial defaults that the user can edit before saving
-- Show a confirmation/edit screen: "Save as template? Review the target values:" with editable fields
-- Mark these as `targetWeightKg`, `targetReps` etc. (which TemplateSet already has) -- NOT as "last performed"
-- The "last-used" auto-update mechanism is a separate feature that runs after subsequent sessions -- the save-from-session is just the initial creation
+- After adding font files to the project, use Font Book (macOS) or run `fc-scan Alpino-Regular.otf | grep postscript` to find the exact PostScript name.
+- Update the UIFont assertion in `WorkloadApp.swift` to validate the new font names at launch in DEBUG builds.
+- Test on a physical device, not just simulator. Simulator is case-insensitive for font names; device is not.
 
-**Phase relevance:** Save-from-session implementation phase.
+**Detection:** The existing UIFont assertion will catch this in DEBUG. Make sure it runs before any views render.
 
----
+**Phase:** Font Migration phase.
 
-### Pitfall 15: Existing Coach Template Queries Break When Athletes Also Own Templates
+### Pitfall 12: LLM Import Cost Scaling Without Rate Limiting
 
-**What goes wrong:** Any existing code that queries ALL `WorkoutTemplate` records will now return both coach templates AND athlete templates. If coach-mode views show "Your Templates" using an unfiltered `@Query`, athlete templates leak into the coach view (and vice versa).
+**What goes wrong:** Users import the same PDF repeatedly (because the first result was not perfect and they retry), or they use the import feature to parse large multi-page training programs. Each call costs money.
+
+**Why it happens:** No rate limiting, no caching of results, no awareness of input size. A 10-page PDF sent to GPT-4o costs 10-50x more than a single workout description.
+
+**Consequences:** LLM API costs spiral. If the feature is free-tier, a small number of power users can generate disproportionate costs.
 
 **Prevention:**
-- Audit every `@Query` and `FetchDescriptor` for `WorkoutTemplate` in the codebase
-- Add ownership filters to ALL template queries: `#Predicate { $0.coachId == currentUserId }` (or equivalent with the new ownership field)
-- Coach template views should filter by `isAthleteOwned == false` (or `ownerType == .coach`)
-- Athlete template views should filter by `coachId == athleteId` AND `isAthleteOwned == true`
-- The existing coach template picker for prescriptions must continue to show ONLY coach-owned templates
+- **Cache parsed results** by input hash. If the same image/text is submitted twice, return the cached result.
+- **Limit input size:** Max 2 pages for PDF, max 2000 characters for text, max 1 image at a time.
+- **Show cost awareness:** "You have 5 imports remaining this week" (for free tier) or unlimited for Pro.
+- **Use the cheapest model that works.** GPT-4o-mini or Claude Haiku for structured extraction is usually sufficient and 10-20x cheaper than full models.
 
-**Detection:** In coach mode, check if any athlete-created templates appear in the template list. In athlete mode, check if any coach-created templates appear (unless prescribed).
+**Detection:** Monitor API costs per user in the Supabase Edge Function. Alert if any user exceeds $1/day.
 
-**Phase relevance:** Template model phase -- same phase as ownership model changes.
+**Phase:** LLM Import phase. Rate limiting must ship with the feature, not after.
+
+### Pitfall 13: Template Sharing Sync Race Condition
+
+**What goes wrong:** User B imports a shared template while User B's device is mid-sync. The imported template is saved locally but then overwritten or duplicated by the next pull cycle because the sync sees it as a "new" remote record.
+
+**Why it happens:** The current sync uses last-write-wins on `updatedAt`. A newly imported template has `updatedAt = now`. If the pull happens immediately after and finds no matching record on Supabase (because push has not happened yet), it does not conflict. But if the push happens first and then a pull follows, the pull may create a duplicate if the deduplication logic does not account for the import source.
+
+**Consequences:** Duplicate templates appear in the user's list. Or worse, the locally-imported template is overwritten with stale data from Supabase.
+
+**Prevention:**
+- When importing a shared template, immediately push it to Supabase before the next pull cycle. Use `pushWorkoutTemplates()` after the import save.
+- Ensure the template's UUID is generated locally and used as the primary key in both SwiftData and Supabase. The `@Attribute(.unique) var id: UUID` pattern already handles this.
+- Add an `importedFromShareCode` field on the template so sync logic can distinguish imported templates from synced ones.
+
+**Detection:** Test rapid import -> sync -> pull cycle. Check for duplicates in the template list.
+
+**Phase:** Template Sharing phase (must coordinate with Sync Hardening phase).
 
 ---
 
@@ -379,25 +252,35 @@ The template appears to save locally (SwiftData succeeds) but never reaches Supa
 
 | Phase Topic | Likely Pitfall | Mitigation |
 |-------------|---------------|------------|
-| TrainingProfile model | SwiftData migration crash (Pitfall 3) | Use additive-only schema changes, no renames. Add TrainingProfile.self to schema array. |
-| Cold-start questionnaire UI | Onboarding friction (Pitfall 5) | Merge into existing onboarding flow. Maximum 5 screens total. |
-| Cold-start ATL/CTL seeding | EWMA contamination (Pitfalls 1, 4) | Estimated values on TrainingProfile only. Never write to WorkloadSnapshot. |
-| Cold-start dashboard display | FatigueIndex confusion (Pitfall 13) | Gate FatigueIndex behind real session count. Show "Estimated" label. |
-| Template model changes | coachId semantics (Pitfall 2), cascade delete (Pitfall 6) | Add isAthleteOwned flag instead of renaming. Always deep-copy groups. |
-| Template CRUD | Coach query breakage (Pitfall 15) | Add ownership filter to every template query. Audit all existing queries. |
-| Save-from-session | Atypical day captured as default (Pitfall 14) | Show editable confirmation before saving template. |
-| Template sync | RLS denial (Pitfall 10), state sync (Pitfall 12) | Update Supabase RLS and columns FIRST. |
-| TemplateSuggestionEngine | Noisy early suggestions (Pitfall 7) | Minimum 3-week data gate. Show "recent" not "suggested" when insufficient. |
-| Dynamic targets + Progression | Conflicting numbers (Pitfall 8) | Template = baseline, Progression = modifier. Layer, don't compete. |
-| HealthKit template matching | False positives (Pitfall 9) | No auto-match from HealthKit. Manual link only. |
-| Bias metric | Timing mismatch (Pitfall 11) | Capture at switchover, not fixed 8 weeks. |
+| LLM Import | iOS 26 Foundation Models not available on iOS 17 | Use cloud LLM API, design for future on-device path |
+| LLM Import | Hallucinated exercise names and impossible rep schemes | Constrained schema + fuzzy matching + human review |
+| LLM Import | API key exposed in binary | Proxy through Supabase Edge Functions |
+| LLM Import | No OCR pipeline for images/PDFs | Vision framework OCR -> text -> LLM pipeline |
+| LLM Import | Cost scaling without limits | Rate limit + cache + cheapest model + Pro-gating |
+| Template Sharing | Private data in share payload | Strip personal fields, use opaque share codes |
+| Template Sharing | Deep links fail without app installed | Share codes that work in-app + fallback web page |
+| Template Sharing | Cascade delete removes shared template | Deep copy on import, snapshot at share time |
+| Template Sharing | Sync race on import | Push immediately after import, UUID-based dedup |
+| Font Migration | Layout breaks from different metrics | Side-by-side comparison at every type scale size |
+| Font Migration | PostScript name mismatch | Verify with Font Book, test on physical device |
+| Font Migration | Font not in Copy Bundle Resources | Check Build Phases, keep UIFont assertion |
+| Sync Hardening | `lastSyncedAt` updated on partial failure | Per-entity sync timestamps |
+| Sync Hardening | Logging errors without fixing architecture | Return SyncResult, do not mark complete on failure |
+| Design Fix | `.roundedBorder` missed in search | Grep for `.roundedBorder` specifically, create custom TextFieldStyle |
+
+---
 
 ## Sources
 
-- EWMA initialization bias: [Exponentially Weighted Moving Average Theory](https://towardsdatascience.com/time-series-from-scratch-exponentially-weighted-moving-averages-ewma-theory-and-implementation-607661d574fe/)
-- Self-reported training load recall bias: [ACWR Systematic Review (PMC)](https://pmc.ncbi.nlm.nih.gov/articles/PMC12487117/)
-- SwiftData migration patterns: [Unauthorized Guide to SwiftData Migrations](https://atomicrobot.com/blog/an-unauthorized-guide-to-swiftdata-migrations/)
-- SwiftData VersionedSchema: [Donny Wals Deep Dive](https://www.donnywals.com/a-deep-dive-into-swiftdata-migrations/)
-- Fitness app onboarding friction: [MadAppGang Fitness App Design](https://madappgang.com/blog/the-best-fitness-app-design-examples-and-typical-mistakes/)
-- Fitness app first 3 minutes: [Dataconomy UX Practices 2025](https://dataconomy.com/2025/11/11/best-ux-ui-practices-for-fitness-apps-retaining-and-re-engaging-users/)
-- Codebase verification: `WorkoutTemplate.swift`, `WorkloadCalculator.swift`, `WorkoutPipeline.swift`, `SyncService.swift`, `FatigueIndexEngine.swift`, `DashboardViewModel.swift`, `OnboardingView.swift`, `WorkloadApp.swift` (all verified via direct code read)
+- [Apple Foundation Models Framework Documentation](https://developer.apple.com/documentation/FoundationModels) -- HIGH confidence
+- [Foundation Models Limitations and Capabilities](https://www.natashatherobot.com/p/apple-foundation-models) -- MEDIUM confidence (4K context window, no image input confirmed)
+- [Foundation Models Code-Along Q&A](https://antongubarenko.substack.com/p/ios-26-foundation-model-framework-f6d) -- MEDIUM confidence
+- [Apple Vision Framework OCR](https://developer.apple.com/documentation/vision/recognizing-text-in-images) -- HIGH confidence
+- [SwiftUI Custom Font Pitfalls](https://blog.eidinger.info/what-can-go-wrong-when-using-custom-fonts-in-swiftui) -- MEDIUM confidence
+- [Universal Links Implementation](https://www.avanderlee.com/swiftui/universal-links-ios/) -- MEDIUM confidence
+- [SwiftData Silent Failures](https://www.mikebuss.com/posts/swiftdata-template) -- MEDIUM confidence
+- [Common SwiftData Errors](https://www.hackingwithswift.com/quick-start/swiftdata/common-swiftdata-errors-and-their-solutions) -- HIGH confidence
+- [Alpino Font Family](https://freefontdl.com/alpino-font-family/) -- MEDIUM confidence (6 weights: Thin, Light, Regular, Medium, Bold, Black)
+- [FontShare License FAQ](https://www.fontshare.com/faq) -- HIGH confidence (free for personal and commercial use)
+- [LLM Fitness App Lessons](https://dev.to/justinschroeder/building-bodcoach-llm-lessons-learned-the-hard-way-59kf) -- LOW confidence (single practitioner source)
+- Codebase analysis: SyncService.swift (40+ `try?` instances), FontTokens.swift, WorkoutTemplate.swift, 25+ `.roundedBorder` instances -- HIGH confidence (direct code review)
