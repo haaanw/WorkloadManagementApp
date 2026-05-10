@@ -80,7 +80,11 @@
   2. All text fields use a custom 0pt-corner TextFieldStyle — zero instances of `.roundedBorder` or `RoundedRectangle` remain in text input styling
   3. Font sizes are adjusted where Alpino's smaller x-height causes text to feel too small (verified on physical device, not just simulator)
   4. The UIFont DEBUG assertion in WorkloadApp.swift validates Alpino font names at launch
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 13-01-PLAN.md — Font infrastructure: copy Alpino files, update FontTokens, Info.plist, pbxproj, assertions, PDFReportEngine
+- [ ] 13-02-PLAN.md — Rogue font cleanup: convert 40 raw Font.custom/system calls to Font.Tokens
+- [ ] 13-03-PLAN.md — SharpTextFieldStyle creation, application to 23 text fields, DESIGN.md update
 **UI hint**: yes
 
 ### Phase 14: Sync Hardening
@@ -231,7 +235,7 @@
 | 10. Cold-Start Questionnaire | v1.2 | 3/3 | Complete | 2026-05-08 |
 | 11. Template Management & Creation | v1.2 | 2/2 | Complete | 2026-05-09 |
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 3/3 | Complete | 2026-05-10 |
-| 13. Design Polish | v1.3 | 0/0 | Not started | - |
+| 13. Design Polish | v1.3 | 0/3 | Not started | - |
 | 14. Sync Hardening | v1.3 | 0/0 | Not started | - |
 | 15. Template Sharing | v1.3 | 0/0 | Not started | - |
 | 16. LLM Workout Import | v1.3 | 0/0 | Not started | - |
