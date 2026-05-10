@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Supabase
+import GoogleSignIn
 
 struct PendingInvite: Identifiable {
     let id = UUID()
@@ -28,11 +29,14 @@ struct AppRouter: View {
         }
         .environment(container)
         .onOpenURL { url in
+            // Google Sign-In callback
+            if GIDSignIn.sharedInstance.handle(url) { return }
+
             if let code = InviteService.handleDeepLink(url) {
                 pendingInviteCode = PendingInvite(code: code)
                 return
             }
-            // Google OAuth callback -- Supabase handles session extraction
+            // Supabase OAuth callback fallback
             Task {
                 try? await container.supabase.auth.session(from: url)
             }
@@ -43,6 +47,12 @@ struct AppRouter: View {
         }
         .onChange(of: container.isAuthenticated) { _, isAuth in
             guard isAuth else { return }
+            // Link RevenueCat identity on fresh sign-in/sign-up
+            Task {
+                if let userId = await container.authService.currentUserId() {
+                    await container.subscriptionService.logIn(userId: userId)
+                }
+            }
             // Re-evaluate onboarding after fresh signup (D-06)
             let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
             if let a = athletes.first {
@@ -109,6 +119,11 @@ struct AppRouter: View {
                         return
                     }
                 }
+                // Link RevenueCat identity to Supabase user
+                if let userId = await container.authService.currentUserId() {
+                    await container.subscriptionService.logIn(userId: userId)
+                }
+
                 container.setAuthenticated(true)
 
                 // Check if onboarding is needed (D-06)

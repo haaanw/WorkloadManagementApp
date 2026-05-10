@@ -1,6 +1,8 @@
 import Foundation
+import UIKit
 import Supabase
 import AuthenticationServices
+import GoogleSignIn
 
 /// Wraps Supabase authentication.
 @MainActor
@@ -75,14 +77,28 @@ final class AuthService {
         }
     }
 
-    /// Sign in with Google via Supabase OAuth (opens ASWebAuthenticationSession).
+    /// Sign in with Google via native Google Sign-In SDK → Supabase signInWithIdToken.
     func signInWithGoogle() async throws {
-        _ = try await client.auth.signInWithOAuth(
-            provider: .google,
-            redirectTo: URL(string: "com.faros.app://login-callback")
-        ) { (session: ASWebAuthenticationSession) in
-            session.prefersEphemeralWebBrowserSession = false
+        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
+              let rootVC = windowScene.windows.first?.rootViewController else {
+            throw AuthError.socialSignInFailed("No root view controller available")
         }
+
+        let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootVC)
+
+        guard let idToken = result.user.idToken?.tokenString else {
+            throw AuthError.noIdentityToken
+        }
+
+        let accessToken = result.user.accessToken.tokenString
+
+        _ = try await client.auth.signInWithIdToken(
+            credentials: .init(
+                provider: .google,
+                idToken: idToken,
+                accessToken: accessToken
+            )
+        )
     }
 
     enum AuthError: LocalizedError {

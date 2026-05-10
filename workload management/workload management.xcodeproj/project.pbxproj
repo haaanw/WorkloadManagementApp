@@ -7,15 +7,15 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		02B5342D87238056790C2CB7 /* CoachWorkoutEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A4956488E0ECB2BC93FD3F /* CoachWorkoutEntrySheet.swift */; };
+		053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCB08A3880509F52F7419E9 /* InviteConfirmationSheet.swift */; };
+		0A62FC4DEF95E871C3EA1C86 /* CoachAthleteRelationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */; };
+		0B040200000000000000000A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B040100000000000000000A /* OnboardingView.swift */; };
 		1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000A2 /* FinishWorkoutSheet.swift */; };
 		1101010100000000000000B1 /* ToastBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000B2 /* ToastBanner.swift */; };
 		1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000C2 /* TemplateCarouselSection.swift */; };
 		1101010100000000000000D1 /* TemplatePreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000D2 /* TemplatePreviewSheet.swift */; };
 		1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000E2 /* TemplatePickerSheet.swift */; };
-		02B5342D87238056790C2CB7 /* CoachWorkoutEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A4956488E0ECB2BC93FD3F /* CoachWorkoutEntrySheet.swift */; };
-		053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCB08A3880509F52F7419E9 /* InviteConfirmationSheet.swift */; };
-		0A62FC4DEF95E871C3EA1C86 /* CoachAthleteRelationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */; };
-		0B040200000000000000000A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B040100000000000000000A /* OnboardingView.swift */; };
 		18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */; };
 		3656850E68D35D36B9204A8A /* ContextSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */; };
 		3ECC7EF76C16FD0D0CB8809E /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */; };
@@ -24,7 +24,6 @@
 		62324C242F66CB0E00A9C2BE /* PreviewData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF22F66CB0E00A9C2BE /* PreviewData.swift */; };
 		62324C252F66CB0E00A9C2BE /* ExercisePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */; };
 		62324C262F66CB0E00A9C2BE /* AutoregulationEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFB2F66CB0E00A9C2BE /* AutoregulationEngine.swift */; };
-		F2AAEAD8C17EB4A97EBF3401 /* TemplateSuggestionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */; };
 		62324C272F66CB0E00A9C2BE /* WorkloadSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEF2F66CB0E00A9C2BE /* WorkloadSnapshot.swift */; };
 		62324C282F66CB0E00A9C2BE /* PRDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */; };
 		62324C292F66CB0E00A9C2BE /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C002F66CB0E00A9C2BE /* SyncService.swift */; };
@@ -78,6 +77,7 @@
 		627EC1982F76857600B89262 /* ProgressionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1972F76857600B89262 /* ProgressionEngine.swift */; };
 		627EC19A2F76858300B89262 /* TextTemplateImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1992F76858300B89262 /* TextTemplateImportSheet.swift */; };
 		627EC19C2F76917500B89262 /* MockDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC19B2F76917500B89262 /* MockDataSeeder.swift */; };
+		6285C7C42FB02E4300067723 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6285C7C32FB02E4300067723 /* GoogleSignIn */; };
 		62F32C972F7167E000B6135F /* FontTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C962F7167E000B6135F /* FontTokens.swift */; };
 		62F32C992F7167EA00B6135F /* ReasoningEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C982F7167EA00B6135F /* ReasoningEngine.swift */; };
 		62F32C9C2F71685800B6135F /* DMSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 62F32C9A2F71685800B6135F /* DMSans-Medium.ttf */; };
@@ -131,6 +131,7 @@
 		EE0501020000000000000002 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0501010000000000000002 /* NotificationService.swift */; };
 		EE0502010000000000000001 /* NotificationPrePermissionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0502010000000000000002 /* NotificationPrePermissionCard.swift */; };
 		F08C62E71BE8AC6A8D4B7192 /* SocialLoginButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */; };
+		F2AAEAD8C17EB4A97EBF3401 /* TemplateSuggestionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */; };
 		FF0601010000000000000001 /* PDFReportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0601010000000000000002 /* PDFReportEngine.swift */; };
 		FF0602010000000000000001 /* PDFGenerationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0602010000000000000002 /* PDFGenerationSheet.swift */; };
 		FF0603010000000000000001 /* CoachExportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0603010000000000000002 /* CoachExportSheet.swift */; };
@@ -160,6 +161,11 @@
 		0B040100000000000000000A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		0DEB1AF33CF394C72D06EBC3 /* ClientDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ClientDetailView.swift; path = Coach/ClientDetailView.swift; sourceTree = "<group>"; };
 		0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContextSwitcher.swift; path = Coach/ContextSwitcher.swift; sourceTree = "<group>"; };
+		1101010100000000000000A2 /* FinishWorkoutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishWorkoutSheet.swift; sourceTree = "<group>"; };
+		1101010100000000000000B2 /* ToastBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastBanner.swift; sourceTree = "<group>"; };
+		1101010100000000000000C2 /* TemplateCarouselSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCarouselSection.swift; sourceTree = "<group>"; };
+		1101010100000000000000D2 /* TemplatePreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewSheet.swift; sourceTree = "<group>"; };
+		1101010100000000000000E2 /* TemplatePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePickerSheet.swift; sourceTree = "<group>"; };
 		337C7EF852EA5D7C9C989FF4 /* InviteServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InviteServiceTests.swift; path = ../WorkloadAppTests/InviteServiceTests.swift; sourceTree = "<group>"; };
 		4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoachAthleteRelationship.swift; sourceTree = "<group>"; };
@@ -188,7 +194,6 @@
 		62324BF72F66CB0E00A9C2BE /* WorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRepository.swift; sourceTree = "<group>"; };
 		62324BFA2F66CB0E00A9C2BE /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		62324BFB2F66CB0E00A9C2BE /* AutoregulationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoregulationEngine.swift; sourceTree = "<group>"; };
-		EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSuggestionEngine.swift; sourceTree = "<group>"; };
 		62324BFC2F66CB0E00A9C2BE /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
 		62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRDetector.swift; sourceTree = "<group>"; };
 		62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryPipeline.swift; sourceTree = "<group>"; };
@@ -238,11 +243,6 @@
 		62F32CB82F71849300B6135F /* SleepDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailView.swift; sourceTree = "<group>"; };
 		62F32CC02F72716500B6135F /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeAlertBanner.swift; sourceTree = "<group>"; };
-		1101010100000000000000A2 /* FinishWorkoutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishWorkoutSheet.swift; sourceTree = "<group>"; };
-		1101010100000000000000B2 /* ToastBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastBanner.swift; sourceTree = "<group>"; };
-		1101010100000000000000C2 /* TemplateCarouselSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCarouselSection.swift; sourceTree = "<group>"; };
-		1101010100000000000000D2 /* TemplatePreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewSheet.swift; sourceTree = "<group>"; };
-		1101010100000000000000E2 /* TemplatePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePickerSheet.swift; sourceTree = "<group>"; };
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		62F32DF65C7F3C5307D700B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialLoginButtons.swift; sourceTree = "<group>"; };
@@ -279,6 +279,7 @@
 		EE0501010000000000000001 /* StreakEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakEngine.swift; sourceTree = "<group>"; };
 		EE0501010000000000000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		EE0502010000000000000002 /* NotificationPrePermissionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPrePermissionCard.swift; sourceTree = "<group>"; };
+		EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSuggestionEngine.swift; sourceTree = "<group>"; };
 		F3A9D4C7E2B1058A63F7921D /* UpgradeSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UpgradeSheet.swift; path = Subscription/UpgradeSheet.swift; sourceTree = "<group>"; };
 		FB199F37B561BBDD9395C435 /* SubscriptionGatingTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = SubscriptionGatingTests.swift; path = ../WorkloadAppTests/SubscriptionGatingTests.swift; sourceTree = "<group>"; };
 		FF0601010000000000000002 /* PDFReportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFReportEngine.swift; sourceTree = "<group>"; };
@@ -308,6 +309,7 @@
 			files = (
 				62F32CC62F7278EA00B6135F /* Supabase in Frameworks */,
 				AA1234560000000000000001 /* RevenueCat in Frameworks */,
+				6285C7C42FB02E4300067723 /* GoogleSignIn in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -686,6 +688,7 @@
 			packageProductDependencies = (
 				62F32CC52F7278EA00B6135F /* Supabase */,
 				AA1234560000000000000002 /* RevenueCat */,
+				6285C7C32FB02E4300067723 /* GoogleSignIn */,
 			);
 			productName = "workload management";
 			productReference = 62324B4E2F66C5F600A9C2BE /* workload management.app */;
@@ -771,6 +774,7 @@
 			packageReferences = (
 				62F32CBB2F7270B400B6135F /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				623333B02F73CB94007206BC /* XCRemoteSwiftPackageReference "purchases-ios" */,
+				6285C7C22FB02CF700067723 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 62324B4F2F66C5F600A9C2BE /* Products */;
@@ -1104,10 +1108,10 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "workload-management-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Tonus;
+				INFOPLIST_KEY_CFBundleDisplayName = faros;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tonus reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training readiness.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tonus writes workout data to Apple Health to keep your training history synced across health apps.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Faros reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Faros writes workout data to Apple Health to keep your training history synced across health apps.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -1117,7 +1121,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tonus.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.faros.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -1141,10 +1145,10 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "workload-management-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = Tonus;
+				INFOPLIST_KEY_CFBundleDisplayName = faros;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tonus reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training readiness.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tonus writes workout data to Apple Health to keep your training history synced across health apps.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Faros reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Faros writes workout data to Apple Health to keep your training history synced across health apps.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -1154,7 +1158,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0.1;
-				PRODUCT_BUNDLE_IDENTIFIER = com.tonus.app;
+				PRODUCT_BUNDLE_IDENTIFIER = com.faros.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -1297,6 +1301,14 @@
 				minimumVersion = 5.66.0;
 			};
 		};
+		6285C7C22FB02CF700067723 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/google/GoogleSignIn-iOS";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 9.1.0;
+			};
+		};
 		62F32CBB2F7270B400B6135F /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/supabase/supabase-swift";
@@ -1308,6 +1320,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		6285C7C32FB02E4300067723 /* GoogleSignIn */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 6285C7C22FB02CF700067723 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */;
+			productName = GoogleSignIn;
+		};
 		62F32CC52F7278EA00B6135F /* Supabase */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 62F32CBB2F7270B400B6135F /* XCRemoteSwiftPackageReference "supabase-swift" */;
