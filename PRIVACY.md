@@ -1,8 +1,8 @@
-# Privacy Policy — Tonus
+# Privacy Policy — Tuwa
 
 **Last updated:** March 27, 2026
 
-Tonus ("the app") is developed by Hanwen Ma. This policy explains what data the app collects, how it is used, and your rights.
+Tuwa ("the app") is developed by Hanwen Ma. This policy explains what data the app collects, how it is used, and your rights.
 
 ## What Data We Collect
 
@@ -19,7 +19,7 @@ Tonus ("the app") is developed by Hanwen Ma. This policy explains what data the 
 - VO2 Max
 - Workout heart rate
 
-Tonus **never writes** data to HealthKit. HealthKit access is optional and requires your explicit permission.
+Tuwa **never writes** data to HealthKit. HealthKit access is optional and requires your explicit permission.
 
 ### Data we compute
 - Recovery scores, ACWR (Acute:Chronic Workload Ratio), training stress, and personal records are calculated on your device from the data above.
@@ -66,7 +66,7 @@ You have the right to:
 
 ## Children
 
-Tonus is not directed at children under 13. We do not knowingly collect data from children.
+Tuwa is not directed at children under 13. We do not knowingly collect data from children.
 
 ## Changes to This Policy
 

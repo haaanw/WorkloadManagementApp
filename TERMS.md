@@ -1,23 +1,23 @@
-# Terms of Service — Tonus
+# Terms of Service — Tuwa
 
 **Last updated:** April 10, 2026
 
-These Terms of Service ("Terms") govern your use of the Tonus mobile application ("the app") developed by Hanwen Ma ("we", "us", "our"). By downloading, installing, or using the app, you agree to these Terms.
+These Terms of Service ("Terms") govern your use of the Tuwa mobile application ("the app") developed by Hanwen Ma ("we", "us", "our"). By downloading, installing, or using the app, you agree to these Terms.
 
 ## 1. Use of the App
 
-Tonus is a training load and recovery management tool. You may use it for personal fitness tracking and, if applicable, coach-athlete collaboration. You agree to:
+Tuwa is a training load and recovery management tool. You may use it for personal fitness tracking and, if applicable, coach-athlete collaboration. You agree to:
 - Provide accurate information when creating your account
 - Keep your login credentials secure
 - Use the app in compliance with all applicable laws
 
 ## 2. Accounts
 
-You need an account to use Tonus. You are responsible for all activity under your account. If you suspect unauthorized access, contact us immediately.
+You need an account to use Tuwa. You are responsible for all activity under your account. If you suspect unauthorized access, contact us immediately.
 
 ## 3. Subscriptions
 
-Tonus offers free and paid subscription tiers (Athlete Pro and Coach). Paid subscriptions are billed through Apple's App Store and managed by RevenueCat.
+Tuwa offers free and paid subscription tiers (Athlete Pro and Coach). Paid subscriptions are billed through Apple's App Store and managed by RevenueCat.
 
 - **Billing:** Subscriptions auto-renew unless cancelled at least 24 hours before the end of the current period.
 - **Cancellation:** You can cancel anytime through your device's Settings > Apple ID > Subscriptions. Cancellation takes effect at the end of the current billing period.
@@ -26,7 +26,7 @@ Tonus offers free and paid subscription tiers (Athlete Pro and Coach). Paid subs
 
 ## 4. HealthKit Data
 
-Tonus reads health data from Apple HealthKit with your explicit permission. We never write data to HealthKit. Raw HealthKit data stays on your device — only computed scores are synced to our servers. You can revoke HealthKit access at any time via iOS Settings.
+Tuwa reads health data from Apple HealthKit with your explicit permission. We never write data to HealthKit. Raw HealthKit data stays on your device — only computed scores are synced to our servers. You can revoke HealthKit access at any time via iOS Settings.
 
 ## 5. Coach-Athlete Features
 
@@ -48,7 +48,7 @@ The app, including its design, code, and content, is owned by Hanwen Ma. Your us
 
 ## 8. Disclaimer
 
-Tonus provides training load and recovery data for **informational purposes only**. It is not medical advice. Always consult a qualified healthcare professional before making decisions about your health or training. We are not liable for injuries, overtraining, or health issues arising from use of the app.
+Tuwa provides training load and recovery data for **informational purposes only**. It is not medical advice. Always consult a qualified healthcare professional before making decisions about your health or training. We are not liable for injuries, overtraining, or health issues arising from use of the app.
 
 ## 9. Limitation of Liability
 
