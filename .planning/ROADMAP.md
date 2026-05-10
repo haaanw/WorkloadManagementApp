@@ -236,7 +236,7 @@ Plans:
 | 9. Foundation & Cold-Start Engine | v1.2 | 0/0 | Not started | - |
 | 10. Cold-Start Questionnaire | v1.2 | 3/3 | Complete | 2026-05-08 |
 | 11. Template Management & Creation | v1.2 | 2/2 | Complete    | 2026-05-09 |
-| 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 3/3 | Complete   | 2026-05-10 |
+| 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 3/3 | Complete    | 2026-05-10 |
 | 13. LLM Workout Import | v1.3 | 0/0 | Not started | - |
 | 14. Template Sharing | v1.3 | 0/0 | Not started | - |
 | 15. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
