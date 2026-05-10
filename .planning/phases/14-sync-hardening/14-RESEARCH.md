@@ -453,14 +453,14 @@ Note: The `run()` helper already catches errors but does not return success/fail
 | A3 | SyncTimestampStore as singleton `@Observable` class is appropriate | Code Examples | LOW -- standard pattern for app-wide state in this codebase |
 | A4 | `isSyncing` guard is needed for pull-to-refresh race condition | Common Pitfalls | LOW -- defensive measure, worst case is duplicate writes that are idempotent |
 
-## Open Questions
+## Open Questions (RESOLVED)
 
-1. **Tab badge overlay behavior in SwiftUI TabView**
+1. **Tab badge overlay behavior in SwiftUI TabView** (RESOLVED)
    - What we know: SwiftUI's `.badge()` modifier only supports Int and String (red badge). Custom colored badges require overlay.
    - What's unclear: Whether `.overlay` on a TabView child view renders above the tab bar or is clipped to the content area.
    - Recommendation: If `.overlay` doesn't work, use a ZStack wrapping the TabView with absolute positioning, or apply `.badge("")` with a custom appearance. Test during implementation.
 
-2. **Error classification for UI display**
+2. **Error classification for UI display** (RESOLVED)
    - What we know: UI-SPEC defines 5 error categories (network, auth, server, decode, unknown).
    - What's unclear: How to map Supabase SDK error types to these categories.
    - Recommendation: Inspect the error type in `logFailure` -- `URLError` maps to "Network unavailable", HTTP 401/403 to "Authentication expired", HTTP 5xx to "Server error", `DecodingError` to "Data format error", everything else to "Sync error". Implement during execution.
