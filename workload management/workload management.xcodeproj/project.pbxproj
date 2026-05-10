@@ -27,6 +27,8 @@
 		62324C272F66CB0E00A9C2BE /* WorkloadSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEF2F66CB0E00A9C2BE /* WorkloadSnapshot.swift */; };
 		62324C282F66CB0E00A9C2BE /* PRDetector.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */; };
 		62324C292F66CB0E00A9C2BE /* SyncService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C002F66CB0E00A9C2BE /* SyncService.swift */; };
+		DD1401010000000000000001 /* SyncEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1401010000000000000002 /* SyncEntity.swift */; };
+		DD1401010000000000000003 /* SyncTimestampStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1401010000000000000004 /* SyncTimestampStore.swift */; };
 		62324C2A2F66CB0E00A9C2BE /* WorkloadRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF62F66CB0E00A9C2BE /* WorkloadRepository.swift */; };
 		62324C2B2F66CB0E00A9C2BE /* MorningCheckInSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */; };
 		62324C2C2F66CB0E00A9C2BE /* SetRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BED2F66CB0E00A9C2BE /* SetRecord.swift */; };
@@ -200,6 +202,8 @@
 		62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryPipeline.swift; sourceTree = "<group>"; };
 		62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScoreEngine.swift; sourceTree = "<group>"; };
 		62324C002F66CB0E00A9C2BE /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
+		DD1401010000000000000002 /* SyncEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEntity.swift; sourceTree = "<group>"; };
+		DD1401010000000000000004 /* SyncTimestampStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncTimestampStore.swift; sourceTree = "<group>"; };
 		62324C012F66CB0E00A9C2BE /* WorkloadCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadCalculator.swift; sourceTree = "<group>"; };
 		62324C022F66CB0E00A9C2BE /* WorkoutPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutPipeline.swift; sourceTree = "<group>"; };
 		62324C042F66CB0E00A9C2BE /* ColorTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorTokens.swift; sourceTree = "<group>"; };
@@ -458,6 +462,8 @@
 				62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */,
 				62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */,
 				62324C002F66CB0E00A9C2BE /* SyncService.swift */,
+				DD1401010000000000000002 /* SyncEntity.swift */,
+				DD1401010000000000000004 /* SyncTimestampStore.swift */,
 				62324C012F66CB0E00A9C2BE /* WorkloadCalculator.swift */,
 				62324C022F66CB0E00A9C2BE /* WorkoutPipeline.swift */,
 				06ABB878A70046BADB172CF6 /* InviteService.swift */,
@@ -836,6 +842,8 @@
 				62324C272F66CB0E00A9C2BE /* WorkloadSnapshot.swift in Sources */,
 				62324C282F66CB0E00A9C2BE /* PRDetector.swift in Sources */,
 				62324C292F66CB0E00A9C2BE /* SyncService.swift in Sources */,
+				DD1401010000000000000001 /* SyncEntity.swift in Sources */,
+				DD1401010000000000000003 /* SyncTimestampStore.swift in Sources */,
 				62324C2A2F66CB0E00A9C2BE /* WorkloadRepository.swift in Sources */,
 				627EC1982F76857600B89262 /* ProgressionEngine.swift in Sources */,
 				62324C2B2F66CB0E00A9C2BE /* MorningCheckInSheet.swift in Sources */,
