@@ -83,8 +83,7 @@
 		6285C7C42FB02E4300067723 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6285C7C32FB02E4300067723 /* GoogleSignIn */; };
 		62F32C972F7167E000B6135F /* FontTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C962F7167E000B6135F /* FontTokens.swift */; };
 		62F32C992F7167EA00B6135F /* ReasoningEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C982F7167EA00B6135F /* ReasoningEngine.swift */; };
-		62F32C9C2F71685800B6135F /* Alpino-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 62F32C9A2F71685800B6135F /* Alpino-Medium.otf */; };
-		62F32C9D2F71685800B6135F /* Alpino-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 62F32C9B2F71685800B6135F /* Alpino-Regular.otf */; };
+		62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */; };
 		62F32CB32F71786F00B6135F /* AutoregulationEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CAE2F71784C00B6135F /* AutoregulationEngineTests.swift */; };
 		62F32CB42F71786F00B6135F /* ReasoningEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CAC2F71784C00B6135F /* ReasoningEngineTests.swift */; };
 		62F32CB52F71786F00B6135F /* RecoveryScoreEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CAB2F71784C00B6135F /* RecoveryScoreEngineTests.swift */; };
@@ -239,8 +238,7 @@
 		627EC19B2F76917500B89262 /* MockDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataSeeder.swift; sourceTree = "<group>"; };
 		62F32C962F7167E000B6135F /* FontTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontTokens.swift; sourceTree = "<group>"; };
 		62F32C982F7167EA00B6135F /* ReasoningEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasoningEngine.swift; sourceTree = "<group>"; };
-		62F32C9A2F71685800B6135F /* Alpino-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Alpino-Medium.otf"; sourceTree = "<group>"; };
-		62F32C9B2F71685800B6135F /* Alpino-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "Alpino-Regular.otf"; sourceTree = "<group>"; };
+		62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "GeneralSans-Variable.ttf"; sourceTree = "<group>"; };
 		62F32CA22F71692C00B6135F /* WorkloadAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkloadAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		62F32CAB2F71784C00B6135F /* RecoveryScoreEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecoveryScoreEngineTests.swift; path = ../WorkloadAppTests/RecoveryScoreEngineTests.swift; sourceTree = "<group>"; };
 		62F32CAC2F71784C00B6135F /* ReasoningEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReasoningEngineTests.swift; path = ../WorkloadAppTests/ReasoningEngineTests.swift; sourceTree = "<group>"; };
@@ -444,8 +442,7 @@
 			isa = PBXGroup;
 			children = (
 				62F32DF65C7F3C5307D700B6 /* Assets.xcassets */,
-				62F32C9A2F71685800B6135F /* Alpino-Medium.otf */,
-				62F32C9B2F71685800B6135F /* Alpino-Regular.otf */,
+				62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */,
 				62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Resources;
@@ -806,8 +803,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				62F32D6D64E26B3830FD00B6 /* Assets.xcassets in Resources */,
-				62F32C9C2F71685800B6135F /* Alpino-Medium.otf in Resources */,
-				62F32C9D2F71685800B6135F /* Alpino-Regular.otf in Resources */,
+				62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */,
 				62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -1119,15 +1115,15 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "workload management/workload management.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 9XTU7KMJ4J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "workload-management-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = tuwa;
+				INFOPLIST_KEY_CFBundleDisplayName = Tuwa;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Faros reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Faros writes workout data to Apple Health to keep your training history synced across health apps.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa writes workout data to Apple Health to keep your training history synced across health apps.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -1156,15 +1152,15 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "workload management/workload management.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 9;
+				CURRENT_PROJECT_VERSION = 10;
 				DEVELOPMENT_TEAM = 9XTU7KMJ4J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = "workload-management-Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = tuwa;
+				INFOPLIST_KEY_CFBundleDisplayName = Tuwa;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "Faros reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Faros writes workout data to Apple Health to keep your training history synced across health apps.";
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa writes workout data to Apple Health to keep your training history synced across health apps.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

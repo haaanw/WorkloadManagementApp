@@ -183,7 +183,7 @@ struct MainTabView: View {
                                 .offset(x: 8, y: -8)
                                 .transition(.opacity.animation(.linear(duration: 0.15)))
                                 .accessibilityLabel("Sync issues detected")
-                                .accessibilityAddTraits(.isStatusElement)
+                                .accessibilityAddTraits(.updatesFrequently)
                         }
                     }
             } else {
@@ -205,7 +205,7 @@ struct MainTabView: View {
                                 .offset(x: 8, y: -8)
                                 .transition(.opacity.animation(.linear(duration: 0.15)))
                                 .accessibilityLabel("Sync issues detected")
-                                .accessibilityAddTraits(.isStatusElement)
+                                .accessibilityAddTraits(.updatesFrequently)
                         }
                     }
             }

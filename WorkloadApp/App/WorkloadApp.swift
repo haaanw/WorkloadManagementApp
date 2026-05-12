@@ -9,12 +9,8 @@ struct WorkloadApp: App {
     init() {
         #if DEBUG
         assert(
-            UIFont(name: "Alpino-Regular", size: 15) != nil,
-            "Alpino-Regular font not found. Add Alpino-Regular.otf to the project and UIAppFonts in Info.plist."
-        )
-        assert(
-            UIFont(name: "Alpino-Medium", size: 15) != nil,
-            "Alpino-Medium font not found. Add Alpino-Medium.otf to the project and UIAppFonts in Info.plist."
+            !UIFont.fontNames(forFamilyName: "General Sans").isEmpty,
+            "General Sans font not found. Add GeneralSans-Variable.ttf to the project and UIAppFonts in Info.plist."
         )
         #endif
 

@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Segmented control for time range selection (D-01).
-/// 0pt corner radius, hairline border, DM Sans font.
+/// 0pt corner radius, hairline border, General Sans font.
 struct TimeRangeSegmentedControl: View {
     @Binding var selected: TimeRange
 

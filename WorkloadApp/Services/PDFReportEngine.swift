@@ -66,11 +66,11 @@ struct PDFReportEngine {
     // MARK: - Font Helpers
 
     private static func fontRegular(_ size: CGFloat) -> UIFont {
-        UIFont(name: "Alpino-Regular", size: size) ?? .systemFont(ofSize: size)
+        UIFont(name: "GeneralSans-Regular", size: size) ?? .systemFont(ofSize: size)
     }
 
     private static func fontMedium(_ size: CGFloat) -> UIFont {
-        UIFont(name: "Alpino-Medium", size: size) ?? .systemFont(ofSize: size, weight: .medium)
+        UIFont(name: "GeneralSans-Medium", size: size) ?? .systemFont(ofSize: size, weight: .medium)
     }
 
     // MARK: - Date Formatter

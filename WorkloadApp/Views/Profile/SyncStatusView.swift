@@ -10,7 +10,7 @@ struct SyncStatusView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Section header: "SYNC STATUS" in 12pt Alpino Regular, ColorTokens.text2, all-caps
+                // Section header: "SYNC STATUS" in 12pt General Sans Regular, ColorTokens.text2, all-caps
                 Text("SYNC STATUS")
                     .font(.Tokens.micro)
                     .foregroundStyle(ColorTokens.text2)

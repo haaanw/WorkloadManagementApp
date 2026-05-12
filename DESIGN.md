@@ -20,16 +20,16 @@ Created by /design-consultation · 2026-03-21
 
 All hierarchy is achieved through size and one weight variation. No bold, no italic, no expressive typefaces.
 
-- **Typeface:** Alpino — geometric, neutral, precise. Sharp terminals, excellent numerics. Bundle as `.otf` from FontShare (ITF FFL license).
+- **Typeface:** General Sans — rationalist neo-grotesque, neutral, precise. Clean lining figures, excellent small-size readability. Bundle as variable `.ttf` from FontShare (ITF FFL license).
 - **Weights used:** Regular (400) and Medium (500) only. No other weights. No italic.
-- **Hero score:** Alpino Regular, 64pt, tabular numerals. Color: Accent only. This is the single colored text element in the UI.
-- **Page title:** Alpino Regular, 32pt, `--text-1`
-- **Section header:** Alpino Medium, 19pt, `--text-1`
-- **Body / metric labels:** Alpino Regular, 17pt, `--text-1` or `--text-2`
-- **Secondary info (label):** Alpino Regular, 15pt, `--text-2`
-- **Small label:** Alpino Regular, 13pt, `--text-2`
-- **Micro / caps:** Alpino Regular, 12pt, `--text-3`, letter-spacing +0.08em, all-caps
-- **Tabular numerals:** Apply `font-feature-settings: "tnum"` (CSS) or `.monospacedDigit()` (SwiftUI) to all numeric metric displays.
+- **Hero score:** General Sans Regular, 64pt, tabular numerals. Color: Accent only. This is the single colored text element in the UI.
+- **Page title:** General Sans Regular, 32pt, `--text-1`
+- **Section header:** General Sans Medium, 19pt, `--text-1`
+- **Body / metric labels:** General Sans Regular, 17pt, `--text-1` or `--text-2`
+- **Secondary info (label):** General Sans Regular, 15pt, `--text-2`
+- **Small label:** General Sans Regular, 13pt, `--text-2`
+- **Micro / caps:** General Sans Regular, 12pt, `--text-3`, letter-spacing +0.08em, all-caps
+- **Tabular numerals:** Apply `.monospacedDigit()` (SwiftUI) to all numeric metric displays.
 
 ### Type Scale
 
@@ -45,9 +45,9 @@ All hierarchy is achieved through size and one weight variation. No bold, no ita
 
 ### Font Loading (iOS)
 
-Bundle `Alpino-Regular.otf` and `Alpino-Medium.otf` in the Xcode project. Register via `Info.plist` → `UIAppFonts`. Reference in SwiftUI: `Font.custom("Alpino-Regular", size: 15)`.
+Bundle `GeneralSans-Variable.ttf` (variable font) in the Xcode project. Register via `Info.plist` → `UIAppFonts`. Reference in SwiftUI via `FontTokens.swift`: `.font(.Tokens.body)`. The variable font's weight axis selects Regular (400) and Medium (500).
 
-Source: https://www.fontshare.com/fonts/alpino (ITF FFL license)
+Source: https://www.fontshare.com/fonts/general-sans (ITF FFL license)
 
 ## Color
 
@@ -182,7 +182,7 @@ Zone colors are desaturated to near-gray intentionally. They are not vivid alarm
 5. **Zone state is always communicated through a text label + optional colored border.** Never rely on color alone.
 6. **All spacing uses the design token scale.** No magic numbers. 16pt padding, 24pt padding, 8pt gaps — always multiples of 8.
 7. **Support both color schemes.** All color references use semantic tokens from `ColorTokens`. Never use literal hex values in view code. Use `@Environment(\.colorScheme)` only for conditional logic that can't be expressed in the token system.
-8. **Typography uses `Font.custom("Alpino-Regular", size:)` and `Font.custom("Alpino-Medium", size:)`** for all text. Do not use `.system()` or `.headline` / `.body` semantic styles — these override the design system.
+8. **Typography uses `Font.Tokens.*`** for all text (backed by General Sans Variable). Do not use `.system()` or `.headline` / `.body` semantic styles — these override the design system.
 
 ## Decisions Log
 
@@ -190,10 +190,11 @@ Zone colors are desaturated to near-gray intentionally. They are not vivid alarm
 |------------|--------------------------------------------------|-------------------------------------------------------------------------------------|
 | 2026-03-21 | International Style Minimalism aesthetic         | Differentiates from Whoop/Strava's aggressive energy coding; aligns with "timeless" product vision |
 | 2026-03-21 | Near-monochromatic palette with single accent    | Mies van der Rohe principle: one precious material, used with total commitment      |
-| 2026-03-21 | Alpino Regular + Medium only, no other weights    | Hierarchy through size alone — "less is more" applied to typography                 |
+| 2026-03-21 | Regular + Medium only, no other weights           | Hierarchy through size alone — "less is more" applied to typography                 |
 | 2026-03-21 | 0pt border radius everywhere                     | Square corners reinforce the structural, instrument-like aesthetic                  |
 | 2026-03-21 | Zone colors desaturated to near-gray             | States communicated through labels, color is supplementary — calm > alarm           |
 | 2026-03-21 | Accent appears on readiness score only           | The one precious material in the design — used once, completely                     |
 | 2026-03-21 | Secondary text adjusted to #7C7972 (dark mode)   | Meets WCAG AA 4.5:1 contrast — aesthetic preserved, accessibility not compromised   |
 | 2026-03-21 | Dark-first, light mode supported via token system| iOS convention + outdoor readability; same design system, two material expressions  |
 | 2026-05-10 | Migrated from DM Sans to Alpino                 | Geometric sans with sharper terminals -- aligns with International Style direction  |
+| 2026-05-11 | Migrated from Alpino to General Sans             | Rationalist neo-grotesque — better lining figures for data-heavy UI, superior small-size readability |

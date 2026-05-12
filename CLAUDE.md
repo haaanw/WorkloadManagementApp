@@ -78,7 +78,7 @@ Key constraints to enforce:
 - **0pt border radius everywhere** — use `Rectangle()`, never `RoundedRectangle`
 - **No shadows** — remove any `.shadow()` modifiers; use hairline borders instead
 - **Accent color (`ColorTokens.accent`) appears only on the hero readiness score number** — nowhere else
-- **DM Sans Regular + Medium only** — bundle `DMSans-Regular.otf` and `DMSans-Medium.otf`; use `Font.custom()`, never `.system()` or semantic styles
+- **General Sans Regular + Medium only** — bundle `GeneralSans-Variable.ttf`; use `Font.Tokens.*`, never `.system()` or semantic styles
 - **All spacing must be multiples of 8pt** — no magic numbers
 - **Zone states communicated through text labels + optional colored border** — never color alone
 - **Both dark and light mode supported** via `ColorTokens` semantic tokens; never hardcode hex values in views
@@ -99,7 +99,7 @@ Athlete workload management iOS app that combines recovery scoring (HRV, sleep, 
 - **HealthKit**: Read-only access, raw data must never leave device (only composite scores sync)
 - **Subscriptions**: RevenueCat handles StoreKit; API keys gitignored
 - **Backend**: Supabase PostgreSQL with RLS; no local fallback for sync
-- **Design**: Must follow DESIGN.md — 0pt corners, no shadows, DM Sans, 8pt grid
+- **Design**: Must follow DESIGN.md — 0pt corners, no shadows, General Sans, 8pt grid
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:codebase/STACK.md -->
@@ -134,8 +134,7 @@ Athlete workload management iOS app that combines recovery scoring (HRV, sleep, 
 - `PrivacyInfo.xcprivacy` - App Store Privacy Manifest
 - `SCREENSHOT_MODE` - DEBUG build flag that bypasses authentication and seeds mock data for automated screenshots (see `AppRouter.swift`)
 ## Fonts
-- `DMSans-Regular.ttf` (55.0 KB) - Regular weight for body text
-- `DMSans-Medium.ttf` (55.1 KB) - Medium weight for headings/emphasis
+- `GeneralSans-Variable.ttf` (110.8 KB) - Variable font covering Regular (400) through Bold (700)
 ## Platform Requirements
 - Xcode (latest, tested with iPhone 17 Pro Max simulator)
 - iOS 17+ SDK
@@ -261,9 +260,9 @@ Athlete workload management iOS app that combines recovery scoring (HRV, sleep, 
 - All colors via `ColorTokens` enum (never hardcoded hex)
 - Semantic properties: `ColorTokens.text1`, `ColorTokens.zoneDanger`, `ColorTokens.accent`
 - Supports dark/light mode automatically
-- Custom fonts only: `Font.custom("DMSans-Regular", size: 15)` via `Font.Tokens` extension
+- Custom fonts only: `Font.Tokens.*` (backed by General Sans Variable)
 - No system fonts (`.system()`, `.headline`, etc.)
-- Font set: DMSans-Regular + DMSans-Medium only
+- Font set: General Sans Regular + Medium only (via variable font weight axis)
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
