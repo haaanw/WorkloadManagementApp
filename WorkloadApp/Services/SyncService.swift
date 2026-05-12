@@ -55,6 +55,10 @@ struct SyncService {
         if await pushTrainingProfile(context: context, athleteId: athlete.id) {
             store.recordSuccess(for: .trainingProfiles)
         }
+
+        // Coach relationships are managed via InviteService, not pushAll.
+        // Record success so shouldSync doesn't trigger on every foreground resume.
+        store.recordSuccess(for: .coachRelationships)
     }
 
     /// Pull all Supabase records for current user and upsert into local SwiftData (last-write-wins).
@@ -96,6 +100,11 @@ struct SyncService {
         if await pullTrainingProfile(context: context, athleteId: athlete.id) {
             store.recordSuccess(for: .trainingProfiles)
         }
+
+        // Coach relationships are pulled via pullLinkedAthletes (coach-only flow).
+        // Record success here so shouldSync's staleness check doesn't trigger
+        // a full sync cycle every foreground resume for non-coach users.
+        store.recordSuccess(for: .coachRelationships)
     }
 
     /// Push only WorkloadSnapshot records (called after WorkoutPipeline).
