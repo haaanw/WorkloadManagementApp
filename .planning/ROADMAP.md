@@ -48,7 +48,7 @@
 - [x] **Phase 13: Design Polish** - Alpino font migration and rounded border fix across all views (completed 2026-05-10)
 - [x] **Phase 14: Sync Hardening** - Replace silent try? calls with structured error handling and per-entity sync timestamps (completed 2026-05-10)
 - [x] **Phase 15: Template Sharing** - Share codes, universal links, preview-before-import for template exchange (completed 2026-05-13)
-- [ ] **Phase 16: LLM Workout Import** - AI-powered text/PDF/image parsing into templates via Supabase Edge Function
+- [x] **Phase 16: LLM Workout Import** - AI-powered text/PDF/image parsing into templates via Supabase Edge Function (completed 2026-05-13)
 
 ### 📋 v1.4 Female Athlete Optimization
 
@@ -246,7 +246,7 @@ Plans:
 | 13. Design Polish | v1.3 | 3/3 | Complete    | 2026-05-10 |
 | 14. Sync Hardening | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 15. Template Sharing | v1.3 | 3/3 | Complete    | 2026-05-13 |
-| 16. LLM Workout Import | v1.3 | 1/2 | In Progress|  |
+| 16. LLM Workout Import | v1.3 | 2/2 | Complete   | 2026-05-13 |
 | 17. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
 | 18. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
 | 19. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
