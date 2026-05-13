@@ -52,11 +52,11 @@ The combination of recovery and load tracked over time — giving athletes long-
 - ✓ Schedule-aware template suggestions (TemplateSuggestionEngine) — v1.2 Phase 12
 - ✓ Dynamic template targets (last-used + ProgressionEngine overlay) — v1.2 Phase 12
 - ✓ Template management (edit, duplicate, archive, favorite, delete) — v1.2 Phase 11
+- ✓ Template sharing between users/coaches via link/code — v1.3 Phase 15
 
 ### Active
 
 - [ ] LLM-powered workout import (PDF/image/text → templates)
-- [ ] Template sharing between users/coaches via link/code
 - [ ] Alpino font replacement (DM Sans → Alpino from FontShare)
 - [ ] SyncService pull-side `try?` hardening (silent failure fix)
 - [ ] Rounded border fix (`.roundedBorder` → 0pt corners per design system)
