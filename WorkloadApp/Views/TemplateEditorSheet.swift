@@ -25,6 +25,22 @@ struct TemplateEditorSheet: View {
         self.existingTemplate = existingTemplate
     }
 
+    /// Convenience init for LLM import pre-fill (D-06)
+    init(
+        coachId: UUID,
+        prefillName: String,
+        prefillSportType: SportType,
+        prefillSessionType: SessionType,
+        prefillGroups: [GroupDraft]
+    ) {
+        self.coachId = coachId
+        self.existingTemplate = nil
+        self._templateName = State(initialValue: prefillName)
+        self._sportType = State(initialValue: prefillSportType)
+        self._sessionType = State(initialValue: prefillSessionType)
+        self._groups = State(initialValue: prefillGroups.isEmpty ? [GroupDraft(groupName: "Main")] : prefillGroups)
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
