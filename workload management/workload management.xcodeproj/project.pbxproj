@@ -97,6 +97,7 @@
 		62F32D7DC317C2EF8C0400B6 /* SpikeAlertBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */; };
 		DD1303010000000000000001 /* SharpTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1303010000000000000002 /* SharpTextFieldStyle.swift */; };
 		7B421978B0C35067216FEBE5 /* InviteService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 06ABB878A70046BADB172CF6 /* InviteService.swift */; };
+		FF1501010000000000000001 /* TemplateSharingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1501010000000000000002 /* TemplateSharingService.swift */; };
 		967C08594573E46A4E6C03AC /* CoachRosterViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = A20BE6662043B66D8EF333D9 /* CoachRosterViewModel.swift */; };
 		A44B7F1B2647EC7086EE54B9 /* CoachRelationshipModelTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA2B9F3391AC5FE598FD31F7 /* CoachRelationshipModelTests.swift */; };
 		A6023DB383EAB35A713065AF /* InviteServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 337C7EF852EA5D7C9C989FF4 /* InviteServiceTests.swift */; };
@@ -161,6 +162,7 @@
 
 /* Begin PBXFileReference section */
 		06ABB878A70046BADB172CF6 /* InviteService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = InviteService.swift; sourceTree = "<group>"; };
+		FF1501010000000000000002 /* TemplateSharingService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TemplateSharingService.swift; sourceTree = "<group>"; };
 		0B040100000000000000000A /* OnboardingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingView.swift; sourceTree = "<group>"; };
 		0DEB1AF33CF394C72D06EBC3 /* ClientDetailView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ClientDetailView.swift; path = Coach/ClientDetailView.swift; sourceTree = "<group>"; };
 		0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContextSwitcher.swift; path = Coach/ContextSwitcher.swift; sourceTree = "<group>"; };
@@ -466,6 +468,7 @@
 				62324C012F66CB0E00A9C2BE /* WorkloadCalculator.swift */,
 				62324C022F66CB0E00A9C2BE /* WorkoutPipeline.swift */,
 				06ABB878A70046BADB172CF6 /* InviteService.swift */,
+				FF1501010000000000000002 /* TemplateSharingService.swift */,
 				5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */,
 				AA0201010000000000000004 /* AnalyticsEngine.swift */,
 				AA0201010000000000000006 /* CSVExportEngine.swift */,
@@ -921,6 +924,7 @@
 				627EC18F2F75917900B89262 /* PrescribeWorkoutSheet.swift in Sources */,
 				627EC1902F75917900B89262 /* TemplateEditorSheet.swift in Sources */,
 				7B421978B0C35067216FEBE5 /* InviteService.swift in Sources */,
+				FF1501010000000000000001 /* TemplateSharingService.swift in Sources */,
 				18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */,
 				627EC1962F76622300B89262 /* WorkoutImportBanner.swift in Sources */,
 				053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */,
