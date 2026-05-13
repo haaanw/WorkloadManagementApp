@@ -246,7 +246,7 @@ Plans:
 | 13. Design Polish | v1.3 | 3/3 | Complete    | 2026-05-10 |
 | 14. Sync Hardening | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 15. Template Sharing | v1.3 | 3/3 | Complete    | 2026-05-13 |
-| 16. LLM Workout Import | v1.3 | 2/2 | Complete   | 2026-05-13 |
+| 16. LLM Workout Import | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 17. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
 | 18. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
 | 19. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
