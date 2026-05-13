@@ -200,11 +200,13 @@ enum WorkoutLLMImportService {
                     muscleGroup: exercise.muscle_group.flatMap { MuscleGroup(rawValue: $0) }
                 )
                 exDraft.sets = exercise.sets.map { set in
-                    TargetSetDraft(
+                    // Convert RPE to RIR (RIR = 10 - RPE) when LLM returns target_rpe
+                    let rir: Int? = set.target_rpe.map { Int(10.0 - $0) }
+                    return TargetSetDraft(
                         targetReps: set.target_reps,
                         targetWeightKg: set.target_weight_kg,
                         targetDurationSeconds: set.target_duration_seconds,
-                        targetRIR: nil,
+                        targetRIR: rir,
                         isWarmup: set.is_warmup
                     )
                 }
