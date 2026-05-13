@@ -5,6 +5,7 @@ status: draft
 shadcn_initialized: false
 preset: none
 created: 2026-05-13
+revised: 2026-05-13
 ---
 
 # Phase 15 — UI Design Contract
@@ -51,10 +52,11 @@ All text uses `Font.Tokens.*` backed by General Sans Variable. No `.system()` or
 | Section head | `.Tokens.sectionHead` | 19pt | 500 (Medium) | 1.3 | Template name in import preview, "Share Template" sheet title |
 | Body | `.Tokens.body` | 17pt | 400 (Regular) | 1.6 | Exercise names in preview, share code display |
 | Label | `.Tokens.label` | 15pt | 400 (Regular) | 1.5 | Set/rep summaries, sport type subtitle, toolbar buttons |
-| Small label | `.Tokens.smallLabel` | 13pt | 400 (Regular) | 1.5 | "Shared by" attribution, expiry note, banner text |
-| Micro | `.Tokens.micro` | 12pt | 400 (Regular) | 1.4 | Group name headers (uppercase, +1.2pt tracking) |
+| Small label | `.Tokens.smallLabel` | 13pt | 400 (Regular) | 1.5 | "Shared by" attribution, expiry note, banner text, group name headers (uppercase variant uses +1.2pt tracking to differentiate) |
 
 Share code display: `.Tokens.body` at 17pt with `.monospacedDigit()` and `.tracking(2.0)` for letter-spaced readability. Rendered in `ColorTokens.text1`.
+
+Group name headers: `.Tokens.smallLabel` at 13pt with `.textCase(.uppercase)` and `.tracking(1.2)` in `ColorTokens.text3`. The uppercase + tracking treatment visually differentiates group headers from attribution and expiry text without requiring a fifth size.
 
 ---
 
@@ -66,8 +68,8 @@ Share code display: `.Tokens.body` at 17pt with `.monospacedDigit()` and `.track
 | Secondary (30%) | `#131312` | `#EDEAE6` | `ColorTokens.surface` — share code card, preview card areas |
 | Divider | `#232321` | `#CFCBC5` | `ColorTokens.divider` — hairline separators between groups, 0.5pt |
 | Text primary | `#C2BEB7` | `#1C1915` | `ColorTokens.text1` — template name, exercise names, share code, CTA labels |
-| Text secondary | `#7C7972` | `#696560` | `ColorTokens.text2` — set summaries, sport/session type, cancel button |
-| Text tertiary | `#3A3835` | `#AFABA5` | `ColorTokens.text3` — group name micro labels, placeholder text |
+| Text secondary | `#7C7972` | `#696560` | `ColorTokens.text2` — set summaries, sport/session type, dismiss button |
+| Text tertiary | `#3A3835` | `#AFABA5` | `ColorTokens.text3` — group name labels, placeholder text |
 | Destructive | `#7E5C5C` | `#6E3A3A` | `ColorTokens.zoneDanger` — not used in this phase (no destructive actions) |
 
 Accent reserved for: hero readiness score only (per DESIGN.md). Not used anywhere in Phase 15 views.
@@ -88,7 +90,7 @@ Accent reserved for: hero readiness score only (per DESIGN.md). Not used anywher
 
 | Pattern | Source | Reuse |
 |---------|--------|-------|
-| Exercise group list | `TemplatePreviewSheet.swift` | Same layout: micro group header, exercise rows with set summary |
+| Exercise group list | `TemplatePreviewSheet.swift` | Same layout: smallLabel group header (uppercase + tracking), exercise rows with set summary |
 | Weekday row | `TemplatePreviewSheet.weekdayRow()` | Extract to shared helper or duplicate inline |
 | Set summary | `TemplatePreviewSheet.setSummary()` | Same format: "3 x 10 @ 80kg" |
 | Code generation | `InviteService.makeLocalCode()` | Extend from 6 to 8 chars |
@@ -102,13 +104,15 @@ Accent reserved for: hero readiness score only (per DESIGN.md). Not used anywher
 
 Presented as `.sheet` from template detail/preview context menu "Share" action.
 
+**Focal point:** The share code string — the large tracked monospaced text is the single element the user's eye must land on immediately.
+
 **Layout (top to bottom):**
 1. Navigation bar: "Share Template" title (`.Tokens.sectionHead`), "Done" button (`.Tokens.label`, `text2`)
 2. Template name (`.Tokens.body`, `text1`) — 16pt horizontal padding, 16pt top
-3. Sport + session type (`.Tokens.label`, `text2`) — 16pt horizontal padding, 4pt below name
+3. Sport + session type (`.Tokens.label`, `text2`) — 16pt horizontal padding, 8pt below name
 4. Hairline divider (0.5pt, `divider`) — 16pt top margin
 5. Share code card: `surface` background, 0pt corners, 0.5pt `divider` border
-   - "SHARE CODE" micro label (`.Tokens.micro`, `text3`, uppercase, +1.2 tracking) — 16pt horizontal, 16pt top
+   - "SHARE CODE" smallLabel (`.Tokens.smallLabel`, `text3`, uppercase, +1.2 tracking) — 16pt horizontal, 16pt top
    - Code string (`.Tokens.body`, `text1`, `.monospacedDigit()`, `.tracking(2.0)`) — 16pt horizontal, 8pt below label
    - "Expires in 30 days" (`.Tokens.smallLabel`, `text3`) — 16pt horizontal, 8pt below code, 16pt bottom
 6. Two full-width buttons stacked vertically with 8pt gap, 16pt horizontal margin, 24pt top:
@@ -126,8 +130,10 @@ Presented as `.sheet` from template detail/preview context menu "Share" action.
 
 Presented as `.sheet` from "Import" button in WorkoutLog toolbar.
 
+**Focal point:** The text field for code entry — the single input the user must interact with to proceed.
+
 **Layout (top to bottom):**
-1. Navigation bar: "Import Template" title (`.Tokens.sectionHead`), "Cancel" button (`.Tokens.label`, `text2`)
+1. Navigation bar: "Import Template" title (`.Tokens.sectionHead`), "Close" button (`.Tokens.label`, `text2`)
 2. Instruction text: "Enter the 8-character share code" (`.Tokens.label`, `text2`) — 16pt horizontal, 24pt top
 3. Text field: custom `SharpTextFieldStyle` (0pt corners per Phase 13), placeholder "ABCD1234" in `text3`, input uppercased, max 8 characters, `.monospacedDigit()`, 16pt horizontal margin, 16pt top
 4. "Look Up" button — full width, `surface` fill, 0pt corners, 0.5pt `divider` border, 48pt height, `.Tokens.body` `text1` centered. Disabled when input length < 8 (text1 changes to `text3` when disabled). 16pt horizontal margin, 16pt top.
@@ -145,16 +151,18 @@ Presented as `.sheet` from "Import" button in WorkoutLog toolbar.
 
 Presented after successful code lookup. Also presented when app opens via universal link `tuwa.app/t/{code}`.
 
+**Focal point:** The "Import Template" sticky CTA button at the bottom — the single action the user came here to complete.
+
 **Layout (top to bottom):**
-1. Navigation bar: empty title, "Cancel" button (`.Tokens.label`, `text2`)
-2. "SHARED TEMPLATE" banner (`.Tokens.micro`, `text3`, uppercase, +1.2 tracking) — 16pt horizontal, 16pt top
+1. Navigation bar: empty title, "Close" button (`.Tokens.label`, `text2`)
+2. "SHARED TEMPLATE" banner (`.Tokens.smallLabel`, `text3`, uppercase, +1.2 tracking) — 16pt horizontal, 16pt top
 3. Template name (`.Tokens.sectionHead`, `text1`) — 16pt horizontal, 8pt below banner
-4. Sport + session type (`.Tokens.label`, `text2`) — 16pt horizontal, 4pt below name
+4. Sport + session type (`.Tokens.label`, `text2`) — 16pt horizontal, 8pt below name
 5. Weekday row (same pattern as `TemplatePreviewSheet`) — 16pt horizontal, 16pt below subtitle
 6. Hairline divider (0.5pt) — 16pt top
 7. Exercise group list (identical layout to `TemplatePreviewSheet`):
-   - Group name: `.Tokens.micro`, `text3`, uppercase, +1.2 tracking, 16pt horizontal, 16pt top, 4pt bottom
-   - Exercise row: `HStack` with exercise name (`.Tokens.body`, `text1`) + set summary (`.Tokens.label`, `text2`, `.monospacedDigit()`), 16pt horizontal, 4pt vertical
+   - Group name: `.Tokens.smallLabel`, `text3`, uppercase, +1.2 tracking, 16pt horizontal, 16pt top, 8pt bottom
+   - Exercise row: `HStack` with exercise name (`.Tokens.body`, `text1`) + set summary (`.Tokens.label`, `text2`, `.monospacedDigit()`), 16pt horizontal, 8pt vertical
 8. Notes section (if present): hairline divider, notes text (`.Tokens.label`, `text2`), 16pt horizontal, 8pt top/bottom
 9. Sticky bottom area: "Import Template" button — full width, `text1` background color, 0pt corners, 48pt height, `.Tokens.body` weight medium, `background` text color (inverted for contrast). 16pt horizontal margin, 16pt bottom (safe area aware).
 
@@ -217,6 +225,9 @@ Presented after successful code lookup. Also presented when app opens via univer
 | Expiry note | "Expires in 30 days" |
 | Copied confirmation | "Copied" (replaces "Copy Code" for 1.5s) |
 | Import success | "Template imported" |
+| Sheet dismiss (ShareCodeSheet) | "Done" |
+| Sheet dismiss (ShareImportSheet) | "Close" |
+| Sheet dismiss (ShareImportPreviewSheet) | "Close" |
 | Empty state heading | n/a (no empty state — this phase adds share/import actions to existing template list) |
 | Empty state body | n/a |
 | Error: code generation | "Could not generate share code. Check your connection and try again." |
