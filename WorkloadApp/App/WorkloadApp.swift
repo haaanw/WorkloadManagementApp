@@ -9,7 +9,7 @@ struct WorkloadApp: App {
     init() {
         #if DEBUG
         assert(
-            !UIFont.fontNames(forFamilyName: "General Sans").isEmpty,
+            UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("general") }),
             "General Sans font not found. Add GeneralSans-Variable.ttf to the project and UIAppFonts in Info.plist."
         )
         #endif
