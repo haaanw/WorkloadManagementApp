@@ -1,5 +1,18 @@
 # Milestones
 
+## v1.3 LLM Import, Sharing & Polish (Shipped: 2026-05-13)
+
+**Phases completed:** 4 phases, 10 plans, 14 tasks
+
+**Key accomplishments:**
+
+- Per-entity sync isolation with structured do/catch, Bool return signals, and SyncTimestampStore for independent timestamp tracking per entity type
+- TemplateSharingService with 8-char share codes, Supabase shared_templates table with RLS/pg_cron, and Associated Domains for tuwa.app universal links
+- ShareCodeSheet with 8-char code display, clipboard copy, and ShareLink universal link sharing wired through template context menu
+- 1. [Rule 3 - Blocking] Added Identifiable conformance to SharedTemplateResponse
+
+---
+
 ## v1.2 Training Onboarding & Templates (Shipped: 2026-05-10)
 
 **Phases completed:** 4 phases, 11 plans, 15 tasks
