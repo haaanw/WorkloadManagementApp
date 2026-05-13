@@ -18,6 +18,7 @@ struct AppRouter: View {
     @State private var isCheckingSession = true
     @State private var pendingInviteCode: PendingInvite?
     @State private var pendingShareCode: PendingShareCode?
+    @State private var deferredShareCode: String?
     @State private var needsOnboarding = false
     @Environment(\.modelContext) private var modelContext
 
@@ -44,7 +45,11 @@ struct AppRouter: View {
             }
             // Template share universal link: tuwa.app/t/{code} or workload://template?code={code}
             if let code = TemplateSharingService.handleDeepLink(url) {
-                pendingShareCode = PendingShareCode(code: code)
+                if container.isAuthenticated {
+                    pendingShareCode = PendingShareCode(code: code)
+                } else {
+                    deferredShareCode = code
+                }
                 return
             }
             // Supabase OAuth callback fallback
@@ -67,6 +72,11 @@ struct AppRouter: View {
                 if let userId = await container.authService.currentUserId() {
                     await container.subscriptionService.logIn(userId: userId)
                 }
+            }
+            // Process deferred share code from deep link received before auth
+            if let code = deferredShareCode {
+                deferredShareCode = nil
+                pendingShareCode = PendingShareCode(code: code)
             }
             // Re-evaluate onboarding after fresh signup (D-06)
             let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
