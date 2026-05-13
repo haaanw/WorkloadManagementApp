@@ -50,10 +50,10 @@ enum TemplateSharingService {
         client: SupabaseClient
     ) async throws -> String {
         struct SharedTemplateInsert: Encodable {
-            let shareCode: String
-            let ownerId: UUID
-            let templateJson: TemplateSharePayload
-            let expiresAt: Date
+            let share_code: String
+            let owner_id: UUID
+            let template_json: TemplateSharePayload
+            let expires_at: Date
         }
 
         for attempt in 0..<3 {
@@ -63,26 +63,23 @@ enum TemplateSharingService {
             let groupsJson = SyncService.encodeGroups(template.groups)
 
             let payload = SharedTemplateInsert(
-                shareCode: code,
-                ownerId: ownerId,
-                templateJson: TemplateSharePayload(
+                share_code: code,
+                owner_id: ownerId,
+                template_json: TemplateSharePayload(
                     v: 1,
-                    templateName: template.templateName,
-                    sportType: template.sportType.rawValue,
-                    sessionType: template.sessionType.rawValue,
+                    template_name: template.templateName,
+                    sport_type: template.sportType.rawValue,
+                    session_type: template.sessionType.rawValue,
                     notes: template.notes,
-                    scheduledDays: template.scheduledDays,
-                    groupsJson: groupsJson
+                    scheduled_days: template.scheduledDays,
+                    groups_json: groupsJson
                 ),
-                expiresAt: expires
+                expires_at: expires
             )
 
             do {
-                let encoder = JSONEncoder()
-                encoder.keyEncodingStrategy = .convertToSnakeCase
-                encoder.dateEncodingStrategy = .iso8601
                 try await client.from("shared_templates")
-                    .insert(payload, encoder: encoder)
+                    .insert(payload)
                     .execute()
                 return code
             } catch {
@@ -112,16 +109,12 @@ enum TemplateSharingService {
     ) async throws -> SharedTemplateResponse {
         struct SharedTemplateRow: Decodable {
             let id: UUID
-            let shareCode: String
-            let ownerId: UUID
-            let templateJson: TemplateSharePayload
-            let expiresAt: Date
-            let createdAt: Date
+            let share_code: String
+            let owner_id: UUID
+            let template_json: TemplateSharePayload
+            let expires_at: Date
+            let created_at: Date
         }
-
-        let decoder = JSONDecoder()
-        decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
 
         let row: SharedTemplateRow = try await client
             .from("shared_templates")
@@ -129,15 +122,15 @@ enum TemplateSharingService {
             .eq("share_code", value: code.uppercased())
             .gt("expires_at", value: ISO8601DateFormatter().string(from: Date.now))
             .single()
-            .execute(decoder: decoder)
+            .execute()
             .value
 
         return SharedTemplateResponse(
             id: row.id,
-            shareCode: row.shareCode,
-            ownerId: row.ownerId,
-            payload: row.templateJson,
-            expiresAt: row.expiresAt
+            shareCode: row.share_code,
+            ownerId: row.owner_id,
+            payload: row.template_json,
+            expiresAt: row.expires_at
         )
     }
 
@@ -155,7 +148,7 @@ enum TemplateSharingService {
 
         // Decode groups from JSON using SyncService (creates fresh objects with new UUIDs)
         var groups: [ExerciseGroup] = []
-        if let json = payload.groupsJson {
+        if let json = payload.groups_json {
             groups = SyncService.decodeGroups(from: json)
         }
 
@@ -171,12 +164,12 @@ enum TemplateSharingService {
         // Create new template with current user as owner
         let template = WorkoutTemplate(
             coachId: athlete.id,
-            templateName: payload.templateName,
-            sportType: SportType(rawValue: payload.sportType) ?? .lifting,
-            sessionType: SessionType(rawValue: payload.sessionType) ?? .strength
+            templateName: payload.template_name,
+            sportType: SportType(rawValue: payload.sport_type) ?? .lifting,
+            sessionType: SessionType(rawValue: payload.session_type) ?? .strength
         )
         template.notes = payload.notes
-        template.scheduledDays = payload.scheduledDays
+        template.scheduledDays = payload.scheduled_days
         template.isAthleteOwned = true
         template.athleteId = athlete.id
         template.groups = groups
@@ -191,12 +184,12 @@ enum TemplateSharingService {
 /// Versioned payload stored in template_json JSONB column.
 struct TemplateSharePayload: Codable {
     let v: Int
-    let templateName: String
-    let sportType: String
-    let sessionType: String
+    let template_name: String
+    let sport_type: String
+    let session_type: String
     let notes: String?
-    let scheduledDays: [Int]
-    let groupsJson: String?
+    let scheduled_days: [Int]
+    let groups_json: String?
 }
 
 /// Response type from share code lookup.

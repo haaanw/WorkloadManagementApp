@@ -19,7 +19,7 @@ struct ShareImportPreviewSheet: View {
 
     /// Decode groups from JSON for preview display (weights stripped to protect sharer privacy)
     private var previewGroups: [ExerciseGroup] {
-        guard let json = payload.groupsJson else { return [] }
+        guard let json = payload.groups_json else { return [] }
         let groups = SyncService.decodeGroups(from: json)
         for group in groups {
             for exercise in group.exercises {
@@ -45,15 +45,15 @@ struct ShareImportPreviewSheet: View {
                             .padding(.top, 16)
 
                         // Template name
-                        Text(payload.templateName)
+                        Text(payload.template_name)
                             .font(.Tokens.sectionHead)
                             .foregroundStyle(ColorTokens.text1)
                             .padding(.horizontal, 16)
                             .padding(.top, 8)
 
                         // Sport + session type
-                        if let sport = SportType(rawValue: payload.sportType),
-                           let session = SessionType(rawValue: payload.sessionType) {
+                        if let sport = SportType(rawValue: payload.sport_type),
+                           let session = SessionType(rawValue: payload.session_type) {
                             Text("\(sport.displayName) - \(session.displayName)")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
@@ -62,7 +62,7 @@ struct ShareImportPreviewSheet: View {
                         }
 
                         // Weekday row
-                        weekdayRow(scheduledDays: payload.scheduledDays)
+                        weekdayRow(scheduledDays: payload.scheduled_days)
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
 
