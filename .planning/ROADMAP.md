@@ -112,7 +112,11 @@ Plans:
   3. User can tap a universal link containing a share code and the app opens directly to the import preview
   4. Imported template is a fully independent deep copy — new UUIDs, current user as owner, no personal weight data from the sharer
   5. Shared template data expires after 30 days and is cleaned up automatically
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 15-01-PLAN.md — TemplateSharingService, Supabase migration SQL, Associated Domains entitlement
+- [ ] 15-02-PLAN.md — ShareCodeSheet, context menu Share button, WorkoutLogView wiring
+- [ ] 15-03-PLAN.md — ShareImportSheet, ShareImportPreviewSheet, AppRouter deep links, WorkoutLogView import button
 **UI hint**: yes
 
 ### Phase 16: LLM Workout Import
@@ -241,7 +245,7 @@ Plans:
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 3/3 | Complete | 2026-05-10 |
 | 13. Design Polish | v1.3 | 3/3 | Complete    | 2026-05-10 |
 | 14. Sync Hardening | v1.3 | 2/2 | Complete    | 2026-05-13 |
-| 15. Template Sharing | v1.3 | 0/0 | Not started | - |
+| 15. Template Sharing | v1.3 | 0/3 | Planning    | - |
 | 16. LLM Workout Import | v1.3 | 0/0 | Not started | - |
 | 17. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
 | 18. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
