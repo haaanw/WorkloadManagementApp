@@ -47,7 +47,7 @@
 
 - [x] **Phase 13: Design Polish** - Alpino font migration and rounded border fix across all views (completed 2026-05-10)
 - [x] **Phase 14: Sync Hardening** - Replace silent try? calls with structured error handling and per-entity sync timestamps (completed 2026-05-10)
-- [ ] **Phase 15: Template Sharing** - Share codes, universal links, preview-before-import for template exchange
+- [x] **Phase 15: Template Sharing** - Share codes, universal links, preview-before-import for template exchange (completed 2026-05-13)
 - [ ] **Phase 16: LLM Workout Import** - AI-powered text/PDF/image parsing into templates via Supabase Edge Function
 
 ### 📋 v1.4 Female Athlete Optimization
@@ -116,7 +116,7 @@ Plans:
 Plans:
 - [x] 15-01-PLAN.md — TemplateSharingService, Supabase migration SQL, Associated Domains entitlement
 - [x] 15-02-PLAN.md — ShareCodeSheet, context menu Share button, WorkoutLogView wiring
-- [ ] 15-03-PLAN.md — ShareImportSheet, ShareImportPreviewSheet, AppRouter deep links, WorkoutLogView import button
+- [x] 15-03-PLAN.md — ShareImportSheet, ShareImportPreviewSheet, AppRouter deep links, WorkoutLogView import button
 **UI hint**: yes
 
 ### Phase 16: LLM Workout Import
@@ -245,7 +245,7 @@ Plans:
 | 12. Template-Driven Workouts & Smart Suggestions | v1.2 | 3/3 | Complete | 2026-05-10 |
 | 13. Design Polish | v1.3 | 3/3 | Complete    | 2026-05-10 |
 | 14. Sync Hardening | v1.3 | 2/2 | Complete    | 2026-05-13 |
-| 15. Template Sharing | v1.3 | 2/3 | In Progress|  |
+| 15. Template Sharing | v1.3 | 3/3 | Complete   | 2026-05-13 |
 | 16. LLM Workout Import | v1.3 | 0/0 | Not started | - |
 | 17. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
 | 18. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
