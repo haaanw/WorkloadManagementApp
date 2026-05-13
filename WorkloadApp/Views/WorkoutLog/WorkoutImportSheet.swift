@@ -340,7 +340,7 @@ struct WorkoutImportSheet: View {
         Task {
             do {
                 let response = try await WorkoutLLMImportService.parseWorkoutText(
-                    inputText, client: container.supabaseClient
+                    inputText, client: container.supabase
                 )
                 mapAndPresent(response)
             } catch {
@@ -359,7 +359,7 @@ struct WorkoutImportSheet: View {
             do {
                 let text = try await WorkoutLLMImportService.extractTextFromPDF(url: url)
                 let response = try await WorkoutLLMImportService.parseWorkoutText(
-                    text, client: container.supabaseClient
+                    text, client: container.supabase
                 )
                 mapAndPresent(response)
             } catch {
@@ -376,7 +376,7 @@ struct WorkoutImportSheet: View {
             do {
                 let text = try await WorkoutLLMImportService.extractTextFromImage(image)
                 let response = try await WorkoutLLMImportService.parseWorkoutText(
-                    text, client: container.supabaseClient
+                    text, client: container.supabase
                 )
                 mapAndPresent(response)
             } catch {
