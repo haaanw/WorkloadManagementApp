@@ -40,19 +40,19 @@ enum InviteService {
         let expires = Date.now.addingTimeInterval(48 * 60 * 60)
 
         struct InvitationInsert: Encodable {
-            let inviterId: UUID
-            let inviterRole: String
+            let inviter_id: UUID
+            let inviter_role: String
             let code: String
-            let expiresAt: Date
+            let expires_at: Date
         }
 
         try await client
             .from("invitations")
             .insert(InvitationInsert(
-                inviterId: athleteId,
-                inviterRole: "athlete",
+                inviter_id: athleteId,
+                inviter_role: "athlete",
                 code: code,
-                expiresAt: expires
+                expires_at: expires
             ))
             .execute()
 
@@ -70,8 +70,8 @@ enum InviteService {
     ) async throws -> ResolvedInvitation {
         struct InvitationRow: Decodable {
             let id: UUID
-            let inviterId: UUID
-            let inviterRole: String
+            let inviter_id: UUID
+            let inviter_role: String
         }
 
         let row: InvitationRow = try await client
@@ -84,14 +84,14 @@ enum InviteService {
 
         struct AthleteRow: Decodable {
             let id: UUID
-            let displayName: String?
-            let sportType: String?
+            let display_name: String?
+            let sport_type: String?
         }
 
         let athlete: AthleteRow = try await client
             .from("athletes")
             .select("id, display_name, sport_type")
-            .eq("id", value: row.inviterId)
+            .eq("id", value: row.inviter_id)
             .single()
             .execute()
             .value
@@ -100,8 +100,8 @@ enum InviteService {
             invitationId: row.id,
             code: code,
             otherPartyId: athlete.id,
-            otherPartyName: athlete.displayName ?? "Unknown",
-            otherPartySport: SportType(rawValue: athlete.sportType ?? "") ?? .custom
+            otherPartyName: athlete.display_name ?? "Unknown",
+            otherPartySport: SportType(rawValue: athlete.sport_type ?? "") ?? .custom
         )
     }
 
@@ -118,23 +118,23 @@ enum InviteService {
         client: SupabaseClient
     ) async throws -> CoachAthleteRelationship {
         struct RelationshipInsert: Encodable {
-            let coachId: UUID
-            let athleteId: UUID
+            let coach_id: UUID
+            let athlete_id: UUID
             let status: String
         }
 
         struct RelationshipRow: Decodable {
             let id: UUID
-            let coachId: UUID
-            let athleteId: UUID
+            let coach_id: UUID
+            let athlete_id: UUID
             let status: String
-            let createdAt: Date
-            let updatedAt: Date
+            let created_at: Date
+            let updated_at: Date
         }
 
         let row: RelationshipRow = try await client
             .from("coach_athlete_relationships")
-            .insert(RelationshipInsert(coachId: coachId, athleteId: athleteId, status: "accepted"))
+            .insert(RelationshipInsert(coach_id: coachId, athlete_id: athleteId, status: "accepted"))
             .select()
             .single()
             .execute()
@@ -144,23 +144,23 @@ enum InviteService {
         if let invitationId, let redeemerAthleteId {
             struct InvitationUpdate: Encodable {
                 let status: String
-                let redeemedBy: UUID
+                let redeemed_by: UUID
             }
             try? await client
                 .from("invitations")
-                .update(InvitationUpdate(status: "accepted", redeemedBy: redeemerAthleteId))
+                .update(InvitationUpdate(status: "accepted", redeemed_by: redeemerAthleteId))
                 .eq("id", value: invitationId)
                 .execute()
         }
 
         let rel = CoachAthleteRelationship(
             id: row.id,
-            coachId: row.coachId,
-            athleteId: row.athleteId,
+            coachId: row.coach_id,
+            athleteId: row.athlete_id,
             status: RelationshipStatus(rawValue: row.status) ?? .accepted
         )
-        rel.createdAt = row.createdAt
-        rel.updatedAt = row.updatedAt
+        rel.createdAt = row.created_at
+        rel.updatedAt = row.updated_at
         return rel
     }
 
@@ -178,21 +178,21 @@ enum InviteService {
         let expires = Date.now.addingTimeInterval(48 * 60 * 60)
 
         struct InvitationInsert: Encodable {
-            let inviterId: UUID
-            let inviterRole: String
+            let inviter_id: UUID
+            let inviter_role: String
             let code: String
             let email: String
-            let expiresAt: Date
+            let expires_at: Date
         }
 
         try await client
             .from("invitations")
             .insert(InvitationInsert(
-                inviterId: coachId,
-                inviterRole: "coach",
+                inviter_id: coachId,
+                inviter_role: "coach",
                 code: code,
                 email: email,
-                expiresAt: expires
+                expires_at: expires
             ))
             .execute()
 
