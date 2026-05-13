@@ -23,6 +23,7 @@ struct WorkoutLogView: View {
     @State private var selectedTemplateForSession: WorkoutTemplate?
     @State private var showShareImport = false
     @State private var shareImportResult: SharedTemplateResponse?
+    @State private var showLLMImport = false
 
     private var visibleSessions: [WorkoutSession] {
         let base = container.subscriptionService.isPro
@@ -183,6 +184,11 @@ struct WorkoutLogView: View {
                     HStack(spacing: 16) {
                         Menu {
                             Button {
+                                showLLMImport = true
+                            } label: {
+                                Label("Import Workout (AI)", systemImage: "sparkles")
+                            }
+                            Button {
                                 showMyPrograms = true
                             } label: {
                                 Label("My Programs", systemImage: "doc.text.fill")
@@ -275,6 +281,10 @@ struct WorkoutLogView: View {
             }
             .sheet(item: $selectedTemplateForShare) { template in
                 ShareCodeSheet(template: template)
+                    .environment(container)
+            }
+            .sheet(isPresented: $showLLMImport) {
+                WorkoutImportSheet()
                     .environment(container)
             }
             .sheet(isPresented: $showShareImport) {

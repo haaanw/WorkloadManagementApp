@@ -19,6 +19,8 @@
 		FF1502010000000000000001 /* ShareCodeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1502010000000000000002 /* ShareCodeSheet.swift */; };
 		FF1503010000000000000001 /* ShareImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1503010000000000000002 /* ShareImportSheet.swift */; };
 		FF1503020000000000000001 /* ShareImportPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1503020000000000000002 /* ShareImportPreviewSheet.swift */; };
+		FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1601010000000000000002 /* WorkoutLLMImportService.swift */; };
+		FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1602010000000000000002 /* WorkoutImportSheet.swift */; };
 		1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000E2 /* TemplatePickerSheet.swift */; };
 		18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */; };
 		3656850E68D35D36B9204A8A /* ContextSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */; };
@@ -176,6 +178,8 @@
 		FF1502010000000000000002 /* ShareCodeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCodeSheet.swift; sourceTree = "<group>"; };
 		FF1503010000000000000002 /* ShareImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareImportSheet.swift; sourceTree = "<group>"; };
 		FF1503020000000000000002 /* ShareImportPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareImportPreviewSheet.swift; sourceTree = "<group>"; };
+		FF1601010000000000000002 /* WorkoutLLMImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLLMImportService.swift; sourceTree = "<group>"; };
+		FF1602010000000000000002 /* WorkoutImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportSheet.swift; sourceTree = "<group>"; };
 		1101010100000000000000E2 /* TemplatePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePickerSheet.swift; sourceTree = "<group>"; };
 		337C7EF852EA5D7C9C989FF4 /* InviteServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InviteServiceTests.swift; path = ../WorkloadAppTests/InviteServiceTests.swift; sourceTree = "<group>"; };
 		4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
@@ -486,6 +490,7 @@
 				EE0501010000000000000002 /* NotificationService.swift */,
 				FF0601010000000000000002 /* PDFReportEngine.swift */,
 				AA0901010000000000000002 /* ColdStartEngine.swift */,
+				FF1601010000000000000002 /* WorkoutLLMImportService.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -598,6 +603,7 @@
 				FF1502010000000000000002 /* ShareCodeSheet.swift */,
 				FF1503010000000000000002 /* ShareImportSheet.swift */,
 				FF1503020000000000000002 /* ShareImportPreviewSheet.swift */,
+				FF1602010000000000000002 /* WorkoutImportSheet.swift */,
 				1101010100000000000000E2 /* TemplatePickerSheet.swift */,
 				62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */,
 				62324C1D2F66CB0E00A9C2BE /* SessionDetailView.swift */,
@@ -937,6 +943,8 @@
 				627EC1902F75917900B89262 /* TemplateEditorSheet.swift in Sources */,
 				7B421978B0C35067216FEBE5 /* InviteService.swift in Sources */,
 				FF1501010000000000000001 /* TemplateSharingService.swift in Sources */,
+				FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */,
+				FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */,
 				18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */,
 				627EC1962F76622300B89262 /* WorkoutImportBanner.swift in Sources */,
 				053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */,
