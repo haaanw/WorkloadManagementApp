@@ -21,6 +21,8 @@ struct WorkoutLogView: View {
     @State private var editingTemplate: WorkoutTemplate?
     @State private var showTemplatePicker = false
     @State private var selectedTemplateForSession: WorkoutTemplate?
+    @State private var showShareImport = false
+    @State private var shareImportResult: SharedTemplateResponse?
 
     private var visibleSessions: [WorkoutSession] {
         let base = container.subscriptionService.isPro
@@ -194,6 +196,11 @@ struct WorkoutLogView: View {
                             } label: {
                                 Label("Import Program (Text)", systemImage: "doc.plaintext")
                             }
+                            Button {
+                                showShareImport = true
+                            } label: {
+                                Label("Import Shared Template", systemImage: "square.and.arrow.down")
+                            }
                         } label: {
                             Image(systemName: "ellipsis.circle")
                                 .foregroundStyle(ColorTokens.text2)
@@ -268,6 +275,16 @@ struct WorkoutLogView: View {
             }
             .sheet(item: $selectedTemplateForShare) { template in
                 ShareCodeSheet(template: template)
+                    .environment(container)
+            }
+            .sheet(isPresented: $showShareImport) {
+                ShareImportSheet(onLookupSuccess: { result in
+                    shareImportResult = result
+                })
+                .environment(container)
+            }
+            .sheet(item: $shareImportResult) { result in
+                ShareImportPreviewSheet(response: result)
                     .environment(container)
             }
             .sheet(isPresented: $showTemplateEditor) {

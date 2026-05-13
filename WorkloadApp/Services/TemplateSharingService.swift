@@ -199,7 +199,7 @@ struct TemplateSharePayload: Codable {
 }
 
 /// Response type from share code lookup.
-struct SharedTemplateResponse {
+struct SharedTemplateResponse: Identifiable {
     let id: UUID
     let shareCode: String
     let ownerId: UUID

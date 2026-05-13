@@ -8,10 +8,16 @@ struct PendingInvite: Identifiable {
     let code: String
 }
 
+struct PendingShareCode: Identifiable {
+    let id = UUID()
+    let code: String
+}
+
 struct AppRouter: View {
     @State private var container = AppContainer()
     @State private var isCheckingSession = true
     @State private var pendingInviteCode: PendingInvite?
+    @State private var pendingShareCode: PendingShareCode?
     @State private var needsOnboarding = false
     @Environment(\.modelContext) private var modelContext
 
@@ -36,6 +42,11 @@ struct AppRouter: View {
                 pendingInviteCode = PendingInvite(code: code)
                 return
             }
+            // Template share universal link: tuwa.app/t/{code} or workload://template?code={code}
+            if let code = TemplateSharingService.handleDeepLink(url) {
+                pendingShareCode = PendingShareCode(code: code)
+                return
+            }
             // Supabase OAuth callback fallback
             Task {
                 try? await container.supabase.auth.session(from: url)
@@ -43,6 +54,10 @@ struct AppRouter: View {
         }
         .sheet(item: $pendingInviteCode) { pending in
             InviteConfirmationSheet(code: pending.code, mode: .athleteAccepting)
+                .environment(container)
+        }
+        .sheet(item: $pendingShareCode) { pending in
+            ShareImportSheet(prefillCode: pending.code)
                 .environment(container)
         }
         .onChange(of: container.isAuthenticated) { _, isAuth in
