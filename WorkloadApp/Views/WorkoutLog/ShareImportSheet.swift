@@ -111,8 +111,8 @@ struct ShareImportSheet: View {
                 codeInput,
                 client: container.supabase
             )
-            dismiss()
             onLookupSuccess?(result)
+            dismiss()
         } catch {
             let errorStr = "\(error)"
             if errorStr.contains("expired") || errorStr.contains("406") || errorStr.contains("PGRST116") {
