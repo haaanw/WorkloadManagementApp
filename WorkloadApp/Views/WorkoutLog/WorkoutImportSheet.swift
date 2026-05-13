@@ -137,6 +137,10 @@ struct WorkoutImportSheet: View {
                         prefillGroups: parsedGroups
                     )
                     .environment(container)
+                } else {
+                    Text("Unable to load athlete data.")
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text2)
                 }
             }
         }
