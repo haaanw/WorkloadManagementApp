@@ -16,6 +16,7 @@ struct WorkoutLogView: View {
     @State private var showMyPrograms = false
     @State private var showTextImport = false
     @State private var selectedTemplateForPreview: WorkoutTemplate?
+    @State private var selectedTemplateForShare: WorkoutTemplate?
     @State private var showTemplateEditor = false
     @State private var editingTemplate: WorkoutTemplate?
     @State private var showTemplatePicker = false
@@ -75,6 +76,9 @@ struct WorkoutLogView: View {
                             },
                             onPreviewTemplate: { template in
                                 selectedTemplateForPreview = template
+                            },
+                            onShareTemplate: { template in
+                                selectedTemplateForShare = template
                             }
                         )
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
@@ -261,6 +265,10 @@ struct WorkoutLogView: View {
                     }
                 )
                 .environment(container)
+            }
+            .sheet(item: $selectedTemplateForShare) { template in
+                ShareCodeSheet(template: template)
+                    .environment(container)
             }
             .sheet(isPresented: $showTemplateEditor) {
                 if let athleteId = athletes.first?.id {

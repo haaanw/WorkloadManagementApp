@@ -11,6 +11,7 @@ struct TemplateCarouselSection: View {
     var onStartFromTemplate: (WorkoutTemplate) -> Void
     var onCreateTemplate: () -> Void
     var onPreviewTemplate: ((WorkoutTemplate) -> Void)? = nil
+    var onShareTemplate: ((WorkoutTemplate) -> Void)? = nil
 
     @State private var centeredId: UUID?
     @State private var showDeleteConfirmation = false
@@ -313,6 +314,11 @@ struct TemplateCarouselSection: View {
                 }
                 Button { duplicateTemplate(template) } label: {
                     Label("Duplicate Template", systemImage: "doc.on.doc")
+                }
+                if let onShareTemplate {
+                    Button { onShareTemplate(template) } label: {
+                        Label("Share Template", systemImage: "square.and.arrow.up")
+                    }
                 }
                 Button { toggleFavorite(template) } label: {
                     Label(template.isFavorite ? "Unfavorite" : "Favorite",
