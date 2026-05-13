@@ -127,6 +127,7 @@ enum TemplateSharingService {
             .from("shared_templates")
             .select()
             .eq("share_code", value: code.uppercased())
+            .gt("expires_at", value: ISO8601DateFormatter().string(from: Date.now))
             .single()
             .execute(decoder: decoder)
             .value
