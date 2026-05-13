@@ -17,10 +17,18 @@ struct ShareImportPreviewSheet: View {
     private var athlete: Athlete? { athletes.first }
     private var payload: TemplateSharePayload { response.payload }
 
-    /// Decode groups from JSON for preview display
+    /// Decode groups from JSON for preview display (weights stripped to protect sharer privacy)
     private var previewGroups: [ExerciseGroup] {
         guard let json = payload.groupsJson else { return [] }
-        return SyncService.decodeGroups(from: json)
+        let groups = SyncService.decodeGroups(from: json)
+        for group in groups {
+            for exercise in group.exercises {
+                for set in exercise.sets {
+                    set.targetWeightKg = nil
+                }
+            }
+        }
+        return groups
     }
 
     var body: some View {
