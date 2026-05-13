@@ -350,6 +350,8 @@ struct WorkoutImportSheet: View {
         isLoading = true
         errorMessage = nil
         Task {
+            let accessing = url.startAccessingSecurityScopedResource()
+            defer { if accessing { url.stopAccessingSecurityScopedResource() } }
             do {
                 let text = try await WorkoutLLMImportService.extractTextFromPDF(url: url)
                 let response = try await WorkoutLLMImportService.parseWorkoutText(
