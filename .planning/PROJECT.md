@@ -54,12 +54,12 @@ The combination of recovery and load tracked over time — giving athletes long-
 - ✓ Template management (edit, duplicate, archive, favorite, delete) — v1.2 Phase 11
 - ✓ Template sharing between users/coaches via link/code — v1.3 Phase 15
 
-### Active
+- ✓ LLM-powered workout import (PDF/image/text → templates) — v1.3 Phase 16
+- ✓ Alpino font replacement (DM Sans → Alpino from FontShare) — v1.3 Phase 13
+- ✓ SyncService pull-side `try?` hardening (silent failure fix) — v1.3 Phase 14
+- ✓ Rounded border fix (`.roundedBorder` → 0pt corners per design system) — v1.3 Phase 13
 
-- [ ] LLM-powered workout import (PDF/image/text → templates)
-- [ ] Alpino font replacement (DM Sans → Alpino from FontShare)
-- [ ] SyncService pull-side `try?` hardening (silent failure fix)
-- [ ] Rounded border fix (`.roundedBorder` → 0pt corners per design system)
+### Active
 - [ ] Cycle data foundation: CycleTrackingService reading HealthKit menstrual data from existing apps
 - [ ] Same-phase recovery baselines with confidence gating (measurement correction, not modifier)
 - [ ] Cycle context UI: dashboard phase indicator, recovery card explanations, fueling prompts
