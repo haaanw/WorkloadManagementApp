@@ -17,6 +17,8 @@
 		1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000C2 /* TemplateCarouselSection.swift */; };
 		1101010100000000000000D1 /* TemplatePreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000D2 /* TemplatePreviewSheet.swift */; };
 		FF1502010000000000000001 /* ShareCodeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1502010000000000000002 /* ShareCodeSheet.swift */; };
+		FF1503010000000000000001 /* ShareImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1503010000000000000002 /* ShareImportSheet.swift */; };
+		FF1503020000000000000001 /* ShareImportPreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1503020000000000000002 /* ShareImportPreviewSheet.swift */; };
 		1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000E2 /* TemplatePickerSheet.swift */; };
 		18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */; };
 		3656850E68D35D36B9204A8A /* ContextSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */; };
@@ -172,6 +174,8 @@
 		1101010100000000000000C2 /* TemplateCarouselSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCarouselSection.swift; sourceTree = "<group>"; };
 		1101010100000000000000D2 /* TemplatePreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewSheet.swift; sourceTree = "<group>"; };
 		FF1502010000000000000002 /* ShareCodeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCodeSheet.swift; sourceTree = "<group>"; };
+		FF1503010000000000000002 /* ShareImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareImportSheet.swift; sourceTree = "<group>"; };
+		FF1503020000000000000002 /* ShareImportPreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareImportPreviewSheet.swift; sourceTree = "<group>"; };
 		1101010100000000000000E2 /* TemplatePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePickerSheet.swift; sourceTree = "<group>"; };
 		337C7EF852EA5D7C9C989FF4 /* InviteServiceTests.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = InviteServiceTests.swift; path = ../WorkloadAppTests/InviteServiceTests.swift; sourceTree = "<group>"; };
 		4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
@@ -592,6 +596,8 @@
 				1101010100000000000000C2 /* TemplateCarouselSection.swift */,
 				1101010100000000000000D2 /* TemplatePreviewSheet.swift */,
 				FF1502010000000000000002 /* ShareCodeSheet.swift */,
+				FF1503010000000000000002 /* ShareImportSheet.swift */,
+				FF1503020000000000000002 /* ShareImportPreviewSheet.swift */,
 				1101010100000000000000E2 /* TemplatePickerSheet.swift */,
 				62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */,
 				62324C1D2F66CB0E00A9C2BE /* SessionDetailView.swift */,
@@ -874,6 +880,8 @@
 				1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */,
 				1101010100000000000000D1 /* TemplatePreviewSheet.swift in Sources */,
 				FF1502010000000000000001 /* ShareCodeSheet.swift in Sources */,
+				FF1503010000000000000001 /* ShareImportSheet.swift in Sources */,
+				FF1503020000000000000001 /* ShareImportPreviewSheet.swift in Sources */,
 				1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */,
 				FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */,
 				62324C322F66CB0E00A9C2BE /* WorkoutLogViewModel.swift in Sources */,
