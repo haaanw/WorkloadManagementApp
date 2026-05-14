@@ -374,3 +374,27 @@ struct InjuryEntry: Codable {
     let notes: String?
     let isActive: Bool
 }
+
+// MARK: - Cycle Enums
+
+enum CyclePhase: String, Codable, CaseIterable, Identifiable {
+    case earlyFollicular
+    case lateFollicular
+    case ovulatory
+    case earlyLuteal
+    case lateLuteal
+    case unknown
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .earlyFollicular: "Early Follicular"
+        case .lateFollicular: "Late Follicular"
+        case .ovulatory: "Ovulatory"
+        case .earlyLuteal: "Early Luteal"
+        case .lateLuteal: "Late Luteal"
+        case .unknown: "Unknown"
+        }
+    }
+}
