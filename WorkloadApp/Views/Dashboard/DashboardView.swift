@@ -20,6 +20,8 @@ struct DashboardView: View {
     @State private var showTrainingProfile = false
     @State private var viewModel = DashboardViewModel()
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
+    @AppStorage("cyclePromptDismissed") private var cyclePromptDismissed: Bool = false
+    @Query private var cycleSnapshots: [MenstrualCycleSnapshot]
 
     private var athlete: Athlete? { athletes.first }
 
@@ -31,6 +33,10 @@ struct DashboardView: View {
     private var showTrainingProfileCard: Bool {
         guard athlete != nil else { return false }
         return trainingProfiles.isEmpty
+    }
+
+    private var showCyclePrompt: Bool {
+        !cyclePromptDismissed && cycleSnapshots.isEmpty
     }
 
     var body: some View {
@@ -54,6 +60,48 @@ struct DashboardView: View {
                         EmptyStateCard {
                             Task { try? await container.healthKitService.requestAuthorization() }
                         }
+                    }
+
+                    // Cycle-aware recovery soft prompt (D-02)
+                    if showCyclePrompt {
+                        VStack(alignment: .leading, spacing: 8) {
+                            HStack {
+                                Text("Cycle-Aware Recovery")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Button {
+                                    cyclePromptDismissed = true
+                                } label: {
+                                    Image(systemName: "xmark")
+                                        .font(.system(size: 13))
+                                        .foregroundStyle(ColorTokens.text2)
+                                }
+                                .accessibilityLabel("Dismiss cycle tracking prompt")
+                            }
+                            Text("Track your menstrual cycle in Apple Health to get cycle-aware recovery insights. Faros reads existing data from apps like Clue, Flo, or Apple Cycle Tracking \u{2014} no manual re-entry needed.")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text2)
+                            Button {
+                                if let url = URL(string: UIApplication.openSettingsURLString) {
+                                    UIApplication.shared.open(url)
+                                }
+                            } label: {
+                                Text("Open Settings")
+                                    .font(.Tokens.label)
+                                    .foregroundStyle(ColorTokens.text1)
+                                    .underline()
+                            }
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 16)
+                        .background(ColorTokens.surface)
+                        .overlay(
+                            Rectangle()
+                                .stroke(ColorTokens.divider, lineWidth: 0.5)
+                        )
+                        .padding(.horizontal, 16)
+                        .padding(.top, 8)
                     }
 
                     Spacer().frame(height: 8)
