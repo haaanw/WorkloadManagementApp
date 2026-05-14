@@ -34,13 +34,13 @@ Declared values (must be multiples of 8pt, per DESIGN.md):
 | Token | Value | Usage |
 |-------|-------|-------|
 | xs | 8pt | Icon-label gaps, tight inline spacing |
-| sm | 16pt | Card internal padding (horizontal), small gaps |
+| sm | 16pt | Card internal padding (horizontal), small gaps, toggle row vertical padding |
 | md | 24pt | Card internal padding (vertical), standard gaps |
 | lg | 32pt | Section gaps |
 | xl | 48pt | Major section breaks |
 | 2xl | 64pt | Page-level top/bottom breathing room |
 
-Exceptions: None. Reuse existing ProfileView spacing patterns (16pt horizontal padding, 12pt vertical padding on rows per established pattern).
+Exceptions: None. All spacing on the 8pt grid. Toggle rows use 16pt horizontal and 16pt vertical padding.
 
 ---
 
@@ -54,9 +54,8 @@ All text uses `Font.Tokens.*` from FontTokens.swift. No `.system()` or semantic 
 | Label | 15pt | 400 (Regular) | 1.5 | `Font.Tokens.label` |
 | Small label | 13pt | 400 (Regular) | 1.4 | `Font.Tokens.smallLabel` |
 | Micro / section header caps | 12pt | 400 (Regular) | 1.3 | `Font.Tokens.micro` + `.tracking(1.2)` + `.textCase(.uppercase)` |
-| Section head | 19pt | 500 (Medium) | 1.3 | `Font.Tokens.sectionHead` |
 
-Source: DESIGN.md Type Scale, FontTokens.swift
+Source: DESIGN.md Type Scale, FontTokens.swift. Note: `sectionHeader()` helper uses the micro/12pt token internally -- no separate sectionHead size needed for this phase.
 
 ---
 
@@ -107,7 +106,7 @@ sectionDivider()
 
 **Interaction:**
 - Toggle rows follow the exact same pattern as "Weekly Summary" toggle in Notifications section: `HStack` with label + `Spacer()` + `Toggle("", isOn:).labelsHidden()`
-- Padding: 16pt horizontal, 12pt vertical per existing toggle row pattern
+- Padding: 16pt horizontal, 16pt vertical per toggle row
 - Toggling any value immediately saves to `Athlete` model via existing `saveAthlete()` helper
 - No confirmation dialogs -- these are informational toggles, not destructive actions
 - OC toggle state feeds into CycleContext downstream (Phase 18) but has no immediate UI effect beyond persisting
