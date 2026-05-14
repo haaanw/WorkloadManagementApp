@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		06F95989A95E4830BA353149 /* CycleTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FB72E5C2F6E9444581C9B594 /* CycleTrackingService.swift */; };
 		14B3B0549A7B5907416AA3F9 /* SyncStatusView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 14B27B1AC91147CB45348512 /* SyncStatusView.swift */; };
 		02B5342D87238056790C2CB7 /* CoachWorkoutEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88A4956488E0ECB2BC93FD3F /* CoachWorkoutEntrySheet.swift */; };
 		053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DCB08A3880509F52F7419E9 /* InviteConfirmationSheet.swift */; };
@@ -210,6 +211,7 @@
 		62324BFA2F66CB0E00A9C2BE /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
 		62324BFB2F66CB0E00A9C2BE /* AutoregulationEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AutoregulationEngine.swift; sourceTree = "<group>"; };
 		62324BFC2F66CB0E00A9C2BE /* HealthKitService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthKitService.swift; sourceTree = "<group>"; };
+		FB72E5C2F6E9444581C9B594 /* CycleTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleTrackingService.swift; sourceTree = "<group>"; };
 		62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRDetector.swift; sourceTree = "<group>"; };
 		62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryPipeline.swift; sourceTree = "<group>"; };
 		62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScoreEngine.swift; sourceTree = "<group>"; };
@@ -463,6 +465,7 @@
 		62324C032F66CB0E00A9C2BE /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				FB72E5C2F6E9444581C9B594 /* CycleTrackingService.swift */,
 				627EC1972F76857600B89262 /* ProgressionEngine.swift */,
 				62F32C982F7167EA00B6135F /* ReasoningEngine.swift */,
 				62324BFA2F66CB0E00A9C2BE /* AuthService.swift */,
@@ -847,6 +850,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				06F95989A95E4830BA353149 /* CycleTrackingService.swift in Sources */,
 				14B3B0549A7B5907416AA3F9 /* SyncStatusView.swift in Sources */,
 				0B040200000000000000000A /* OnboardingView.swift in Sources */,
 				62324C232F66CB0E00A9C2BE /* LoginView.swift in Sources */,
