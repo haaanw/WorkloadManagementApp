@@ -84,7 +84,12 @@
   5. Users who don't track cycles experience zero change to existing app behavior
   6. Raw menstrual data never syncs to Supabase — only derivative scores (cycle phase, cycle day) influence algorithms
   7. Contraceptive status settable in ProfileView; OC users skip all phase-based adjustments
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
+- [ ] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
+- [ ] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
 **UI hint**: yes
 
 ### Phase 18: Cycle-Aware Recovery Baselines
@@ -112,7 +117,12 @@
   4. RED-S monitoring: alert when 3+ consecutive missed periods OR cycle length >35 days consistently, with clinician-referral language and exclusion handling (pregnancy, OC, perimenopause, PCOS)
   5. Cycle context never says "deload because luteal" — always readiness-first with cycle as explanation
   6. All cycle UI elements are 100% optional and invisible to users who don't grant HealthKit menstrual permissions
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
+- [ ] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
+- [ ] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
 **UI hint**: yes
 
 ### Phase 20: Cycle Intelligence (Shadow Mode)
@@ -143,7 +153,12 @@
   6. Works in both TemplateEditorSheet and ActiveWorkoutSheet
   7. Options are customizable per enum (icon + label around ring)
   8. Follows design system: 0pt corners, no shadows, Alpino font, 8pt grid
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
+- [ ] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
+- [ ] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
 **UI hint**: yes
 
 ### Phase 22: Granular Muscle Group Taxonomy
@@ -185,9 +200,19 @@
 | 14. Sync Hardening | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 15. Template Sharing | v1.3 | 3/3 | Complete    | 2026-05-13 |
 | 16. LLM Workout Import | v1.3 | 2/2 | Complete    | 2026-05-13 |
-| 17. Cycle Data Foundation | v1.4 | 0/0 | Not started | - |
+| 17. Cycle Data Foundation | v1.4 | 0/3 | Planned | - |
 | 18. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
 | 19. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
 | 20. Cycle Intelligence (Shadow Mode) | v1.4 | 0/0 | Not started | - |
 | 21. Radial Gesture Picker | v1.5 | 0/0 | Not started | - |
 | 22. Granular Muscle Group Taxonomy | v1.5 | 0/0 | Not started | - |
+
+### Phase 23: Multi-language in-app support (Simplified Chinese)
+
+**Goal:** [To be planned]
+**Requirements**: TBD
+**Depends on:** Phase 22
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd-plan-phase 23 to break down)
