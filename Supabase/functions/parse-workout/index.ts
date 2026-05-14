@@ -5,7 +5,7 @@
 // Mobile-only endpoint: restrict CORS to prevent unauthorized web usage.
 // Mobile apps do not send CORS preflight, so this primarily blocks browser callers.
 const CORS_HEADERS = {
-  "Access-Control-Allow-Origin": "https://faros.app",
+  "Access-Control-Allow-Origin": "https://tuwa.app",
   "Access-Control-Allow-Headers":
     "authorization, x-client-info, apikey, content-type",
   "Access-Control-Allow-Methods": "POST, OPTIONS",
