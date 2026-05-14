@@ -7,8 +7,16 @@ struct ProfileView: View {
     @Query private var athletes: [Athlete]
     @Query private var relationships: [CoachAthleteRelationship]
     @Query private var trainingProfiles: [TrainingProfile]
+    @Query private var cycleSnapshots: [MenstrualCycleSnapshot]
 
     private var athlete: Athlete? { athletes.first }
+
+    private var showCycleSection: Bool {
+        !cycleSnapshots.isEmpty ||
+        athlete?.isOnHormonalContraceptive != nil ||
+        athlete?.isPregnant != nil ||
+        athlete?.isLactating != nil
+    }
 
     // Notification settings
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
@@ -80,6 +88,68 @@ struct ProfileView: View {
                             }
                         }
                         sectionDivider()
+
+                        // Cycle & Hormones (D-03)
+                        if showCycleSection, let athlete {
+                            sectionHeader("CYCLE & HORMONES")
+
+                            HStack {
+                                Text("Hormonal Contraceptive")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { athlete.isOnHormonalContraceptive ?? false },
+                                    set: { newValue in
+                                        athlete.isOnHormonalContraceptive = newValue
+                                        saveAthlete(athlete)
+                                    }
+                                ))
+                                .labelsHidden()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+
+                            divider()
+
+                            HStack {
+                                Text("Pregnant")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { athlete.isPregnant ?? false },
+                                    set: { newValue in
+                                        athlete.isPregnant = newValue
+                                        saveAthlete(athlete)
+                                    }
+                                ))
+                                .labelsHidden()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+
+                            divider()
+
+                            HStack {
+                                Text("Lactating")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { athlete.isLactating ?? false },
+                                    set: { newValue in
+                                        athlete.isLactating = newValue
+                                        saveAthlete(athlete)
+                                    }
+                                ))
+                                .labelsHidden()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+
+                            sectionDivider()
+                        }
 
                         // Preferences
                         sectionHeader("PREFERENCES")
