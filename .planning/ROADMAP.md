@@ -58,7 +58,7 @@
 **Research:** `.planning/research/female-athlete-optimization-research.md` (696 lines, 60+ sources)
 **Cross-AI Review:** Claude + Codex adversarial review completed. Consensus: CycleContext-first (explanations), same-phase baselines as measurement correction (not modifier), defer algorithmic modifiers to Wave 2 pending shadow-mode validation.
 
-- [ ] **Phase 17: Cycle Data Foundation** - CycleTrackingService (HealthKit menstrual + wrist temp reader), MenstrualCycleSnapshot model, CyclePhase enum, contraceptive status in profile, HealthKit permission flow
+- [x] **Phase 17: Cycle Data Foundation** - CycleTrackingService (HealthKit menstrual + wrist temp reader), MenstrualCycleSnapshot model, CyclePhase enum, contraceptive status in profile, HealthKit permission flow (completed 2026-05-14)
 - [ ] **Phase 18: Cycle-Aware Recovery Baselines** - RecoveryScoreEngine same-phase baseline with confidence gating, dual baseline (7-day + same-phase), graceful degradation for <3 cycles / irregular / anovulatory / OC users
 - [ ] **Phase 19: Cycle Context UI & Guidance** - Dashboard cycle day indicator, phase context in recovery card, fueling/recovery prompts (avoid fasted workouts, post-training nutrition), RED-S cycle irregularity alerts with clinician-referral language
 - [ ] **Phase 20: Cycle Intelligence (Shadow Mode)** - Shadow-mode analytics measuring cycle context prediction value, evidence-gated AutoregulationEngine soft modifiers (yellow zone only), FatigueIndex phase-aware dampening (validated), ProgressionEngine phase awareness
@@ -88,8 +88,8 @@
 
 Plans:
 - [x] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
-- [ ] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
-- [ ] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
+- [x] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
+- [x] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
 **UI hint**: yes
 
 ### Phase 18: Cycle-Aware Recovery Baselines
@@ -120,9 +120,9 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
-- [ ] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
-- [ ] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
+- [x] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
+- [x] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
+- [x] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
 **UI hint**: yes
 
 ### Phase 20: Cycle Intelligence (Shadow Mode)
@@ -156,7 +156,7 @@ Plans:
 **Plans**: 3 plans
 
 Plans:
-- [ ] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
+- [x] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
 - [ ] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
 - [ ] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
 **UI hint**: yes
@@ -200,7 +200,7 @@ Plans:
 | 14. Sync Hardening | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 15. Template Sharing | v1.3 | 3/3 | Complete    | 2026-05-13 |
 | 16. LLM Workout Import | v1.3 | 2/2 | Complete    | 2026-05-13 |
-| 17. Cycle Data Foundation | v1.4 | 1/3 | In Progress|  |
+| 17. Cycle Data Foundation | v1.4 | 3/3 | Complete   | 2026-05-14 |
 | 18. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
 | 19. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
 | 20. Cycle Intelligence (Shadow Mode) | v1.4 | 0/0 | Not started | - |
@@ -212,7 +212,7 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 22
-**Plans:** 1/3 plans executed
+**Plans:** 3/3 plans complete
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 23 to break down)
