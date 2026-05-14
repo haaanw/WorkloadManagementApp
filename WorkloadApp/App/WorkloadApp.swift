@@ -22,6 +22,7 @@ struct WorkloadApp: App {
                 SetRecord.self,
                 WorkloadSnapshot.self,
                 RecoverySnapshot.self,
+                MenstrualCycleSnapshot.self,
                 WellnessCheckIn.self,
                 PersonalRecord.self,
                 CoachAthleteRelationship.self,

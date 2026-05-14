@@ -18,6 +18,9 @@ final class Athlete {
     var isCoachOnly: Bool = false
     var trainingFrequency: TrainingFrequency?
     var experienceLevel: ExperienceLevel?
+    var isOnHormonalContraceptive: Bool?
+    var isPregnant: Bool?
+    var isLactating: Bool?
 
     @Relationship(deleteRule: .cascade, inverse: \WorkoutSession.athlete)
     var sessions: [WorkoutSession] = []
@@ -39,6 +42,9 @@ final class Athlete {
 
     @Relationship(deleteRule: .cascade, inverse: \BehaviorTag.athlete)
     var behaviorTags: [BehaviorTag] = []
+
+    @Relationship(deleteRule: .cascade, inverse: \MenstrualCycleSnapshot.athlete)
+    var menstrualCycleSnapshots: [MenstrualCycleSnapshot] = []
 
     /// Estimated max HR using 220-age if dateOfBirth is set, otherwise user-configured value
     var estimatedMaxHR: Int {
