@@ -48,6 +48,7 @@
 		62324C332F66CB0E00A9C2BE /* SleepTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */; };
 		62324C342F66CB0E00A9C2BE /* RecoveryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */; };
 		62324C352F66CB0E00A9C2BE /* RecoveryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */; };
+		DD1802010000000000000001 /* CycleSnapshotRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1802000000000000000001 /* CycleSnapshotRepository.swift */; };
 		62324C362F66CB0E00A9C2BE /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C102F66CB0E00A9C2BE /* DashboardView.swift */; };
 		62324C372F66CB0E00A9C2BE /* RecoveryPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */; };
 		62324C382F66CB0E00A9C2BE /* HRVTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE42F66CB0E00A9C2BE /* HRVTrendChart.swift */; };
@@ -208,6 +209,7 @@
 		62324BF22F66CB0E00A9C2BE /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
 		62324BF42F66CB0E00A9C2BE /* AthleteRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AthleteRepository.swift; sourceTree = "<group>"; };
 		62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryRepository.swift; sourceTree = "<group>"; };
+		DD1802000000000000000001 /* CycleSnapshotRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleSnapshotRepository.swift; sourceTree = "<group>"; };
 		62324BF62F66CB0E00A9C2BE /* WorkloadRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadRepository.swift; sourceTree = "<group>"; };
 		62324BF72F66CB0E00A9C2BE /* WorkoutRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutRepository.swift; sourceTree = "<group>"; };
 		62324BFA2F66CB0E00A9C2BE /* AuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthService.swift; sourceTree = "<group>"; };
@@ -447,6 +449,7 @@
 				62324BF42F66CB0E00A9C2BE /* AthleteRepository.swift */,
 				CC0301010000000000000004 /* BehaviorTagRepository.swift */,
 				62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */,
+				DD1802000000000000000001 /* CycleSnapshotRepository.swift */,
 				62324BF62F66CB0E00A9C2BE /* WorkloadRepository.swift */,
 				CC0903000000000000000001 /* TemplateRepository.swift */,
 				AA10010100000000000002 /* TrainingProfileRepository.swift */,
@@ -901,6 +904,7 @@
 				62324C332F66CB0E00A9C2BE /* SleepTrendChart.swift in Sources */,
 				62324C342F66CB0E00A9C2BE /* RecoveryViewModel.swift in Sources */,
 				62324C352F66CB0E00A9C2BE /* RecoveryRepository.swift in Sources */,
+				DD1802010000000000000001 /* CycleSnapshotRepository.swift in Sources */,
 				62324C362F66CB0E00A9C2BE /* DashboardView.swift in Sources */,
 				62324C372F66CB0E00A9C2BE /* RecoveryPipeline.swift in Sources */,
 				62F32C972F7167E000B6135F /* FontTokens.swift in Sources */,

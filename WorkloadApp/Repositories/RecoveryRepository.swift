@@ -86,6 +86,9 @@ final class RecoveryRepository {
         return try modelContext.fetch(descriptor).first
     }
 
+    /// Fetch recovery snapshots within a date window, sorted ascending.
+    /// Accepts an arbitrary `days` span; callers may request multi-cycle windows
+    /// (e.g. ~3 menstrual cycles) for same-phase baseline grouping (Plan 18-02).
     func fetchRecoveryHistory(days: Int, athlete: Athlete? = nil) throws -> [RecoverySnapshot] {
         let startDate = Calendar.current.date(byAdding: .day, value: -days, to: .now)!
         let descriptor: FetchDescriptor<RecoverySnapshot>
