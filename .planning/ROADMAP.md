@@ -59,7 +59,7 @@
 **Cross-AI Review:** Claude + Codex adversarial review completed. Consensus: CycleContext-first (explanations), same-phase baselines as measurement correction (not modifier), defer algorithmic modifiers to Wave 2 pending shadow-mode validation.
 
 - [x] **Phase 17: Cycle Data Foundation** - CycleTrackingService (HealthKit menstrual + wrist temp reader), MenstrualCycleSnapshot model, CyclePhase enum, contraceptive status in profile, HealthKit permission flow (completed 2026-05-14)
-- [ ] **Phase 18: Cycle-Aware Recovery Baselines** - RecoveryScoreEngine same-phase baseline with confidence gating, dual baseline (7-day + same-phase), graceful degradation for <3 cycles / irregular / anovulatory / OC users
+- [x] **Phase 18: Cycle-Aware Recovery Baselines** - RecoveryScoreEngine same-phase baseline with confidence gating, dual baseline (7-day + same-phase), graceful degradation for <3 cycles / irregular / anovulatory / OC users (completed 2026-05-25)
 - [ ] **Phase 19: Cycle Context UI & Guidance** - Dashboard cycle day indicator, phase context in recovery card, fueling/recovery prompts (avoid fasted workouts, post-training nutrition), RED-S cycle irregularity alerts with clinician-referral language
 - [ ] **Phase 20: Cycle Intelligence (Shadow Mode)** - Shadow-mode analytics measuring cycle context prediction value, evidence-gated AutoregulationEngine soft modifiers (yellow zone only), FatigueIndex phase-aware dampening (validated), ProgressionEngine phase awareness
 
@@ -121,7 +121,7 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
-- [ ] 18-02-PLAN.md — Pipeline integration (CycleSnapshotRepository read-time join, confidence-gated derivation in RecoveryPipeline.run, AppContainer + ViewModel wiring, graceful 7-day fallback)
+- [x] 18-02-PLAN.md — Pipeline integration (CycleSnapshotRepository read-time join, confidence-gated derivation in RecoveryPipeline.run, AppContainer + ViewModel wiring, graceful 7-day fallback)
 
 ### Phase 19: Cycle Context UI & Guidance
 
@@ -235,7 +235,7 @@ Plans:
 | 15. Template Sharing | v1.3 | 3/3 | Complete    | 2026-05-13 |
 | 16. LLM Workout Import | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 17. Cycle Data Foundation | v1.4 | 4/4 | Complete   | 2026-05-14 |
-| 18. Cycle-Aware Recovery Baselines | v1.4 | 1/2 | In Progress|  |
+| 18. Cycle-Aware Recovery Baselines | v1.4 | 2/2 | Complete   | 2026-05-25 |
 | 19. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
 | 20. Cycle Intelligence (Shadow Mode) | v1.4 | 0/0 | Not started | - |
 | 21. Radial Gesture Picker | v1.5 | 0/0 | Not started | - |
