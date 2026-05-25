@@ -79,7 +79,7 @@ struct DashboardView: View {
                                 }
                                 .accessibilityLabel("Dismiss cycle tracking prompt")
                             }
-                            Text("Track your menstrual cycle in Apple Health to get cycle-aware recovery insights. Faros reads existing data from apps like Clue, Flo, or Apple Cycle Tracking \u{2014} no manual re-entry needed.")
+                            Text("Track your menstrual cycle in Apple Health to get cycle-aware recovery insights. Tuwa reads existing data from apps like Clue, Flo, or Apple Cycle Tracking \u{2014} no manual re-entry needed.")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
                             Button {
