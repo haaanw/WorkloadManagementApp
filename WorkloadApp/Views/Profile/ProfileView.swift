@@ -90,7 +90,7 @@ struct ProfileView: View {
                         sectionDivider()
 
                         // Cycle & Hormones (D-03)
-                        if showCycleSection, let athlete {
+                        if showCycleSection {
                             sectionHeader("CYCLE & HORMONES")
 
                             HStack {
