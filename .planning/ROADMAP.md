@@ -117,7 +117,7 @@ Plans:
 Plans:
 **Wave 1**
 
-- [ ] 18-01-PLAN.md — RecoveryScoreEngine same-phase baseline algorithm (2-bucket mapping, same-phase average, 4-reading minimum, RecoveryInput extension, worked-example + identical-behavior tests)
+- [x] 18-01-PLAN.md — RecoveryScoreEngine same-phase baseline algorithm (2-bucket mapping, same-phase average, 4-reading minimum, RecoveryInput extension, worked-example + identical-behavior tests)
 
 **Wave 2** *(blocked on Wave 1 completion)*
 
@@ -235,7 +235,7 @@ Plans:
 | 15. Template Sharing | v1.3 | 3/3 | Complete    | 2026-05-13 |
 | 16. LLM Workout Import | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 17. Cycle Data Foundation | v1.4 | 4/4 | Complete   | 2026-05-14 |
-| 18. Cycle-Aware Recovery Baselines | v1.4 | 0/2 | Planned | - |
+| 18. Cycle-Aware Recovery Baselines | v1.4 | 1/2 | In Progress|  |
 | 19. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
 | 20. Cycle Intelligence (Shadow Mode) | v1.4 | 0/0 | Not started | - |
 | 21. Radial Gesture Picker | v1.5 | 0/0 | Not started | - |
