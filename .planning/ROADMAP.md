@@ -73,10 +73,12 @@
 ## Phase Details — v1.4
 
 ### Phase 17: Cycle Data Foundation
+
 **Goal**: Zero-friction cycle data integration — read existing HealthKit menstrual data from apps users already use (Clue, Flo, Apple Cycle Tracking), compute cycle day/phase with confidence scoring, and handle all edge cases (irregular, anovulatory, contraceptive, perimenopause, pregnancy, lactation)
 **Depends on**: Phase 9 (TrainingProfile model)
 **Requirements**: CYCLE-01, CYCLE-02, CYCLE-03
 **Success Criteria** (what must be TRUE):
+
   1. CycleTrackingService reads .menstrualFlow (with HKMetadataKeyMenstrualCycleStart), .appleSleepingWristTemperature, .contraceptive, .pregnancy, .lactation, .irregularMenstrualCycles, .ovulationTestResult from HealthKit
   2. MenstrualCycleSnapshot model stores daily cycle state (cycleDay, estimatedPhase, confidence, cycleLength, contraceptiveStatus, wristTempDeviation, exclusionFlags)
   3. CycleContext struct provides confidence-scored phase estimation with exclusion flags (pregnancy, lactation, OC, perimenopause)
@@ -84,19 +86,24 @@
   5. Users who don't track cycles experience zero change to existing app behavior
   6. Raw menstrual data never syncs to Supabase — only derivative scores (cycle phase, cycle day) influence algorithms
   7. Contraceptive status settable in ProfileView; OC users skip all phase-based adjustments
+
 **Plans**: 3 plans
 
 Plans:
+
 - [x] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
 - [x] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
 - [x] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
+
 **UI hint**: yes
 
 ### Phase 18: Cycle-Aware Recovery Baselines
+
 **Goal**: Replace the male-normative 7-day rolling HRV/RHR baseline with a confidence-gated same-phase baseline that removes predictable within-athlete cyclic variance, preserving genuine fatigue detection while eliminating false warnings during normal luteal-phase HRV suppression
 **Depends on**: Phase 17
 **Requirements**: CYCLE-04, CYCLE-05
 **Success Criteria** (what must be TRUE):
+
   1. RecoveryScoreEngine accepts CycleContext as optional input; nil/unknown behaves identically to current engine
   2. When cycle confidence is high (3+ regular cycles), HRV and RHR baselines use same-phase historical average from prior cycles as denominator
   3. When cycle confidence is low (<3 cycles, irregular, anovulatory), engine falls back to existing 7-day rolling baseline
@@ -104,51 +111,67 @@ Plans:
   5. A woman with consistent 35ms late-luteal HRV (vs 42ms follicular) scores normally during luteal, not as "declining recovery"
   6. A woman with genuine 28ms HRV during luteal (vs her 36ms same-phase average) still triggers fatigue detection
   7. RecoveryPipeline.run() queries CycleTrackingService and passes CycleContext to engine
+
 **Plans**: 2 plans
 
 Plans:
+**Wave 1**
+
 - [ ] 18-01-PLAN.md — RecoveryScoreEngine same-phase baseline algorithm (2-bucket mapping, same-phase average, 4-reading minimum, RecoveryInput extension, worked-example + identical-behavior tests)
+
+**Wave 2** *(blocked on Wave 1 completion)*
+
 - [ ] 18-02-PLAN.md — Pipeline integration (CycleSnapshotRepository read-time join, confidence-gated derivation in RecoveryPipeline.run, AppContainer + ViewModel wiring, graceful 7-day fallback)
 
 ### Phase 19: Cycle Context UI & Guidance
+
 **Goal**: Surface cycle awareness in the dashboard and recommendations as context and explanations — not deterministic overrides — following Dr. Sims's evolved position of "train by readiness, use cycle as context"
 **Depends on**: Phase 17, Phase 18
 **Requirements**: CYCLE-06, CYCLE-07, CYCLE-08
 **Success Criteria** (what must be TRUE):
+
   1. Dashboard shows unobtrusive cycle day/phase indicator when data available (opt-in HealthKit permission)
   2. Recovery card includes phase context when cycle influences interpretation (e.g., "You're in your luteal phase — lower HRV and higher heart rate are expected")
   3. Fueling/recovery prompts: suggest avoiding fasted hard workouts, post-training protein timing (within 45 min per Sims), hydration/cooling in luteal heat-sensitivity window
   4. RED-S monitoring: alert when 3+ consecutive missed periods OR cycle length >35 days consistently, with clinician-referral language and exclusion handling (pregnancy, OC, perimenopause, PCOS)
   5. Cycle context never says "deload because luteal" — always readiness-first with cycle as explanation
   6. All cycle UI elements are 100% optional and invisible to users who don't grant HealthKit menstrual permissions
+
 **Plans**: 3 plans
 
 Plans:
+
 - [x] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
 - [x] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
 - [x] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
+
 **UI hint**: yes
 
 ### Phase 20: Cycle Intelligence (Shadow Mode)
+
 **Goal**: Validate whether cycle context improves training outcome prediction before shipping algorithmic modifiers — evidence-gated approach prevents overconfident adjustments from unvalidated research
 **Depends on**: Phase 18, Phase 19
 **Requirements**: CYCLE-09, CYCLE-10
 **Success Criteria** (what must be TRUE):
+
   1. Shadow-mode analytics silently measure: does cycle phase improve prediction of next-day readiness, wellness score, workout completion rate, or reported pain?
   2. If shadow mode shows signal: AutoregulationEngine accepts CycleContext, applies soft volume modifier (5-15%) only in yellow recovery zone, never overrides rest or green-zone recommendations
   3. FatigueIndex phase-aware dampening ships only if shadow mode confirms double-counting between luteal biomarker effects and trend components
   4. ProgressionEngine phase awareness: bias toward maintain (not increase) in late luteal when progression rate is marginal
   5. No upward training boost from cycle phase alone; no reduction from phase alone without readiness or symptom support
   6. All modifiers require 3+ usable cycles, no hormonal contraception exclusion, detected regularity, confidence threshold, and user-visible explanation
+
 **Plans**: TBD
 
 ## Phase Details — v1.5
 
 ### Phase 21: Radial Gesture Picker
+
 **Goal**: Replace segmented pickers for sport type and session type with an iPod-wheel-inspired radial menu — long press triggers a circular ring of 6-8 customizable options, user drags finger to select, release confirms
 **Depends on**: Phase 11
 **Requirements**: UX-01
 **Success Criteria** (what must be TRUE):
+
   1. RadialPicker is a reusable SwiftUI component accepting any CaseIterable enum
   2. Long press on sport/session type triggers circular overlay with options arranged evenly around a ring
   3. Drag gesture highlights option under finger with haptic feedback
@@ -157,30 +180,37 @@ Plans:
   6. Works in both TemplateEditorSheet and ActiveWorkoutSheet
   7. Options are customizable per enum (icon + label around ring)
   8. Follows design system: 0pt corners, no shadows, Alpino font, 8pt grid
+
 **Plans**: 3 plans
 
 Plans:
+
 - [x] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
 - [x] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
 - [x] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
+
 **UI hint**: yes
 
 ### Phase 22: Granular Muscle Group Taxonomy
+
 **Goal**: Replace the coarse 7-value MuscleGroup enum with an anatomically precise taxonomy that serious athletes expect, organized by body region with sub-groups
 **Depends on**: Phase 11
 **Requirements**: UX-02
 **Success Criteria** (what must be TRUE):
+
   1. MuscleGroup enum expanded to ~25-30 specific muscles: quads, hamstrings, glutes, calves, hip flexors, psoas, adductors, anterior delts, lateral delts, posterior delts, pecs (upper/lower), lats, traps (upper/mid/lower), rhomboids, erectors, biceps, triceps, forearms, obliques, rectus abdominis, transverse abdominis, hip rotators, tibialis anterior
   2. Muscle groups organized by body region for picker UI (Legs, Back, Chest, Shoulders, Arms, Core)
   3. Existing exercises using old groups migrate gracefully (e.g., "Legs" -> user prompted to specify or defaults to "Quads")
   4. ExercisePickerView muscle group selector updated to show region -> sub-group hierarchy
   5. Supabase sync handles new enum values without breaking existing data
   6. TemplatePreviewSheet and workout views display specific muscle group names
+
 **Plans**: TBD
 
 ## Progress
 
 **Execution Order:**
+
 - v1.2: 9 -> 10 -> 11 -> 12 (complete)
 - v1.3: 13 -> 14 -> 15 & 16 (Phase 15 and 16 both depend on Phase 14, could execute in parallel)
 - v1.4: 17 -> 18 -> 19 -> 20 (Phase 19 depends on both 17 and 18; Phase 20 depends on 18 and 19)
@@ -219,4 +249,5 @@ Plans:
 **Plans:** 4/4 plans complete
 
 Plans:
+
 - [ ] TBD (run /gsd-plan-phase 23 to break down)
