@@ -104,7 +104,11 @@ Plans:
   5. A woman with consistent 35ms late-luteal HRV (vs 42ms follicular) scores normally during luteal, not as "declining recovery"
   6. A woman with genuine 28ms HRV during luteal (vs her 36ms same-phase average) still triggers fatigue detection
   7. RecoveryPipeline.run() queries CycleTrackingService and passes CycleContext to engine
-**Plans**: TBD
+**Plans**: 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md — RecoveryScoreEngine same-phase baseline algorithm (2-bucket mapping, same-phase average, 4-reading minimum, RecoveryInput extension, worked-example + identical-behavior tests)
+- [ ] 18-02-PLAN.md — Pipeline integration (CycleSnapshotRepository read-time join, confidence-gated derivation in RecoveryPipeline.run, AppContainer + ViewModel wiring, graceful 7-day fallback)
 
 ### Phase 19: Cycle Context UI & Guidance
 **Goal**: Surface cycle awareness in the dashboard and recommendations as context and explanations — not deterministic overrides — following Dr. Sims's evolved position of "train by readiness, use cycle as context"
@@ -157,8 +161,8 @@ Plans:
 
 Plans:
 - [x] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
-- [ ] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
-- [ ] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
+- [x] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
+- [x] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
 **UI hint**: yes
 
 ### Phase 22: Granular Muscle Group Taxonomy
@@ -200,8 +204,8 @@ Plans:
 | 14. Sync Hardening | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 15. Template Sharing | v1.3 | 3/3 | Complete    | 2026-05-13 |
 | 16. LLM Workout Import | v1.3 | 2/2 | Complete    | 2026-05-13 |
-| 17. Cycle Data Foundation | v1.4 | 3/3 | Complete   | 2026-05-14 |
-| 18. Cycle-Aware Recovery Baselines | v1.4 | 0/0 | Not started | - |
+| 17. Cycle Data Foundation | v1.4 | 4/4 | Complete   | 2026-05-14 |
+| 18. Cycle-Aware Recovery Baselines | v1.4 | 0/2 | Planned | - |
 | 19. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
 | 20. Cycle Intelligence (Shadow Mode) | v1.4 | 0/0 | Not started | - |
 | 21. Radial Gesture Picker | v1.5 | 0/0 | Not started | - |
@@ -212,7 +216,7 @@ Plans:
 **Goal:** [To be planned]
 **Requirements**: TBD
 **Depends on:** Phase 22
-**Plans:** 3/3 plans complete
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] TBD (run /gsd-plan-phase 23 to break down)
