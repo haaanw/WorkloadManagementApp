@@ -13,11 +13,16 @@ struct RecoveryPipeline {
     }
 
     /// Run on app launch and after wellness check-in.
+    ///
+    /// `cycleTrackingService` is an **optional** dependency (defaults to nil) so existing
+    /// callers compile unchanged. When nil, run() is byte-identical to the pre-cycle
+    /// 7-day pipeline — the same-phase branch is fully guarded by `if let cycleTrackingService`.
     static func run(
         athlete: Athlete,
         healthKitService: HealthKitService,
         modelContext: ModelContext,
-        syncService: SyncService? = nil
+        syncService: SyncService? = nil,
+        cycleTrackingService: CycleTrackingService? = nil
     ) async throws -> RecoveryResult {
         let recoveryRepo = RecoveryRepository(modelContext: modelContext)
 
@@ -61,6 +66,52 @@ struct RecoveryPipeline {
         let todayCheckIn = try recoveryRepo.fetchTodayWellnessCheckIn(athlete: athlete)
         let wellnessScore = todayCheckIn?.wellnessScore
 
+        // 3b. Cycle-aware same-phase baselines (D-04/D-05/D-06/D-07).
+        // Only runs when a CycleTrackingService is injected. When nil, both same-phase
+        // fields stay nil → the engine uses the 7-day baselines (identical-behavior path).
+        var samePhaseHRVBaseline: Double?
+        var samePhaseRestingHRBaseline: Double?
+        if let cycleTrackingService {
+            let ctx = await cycleTrackingService.run(athlete: athlete, context: modelContext)
+
+            // D-04 gate: confident, non-excluded, known phase.
+            // D-05: OC / pregnant / lactating users (hasExclusion) always fall through to 7-day.
+            let gatePasses = ctx.confidence >= 0.7 && !ctx.hasExclusion && ctx.phase != .unknown
+            if gatePasses, let currentBucket = RecoveryScoreEngine.bucket(for: ctx.phase) {
+                // ~3-cycle window for same-phase grouping (D-02).
+                let span = min((ctx.cycleLength ?? 28) * 3 + 10, 365)
+                let recoveryWindow = try recoveryRepo.fetchRecoveryHistory(days: span, athlete: athlete)
+                let cycleWindow = (try? CycleSnapshotRepository(modelContext: modelContext)
+                    .fetchCycleSnapshots(days: span, athlete: athlete)) ?? []
+
+                // Read-time join: map each day's start to its estimated phase bucket.
+                let calendar = Calendar.current
+                var bucketByDay: [Date: RecoveryScoreEngine.PhaseBucket] = [:]
+                for snap in cycleWindow {
+                    guard let phase = snap.estimatedPhase,
+                          let bucket = RecoveryScoreEngine.bucket(for: phase) else { continue }
+                    bucketByDay[calendar.startOfDay(for: snap.date)] = bucket
+                }
+
+                // Collect same-bucket readings, using only days with actual readings
+                // (compactMap) so partial days do not inflate the 4-reading minimum (D-03).
+                var sameBucketHRV: [Double] = []
+                var sameBucketRHR: [Double] = []
+                for snap in recoveryWindow {
+                    let key = calendar.startOfDay(for: snap.date)
+                    guard bucketByDay[key] == currentBucket else { continue }
+                    if let v = snap.hrvSDNN { sameBucketHRV.append(v) }
+                    if let v = snap.restingHR { sameBucketRHR.append(v) }
+                }
+
+                // D-06 per-bucket fallback + D-03 minimum: samePhaseBaseline returns nil
+                // below 4 readings, so each component independently falls back to 7-day.
+                // D-07 hard switch: engine's `??` selects exactly one source per component.
+                samePhaseHRVBaseline = RecoveryScoreEngine.samePhaseBaseline(readings: sameBucketHRV)
+                samePhaseRestingHRBaseline = RecoveryScoreEngine.samePhaseBaseline(readings: sameBucketRHR)
+            }
+        }
+
         // 4. Compute recovery score (with trend from recent history)
         let recentScores = recoveryHistory
             .sorted { $0.date < $1.date }
@@ -72,7 +123,9 @@ struct RecoveryPipeline {
             wellnessScore: wellnessScore,
             hrvBaseline: hrvBaseline,
             restingHRBaseline: rhrBaseline,
-            recentScores: recentScores
+            recentScores: recentScores,
+            samePhaseHRVBaseline: samePhaseHRVBaseline,
+            samePhaseRestingHRBaseline: samePhaseRestingHRBaseline
         )
         let result = RecoveryScoreEngine.compute(input: input)
 
