@@ -238,7 +238,8 @@ struct DashboardView: View {
             athlete: athlete,
             healthKitService: container.healthKitService,
             modelContext: modelContext,
-            syncService: container.syncService
+            syncService: container.syncService,
+            cycleTrackingService: container.cycleTrackingService
         )
         // Refresh notification content with current data (NOTF-01 staleness prevention)
         viewModel.refreshNotificationContent(

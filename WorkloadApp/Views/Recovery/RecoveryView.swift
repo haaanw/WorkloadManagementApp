@@ -191,7 +191,8 @@ struct RecoveryView: View {
         await viewModel.onWellnessCheckInSaved(
             athlete: athlete,
             healthKitService: container.healthKitService,
-            modelContext: modelContext
+            modelContext: modelContext,
+            cycleTrackingService: container.cycleTrackingService
         )
     }
 }

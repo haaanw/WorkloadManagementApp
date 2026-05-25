@@ -60,7 +60,8 @@ final class DashboardViewModel {
         athlete: Athlete,
         healthKitService: HealthKitService,
         modelContext: ModelContext,
-        syncService: SyncService? = nil
+        syncService: SyncService? = nil,
+        cycleTrackingService: CycleTrackingService? = nil
     ) async {
         isLoading = true
 
@@ -78,7 +79,8 @@ final class DashboardViewModel {
                     athlete: athlete,
                     healthKitService: healthKitService,
                     modelContext: modelContext,
-                    syncService: syncService
+                    syncService: syncService,
+                    cycleTrackingService: cycleTrackingService
                 )
                 recoveryScore = recoveryResult.score
                 recoveryZone = recoveryResult.zone

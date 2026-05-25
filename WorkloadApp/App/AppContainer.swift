@@ -13,6 +13,7 @@ final class AppContainer {
     let healthKitService: HealthKitService
     let syncService: SyncService
     let notificationService: NotificationService
+    let cycleTrackingService: CycleTrackingService
 
     private(set) var isAuthenticated = false
 
@@ -51,6 +52,7 @@ final class AppContainer {
         self.healthKitService = HealthKitService()
         self.syncService = SyncService(client: client)
         self.notificationService = NotificationService()
+        self.cycleTrackingService = CycleTrackingService()
 
         // Subscribe to session-loss events only.
         // Sign-in/sign-up transitions set isAuthenticated manually (after sync completes).
