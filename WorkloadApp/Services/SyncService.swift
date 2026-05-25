@@ -229,9 +229,6 @@ struct SyncService {
             isCoach: athlete.isCoach,
             trainingFrequency: athlete.trainingFrequency?.rawValue,
             experienceLevel: athlete.experienceLevel?.rawValue,
-            isOnHormonalContraceptive: athlete.isOnHormonalContraceptive,
-            isPregnant: athlete.isPregnant,
-            isLactating: athlete.isLactating,
             createdAt: athlete.createdAt,
             updatedAt: athlete.updatedAt
         )
@@ -266,9 +263,6 @@ struct SyncService {
         if let exp = row.experienceLevel {
             existingAthlete.experienceLevel = ExperienceLevel(rawValue: exp)
         }
-        existingAthlete.isOnHormonalContraceptive = row.isOnHormonalContraceptive ?? existingAthlete.isOnHormonalContraceptive
-        existingAthlete.isPregnant = row.isPregnant ?? existingAthlete.isPregnant
-        existingAthlete.isLactating = row.isLactating ?? existingAthlete.isLactating
         existingAthlete.updatedAt = row.updatedAt
         do {
             try context.save()
@@ -824,9 +818,9 @@ struct AthleteRow: Codable {
     let isCoach: Bool?
     let trainingFrequency: String?
     let experienceLevel: String?
-    let isOnHormonalContraceptive: Bool?
-    let isPregnant: Bool?
-    let isLactating: Bool?
+    // PRIVACY: reproductive-health flags (isOnHormonalContraceptive, isPregnant,
+    // isLactating) are intentionally NOT synced — they stay device-local per the
+    // cycle-data privacy invariant. Do not add them to this row. (Phase 18 / CR-01)
     let createdAt: Date
     let updatedAt: Date
 }
