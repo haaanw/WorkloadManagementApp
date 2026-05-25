@@ -27,6 +27,15 @@ struct RecoveryScoreEngine {
         let hrvBaseline: Double?
         let restingHRBaseline: Double?
 
+        // Same-phase baselines (confidence-gated, equal-weight mean of same-bucket
+        // readings from the most recent 3 cycles — see `samePhaseBaseline(readings:)`).
+        // When non-nil, the corresponding component uses this instead of the 7-day
+        // baseline (D-07 hard switch). Each is selected independently (D-06 per-bucket
+        // fallback). Both default to nil so existing call sites and the no-cycle path
+        // behave identically to before this change.
+        let samePhaseHRVBaseline: Double?
+        let samePhaseRestingHRBaseline: Double?
+
         // Recent recovery scores for trend calculation (oldest first)
         // Pass last 7 days of recovery scores. Nil or empty = no trend applied.
         let recentScores: [Double]
@@ -38,7 +47,9 @@ struct RecoveryScoreEngine {
             wellnessScore: Double? = nil,
             hrvBaseline: Double? = nil,
             restingHRBaseline: Double? = nil,
-            recentScores: [Double] = []
+            recentScores: [Double] = [],
+            samePhaseHRVBaseline: Double? = nil,
+            samePhaseRestingHRBaseline: Double? = nil
         ) {
             self.hrvSDNN = hrvSDNN
             self.restingHR = restingHR
@@ -47,6 +58,8 @@ struct RecoveryScoreEngine {
             self.hrvBaseline = hrvBaseline
             self.restingHRBaseline = restingHRBaseline
             self.recentScores = recentScores
+            self.samePhaseHRVBaseline = samePhaseHRVBaseline
+            self.samePhaseRestingHRBaseline = samePhaseRestingHRBaseline
         }
     }
 
@@ -86,16 +99,23 @@ struct RecoveryScoreEngine {
         var sleepScore: Double?
         var wellnessScore: Double?
 
-        // HRV component: higher than baseline = better recovery
-        if let hrv = input.hrvSDNN, let baseline = input.hrvBaseline, baseline > 0 {
+        // HRV component: higher than baseline = better recovery.
+        // Prefer the same-phase baseline when supplied (D-07 hard switch via `??`);
+        // otherwise fall back to the 7-day rolling baseline (D-06 per-bucket fallback).
+        if let hrv = input.hrvSDNN,
+           let baseline = input.samePhaseHRVBaseline ?? input.hrvBaseline,
+           baseline > 0 {
             let ratio = hrv / baseline
             let score = clampScore(ratioToScore(ratio, higherIsBetter: true))
             hrvScore = score
             components.append((score, hrvWeight))
         }
 
-        // Resting HR component: lower than baseline = better recovery
-        if let rhr = input.restingHR, let baseline = input.restingHRBaseline, baseline > 0 {
+        // Resting HR component: lower than baseline = better recovery.
+        // Same per-component baseline selection as HRV (D-06 / D-07).
+        if let rhr = input.restingHR,
+           let baseline = input.samePhaseRestingHRBaseline ?? input.restingHRBaseline,
+           baseline > 0 {
             let ratio = rhr / baseline
             let score = clampScore(ratioToScore(ratio, higherIsBetter: false))
             rhrScore = score
@@ -224,5 +244,53 @@ struct RecoveryScoreEngine {
         let recent = Array(values.suffix(7))
         guard !recent.isEmpty else { return nil }
         return recent.reduce(0, +) / Double(recent.count)
+    }
+
+    // MARK: - Same-Phase Baseline
+
+    /// Two-bucket grouping of menstrual cycle phases for same-phase baseline
+    /// comparison (D-01). Hormonal physiology (HRV suppression / RHR rise) clusters
+    /// into a follicular-dominant half and a luteal-dominant half; collapsing the
+    /// five clinical phases into two buckets keeps each bucket's sample count high
+    /// enough to form a trustworthy personal baseline.
+    enum PhaseBucket {
+        case follicular
+        case luteal
+    }
+
+    /// Map a clinical `CyclePhase` to its same-phase baseline bucket (D-01).
+    ///
+    /// - follicular bucket: `.earlyFollicular`, `.lateFollicular`, `.ovulatory`
+    /// - luteal bucket: `.earlyLuteal`, `.lateLuteal`
+    /// - `.unknown` returns `nil` — no same-phase baseline is possible without a
+    ///   confident phase, so the caller falls back to the 7-day rolling baseline.
+    static func bucket(for phase: CyclePhase) -> PhaseBucket? {
+        switch phase {
+        case .earlyFollicular, .lateFollicular, .ovulatory:
+            return .follicular
+        case .earlyLuteal, .lateLuteal:
+            return .luteal
+        case .unknown:
+            return nil
+        }
+    }
+
+    /// Compute a same-phase baseline as the **equal-weight mean** of same-bucket
+    /// readings (D-02), gated by a minimum sample count (D-03).
+    ///
+    /// Contract: `readings` are the caller-prepared values that already belong to a
+    /// single `PhaseBucket` and are already restricted to the most recent 3 cycles.
+    /// This function does NOT filter by phase, cycle, or recency — it only averages.
+    /// (The same-bucket / most-recent-3-cycles selection is Plan 02's responsibility.)
+    ///
+    /// - D-02: equal weighting, no recency decay — every reading counts the same.
+    /// - D-03: returns `nil` when fewer than 4 valid readings are supplied, signalling
+    ///   the caller to fall back to the 7-day rolling baseline for this component.
+    ///
+    /// - Parameter readings: same-bucket HRV or RHR values from the most recent 3 cycles.
+    /// - Returns: the equal-weight mean when `readings.count >= 4`, otherwise `nil`.
+    static func samePhaseBaseline(readings: [Double]) -> Double? {
+        guard readings.count >= 4 else { return nil }
+        return readings.reduce(0, +) / Double(readings.count)
     }
 }
