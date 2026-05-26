@@ -1,8 +1,9 @@
 import SwiftUI
 import SwiftData
 
-/// 3-step paged onboarding flow: training frequency, experience level, HealthKit permission.
+/// 4-step paged onboarding flow: language, training frequency, experience level, HealthKit permission.
 /// Presented after signup for new users whose `trainingFrequency` or `experienceLevel` is nil.
+/// Step 0 (language) pre-selects the system-resolved locale; tapping a row live-switches the app.
 struct OnboardingView: View {
     let onComplete: () -> Void
 
@@ -19,12 +20,14 @@ struct OnboardingView: View {
     var body: some View {
         VStack(spacing: 0) {
             ZStack {
-                frequencyStep
+                languageStep
                     .opacity(currentStep == 0 ? 1 : 0)
-                experienceStep
+                frequencyStep
                     .opacity(currentStep == 1 ? 1 : 0)
-                healthKitStep
+                experienceStep
                     .opacity(currentStep == 2 ? 1 : 0)
+                healthKitStep
+                    .opacity(currentStep == 3 ? 1 : 0)
             }
             .animation(.easeOut(duration: 0.25), value: currentStep)
 
@@ -33,7 +36,7 @@ struct OnboardingView: View {
             VStack(spacing: 24) {
                 dotIndicators
 
-                if currentStep < 2 {
+                if currentStep < 3 {
                     continueButton
                 }
             }
@@ -41,6 +44,58 @@ struct OnboardingView: View {
             .padding(.bottom, 48)
         }
         .background(ColorTokens.background)
+    }
+
+    // MARK: - Step 0: Language
+
+    private var languageStep: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            stepHeader(
+                title: "onboarding.language.title",
+                subtitle: "onboarding.language.subtitle"
+            )
+
+            VStack(spacing: 0) {
+                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                ForEach(container.localeManager.supportedLocales, id: \.identifier) { locale in
+                    languageRow(for: locale)
+                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 32)
+
+            Spacer()
+        }
+    }
+
+    @ViewBuilder
+    private func languageRow(for locale: Locale) -> some View {
+        Button {
+            container.localeManager.setLocale(locale)
+        } label: {
+            HStack {
+                Image(systemName: container.localeManager.activeLocale.identifier == locale.identifier
+                      ? "checkmark" : "")
+                    .frame(width: 24)
+                    .foregroundStyle(ColorTokens.text1)
+                Text(languageAutonym(for: locale))
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text1)
+                Spacer()
+            }
+            .padding(.horizontal, 16)
+            .frame(height: 56)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func languageAutonym(for locale: Locale) -> String {
+        switch locale.identifier {
+        case "zh-Hans": return "中文(简体)"
+        default:        return "English"
+        }
     }
 
     // MARK: - Step 1: Training Frequency
@@ -236,7 +291,7 @@ struct OnboardingView: View {
 
     private var dotIndicators: some View {
         HStack(spacing: 8) {
-            ForEach(0..<3, id: \.self) { index in
+            ForEach(0..<4, id: \.self) { index in
                 Circle()
                     .fill(index == currentStep ? ColorTokens.text1 : ColorTokens.divider)
                     .frame(width: 8, height: 8)
@@ -250,7 +305,7 @@ struct OnboardingView: View {
                 currentStep += 1
             }
         } label: {
-            Text("Continue")
+            Text(continueLabelKey)
                 .font(.Tokens.body)
                 .foregroundStyle(isContinueEnabled ? ColorTokens.text1 : ColorTokens.text3)
                 .frame(maxWidth: .infinity)
@@ -266,10 +321,17 @@ struct OnboardingView: View {
         .disabled(!isContinueEnabled)
     }
 
+    /// Step 0 ("Continue to Setup" / "继续设置") uses a longer label per UI-SPEC line 215;
+    /// subsequent steps use the single-verb "Continue" / "继续".
+    private var continueLabelKey: LocalizedStringKey {
+        currentStep == 0 ? "onboarding.continue.toSetup" : "action.continue"
+    }
+
     private var isContinueEnabled: Bool {
         switch currentStep {
-        case 0: selectedFrequency != nil
-        case 1: selectedLevel != nil
+        case 0: true   // language always pre-selected via LocaleManager init
+        case 1: selectedFrequency != nil
+        case 2: selectedLevel != nil
         default: true
         }
     }

@@ -25,6 +25,7 @@
 		1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000E2 /* TemplatePickerSheet.swift */; };
 		18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */; };
 		2301010100000000000000A1 /* LocaleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2301010100000000000000A2 /* LocaleManager.swift */; };
+		2301020100000000000000A1 /* LanguagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2301020100000000000000A2 /* LanguagePickerView.swift */; };
 		2301030100000000000000A1 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2301030100000000000000A2 /* Localizable.xcstrings */; };
 		2301040100000000000000A1 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2301040100000000000000A2 /* InfoPlist.xcstrings */; };
 		3656850E68D35D36B9204A8A /* ContextSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */; };
@@ -192,6 +193,7 @@
 		4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoachAthleteRelationship.swift; sourceTree = "<group>"; };
 		5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		2301010100000000000000A2 /* LocaleManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocaleManager.swift; sourceTree = "<group>"; };
+		2301020100000000000000A2 /* LanguagePickerView.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LanguagePickerView.swift; sourceTree = "<group>"; };
 		2301030100000000000000A2 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		2301040100000000000000A2 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		596CFF167B4680D856FE2C46 /* RevenueCatConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RevenueCatConfig.swift; sourceTree = "<group>"; };
@@ -581,6 +583,7 @@
 			isa = PBXGroup;
 			children = (
 				62324C142F66CB0E00A9C2BE /* ProfileView.swift */,
+				2301020100000000000000A2 /* LanguagePickerView.swift */,
 				14B27B1AC91147CB45348512 /* SyncStatusView.swift */,
 				8DCB08A3880509F52F7419E9 /* InviteConfirmationSheet.swift */,
 				AA10010300000000000002 /* TrainingProfileSheet.swift */,
@@ -970,6 +973,7 @@
 				FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */,
 				18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */,
 				2301010100000000000000A1 /* LocaleManager.swift in Sources */,
+				2301020100000000000000A1 /* LanguagePickerView.swift in Sources */,
 				627EC1962F76622300B89262 /* WorkoutImportBanner.swift in Sources */,
 				053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */,
 				51E4BE53358600B414056677 /* CoachRosterView.swift in Sources */,
