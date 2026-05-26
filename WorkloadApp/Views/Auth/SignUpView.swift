@@ -5,6 +5,7 @@ import AuthenticationServices
 struct SignUpView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.locale) private var locale
     @State private var displayName = ""
     @State private var email = ""
     @State private var password = ""
@@ -12,6 +13,22 @@ struct SignUpView: View {
     @State private var isLoading = false
     @State private var isSocialLoading = false
     @State private var errorMessage: String?
+    @State private var lastAuthError: (any Error)?
+
+    /// Resolve a caught error against the current env locale (Pitfall 7).
+    private func resolveErrorMessage(_ error: any Error, locale: Locale) -> String {
+        if let authError = error as? AuthService.AuthError {
+            var resource = LocalizedStringResource(authError.localizationKey)
+            resource.locale = locale
+            return String(localized: resource)
+        } else if let socialError = error as? SignUpSocialError {
+            var resource = LocalizedStringResource(socialError.localizationKey)
+            resource.locale = locale
+            return String(localized: resource)
+        } else {
+            return error.localizedDescription
+        }
+    }
 
     var body: some View {
         ScrollView {
@@ -159,6 +176,12 @@ struct SignUpView: View {
         .background(ColorTokens.background)
         .navigationTitle("Sign Up")
         .navigationBarTitleDisplayMode(.inline)
+        .onChange(of: locale) { _, newLocale in
+            // Re-resolve any pending auth-error message against the new env locale (Pitfall 7).
+            if let pending = lastAuthError, errorMessage != nil {
+                errorMessage = resolveErrorMessage(pending, locale: newLocale)
+            }
+        }
     }
 
     private var isFormValid: Bool {
@@ -194,7 +217,8 @@ struct SignUpView: View {
             // 4. Mark as authenticated
             container.setAuthenticated(true)
         } catch {
-            errorMessage = error.localizedDescription
+            lastAuthError = error
+            errorMessage = resolveErrorMessage(error, locale: locale)
         }
         isLoading = false
     }
@@ -232,7 +256,8 @@ struct SignUpView: View {
             isSocialLoading = false
             container.setAuthenticated(true)
         } catch {
-            errorMessage = error.localizedDescription
+            lastAuthError = error
+            errorMessage = resolveErrorMessage(error, locale: locale)
             isSocialLoading = false
         }
     }
@@ -267,7 +292,8 @@ struct SignUpView: View {
             isSocialLoading = false
             container.setAuthenticated(true)
         } catch {
-            errorMessage = error.localizedDescription
+            lastAuthError = error
+            errorMessage = resolveErrorMessage(error, locale: locale)
             isSocialLoading = false
         }
     }
@@ -276,12 +302,22 @@ struct SignUpView: View {
 private enum SignUpSocialError: LocalizedError {
     case noUserId
     case athleteNotFound
-    var errorDescription: String? {
+
+    var localizationKey: String.LocalizationValue {
+        switch self {
+        case .noUserId: return "auth.error.noUserId"
+        case .athleteNotFound: return "auth.error.athleteNotFound"
+        }
+    }
+
+    var defaultValue: String {
         switch self {
         case .noUserId: return "Could not retrieve your account. Please try again."
         case .athleteNotFound: return "Account profile not found. Please contact support."
         }
     }
+
+    var errorDescription: String? { defaultValue }
 }
 
 // MARK: - Reusable input field components
