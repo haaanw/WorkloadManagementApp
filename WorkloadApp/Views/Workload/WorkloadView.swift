@@ -285,6 +285,7 @@ struct ACWRGaugeCard: View {
 // MARK: - Load Trend Chart
 
 struct LoadTrendChartView: View {
+    @Environment(\.locale) private var locale
     let snapshots: [WorkloadSnapshot]
     @Binding var selectedDate: Date?
 
@@ -318,6 +319,7 @@ struct LoadTrendChartView: View {
             }
             .frame(height: 160)
             .chartLegend(position: .bottom)
+            .id(locale)
             .chartOverlay { proxy in
                 ChartTooltipGesture(
                     proxy: proxy,
@@ -330,7 +332,7 @@ struct LoadTrendChartView: View {
                    let snapshot = snapshots.first(where: { Calendar.current.isDate($0.snapshotDate, inSameDayAs: selectedDate) }) {
                     TooltipBubble(
                         value: "ATL: \(String(format: "%.0f", snapshot.acuteLoad)) | CTL: \(String(format: "%.0f", snapshot.chronicLoad))",
-                        dateLabel: snapshot.snapshotDate.formatted(.dateTime.month(.abbreviated).day())
+                        dateLabel: snapshot.snapshotDate.formatted(.dateTime.month(.abbreviated).day().locale(locale))
                     )
                 }
             }
