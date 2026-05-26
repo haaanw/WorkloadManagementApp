@@ -8,6 +8,7 @@ struct ActiveWorkoutSheet: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.locale) private var locale
     @Query private var athletes: [Athlete]
     @State private var sessionName = ""
     @State private var sportType: SportType = .lifting
@@ -65,7 +66,7 @@ struct ActiveWorkoutSheet: View {
                         .pickerStyle(.segmented)
 
                         TimelineView(.periodic(from: startTime, by: 1)) { _ in
-                            Text(Date.durationString(seconds: Int(elapsed)))
+                            Text(Date.durationString(seconds: Int(elapsed), locale: locale))
                                 .font(.Tokens.pageTitle)
                                 .monospacedDigit()
                                 .foregroundStyle(ColorTokens.text1)

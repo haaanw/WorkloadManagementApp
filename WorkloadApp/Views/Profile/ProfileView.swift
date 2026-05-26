@@ -153,6 +153,25 @@ struct ProfileView: View {
 
                         // Preferences
                         sectionHeader("PREFERENCES")
+                        NavigationLink {
+                            LanguagePickerView()
+                        } label: {
+                            HStack {
+                                Text("profile.language.label")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Text(container.localeManager.activeLocale.identifier == "zh-Hans" ? "中文" : "English")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text2)
+                                Image(systemName: "chevron.right")
+                                    .font(.Tokens.smallLabel)
+                                    .foregroundStyle(ColorTokens.text3)
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+                        }
+                        divider()
                         editablePicker("Weight Unit", selection: Binding(
                             get: { athlete.weightUnit },
                             set: { athlete.weightUnit = $0; saveAthlete(athlete) }

@@ -35,6 +35,7 @@ private struct ImportSuggestionRow: View {
     let suggestion: WorkoutImportSuggestion
     let onAccept: () -> Void
     let onDismiss: () -> Void
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack(spacing: 12) {
@@ -48,8 +49,8 @@ private struct ImportSuggestionRow: View {
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
                 HStack(spacing: 8) {
-                    Text(suggestion.date.relativeString)
-                    Text(Date.durationString(seconds: suggestion.durationSeconds))
+                    Text(suggestion.date.relativeString(locale: locale))
+                    Text(Date.durationString(seconds: suggestion.durationSeconds, locale: locale))
                     if let cal = suggestion.activeCalories {
                         Text("\(Int(cal)) kcal")
                     }

@@ -35,6 +35,8 @@ struct AppRouter: View {
             }
         }
         .environment(container)
+        .environment(\.locale, container.localeManager.activeLocale)
+        .animation(.linear(duration: 0.15), value: container.localeManager.activeLocale)
         .onOpenURL { url in
             // Google Sign-In callback
             if GIDSignIn.sharedInstance.handle(url) { return }
@@ -91,6 +93,15 @@ struct AppRouter: View {
                 // Check for coach mode BEFORE setting default athlete mode
                 let isCoachMode = ProcessInfo.processInfo.arguments.contains("COACH_MODE")
                 container.setMode(isCoachMode ? .coach : .athlete)
+
+                // SCREENSHOT_MODE locale override: belt-and-braces with Bundle resolution.
+                // Honors `-AppleLanguages (zh-Hans)` launch arg for zh-Hans screenshot runs.
+                let args = ProcessInfo.processInfo.arguments
+                if let idx = args.firstIndex(of: "-AppleLanguages"),
+                   idx + 1 < args.count,
+                   args[idx + 1].contains("zh-Hans") {
+                    container.localeManager.setLocale(Locale(identifier: "zh-Hans"))
+                }
 
                 let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
                 if athletes.isEmpty {

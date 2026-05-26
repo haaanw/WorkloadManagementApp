@@ -13,6 +13,7 @@ final class AppContainer {
     let healthKitService: HealthKitService
     let syncService: SyncService
     let notificationService: NotificationService
+    let localeManager: LocaleManager
     let cycleTrackingService: CycleTrackingService
 
     private(set) var isAuthenticated = false
@@ -52,6 +53,7 @@ final class AppContainer {
         self.healthKitService = HealthKitService()
         self.syncService = SyncService(client: client)
         self.notificationService = NotificationService()
+        self.localeManager = LocaleManager()
         self.cycleTrackingService = CycleTrackingService()
 
         // Subscribe to session-loss events only.

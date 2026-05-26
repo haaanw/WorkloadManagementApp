@@ -355,6 +355,7 @@ struct ImportRPESheet: View {
     let suggestion: WorkoutImportSuggestion
     let onConfirm: (Double) -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @State private var rpe: Double = 5
 
     var body: some View {
@@ -365,8 +366,8 @@ struct ImportRPESheet: View {
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
                     HStack(spacing: 12) {
-                        Text(suggestion.date.relativeString)
-                        Text(Date.durationString(seconds: suggestion.durationSeconds))
+                        Text(suggestion.date.relativeString(locale: locale))
+                        Text(Date.durationString(seconds: suggestion.durationSeconds, locale: locale))
                         if let dist = suggestion.distanceMeters {
                             Text(String(format: "%.1f km", dist / 1000))
                         }
@@ -420,6 +421,7 @@ struct ImportRPESheet: View {
 
 struct SessionRow: View {
     let session: WorkoutSession
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack {
@@ -428,7 +430,7 @@ struct SessionRow: View {
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
                 HStack(spacing: 12) {
-                    Text(Date.durationString(seconds: session.durationSeconds))
+                    Text(Date.durationString(seconds: session.durationSeconds, locale: locale))
                     if session.totalVolume > 0 {
                         Text(String(format: "%.0f kg", session.totalVolume))
                     }
@@ -441,7 +443,7 @@ struct SessionRow: View {
                 .foregroundStyle(ColorTokens.text2)
             }
             Spacer()
-            Text(session.sessionDate.relativeString)
+            Text(session.sessionDate.relativeString(locale: locale))
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text3)
         }
