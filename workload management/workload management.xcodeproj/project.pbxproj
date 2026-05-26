@@ -96,6 +96,8 @@
 		62F32C972F7167E000B6135F /* FontTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C962F7167E000B6135F /* FontTokens.swift */; };
 		62F32C992F7167EA00B6135F /* ReasoningEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C982F7167EA00B6135F /* ReasoningEngine.swift */; };
 		62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */; };
+		2303010100000000000000B1 /* NotoSansSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2303010100000000000000B2 /* NotoSansSC-Regular.otf */; };
+		2303020100000000000000B1 /* NotoSansSC-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2303020100000000000000B2 /* NotoSansSC-Medium.otf */; };
 		62F32CB32F71786F00B6135F /* AutoregulationEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CAE2F71784C00B6135F /* AutoregulationEngineTests.swift */; };
 		62F32CB42F71786F00B6135F /* ReasoningEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CAC2F71784C00B6135F /* ReasoningEngineTests.swift */; };
 		62F32CB52F71786F00B6135F /* RecoveryScoreEngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CAB2F71784C00B6135F /* RecoveryScoreEngineTests.swift */; };
@@ -265,6 +267,9 @@
 		62F32C962F7167E000B6135F /* FontTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontTokens.swift; sourceTree = "<group>"; };
 		62F32C982F7167EA00B6135F /* ReasoningEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasoningEngine.swift; sourceTree = "<group>"; };
 		62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "GeneralSans-Variable.ttf"; sourceTree = "<group>"; };
+		2303010100000000000000B2 /* NotoSansSC-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Regular.otf"; sourceTree = "<group>"; };
+		2303020100000000000000B2 /* NotoSansSC-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Medium.otf"; sourceTree = "<group>"; };
+		2303030100000000000000B2 /* NotoSansSC-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NotoSansSC-LICENSE.txt"; sourceTree = "<group>"; };
 		62F32CA22F71692C00B6135F /* WorkloadAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkloadAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		62F32CAB2F71784C00B6135F /* RecoveryScoreEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = RecoveryScoreEngineTests.swift; path = ../WorkloadAppTests/RecoveryScoreEngineTests.swift; sourceTree = "<group>"; };
 		62F32CAC2F71784C00B6135F /* ReasoningEngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = ReasoningEngineTests.swift; path = ../WorkloadAppTests/ReasoningEngineTests.swift; sourceTree = "<group>"; };
@@ -474,8 +479,19 @@
 				62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */,
 				2301030100000000000000A2 /* Localizable.xcstrings */,
 				2301040100000000000000A2 /* InfoPlist.xcstrings */,
+				2303040100000000000000B2 /* Fonts */,
 			);
 			path = Resources;
+			sourceTree = "<group>";
+		};
+		2303040100000000000000B2 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				2303010100000000000000B2 /* NotoSansSC-Regular.otf */,
+				2303020100000000000000B2 /* NotoSansSC-Medium.otf */,
+				2303030100000000000000B2 /* NotoSansSC-LICENSE.txt */,
+			);
+			path = Fonts;
 			sourceTree = "<group>";
 		};
 		62324C032F66CB0E00A9C2BE /* Services */ = {
@@ -843,6 +859,8 @@
 			files = (
 				62F32D6D64E26B3830FD00B6 /* Assets.xcassets in Resources */,
 				62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */,
+				2303010100000000000000B1 /* NotoSansSC-Regular.otf in Resources */,
+				2303020100000000000000B1 /* NotoSansSC-Medium.otf in Resources */,
 				62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */,
 				2301030100000000000000A1 /* Localizable.xcstrings in Resources */,
 				2301040100000000000000A1 /* InfoPlist.xcstrings in Resources */,

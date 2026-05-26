@@ -35,6 +35,8 @@
 	<key>UIAppFonts</key>
 	<array>
 		<string>GeneralSans-Variable.ttf</string>
+		<string>NotoSansSC-Regular.otf</string>
+		<string>NotoSansSC-Medium.otf</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

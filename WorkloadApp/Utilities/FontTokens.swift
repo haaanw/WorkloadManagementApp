@@ -1,48 +1,78 @@
 import SwiftUI
+import UIKit
 
-/// Type scale for the app, using General Sans Variable (Regular + Medium weights).
+/// Type scale for the app, using General Sans Variable (Regular + Medium weights)
+/// with a UIFontDescriptor cascade fallback to Noto Sans SC for CJK glyphs.
+///
 /// All hierarchy is achieved through size — no bold, italic, or semantic styles.
 ///
 /// Usage: `.font(.Tokens.body)` or `.font(Font.Tokens.label)`
 ///
-/// Note: GeneralSans-Variable.ttf must be added to the Xcode project and
-/// registered in Info.plist under UIAppFonts. The variable font's weight axis
-/// is used to select Regular (400) and Medium (500).
+/// Glyph routing (single point of change for the whole app per phase 23):
+/// - Latin / digits / punctuation render via General Sans (PostScript: GeneralSans-Regular / -Medium).
+/// - CJK glyphs (and any glyph General Sans does not cover) cascade to Noto Sans SC
+///   (PostScript: NotoSansSC-Regular / -Medium).
+///
+/// The cascade is built via UIFontDescriptor.AttributeName.cascadeList; PostScript names
+/// (not family names) are used per 23-RESEARCH Pitfall 3.
+///
+/// Note: GeneralSans-Variable.ttf and NotoSansSC-{Regular,Medium}.otf must be added to the
+/// Xcode project and registered in Info.plist under UIAppFonts.
 extension Font {
-    /// The registered font family name for General Sans Variable.
-    /// If this doesn't match at runtime, check the font's actual PostScript
-    /// or family name via `UIFont.familyNames` logging.
-    private static let gsFamilyName = "General Sans"
 
     enum Tokens {
         /// 64pt — Readiness score. Accent color only. Apply .monospacedDigit() at the call site.
-        static let heroScore   = Font.custom(Font.gsFamilyName, size: 64).weight(.regular)
+        static let heroScore   = cascaded(size: 64, weight: .regular)
 
         /// 32pt — Page title
-        static let pageTitle   = Font.custom(Font.gsFamilyName, size: 32).weight(.regular)
+        static let pageTitle   = cascaded(size: 32, weight: .regular)
 
         /// 19pt Medium — Section header
-        static let sectionHead = Font.custom(Font.gsFamilyName, size: 19).weight(.medium)
+        static let sectionHead = cascaded(size: 19, weight: .medium)
 
         /// 17pt — Body copy, metric values
-        static let body        = Font.custom(Font.gsFamilyName, size: 17).weight(.regular)
+        static let body        = cascaded(size: 17, weight: .regular)
 
         /// 17pt Medium — active state labels (context switcher, selected states)
-        static let bodyMedium  = Font.custom(Font.gsFamilyName, size: 17).weight(.medium)
+        static let bodyMedium  = cascaded(size: 17, weight: .medium)
 
         /// 15pt — Secondary info, factor labels
-        static let label       = Font.custom(Font.gsFamilyName, size: 15).weight(.regular)
+        static let label       = cascaded(size: 15, weight: .regular)
 
         /// 15pt Medium — emphasized secondary info
-        static let labelMedium = Font.custom(Font.gsFamilyName, size: 15).weight(.medium)
+        static let labelMedium = cascaded(size: 15, weight: .medium)
 
         /// 13pt — Component labels, banner text
-        static let smallLabel  = Font.custom(Font.gsFamilyName, size: 13).weight(.regular)
+        static let smallLabel  = cascaded(size: 13, weight: .regular)
 
         /// 13pt Medium — Component emphasis
-        static let smallLabelMedium = Font.custom(Font.gsFamilyName, size: 13).weight(.medium)
+        static let smallLabelMedium = cascaded(size: 13, weight: .medium)
 
         /// 12pt — Micro labels, all-caps. Apply .tracking(1.2) and .textCase(.uppercase) at call site.
-        static let micro       = Font.custom(Font.gsFamilyName, size: 12).weight(.regular)
+        static let micro       = cascaded(size: 12, weight: .regular)
+    }
+
+    /// Construct a Font whose primary glyph face is General Sans and whose cascade fallback
+    /// is Noto Sans SC for any glyph the primary lacks (CJK, fullwidth punctuation, etc).
+    ///
+    /// The cascade is glyph-by-glyph: Latin chars stay on General Sans even when interleaved
+    /// with Chinese in the same string. This is the single point of change that gives every
+    /// Font.Tokens.* call site mixed-script harmony without per-string font logic.
+    ///
+    /// PostScript names (verified via UIFont.fontNames(forFamilyName:) at runtime):
+    /// - GeneralSans-Regular / GeneralSans-Medium
+    /// - NotoSansSC-Regular / NotoSansSC-Medium
+    private static func cascaded(size: CGFloat, weight: UIFont.Weight) -> Font {
+        let cjkDescriptor: UIFontDescriptor = (weight == .medium)
+            ? UIFontDescriptor(fontAttributes: [.name: "NotoSansSC-Medium"])
+            : UIFontDescriptor(fontAttributes: [.name: "NotoSansSC-Regular"])
+
+        let primaryName = (weight == .medium) ? "GeneralSans-Medium" : "GeneralSans-Regular"
+        let primaryDescriptor = UIFontDescriptor(name: primaryName, size: size)
+            .addingAttributes([
+                UIFontDescriptor.AttributeName.cascadeList: [cjkDescriptor]
+            ])
+
+        return Font(UIFont(descriptor: primaryDescriptor, size: size))
     }
 }
