@@ -30,6 +30,20 @@ final class SubscriptionService {
         refreshEntitlement()
     }
 
+    // MARK: - Identity
+
+    /// Associates the RevenueCat anonymous user with the Supabase user ID.
+    /// Must be called after authentication is confirmed.
+    func logIn(userId: UUID) async {
+        guard isConfigured else { return }
+        do {
+            let (info, _) = try await Purchases.shared.logIn(userId.uuidString)
+            apply(info)
+        } catch {
+            print("RevenueCat logIn error: \(error)")
+        }
+    }
+
     // MARK: - Entitlement
 
     func refreshEntitlement() {
@@ -103,13 +117,12 @@ final class SubscriptionService {
         return snapshots.filter { $0.snapshotDate >= cutoff }
     }
 
-    /// Converts a count of locked (out-of-window) sessions into approximate weeks.
+    /// Converts a count of locked daily history entries into approximate weeks.
     /// Returns 0 if nothing is locked.
     static func lockedWeeks(totalSessions: Int, visibleSessions: Int) -> Int {
         let locked = max(0, totalSessions - visibleSessions)
         guard locked > 0 else { return 0 }
-        // Rough heuristic: assume ~3 sessions/week
-        return max(1, locked / 3)
+        return max(1, locked / 7)
     }
 
     // MARK: - Screenshot Support

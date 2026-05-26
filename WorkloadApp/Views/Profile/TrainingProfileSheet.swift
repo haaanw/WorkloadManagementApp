@@ -449,9 +449,7 @@ struct TrainingProfileSheet: View {
             do {
                 try repo.updateProfile(existing)
                 // WR-01: sync re-edited profile to Supabase
-                if let athlete {
-                    Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
-                }
+                Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
                 dismiss()
             } catch {
                 saveError = "Couldn't save your training profile. Please try again."

@@ -84,6 +84,18 @@ final class AuthService {
             throw AuthError.socialSignInFailed("No root view controller available")
         }
 
+        // Configure serverClientID so the ID token's aud matches the web client ID
+        // that Supabase expects (not the iOS client ID).
+        guard let iosClientID = Bundle.main.object(forInfoDictionaryKey: "GIDClientID") as? String else {
+            throw AuthError.socialSignInFailed("Missing GIDClientID in Info.plist")
+        }
+        let webClientID = Bundle.main.object(forInfoDictionaryKey: "GIDServerClientID") as? String
+            ?? "586655911402-ms8o8g9m5623ecm64p1lckp372n34bds.apps.googleusercontent.com"
+        GIDSignIn.sharedInstance.configuration = GIDConfiguration(
+            clientID: iosClientID,
+            serverClientID: webClientID
+        )
+
         let result = try await GIDSignIn.sharedInstance.signIn(withPresenting: rootVC)
 
         guard let idToken = result.user.idToken?.tokenString else {
