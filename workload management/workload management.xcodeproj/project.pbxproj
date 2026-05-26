@@ -25,6 +25,8 @@
 		1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000E2 /* TemplatePickerSheet.swift */; };
 		18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */; };
 		2301010100000000000000A1 /* LocaleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2301010100000000000000A2 /* LocaleManager.swift */; };
+		2301030100000000000000A1 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2301030100000000000000A2 /* Localizable.xcstrings */; };
+		2301040100000000000000A1 /* InfoPlist.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 2301040100000000000000A2 /* InfoPlist.xcstrings */; };
 		3656850E68D35D36B9204A8A /* ContextSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */; };
 		3ECC7EF76C16FD0D0CB8809E /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */; };
 		51E4BE53358600B414056677 /* CoachRosterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30598D5C0D296A3B5343AFF /* CoachRosterView.swift */; };
@@ -190,6 +192,8 @@
 		4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoachAthleteRelationship.swift; sourceTree = "<group>"; };
 		5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
 		2301010100000000000000A2 /* LocaleManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocaleManager.swift; sourceTree = "<group>"; };
+		2301030100000000000000A2 /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		2301040100000000000000A2 /* InfoPlist.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json.xcstrings; path = InfoPlist.xcstrings; sourceTree = "<group>"; };
 		596CFF167B4680D856FE2C46 /* RevenueCatConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RevenueCatConfig.swift; sourceTree = "<group>"; };
 		62324B4E2F66C5F600A9C2BE /* workload management.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "workload management.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		62324BE02F66CB0E00A9C2BE /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
@@ -466,6 +470,8 @@
 				62F32DF65C7F3C5307D700B6 /* Assets.xcassets */,
 				62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */,
 				62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */,
+				2301030100000000000000A2 /* Localizable.xcstrings */,
+				2301040100000000000000A2 /* InfoPlist.xcstrings */,
 			);
 			path = Resources;
 			sourceTree = "<group>";
@@ -835,6 +841,8 @@
 				62F32D6D64E26B3830FD00B6 /* Assets.xcassets in Resources */,
 				62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */,
 				62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */,
+				2301030100000000000000A1 /* Localizable.xcstrings in Resources */,
+				2301040100000000000000A1 /* InfoPlist.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

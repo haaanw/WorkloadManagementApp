@@ -3,6 +3,7 @@ import SwiftUI
 /// Read-only detail view for a completed workout session.
 struct SessionDetailView: View {
     let session: WorkoutSession
+    @Environment(\.locale) private var locale
 
     var body: some View {
         ScrollView {
@@ -16,7 +17,7 @@ struct SessionDetailView: View {
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                         Spacer()
-                        Text(session.sessionDate.relativeString)
+                        Text(session.sessionDate.relativeString(locale: locale))
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                     }
@@ -33,7 +34,7 @@ struct SessionDetailView: View {
                 HStack(spacing: 0) {
                     MetricTile(
                         title: "Duration",
-                        value: Date.durationString(seconds: session.durationSeconds)
+                        value: Date.durationString(seconds: session.durationSeconds, locale: locale)
                     )
                     if let rpe = session.sessionRPE {
                         Rectangle().fill(ColorTokens.divider).frame(width: 0.5)

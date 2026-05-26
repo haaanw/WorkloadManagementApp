@@ -305,6 +305,7 @@ struct RecoveryComponentRow: View {
 
 struct WellnessHistorySection: View {
     let checkIns: [WellnessCheckIn]
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -321,7 +322,7 @@ struct WellnessHistorySection: View {
 
             ForEach(checkIns, id: \.id) { checkIn in
                 HStack {
-                    Text(checkIn.date.relativeString)
+                    Text(checkIn.date.relativeString(locale: locale))
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                     Spacer()

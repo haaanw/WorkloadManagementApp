@@ -572,6 +572,7 @@ struct LoadStatCell: View {
 
 struct RecentSessionsSection: View {
     let sessions: [WorkoutSession]
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -600,7 +601,7 @@ struct RecentSessionsSection: View {
                                 Text(session.sessionName ?? session.sportType.displayName)
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
-                                Text(session.sessionDate.relativeString)
+                                Text(session.sessionDate.relativeString(locale: locale))
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
                             }
