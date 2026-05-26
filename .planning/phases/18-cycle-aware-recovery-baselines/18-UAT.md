@@ -1,13 +1,14 @@
 ---
-status: testing
+status: partial
 phase: 18-cycle-aware-recovery-baselines
 source: [18-01-SUMMARY.md, 18-02-SUMMARY.md]
 started: 2026-05-26T00:00:00Z
 updated: 2026-05-26T00:00:00Z
+deferred: true
 ---
 
 ## Current Test
-<!-- OVERWRITE each test - shows where we are -->
+<!-- Deferred by user — both tests pending until manual verification in simulator -->
 
 number: 1
 name: Dashboard cycle-tracking prompt copy
@@ -17,7 +18,7 @@ expected: |
   insights. Tuwa reads existing data from apps like Clue, Flo, or Apple Cycle
   Tracking — no manual re-entry needed."
   The brand name MUST read "Tuwa" (not "Faros").
-awaiting: user response
+awaiting: deferred — user opted to skip UAT for now
 
 ## Tests
 
