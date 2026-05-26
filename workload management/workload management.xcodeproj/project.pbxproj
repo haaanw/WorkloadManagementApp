@@ -24,6 +24,7 @@
 		FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1602010000000000000002 /* WorkoutImportSheet.swift */; };
 		1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000E2 /* TemplatePickerSheet.swift */; };
 		18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */; };
+		2301010100000000000000A1 /* LocaleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2301010100000000000000A2 /* LocaleManager.swift */; };
 		3656850E68D35D36B9204A8A /* ContextSwitcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */; };
 		3ECC7EF76C16FD0D0CB8809E /* ShareSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */; };
 		51E4BE53358600B414056677 /* CoachRosterView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A30598D5C0D296A3B5343AFF /* CoachRosterView.swift */; };
@@ -188,6 +189,7 @@
 		4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoachAthleteRelationship.swift; sourceTree = "<group>"; };
 		5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
+		2301010100000000000000A2 /* LocaleManager.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = LocaleManager.swift; sourceTree = "<group>"; };
 		596CFF167B4680D856FE2C46 /* RevenueCatConfig.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RevenueCatConfig.swift; sourceTree = "<group>"; };
 		62324B4E2F66C5F600A9C2BE /* workload management.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "workload management.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		62324BE02F66CB0E00A9C2BE /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
@@ -489,6 +491,7 @@
 				06ABB878A70046BADB172CF6 /* InviteService.swift */,
 				FF1501010000000000000002 /* TemplateSharingService.swift */,
 				5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */,
+				2301010100000000000000A2 /* LocaleManager.swift */,
 				AA0201010000000000000004 /* AnalyticsEngine.swift */,
 				AA0201010000000000000006 /* CSVExportEngine.swift */,
 				CC0301010000000000000006 /* PeriodizationEngine.swift */,
@@ -958,6 +961,7 @@
 				FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */,
 				FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */,
 				18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */,
+				2301010100000000000000A1 /* LocaleManager.swift in Sources */,
 				627EC1962F76622300B89262 /* WorkoutImportBanner.swift in Sources */,
 				053ADB2315D20A98F768E1DF /* InviteConfirmationSheet.swift in Sources */,
 				51E4BE53358600B414056677 /* CoachRosterView.swift in Sources */,
