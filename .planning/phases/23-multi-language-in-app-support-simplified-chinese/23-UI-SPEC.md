@@ -85,21 +85,26 @@ The hybrid term format (`中文术语 (ACRONYM)`) is up to ~2.3× wider than its
 
 ## Typography
 
-Inherits the DESIGN.md type scale verbatim. The cascade extension means every token below renders Latin glyphs from General Sans and CJK glyphs from Noto Sans SC.
+Inherits DESIGN.md type scale verbatim (7 tokens, no new sizes introduced). The cascade extension means every existing token renders Latin glyphs from General Sans and CJK glyphs from Noto Sans SC.
 
-| Role | Size | Weight | Line height | Color | zh-Hans note |
-|------|------|--------|-------------|-------|--------------|
-| Hero score | 64pt | 400 | 1.0 | `accent` | Numeric only — no CJK rendering path exercised |
-| Page title | 32pt | 400 | 1.2 | `text1` | First surface where zh-Hans appears at large size; verify Noto SC Regular baseline parity |
-| Section header | 19pt | 500 | 1.3 | `text1` | Noto SC Medium |
-| Body | 17pt | 400 | **1.7 in zh-Hans** (was 1.6 in en) | `text1` | CJK glyphs are visually denser; +0.1 line-height restores breathing without violating the 8pt grid because we measure container height in points, not multiplied line counts |
-| Label | 15pt | 400 | 1.5 | `text2` | unchanged |
-| Small label | 13pt | 400 | 1.4 | `text2` | unchanged |
-| Micro | 12pt | 400 | 1.3 | `text3` | **Locale-conditional tracking:** en uses `+0.08em` + `.textCase(.uppercase)`; zh-Hans uses tracking 0 + no case transform |
+zh-Hans overrides only:
 
-**Mixed-script kerning rule:** the space between a CJK closing character and the opening `(` of an English acronym renders naturally with the cascade — DO NOT insert manual ` ` thin-space hacks. The visual contract is one regular ASCII space: `负荷比 (ACWR)`. If a reviewer sees the gap looking visually tight or wide, file as a font-issue and revisit cascade attributes, never patch per-string.
+| Token | Override | Reason |
+|-------|----------|--------|
+| body (17pt) | line-height: 1.7 (was 1.6) | CJK glyph density — +0.1 line-height restores breathing without violating the 8pt grid because container height is measured in points, not multiplied line counts |
+| micro (12pt) | tracking: 0; no `.textCase(.uppercase)` | Chinese has no case; locale-conditional — en retains `+0.08em` tracking + all-caps |
+
+**Mixed-script kerning rule:** the space between a CJK closing character and the opening `(` of an English acronym renders naturally with the cascade — DO NOT insert manual ` ` thin-space hacks. The visual contract is one regular ASCII space: `负荷比 (ACWR)`. If a reviewer sees the gap looking visually tight or wide, file as a font-issue and revisit cascade attributes, never patch per-string.
 
 **Tabular numerals:** zh-Hans numeric strings (dates, weights, ACWR values) keep `.monospacedDigit()`. Noto Sans SC has tabular Latin digits matching General Sans tabular widths.
+
+**Cascade matrix (face resolution per token):**
+
+| Script in source string | Latin face | CJK face |
+|--------------------------|-----------|----------|
+| Latin-only (en) | General Sans Regular/Medium | n/a |
+| CJK-only (zh) | n/a | Noto Sans SC Regular/Medium |
+| Mixed (zh + Latin acronym) | General Sans Regular/Medium for Latin runs | Noto Sans SC Regular/Medium for CJK runs |
 
 ---
 
@@ -207,7 +212,7 @@ ROW 2 — "中文(简体)"
 
 **Pre-selected default:** the row matching iOS system locale at app first launch is pre-selected with the checkmark. Selecting the other row immediately re-renders the entire onboarding flow in that locale (including the page title above), demonstrating live switch.
 
-**Continue button label:** localized — "Continue" / "继续"  — `Font.Tokens.bodyMedium`, color `text1` on `surface` background, hairline border. Same component as other onboarding continue buttons (no new component).
+**Continue button label:** localized — "Continue to Setup" / "继续设置" — `Font.Tokens.bodyMedium`, color `text1` on `surface` background, hairline border. Same component as other onboarding continue buttons (no new component). Verb + noun pattern reinforces the destination on this gateway step; subsequent onboarding steps retain the existing single-verb "Continue" / "继续".
 
 ---
 
@@ -282,10 +287,10 @@ Only strings introduced or modified BY THIS PHASE are listed. Translation of the
 | LanguagePickerView footer caption | "Changing your language updates the app immediately." | "更改语言后，应用会立即生效。" |
 | Onboarding step header — title | "Choose your language" | "选择语言" |
 | Onboarding step header — subtitle | "You can change this anytime in Profile." | "之后可随时在“档案”中修改。" |
-| Onboarding Continue button | "Continue" | "继续" |
+| Onboarding Continue button (language step only) | "Continue to Setup" | "继续设置" |
 | HealthKit usage description (`NSHealthShareUsageDescription`) | (existing en string) | "Tonus 读取您的心率、心率变异性和睡眠数据，用于计算每日恢复评分。这些原始数据不会离开您的设备。" |
 
-**Primary CTA for this phase:** "Continue" / "继续" (onboarding language step).
+**Primary CTA for this phase:** "Continue to Setup" / "继续设置" (onboarding language step). Verb + noun reinforces the destination on the gateway step; subsequent onboarding step continues retain the single-verb "Continue" / "继续".
 **Empty state:** n/a — picker is statically populated.
 **Error state:** n/a — locale switching cannot fail.
 **Destructive actions:** none in this phase.
@@ -342,6 +347,7 @@ Both are static font files, verified via OFL license, no executable content, no 
 - [ ] Live switch from Profile → Language → tap "中文(简体)" updates: navigation titles, tab bar labels, dashboard metric labels, date strings, all without app restart, within 150ms crossfade.
 - [ ] All spacing in new surfaces is a multiple of 8pt — `git grep` for magic spacing values returns nothing in modified files.
 - [ ] zh-Hans micro labels do NOT apply `.textCase(.uppercase)` or `+0.08em` tracking.
+- [ ] zh-Hans body line-height resolves to 1.7 (vs 1.6 in en) via locale-conditional FontTokens path.
 - [ ] No View calls `Locale.current` directly — search returns zero matches in `WorkloadApp/Views/` and `WorkloadApp/Components/`.
 - [ ] HealthKit consent prompt renders in user-chosen locale (verified in iOS Settings → Tonus → Health permission view).
 - [ ] Bundle size delta after CJK font integration is ≤ +8 MB (CONTEXT D-19 budget).
