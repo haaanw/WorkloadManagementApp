@@ -15,13 +15,13 @@ enum SportType: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .lifting: "Lifting"
-        case .running: "Running"
-        case .cycling: "Cycling"
-        case .teamSport: "Team Sport"
-        case .crossfit: "CrossFit"
-        case .swimming: "Swimming"
-        case .custom: "Custom"
+        case .lifting: String(localized: "sport.lifting", defaultValue: "Lifting")
+        case .running: String(localized: "sport.running", defaultValue: "Running")
+        case .cycling: String(localized: "sport.cycling", defaultValue: "Cycling")
+        case .teamSport: String(localized: "sport.teamSport", defaultValue: "Team Sport")
+        case .crossfit: String(localized: "sport.crossfit", defaultValue: "CrossFit")
+        case .swimming: String(localized: "sport.swimming", defaultValue: "Swimming")
+        case .custom: String(localized: "sport.custom", defaultValue: "Custom")
         }
     }
 
@@ -44,8 +44,8 @@ enum WeightUnit: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .kg: "kg"
-        case .lbs: "lbs"
+        case .kg: String(localized: "weightUnit.kg", defaultValue: "kg")
+        case .lbs: String(localized: "weightUnit.lbs", defaultValue: "lbs")
         }
     }
 
@@ -65,8 +65,8 @@ enum ACWRMethod: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .ewma: "EWMA"
-        case .rolling28day: "Rolling 28-Day"
+        case .ewma: String(localized: "acwrMethod.ewma", defaultValue: "EWMA")
+        case .rolling28day: String(localized: "acwrMethod.rolling28day", defaultValue: "Rolling 28-Day")
         }
     }
 }
@@ -78,9 +78,9 @@ enum LoadSource: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .srpe: "sRPE"
-        case .trimp: "TRIMP"
-        case .combined: "Combined"
+        case .srpe: String(localized: "loadSource.srpe", defaultValue: "sRPE")
+        case .trimp: String(localized: "loadSource.trimp", defaultValue: "TRIMP")
+        case .combined: String(localized: "loadSource.combined", defaultValue: "Combined")
         }
     }
 }
@@ -104,11 +104,11 @@ enum ACWRZone: String, Codable {
 
     var displayName: String {
         switch self {
-        case .undertrained: "Undertrained"
-        case .optimal: "Optimal"
-        case .caution: "Caution"
-        case .danger: "High Load"
-        case .noData: "No Data"
+        case .undertrained: String(localized: "zone.low", defaultValue: "Undertrained")
+        case .optimal: String(localized: "zone.optimal", defaultValue: "Optimal")
+        case .caution: String(localized: "zone.caution", defaultValue: "Caution")
+        case .danger: String(localized: "zone.danger", defaultValue: "High Load")
+        case .noData: String(localized: "zone.noData", defaultValue: "No Data")
         }
     }
 
@@ -138,13 +138,13 @@ enum ExerciseCategory: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .compound: "Compound"
-        case .isolation: "Isolation"
-        case .cardio: "Cardio"
-        case .bodyweight: "Bodyweight"
-        case .plyometric: "Plyometric"
-        case .drill: "Drill"
-        case .interval: "Interval"
+        case .compound: String(localized: "exerciseCategory.compound", defaultValue: "Compound")
+        case .isolation: String(localized: "exerciseCategory.isolation", defaultValue: "Isolation")
+        case .cardio: String(localized: "exerciseCategory.cardio", defaultValue: "Cardio")
+        case .bodyweight: String(localized: "exerciseCategory.bodyweight", defaultValue: "Bodyweight")
+        case .plyometric: String(localized: "exerciseCategory.plyometric", defaultValue: "Plyometric")
+        case .drill: String(localized: "exerciseCategory.drill", defaultValue: "Drill")
+        case .interval: String(localized: "exerciseCategory.interval", defaultValue: "Interval")
         }
     }
 
@@ -179,13 +179,13 @@ enum MuscleGroup: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .chest: "Chest"
-        case .back: "Back"
-        case .legs: "Legs"
-        case .shoulders: "Shoulders"
-        case .arms: "Arms"
-        case .core: "Core"
-        case .fullBody: "Full Body"
+        case .chest: String(localized: "muscleGroup.chest", defaultValue: "Chest")
+        case .back: String(localized: "muscleGroup.back", defaultValue: "Back")
+        case .legs: String(localized: "muscleGroup.legs", defaultValue: "Legs")
+        case .shoulders: String(localized: "muscleGroup.shoulders", defaultValue: "Shoulders")
+        case .arms: String(localized: "muscleGroup.arms", defaultValue: "Arms")
+        case .core: String(localized: "muscleGroup.core", defaultValue: "Core")
+        case .fullBody: String(localized: "muscleGroup.fullBody", defaultValue: "Full Body")
         }
     }
 }
@@ -198,10 +198,10 @@ enum PRType: String, Codable, CaseIterable {
 
     var displayName: String {
         switch self {
-        case .maxWeight: "Max Weight"
-        case .maxReps: "Max Reps"
-        case .maxVolume: "Max Volume"
-        case .fastestPace: "Fastest Pace"
+        case .maxWeight: String(localized: "prType.maxWeight", defaultValue: "Max Weight")
+        case .maxReps: String(localized: "prType.maxReps", defaultValue: "Max Reps")
+        case .maxVolume: String(localized: "prType.maxVolume", defaultValue: "Max Volume")
+        case .fastestPace: String(localized: "prType.fastestPace", defaultValue: "Fastest Pace")
         }
     }
 }
@@ -223,9 +223,9 @@ enum RecoveryZone: String, Codable {
 
     var displayName: String {
         switch self {
-        case .red: "Rest / Light Only"
-        case .yellow: "Cautious"
-        case .green: "Go"
+        case .red: String(localized: "recoveryZone.red", defaultValue: "Rest / Light Only")
+        case .yellow: String(localized: "recoveryZone.yellow", defaultValue: "Cautious")
+        case .green: String(localized: "recoveryZone.green", defaultValue: "Go")
         }
     }
 
@@ -270,9 +270,9 @@ enum PrescriptionStatus: String, Codable {
 
     var displayName: String {
         switch self {
-        case .assigned: "Assigned"
-        case .completed: "Completed"
-        case .skipped: "Skipped"
+        case .assigned: String(localized: "prescriptionStatus.assigned", defaultValue: "Assigned")
+        case .completed: String(localized: "prescriptionStatus.completed", defaultValue: "Completed")
+        case .skipped: String(localized: "prescriptionStatus.skipped", defaultValue: "Skipped")
         }
     }
 }
@@ -288,11 +288,11 @@ enum SessionType: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .strength: "Strength"
-        case .skill:    "Skill"
-        case .cardio:   "Cardio"
-        case .match:    "Match"
-        case .recovery: "Recovery"
+        case .strength: String(localized: "sessionType.strength", defaultValue: "Strength")
+        case .skill:    String(localized: "sessionType.skill", defaultValue: "Skill")
+        case .cardio:   String(localized: "sessionType.cardio", defaultValue: "Cardio")
+        case .match:    String(localized: "sessionType.match", defaultValue: "Match")
+        case .recovery: String(localized: "sessionType.recovery", defaultValue: "Recovery")
         }
     }
 }
@@ -309,10 +309,10 @@ enum TrainingFrequency: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .oneToTwo: "1-2 days/week"
-        case .threeToFour: "3-4 days/week"
-        case .fiveToSix: "5-6 days/week"
-        case .sevenPlus: "7+ days/week"
+        case .oneToTwo: String(localized: "frequency.oneToTwo", defaultValue: "1-2 days/week")
+        case .threeToFour: String(localized: "frequency.threeToFour", defaultValue: "3-4 days/week")
+        case .fiveToSix: String(localized: "frequency.fiveToSix", defaultValue: "5-6 days/week")
+        case .sevenPlus: String(localized: "frequency.sevenPlus", defaultValue: "7+ days/week")
         }
     }
 }
@@ -326,17 +326,17 @@ enum ExperienceLevel: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .beginner: "Beginner"
-        case .intermediate: "Intermediate"
-        case .advanced: "Advanced"
+        case .beginner: String(localized: "experience.beginner", defaultValue: "Beginner")
+        case .intermediate: String(localized: "experience.intermediate", defaultValue: "Intermediate")
+        case .advanced: String(localized: "experience.advanced", defaultValue: "Advanced")
         }
     }
 
     var subtitle: String {
         switch self {
-        case .beginner: "New to structured training"
-        case .intermediate: "1-3 years consistent training"
-        case .advanced: "3+ years, understands periodization"
+        case .beginner: String(localized: "experience.beginner.subtitle", defaultValue: "New to structured training")
+        case .intermediate: String(localized: "experience.intermediate.subtitle", defaultValue: "1-3 years consistent training")
+        case .advanced: String(localized: "experience.advanced.subtitle", defaultValue: "3+ years, understands periodization")
         }
     }
 }
@@ -357,14 +357,14 @@ enum BodyRegion: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .shoulder: "Shoulder"
-        case .knee: "Knee"
-        case .back: "Back"
-        case .hip: "Hip"
-        case .ankle: "Ankle"
-        case .wrist: "Wrist"
-        case .elbow: "Elbow"
-        case .neck: "Neck"
+        case .shoulder: String(localized: "bodyRegion.shoulder", defaultValue: "Shoulder")
+        case .knee: String(localized: "bodyRegion.knee", defaultValue: "Knee")
+        case .back: String(localized: "bodyRegion.back", defaultValue: "Back")
+        case .hip: String(localized: "bodyRegion.hip", defaultValue: "Hip")
+        case .ankle: String(localized: "bodyRegion.ankle", defaultValue: "Ankle")
+        case .wrist: String(localized: "bodyRegion.wrist", defaultValue: "Wrist")
+        case .elbow: String(localized: "bodyRegion.elbow", defaultValue: "Elbow")
+        case .neck: String(localized: "bodyRegion.neck", defaultValue: "Neck")
         }
     }
 }
@@ -389,12 +389,12 @@ enum CyclePhase: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
-        case .earlyFollicular: "Early Follicular"
-        case .lateFollicular: "Late Follicular"
-        case .ovulatory: "Ovulatory"
-        case .earlyLuteal: "Early Luteal"
-        case .lateLuteal: "Late Luteal"
-        case .unknown: "Unknown"
+        case .earlyFollicular: String(localized: "cyclePhase.earlyFollicular", defaultValue: "Early Follicular")
+        case .lateFollicular: String(localized: "cyclePhase.lateFollicular", defaultValue: "Late Follicular")
+        case .ovulatory: String(localized: "cyclePhase.ovulatory", defaultValue: "Ovulatory")
+        case .earlyLuteal: String(localized: "cyclePhase.earlyLuteal", defaultValue: "Early Luteal")
+        case .lateLuteal: String(localized: "cyclePhase.lateLuteal", defaultValue: "Late Luteal")
+        case .unknown: String(localized: "cyclePhase.unknown", defaultValue: "Unknown")
         }
     }
 }

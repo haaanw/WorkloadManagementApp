@@ -1,7 +1,23 @@
 {
   "sourceLanguage" : "en",
+  "version" : "1.0",
   "strings" : {
-
-  },
-  "version" : "1.0"
+    "NSHealthShareUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : ""
+          }
+        }
+      }
+    }
+  }
 }

@@ -4,6 +4,7 @@ import Charts
 /// 28-day recovery-load correlation chart (ANLYT-04).
 /// BarMark for daily load + LineMark overlay for recovery score.
 struct RecoveryLoadChart: View {
+    @Environment(\.locale) private var locale
     let loadSnapshots: [WorkloadSnapshot]
     let recoverySnapshots: [RecoverySnapshot]
     @State private var selectedDate: Date?
@@ -54,6 +55,7 @@ struct RecoveryLoadChart: View {
             }
         }
         .frame(height: 180)
+        .id(locale)
         .chartOverlay { proxy in
             ChartTooltipGesture(
                 proxy: proxy,
@@ -67,7 +69,7 @@ struct RecoveryLoadChart: View {
                 let recovery = recoverySnapshots.first(where: { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) })
                 TooltipBubble(
                     value: "Load: \(String(format: "%.0f", snapshot.acuteLoad))" + (recovery.map { " | Recovery: \(Int($0.recoveryScore))" } ?? ""),
-                    dateLabel: snapshot.snapshotDate.formatted(.dateTime.month(.abbreviated).day())
+                    dateLabel: snapshot.snapshotDate.formatted(.dateTime.month(.abbreviated).day().locale(locale))
                 )
             }
         }

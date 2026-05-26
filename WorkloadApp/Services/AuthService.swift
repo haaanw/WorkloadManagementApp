@@ -117,12 +117,34 @@ final class AuthService {
         case noUserReturned
         case noIdentityToken
         case socialSignInFailed(String)
-        var errorDescription: String? {
+
+        /// Stable catalog key for live-switch View-boundary resolution.
+        /// Views should re-resolve via `String(localized: error.localizationKey, defaultValue: error.defaultValue, locale: env.locale)`.
+        /// See 23-RESEARCH.md Pitfall 7.
+        var localizationKey: String.LocalizationValue {
+            switch self {
+            case .noUserReturned: return "auth.error.noUserReturned"
+            case .noIdentityToken: return "auth.error.noIdentityToken"
+            case .socialSignInFailed(let message):
+                // Server-originated opaque string — wrap verbatim, no catalog lookup.
+                return String.LocalizationValue(message)
+            }
+        }
+
+        /// English source value passed alongside `localizationKey` so the catalog has a fallback.
+        var defaultValue: String {
             switch self {
             case .noUserReturned: return "Sign up succeeded but no user was returned. Please try again."
             case .noIdentityToken: return "Apple sign in failed. Could not retrieve identity token."
             case .socialSignInFailed(let message): return message
             }
+        }
+
+        /// Debug fallback used by NSError/logging — keeps English for log diagnostics.
+        /// SwiftUI views MUST NOT call `.localizedDescription` directly; instead they re-resolve
+        /// via `localizationKey` against the env locale (see Pitfall 7).
+        var errorDescription: String? {
+            return defaultValue
         }
     }
 }

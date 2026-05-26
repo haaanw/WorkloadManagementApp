@@ -5,12 +5,30 @@ import AuthenticationServices
 struct LoginView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.locale) private var locale
     @State private var email = ""
     @State private var password = ""
     @State private var isLoading = false
     @State private var errorMessage: String?
+    @State private var lastAuthError: (any Error)?
     @State private var isSocialLoading = false
     @State private var showSignUp = false
+
+    /// Resolve a caught error against the current env locale (Pitfall 7).
+    /// Typed branches use the catalog key; non-typed errors fall back to .localizedDescription.
+    private func resolveErrorMessage(_ error: any Error, locale: Locale) -> String {
+        if let authError = error as? AuthService.AuthError {
+            var resource = LocalizedStringResource(authError.localizationKey)
+            resource.locale = locale
+            return String(localized: resource)
+        } else if let bootstrap = error as? AuthBootstrapError {
+            var resource = LocalizedStringResource(bootstrap.localizationKey)
+            resource.locale = locale
+            return String(localized: resource)
+        } else {
+            return error.localizedDescription
+        }
+    }
 
     var body: some View {
         NavigationStack {
@@ -156,6 +174,13 @@ struct LoginView: View {
             .navigationDestination(isPresented: $showSignUp) {
                 SignUpView()
             }
+            .onChange(of: locale) { _, newLocale in
+                // Re-resolve any pending auth-error message against the new env locale
+                // so the live-switch flow refreshes mid-flight (RESEARCH Pitfall 7).
+                if let pending = lastAuthError, errorMessage != nil {
+                    errorMessage = resolveErrorMessage(pending, locale: newLocale)
+                }
+            }
         }
     }
 
@@ -188,7 +213,8 @@ struct LoginView: View {
             isLoading = false
             container.setAuthenticated(true)
         } catch {
-            errorMessage = error.localizedDescription
+            lastAuthError = error
+            errorMessage = resolveErrorMessage(error, locale: locale)
             isLoading = false
         }
     }
@@ -226,7 +252,8 @@ struct LoginView: View {
             isSocialLoading = false
             container.setAuthenticated(true)
         } catch {
-            errorMessage = error.localizedDescription
+            lastAuthError = error
+            errorMessage = resolveErrorMessage(error, locale: locale)
             isSocialLoading = false
         }
     }
@@ -261,7 +288,8 @@ struct LoginView: View {
             isSocialLoading = false
             container.setAuthenticated(true)
         } catch {
-            errorMessage = error.localizedDescription
+            lastAuthError = error
+            errorMessage = resolveErrorMessage(error, locale: locale)
             isSocialLoading = false
         }
     }
@@ -270,10 +298,20 @@ struct LoginView: View {
 private enum AuthBootstrapError: LocalizedError {
     case noUserId
     case athleteNotFound
-    var errorDescription: String? {
+
+    var localizationKey: String.LocalizationValue {
+        switch self {
+        case .noUserId: return "auth.error.noUserId"
+        case .athleteNotFound: return "auth.error.athleteNotFound"
+        }
+    }
+
+    var defaultValue: String {
         switch self {
         case .noUserId: return "Could not retrieve your account. Please try again."
         case .athleteNotFound: return "Account profile not found. Please contact support."
         }
     }
+
+    var errorDescription: String? { defaultValue }
 }

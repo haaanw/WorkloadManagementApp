@@ -3,6 +3,7 @@ import Charts
 
 /// 28-day sleep duration bar chart, color-coded by duration.
 struct SleepTrendChart: View {
+    @Environment(\.locale) private var locale
     let recoverySnapshots: [RecoverySnapshot]
 
     private var sleepData: [(date: Date, hours: Double)] {
@@ -47,6 +48,7 @@ struct SleepTrendChart: View {
                 }
                 .frame(height: 160)
                 .chartYAxisLabel("hours")
+                .id(locale)
 
                 HStack(spacing: 16) {
                     legendItem(color: ColorTokens.zoneOptimal, label: "7h+")

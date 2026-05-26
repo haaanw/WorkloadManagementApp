@@ -290,13 +290,6 @@ final class DashboardViewModel {
             return (try? modelContext.fetch(desc).count) ?? 0
         }()
 
-        let body = NotificationService.buildNotificationBody(
-            sessionCount: weeklySummary?.sessionCount ?? 0,
-            streak: currentStreak,
-            prCount: prCount,
-            volumeDelta: weeklySummary?.volumeDelta ?? 0
-        )
-
         let day = UserDefaults.standard.integer(forKey: "notificationDay")
         let timeString = UserDefaults.standard.string(forKey: "notificationTime") ?? "19:00"
         let timeParts = timeString.split(separator: ":").compactMap { Int($0) }
@@ -304,7 +297,15 @@ final class DashboardViewModel {
         let minute = timeParts.count > 1 ? timeParts[1] : 0
         let weekday = day > 0 ? day : 1
 
-        notificationService.scheduleWeeklySummary(weekday: weekday, hour: hour, minute: minute, body: body)
+        notificationService.scheduleWeeklySummary(
+            weekday: weekday,
+            hour: hour,
+            minute: minute,
+            sessionCount: weeklySummary?.sessionCount ?? 0,
+            streak: currentStreak,
+            prCount: prCount,
+            volumeDelta: weeklySummary?.volumeDelta ?? 0
+        )
     }
 
     private func computeDaysSinceRest(workoutRepo: WorkoutRepository, athlete: Athlete) -> Int {

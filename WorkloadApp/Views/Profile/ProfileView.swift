@@ -678,11 +678,14 @@ struct ProfileView: View {
         let timeParts = notificationTime.split(separator: ":").compactMap { Int($0) }
         let hour = timeParts.first ?? 19
         let minute = timeParts.count > 1 ? timeParts[1] : 0
-        let body = NotificationService.buildNotificationBody(
-            sessionCount: 0, streak: 0, prCount: 0, volumeDelta: 0
-        )
         container.notificationService.scheduleWeeklySummary(
-            weekday: notificationDay, hour: hour, minute: minute, body: body
+            weekday: notificationDay,
+            hour: hour,
+            minute: minute,
+            sessionCount: 0,
+            streak: 0,
+            prCount: 0,
+            volumeDelta: 0
         )
     }
 

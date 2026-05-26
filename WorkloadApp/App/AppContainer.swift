@@ -56,6 +56,11 @@ final class AppContainer {
         self.localeManager = LocaleManager()
         self.cycleTrackingService = CycleTrackingService()
 
+        // Phase 23 P2: Cancel any legacy weekly-summary pending requests so the next
+        // schedule call reissues with deliver-time localization. Idempotent: stamps
+        // UserDefaults with the current schema version on first run.
+        self.notificationService.migrateWeeklySummaryIfNeeded()
+
         // Subscribe to session-loss events only.
         // Sign-in/sign-up transitions set isAuthenticated manually (after sync completes).
         Task {

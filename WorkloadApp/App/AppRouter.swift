@@ -204,13 +204,13 @@ struct MainTabView: View {
         TabView {
             if effectiveMode == .coach {
                 CoachRosterView()
-                    .tabItem { Label("Roster", systemImage: "person.2.fill") }
+                    .tabItem { Label("tab.roster", systemImage: "person.2.fill") }
                 NavigationStack {
                     TemplateListView()
                 }
-                    .tabItem { Label("Templates", systemImage: "doc.text.fill") }
+                    .tabItem { Label("tab.templates", systemImage: "doc.text.fill") }
                 ProfileView()
-                    .tabItem { Label("Profile", systemImage: "person.fill") }
+                    .tabItem { Label("tab.profile", systemImage: "person.fill") }
                     .overlay(alignment: .topTrailing) {
                         if syncStore.hasAnyFailure {
                             Circle()
@@ -224,15 +224,15 @@ struct MainTabView: View {
                     }
             } else {
                 DashboardView()
-                    .tabItem { Label("Home", systemImage: "house.fill") }
+                    .tabItem { Label("tab.home", systemImage: "house.fill") }
                 WorkoutLogView()
-                    .tabItem { Label("Log", systemImage: "list.bullet.clipboard.fill") }
+                    .tabItem { Label("tab.log", systemImage: "list.bullet.clipboard.fill") }
                 RecoveryView()
-                    .tabItem { Label("Recovery", systemImage: "heart.fill") }
+                    .tabItem { Label("tab.recovery", systemImage: "heart.fill") }
                 WorkloadView()
-                    .tabItem { Label("Load", systemImage: "chart.line.uptrend.xyaxis") }
+                    .tabItem { Label("tab.load", systemImage: "chart.line.uptrend.xyaxis") }
                 ProfileView()
-                    .tabItem { Label("Profile", systemImage: "person.fill") }
+                    .tabItem { Label("tab.profile", systemImage: "person.fill") }
                     .overlay(alignment: .topTrailing) {
                         if syncStore.hasAnyFailure {
                             Circle()

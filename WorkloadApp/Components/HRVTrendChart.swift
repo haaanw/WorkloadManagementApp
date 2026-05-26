@@ -3,6 +3,7 @@ import Charts
 
 /// 28-day HRV trend line chart with 7-day baseline rule mark.
 struct HRVTrendChart: View {
+    @Environment(\.locale) private var locale
     let data: [(date: Date, value: Double)]
 
     private var baseline: Double? {
@@ -43,6 +44,7 @@ struct HRVTrendChart: View {
             }
             .frame(height: 180)
             .chartYAxisLabel("ms")
+            .id(locale)
         }
     }
 }
