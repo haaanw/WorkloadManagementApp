@@ -243,11 +243,15 @@ Plans:
 
 ### Phase 23: Multi-language in-app support (Simplified Chinese)
 
-**Goal:** [To be planned]
-**Requirements**: TBD
+**Goal:** Add Simplified Chinese (zh-Hans) localization to Tonus alongside English — full in-app coverage (core UI, errors, paywall, legal, push notifications), live language switching via LocaleManager + `.environment(\.locale)`, CJK font cascade (Noto Sans SC over General Sans), and zh-Hans App Store metadata + screenshots.
+**Requirements**: TBD (derived from CONTEXT.md decisions D-01..D-22 + UI-SPEC visual contract + RESEARCH validation architecture)
 **Depends on:** Phase 22
-**Plans:** 4/4 plans complete
+**Plans:** 5 plans
 
 Plans:
 
-- [ ] TBD (run /gsd-plan-phase 23 to break down)
+- [ ] 23-01-PLAN.md — i18n infrastructure scaffold (LocaleManager, env-locale injection, empty String Catalogs, formatter Locale-refactor, language picker UI surfaces)
+- [ ] 23-02-PLAN.md — String sweep + catalog migration (enum displayNames, AuthError, View/Component literals, NotificationService deferred localization + reschedule migration, InfoPlist HealthKit consent)
+- [ ] 23-03-PLAN.md — Noto Sans SC bundle + UIFontDescriptor cascade in FontTokens
+- [ ] 23-04-PLAN.md — zh-Hans translations + marketing-tone second pass + density audit + human review checkpoint
+- [ ] 23-05-PLAN.md — App Store Connect zh-Hans metadata draft + scheme + screenshots (autonomous: false; human-verify gates per memory feedback_asc_caution.md)
