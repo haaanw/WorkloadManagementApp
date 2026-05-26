@@ -3,9 +3,27 @@ import UserNotifications
 
 /// Manages local notification authorization, scheduling, and content for weekly training summaries.
 /// Wraps UNUserNotificationCenter -- all notification operations go through this service.
+///
+/// Localization model (Phase 23 P2):
+/// - `scheduleWeeklySummary` builds UNMutableNotificationContent using
+///   `.localizedUserNotificationString(forKey:arguments:)` so iOS resolves the title and body
+///   at DELIVER time against the current device language, not at schedule time. This is the only
+///   way a notification scheduled in English can fire in Chinese after the user flips language
+///   (RESEARCH §"Pattern 4 deliver-time localization").
+/// - A schema-version migration cancels and reschedules any pre-Phase-23 weekly-summary requests
+///   on first launch after this version ships, so legacy English-baked payloads are purged.
 @MainActor
 final class NotificationService {
     private let center = UNUserNotificationCenter.current()
+
+    /// Bump when the notification content format changes in a way that requires
+    /// reissuing pending UNNotificationRequest objects. Phase 23 P2 → version 2.
+    /// Tracked under UserDefaults["notificationSchemaVersion"] (see schemaVersionKey).
+    private static let currentSchemaVersion = 2
+    /// UserDefaults key for the persisted notificationSchemaVersion. Bumping
+    /// `currentSchemaVersion` above the stored value triggers `migrateWeeklySummaryIfNeeded()`
+    /// to cancel the pending UNNotificationRequest so the next schedule call reissues it.
+    private static let schemaVersionKey = "notificationSchemaVersion"
 
     /// Request notification authorization. Returns true if granted.
     func requestAuthorization() async -> Bool {
@@ -22,20 +40,38 @@ final class NotificationService {
         await center.notificationSettings().authorizationStatus
     }
 
-    /// Schedule (or reschedule) the weekly summary notification.
-    /// Cancels any existing weekly-summary request first, then schedules a new one.
+    /// Schedule (or reschedule) the weekly summary notification using deliver-time localization.
+    /// Title and body are resolved by iOS from `Localizable.xcstrings` at delivery, so the
+    /// notification fires in the device's current language even if scheduling happened months
+    /// earlier under a different locale (RESEARCH Pitfall 8).
     /// - Parameters:
-    ///   - weekday: 1 = Sunday, 2 = Monday, ... 7 = Saturday (per Calendar weekday convention)
-    ///   - hour: Hour in 24h format (0-23). Default 19 per D-04.
-    ///   - minute: Minute (0-59). Default 0 per D-04.
-    ///   - body: Notification body text built from weekly summary data.
-    func scheduleWeeklySummary(weekday: Int, hour: Int, minute: Int, body: String) {
-        // Cancel existing first
+    ///   - weekday: 1 = Sunday ... 7 = Saturday (Calendar weekday convention)
+    ///   - hour: 0–23
+    ///   - minute: 0–59
+    ///   - sessionCount: structured arg passed to `notif.weekly.body.template`
+    ///   - streak: structured arg
+    ///   - prCount: structured arg
+    ///   - volumeDelta: % delta from last week; abs value passed as 4th arg
+    func scheduleWeeklySummary(
+        weekday: Int,
+        hour: Int,
+        minute: Int,
+        sessionCount: Int,
+        streak: Int,
+        prCount: Int,
+        volumeDelta: Double
+    ) {
         cancelWeeklySummary()
 
         let content = UNMutableNotificationContent()
-        content.title = "Your Week in Review"
-        content.body = body
+        content.title = NSString.localizedUserNotificationString(
+            forKey: "notif.weekly.title",
+            arguments: nil
+        )
+        content.body = NSString.localizedUserNotificationString(
+            forKey: "notif.weekly.body.template",
+            arguments: [sessionCount, streak, prCount, Int(abs(volumeDelta))]
+        )
         content.sound = .default
 
         var dateComponents = DateComponents()
@@ -59,40 +95,17 @@ final class NotificationService {
         center.removePendingNotificationRequests(withIdentifiers: ["weekly-summary"])
     }
 
-    // MARK: - Content Builder
+    // MARK: - Schema migration
 
-    /// Build notification body text from weekly summary data.
-    /// Per D-06: include sessions, streak, PRs, and volume delta without being noisy.
-    static func buildNotificationBody(
-        sessionCount: Int,
-        streak: Int,
-        prCount: Int,
-        volumeDelta: Double
-    ) -> String {
-        guard sessionCount > 0 else {
-            return "0 sessions this week. Log a session to keep your streak alive."
-        }
-
-        var parts: [String] = []
-
-        // Sessions + streak
-        var sessionPart = "\(sessionCount) session\(sessionCount == 1 ? "" : "s") logged"
-        if streak >= 1 { sessionPart += " — \(streak) week streak" }
-        parts.append(sessionPart + ".")
-
-        // PRs
-        if prCount > 0 {
-            parts.append("\(prCount) new PR\(prCount == 1 ? "" : "s")!")
-        } else {
-            parts.append("No new PRs.")
-        }
-
-        // Volume delta
-        if abs(volumeDelta) >= 1 {
-            let direction = volumeDelta > 0 ? "up" : "down"
-            parts.append("Volume \(direction) \(Int(abs(volumeDelta)))% from last week.")
-        }
-
-        return parts.joined(separator: " ")
+    /// Idempotent migration. If the persisted notification schema version is below the current
+    /// version, cancel any legacy weekly-summary request so the next scheduleWeeklySummary call
+    /// will reissue under the deliver-time-localization format. Stamps UserDefaults with the
+    /// current version so subsequent launches no-op.
+    /// Safe to call multiple times; second invocation reads version == current and returns.
+    func migrateWeeklySummaryIfNeeded() {
+        let stored = UserDefaults.standard.integer(forKey: Self.schemaVersionKey)
+        guard stored < Self.currentSchemaVersion else { return }
+        cancelWeeklySummary()
+        UserDefaults.standard.set(Self.currentSchemaVersion, forKey: Self.schemaVersionKey)
     }
 }

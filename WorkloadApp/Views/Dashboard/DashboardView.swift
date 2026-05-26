@@ -127,14 +127,14 @@ struct DashboardView: View {
                                     Task {
                                         let granted = await container.notificationService.requestAuthorization()
                                         if granted {
-                                            let body = NotificationService.buildNotificationBody(
+                                            container.notificationService.scheduleWeeklySummary(
+                                                weekday: 1,
+                                                hour: 19,
+                                                minute: 0,
                                                 sessionCount: viewModel.weeklySummary?.sessionCount ?? 0,
                                                 streak: viewModel.currentStreak,
                                                 prCount: 0,
                                                 volumeDelta: viewModel.weeklySummary?.volumeDelta ?? 0
-                                            )
-                                            container.notificationService.scheduleWeeklySummary(
-                                                weekday: 1, hour: 19, minute: 0, body: body
                                             )
                                             UserDefaults.standard.set(true, forKey: "notificationsEnabled")
                                             UserDefaults.standard.set(1, forKey: "notificationDay")
