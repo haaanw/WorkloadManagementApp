@@ -6,420 +6,518 @@
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "首页" } }
       }
     },
     "tab.log" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Log" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日志" } }
       }
     },
     "tab.recovery" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Recovery" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复" } }
       }
     },
     "tab.load" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Load" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "负荷" } }
       }
     },
     "tab.profile" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "档案" } }
       }
     },
     "tab.roster" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Roster" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "队员" } }
       }
     },
     "tab.templates" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Templates" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "模板" } }
       }
     },
     "action.save" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存" } }
       }
     },
     "action.cancel" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } }
       }
     },
     "action.continue" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "继续" } }
       }
     },
     "action.done" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } }
       }
     },
     "action.delete" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除" } }
       }
     },
     "auth.error.noUserReturned" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign up succeeded but no user was returned. Please try again." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "注册成功，但未返回用户信息，请重试。" } }
       }
     },
     "auth.error.noIdentityToken" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Apple sign in failed. Could not retrieve identity token." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Apple 登录失败，无法获取身份令牌。" } }
       }
     },
     "auth.error.noUserId" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in succeeded but no user ID was returned." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录成功，但未返回用户 ID。" } }
       }
     },
     "auth.error.athleteNotFound" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Your account is missing data. Please sign up again." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "账户数据缺失，请重新注册。" } }
       }
     },
     "sport.lifting" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Lifting" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "力量训练" } }
       }
     },
     "sport.running" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Running" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跑步" } }
       }
     },
     "sport.cycling" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Cycling" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "骑行" } }
       }
     },
     "sport.teamSport" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Team Sport" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "团队运动" } }
       }
     },
     "sport.crossfit" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "CrossFit" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "CrossFit" } }
       }
     },
     "sport.swimming" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Swimming" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "游泳" } }
       }
     },
     "sport.custom" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Custom" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自定义" } }
       }
     },
     "zone.optimal" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Optimal" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "适宜" } }
       }
     },
     "zone.caution" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Caution" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "注意" } }
       }
     },
     "zone.danger" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "High Load" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "高风险" } }
       }
     },
     "zone.low" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Undertrained" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "偏低" } }
       }
     },
     "zone.noData" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "No Data" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂无数据" } }
       }
     },
     "recoveryZone.red" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Rest / Light Only" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "休息 / 仅轻量" } }
       }
     },
     "recoveryZone.yellow" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Cautious" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "谨慎进行" } }
       }
     },
     "recoveryZone.green" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Go" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正常训练" } }
       }
     },
     "frequency.oneToTwo" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "1-2 days/week" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每周 1-2 天" } }
       }
     },
     "frequency.threeToFour" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "3-4 days/week" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每周 3-4 天" } }
       }
     },
     "frequency.fiveToSix" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "5-6 days/week" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每周 5-6 天" } }
       }
     },
     "frequency.sevenPlus" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "7+ days/week" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每周 7 天以上" } }
       }
     },
     "experience.beginner" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Beginner" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "初学者" } }
       }
     },
     "experience.intermediate" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Intermediate" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "进阶" } }
       }
     },
     "experience.advanced" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Advanced" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "高阶" } }
       }
     },
     "dashboard.cycleAware.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Cycle-Aware Recovery" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "周期感知恢复" } }
       }
     },
     "dashboard.cycleAware.body" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Track your menstrual cycle in Apple Health to get cycle-aware recovery insights." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在 Apple 健康中记录月经周期，获取贴合周期的恢复洞察。" } }
       }
     },
     "dashboard.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日" } }
       }
     },
     "recovery.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Recovery" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复" } }
       }
     },
     "workload.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Load" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "负荷" } }
       }
     },
     "workoutLog.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Workout Log" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练日志" } }
       }
     },
     "profile.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "档案" } }
       }
     },
     "profile.signOut" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign Out" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "退出登录" } }
       }
     },
     "onboarding.welcome.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Welcome to Tuwa" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "欢迎来到 Tuwa" } }
       }
     },
     "onboarding.frequency.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "How often do you train?" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你每周训练几次？" } }
       }
     },
     "onboarding.experience.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "What's your experience level?" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练经验如何？" } }
       }
     },
     "onboarding.continue.toSetup" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue to setup" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "继续设置" } }
       }
     },
     "language.picker.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言" } }
       }
     },
     "language.picker.footer" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Changing language takes effect immediately." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更改语言后，应用会立即生效。" } }
       }
     },
     "paywall.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Upgrade" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "升级" } }
       }
     },
     "notif.weekly.title" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Your Week in Review" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本周回顾" } }
       }
     },
     "notif.weekly.body.template" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld sessions logged — %lld week streak. %lld new PRs!" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本周记录 %lld 次训练 — 已连续 %lld 周。新增 %lld 项个人最佳！" } }
       }
     },
     "date.today" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今天" } }
       }
     },
     "date.yesterday" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Yesterday" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "昨天" } }
       }
     },
     "duration.hoursMinutes" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "%lldh %lldm" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld小时%lld分钟" } }
       }
     },
     "duration.minutes" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "%lldm" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld分钟" } }
       }
     },
     "profile.language.label" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "new", "value" : "" } }
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言" } }
+      }
+    },
+    "term.acwr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "ACWR" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练负荷比 (ACWR)" } }
+      }
+    },
+    "term.hrv" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "HRV" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "心率变异性 (HRV)" } }
+      }
+    },
+    "term.rhr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "RHR" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "静息心率 (RHR)" } }
+      }
+    },
+    "term.tss" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "TSS" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练压力评分 (TSS)" } }
+      }
+    },
+    "term.ewma" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "EWMA" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "指数加权移动平均 (EWMA)" } }
+      }
+    },
+    "term.ctl" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "CTL" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "慢性训练负荷 (CTL)" } }
+      }
+    },
+    "term.atl" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "ATL" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "急性训练负荷 (ATL)" } }
+      }
+    },
+    "term.pr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "PR" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "个人最佳 (PR)" } }
+      }
+    },
+    "term.rpe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "RPE" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "主观运动强度 (RPE)" } }
+      }
+    },
+    "term.srpe" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "sRPE" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "主观运动强度 (sRPE)" } }
+      }
+    },
+    "term.vo2max" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "VO2 Max" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最大摄氧量 (VO2 Max)" } }
+      }
+    },
+    "term.recoveryScore" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recovery Score" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复评分" } }
+      }
+    },
+    "term.readiness" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Readiness" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "状态评分 (Readiness)" } }
+      }
+    },
+    "term.trainingLoad" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Training Load" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练负荷" } }
       }
     }
   }

@@ -13,8 +13,8 @@
         },
         "zh-Hans" : {
           "stringUnit" : {
-            "state" : "new",
-            "value" : ""
+            "state" : "translated",
+            "value" : "Tonus 读取您的心率、心率变异性和睡眠数据，用于计算每日恢复评分。这些原始数据不会离开您的设备。"
           }
         }
       }
