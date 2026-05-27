@@ -1,992 +1,2844 @@
 {
-  "sourceLanguage" : "en",
-  "version" : "1.0",
-  "strings" : {
-    "tab.home" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Home" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "首页" } }
-      }
-    },
-    "tab.log" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Log" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "日志" } }
-      }
-    },
-    "tab.recovery" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recovery" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复" } }
-      }
-    },
-    "tab.load" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Load" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "负荷" } }
-      }
-    },
-    "tab.profile" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "档案" } }
-      }
-    },
-    "tab.roster" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Roster" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "队员" } }
-      }
-    },
-    "tab.templates" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Templates" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "模板" } }
-      }
-    },
-    "action.save" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Save" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "保存" } }
-      }
-    },
-    "action.cancel" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cancel" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "取消" } }
-      }
-    },
-    "action.continue" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "继续" } }
-      }
-    },
-    "action.done" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Done" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "完成" } }
-      }
-    },
-    "action.delete" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Delete" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "删除" } }
-      }
-    },
-    "auth.error.noUserReturned" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign up succeeded but no user was returned. Please try again." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "注册成功，但未返回用户信息，请重试。" } }
-      }
-    },
-    "auth.error.noIdentityToken" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Apple sign in failed. Could not retrieve identity token." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Apple 登录失败，无法获取身份令牌。" } }
-      }
-    },
-    "auth.error.noUserId" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign in succeeded but no user ID was returned." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录成功，但未返回用户 ID。" } }
-      }
-    },
-    "auth.error.socialSignInFailed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Social sign in failed." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "第三方登录失败。" } }
-      }
-    },
-    "auth.error.athleteNotFound" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your account is missing data. Please sign up again." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "账户数据缺失，请重新注册。" } }
-      }
-    },
-    "sport.lifting" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Lifting" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "力量训练" } }
-      }
-    },
-    "sport.running" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Running" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "跑步" } }
-      }
-    },
-    "sport.cycling" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cycling" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "骑行" } }
-      }
-    },
-    "sport.teamSport" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Team Sport" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "团队运动" } }
-      }
-    },
-    "sport.crossfit" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "CrossFit" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "CrossFit" } }
-      }
-    },
-    "sport.swimming" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Swimming" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "游泳" } }
-      }
-    },
-    "sport.custom" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Custom" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自定义" } }
-      }
-    },
-    "zone.optimal" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Optimal" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "适宜" } }
-      }
-    },
-    "zone.caution" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Caution" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "注意" } }
-      }
-    },
-    "zone.danger" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "High Load" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "高风险" } }
-      }
-    },
-    "zone.low" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Undertrained" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "偏低" } }
-      }
-    },
-    "zone.noData" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "No Data" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂无数据" } }
-      }
-    },
-    "recoveryZone.red" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rest / Light Only" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "休息 / 仅轻量" } }
-      }
-    },
-    "recoveryZone.yellow" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cautious" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "谨慎进行" } }
-      }
-    },
-    "recoveryZone.green" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Go" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "正常训练" } }
-      }
-    },
-    "frequency.oneToTwo" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "1-2 days/week" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每周 1-2 天" } }
-      }
-    },
-    "frequency.threeToFour" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "3-4 days/week" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每周 3-4 天" } }
-      }
-    },
-    "frequency.fiveToSix" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "5-6 days/week" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每周 5-6 天" } }
-      }
-    },
-    "frequency.sevenPlus" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "7+ days/week" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "每周 7 天以上" } }
-      }
-    },
-    "experience.beginner" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Beginner" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "初学者" } }
-      }
-    },
-    "experience.intermediate" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Intermediate" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "进阶" } }
-      }
-    },
-    "experience.advanced" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Advanced" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "高阶" } }
-      }
-    },
-    "dashboard.cycleAware.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cycle-Aware Recovery" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "周期感知恢复" } }
-      }
-    },
-    "dashboard.cycleAware.body" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Track your menstrual cycle in Apple Health to get cycle-aware recovery insights." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "在 Apple 健康中记录月经周期，获取贴合周期的恢复洞察。" } }
-      }
-    },
-    "dashboard.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今日" } }
-      }
-    },
-    "recovery.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recovery" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复" } }
-      }
-    },
-    "workload.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Load" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "负荷" } }
-      }
-    },
-    "workoutLog.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Workout Log" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练日志" } }
-      }
-    },
-    "profile.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Profile" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "档案" } }
-      }
-    },
-    "profile.signOut" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sign Out" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "退出登录" } }
-      }
-    },
-    "onboarding.welcome.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Welcome to Tuwa" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "欢迎来到 Tuwa" } }
-      }
-    },
-    "onboarding.frequency.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "How often do you train?" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "你每周训练几次？" } }
-      }
-    },
-    "onboarding.experience.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "What's your experience level?" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练经验如何？" } }
-      }
-    },
-    "onboarding.continue.toSetup" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Continue to setup" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "继续设置" } }
-      }
-    },
-    "language.picker.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言" } }
-      }
-    },
-    "language.picker.footer" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Changing language takes effect immediately." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "更改语言后，应用会立即生效。" } }
-      }
-    },
-    "paywall.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Upgrade" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "升级" } }
-      }
-    },
-    "notif.weekly.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Your Week in Review" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本周回顾" } }
-      }
-    },
-    "notif.weekly.body.template" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld sessions logged — %2$lld week streak. %3$lld new PRs. %4$lld%% volume vs. last week." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本周记录 %1$lld 次训练 — 已连续 %2$lld 周。新增 %3$lld 项个人最佳。训练量较上周 %4$lld%%。" } }
-      }
-    },
-    "date.today" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Today" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "今天" } }
-      }
-    },
-    "date.yesterday" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Yesterday" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "昨天" } }
-      }
-    },
-    "duration.hoursMinutes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lldh %lldm" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld小时%lld分钟" } }
-      }
-    },
-    "duration.minutes" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lldm" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld分钟" } }
-      }
-    },
-    "profile.language.label" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Language" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "语言" } }
-      }
-    },
-    "term.acwr" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "ACWR" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练负荷比 (ACWR)" } }
-      }
-    },
-    "term.hrv" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "HRV" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "心率变异性 (HRV)" } }
-      }
-    },
-    "term.rhr" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "RHR" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "静息心率 (RHR)" } }
-      }
-    },
-    "term.tss" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "TSS" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练压力评分 (TSS)" } }
-      }
-    },
-    "term.ewma" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "EWMA" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "指数加权移动平均 (EWMA)" } }
-      }
-    },
-    "term.ctl" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "CTL" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "慢性训练负荷 (CTL)" } }
-      }
-    },
-    "term.atl" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "ATL" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "急性训练负荷 (ATL)" } }
-      }
-    },
-    "term.pr" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "PR" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "个人最佳 (PR)" } }
-      }
-    },
-    "term.rpe" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "RPE" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "主观运动强度 (RPE)" } }
-      }
-    },
-    "term.srpe" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "sRPE" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "主观运动强度 (sRPE)" } }
-      }
-    },
-    "term.vo2max" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "VO2 Max" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最大摄氧量 (VO2 Max)" } }
-      }
-    },
-    "term.recoveryScore" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recovery Score" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复评分" } }
-      }
-    },
-    "term.readiness" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Readiness" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "状态评分 (Readiness)" } }
-      }
-    },
-    "term.trainingLoad" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Training Load" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "训练负荷" } }
-      }
-    },
-    "exerciseCategory.compound" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Compound" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "复合动作" } }
-      }
-    },
-    "exerciseCategory.isolation" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Isolation" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "孤立动作" } }
-      }
-    },
-    "exerciseCategory.cardio" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cardio" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "有氧" } }
-      }
-    },
-    "exerciseCategory.bodyweight" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Bodyweight" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "自重" } }
-      }
-    },
-    "exerciseCategory.plyometric" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Plyometric" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "增强式 (Plyometric)" } }
-      }
-    },
-    "exerciseCategory.drill" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Drill" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "技术训练" } }
-      }
-    },
-    "exerciseCategory.interval" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Interval" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "间歇训练" } }
-      }
-    },
-    "muscleGroup.chest" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Chest" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "胸" } }
-      }
-    },
-    "muscleGroup.back" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Back" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "背" } }
-      }
-    },
-    "muscleGroup.legs" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Legs" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "腿" } }
-      }
-    },
-    "muscleGroup.shoulders" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shoulders" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "肩" } }
-      }
-    },
-    "muscleGroup.arms" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Arms" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "手臂" } }
-      }
-    },
-    "muscleGroup.core" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Core" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "核心" } }
-      }
-    },
-    "muscleGroup.fullBody" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Full Body" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "全身" } }
-      }
-    },
-    "prType.maxWeight" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Max Weight" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最大重量" } }
-      }
-    },
-    "prType.maxReps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Max Reps" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最多次数" } }
-      }
-    },
-    "prType.maxVolume" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Max Volume" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最大总量" } }
-      }
-    },
-    "prType.fastestPace" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Fastest Pace" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "最快配速" } }
-      }
-    },
-    "sessionType.strength" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Strength" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "力量" } }
-      }
-    },
-    "sessionType.skill" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skill" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "技术" } }
-      }
-    },
-    "sessionType.cardio" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Cardio" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "有氧" } }
-      }
-    },
-    "sessionType.match" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Match" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "比赛" } }
-      }
-    },
-    "sessionType.recovery" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Recovery" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "恢复" } }
-      }
-    },
-    "acwrMethod.ewma" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "EWMA" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "指数加权 (EWMA)" } }
-      }
-    },
-    "acwrMethod.rolling28day" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Rolling 28-Day" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "28天滚动平均" } }
-      }
-    },
-    "loadSource.srpe" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "sRPE" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "主观强度 (sRPE)" } }
-      }
-    },
-    "loadSource.trimp" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "TRIMP" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "心率冲量 (TRIMP)" } }
-      }
-    },
-    "loadSource.combined" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Combined" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "综合" } }
-      }
-    },
-    "weightUnit.kg" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "kg" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "kg" } }
-      }
-    },
-    "weightUnit.lbs" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "lbs" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "lbs" } }
-      }
-    },
-    "prescriptionStatus.assigned" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Assigned" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已布置" } }
-      }
-    },
-    "prescriptionStatus.completed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Completed" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已完成" } }
-      }
-    },
-    "prescriptionStatus.skipped" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skipped" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "已跳过" } }
-      }
-    },
-    "cyclePhase.earlyFollicular" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Early Follicular" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "卵泡期早期" } }
-      }
-    },
-    "cyclePhase.lateFollicular" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Late Follicular" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "卵泡期晚期" } }
-      }
-    },
-    "cyclePhase.ovulatory" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ovulatory" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "排卵期" } }
-      }
-    },
-    "cyclePhase.earlyLuteal" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Early Luteal" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "黄体期早期" } }
-      }
-    },
-    "cyclePhase.lateLuteal" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Late Luteal" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "黄体期晚期" } }
-      }
-    },
-    "cyclePhase.unknown" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Unknown" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "未知" } }
-      }
-    },
-    "bodyRegion.shoulder" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Shoulder" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "肩部" } }
-      }
-    },
-    "bodyRegion.knee" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Knee" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "膝盖" } }
-      }
-    },
-    "bodyRegion.back" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Back" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "背部" } }
-      }
-    },
-    "bodyRegion.hip" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Hip" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "髋部" } }
-      }
-    },
-    "bodyRegion.ankle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Ankle" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "脚踝" } }
-      }
-    },
-    "bodyRegion.wrist" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Wrist" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "手腕" } }
-      }
-    },
-    "bodyRegion.elbow" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Elbow" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "肘部" } }
-      }
-    },
-    "bodyRegion.neck" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Neck" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "颈部" } }
-      }
-    },
-    "experience.beginner.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "New to structured training" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "刚开始进行系统训练" } }
-      }
-    },
-    "experience.intermediate.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "1-3 years consistent training" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "1-3 年规律训练" } }
-      }
-    },
-    "experience.advanced.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "3+ years, understands periodization" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "3 年以上，熟悉周期化训练" } }
-      }
-    },
-    "onboarding.language.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose your language" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选择语言" } }
-      }
-    },
-    "onboarding.language.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "You can change this later in Profile." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "之后可在「档案」中修改。" } }
-      }
-    },
-    "onboarding.frequency.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "This helps us calibrate your training load expectations." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我们将据此校准你的训练负荷预期。" } }
-      }
-    },
-    "onboarding.experience.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "We'll adjust insights based on your background." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我们将根据你的背景调整训练建议。" } }
-      }
-    },
-    "onboarding.healthkit.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connect Health Data" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "连接健康数据" } }
-      }
-    },
-    "onboarding.healthkit.subtitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tuwa uses your HRV, resting heart rate, and sleep data to calculate your daily recovery score." } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Tuwa 将根据你的心率变异性、静息心率和睡眠数据计算每日恢复评分。" } }
-      }
-    },
-    "onboarding.healthkit.item.hrv" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Heart Rate Variability" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "心率变异性" } }
-      }
-    },
-    "onboarding.healthkit.item.rhr" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Resting Heart Rate" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "静息心率" } }
-      }
-    },
-    "onboarding.healthkit.item.sleep" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sleep Analysis" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠分析" } }
-      }
-    },
-    "onboarding.healthkit.connect" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connect Health" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "连接健康" } }
-      }
-    },
-    "onboarding.skipForNow" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip for now" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂时跳过" } }
-      }
-    },
-    "recovery.hrv.value" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld ms" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 毫秒" } }
-      }
-    },
-    "recovery.rhr.value" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld bpm" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 次/分" } }
-      }
-    },
-    "recovery.label.hrv" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "HRV" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "心率变异性" } }
-      }
-    },
-    "recovery.label.restingHR" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Resting HR" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "静息心率" } }
-      }
-    },
-    "recovery.label.sleep" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sleep" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠" } }
+  "sourceLanguage": "en",
+  "version": "1.0",
+  "strings": {
+    "action.cancel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "action.continue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
+          }
+        }
+      }
+    },
+    "action.delete": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Delete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "删除"
+          }
+        }
+      }
+    },
+    "action.done": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Done"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成"
+          }
+        }
+      }
+    },
+    "action.openSettings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open Settings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开设置"
+          }
+        }
+      }
+    },
+    "action.save": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Save"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "保存"
+          }
+        }
+      }
+    },
+    "acwrMethod.ewma": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EWMA"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指数加权 (EWMA)"
+          }
+        }
+      }
+    },
+    "acwrMethod.rolling28day": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rolling 28-Day"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "28天滚动平均"
+          }
+        }
+      }
+    },
+    "auth.action.createAccountLink": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create an account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注册账号"
+          }
+        }
+      }
+    },
+    "auth.action.signIn": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign In"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录"
+          }
+        }
+      }
+    },
+    "auth.brand.tagline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Train smarter. Recover better."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更聪明地训练，更有效地恢复。"
+          }
+        }
+      }
+    },
+    "auth.brand.wordmark": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WORKLOAD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "WORKLOAD"
+          }
+        }
+      }
+    },
+    "auth.error.athleteNotFound": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your account is missing data. Please sign up again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户数据缺失，请重新注册。"
+          }
+        }
+      }
+    },
+    "auth.error.noIdentityToken": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple sign in failed. Could not retrieve identity token."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple 登录失败，无法获取身份令牌。"
+          }
+        }
+      }
+    },
+    "auth.error.noUserId": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign in succeeded but no user ID was returned."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录成功，但未返回用户 ID。"
+          }
+        }
+      }
+    },
+    "auth.error.noUserReturned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign up succeeded but no user was returned. Please try again."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注册成功，但未返回用户信息，请重试。"
+          }
+        }
+      }
+    },
+    "auth.error.socialSignInFailed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Social sign in failed."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第三方登录失败。"
+          }
+        }
+      }
+    },
+    "auth.field.email": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EMAIL"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邮箱"
+          }
+        }
+      }
+    },
+    "auth.field.name": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "NAME"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "姓名"
+          }
+        }
+      }
+    },
+    "auth.field.namePlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your name"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的姓名"
+          }
+        }
+      }
+    },
+    "auth.field.password": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PASSWORD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "密码"
+          }
+        }
+      }
+    },
+    "auth.field.passwordPlaceholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Min. 8 characters"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至少 8 个字符"
+          }
+        }
+      }
+    },
+    "auth.nav.signUp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Up"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注册"
+          }
+        }
+      }
+    },
+    "auth.signup.heading": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Create Account"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注册账号"
+          }
+        }
+      }
+    },
+    "auth.signup.primarySport": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PRIMARY SPORT"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主要运动项目"
+          }
+        }
+      }
+    },
+    "auth.signup.subhead": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Set up your athlete profile."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "创建你的运动员档案。"
+          }
+        }
+      }
+    },
+    "bodyRegion.ankle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ankle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "脚踝"
+          }
+        }
+      }
+    },
+    "bodyRegion.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "背部"
+          }
+        }
+      }
+    },
+    "bodyRegion.elbow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Elbow"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肘部"
+          }
+        }
+      }
+    },
+    "bodyRegion.hip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "髋部"
+          }
+        }
+      }
+    },
+    "bodyRegion.knee": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Knee"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "膝盖"
+          }
+        }
+      }
+    },
+    "bodyRegion.neck": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Neck"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "颈部"
+          }
+        }
+      }
+    },
+    "bodyRegion.shoulder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoulder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肩部"
+          }
+        }
+      }
+    },
+    "bodyRegion.wrist": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wrist"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手腕"
+          }
+        }
+      }
+    },
+    "cyclePhase.earlyFollicular": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Early Follicular"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卵泡期早期"
+          }
+        }
+      }
+    },
+    "cyclePhase.earlyLuteal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Early Luteal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "黄体期早期"
+          }
+        }
+      }
+    },
+    "cyclePhase.lateFollicular": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Late Follicular"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卵泡期晚期"
+          }
+        }
+      }
+    },
+    "cyclePhase.lateLuteal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Late Luteal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "黄体期晚期"
+          }
+        }
+      }
+    },
+    "cyclePhase.ovulatory": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ovulatory"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "排卵期"
+          }
+        }
+      }
+    },
+    "cyclePhase.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unknown"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知"
+          }
+        }
+      }
+    },
+    "dashboard.action.connectHealth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Health"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接 Health"
+          }
+        }
+      }
+    },
+    "dashboard.action.logWorkout": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log Workout"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录训练"
+          }
+        }
+      }
+    },
+    "dashboard.coldStart.buildingBaseline": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Building baseline..."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在建立基线..."
+          }
+        }
+      }
+    },
+    "dashboard.cycleAware.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Track your menstrual cycle in Apple Health to get cycle-aware recovery insights."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在 Apple 健康中记录月经周期，获取贴合周期的恢复洞察。"
+          }
+        }
+      }
+    },
+    "dashboard.cycleAware.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycle-Aware Recovery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周期感知恢复"
+          }
+        }
+      }
+    },
+    "dashboard.empty.connectHealth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Apple Health to see your readiness score."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接 Apple Health 即可查看你的准备度评分。"
+          }
+        }
+      }
+    },
+    "dashboard.empty.noSessions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No sessions yet. Tap Log Workout to begin."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "还没有训练记录。点击「记录训练」开始。"
+          }
+        }
+      }
+    },
+    "dashboard.hero.readinessLabel": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "READINESS · %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "准备度 · %@"
+          }
+        }
+      }
+    },
+    "dashboard.label.estimated": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EST"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "估算"
+          }
+        }
+      }
+    },
+    "dashboard.nav.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dashboard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "仪表盘"
+          }
+        }
+      }
+    },
+    "dashboard.section.recentSessions": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RECENT SESSIONS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近训练"
+          }
+        }
+      }
+    },
+    "dashboard.section.trainingLoad": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRAINING LOAD"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练负荷"
+          }
+        }
+      }
+    },
+    "dashboard.session.rpeValue": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RPE %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RPE %lld"
+          }
+        }
+      }
+    },
+    "dashboard.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日"
+          }
+        }
+      }
+    },
+    "dashboard.weeklySummary.firstWeekPrompt": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Complete your first training week to see a summary."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完成你的第一周训练后即可查看总结。"
+          }
+        }
+      }
+    },
+    "date.today": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Today"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今天"
+          }
+        }
+      }
+    },
+    "date.yesterday": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Yesterday"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "昨天"
+          }
+        }
+      }
+    },
+    "duration.hoursMinutes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldh %lldm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld小时%lld分钟"
+          }
+        }
+      }
+    },
+    "duration.minutes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lldm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld分钟"
+          }
+        }
+      }
+    },
+    "exerciseCategory.bodyweight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bodyweight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自重"
+          }
+        }
+      }
+    },
+    "exerciseCategory.cardio": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cardio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有氧"
+          }
+        }
+      }
+    },
+    "exerciseCategory.compound": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Compound"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "复合动作"
+          }
+        }
+      }
+    },
+    "exerciseCategory.drill": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Drill"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "技术训练"
+          }
+        }
+      }
+    },
+    "exerciseCategory.interval": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Interval"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "间歇训练"
+          }
+        }
+      }
+    },
+    "exerciseCategory.isolation": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Isolation"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "孤立动作"
+          }
+        }
+      }
+    },
+    "exerciseCategory.plyometric": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plyometric"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "增强式 (Plyometric)"
+          }
+        }
+      }
+    },
+    "experience.advanced": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高阶"
+          }
+        }
+      }
+    },
+    "experience.advanced.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3+ years, understands periodization"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3 年以上，熟悉周期化训练"
+          }
+        }
+      }
+    },
+    "experience.beginner": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beginner"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "初学者"
+          }
+        }
+      }
+    },
+    "experience.beginner.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "New to structured training"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "刚开始进行系统训练"
+          }
+        }
+      }
+    },
+    "experience.intermediate": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Intermediate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进阶"
+          }
+        }
+      }
+    },
+    "experience.intermediate.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1-3 years consistent training"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1-3 年规律训练"
+          }
+        }
+      }
+    },
+    "frequency.fiveToSix": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "5-6 days/week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每周 5-6 天"
+          }
+        }
+      }
+    },
+    "frequency.oneToTwo": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1-2 days/week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每周 1-2 天"
+          }
+        }
+      }
+    },
+    "frequency.sevenPlus": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "7+ days/week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每周 7 天以上"
+          }
+        }
+      }
+    },
+    "frequency.threeToFour": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "3-4 days/week"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每周 3-4 天"
+          }
+        }
+      }
+    },
+    "language.picker.footer": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Changing language takes effect immediately."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更改语言后，应用会立即生效。"
+          }
+        }
+      }
+    },
+    "language.picker.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言"
+          }
+        }
+      }
+    },
+    "loadSource.combined": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Combined"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "综合"
+          }
+        }
+      }
+    },
+    "loadSource.srpe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sRPE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主观强度 (sRPE)"
+          }
+        }
+      }
+    },
+    "loadSource.trimp": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TRIMP"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "心率冲量 (TRIMP)"
+          }
+        }
+      }
+    },
+    "muscleGroup.arms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手臂"
+          }
+        }
+      }
+    },
+    "muscleGroup.back": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Back"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "背"
+          }
+        }
+      }
+    },
+    "muscleGroup.chest": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Chest"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "胸"
+          }
+        }
+      }
+    },
+    "muscleGroup.core": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Core"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "核心"
+          }
+        }
+      }
+    },
+    "muscleGroup.fullBody": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full Body"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全身"
+          }
+        }
+      }
+    },
+    "muscleGroup.legs": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腿"
+          }
+        }
+      }
+    },
+    "muscleGroup.shoulders": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoulders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肩"
+          }
+        }
+      }
+    },
+    "notif.weekly.body.template": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$lld sessions logged — %2$lld week streak. %3$lld new PRs. %4$lld%% volume vs. last week."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周记录 %1$lld 次训练 — 已连续 %2$lld 周。新增 %3$lld 项个人最佳。训练量较上周 %4$lld%%。"
+          }
+        }
+      }
+    },
+    "notif.weekly.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your Week in Review"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "本周回顾"
+          }
+        }
+      }
+    },
+    "onboarding.continue.toSetup": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continue to setup"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续设置"
+          }
+        }
+      }
+    },
+    "onboarding.experience.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "We'll adjust insights based on your background."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们将根据你的背景调整训练建议。"
+          }
+        }
+      }
+    },
+    "onboarding.experience.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What's your experience level?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练经验如何？"
+          }
+        }
+      }
+    },
+    "onboarding.frequency.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "This helps us calibrate your training load expectations."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我们将据此校准你的训练负荷预期。"
+          }
+        }
+      }
+    },
+    "onboarding.frequency.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "How often do you train?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你每周训练几次？"
+          }
+        }
+      }
+    },
+    "onboarding.healthkit.connect": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Health"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接健康"
+          }
+        }
+      }
+    },
+    "onboarding.healthkit.item.hrv": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heart Rate Variability"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "心率变异性"
+          }
+        }
+      }
+    },
+    "onboarding.healthkit.item.rhr": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resting Heart Rate"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静息心率"
+          }
+        }
+      }
+    },
+    "onboarding.healthkit.item.sleep": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep Analysis"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠分析"
+          }
+        }
+      }
+    },
+    "onboarding.healthkit.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tuwa uses your HRV, resting heart rate, and sleep data to calculate your daily recovery score."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tuwa 将根据你的心率变异性、静息心率和睡眠数据计算每日恢复评分。"
+          }
+        }
+      }
+    },
+    "onboarding.healthkit.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connect Health Data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "连接健康数据"
+          }
+        }
+      }
+    },
+    "onboarding.language.subtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You can change this later in Profile."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "之后可在「档案」中修改。"
+          }
+        }
+      }
+    },
+    "onboarding.language.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Choose your language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "选择语言"
+          }
+        }
+      }
+    },
+    "onboarding.skipForNow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip for now"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂时跳过"
+          }
+        }
+      }
+    },
+    "onboarding.welcome.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Welcome to Tuwa"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "欢迎来到 Tuwa"
+          }
+        }
+      }
+    },
+    "paywall.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upgrade"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "升级"
+          }
+        }
+      }
+    },
+    "prType.fastestPace": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fastest Pace"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最快配速"
+          }
+        }
+      }
+    },
+    "prType.maxReps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max Reps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最多次数"
+          }
+        }
+      }
+    },
+    "prType.maxVolume": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max Volume"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大总量"
+          }
+        }
+      }
+    },
+    "prType.maxWeight": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Max Weight"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大重量"
+          }
+        }
+      }
+    },
+    "prescriptionStatus.assigned": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Assigned"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已布置"
+          }
+        }
+      }
+    },
+    "prescriptionStatus.completed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Completed"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已完成"
+          }
+        }
+      }
+    },
+    "prescriptionStatus.skipped": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skipped"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已跳过"
+          }
+        }
+      }
+    },
+    "profile.language.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Language"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "语言"
+          }
+        }
+      }
+    },
+    "profile.signOut": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sign Out"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "退出登录"
+          }
+        }
+      }
+    },
+    "profile.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "档案"
+          }
+        }
+      }
+    },
+    "recovery.hrv.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld ms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 毫秒"
+          }
+        }
+      }
+    },
+    "recovery.label.hrv": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "心率变异性"
+          }
+        }
+      }
+    },
+    "recovery.label.restingHR": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Resting HR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静息心率"
+          }
+        }
+      }
+    },
+    "recovery.label.sleep": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠"
+          }
+        }
+      }
+    },
+    "recovery.rhr.value": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld bpm"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%lld 次/分"
+          }
+        }
+      }
+    },
+    "recovery.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复"
+          }
+        }
+      }
+    },
+    "recoveryZone.green": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Go"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正常训练"
+          }
+        }
+      }
+    },
+    "recoveryZone.red": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rest / Light Only"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "休息 / 仅轻量"
+          }
+        }
+      }
+    },
+    "recoveryZone.yellow": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cautious"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "谨慎进行"
+          }
+        }
+      }
+    },
+    "sessionType.cardio": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cardio"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有氧"
+          }
+        }
+      }
+    },
+    "sessionType.match": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Match"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "比赛"
+          }
+        }
+      }
+    },
+    "sessionType.recovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复"
+          }
+        }
+      }
+    },
+    "sessionType.skill": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skill"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "技术"
+          }
+        }
+      }
+    },
+    "sessionType.strength": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Strength"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "力量"
+          }
+        }
+      }
+    },
+    "sport.crossfit": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CrossFit"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CrossFit"
+          }
+        }
+      }
+    },
+    "sport.custom": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Custom"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自定义"
+          }
+        }
+      }
+    },
+    "sport.cycling": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycling"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "骑行"
+          }
+        }
+      }
+    },
+    "sport.lifting": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lifting"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "力量训练"
+          }
+        }
+      }
+    },
+    "sport.running": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Running"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跑步"
+          }
+        }
+      }
+    },
+    "sport.swimming": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Swimming"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "游泳"
+          }
+        }
+      }
+    },
+    "sport.teamSport": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Team Sport"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "团队运动"
+          }
+        }
+      }
+    },
+    "tab.home": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Home"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "首页"
+          }
+        }
+      }
+    },
+    "tab.load": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "负荷"
+          }
+        }
+      }
+    },
+    "tab.log": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日志"
+          }
+        }
+      }
+    },
+    "tab.profile": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Profile"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "档案"
+          }
+        }
+      }
+    },
+    "tab.recovery": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复"
+          }
+        }
+      }
+    },
+    "tab.roster": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Roster"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "队员"
+          }
+        }
+      }
+    },
+    "tab.templates": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Templates"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "模板"
+          }
+        }
+      }
+    },
+    "term.acwr": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACWR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练负荷比 (ACWR)"
+          }
+        }
+      }
+    },
+    "term.atl": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ATL"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "急性训练负荷 (ATL)"
+          }
+        }
+      }
+    },
+    "term.ctl": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CTL"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "慢性训练负荷 (CTL)"
+          }
+        }
+      }
+    },
+    "term.ewma": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "EWMA"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "指数加权移动平均 (EWMA)"
+          }
+        }
+      }
+    },
+    "term.hrv": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRV"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "心率变异性 (HRV)"
+          }
+        }
+      }
+    },
+    "term.pr": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "个人最佳 (PR)"
+          }
+        }
+      }
+    },
+    "term.readiness": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Readiness"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "状态评分 (Readiness)"
+          }
+        }
+      }
+    },
+    "term.recoveryScore": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery Score"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复评分"
+          }
+        }
+      }
+    },
+    "term.rhr": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RHR"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "静息心率 (RHR)"
+          }
+        }
+      }
+    },
+    "term.rpe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RPE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主观运动强度 (RPE)"
+          }
+        }
+      }
+    },
+    "term.srpe": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "sRPE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "主观运动强度 (sRPE)"
+          }
+        }
+      }
+    },
+    "term.trainingLoad": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Training Load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练负荷"
+          }
+        }
+      }
+    },
+    "term.tss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "TSS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练压力评分 (TSS)"
+          }
+        }
+      }
+    },
+    "term.vo2max": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "VO2 Max"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最大摄氧量 (VO2 Max)"
+          }
+        }
+      }
+    },
+    "weightUnit.kg": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kg"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "kg"
+          }
+        }
+      }
+    },
+    "weightUnit.lbs": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lbs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "lbs"
+          }
+        }
+      }
+    },
+    "workload.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "负荷"
+          }
+        }
+      }
+    },
+    "workoutLog.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workout Log"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练日志"
+          }
+        }
+      }
+    },
+    "zone.caution": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Caution"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "注意"
+          }
+        }
+      }
+    },
+    "zone.danger": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "High Load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高风险"
+          }
+        }
+      }
+    },
+    "zone.low": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undertrained"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "偏低"
+          }
+        }
+      }
+    },
+    "zone.noData": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No Data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "暂无数据"
+          }
+        }
+      }
+    },
+    "zone.optimal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optimal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适宜"
+          }
+        }
       }
     }
   }

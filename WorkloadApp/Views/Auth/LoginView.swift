@@ -40,10 +40,10 @@ struct LoginView: View {
                 VStack(spacing: 0) {
                     // Branding
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("WORKLOAD")
+                        Text("auth.brand.wordmark")
                             .font(.Tokens.pageTitle)
                             .foregroundStyle(ColorTokens.text1)
-                        Text("Train smarter. Recover better.")
+                        Text("auth.brand.tagline")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                     }
@@ -58,7 +58,7 @@ struct LoginView: View {
 
                     // Email field
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("EMAIL")
+                        Text("auth.field.email")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -84,7 +84,7 @@ struct LoginView: View {
 
                     // Password field
                     VStack(alignment: .leading, spacing: 0) {
-                        Text("PASSWORD")
+                        Text("auth.field.password")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -126,7 +126,7 @@ struct LoginView: View {
                             if isLoading {
                                 ProgressView()
                             } else {
-                                Text("Sign In")
+                                Text("auth.action.signIn")
                                     .font(.Tokens.body)
                                     .foregroundStyle(email.isEmpty || password.isEmpty ? ColorTokens.text3 : ColorTokens.text1)
                             }
@@ -161,7 +161,7 @@ struct LoginView: View {
                     Button {
                         showSignUp = true
                     } label: {
-                        Text("Create an account")
+                        Text("auth.action.createAccountLink")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                             .frame(maxWidth: .infinity)

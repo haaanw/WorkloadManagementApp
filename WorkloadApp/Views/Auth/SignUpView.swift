@@ -39,10 +39,10 @@ struct SignUpView: View {
             VStack(spacing: 0) {
                 // Header
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Create Account")
+                    Text("auth.signup.heading")
                         .font(.Tokens.pageTitle)
                         .foregroundStyle(ColorTokens.text1)
-                    Text("Set up your athlete profile.")
+                    Text("auth.signup.subhead")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -56,7 +56,7 @@ struct SignUpView: View {
                     .frame(height: 0.5)
 
                 // Name field
-                InputField(label: "NAME", placeholder: "Your name", text: $displayName)
+                InputField(label: "auth.field.name", placeholder: "auth.field.namePlaceholder", text: $displayName)
                     .textContentType(.name)
 
                 Rectangle()
@@ -64,7 +64,7 @@ struct SignUpView: View {
                     .frame(height: 0.5)
 
                 // Email field
-                InputField(label: "EMAIL", placeholder: "you@example.com", text: $email)
+                InputField(label: "auth.field.email", placeholder: "you@example.com", text: $email)
                     .textContentType(.emailAddress)
                     .keyboardType(.emailAddress)
                     .autocorrectionDisabled()
@@ -75,7 +75,7 @@ struct SignUpView: View {
                     .frame(height: 0.5)
 
                 // Password field
-                SecureInputField(label: "PASSWORD", placeholder: "Min. 8 characters", text: $password)
+                SecureInputField(label: "auth.field.password", placeholder: "auth.field.passwordPlaceholder", text: $password)
                     .textContentType(.newPassword)
 
                 Rectangle()
@@ -84,7 +84,7 @@ struct SignUpView: View {
 
                 // Sport picker
                 VStack(alignment: .leading, spacing: 16) {
-                    Text("PRIMARY SPORT")
+                    Text("auth.signup.primarySport")
                         .font(.Tokens.micro)
                         .tracking(1.2)
                         .foregroundStyle(ColorTokens.text3)
@@ -145,7 +145,7 @@ struct SignUpView: View {
                         if isLoading {
                             ProgressView()
                         } else {
-                            Text("Create Account")
+                            Text("auth.signup.heading")
                                 .font(.Tokens.body)
                                 .foregroundStyle(isFormValid ? ColorTokens.text1 : ColorTokens.text3)
                         }
@@ -178,7 +178,7 @@ struct SignUpView: View {
             }
         }
         .background(ColorTokens.background)
-        .navigationTitle("Sign Up")
+        .navigationTitle("auth.nav.signUp")
         .navigationBarTitleDisplayMode(.inline)
         .onChange(of: locale) { _, newLocale in
             // Re-resolve any pending auth-error message against the new env locale (Pitfall 7).
@@ -327,8 +327,8 @@ private enum SignUpSocialError: LocalizedError {
 // MARK: - Reusable input field components
 
 struct InputField: View {
-    let label: String
-    let placeholder: String
+    let label: LocalizedStringKey
+    let placeholder: LocalizedStringKey
     @Binding var text: String
 
     var body: some View {
@@ -351,8 +351,8 @@ struct InputField: View {
 }
 
 struct SecureInputField: View {
-    let label: String
-    let placeholder: String
+    let label: LocalizedStringKey
+    let placeholder: LocalizedStringKey
     @Binding var text: String
 
     var body: some View {

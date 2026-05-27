@@ -66,7 +66,7 @@ struct DashboardView: View {
                     if showCyclePrompt {
                         VStack(alignment: .leading, spacing: 8) {
                             HStack {
-                                Text("Cycle-Aware Recovery")
+                                Text("dashboard.cycleAware.title")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
@@ -79,7 +79,7 @@ struct DashboardView: View {
                                 }
                                 .accessibilityLabel("Dismiss cycle tracking prompt")
                             }
-                            Text("Track your menstrual cycle in Apple Health to get cycle-aware recovery insights. Tuwa reads existing data from apps like Clue, Flo, or Apple Cycle Tracking \u{2014} no manual re-entry needed.")
+                            Text("dashboard.cycleAware.body")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
                             Button {
@@ -87,7 +87,7 @@ struct DashboardView: View {
                                     UIApplication.shared.open(url)
                                 }
                             } label: {
-                                Text("Open Settings")
+                                Text("action.openSettings")
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text1)
                                     .underline()
@@ -151,7 +151,7 @@ struct DashboardView: View {
 
                         Spacer().frame(height: 8)
                     } else if !viewModel.isLoading {
-                        Text("Complete your first training week to see a summary.")
+                        Text("dashboard.weeklySummary.firstWeekPrompt")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -164,7 +164,7 @@ struct DashboardView: View {
                     // Fatigue attention signal (D-FAT, COLD-07)
                     if viewModel.isColdStartActive {
                         // D-16: Show "Building baseline..." during cold-start
-                        Text("Building baseline...")
+                        Text("dashboard.coldStart.buildingBaseline")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -192,14 +192,14 @@ struct DashboardView: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Dashboard")
+            .navigationTitle("dashboard.nav.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .withContextSwitcher()
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Log Workout") {
+                    Button("dashboard.action.logWorkout") {
                         showActiveWorkout = true
                     }
                     .font(.Tokens.label)
@@ -265,7 +265,7 @@ struct HeroReadinessCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("READINESS · \(dateLabel)")
+            Text(String(format: String(localized: "dashboard.hero.readinessLabel"), dateLabel))
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -376,12 +376,12 @@ struct EmptyStateCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Connect Apple Health to see your readiness score.")
+            Text("dashboard.empty.connectHealth")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
 
             Button(action: onConnectHealth) {
-                Text("Connect Health")
+                Text("dashboard.action.connectHealth")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, 16)
@@ -489,7 +489,7 @@ struct TrainingLoadSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("TRAINING LOAD")
+                Text("dashboard.section.trainingLoad")
                     .font(.Tokens.micro)
                     .tracking(1.2)
                     .foregroundStyle(ColorTokens.text3)
@@ -559,7 +559,7 @@ struct LoadStatCell: View {
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text1)
             if isEstimated {
-                Text("EST")
+                Text("dashboard.label.estimated")
                     .font(.Tokens.micro)
                     .tracking(0.88)
                     .foregroundStyle(ColorTokens.text3)
@@ -578,7 +578,7 @@ struct RecentSessionsSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("RECENT SESSIONS")
+            Text("dashboard.section.recentSessions")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -590,7 +590,7 @@ struct RecentSessionsSection: View {
                 .frame(height: 0.5)
 
             if sessions.isEmpty {
-                Text("No sessions yet. Tap Log Workout to begin.")
+                Text("dashboard.empty.noSessions")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(.horizontal, 16)
@@ -609,7 +609,7 @@ struct RecentSessionsSection: View {
                             }
                             Spacer()
                             if let rpe = session.sessionRPE {
-                                Text("RPE \(Int(rpe))")
+                                Text(String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)))
                                     .font(.Tokens.label)
                                     .monospacedDigit()
                                     .foregroundStyle(ColorTokens.text2)
