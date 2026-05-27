@@ -50,9 +50,35 @@ final class LocaleManager {
 
     /// Persist and apply a user-selected locale. Triggers `@Observable` re-render
     /// at every observer of `activeLocale`, including the root env-locale injection.
+    ///
+    /// Accepts both exact-identifier matches and language-code/script normalized
+    /// matches (e.g. `Locale(identifier: "zh-Hans_US")` resolves to "zh-Hans"),
+    /// so deep-link handlers and screenshot-mode callers can pass loosely-formed
+    /// locales without falling through to no-op.
     func setLocale(_ locale: Locale) {
-        guard supported.map(\.identifier).contains(locale.identifier) else { return }
-        activeLocale = locale
-        UserDefaults.standard.set(locale.identifier, forKey: defaultsKey)
+        // 1. Exact-identifier fast path (picker passes one of supportedLocales).
+        if let match = supported.first(where: { $0.identifier == locale.identifier }) {
+            activeLocale = match
+            UserDefaults.standard.set(match.identifier, forKey: defaultsKey)
+            return
+        }
+        // 2. Language-code + script normalization (handles zh-Hans_CN, zh-Hans_US, etc).
+        let lang = locale.language.languageCode?.identifier
+        let script = locale.language.script?.identifier
+        if lang == "zh" && script == "Hans" {
+            if let match = supported.first(where: { $0.identifier == "zh-Hans" }) {
+                activeLocale = match
+                UserDefaults.standard.set(match.identifier, forKey: defaultsKey)
+                return
+            }
+        }
+        if lang == "en" {
+            if let match = supported.first(where: { $0.identifier == "en" }) {
+                activeLocale = match
+                UserDefaults.standard.set(match.identifier, forKey: defaultsKey)
+                return
+            }
+        }
+        // Unsupported locale: silently ignore.
     }
 }
