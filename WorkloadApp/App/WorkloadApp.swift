@@ -19,6 +19,21 @@ struct WorkloadApp: App {
         // One-shot DEBUG print: exact PostScript names iOS resolves for the Noto Sans SC family.
         // Cascade descriptors in FontTokens.swift MUST use these exact PostScript names (RESEARCH Pitfall 3).
         print("Noto family fonts: \(UIFont.fontNames(forFamilyName: "Noto Sans SC"))")
+
+        // Assert the exact PostScript names FontTokens.cascaded(...) requires.
+        // If any of these miss, UIFont silently falls back to system font with no CJK cascade (WR-05).
+        let requiredPostScriptNames = [
+            "GeneralSans-Regular",
+            "GeneralSans-Medium",
+            "NotoSansSC-Regular",
+            "NotoSansSC-Medium"
+        ]
+        for name in requiredPostScriptNames {
+            assert(
+                UIFont(name: name, size: 12) != nil,
+                "Missing font PostScript name: \(name). Cascade in FontTokens.swift will silently fall back to system font."
+            )
+        }
         #endif
 
         do {
