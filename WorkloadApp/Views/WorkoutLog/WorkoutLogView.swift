@@ -105,7 +105,7 @@ struct WorkoutLogView: View {
 
                         // Prescribed workouts
                         if !upcomingPrescriptions.isEmpty {
-                            Text("PRESCRIBED")
+                            Text("workoutLog.section.prescribed")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
                                 .foregroundStyle(ColorTokens.text3)
@@ -139,10 +139,10 @@ struct WorkoutLogView: View {
                         // Session history
                         if visibleSessions.isEmpty && importSuggestions.isEmpty {
                             VStack(spacing: 16) {
-                                Text("No Workouts Yet")
+                                Text("workoutLog.empty.title")
                                     .font(.Tokens.sectionHead)
                                     .foregroundStyle(ColorTokens.text1)
-                                Text("Tap + to log your first workout session.")
+                                Text("workoutLog.empty.body")
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
                             }
@@ -170,7 +170,7 @@ struct WorkoutLogView: View {
                 }
                 .background(ColorTokens.background)
             }
-            .navigationTitle("Workout Log")
+            .navigationTitle("workoutLog.nav.title")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .withContextSwitcher()
@@ -186,12 +186,12 @@ struct WorkoutLogView: View {
                             Button {
                                 showLLMImport = true
                             } label: {
-                                Label("Import Workout (AI)", systemImage: "sparkles")
+                                Label("workoutLog.import.ai", systemImage: "sparkles")
                             }
                             Button {
                                 showMyPrograms = true
                             } label: {
-                                Label("My Programs", systemImage: "doc.text.fill")
+                                Label("workoutLog.menu.myPrograms", systemImage: "doc.text.fill")
                             }
                             Button {
                                 if container.subscriptionService.isPro {
@@ -200,12 +200,12 @@ struct WorkoutLogView: View {
                                     showUpgrade = true
                                 }
                             } label: {
-                                Label("Import Program (Text)", systemImage: "doc.plaintext")
+                                Label("workoutLog.import.text", systemImage: "doc.plaintext")
                             }
                             Button {
                                 showShareImport = true
                             } label: {
-                                Label("Import Shared Template", systemImage: "square.and.arrow.down")
+                                Label("workoutLog.import.shared", systemImage: "square.and.arrow.down")
                             }
                         } label: {
                             Image(systemName: "ellipsis.circle")
@@ -378,19 +378,19 @@ struct ImportRPESheet: View {
                 }
 
                 VStack(spacing: 8) {
-                    Text("How hard was this session?")
+                    Text("workoutLog.rpe.prompt")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
-                    Text("RPE: \(Int(rpe))")
+                    Text(String(format: String(localized: "workoutLog.rpe.valueLabeled"), Int(rpe)))
                         .font(.Tokens.pageTitle)
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
                     Slider(value: $rpe, in: 1...10, step: 1)
                         .tint(ColorTokens.text2)
                     HStack {
-                        Text("Easy").font(.Tokens.label).foregroundStyle(ColorTokens.text3)
+                        Text("workoutLog.rpe.easy").font(.Tokens.label).foregroundStyle(ColorTokens.text3)
                         Spacer()
-                        Text("Maximal").font(.Tokens.label).foregroundStyle(ColorTokens.text3)
+                        Text("workoutLog.rpe.maximal").font(.Tokens.label).foregroundStyle(ColorTokens.text3)
                     }
                 }
 
@@ -398,14 +398,14 @@ struct ImportRPESheet: View {
             }
             .padding(24)
             .background(ColorTokens.background)
-            .navigationTitle("Import Workout")
+            .navigationTitle("workoutLog.import.navTitle")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Import") {
+                    Button("action.import") {
                         onConfirm(rpe)
                         dismiss()
                     }
@@ -435,7 +435,7 @@ struct SessionRow: View {
                         Text(String(format: "%.0f kg", session.totalVolume))
                     }
                     if let rpe = session.sessionRPE {
-                        Text("RPE \(Int(rpe))")
+                        Text(String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)))
                     }
                 }
                 .font(.Tokens.label)
@@ -461,11 +461,11 @@ struct SessionTypeFilterBar: View {
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 0) {
-                SessionFilterChip(label: "All", isSelected: selectedType == nil) {
+                SessionFilterChip(label: Text("workoutLog.filter.all"), isSelected: selectedType == nil) {
                     selectedType = nil
                 }
                 ForEach(SessionType.allCases) { type in
-                    SessionFilterChip(label: type.displayName, isSelected: selectedType == type) {
+                    SessionFilterChip(label: Text(verbatim: type.displayName), isSelected: selectedType == type) {
                         selectedType = type
                     }
                 }
@@ -478,13 +478,13 @@ struct SessionTypeFilterBar: View {
 }
 
 private struct SessionFilterChip: View {
-    let label: String
+    let label: Text
     let isSelected: Bool
     let action: () -> Void
 
     var body: some View {
         Button(action: action) {
-            Text(label)
+            label
                 .font(isSelected ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
                 .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
                 .padding(.horizontal, 12)

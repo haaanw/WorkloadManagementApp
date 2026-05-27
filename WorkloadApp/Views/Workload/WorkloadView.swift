@@ -147,7 +147,7 @@ struct WorkloadView: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Load & Progress")
+            .navigationTitle("workload.nav.title")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .withContextSwitcher()
@@ -166,17 +166,17 @@ struct WorkloadView: View {
                     .accessibilityLabel("Export workout data")
                 }
             }
-            .confirmationDialog("Export Workout Data", isPresented: $showExportOptions, titleVisibility: .visible) {
-                Button("Session Summary") {
+            .confirmationDialog("workload.export.title", isPresented: $showExportOptions, titleVisibility: .visible) {
+                Button("workload.export.sessionSummary") {
                     exportCSV(format: .sessionSummary)
                 }
-                Button("Detailed Sets") {
+                Button("workload.export.detailedSets") {
                     exportCSV(format: .detailedSets)
                 }
-                Button("PDF Report (Pro)") {
+                Button("workload.export.pdfReport") {
                     showPDFSheet = true
                 }
-                Button("Cancel", role: .cancel) {}
+                Button("action.cancel", role: .cancel) {}
             }
             .sheet(isPresented: $showShareSheet) {
                 if let url = exportFileURL {
@@ -247,7 +247,7 @@ struct ACWRGaugeCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                Text("ACWR")
+                Text("workload.section.acwr")
                     .font(.Tokens.micro)
                     .tracking(1.2)
                     .foregroundStyle(ColorTokens.text3)
@@ -266,12 +266,12 @@ struct ACWRGaugeCard: View {
                         .font(.Tokens.pageTitle)
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.acwrZoneColor(snapshot.zone))
-                    Text("ratio")
+                    Text("workload.label.ratio")
                         .font(.Tokens.micro)
                         .foregroundStyle(ColorTokens.text3)
                 }
             } else {
-                Text("No workload data yet. Log a workout to see your training load.")
+                Text("workload.empty.body")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
             }
@@ -291,7 +291,7 @@ struct LoadTrendChartView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("LOAD TREND")
+            Text("workload.section.loadTrend")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -350,7 +350,7 @@ struct PRHistorySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("RECENT PRS")
+            Text("workload.section.recentPRs")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)

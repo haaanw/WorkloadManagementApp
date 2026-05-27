@@ -45,46 +45,46 @@ struct ProfileView: View {
                 VStack(spacing: 0) {
                     if let athlete {
                         // Athlete Info
-                        sectionHeader("ATHLETE")
-                        editableTextField("Name", value: Binding(
+                        sectionHeader("profile.section.athlete")
+                        editableTextField("profile.field.name", value: Binding(
                             get: { athlete.displayName },
                             set: { athlete.displayName = $0; saveAthlete(athlete) }
                         ))
                         divider()
-                        editablePicker("Sport", selection: Binding(
+                        editablePicker("profile.field.sport", selection: Binding(
                             get: { athlete.sportType },
                             set: { athlete.sportType = $0; saveAthlete(athlete) }
                         ), options: SportType.allCases) { $0.displayName }
                         divider()
-                        editablePicker("Training Frequency", selection: Binding(
+                        editablePicker("profile.field.trainingFrequency", selection: Binding(
                             get: { athlete.trainingFrequency ?? .threeToFour },
                             set: { athlete.trainingFrequency = $0; saveAthlete(athlete) }
                         ), options: TrainingFrequency.allCases) { $0.displayName }
                         divider()
-                        editablePicker("Experience Level", selection: Binding(
+                        editablePicker("profile.field.experienceLevel", selection: Binding(
                             get: { athlete.experienceLevel ?? .intermediate },
                             set: { athlete.experienceLevel = $0; saveAthlete(athlete) }
                         ), options: ExperienceLevel.allCases) { $0.displayName }
                         sectionDivider()
 
                         // Training Profile (D-03)
-                        sectionHeader("TRAINING PROFILE")
+                        sectionHeader("profile.section.trainingProfile")
                         if let profile = trainingProfiles.first {
                             // Profile exists: show summary rows
-                            profileRow("Sessions / week", value: "\(profile.sessionsPerWeek)")
+                            profileRow("profile.field.sessionsPerWeek", value: "\(profile.sessionsPerWeek)")
                             divider()
-                            profileRow("Avg duration", value: "\(profile.avgDurationMinutes) min")
+                            profileRow("profile.field.avgDuration", value: "\(profile.avgDurationMinutes) min")
                             divider()
-                            profileRow("Typical effort", value: "\(Int(profile.typicalSRPE))/10")
+                            profileRow("profile.field.typicalEffort", value: "\(Int(profile.typicalSRPE))/10")
                             divider()
-                            profileRow("Weeks at level", value: "\(profile.weeksAtLevel)")
+                            profileRow("profile.field.weeksAtLevel", value: "\(profile.weeksAtLevel)")
                             divider()
-                            actionButton("Edit Profile") {
+                            actionButton("profile.action.editProfile") {
                                 showTrainingProfileSheet = true
                             }
                         } else {
                             // No profile: show setup prompt
-                            actionButton("Set up training profile") {
+                            actionButton("profile.action.setupTrainingProfile") {
                                 showTrainingProfileSheet = true
                             }
                         }
@@ -92,10 +92,10 @@ struct ProfileView: View {
 
                         // Cycle & Hormones (D-03)
                         if showCycleSection {
-                            sectionHeader("CYCLE & HORMONES")
+                            sectionHeader("profile.section.cycleHormones")
 
                             HStack {
-                                Text("Hormonal Contraceptive")
+                                Text("profile.row.hormonalContraceptive")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
@@ -114,7 +114,7 @@ struct ProfileView: View {
                             divider()
 
                             HStack {
-                                Text("Pregnant")
+                                Text("profile.row.pregnant")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
@@ -133,7 +133,7 @@ struct ProfileView: View {
                             divider()
 
                             HStack {
-                                Text("Lactating")
+                                Text("profile.row.lactating")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
@@ -153,7 +153,7 @@ struct ProfileView: View {
                         }
 
                         // Preferences
-                        sectionHeader("PREFERENCES")
+                        sectionHeader("profile.section.preferences")
                         NavigationLink {
                             LanguagePickerView()
                         } label: {
@@ -173,28 +173,28 @@ struct ProfileView: View {
                             .padding(.vertical, 16)
                         }
                         divider()
-                        editablePicker("Weight Unit", selection: Binding(
+                        editablePicker("profile.row.weightUnit", selection: Binding(
                             get: { athlete.weightUnit },
                             set: { athlete.weightUnit = $0; saveAthlete(athlete) }
                         ), options: WeightUnit.allCases) { $0.displayName }
                         divider()
-                        editablePicker("ACWR Method", selection: Binding(
+                        editablePicker("profile.row.acwrMethod", selection: Binding(
                             get: { athlete.acwrMethod },
                             set: { athlete.acwrMethod = $0; saveAthlete(athlete) }
                         ), options: ACWRMethod.allCases) { $0.displayName }
                         divider()
-                        editablePicker("Load Metric", selection: Binding(
+                        editablePicker("profile.row.loadMetric", selection: Binding(
                             get: { athlete.loadMetricPreference },
                             set: { athlete.loadMetricPreference = $0; saveAthlete(athlete) }
                         ), options: LoadSource.allCases) { $0.displayName }
                         sectionDivider()
 
                         // NOTIFICATIONS section (NOTF-03)
-                        sectionHeader("NOTIFICATIONS")
+                        sectionHeader("profile.section.notifications")
 
                         // Toggle row
                         HStack {
-                            Text("Weekly Summary")
+                            Text("profile.row.weeklySummary")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                             Spacer()
@@ -232,7 +232,7 @@ struct ProfileView: View {
 
                         // System denied warning
                         if notificationsDenied {
-                            Text("Notifications are disabled in Settings. Go to Settings > Tuwa to enable them.")
+                            Text("profile.notif.deniedHint")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text3)
                                 .padding(.horizontal, 16)
@@ -243,7 +243,7 @@ struct ProfileView: View {
 
                         // Day picker row
                         editablePicker(
-                            "Day",
+                            "profile.field.day",
                             selection: Binding(
                                 get: { notificationDay },
                                 set: { newValue in
@@ -265,7 +265,7 @@ struct ProfileView: View {
 
                         // Time picker row
                         editablePicker(
-                            "Time",
+                            "profile.field.time",
                             selection: Binding(
                                 get: { notificationTime },
                                 set: { newValue in
@@ -295,12 +295,12 @@ struct ProfileView: View {
                         sectionDivider()
 
                         // HealthKit
-                        sectionHeader("CONNECTED DEVICES")
+                        sectionHeader("profile.section.connectedDevices")
                         NavigationLink {
                             HealthKitPermissionsView()
                         } label: {
                             HStack {
-                                Text("HealthKit Permissions")
+                                Text("profile.healthkit.permissions")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
@@ -312,7 +312,7 @@ struct ProfileView: View {
                             .padding(.vertical, 16)
                         }
                         divider()
-                        Text("Data from Apple Watch, Whoop, Oura, and Garmin flows through HealthKit automatically.")
+                        Text("profile.healthkit.devicesHint")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
                             .padding(.horizontal, 16)
@@ -320,7 +320,7 @@ struct ProfileView: View {
                         sectionDivider()
 
                         // Data Sync
-                        sectionHeader("DATA SYNC")
+                        sectionHeader("profile.section.dataSync")
                         NavigationLink {
                             SyncStatusView()
                         } label: {
@@ -329,16 +329,16 @@ struct ProfileView: View {
                                     .font(.system(size: 14))
                                     .foregroundStyle(ColorTokens.text2)
                                     .frame(width: 24)
-                                Text("Sync Status")
+                                Text("profile.sync.status")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
                                 if SyncTimestampStore.shared.hasAnyFailure {
-                                    Text("Issues")
+                                    Text("profile.sync.issues")
                                         .font(.Tokens.label)
                                         .foregroundStyle(ColorTokens.zoneCaution)
                                 } else {
-                                    Text("All data synced")
+                                    Text("profile.sync.allSynced")
                                         .font(.Tokens.label)
                                         .foregroundStyle(ColorTokens.text2)
                                 }
@@ -352,10 +352,10 @@ struct ProfileView: View {
                         sectionDivider()
 
                         // Coach
-                        sectionHeader("COACH")
+                        sectionHeader("profile.section.coach")
                         if !athlete.isCoach {
                             HStack {
-                                Text("Enable Coach Mode")
+                                Text("profile.row.coachMode")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
@@ -378,10 +378,10 @@ struct ProfileView: View {
                         if athlete.isCoach {
                             HStack {
                                 VStack(alignment: .leading, spacing: 4) {
-                                    Text("Coach Only")
+                                    Text("profile.row.coachOnly")
                                         .font(.Tokens.body)
                                         .foregroundStyle(ColorTokens.text1)
-                                    Text("Hide athlete tabs, always show coach view")
+                                    Text("profile.row.coachOnlyHint")
                                         .font(.Tokens.label)
                                         .foregroundStyle(ColorTokens.text2)
                                 }
@@ -417,18 +417,18 @@ struct ProfileView: View {
                             divider()
                         }
 
-                        actionButton(isGeneratingCode ? "Generating..." : "Invite My Coach") {
+                        actionButton(isGeneratingCode ? "profile.action.generating" : "profile.action.inviteMyCoach") {
                             Task { await generateCode(for: athlete) }
                         }
                         .disabled(isGeneratingCode)
 
                         if athlete.isCoach {
                             divider()
-                            actionButton("Invite an Athlete (Email)") {
+                            actionButton("profile.action.inviteAthleteEmail") {
                                 showEmailInviteSheet = true
                             }
                             divider()
-                            actionButton("Enter Athlete Code") {
+                            actionButton("profile.action.enterAthleteCode") {
                                 showEnterCodeSheet = true
                             }
                         }
@@ -440,7 +440,7 @@ struct ProfileView: View {
                         }
                         if !myCoachRels.isEmpty {
                             sectionDivider()
-                            sectionHeader("MY COACHES")
+                            sectionHeader("profile.section.myCoaches")
                             ForEach(myCoachRels) { rel in
                                 LinkedPartyRow(athleteId: rel.coachId)
                                     .padding(.horizontal, 16)
@@ -458,7 +458,7 @@ struct ProfileView: View {
                             }
                             if !myAthleteRels.isEmpty {
                                 sectionDivider()
-                                sectionHeader("MY ATHLETES")
+                                sectionHeader("profile.section.myAthletes")
                                 ForEach(myAthleteRels) { rel in
                                     LinkedPartyRow(athleteId: rel.athleteId)
                                         .padding(.horizontal, 16)
@@ -488,7 +488,7 @@ struct ProfileView: View {
                         Button {
                             showDeleteConfirmation = true
                         } label: {
-                            Text(isDeletingAccount ? "Deleting..." : "Delete Account")
+                            Text(isDeletingAccount ? "profile.action.deleting" : "profile.action.deleteAccount")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.zoneDanger)
                                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -498,7 +498,7 @@ struct ProfileView: View {
                         .disabled(isDeletingAccount)
                         divider()
                     } else {
-                        Text("No athlete profile found.")
+                        Text("profile.empty.noAthlete")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text3)
                             .padding(32)
@@ -514,16 +514,16 @@ struct ProfileView: View {
                     container.notificationService.cancelWeeklySummary()
                 }
             }
-            .navigationTitle("Profile")
+            .navigationTitle("profile.nav.title")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .withContextSwitcher()
             // Generated code display
-            .alert("Your Invite Code", isPresented: $showInviteCodeSheet, presenting: generatedCode) { code in
-                Button("Done") { generatedCode = nil }
-                Button("Copy") { UIPasteboard.general.string = code }
+            .alert("profile.invite.codeAlertTitle", isPresented: $showInviteCodeSheet, presenting: generatedCode) { code in
+                Button("action.done") { generatedCode = nil }
+                Button("action.copy") { UIPasteboard.general.string = code }
             } message: { code in
-                Text("Share this code with your coach:\n\n\(code)\n\nExpires in 48 hours.")
+                Text(String(format: String(localized: "profile.invite.codeBody"), code))
             }
             // Enter code sheet
             .sheet(isPresented: $showEnterCodeSheet) {
@@ -549,9 +549,9 @@ struct ProfileView: View {
                     .environment(container)
             }
             // Delete account confirmation
-            .alert("Delete Account", isPresented: $showDeleteConfirmation) {
-                Button("Cancel", role: .cancel) { }
-                Button("Delete", role: .destructive) {
+            .alert("profile.action.deleteAccount", isPresented: $showDeleteConfirmation) {
+                Button("action.cancel", role: .cancel) { }
+                Button("action.delete", role: .destructive) {
                     isDeletingAccount = true
                     Task {
                         do {
@@ -563,14 +563,14 @@ struct ProfileView: View {
                     }
                 }
             } message: {
-                Text("This will permanently delete your account and all associated data. This action cannot be undone.")
+                Text("profile.delete.confirmBody")
             }
             // Error
-            .alert("Error", isPresented: Binding(
+            .alert("common.error", isPresented: Binding(
                 get: { errorMessage != nil },
                 set: { if !$0 { errorMessage = nil } }
             )) {
-                Button("OK") { errorMessage = nil }
+                Button("action.ok") { errorMessage = nil }
             } message: {
                 Text(errorMessage ?? "")
             }
@@ -580,7 +580,7 @@ struct ProfileView: View {
     // MARK: - Helpers
 
     @ViewBuilder
-    private func sectionHeader(_ title: String) -> some View {
+    private func sectionHeader(_ title: LocalizedStringKey) -> some View {
         Text(title)
             .font(.Tokens.micro)
             .foregroundStyle(ColorTokens.text3)
@@ -592,7 +592,7 @@ struct ProfileView: View {
     }
 
     @ViewBuilder
-    private func profileRow(_ label: String, value: String) -> some View {
+    private func profileRow(_ label: LocalizedStringKey, value: String) -> some View {
         HStack {
             Text(label)
                 .font(.Tokens.body)
@@ -607,7 +607,7 @@ struct ProfileView: View {
     }
 
     @ViewBuilder
-    private func actionButton(_ label: String, action: @escaping () -> Void) -> some View {
+    private func actionButton(_ label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         Button(action: action) {
             Text(label)
                 .font(.Tokens.body)
@@ -634,7 +634,7 @@ struct ProfileView: View {
     }
 
     @ViewBuilder
-    private func editableTextField(_ label: String, value: Binding<String>) -> some View {
+    private func editableTextField(_ label: LocalizedStringKey, value: Binding<String>) -> some View {
         HStack {
             Text(label)
                 .font(.Tokens.body)
@@ -651,7 +651,7 @@ struct ProfileView: View {
 
     @ViewBuilder
     private func editablePicker<T: Hashable>(
-        _ label: String,
+        _ label: LocalizedStringKey,
         selection: Binding<T>,
         options: [T],
         displayName: @escaping (T) -> String
@@ -746,7 +746,7 @@ struct LinkedPartyRow: View {
                     .foregroundStyle(ColorTokens.text3)
             }
         } else {
-            Text("Unknown")
+            Text("common.unknown")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text3)
         }
@@ -764,12 +764,12 @@ struct EnterInviteCodeSheet: View {
             VStack(spacing: 0) {
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("INVITE CODE")
+                    Text("profile.invite.code")
                         .font(.Tokens.micro)
                         .tracking(0.88)
                         .foregroundStyle(ColorTokens.text3)
                         .padding(.horizontal, 16).padding(.top, 16).padding(.bottom, 8)
-                    TextField("Enter 6-character code", text: $code)
+                    TextField("profile.invite.codePlaceholder", text: $code)
                         .font(.Tokens.body)
                         .textInputAutocapitalization(.characters)
                         .autocorrectionDisabled()
@@ -780,7 +780,7 @@ struct EnterInviteCodeSheet: View {
                 Button {
                     pending = PendingInvite(code: code.uppercased())
                 } label: {
-                    Text("Look Up Code")
+                    Text("profile.invite.lookUp")
                         .font(.Tokens.body)
                         .foregroundStyle(code.count == 6 ? ColorTokens.text1 : ColorTokens.text3)
                         .frame(maxWidth: .infinity)
@@ -817,7 +817,7 @@ struct EmailInviteSheet: View {
             VStack(spacing: 0) {
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("ATHLETE EMAIL")
+                    Text("profile.invite.athleteEmail")
                         .font(.Tokens.micro)
                         .tracking(0.88)
                         .foregroundStyle(ColorTokens.text3)
@@ -839,12 +839,12 @@ struct EmailInviteSheet: View {
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                 }
                 if sent {
-                    Text("Invite sent! They'll receive a link by email.")
+                    Text("profile.invite.sentConfirmation")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                         .padding(16)
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                    Button("Done") { dismiss() }
+                    Button("action.done") { dismiss() }
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity).padding(.vertical, 16)
@@ -856,7 +856,7 @@ struct EmailInviteSheet: View {
                         Group {
                             if isSending { ProgressView() }
                             else {
-                                Text("Send Invite")
+                                Text("profile.invite.send")
                                     .font(.Tokens.body)
                                     .foregroundStyle(email.contains("@") ? ColorTokens.text1 : ColorTokens.text3)
                             }
@@ -907,7 +907,7 @@ struct HealthKitPermissionsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                Text("Tuwa reads data from HealthKit to calculate your recovery score and TRIMP. We never write data to HealthKit.")
+                Text("profile.healthkit.disclaimer")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(.horizontal, 16)
@@ -915,7 +915,7 @@ struct HealthKitPermissionsView: View {
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
-                sectionHeader("DATA WE READ")
+                sectionHeader("profile.healthkit.dataWeRead")
 
                 ForEach(dataTypes, id: \.0) { item in
                     HStack(spacing: 12) {
@@ -953,11 +953,11 @@ struct HealthKitPermissionsView: View {
                         } else if container.healthKitService.isAuthorized {
                             Image(systemName: "checkmark.circle.fill")
                                 .foregroundStyle(ColorTokens.zoneOptimal)
-                            Text("Authorized")
+                            Text("profile.healthkit.authorized")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.zoneOptimal)
                         } else {
-                            Text("Authorize HealthKit Access")
+                            Text("profile.healthkit.authorize")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                         }
@@ -980,11 +980,11 @@ struct HealthKitPermissionsView: View {
             }
         }
         .background(ColorTokens.background)
-        .navigationTitle("HealthKit")
+        .navigationTitle("profile.healthkit.navTitle")
     }
 
     @ViewBuilder
-    private func sectionHeader(_ title: String) -> some View {
+    private func sectionHeader(_ title: LocalizedStringKey) -> some View {
         Text(title)
             .font(.Tokens.micro)
             .foregroundStyle(ColorTokens.text3)

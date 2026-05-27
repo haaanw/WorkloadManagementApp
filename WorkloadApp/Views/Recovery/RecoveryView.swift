@@ -80,7 +80,7 @@ struct RecoveryView: View {
                         // Fatigue insights
                         if !viewModel.fatigueInsights.isEmpty {
                             VStack(alignment: .leading, spacing: 0) {
-                                Text("INSIGHTS")
+                                Text("recovery.section.insights")
                                     .font(.Tokens.micro)
                                     .tracking(1.2)
                                     .textCase(.uppercase)
@@ -102,7 +102,7 @@ struct RecoveryView: View {
                                 .frame(height: 0.5)
 
                             VStack(alignment: .leading, spacing: 0) {
-                                Text("BEHAVIOR IMPACT")
+                                Text("recovery.section.behaviorImpact")
                                     .font(.Tokens.micro)
                                     .tracking(1.2)
                                     .textCase(.uppercase)
@@ -143,7 +143,7 @@ struct RecoveryView: View {
                             .frame(height: 0.5)
 
                         VStack(spacing: 0) {
-                            Text("INSIGHTS")
+                            Text("recovery.section.insights")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
                                 .textCase(.uppercase)
@@ -162,7 +162,7 @@ struct RecoveryView: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Recovery")
+            .navigationTitle("recovery.nav.title")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .withContextSwitcher()
@@ -206,10 +206,10 @@ struct MorningCheckInPrompt: View {
         Button(action: action) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("Morning Check-in")
+                    Text("recovery.checkin.title")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
-                    Text("How are you feeling today?")
+                    Text("recovery.checkin.prompt")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -234,7 +234,7 @@ struct RecoveryScoreCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("RECOVERY SCORE")
+            Text("recovery.section.recoveryScore")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -288,7 +288,7 @@ struct RecoveryScoreCard: View {
                     }
                 }
             } else {
-                Text("No recovery data yet. Complete your morning check-in or connect Apple Health.")
+                Text("recovery.empty.body")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
             }
@@ -325,7 +325,7 @@ struct WellnessHistorySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("WELLNESS CHECK-INS")
+            Text("recovery.section.wellnessCheckIns")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
