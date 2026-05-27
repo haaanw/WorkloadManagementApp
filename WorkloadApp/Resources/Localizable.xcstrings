@@ -107,6 +107,13 @@
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "登录成功，但未返回用户 ID。" } }
       }
     },
+    "auth.error.socialSignInFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Social sign in failed." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "第三方登录失败。" } }
+      }
+    },
     "auth.error.athleteNotFound" : {
       "extractionState" : "manual",
       "localizations" : {

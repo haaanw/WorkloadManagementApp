@@ -18,6 +18,10 @@ struct SignUpView: View {
     /// Resolve a caught error against the current env locale (Pitfall 7).
     private func resolveErrorMessage(_ error: any Error, locale: Locale) -> String {
         if let authError = error as? AuthService.AuthError {
+            // socialSignInFailed wraps an opaque server message — surface verbatim.
+            if let serverMessage = authError.serverMessage {
+                return serverMessage
+            }
             var resource = LocalizedStringResource(authError.localizationKey)
             resource.locale = locale
             return String(localized: resource)

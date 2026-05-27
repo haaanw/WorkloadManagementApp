@@ -18,6 +18,10 @@ struct LoginView: View {
     /// Typed branches use the catalog key; non-typed errors fall back to .localizedDescription.
     private func resolveErrorMessage(_ error: any Error, locale: Locale) -> String {
         if let authError = error as? AuthService.AuthError {
+            // socialSignInFailed wraps an opaque server message — surface verbatim.
+            if let serverMessage = authError.serverMessage {
+                return serverMessage
+            }
             var resource = LocalizedStringResource(authError.localizationKey)
             resource.locale = locale
             return String(localized: resource)

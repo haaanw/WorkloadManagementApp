@@ -125,9 +125,19 @@ final class AuthService {
             switch self {
             case .noUserReturned: return "auth.error.noUserReturned"
             case .noIdentityToken: return "auth.error.noIdentityToken"
-            case .socialSignInFailed(let message):
-                // Server-originated opaque string — wrap verbatim, no catalog lookup.
-                return String.LocalizationValue(message)
+            case .socialSignInFailed:
+                // Stable catalog key; the opaque server message is surfaced via
+                // `serverMessage` and the view layer special-cases this case.
+                return "auth.error.socialSignInFailed"
+            }
+        }
+
+        /// For `.socialSignInFailed`, returns the opaque server-originated string
+        /// (which should be rendered verbatim, bypassing the catalog).
+        var serverMessage: String? {
+            switch self {
+            case .socialSignInFailed(let message): return message
+            default: return nil
             }
         }
 
