@@ -253,11 +253,14 @@ struct DashboardView: View {
 
 struct HeroReadinessCard: View {
     let viewModel: DashboardViewModel
+    @Environment(\.locale) private var locale
 
     private var dateLabel: String {
         let f = DateFormatter()
-        f.dateFormat = "EEE d MMM"
-        return f.string(from: .now).uppercased()
+        f.locale = locale
+        f.setLocalizedDateFormatFromTemplate("EEEdMMM")
+        let s = f.string(from: .now)
+        return locale.language.languageCode?.identifier == "en" ? s.uppercased() : s
     }
 
     var body: some View {
