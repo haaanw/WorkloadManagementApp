@@ -38,7 +38,8 @@ findings:
   warning: 9
   info: 5
   total: 20
-status: issues_found
+findings_fixed: 15
+status: fixes_applied
 ---
 
 # Phase 23: Code Review Report
@@ -123,6 +124,8 @@ Audit every other `locale.identifier == "zh-Hans"` comparison in the codebase (P
 **Issue:** `Text("Sign Out")`, `Text("Profile")`, `sectionHeader("ATHLETE")`, `Text("Weekly Summary")`, `Text("Hormonal Contraceptive")`, `Text("Pregnant")`, `Text("Lactating")`, `Text("Weight Unit")`, `Text("ACWR Method")`, `Text("Load Metric")`, `Text("Enable Coach Mode")`, `Text("Invite My Coach")`, `Text("Sign In")`, `Text("Create Account")`, `Text("PASSWORD")`, `Text("EMAIL")`, `Text("READINESS · …")`, `Text("TRAINING LOAD")`, `Text("RECENT SESSIONS")`, `Text("INSIGHTS")`, `Text("BEHAVIOR IMPACT")`, `Text("WELLNESS CHECK-INS")`, `Text("RECOVERY SCORE")`, `Text("ACWR")`, `Text("LOAD TREND")`, `Text("RECENT PRS")`, `Text("PRESCRIBED")`, `Text("Workout Log")`, `Text("Add Exercise")`, `Text("Add Set")`, `Text("Cancel")`, `Text("Finish")`, `Text("Import Workout")`, `Text("Import")`, `Text("How hard was this session?")`, `Text("How often do you train?")`, `Text("What's your training experience?")`, `Text("Connect Health")`, `Text("Skip for now")`, etc. SwiftUI treats `Text("literal")` as a `LocalizedStringKey`, so this *would* localize — but none of these keys exist in `Localizable.xcstrings`. zh-Hans users see English. The UI-SPEC ties phase 23 to comprehensive zh-Hans support; this is the bulk of the surface area still untranslated.
 **Fix:** Add catalog entries for every visible literal. Migrate keys to a stable namespaced convention (`profile.section.athlete`, `profile.signOut`, `recovery.section.score`, etc.) rather than relying on English-as-key, and assign translated zh-Hans values. Prefer stable keys over English-as-key so future copy edits don't silently drop translations.
 
+**Status (REVIEW-FIX iter 1, partial):** Onboarding step 0/1/2/3 (titles, subtitles, HealthKit items, Connect Health, Skip for now) and ProfileView Sign Out have been localized with namespaced keys + zh-Hans values. The broader sweep across Dashboard/Workload/WorkoutLog/Recovery/Profile (non-onboarding) section headers, Auth view "WORKLOAD" branding + "Sign In" / "Create Account" / "EMAIL" / "PASSWORD" labels, and ProfileView preference rows (Weight Unit, ACWR Method, Load Metric, Enable Coach Mode, Invite My Coach, Hormonal Contraceptive, Pregnant, Lactating, HealthKit Permissions, Sync Status, alerts) is **deferred** to a follow-up pass — these are dozens of strings spanning multiple Views and warrant their own focused phase to avoid scope creep in this fix pass.
+
 ### WR-02: `String.LocalizationValue(message)` wraps a non-key as if it were one
 
 **File:** `WorkloadApp/Services/AuthService.swift:128-131`
@@ -165,6 +168,8 @@ for ps in required {
 **File:** `WorkloadApp/Views/Recovery/RecoveryView.swift:262-272`
 **Issue:** `"%.0f ms"`, `"%.0f bpm"`, `"\(hours)h \(mins)m"` are concatenated English. In zh-Hans, users expect 毫秒 / 次/分 / x小时y分钟 (matching the duration helper that *was* localized). The Dashboard's `sleepString` (line 442-446) has the same problem. The Workload view's `String(format: "%.0f kg")` (WorkloadView:51, ActiveWorkoutSheet PR overlay line 635) likewise hardcodes "kg" even though WeightFormatter exists exactly for this.
 **Fix:** Route HRV/RHR/sleep through localized format strings (`"recovery.hrv.value" = "%lld 毫秒"` in zh-Hans), and route weight strings through `WeightFormatter.display(...)` with env locale. The duration helper already exists in DateHelpers — call it.
+
+**Status (REVIEW-FIX iter 1, partial):** HRV / RHR / Sleep on RecoveryView and Dashboard sleep cell are now routed through catalog + `Date.durationString`. The weight-formatting cleanup (`WorkloadView:51`, `ActiveWorkoutSheet:635` PR overlay) is **deferred** — those strings should go through `WeightFormatter.display(...)` but the call sites need env-locale plumbing first.
 
 ### WR-07: `MeasurementFormatter.unitOptions = .providedUnit` defeats locale-localized unit choice
 
