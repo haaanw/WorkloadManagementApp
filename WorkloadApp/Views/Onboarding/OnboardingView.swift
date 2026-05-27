@@ -75,10 +75,13 @@ struct OnboardingView: View {
             container.localeManager.setLocale(locale)
         } label: {
             HStack {
-                Image(systemName: container.localeManager.activeLocale.identifier == locale.identifier
-                      ? "checkmark" : "")
-                    .frame(width: 24)
-                    .foregroundStyle(ColorTokens.text1)
+                if container.localeManager.activeLocale.identifier == locale.identifier {
+                    Image(systemName: "checkmark")
+                        .frame(width: 24)
+                        .foregroundStyle(ColorTokens.text1)
+                } else {
+                    Color.clear.frame(width: 24, height: 1)
+                }
                 Text(languageAutonym(for: locale))
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
