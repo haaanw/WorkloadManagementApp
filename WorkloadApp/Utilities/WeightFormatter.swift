@@ -6,7 +6,11 @@ import Foundation
 struct WeightFormatter {
     private static let kgToLbs = 2.20462
 
-    /// Format weight in user's preferred unit, locale-aware (e.g., "82.5 kg" / "82.5 公斤").
+    /// Format weight in user's preferred unit. The numeric portion is locale-aware
+    /// (decimal separator, digit grouping); the unit *symbol* is rendered by
+    /// `MeasurementFormatter` with `.providedUnit`, which on zh-Hans typically
+    /// produces "千克"/"磅" rather than "kg"/"lb". If product wants stable
+    /// "kg"/"lb" everywhere, append the unit manually instead.
     static func display(_ kg: Double, unit: WeightUnit, locale: Locale) -> String {
         let measurement: Measurement<UnitMass>
         switch unit {
