@@ -444,7 +444,7 @@ struct MetricsStrip: View {
     }
 
     private func sleepString(_ minutes: Double) -> String {
-        DateHelpers.durationString(seconds: Int(minutes) * 60, locale: locale)
+        Date.durationString(seconds: Int(minutes) * 60, locale: locale)
     }
 }
 

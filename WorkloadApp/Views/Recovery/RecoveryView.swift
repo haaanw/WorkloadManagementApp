@@ -283,7 +283,7 @@ struct RecoveryScoreCard: View {
                     if let sleep = recovery.sleepDurationMinutes {
                         RecoveryComponentRow(
                             label: "recovery.label.sleep",
-                            value: DateHelpers.durationString(seconds: Int(sleep) * 60, locale: locale)
+                            value: Date.durationString(seconds: Int(sleep) * 60, locale: locale)
                         )
                     }
                 }
