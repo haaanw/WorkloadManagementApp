@@ -25,10 +25,17 @@ final class LocaleManager {
 
     init() {
         let whitelist = supported.map(\.identifier)
-        if let stored = UserDefaults.standard.string(forKey: defaultsKey),
-           whitelist.contains(stored) {
-            self.activeLocale = Locale(identifier: stored)
-            return
+        if let stored = UserDefaults.standard.string(forKey: defaultsKey) {
+            if whitelist.contains(stored) {
+                self.activeLocale = Locale(identifier: stored)
+                return
+            }
+            // Invalid stored value (e.g. rolled-back locale from a future build):
+            // clear it proactively so the picker shows a clean state next pass.
+            #if DEBUG
+            print("LocaleManager: dropping invalid stored locale identifier \"\(stored)\" (not in whitelist)")
+            #endif
+            UserDefaults.standard.removeObject(forKey: defaultsKey)
         }
         // First launch (or invalid stored value): silently follow system locale.
         // Per RESEARCH A5: "zh-Hans" / "zh-CN" → zh-Hans; everything else → en (incl. zh-Hant).
