@@ -4,6 +4,7 @@ import SwiftData
 struct ProfileView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.locale) private var locale
     @Query private var athletes: [Athlete]
     @Query private var relationships: [CoachAthleteRelationship]
     @Query private var trainingProfiles: [TrainingProfile]
@@ -252,7 +253,9 @@ struct ProfileView: View {
                             ),
                             options: Array(1...7),
                             displayName: { weekday in
-                                Calendar.current.weekdaySymbols[weekday - 1]
+                                var cal = Calendar.current
+                                cal.locale = locale
+                                return cal.weekdaySymbols[weekday - 1]
                             }
                         )
                         .disabled(!notificationsEnabled)
@@ -276,9 +279,14 @@ struct ProfileView: View {
                             displayName: { timeStr in
                                 let parts = timeStr.split(separator: ":").compactMap { Int($0) }
                                 let hour = parts.first ?? 19
-                                let ampm = hour >= 12 ? "PM" : "AM"
-                                let displayHour = hour == 0 ? 12 : (hour > 12 ? hour - 12 : hour)
-                                return "\(displayHour):00 \(ampm)"
+                                let minute = parts.count > 1 ? parts[1] : 0
+                                var comps = DateComponents()
+                                comps.hour = hour
+                                comps.minute = minute
+                                var cal = Calendar.current
+                                cal.locale = locale
+                                let date = cal.date(from: comps) ?? .now
+                                return date.formatted(.dateTime.hour().minute().locale(locale))
                             }
                         )
                         .disabled(!notificationsEnabled)
