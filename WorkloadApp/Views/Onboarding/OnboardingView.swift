@@ -106,8 +106,8 @@ struct OnboardingView: View {
     private var frequencyStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             stepHeader(
-                title: "How often do you train?",
-                subtitle: "This helps us calibrate your training load expectations."
+                title: "onboarding.frequency.title",
+                subtitle: "onboarding.frequency.subtitle"
             )
 
             LazyVGrid(
@@ -154,8 +154,8 @@ struct OnboardingView: View {
     private var experienceStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             stepHeader(
-                title: "What's your training experience?",
-                subtitle: "We'll adjust insights based on your background."
+                title: "onboarding.experience.title",
+                subtitle: "onboarding.experience.subtitle"
             )
 
             VStack(spacing: 8) {
@@ -205,22 +205,22 @@ struct OnboardingView: View {
     private var healthKitStep: some View {
         VStack(alignment: .leading, spacing: 0) {
             stepHeader(
-                title: "Connect Health Data",
-                subtitle: "Tuwa uses your HRV, resting heart rate, and sleep data to calculate your daily recovery score."
+                title: "onboarding.healthkit.title",
+                subtitle: "onboarding.healthkit.subtitle"
             )
 
             VStack(spacing: 24) {
                 healthKitItem(
                     icon: "heart.text.square",
-                    label: "Heart Rate Variability"
+                    label: "onboarding.healthkit.item.hrv"
                 )
                 healthKitItem(
                     icon: "heart.fill",
-                    label: "Resting Heart Rate"
+                    label: "onboarding.healthkit.item.rhr"
                 )
                 healthKitItem(
                     icon: "bed.double.fill",
-                    label: "Sleep Analysis"
+                    label: "onboarding.healthkit.item.sleep"
                 )
             }
             .padding(.horizontal, 16)
@@ -235,7 +235,7 @@ struct OnboardingView: View {
                     completeOnboarding()
                 }
             } label: {
-                Text("Connect Health")
+                Text("onboarding.healthkit.connect")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
                     .frame(maxWidth: .infinity)
@@ -251,7 +251,7 @@ struct OnboardingView: View {
             Button {
                 completeOnboarding()
             } label: {
-                Text("Skip for now")
+                Text("onboarding.skipForNow")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .frame(maxWidth: .infinity)
@@ -264,7 +264,7 @@ struct OnboardingView: View {
 
     // MARK: - Shared Components
 
-    private func stepHeader(title: String, subtitle: String) -> some View {
+    private func stepHeader(title: LocalizedStringKey, subtitle: LocalizedStringKey) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(.Tokens.pageTitle)
@@ -279,7 +279,7 @@ struct OnboardingView: View {
         .padding(.bottom, 32)
     }
 
-    private func healthKitItem(icon: String, label: String) -> some View {
+    private func healthKitItem(icon: String, label: LocalizedStringKey) -> some View {
         HStack(spacing: 16) {
             Image(systemName: icon)
                 .font(.Tokens.body)

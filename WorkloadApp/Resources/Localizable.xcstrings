@@ -869,6 +869,83 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "3+ years, understands periodization" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "3 年以上，熟悉周期化训练" } }
       }
+    },
+    "onboarding.language.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Choose your language" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "选择语言" } }
+      }
+    },
+    "onboarding.language.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "You can change this later in Profile." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "之后可在「档案」中修改。" } }
+      }
+    },
+    "onboarding.frequency.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "This helps us calibrate your training load expectations." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我们将据此校准你的训练负荷预期。" } }
+      }
+    },
+    "onboarding.experience.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "We'll adjust insights based on your background." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "我们将根据你的背景调整训练建议。" } }
+      }
+    },
+    "onboarding.healthkit.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connect Health Data" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "连接健康数据" } }
+      }
+    },
+    "onboarding.healthkit.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Tuwa uses your HRV, resting heart rate, and sleep data to calculate your daily recovery score." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "Tuwa 将根据你的心率变异性、静息心率和睡眠数据计算每日恢复评分。" } }
+      }
+    },
+    "onboarding.healthkit.item.hrv" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Heart Rate Variability" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "心率变异性" } }
+      }
+    },
+    "onboarding.healthkit.item.rhr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Resting Heart Rate" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "静息心率" } }
+      }
+    },
+    "onboarding.healthkit.item.sleep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sleep Analysis" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠分析" } }
+      }
+    },
+    "onboarding.healthkit.connect" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Connect Health" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "连接健康" } }
+      }
+    },
+    "onboarding.skipForNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip for now" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂时跳过" } }
+      }
     }
   }
 }

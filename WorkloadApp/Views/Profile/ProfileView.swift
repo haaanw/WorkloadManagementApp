@@ -469,7 +469,7 @@ struct ProfileView: View {
                                 try? await container.signOut(modelContext: modelContext)
                             }
                         } label: {
-                            Text("Sign Out")
+                            Text("profile.signOut")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.zoneDanger)
                                 .frame(maxWidth: .infinity, alignment: .leading)
