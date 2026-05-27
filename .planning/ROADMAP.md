@@ -246,7 +246,7 @@ Plans:
 **Goal:** Add Simplified Chinese (zh-Hans) localization to Tonus alongside English — full in-app coverage (core UI, errors, paywall, legal, push notifications), live language switching via LocaleManager + `.environment(\.locale)`, CJK font cascade (Noto Sans SC over General Sans), and zh-Hans App Store metadata + screenshots.
 **Requirements**: TBD (derived from CONTEXT.md decisions D-01..D-22 + UI-SPEC visual contract + RESEARCH validation architecture)
 **Depends on:** Phase 22
-**Plans:** 5/5 plans complete
+**Plans:** 6 plans (5 complete, 1 gap-closure pending)
 
 Plans:
 
@@ -255,3 +255,4 @@ Plans:
 - [x] 23-03-PLAN.md — Noto Sans SC bundle + UIFontDescriptor cascade in FontTokens
 - [x] 23-04-PLAN.md — zh-Hans translations + marketing-tone second pass + density audit + human review checkpoint
 - [x] 23-05-PLAN.md — App Store Connect zh-Hans metadata draft + scheme + screenshots (autonomous: false; human-verify gates per memory feedback_asc_caution.md)
+- [ ] 23-06-PLAN.md — Gap closure: zh-Hans string-coverage sweep across Auth/Dashboard/Profile/Workload/Recovery/WorkoutLog views (closes VERIFICATION gap #2 / REVIEW WR-01 deferred)
