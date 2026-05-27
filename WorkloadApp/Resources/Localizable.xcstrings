@@ -383,8 +383,8 @@
     "notif.weekly.body.template" : {
       "extractionState" : "manual",
       "localizations" : {
-        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld sessions logged — %lld week streak. %lld new PRs!" } },
-        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本周记录 %lld 次训练 — 已连续 %lld 周。新增 %lld 项个人最佳！" } }
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%1$lld sessions logged — %2$lld week streak. %3$lld new PRs. %4$lld%% volume vs. last week." } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "本周记录 %1$lld 次训练 — 已连续 %2$lld 周。新增 %3$lld 项个人最佳。训练量较上周 %4$lld%%。" } }
       }
     },
     "date.today" : {
