@@ -953,6 +953,41 @@
         "en" : { "stringUnit" : { "state" : "translated", "value" : "Skip for now" } },
         "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "暂时跳过" } }
       }
+    },
+    "recovery.hrv.value" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld ms" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 毫秒" } }
+      }
+    },
+    "recovery.rhr.value" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "%lld bpm" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "%lld 次/分" } }
+      }
+    },
+    "recovery.label.hrv" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "HRV" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "心率变异性" } }
+      }
+    },
+    "recovery.label.restingHR" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Resting HR" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "静息心率" } }
+      }
+    },
+    "recovery.label.sleep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : { "stringUnit" : { "state" : "translated", "value" : "Sleep" } },
+        "zh-Hans" : { "stringUnit" : { "state" : "translated", "value" : "睡眠" } }
+      }
     }
   }
 }

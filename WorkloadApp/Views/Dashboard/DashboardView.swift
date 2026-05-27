@@ -407,6 +407,7 @@ struct EmptyStateCard: View {
 
 struct MetricsStrip: View {
     let viewModel: DashboardViewModel
+    @Environment(\.locale) private var locale
 
     var body: some View {
         HStack(spacing: 0) {
@@ -443,9 +444,7 @@ struct MetricsStrip: View {
     }
 
     private func sleepString(_ minutes: Double) -> String {
-        let h = Int(minutes) / 60
-        let m = Int(minutes) % 60
-        return m > 0 ? "\(h)h \(m)m" : "\(h)h"
+        DateHelpers.durationString(seconds: Int(minutes) * 60, locale: locale)
     }
 }
 

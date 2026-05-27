@@ -230,6 +230,7 @@ struct MorningCheckInPrompt: View {
 
 struct RecoveryScoreCard: View {
     let recovery: RecoverySnapshot?
+    @Environment(\.locale) private var locale
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -260,15 +261,30 @@ struct RecoveryScoreCard: View {
 
                 VStack(spacing: 8) {
                     if let hrv = recovery.hrvSDNN {
-                        RecoveryComponentRow(label: "HRV", value: String(format: "%.0f ms", hrv))
+                        RecoveryComponentRow(
+                            label: "recovery.label.hrv",
+                            value: String(
+                                format: String(localized: "recovery.hrv.value", defaultValue: "%lld ms"),
+                                locale: locale,
+                                Int(hrv)
+                            )
+                        )
                     }
                     if let rhr = recovery.restingHR {
-                        RecoveryComponentRow(label: "Resting HR", value: String(format: "%.0f bpm", rhr))
+                        RecoveryComponentRow(
+                            label: "recovery.label.restingHR",
+                            value: String(
+                                format: String(localized: "recovery.rhr.value", defaultValue: "%lld bpm"),
+                                locale: locale,
+                                Int(rhr)
+                            )
+                        )
                     }
                     if let sleep = recovery.sleepDurationMinutes {
-                        let hours = Int(sleep) / 60
-                        let mins = Int(sleep) % 60
-                        RecoveryComponentRow(label: "Sleep", value: "\(hours)h \(mins)m")
+                        RecoveryComponentRow(
+                            label: "recovery.label.sleep",
+                            value: DateHelpers.durationString(seconds: Int(sleep) * 60, locale: locale)
+                        )
                     }
                 }
             } else {
@@ -284,7 +300,7 @@ struct RecoveryScoreCard: View {
 }
 
 struct RecoveryComponentRow: View {
-    let label: String
+    let label: LocalizedStringKey
     let value: String
 
     var body: some View {
