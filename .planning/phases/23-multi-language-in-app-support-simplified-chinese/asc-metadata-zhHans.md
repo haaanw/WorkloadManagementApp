@@ -1,4 +1,4 @@
-# App Store Connect — Simplified Chinese (zh-Hans) Metadata for Tonus
+# App Store Connect — Simplified Chinese (zh-Hans) Metadata for Tuwa
 
 **Status:** Drafted by Plan 23-05 Task 1. Awaiting user paste-in under Task 3 (`checkpoint:human-verify`).
 
@@ -10,10 +10,10 @@
 
 ## App Name Decision (gated on user confirmation in Task 3)
 
-ASC App Name has two valid styles for Tonus on zh-Hans:
+ASC App Name has two valid styles for Tuwa on zh-Hans:
 
-1. **Hybrid (default in this draft):** `Tonus · 训练负荷管理` — keeps the brand as Latin while giving zh-Hans browsers an immediate descriptor. Aligns with memory `project_rename_faros.md` (Tonus is the official Latin brand).
-2. **Latin-only (brand-purity option):** `Tonus` — matches international branding exactly. If you prefer this, replace the `App Name` value below with `Tonus` before pasting into ASC.
+1. **Hybrid (default in this draft):** `Tuwa · 训练负荷管理` — keeps the brand as Latin while giving zh-Hans browsers an immediate descriptor. Aligns with memory `project_rename_faros.md` (Tuwa is the official Latin brand).
+2. **Latin-only (brand-purity option):** `Tuwa` — matches international branding exactly. If you prefer this, replace the `App Name` value below with `Tuwa` before pasting into ASC.
 
 The draft below uses **option 1 (hybrid)** as the default. User confirms or edits during the Task 3 checkpoint before pasting.
 
@@ -26,7 +26,7 @@ The draft below uses **option 1 (hybrid)** as the default. User confirms or edit
 Limit: 30 characters.
 
 ```text
-Tonus · 训练负荷管理
+Tuwa · 训练负荷管理
 ```
 
 ### Subtitle
@@ -50,17 +50,17 @@ Limit: 170 characters. Editable without re-review — use for time-sensitive ann
 Limit: 4000 characters.
 
 ```text
-Tonus 是为认真训练的运动员打造的负荷与恢复管理工具。把每天的训练负荷与身体状态放在同一个画面里,帮你做出更聪明的决定。
+Tuwa 是为认真训练的运动员打造的负荷与恢复管理工具。把每天的训练负荷与身体状态放在同一个画面里,帮你做出更聪明的决定。
 
 核心理念
 
-训练效果不是一次性的努力,而是负荷与恢复之间长期的平衡。Tonus 把这两条曲线画在一起,让你看见自己身体真实的反应,从根本上避免过度训练与受伤。
+训练效果不是一次性的努力,而是负荷与恢复之间长期的平衡。Tuwa 把这两条曲线画在一起,让你看见自己身体真实的反应,从根本上避免过度训练与受伤。
 
 主要功能
 
 - 每日就绪度评分:综合心率变异性 (HRV)、静息心率、睡眠时长与睡眠效率,给出 0–100 的恢复评分与训练建议。
 - 训练负荷比 (ACWR):基于指数加权移动平均 (EWMA) 的急性/慢性负荷比,实时监控过度训练风险。所有计算遵循已发表的运动科学文献。
-- 自动训练调节:Tonus 会根据当日恢复评分与负荷曲线,推荐保持原计划、降低强度或主动恢复,让你少走弯路。
+- 自动训练调节:Tuwa 会根据当日恢复评分与负荷曲线,推荐保持原计划、降低强度或主动恢复,让你少走弯路。
 - 个人记录追踪 (PR):自动检测力量训练的最大重量、最大次数与体积里程碑,无需手动标记。
 - 模板化训练日志:支持自定义动作、训练组与训练计划模板,适用力量、跑步、骑行与综合训练。
 - HealthKit 深度集成:只读读取 HRV、静息心率、睡眠与训练心率,原始数据不上传云端,只有评分会同步。
@@ -69,7 +69,7 @@ Tonus 是为认真训练的运动员打造的负荷与恢复管理工具。把�
 
 订阅说明
 
-Tonus 提供两个订阅档:Athlete Pro(运动员高级版)解锁历史趋势、智能负荷建议与自定义动作;Coach(教练版)在 Athlete Pro 基础上加入教练面板与运动员管理。订阅通过 Apple 内购管理,可随时取消。
+Tuwa 提供两个订阅档:Athlete Pro(运动员高级版)解锁历史趋势、智能负荷建议与自定义动作;Coach(教练版)在 Athlete Pro 基础上加入教练面板与运动员管理。订阅通过 Apple 内购管理,可随时取消。
 
 隐私
 
