@@ -161,7 +161,7 @@ struct ProfileView: View {
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
-                                Text(container.localeManager.activeLocale.identifier == "zh-Hans" ? "中文" : "English")
+                                Text(container.localeManager.activeLocale.language.languageCode?.identifier == "zh" ? "中文" : "English")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text2)
                                 Image(systemName: "chevron.right")

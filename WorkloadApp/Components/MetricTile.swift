@@ -49,7 +49,7 @@ struct ZoneBadge: View {
             .font(.Tokens.micro)
             .tracking(locale.language.languageCode?.identifier == "en" ? 1.2 : 0)
             .textCase(locale.language.languageCode?.identifier == "en" ? .uppercase : nil)
-            .padding(.horizontal, locale.identifier == "zh-Hans" ? 16 : 10)
+            .padding(.horizontal, locale.language.languageCode?.identifier == "zh" ? 16 : 10)
             .padding(.vertical, 5)
             .foregroundStyle(color)
             .overlay(
