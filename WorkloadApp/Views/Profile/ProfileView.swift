@@ -109,6 +109,7 @@ struct ProfileView: View {
                                     }
                                 ))
                                 .labelsHidden()
+                                .toggleStyle(.design)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
@@ -128,6 +129,7 @@ struct ProfileView: View {
                                     }
                                 ))
                                 .labelsHidden()
+                                .toggleStyle(.design)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
@@ -147,6 +149,7 @@ struct ProfileView: View {
                                     }
                                 ))
                                 .labelsHidden()
+                                .toggleStyle(.design)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
@@ -167,6 +170,7 @@ struct ProfileView: View {
                                     }
                                 ))
                                 .labelsHidden()
+                                .toggleStyle(.design)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
@@ -186,6 +190,7 @@ struct ProfileView: View {
                                     }
                                 ))
                                 .labelsHidden()
+                                .toggleStyle(.design)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
@@ -267,6 +272,7 @@ struct ProfileView: View {
                                 }
                             ))
                             .labelsHidden()
+                            .toggleStyle(.design)
                         }
                         .padding(.horizontal, 16)
                         .padding(.vertical, 12)
@@ -346,7 +352,7 @@ struct ProfileView: View {
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
                                 Image(systemName: "chevron.right")
-                                    .font(.system(size: 12))
+                                    .font(.Tokens.micro)
                                     .foregroundStyle(ColorTokens.text3)
                             }
                             .padding(.horizontal, 16)
@@ -367,7 +373,7 @@ struct ProfileView: View {
                         } label: {
                             HStack(spacing: 8) {
                                 Image(systemName: "arrow.triangle.2.circlepath")
-                                    .font(.system(size: 14))
+                                    .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
                                     .frame(width: 24)
                                 Text("profile.sync.status")
@@ -384,7 +390,7 @@ struct ProfileView: View {
                                         .foregroundStyle(ColorTokens.text2)
                                 }
                                 Image(systemName: "chevron.right")
-                                    .font(.system(size: 12))
+                                    .font(.Tokens.micro)
                                     .foregroundStyle(ColorTokens.text3)
                             }
                             .padding(.horizontal, 16)
@@ -410,6 +416,7 @@ struct ProfileView: View {
                                     }
                                 ))
                                 .labelsHidden()
+                                .toggleStyle(.design)
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 12)
@@ -443,7 +450,7 @@ struct ProfileView: View {
                                     .labelsHidden()
                                 } else {
                                     Image(systemName: "lock.fill")
-                                        .font(.system(size: 12))
+                                        .font(.Tokens.micro)
                                         .foregroundStyle(ColorTokens.text3)
                                 }
                             }
@@ -458,13 +465,14 @@ struct ProfileView: View {
                             divider()
                         }
 
-                        actionButton(isGeneratingCode ? "profile.action.generating" : "profile.action.inviteMyCoach") {
+                        InviteCoachCard(isGenerating: isGeneratingCode) {
                             Task { await generateCode(for: athlete) }
                         }
-                        .disabled(isGeneratingCode)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.sm)
 
                         if athlete.isCoach {
-                            divider()
+                            Spacer().frame(height: Spacing.sm)
                             actionButton("profile.action.inviteAthleteEmail") {
                                 showEmailInviteSheet = true
                             }
@@ -511,8 +519,9 @@ struct ProfileView: View {
                             }
                         }
 
-                        // Sign Out
+                        // Account — destructive actions, grouped + separated
                         sectionDivider()
+                        sectionHeader("profile.section.account")
                         Button {
                             Task {
                                 try? await container.signOut(modelContext: modelContext)
@@ -559,12 +568,11 @@ struct ProfileView: View {
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
             .withContextSwitcher()
-            // Generated code display
-            .alert("profile.invite.codeAlertTitle", isPresented: $showInviteCodeSheet, presenting: generatedCode) { code in
-                Button("action.done") { generatedCode = nil }
-                Button("action.copy") { UIPasteboard.general.string = code }
-            } message: { code in
-                Text(String(format: String(localized: "profile.invite.codeBody"), code))
+            // Generated code display — designed sheet (not the system alert)
+            .sheet(isPresented: $showInviteCodeSheet, onDismiss: { generatedCode = nil }) {
+                if let code = generatedCode {
+                    InviteCodeSheet(code: code)
+                }
             }
             // Enter code sheet
             .sheet(isPresented: $showEnterCodeSheet) {
@@ -622,14 +630,9 @@ struct ProfileView: View {
 
     @ViewBuilder
     private func sectionHeader(_ title: LocalizedStringKey) -> some View {
-        Text(title)
-            .font(.Tokens.micro)
-            .foregroundStyle(ColorTokens.text3)
-            .tracking(0.88)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16)
-            .padding(.top, 24)
-            .padding(.bottom, 8)
+        SectionHeader(title: title)
+            .padding(.top, Spacing.lg)
+            .padding(.bottom, Spacing.sm)
     }
 
     @ViewBuilder
@@ -713,9 +716,7 @@ struct ProfileView: View {
                     Text(displayName(selection.wrappedValue))
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 10))
-                        .foregroundStyle(ColorTokens.text3)
+                    MenuChevron()
                 }
             }
         }
@@ -767,6 +768,110 @@ struct ProfileView: View {
 }
 
 // MARK: - Supporting views
+
+/// Designed invite affordance — the primary coach-linking action, distinguished from the
+/// flat preference rows by a card plane (`cardStyle`), a leading icon, a title + subtitle,
+/// and a bordered action. Replaces the bare flat row that read as just another setting.
+struct InviteCoachCard: View {
+    let isGenerating: Bool
+    let action: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: "person.badge.plus")
+                    .font(.Tokens.sectionHead)
+                    .foregroundStyle(ColorTokens.text1)
+                Text("profile.invite.cardTitle")
+                    .font(.Tokens.sectionHead)
+                    .foregroundStyle(ColorTokens.text1)
+            }
+            Text("profile.invite.cardSubtitle")
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.text2)
+            Button(action: action) {
+                HStack(spacing: Spacing.xs) {
+                    if isGenerating {
+                        ProgressView()
+                        Text("profile.action.generating")
+                            .font(.Tokens.body)
+                            .foregroundStyle(ColorTokens.text2)
+                    } else {
+                        Text("profile.action.inviteMyCoach")
+                            .font(.Tokens.body)
+                            .foregroundStyle(ColorTokens.text1)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.sm)
+                // Heavier 1pt border marks this as the primary action vs the 0.5pt row hairlines.
+                .overlay(Rectangle().stroke(ColorTokens.text2, lineWidth: 1))
+            }
+            .disabled(isGenerating)
+        }
+        .cardStyle()
+    }
+}
+
+/// Designed sheet that displays a generated invite code, replacing the default system alert.
+/// Big tabular code on the card plane, copy + done actions in the separator grammar.
+struct InviteCodeSheet: View {
+    @Environment(\.dismiss) private var dismiss
+    let code: String
+    @State private var copied = false
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    Text("profile.invite.codeSheetTitle")
+                        .font(.Tokens.micro)
+                        .tracking(1.2)
+                        .textCase(.uppercase)
+                        .foregroundStyle(ColorTokens.text3)
+                    Text(code)
+                        .font(.Tokens.pageTitle)
+                        .monospacedDigit()
+                        .tracking(4)
+                        .foregroundStyle(ColorTokens.text1)
+                    Text("profile.invite.shareCodeHint")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
+                    Text("profile.invite.codeExpiry")
+                        .font(.Tokens.smallLabel)
+                        .foregroundStyle(ColorTokens.text3)
+                }
+                .cardStyle()
+                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+
+                Button {
+                    UIPasteboard.general.string = code
+                    copied = true
+                } label: {
+                    Text(copied ? "action.copied" : "action.copy")
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text1)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.sm)
+                }
+                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+
+                Button { dismiss() } label: {
+                    Text("action.done")
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text2)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.sm)
+                }
+                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                Spacer()
+            }
+            .background(ColorTokens.background)
+            .navigationBarHidden(true)
+        }
+    }
+}
 
 struct LinkedPartyRow: View {
     @Query private var athletes: [Athlete]
@@ -961,7 +1066,7 @@ struct HealthKitPermissionsView: View {
                 ForEach(dataTypes, id: \.0) { item in
                     HStack(spacing: 12) {
                         Image(systemName: item.1)
-                            .font(.system(size: 14))
+                            .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                             .frame(width: 24)
                         Text(item.0)
@@ -1046,7 +1151,7 @@ struct HealthKitPermissionsView: View {
                                 .foregroundStyle(ColorTokens.text1)
                             Spacer()
                             Image(systemName: "arrow.up.right")
-                                .font(.system(size: 13))
+                                .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                         }
                         .padding(.horizontal, 16)
@@ -1071,13 +1176,8 @@ struct HealthKitPermissionsView: View {
 
     @ViewBuilder
     private func sectionHeader(_ title: LocalizedStringKey) -> some View {
-        Text(title)
-            .font(.Tokens.micro)
-            .foregroundStyle(ColorTokens.text3)
-            .tracking(0.88)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16)
-            .padding(.top, 24)
-            .padding(.bottom, 8)
+        SectionHeader(title: title)
+            .padding(.top, Spacing.lg)
+            .padding(.bottom, Spacing.sm)
     }
 }

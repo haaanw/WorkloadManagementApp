@@ -476,8 +476,8 @@ struct MetricStripCell: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 20)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
     }
 }
 
