@@ -48,22 +48,12 @@ struct ActiveWorkoutSheet: View {
                         TextField("Session Name (optional)", text: $sessionName)
                             .textFieldStyle(SharpTextFieldStyle())
 
-                        Picker("Sport Type", selection: $sportType) {
-                            ForEach(SportType.allCases) { sport in
-                                Text(sport.displayName).tag(sport)
+                        RadialPicker(selection: $sportType, title: "Sport Type")
+                            .onChange(of: sportType) { _, newSport in
+                                sessionType = defaultSessionType(for: newSport)
                             }
-                        }
-                        .pickerStyle(.segmented)
-                        .onChange(of: sportType) { _, newSport in
-                            sessionType = defaultSessionType(for: newSport)
-                        }
 
-                        Picker("Session Type", selection: $sessionType) {
-                            ForEach(SessionType.allCases) { type in
-                                Text(type.displayName).tag(type)
-                            }
-                        }
-                        .pickerStyle(.segmented)
+                        RadialPicker(selection: $sessionType, title: "Session Type")
 
                         TimelineView(.periodic(from: startTime, by: 1)) { _ in
                             Text(Date.durationString(seconds: Int(elapsed), locale: locale))
