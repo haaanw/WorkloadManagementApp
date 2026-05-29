@@ -196,5 +196,5 @@ Zone colors are desaturated to near-gray intentionally. They are not vivid alarm
 | 2026-03-21 | Accent appears on readiness score only           | The one precious material in the design — used once, completely                     |
 | 2026-03-21 | Secondary text adjusted to #7C7972 (dark mode)   | Meets WCAG AA 4.5:1 contrast — aesthetic preserved, accessibility not compromised   |
 | 2026-03-21 | Dark-first, light mode supported via token system| iOS convention + outdoor readability; same design system, two material expressions  |
-| 2026-05-10 | Migrated from DM Sans to Alpino                 | Geometric sans with sharper terminals -- aligns with International Style direction  |
+| 2026-05-10 | Migrated from DM Sans to Alpino (superseded 2026-05-11 -> General Sans) | Geometric sans with sharper terminals -- aligns with International Style direction  |
 | 2026-05-11 | Migrated from Alpino to General Sans             | Rationalist neo-grotesque — better lining figures for data-heavy UI, superior small-size readability |

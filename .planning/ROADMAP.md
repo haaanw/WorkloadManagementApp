@@ -179,15 +179,15 @@ Plans:
   5. Release outside ring cancels selection (no change)
   6. Works in both TemplateEditorSheet and ActiveWorkoutSheet
   7. Options are customizable per enum (icon + label around ring)
-  8. Follows design system: 0pt corners, no shadows, Alpino font, 8pt grid
+  8. Follows design system: 0pt corners, no shadows, General Sans font, 8pt grid
 
 **Plans**: 3 plans
 
 Plans:
 
-- [x] 17-01-PLAN.md -- Types, models, sync (CyclePhase enum, MenstrualCycleSnapshot, CycleContext, Athlete fields, AthleteRow sync, migration SQL)
-- [x] 17-02-PLAN.md -- CycleTrackingService (HealthKit reader, phase estimator, confidence scorer)
-- [x] 17-03-PLAN.md -- UI (ProfileView Cycle & Hormones section, Dashboard soft prompt banner)
+- [x] 21-01-PLAN.md -- RadialPicker component + RadialSelectable protocol + ring geometry helper + SportType/SessionType conformance + pbxproj
+- [x] 21-02-PLAN.md -- Integration into ActiveWorkoutSheet + Coach TemplateEditorSheet (segmented Picker replacement, defaultSessionType reset preserved)
+- [x] 21-03-PLAN.md -- Behavior/genericity/source-compliance tests + docs hygiene (Alpino->General Sans, plan-list fix)
 
 **UI hint**: yes
 
