@@ -206,13 +206,29 @@ struct AddCustomExerciseSheet: View {
                 }
                 .pickerStyle(.menu)
 
-                Picker("Muscle Group (optional)", selection: $muscleGroup) {
-                    Text("None").tag(MuscleGroup?.none)
-                    ForEach(MuscleGroup.allCases) { group in
-                        Text(group.displayName).tag(MuscleGroup?.some(group))
+                NavigationLink {
+                    MuscleGroupSelector(selection: $muscleGroup)
+                } label: {
+                    HStack(spacing: 8) {
+                        Text("Muscle Group (optional)")
+                            .font(.Tokens.body)
+                            .foregroundStyle(ColorTokens.text1)
+                        Spacer()
+                        Text(muscleGroup?.displayName ?? "None")
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text2)
+                        Image(systemName: "chevron.right")
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text3)
                     }
+                    .padding(.vertical, 8)
+                    .contentShape(Rectangle())
                 }
-                .pickerStyle(.menu)
+                .buttonStyle(.plain)
+
+                Rectangle()
+                    .fill(ColorTokens.divider)
+                    .frame(height: 0.5)
 
                 Spacer()
             }
@@ -245,6 +261,96 @@ struct AddCustomExerciseSheet: View {
                 }
             }
         }
+    }
+}
+
+// MARK: - Muscle Group Selector (hierarchical region -> muscle)
+
+/// Hierarchical muscle-group picker grouped by `MuscleRegion`. Replaces the
+/// flat all-cases menu. Presents a "None" option plus one section per region
+/// (text header) listing that region's specific muscles. When opened on a
+/// retained coarse value (e.g. `.legs`), the row for its `suggestedSpecific`
+/// default is highlighted to nudge the user to refine, while the coarse value
+/// itself remains keepable under its region.
+struct MuscleGroupSelector: View {
+    @Environment(\.dismiss) private var dismiss
+    @Binding var selection: MuscleGroup?
+
+    /// The specific muscle suggested for the current (possibly coarse) value,
+    /// used only to highlight a nudge — never rewrites the binding.
+    private var suggestion: MuscleGroup? {
+        guard let selection else { return nil }
+        let suggested = MuscleGroup.suggestedSpecific(for: selection)
+        return suggested == selection ? nil : suggested
+    }
+
+    private func muscles(in region: MuscleRegion) -> [MuscleGroup] {
+        MuscleGroup.allCases.filter { $0.region == region }
+    }
+
+    var body: some View {
+        List {
+            Section {
+                row(title: String(localized: "muscleGroup.none", defaultValue: "None"),
+                    isSelected: selection == nil) {
+                    selection = nil
+                    dismiss()
+                }
+            }
+
+            ForEach(MuscleRegion.allCases) { region in
+                Section {
+                    ForEach(muscles(in: region)) { muscle in
+                        row(title: muscle.displayName,
+                            isSelected: selection == muscle,
+                            isSuggested: suggestion == muscle) {
+                            selection = muscle
+                            dismiss()
+                        }
+                    }
+                } header: {
+                    HStack(spacing: 8) {
+                        Image(systemName: region.systemImage)
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text2)
+                        Text(region.displayName)
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text2)
+                    }
+                }
+            }
+        }
+        .listStyle(.plain)
+        .background(ColorTokens.background)
+        .navigationTitle("Muscle Group")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    @ViewBuilder
+    private func row(title: String, isSelected: Bool, isSuggested: Bool = false, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            HStack(spacing: 8) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(title)
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text1)
+                    if isSuggested {
+                        Text(String(localized: "muscleGroup.suggested", defaultValue: "Suggested"))
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text2)
+                    }
+                }
+                Spacer()
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text1)
+                }
+            }
+            .padding(.vertical, 8)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.plain)
     }
 }
 
@@ -311,16 +417,16 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Barbell Row", category: .compound, muscleGroup: .back),
         ExerciseDefinition(name: "Deadlift", category: .compound, muscleGroup: .back),
         ExerciseDefinition(name: "Pull Up", category: .compound, muscleGroup: .back),
-        ExerciseDefinition(name: "Lat Pulldown", category: .compound, muscleGroup: .back),
+        ExerciseDefinition(name: "Lat Pulldown", category: .compound, muscleGroup: .lats),
         ExerciseDefinition(name: "Seated Cable Row", category: .compound, muscleGroup: .back),
 
         // Compound - Legs
-        ExerciseDefinition(name: "Barbell Back Squat", category: .compound, muscleGroup: .legs),
-        ExerciseDefinition(name: "Front Squat", category: .compound, muscleGroup: .legs),
-        ExerciseDefinition(name: "Romanian Deadlift", category: .compound, muscleGroup: .legs),
-        ExerciseDefinition(name: "Leg Press", category: .compound, muscleGroup: .legs),
+        ExerciseDefinition(name: "Barbell Back Squat", category: .compound, muscleGroup: .quads),
+        ExerciseDefinition(name: "Front Squat", category: .compound, muscleGroup: .quads),
+        ExerciseDefinition(name: "Romanian Deadlift", category: .compound, muscleGroup: .hamstrings),
+        ExerciseDefinition(name: "Leg Press", category: .compound, muscleGroup: .quads),
         ExerciseDefinition(name: "Bulgarian Split Squat", category: .compound, muscleGroup: .legs),
-        ExerciseDefinition(name: "Hip Thrust", category: .compound, muscleGroup: .legs),
+        ExerciseDefinition(name: "Hip Thrust", category: .compound, muscleGroup: .glutes),
         ExerciseDefinition(name: "Hex Bar Deadlift", category: .compound, muscleGroup: .legs),
 
         // Compound - Shoulders
@@ -328,14 +434,14 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Dumbbell Shoulder Press", category: .compound, muscleGroup: .shoulders),
 
         // Isolation
-        ExerciseDefinition(name: "Bicep Curl", category: .isolation, muscleGroup: .arms),
-        ExerciseDefinition(name: "Tricep Pushdown", category: .isolation, muscleGroup: .arms),
-        ExerciseDefinition(name: "Lateral Raise", category: .isolation, muscleGroup: .shoulders),
-        ExerciseDefinition(name: "Face Pull", category: .isolation, muscleGroup: .shoulders),
-        ExerciseDefinition(name: "Leg Curl", category: .isolation, muscleGroup: .legs),
-        ExerciseDefinition(name: "Leg Extension", category: .isolation, muscleGroup: .legs),
+        ExerciseDefinition(name: "Bicep Curl", category: .isolation, muscleGroup: .biceps),
+        ExerciseDefinition(name: "Tricep Pushdown", category: .isolation, muscleGroup: .triceps),
+        ExerciseDefinition(name: "Lateral Raise", category: .isolation, muscleGroup: .lateralDelts),
+        ExerciseDefinition(name: "Face Pull", category: .isolation, muscleGroup: .posteriorDelts),
+        ExerciseDefinition(name: "Leg Curl", category: .isolation, muscleGroup: .hamstrings),
+        ExerciseDefinition(name: "Leg Extension", category: .isolation, muscleGroup: .quads),
         ExerciseDefinition(name: "Cable Fly", category: .isolation, muscleGroup: .chest),
-        ExerciseDefinition(name: "Calf Raise", category: .isolation, muscleGroup: .legs),
+        ExerciseDefinition(name: "Calf Raise", category: .isolation, muscleGroup: .calves),
 
         // Cardio (gym)
         ExerciseDefinition(name: "Treadmill Run", category: .cardio, muscleGroup: .fullBody),
@@ -347,8 +453,8 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Push Up", category: .bodyweight, muscleGroup: .chest),
         ExerciseDefinition(name: "Chin Up", category: .bodyweight, muscleGroup: .back),
         ExerciseDefinition(name: "Dip", category: .bodyweight, muscleGroup: .chest),
-        ExerciseDefinition(name: "Plank", category: .bodyweight, muscleGroup: .core),
-        ExerciseDefinition(name: "Hanging Leg Raise", category: .bodyweight, muscleGroup: .core),
+        ExerciseDefinition(name: "Plank", category: .bodyweight, muscleGroup: .rectusAbdominis),
+        ExerciseDefinition(name: "Hanging Leg Raise", category: .bodyweight, muscleGroup: .rectusAbdominis),
     ]
 
     static let plyometric: [ExerciseDefinition] = [
