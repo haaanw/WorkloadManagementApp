@@ -23,8 +23,8 @@ private extension UIColor {
 enum ColorTokens {
     // MARK: - Backgrounds
     static let background   = Color(uiColor: .adaptive(dark: 0x0B0B0A, light: 0xF4F1ED))
-    static let surface      = Color(uiColor: .adaptive(dark: 0x131312, light: 0xEDEAE6))
-    static let surfaceEl    = Color(uiColor: .adaptive(dark: 0x1A1A19, light: 0xE4E0DB))
+    static let surface      = Color(uiColor: .adaptive(dark: 0x161615, light: 0xEDEAE6))
+    static let surfaceEl    = Color(uiColor: .adaptive(dark: 0x1F1F1D, light: 0xE4E0DB))
     static let divider      = Color(uiColor: .adaptive(dark: 0x232321, light: 0xCFCBC5))
 
     // MARK: - Text
@@ -52,7 +52,7 @@ enum ColorTokens {
     // MARK: - Legacy aliases (migrate views to new tokens progressively)
     static let primaryAccent       = text1
     static let secondaryAccent     = text2
-    static let cardBackground      = surface
+    static let cardBackground      = surfaceEl
     static let secondaryBackground = background
     static let recoveryRed         = zoneDanger
     static let recoveryYellow      = zoneCaution

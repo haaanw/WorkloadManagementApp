@@ -15,6 +15,7 @@
 		0B040200000000000000000A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B040100000000000000000A /* OnboardingView.swift */; };
 		1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000A2 /* FinishWorkoutSheet.swift */; };
 		1101010100000000000000B1 /* ToastBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000B2 /* ToastBanner.swift */; };
+		CD0501010000000000000001 /* CardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0501010000000000000002 /* CardStyle.swift */; };
 		1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000C2 /* TemplateCarouselSection.swift */; };
 		1101010100000000000000D1 /* TemplatePreviewSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000D2 /* TemplatePreviewSheet.swift */; };
 		FF1502010000000000000001 /* ShareCodeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1502010000000000000002 /* ShareCodeSheet.swift */; };
@@ -192,6 +193,7 @@
 		0E22F40541D936BBC3B8BE4E /* ContextSwitcher.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = ContextSwitcher.swift; path = Coach/ContextSwitcher.swift; sourceTree = "<group>"; };
 		1101010100000000000000A2 /* FinishWorkoutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishWorkoutSheet.swift; sourceTree = "<group>"; };
 		1101010100000000000000B2 /* ToastBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ToastBanner.swift; sourceTree = "<group>"; };
+		CD0501010000000000000002 /* CardStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CardStyle.swift; sourceTree = "<group>"; };
 		1101010100000000000000C2 /* TemplateCarouselSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateCarouselSection.swift; sourceTree = "<group>"; };
 		1101010100000000000000D2 /* TemplatePreviewSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePreviewSheet.swift; sourceTree = "<group>"; };
 		FF1502010000000000000002 /* ShareCodeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCodeSheet.swift; sourceTree = "<group>"; };
@@ -433,6 +435,7 @@
 				BB0203010000000000000002 /* DeltaIndicator.swift */,
 				62324BE42F66CB0E00A9C2BE /* HRVTrendChart.swift */,
 				62324BE52F66CB0E00A9C2BE /* MetricTile.swift */,
+				CD0501010000000000000002 /* CardStyle.swift */,
 				62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */,
 				DD1303010000000000000002 /* SharpTextFieldStyle.swift */,
 				62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */,
@@ -956,6 +959,7 @@
 				DD1303010000000000000001 /* SharpTextFieldStyle.swift in Sources */,
 				1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */,
 				1101010100000000000000B1 /* ToastBanner.swift in Sources */,
+				CD0501010000000000000001 /* CardStyle.swift in Sources */,
 				1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */,
 				1101010100000000000000D1 /* TemplatePreviewSheet.swift in Sources */,
 				FF1502010000000000000001 /* ShareCodeSheet.swift in Sources */,

@@ -56,8 +56,8 @@ Source: https://www.fontshare.com/fonts/general-sans (ITF FFL license)
 | Token            | Hex       | Usage                                              |
 |------------------|-----------|----------------------------------------------------|
 | `--bg`           | `#0B0B0A` | App background — warm near-black                  |
-| `--surface`      | `#131312` | Cards, sheets — barely lifted from background     |
-| `--surface-el`   | `#1A1A19` | Elevated surfaces (modals, popovers)              |
+| `--surface`      | `#161615` | Inline strips — lifted from background (revised 2026-05-30, was #131312) |
+| `--surface-el`   | `#1F1F1D` | Card plane — standard fill for grouped/elevated cards (revised 2026-05-30, was #1A1A19) |
 | `--divider`      | `#232321` | Hairline rules — the only separator tool used     |
 | `--text-1`       | `#C2BEB7` | Primary text — warm off-white, not pure white     |
 | `--text-2`       | `#7C7972` | Secondary text — adjusted to ≥4.5:1 contrast     |
@@ -114,6 +114,38 @@ extension ColorTokens {
 ```
 
 Add corresponding entries to `Assets.xcassets` with "Any" (light) and "Dark" appearance slots.
+
+### Elevation Ladder (revised 2026-05-30)
+
+Three background planes, used deliberately to create depth without shadows or rounding:
+
+| Plane         | Token        | Dark      | Light     | Usage                                                            |
+|---------------|--------------|-----------|-----------|------------------------------------------------------------------|
+| Page          | `background` | `#0B0B0A` | `#F4F1ED` | The scroll canvas behind everything                              |
+| Card          | `surfaceEl`  | `#1F1F1D` | `#E4E0DB` | **Default fill for any grouped/elevated card** (hero, summary, banners, prompts) |
+| Inline strip  | `surface`    | `#161615` | `#EDEAE6` | Flat inline regions that sit *on* the page (metrics strip, flat row lists) |
+
+**Revision rationale:** Dark `surface` (`#131312`) sat only ~3% luminance above `background` (`#0B0B0A`) — cards and page were visually identical, which is the root of the "everything blends together, can't tell where to click" feedback. We (a) raise dark `surface` to `#161615` and `surfaceEl` to `#1F1F1D` to open a perceptible gap, and (b) formalize `surfaceEl` as the standard *card* fill so any grouped, tappable container reads as a distinct plane lifted off the page. Light mode values are unchanged (already legible). Elevation is still communicated by plane + a 0.5pt `divider` border only — never by shadow or rounding.
+
+### Separator Grammar (revised 2026-05-30)
+
+Two — and only two — separator tools, used for two different jobs:
+
+1. **Section break** — between top-level sections (e.g. Athlete Info → Preferences → Notifications). Communicated by a **32pt vertical gap** (`lg`) and a 19pt Medium `sectionHead` header introducing the next section. A full-width 0.5pt `divider` may optionally cap the break. Section breaks must never be a bare 8pt spacer — that was the drift that flattened the hierarchy.
+2. **Row separator** — between sibling rows *inside* one section. A single 0.5pt `divider` hairline, inset 16pt from the leading edge to read as subordinate to the section break.
+
+This gives the eye a clear two-level rhythm: heavy break (gap + header) vs light hairline (row). Section headers are 19pt Medium `--text-1` (the `sectionHead` token) — **not** 12pt micro-caps `--text-3`. Micro-caps `--text-3` labels are reserved for inline metric captions (HRV / RHR / SLEEP), never for section headers.
+
+### Card Pattern
+
+The single reusable card container (`cardStyle` modifier, `Components/CardStyle.swift`):
+
+- Fill: `surfaceEl` (the card plane).
+- Border: `Rectangle().stroke(divider, width: 0.5)` — never `RoundedRectangle`, never a shadow.
+- Padding: 16pt horizontal (`sm`), 24pt vertical (`md`).
+- Corners: 0pt (square), always.
+
+`SectionHeader` (19pt Medium `sectionHead`) and `SectionContainer` (applies the 32pt top break) are the companion primitives. All grouped UI on Dashboard and Profile is built from these — no hand-rolled background+overlay per screen.
 
 ### Accent Color Rule
 
@@ -198,3 +230,5 @@ Zone colors are desaturated to near-gray intentionally. They are not vivid alarm
 | 2026-03-21 | Dark-first, light mode supported via token system| iOS convention + outdoor readability; same design system, two material expressions  |
 | 2026-05-10 | Migrated from DM Sans to Alpino (superseded 2026-05-11 -> General Sans) | Geometric sans with sharper terminals -- aligns with International Style direction  |
 | 2026-05-11 | Migrated from Alpino to General Sans             | Rationalist neo-grotesque — better lining figures for data-heavy UI, superior small-size readability |
+| 2026-05-30 | Widened dark elevation ladder; formalized `surfaceEl` as card plane | Original `surface` (#131312) was ~3% above `background` — cards blended into the page ("can't tell where to click"). Raised `surface`→#161615, `surfaceEl`→#1F1F1D; cards now use `surfaceEl`. Light mode unchanged. |
+| 2026-05-30 | Two-tier separator grammar + `cardStyle`/`SectionHeader`/`SectionContainer` primitives | Section breaks (32pt gap + 19pt Medium header) vs row hairlines (inset 0.5pt). Restores hierarchy lost when section headers drifted to 12pt micro-caps and section gaps to 8pt spacers. |

@@ -90,7 +90,7 @@ struct DashboardView: View {
                                     cyclePromptDismissed = true
                                 } label: {
                                     Image(systemName: "xmark")
-                                        .font(.system(size: 13))
+                                        .font(.Tokens.smallLabel)
                                         .foregroundStyle(ColorTokens.text2)
                                 }
                                 .accessibilityLabel("Dismiss cycle tracking prompt")
@@ -109,33 +109,21 @@ struct DashboardView: View {
                                     .underline()
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
-                        .background(ColorTokens.surface)
-                        .overlay(
-                            Rectangle()
-                                .stroke(ColorTokens.divider, lineWidth: 0.5)
-                        )
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
+                        .cardStyle(verticalPadding: Spacing.sm)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.xs)
                     }
-
-                    Spacer().frame(height: 8)
 
                     // Unobtrusive opt-in cycle indicator (CYCLE-06 SC1, D-07).
                     // Invisible when no HealthKit menstrual data (latestCycleSnapshot == nil, SC6/D-01).
                     if let snap = latestCycleSnapshot {
                         CycleStatusStrip(snapshot: snap)
-                        Spacer().frame(height: 8)
+                        Spacer().frame(height: Spacing.xs)
                     }
 
                     MetricsStrip(viewModel: viewModel)
 
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-
-                    Spacer().frame(height: 8)
+                    Spacer().frame(height: Spacing.lg)
 
                     // Weekly Summary (ANLYT-02, ANLYT-03, D-03)
                     if let summary = viewModel.weeklySummary, summary.sessionCount > 0 {
@@ -172,16 +160,13 @@ struct DashboardView: View {
                             Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                         }
 
-                        Spacer().frame(height: 8)
+                        Spacer().frame(height: Spacing.lg)
                     } else if !viewModel.isLoading {
                         Text("dashboard.weeklySummary.firstWeekPrompt")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                        Spacer().frame(height: 8)
+                            .cardStyle(verticalPadding: Spacing.sm)
+                        Spacer().frame(height: Spacing.lg)
                     }
 
                     // Fatigue attention signal (D-FAT, COLD-07)
@@ -190,26 +175,17 @@ struct DashboardView: View {
                         Text("dashboard.coldStart.buildingBaseline")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
-                            .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-                            .background(ColorTokens.surface)
-                            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
-                        Spacer().frame(height: 8)
+                            .cardStyle(verticalPadding: Spacing.sm)
+                        Spacer().frame(height: Spacing.lg)
                     } else if let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
                               zone != .low {
                         FatigueAttentionBanner(fatigueIndex: fi, zone: zone)
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                        Spacer().frame(height: 8)
+                        Spacer().frame(height: Spacing.lg)
                     }
 
                     TrainingLoadSection(viewModel: viewModel)
 
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-
-                    Spacer().frame(height: 8)
+                    Spacer().frame(height: Spacing.lg)
 
                     RecentSessionsSection(sessions: Array(recentSessions.prefix(5)))
                 }
@@ -337,15 +313,7 @@ struct HeroReadinessCard: View {
                     .foregroundStyle(ColorTokens.text1)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ColorTokens.surface)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
-        }
+        .cardStyle()
     }
 
     @ViewBuilder
@@ -362,7 +330,7 @@ struct HeroReadinessCard: View {
             Spacer()
             if trendDestination(for: factor) != nil {
                 Image(systemName: "chevron.right")
-                    .font(.system(size: 12, weight: .medium))
+                    .font(.Tokens.smallLabel)
                     .foregroundStyle(ColorTokens.text3)
             }
         }
@@ -407,22 +375,16 @@ struct EmptyStateCard: View {
                 Text("dashboard.action.connectHealth")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
                     .overlay(
                         Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                     )
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ColorTokens.background)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
-        }
+        .cardStyle()
+        .padding(.horizontal, Spacing.sm)
+        .padding(.top, Spacing.xs)
     }
 }
 
@@ -435,15 +397,9 @@ struct HealthKitNoDataCard: View {
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ColorTokens.background)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
-        }
+        .cardStyle()
+        .padding(.horizontal, Spacing.sm)
+        .padding(.top, Spacing.xs)
     }
 }
 
@@ -534,9 +490,8 @@ struct TrainingLoadSection: View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
                 Text("dashboard.section.trainingLoad")
-                    .font(.Tokens.micro)
-                    .tracking(1.2)
-                    .foregroundStyle(ColorTokens.text3)
+                    .font(.Tokens.sectionHead)
+                    .foregroundStyle(ColorTokens.text1)
                 Spacer()
                 ZoneBadge(
                     label: viewModel.acwrZone.displayName,
@@ -581,8 +536,8 @@ struct TrainingLoadSection: View {
                 )
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 20)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.md)
         .background(ColorTokens.background)
     }
 }
@@ -622,12 +577,8 @@ struct RecentSessionsSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("dashboard.section.recentSessions")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
+            SectionHeader(title: "dashboard.section.recentSessions")
+                .padding(.bottom, Spacing.sm)
 
             Rectangle()
                 .fill(ColorTokens.divider)
