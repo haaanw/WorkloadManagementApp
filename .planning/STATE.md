@@ -34,7 +34,7 @@ Outstanding before ship:
 - Human UAT: Phase 21 gesture feel/haptics (device), Phase 19 cycle UI opt-in flows, Phase 23 zh-Hans
 - Pre-existing blocker: #if DEBUG font assertionFailure in App/WorkloadApp.swift crashes XCTest host (whole unit suite unrunnable) — fix to re-enable CI tests
 - zh-Hans review: 4 muscle terms (hipRotators, tibialisAnterior, transverseAbdominis, erectors)
-- Branding conflict: CLAUDE.md says "Tonus", memory says "Tuwa" — needs user decision
+- Branding: RESOLVED 2026-05-30 — official name is Tuwa (user-confirmed); CLAUDE.md updated. Faros/Tonus/Tutrice dead; bundle ID stays com.tonus.app
 
 Progress (v1.4+v1.5): [███████████████] 100% (Phases 17-22 complete, pending UAT)
 

@@ -87,7 +87,7 @@ Key constraints to enforce:
 <!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
-**Tonus**
+**Tuwa** — official product name. (Faros, Tonus, Tutrice are all dead/abandoned names; never use them in user-facing copy. Bundle ID remains `com.tonus.app`. Repo dir is still `Tonus/` for historical reasons.)
 
 Athlete workload management iOS app that combines recovery scoring (HRV, sleep, RHR) with training load tracking (ACWR, EWMA) to give athletes a daily readiness picture and long-term overtraining prevention. Supports both individual athletes and coach-athlete relationships with two-tier subscriptions.
 
