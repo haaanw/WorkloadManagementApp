@@ -166,10 +166,18 @@ enum ExerciseInputMode {
     case durationOnly     // duration, RPE (drills, skills, team sport activities)
 }
 
-enum MuscleGroup: String, Codable, CaseIterable, Identifiable {
-    case chest
-    case back
+/// High-level region used to group `MuscleGroup` cases into a
+/// region -> sub-group hierarchy in the muscle picker.
+///
+/// Named `MuscleRegion` (not `BodyRegion`) to avoid colliding with the
+/// pre-existing injury-tracking `BodyRegion` enum (joints: shoulder, knee,
+/// hip, ...). `fullBody` is retained as a region because cardio / running /
+/// team-sport seed exercises depend on the coarse `MuscleGroup.fullBody`
+/// value (see Phase 22 D-02).
+enum MuscleRegion: String, Codable, CaseIterable, Identifiable {
     case legs
+    case back
+    case chest
     case shoulders
     case arms
     case core
@@ -179,6 +187,90 @@ enum MuscleGroup: String, Codable, CaseIterable, Identifiable {
 
     var displayName: String {
         switch self {
+        case .legs: String(localized: "muscleRegion.legs", defaultValue: "Legs")
+        case .back: String(localized: "muscleRegion.back", defaultValue: "Back")
+        case .chest: String(localized: "muscleRegion.chest", defaultValue: "Chest")
+        case .shoulders: String(localized: "muscleRegion.shoulders", defaultValue: "Shoulders")
+        case .arms: String(localized: "muscleRegion.arms", defaultValue: "Arms")
+        case .core: String(localized: "muscleRegion.core", defaultValue: "Core")
+        case .fullBody: String(localized: "muscleRegion.fullBody", defaultValue: "Full Body")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .legs: "figure.walk"
+        case .back: "figure.stand"
+        case .chest: "figure.arms.open"
+        case .shoulders: "figure.strengthtraining.functional"
+        case .arms: "dumbbell.fill"
+        case .core: "figure.core.training"
+        case .fullBody: "figure.strengthtraining.traditional"
+        }
+    }
+}
+
+/// Anatomically specific muscle taxonomy (Phase 22).
+///
+/// The original 7 coarse cases (`chest, back, legs, shoulders, arms, core,
+/// fullBody`) are RETAINED with their exact original rawValues so every
+/// existing SwiftData row and `groups_json` blob continues to decode
+/// without migration (backward compat by retention — see D-03). The new
+/// ~26 specific cases are purely additive lowerCamelCase rawValues, which
+/// are permanent serialization contracts and must never be renamed.
+enum MuscleGroup: String, Codable, CaseIterable, Identifiable {
+    // MARK: Retained coarse cases (region-level aliases — D-03/D-04)
+    case chest
+    case back
+    case legs
+    case shoulders
+    case arms
+    case core
+    case fullBody
+
+    // MARK: Legs (specific)
+    case quads
+    case hamstrings
+    case glutes
+    case calves
+    case hipFlexors
+    case psoas
+    case adductors
+    case hipRotators
+    case tibialisAnterior
+
+    // MARK: Back (specific)
+    case lats
+    case trapsUpper
+    case trapsMid
+    case trapsLower
+    case rhomboids
+    case erectors
+
+    // MARK: Chest (specific)
+    case pecsUpper
+    case pecsLower
+
+    // MARK: Shoulders (specific)
+    case anteriorDelts
+    case lateralDelts
+    case posteriorDelts
+
+    // MARK: Arms (specific)
+    case biceps
+    case triceps
+    case forearms
+
+    // MARK: Core (specific)
+    case rectusAbdominis
+    case obliques
+    case transverseAbdominis
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        // Retained coarse cases keep their region-name label (D-04)
         case .chest: String(localized: "muscleGroup.chest", defaultValue: "Chest")
         case .back: String(localized: "muscleGroup.back", defaultValue: "Back")
         case .legs: String(localized: "muscleGroup.legs", defaultValue: "Legs")
@@ -186,6 +278,86 @@ enum MuscleGroup: String, Codable, CaseIterable, Identifiable {
         case .arms: String(localized: "muscleGroup.arms", defaultValue: "Arms")
         case .core: String(localized: "muscleGroup.core", defaultValue: "Core")
         case .fullBody: String(localized: "muscleGroup.fullBody", defaultValue: "Full Body")
+        // Legs
+        case .quads: String(localized: "muscleGroup.quads", defaultValue: "Quads")
+        case .hamstrings: String(localized: "muscleGroup.hamstrings", defaultValue: "Hamstrings")
+        case .glutes: String(localized: "muscleGroup.glutes", defaultValue: "Glutes")
+        case .calves: String(localized: "muscleGroup.calves", defaultValue: "Calves")
+        case .hipFlexors: String(localized: "muscleGroup.hipFlexors", defaultValue: "Hip Flexors")
+        case .psoas: String(localized: "muscleGroup.psoas", defaultValue: "Psoas")
+        case .adductors: String(localized: "muscleGroup.adductors", defaultValue: "Adductors")
+        case .hipRotators: String(localized: "muscleGroup.hipRotators", defaultValue: "Hip Rotators")
+        case .tibialisAnterior: String(localized: "muscleGroup.tibialisAnterior", defaultValue: "Tibialis Anterior")
+        // Back
+        case .lats: String(localized: "muscleGroup.lats", defaultValue: "Lats")
+        case .trapsUpper: String(localized: "muscleGroup.trapsUpper", defaultValue: "Upper Traps")
+        case .trapsMid: String(localized: "muscleGroup.trapsMid", defaultValue: "Mid Traps")
+        case .trapsLower: String(localized: "muscleGroup.trapsLower", defaultValue: "Lower Traps")
+        case .rhomboids: String(localized: "muscleGroup.rhomboids", defaultValue: "Rhomboids")
+        case .erectors: String(localized: "muscleGroup.erectors", defaultValue: "Erectors")
+        // Chest
+        case .pecsUpper: String(localized: "muscleGroup.pecsUpper", defaultValue: "Upper Chest")
+        case .pecsLower: String(localized: "muscleGroup.pecsLower", defaultValue: "Lower Chest")
+        // Shoulders
+        case .anteriorDelts: String(localized: "muscleGroup.anteriorDelts", defaultValue: "Front Delts")
+        case .lateralDelts: String(localized: "muscleGroup.lateralDelts", defaultValue: "Side Delts")
+        case .posteriorDelts: String(localized: "muscleGroup.posteriorDelts", defaultValue: "Rear Delts")
+        // Arms
+        case .biceps: String(localized: "muscleGroup.biceps", defaultValue: "Biceps")
+        case .triceps: String(localized: "muscleGroup.triceps", defaultValue: "Triceps")
+        case .forearms: String(localized: "muscleGroup.forearms", defaultValue: "Forearms")
+        // Core
+        case .rectusAbdominis: String(localized: "muscleGroup.rectusAbdominis", defaultValue: "Rectus Abdominis")
+        case .obliques: String(localized: "muscleGroup.obliques", defaultValue: "Obliques")
+        case .transverseAbdominis: String(localized: "muscleGroup.transverseAbdominis", defaultValue: "Transverse Abdominis")
+        }
+    }
+
+    /// The muscle region this muscle belongs to. Exhaustive over all cases
+    /// (old + new) — single source of truth for grouping the picker.
+    var region: MuscleRegion {
+        switch self {
+        // Retained coarse cases map to their own region
+        case .chest: .chest
+        case .back: .back
+        case .legs: .legs
+        case .shoulders: .shoulders
+        case .arms: .arms
+        case .core: .core
+        case .fullBody: .fullBody
+        // Legs
+        case .quads, .hamstrings, .glutes, .calves, .hipFlexors, .psoas,
+             .adductors, .hipRotators, .tibialisAnterior: .legs
+        // Back
+        case .lats, .trapsUpper, .trapsMid, .trapsLower, .rhomboids, .erectors: .back
+        // Chest
+        case .pecsUpper, .pecsLower: .chest
+        // Shoulders
+        case .anteriorDelts, .lateralDelts, .posteriorDelts: .shoulders
+        // Arms
+        case .biceps, .triceps, .forearms: .arms
+        // Core
+        case .rectusAbdominis, .obliques, .transverseAbdominis: .core
+        }
+    }
+
+    var systemImage: String { region.systemImage }
+
+    /// Default specific muscle for a coarse region value, used by the
+    /// picker's "specify" UX (D-05). Returns the input unchanged for any
+    /// value that is already specific (idempotent). Never rewrites stored
+    /// data — only nudges the user when they actively re-specify.
+    static func suggestedSpecific(for coarse: MuscleGroup) -> MuscleGroup {
+        switch coarse {
+        case .legs: .quads
+        case .chest: .pecsLower
+        case .back: .lats
+        case .shoulders: .lateralDelts
+        case .arms: .biceps
+        case .core: .rectusAbdominis
+        case .fullBody: .fullBody
+        // Already-specific values are returned unchanged
+        default: coarse
         }
     }
 }
