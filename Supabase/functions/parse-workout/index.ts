@@ -21,7 +21,7 @@ Rules:
 - Group exercises by day or section headers if present. If no grouping structure exists, use a single group named "Main".
 - Mark sets as warmup only if explicitly labeled as warmup in the text.
 - exercise_category should reflect the movement type: compound (multi-joint), isolation (single-joint), cardio, bodyweight, plyometric, drill, or interval.
-- muscle_group should be the primary muscle targeted. Use null if unclear or not applicable.`;
+- muscle_group should be the most specific primary muscle targeted when identifiable (e.g. "quads" not just "legs", "lats" not just "back", "biceps" not just "arms", "pecsUpper"/"pecsLower" for chest, "lateralDelts"/"anteriorDelts"/"posteriorDelts" for shoulders). Fall back to the coarse region value (chest, back, legs, shoulders, arms, core, fullBody) only when the specific muscle is ambiguous, or use null if unclear or not applicable.`;
 
 const WORKOUT_SCHEMA = {
   type: "object" as const,
@@ -70,6 +70,7 @@ const WORKOUT_SCHEMA = {
                 muscle_group: {
                   type: ["string", "null"] as const,
                   enum: [
+                    // Retained coarse region values (backward compatible)
                     "chest",
                     "back",
                     "legs",
@@ -77,6 +78,33 @@ const WORKOUT_SCHEMA = {
                     "arms",
                     "core",
                     "fullBody",
+                    // Specific muscles (Phase 22 taxonomy)
+                    "quads",
+                    "hamstrings",
+                    "glutes",
+                    "calves",
+                    "hipFlexors",
+                    "psoas",
+                    "adductors",
+                    "hipRotators",
+                    "tibialisAnterior",
+                    "lats",
+                    "trapsUpper",
+                    "trapsMid",
+                    "trapsLower",
+                    "rhomboids",
+                    "erectors",
+                    "pecsUpper",
+                    "pecsLower",
+                    "anteriorDelts",
+                    "lateralDelts",
+                    "posteriorDelts",
+                    "biceps",
+                    "triceps",
+                    "forearms",
+                    "rectusAbdominis",
+                    "obliques",
+                    "transverseAbdominis",
                     null,
                   ],
                 },
