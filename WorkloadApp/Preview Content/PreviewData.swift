@@ -12,6 +12,7 @@ enum PreviewData {
             SetRecord.self,
             WorkloadSnapshot.self,
             RecoverySnapshot.self,
+            CyclePredictionLog.self,
             WellnessCheckIn.self,
             PersonalRecord.self,
         ])
