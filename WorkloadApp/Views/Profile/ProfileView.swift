@@ -16,7 +16,9 @@ struct ProfileView: View {
         !cycleSnapshots.isEmpty ||
         athlete?.isOnHormonalContraceptive != nil ||
         athlete?.isPregnant != nil ||
-        athlete?.isLactating != nil
+        athlete?.isLactating != nil ||
+        athlete?.hasPCOS != nil ||
+        athlete?.isPerimenopausal != nil
     }
 
     // Notification settings
@@ -141,6 +143,45 @@ struct ProfileView: View {
                                     get: { athlete.isLactating ?? false },
                                     set: { newValue in
                                         athlete.isLactating = newValue
+                                        saveAthlete(athlete)
+                                    }
+                                ))
+                                .labelsHidden()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+
+                            divider()
+
+                            // PCOS / Perimenopause (D-11a) — local-only RED-S exclusion flags.
+                            HStack {
+                                Text("profile.row.pcos")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { athlete.hasPCOS ?? false },
+                                    set: { newValue in
+                                        athlete.hasPCOS = newValue
+                                        saveAthlete(athlete)
+                                    }
+                                ))
+                                .labelsHidden()
+                            }
+                            .padding(.horizontal, 16)
+                            .padding(.vertical, 16)
+
+                            divider()
+
+                            HStack {
+                                Text("profile.row.perimenopausal")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Toggle("", isOn: Binding(
+                                    get: { athlete.isPerimenopausal ?? false },
+                                    set: { newValue in
+                                        athlete.isPerimenopausal = newValue
                                         saveAthlete(athlete)
                                     }
                                 ))

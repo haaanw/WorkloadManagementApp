@@ -9,8 +9,12 @@ struct RecoveryView: View {
     private var recoverySnapshots: [RecoverySnapshot]
     @Query(sort: \WellnessCheckIn.date, order: .reverse)
     private var wellnessCheckIns: [WellnessCheckIn]
+    @Query private var cycleSnapshots: [MenstrualCycleSnapshot]
     @State private var showMorningCheckIn = false
     @State private var viewModel = RecoveryViewModel()
+    // RED-S banner dismissal persisted per coarse period (month) so it does not nag daily
+    // but can re-surface if the pattern persists into a new cycle (D-13).
+    @AppStorage("redsBannerDismissedPeriod") private var redsDismissedPeriod: String = ""
 
     private var athlete: Athlete? { athletes.first }
 
@@ -32,10 +36,98 @@ struct RecoveryView: View {
         scopedRecoverySnapshots.first { Calendar.current.isDateInToday($0.date) }
     }
 
+    // MARK: - Cycle context (CYCLE-06/07/08)
+
+    /// Athlete-scoped cycle snapshots, newest first.
+    private var scopedCycleSnapshots: [MenstrualCycleSnapshot] {
+        guard let athleteId = athlete?.id else { return [] }
+        return cycleSnapshots
+            .filter { $0.athlete?.id == athleteId }
+            .sorted { $0.date > $1.date }
+    }
+
+    /// Latest cycle snapshot (D-02). Nil when no HealthKit menstrual data (SC6 — UI invisible).
+    private var latestCycleSnapshot: MenstrualCycleSnapshot? {
+        scopedCycleSnapshots.first
+    }
+
+    /// D-03/D-04 interpretation gate — phase context + fueling only when high-confidence,
+    /// non-unknown phase, and no exclusion (mirrors the Phase 18 engine gate).
+    private func cycleGatePasses(_ snapshot: MenstrualCycleSnapshot) -> Bool {
+        snapshot.confidence >= 0.7
+            && (snapshot.estimatedPhase ?? .unknown) != .unknown
+            && !(snapshot.isOnHormonalContraceptive || snapshot.isPregnant || snapshot.isLactating)
+    }
+
+    /// Derive the pure RED-S engine input from local snapshots + athlete exclusion flags (D-10/D-11).
+    /// All cycle math is done here (view layer); the engine stays pure (D-14).
+    private var redsRiskState: REDSRiskEngine.RiskState {
+        let calendar = Calendar.current
+        // Cycle-start dates ascending (mirror CycleTrackingService cycle-start handling).
+        let startDates = scopedCycleSnapshots
+            .filter { $0.isCycleStart }
+            .map { calendar.startOfDay(for: $0.date) }
+            .sorted()
+
+        // Cycle lengths = day-diffs between consecutive starts (most-recent last).
+        var lengths: [Int] = []
+        if startDates.count >= 2 {
+            for i in 1..<startDates.count {
+                if let days = calendar.dateComponents([.day], from: startDates[i - 1], to: startDates[i]).day {
+                    lengths.append(days)
+                }
+            }
+        }
+
+        let median: Int? = {
+            guard !lengths.isEmpty else { return nil }
+            let sorted = lengths.sorted()
+            let mid = sorted.count / 2
+            return sorted.count.isMultiple(of: 2) ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
+        }()
+
+        let daysSinceLastStart = startDates.last.flatMap {
+            calendar.dateComponents([.day], from: $0, to: .now).day
+        }
+
+        let input = REDSRiskEngine.CycleHistoryInput(
+            recentCycleLengths: lengths,
+            medianCycleLength: median,
+            daysSinceLastCycleStart: daysSinceLastStart,
+            hasSnapshotData: !scopedCycleSnapshots.isEmpty,
+            isPregnant: athlete?.isPregnant ?? false,
+            isLactating: athlete?.isLactating ?? false,
+            isOnHormonalContraceptive: athlete?.isOnHormonalContraceptive ?? false,
+            hasPCOS: athlete?.hasPCOS ?? false,
+            isPerimenopausal: athlete?.isPerimenopausal ?? false
+        )
+        return REDSRiskEngine.classify(input: input)
+    }
+
+    private var currentPeriodKey: String {
+        let comps = Calendar.current.dateComponents([.year, .month], from: .now)
+        return "\(comps.year ?? 0)-\(comps.month ?? 0)"
+    }
+
+    private var showREDSBanner: Bool {
+        redsRiskState == .monitor && redsDismissedPeriod != currentPeriodKey
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+                    // Non-diagnostic RED-S monitoring notice (CYCLE-08, D-12/D-13).
+                    // Only when the pure engine returns .monitor and not dismissed this period.
+                    if showREDSBanner {
+                        REDSAttentionBanner(onDismiss: {
+                            redsDismissedPeriod = currentPeriodKey
+                        })
+                        Rectangle()
+                            .fill(ColorTokens.divider)
+                            .frame(height: 0.5)
+                    }
+
                     if todayCheckIn == nil {
                         MorningCheckInPrompt {
                             showMorningCheckIn = true
@@ -45,11 +137,20 @@ struct RecoveryView: View {
                             .frame(height: 0.5)
                     }
 
-                    RecoveryScoreCard(recovery: todayRecovery)
+                    RecoveryScoreCard(recovery: todayRecovery, cycleSnapshot: latestCycleSnapshot)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
+
+                    // Cycle-aware fueling & recovery suggestions (CYCLE-07, D-08).
+                    // Only when cycle data exists and the D-03 phase gate passes.
+                    if let snap = latestCycleSnapshot, cycleGatePasses(snap) {
+                        CycleFuelingCard(phase: snap.estimatedPhase ?? .unknown)
+                        Rectangle()
+                            .fill(ColorTokens.divider)
+                            .frame(height: 0.5)
+                    }
 
                     HRVTrendChart(data: viewModel.hrvHistory)
                         .padding(.horizontal, 16)
@@ -230,7 +331,19 @@ struct MorningCheckInPrompt: View {
 
 struct RecoveryScoreCard: View {
     let recovery: RecoverySnapshot?
+    var cycleSnapshot: MenstrualCycleSnapshot? = nil
     @Environment(\.locale) private var locale
+
+    /// D-03/D-04 gate for the readiness-first phase-context line.
+    private var phaseContextKey: String? {
+        guard let snap = cycleSnapshot,
+              snap.confidence >= 0.7,
+              let phase = snap.estimatedPhase,
+              phase != .unknown,
+              !(snap.isOnHormonalContraceptive || snap.isPregnant || snap.isLactating)
+        else { return nil }
+        return phase.contextCopyKey
+    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
@@ -286,6 +399,19 @@ struct RecoveryScoreCard: View {
                             value: Date.durationString(seconds: Int(sleep) * 60, locale: locale)
                         )
                     }
+                }
+
+                // Readiness-first phase-context line (CYCLE-06 SC2, D-05). Explains the score
+                // in cycle terms; never prescribes training. Only when the D-03 gate passes.
+                if let key = phaseContextKey {
+                    Rectangle()
+                        .fill(ColorTokens.divider)
+                        .frame(height: 0.5)
+                    Text(LocalizedStringKey(key))
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
                 }
             } else {
                 Text("recovery.empty.body")
