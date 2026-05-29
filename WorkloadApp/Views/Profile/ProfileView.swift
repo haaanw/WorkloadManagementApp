@@ -849,7 +849,7 @@ struct InviteCodeSheet: View {
                     UIPasteboard.general.string = code
                     copied = true
                 } label: {
-                    Text(copied ? "action.copied" : "action.copy")
+                    Text(LocalizedStringKey(copied ? "action.copied" : "action.copy"))
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
