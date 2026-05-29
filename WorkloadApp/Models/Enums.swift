@@ -467,6 +467,26 @@ enum SessionType: String, Codable, CaseIterable, Identifiable {
         case .recovery: String(localized: "sessionType.recovery", defaultValue: "Recovery")
         }
     }
+
+    var systemImage: String {
+        switch self {
+        case .strength: "dumbbell.fill"
+        case .skill:    "figure.cooldown"
+        case .cardio:   "heart.fill"
+        case .match:    "flag.checkered"
+        case .recovery: "bed.double.fill"
+        }
+    }
+}
+
+// MARK: - RadialSelectable conformances (Phase 21)
+
+extension SportType: RadialSelectable {
+    var radialIcon: String { systemImage }
+}
+
+extension SessionType: RadialSelectable {
+    var radialIcon: String { systemImage }
 }
 
 // MARK: - Onboarding Enums

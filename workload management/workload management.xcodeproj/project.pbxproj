@@ -48,6 +48,7 @@
 		62324C2F2F66CB0E00A9C2BE /* DashboardViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C082F66CB0E00A9C2BE /* DashboardViewModel.swift */; };
 		62324C302F66CB0E00A9C2BE /* WorkloadApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE22F66CB0E00A9C2BE /* WorkloadApp.swift */; };
 		62324C312F66CB0E00A9C2BE /* MetricTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE52F66CB0E00A9C2BE /* MetricTile.swift */; };
+		EE2102010000000000000002 /* RadialPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2102010000000000000001 /* RadialPicker.swift */; };
 		62324C322F66CB0E00A9C2BE /* WorkoutLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C0A2F66CB0E00A9C2BE /* WorkoutLogViewModel.swift */; };
 		62324C332F66CB0E00A9C2BE /* SleepTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */; };
 		62324C342F66CB0E00A9C2BE /* RecoveryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */; };
@@ -205,6 +206,7 @@
 		62324BE22F66CB0E00A9C2BE /* WorkloadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadApp.swift; sourceTree = "<group>"; };
 		62324BE42F66CB0E00A9C2BE /* HRVTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVTrendChart.swift; sourceTree = "<group>"; };
 		62324BE52F66CB0E00A9C2BE /* MetricTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricTile.swift; sourceTree = "<group>"; };
+		EE2102010000000000000001 /* RadialPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadialPicker.swift; sourceTree = "<group>"; };
 		62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepTrendChart.swift; sourceTree = "<group>"; };
 		62324BE82F66CB0E00A9C2BE /* Athlete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Athlete.swift; sourceTree = "<group>"; };
 		62324BE92F66CB0E00A9C2BE /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
@@ -421,6 +423,7 @@
 				AA0201010000000000000002 /* StalenessWarningBadge.swift */,
 				AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */,
 				AA0202010000000000000003 /* ChartTooltipOverlay.swift */,
+				EE2102010000000000000001 /* RadialPicker.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -913,6 +916,7 @@
 				62324C2F2F66CB0E00A9C2BE /* DashboardViewModel.swift in Sources */,
 				62324C302F66CB0E00A9C2BE /* WorkloadApp.swift in Sources */,
 				62324C312F66CB0E00A9C2BE /* MetricTile.swift in Sources */,
+				EE2102010000000000000002 /* RadialPicker.swift in Sources */,
 				CC0302010000000000000001 /* DataSufficiencyRing.swift in Sources */,
 				CC0302010000000000000003 /* BehaviorTagChip.swift in Sources */,
 				CC0302010000000000000005 /* InsightCard.swift in Sources */,
