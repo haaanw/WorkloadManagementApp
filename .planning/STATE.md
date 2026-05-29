@@ -29,7 +29,12 @@ Phase: 19-22 all COMPLETE (sub-agent team execution 2026-05-30) — pending huma
 Status: v1.4 (17-20) + v1.5 (21-22) phase-complete; full app build green; modifiers shipped dark
 Last activity: 2026-05-30 -- Phases 19,20,21,22 executed via parallel-plan/serial-execute sub-agent team
 
+v1.3-live-feedback improvement pass (2026-05-30): HealthKit re-prompt bug FIXED; UI hierarchy upgraded (Dashboard+Profile only — DESIGN.md luminance revised, card/section primitives); invite-coach redesigned; ACWR copy demoted to load-context. Codex-reviewed, 1 P1 + 3 P2 found and fixed, gate PASS, build green. 8 commits local on main. Algorithm redesign DEFERRED to its own milestone (needs user direction).
+
 Outstanding before ship:
+- Algorithm redesign milestone — user must pick moat direction (5 candidates; recommended: unified longitudinal recovery×load×injury-risk×cycle over adaptive baselines, validate via shadow harness)
+- Design brand sign-off: luminance bump + DesignToggleStyle need user's eyes in running app
+- UI hierarchy pass NOT applied to Recovery + Workload screens yet (bounded per codex)
 - Manual deploy: `supabase functions deploy parse-workout` (Phase 22 Edge Function enum expansion)
 - Human UAT: Phase 21 gesture feel/haptics (device), Phase 19 cycle UI opt-in flows, Phase 23 zh-Hans
 - Pre-existing blocker: #if DEBUG font assertionFailure in App/WorkloadApp.swift crashes XCTest host (whole unit suite unrunnable) — fix to re-enable CI tests
