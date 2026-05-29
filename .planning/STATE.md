@@ -1,17 +1,17 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.4
-milestone_name: Female Athlete Optimization
-status: executing
-stopped_at: Phase 23 UI-SPEC approved
-last_updated: "2026-05-26T12:34:48.032Z"
-last_activity: 2026-05-26 -- Phase 23 execution started
+milestone: v1.5
+milestone_name: UX Interaction Polish
+status: phase-complete-pending-uat
+stopped_at: Phases 19-22 executed (sub-agent team), build green, pending UAT
+last_updated: "2026-05-30T00:00:00.000Z"
+last_activity: 2026-05-30 -- v1.4 (19,20) + v1.5 (21,22) executed via sub-agent team, full build green
 progress:
   total_phases: 7
-  completed_phases: 2
-  total_plans: 11
-  completed_plans: 6
-  percent: 29
+  completed_phases: 7
+  total_plans: 24
+  completed_plans: 24
+  percent: 100
 ---
 
 # Project State
@@ -21,16 +21,22 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-10)
 
 **Core value:** Recovery + load tracked over time -- long-term insight into how the body responds to training
-**Current focus:** Phase 23 — multi-language-in-app-support-simplified-chinese
+**Current focus:** UAT for v1.4 + v1.5 (Phases 19-22 code-complete, build green)
 
 ## Current Position
 
-Phase: 23 (multi-language-in-app-support-simplified-chinese) — EXECUTING
-Plan: 1 of 5
-Status: Executing Phase 23
-Last activity: 2026-05-26 -- Phase 23 execution started
+Phase: 19-22 all COMPLETE (sub-agent team execution 2026-05-30) — pending human UAT
+Status: v1.4 (17-20) + v1.5 (21-22) phase-complete; full app build green; modifiers shipped dark
+Last activity: 2026-05-30 -- Phases 19,20,21,22 executed via parallel-plan/serial-execute sub-agent team
 
-Progress (v1.4 milestone): [████░░░░░░░░░░░] 29% (2/7 phases complete)
+Outstanding before ship:
+- Manual deploy: `supabase functions deploy parse-workout` (Phase 22 Edge Function enum expansion)
+- Human UAT: Phase 21 gesture feel/haptics (device), Phase 19 cycle UI opt-in flows, Phase 23 zh-Hans
+- Pre-existing blocker: #if DEBUG font assertionFailure in App/WorkloadApp.swift crashes XCTest host (whole unit suite unrunnable) — fix to re-enable CI tests
+- zh-Hans review: 4 muscle terms (hipRotators, tibialisAnterior, transverseAbdominis, erectors)
+- Branding conflict: CLAUDE.md says "Tonus", memory says "Tuwa" — needs user decision
+
+Progress (v1.4+v1.5): [███████████████] 100% (Phases 17-22 complete, pending UAT)
 
 ## Performance Metrics
 

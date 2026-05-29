@@ -6,8 +6,8 @@
 - ✅ **v1.1 App Store Launch** — Phases 5-8 (shipped 2026-04-30)
 - ✅ **v1.2 Training Onboarding & Templates** — Phases 9-12 (shipped 2026-05-10)
 - ✅ **v1.3 LLM Import, Sharing & Polish** — Phases 13-16 (shipped 2026-05-14)
-- 📋 **v1.4 Female Athlete Optimization** — Phases 17-20 (planned)
-- 📋 **v1.5 UX Interaction Polish** — Phases 21-22 (planned)
+- ✅ **v1.4 Female Athlete Optimization** — Phases 17-20 (phase-complete 2026-05-30, pending UAT)
+- ✅ **v1.5 UX Interaction Polish** — Phases 21-22 (phase-complete 2026-05-30, pending UAT)
 
 ## Phases
 
@@ -51,24 +51,24 @@
 
 </details>
 
-### 📋 v1.4 Female Athlete Optimization
+### ✅ v1.4 Female Athlete Optimization
 
-**Milestone Goal:** Make Faros the first workload management app with evidence-based cycle-aware training intelligence. Read existing HealthKit cycle data from other apps (zero friction), correct male-normative baseline bias in recovery scoring, and provide cycle-contextual guidance — all while working identically for users who don't track cycles.
+**Milestone Goal:** Make Tuwa the first workload management app with evidence-based cycle-aware training intelligence. Read existing HealthKit cycle data from other apps (zero friction), correct male-normative baseline bias in recovery scoring, and provide cycle-contextual guidance — all while working identically for users who don't track cycles.
 
 **Research:** `.planning/research/female-athlete-optimization-research.md` (696 lines, 60+ sources)
 **Cross-AI Review:** Claude + Codex adversarial review completed. Consensus: CycleContext-first (explanations), same-phase baselines as measurement correction (not modifier), defer algorithmic modifiers to Wave 2 pending shadow-mode validation.
 
 - [x] **Phase 17: Cycle Data Foundation** - CycleTrackingService (HealthKit menstrual + wrist temp reader), MenstrualCycleSnapshot model, CyclePhase enum, contraceptive status in profile, HealthKit permission flow (completed 2026-05-14)
 - [x] **Phase 18: Cycle-Aware Recovery Baselines** - RecoveryScoreEngine same-phase baseline with confidence gating, dual baseline (7-day + same-phase), graceful degradation for <3 cycles / irregular / anovulatory / OC users (completed 2026-05-25)
-- [ ] **Phase 19: Cycle Context UI & Guidance** - Dashboard cycle day indicator, phase context in recovery card, fueling/recovery prompts (avoid fasted workouts, post-training nutrition), RED-S cycle irregularity alerts with clinician-referral language
-- [ ] **Phase 20: Cycle Intelligence (Shadow Mode)** - Shadow-mode analytics measuring cycle context prediction value, evidence-gated AutoregulationEngine soft modifiers (yellow zone only), FatigueIndex phase-aware dampening (validated), ProgressionEngine phase awareness
+- [x] **Phase 19: Cycle Context UI & Guidance** - Dashboard cycle day indicator, phase context in recovery card, fueling/recovery prompts (avoid fasted workouts, post-training nutrition), RED-S cycle irregularity alerts with clinician-referral language (completed 2026-05-30)
+- [x] **Phase 20: Cycle Intelligence (Shadow Mode)** - Shadow-mode analytics measuring cycle context prediction value, evidence-gated AutoregulationEngine soft modifiers (yellow zone only, gated OFF pending shadow validation), FatigueIndex phase-aware dampening, ProgressionEngine phase awareness (completed 2026-05-30)
 
-### 📋 v1.5 UX Interaction Polish
+### ✅ v1.5 UX Interaction Polish
 
-**Milestone Goal:** Elevate Faros's interaction design with novel gesture-driven controls and anatomically precise muscle targeting, differentiating the app from generic fitness trackers.
+**Milestone Goal:** Elevate Tuwa's interaction design with novel gesture-driven controls and anatomically precise muscle targeting, differentiating the app from generic fitness trackers.
 
-- [ ] **Phase 21: Radial Gesture Picker** - iPod-wheel-inspired circular menu for sport type and session type selection — long press triggers radial ring, drag to select, release to confirm
-- [ ] **Phase 22: Granular Muscle Group Taxonomy** - Replace coarse MuscleGroup enum (Chest/Back/Legs/Arms) with anatomically specific groups (quads, hamstrings, glutes, calves, hip flexors, psoas, anterior/posterior delts, long/short head biceps, etc.)
+- [x] **Phase 21: Radial Gesture Picker** - iPod-wheel-inspired circular menu for sport type and session type selection — long press triggers radial ring, drag to select, release to confirm (completed 2026-05-30)
+- [x] **Phase 22: Granular Muscle Group Taxonomy** - Replace coarse MuscleGroup enum (Chest/Back/Legs/Arms) with anatomically specific groups; expanded to 33-value taxonomy (26 specific + 7 retained aliases) across 7 MuscleRegion groups (completed 2026-05-30)
 
 ## Phase Details — v1.4
 
@@ -236,10 +236,10 @@ Plans:
 | 16. LLM Workout Import | v1.3 | 2/2 | Complete    | 2026-05-13 |
 | 17. Cycle Data Foundation | v1.4 | 4/4 | Complete   | 2026-05-14 |
 | 18. Cycle-Aware Recovery Baselines | v1.4 | 2/2 | Complete    | 2026-05-25 |
-| 19. Cycle Context UI & Guidance | v1.4 | 0/0 | Not started | - |
-| 20. Cycle Intelligence (Shadow Mode) | v1.4 | 0/0 | Not started | - |
-| 21. Radial Gesture Picker | v1.5 | 0/0 | Not started | - |
-| 22. Granular Muscle Group Taxonomy | v1.5 | 0/0 | Not started | - |
+| 19. Cycle Context UI & Guidance | v1.4 | 3/3 | Complete | 2026-05-30 |
+| 20. Cycle Intelligence (Shadow Mode) | v1.4 | 3/3 | Complete | 2026-05-30 |
+| 21. Radial Gesture Picker | v1.5 | 3/3 | Complete | 2026-05-30 |
+| 22. Granular Muscle Group Taxonomy | v1.5 | 3/3 | Complete | 2026-05-30 |
 
 ### Phase 23: Multi-language in-app support (Simplified Chinese)
 
