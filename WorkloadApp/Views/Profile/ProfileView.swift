@@ -977,11 +977,19 @@ struct HealthKitPermissionsView: View {
                 Spacer().frame(height: 24)
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
+                // State-driven status / action. The persisted state distinguishes:
+                //  - .notRequested → "Connect" action (triggers the system permission sheet)
+                //  - .requestedNoData → connected, but no recent samples (benign, NOT an error)
+                //  - .connected → authorized + data flowing
+                let hkState = container.healthKitService.connectionState
+
                 Button {
                     Task {
                         isAuthorizing = true
                         do {
                             try await container.healthKitService.requestAuthorization()
+                            // Probe immediately so the row reflects connected/no-data right away.
+                            await container.healthKitService.runMigrationProbe()
                         } catch {
                             authError = error.localizedDescription
                         }
@@ -991,25 +999,62 @@ struct HealthKitPermissionsView: View {
                     HStack(spacing: 8) {
                         if isAuthorizing {
                             ProgressView()
-                        } else if container.healthKitService.isAuthorized {
-                            Image(systemName: "checkmark.circle.fill")
-                                .foregroundStyle(ColorTokens.zoneOptimal)
-                            Text("profile.healthkit.authorized")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.zoneOptimal)
                         } else {
-                            Text("profile.healthkit.authorize")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
+                            switch hkState {
+                            case .connected:
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundStyle(ColorTokens.zoneOptimal)
+                                Text("profile.healthkit.authorized")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.zoneOptimal)
+                            case .requestedNoData:
+                                Image(systemName: "checkmark.circle")
+                                    .foregroundStyle(ColorTokens.text2)
+                                Text("profile.healthkit.connectedNoData")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text2)
+                            case .notRequested:
+                                Text("profile.healthkit.authorize")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                            }
                         }
                         Spacer()
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
                 }
-                .disabled(isAuthorizing || container.healthKitService.isAuthorized)
+                .disabled(isAuthorizing || hkState != .notRequested)
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+
+                // "Manage in Health" affordance — the right home for fixing/reviewing permissions
+                // once access has been requested (a persisted flag stays true after revocation).
+                if hkState != .notRequested {
+                    Button {
+                        // Apple Health app opens its own permissions surface; fall back to Settings.
+                        if let url = URL(string: "x-apple-health://"),
+                           UIApplication.shared.canOpenURL(url) {
+                            UIApplication.shared.open(url)
+                        } else if let settings = URL(string: UIApplication.openSettingsURLString) {
+                            UIApplication.shared.open(settings)
+                        }
+                    } label: {
+                        HStack(spacing: 8) {
+                            Text("profile.healthkit.manageInHealth")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text1)
+                            Spacer()
+                            Image(systemName: "arrow.up.right")
+                                .font(.system(size: 13))
+                                .foregroundStyle(ColorTokens.text2)
+                        }
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 16)
+                    }
+
+                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                }
 
                 if let error = authError {
                     Text(error)

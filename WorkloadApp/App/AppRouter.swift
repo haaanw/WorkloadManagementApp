@@ -75,6 +75,10 @@ struct AppRouter: View {
                     await container.subscriptionService.logIn(userId: userId)
                 }
             }
+            // Non-blocking HealthKit liveness probe on fresh sign-in/sign-up.
+            Task.detached(priority: .utility) {
+                await container.healthKitService.runMigrationProbe()
+            }
             // Process deferred share code from deep link received before auth
             if let code = deferredShareCode {
                 deferredShareCode = nil
@@ -161,6 +165,13 @@ struct AppRouter: View {
                 }
 
                 container.setAuthenticated(true)
+
+                // Non-blocking HealthKit migration / liveness probe. Runs AFTER auth UI is up,
+                // detached so it never blocks launch or dashboard routing. Migrates legacy v1.3
+                // users who granted Health access before the persisted flag existed.
+                Task.detached(priority: .utility) {
+                    await container.healthKitService.runMigrationProbe()
+                }
 
                 // Check if onboarding is needed (D-06)
                 let onboardingAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())

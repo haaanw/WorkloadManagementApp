@@ -1090,6 +1090,23 @@
         }
       }
     },
+    "dashboard.healthkit.noRecentData": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Health is connected, but there's no recent data yet. Readings will appear here as your device syncs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已连接 Apple Health，但暂无最新数据。设备同步后，读数将显示在此处。"
+          }
+        }
+      }
+    },
     "dashboard.empty.noSessions": {
       "extractionState": "manual",
       "localizations": {
@@ -2851,6 +2868,23 @@
         }
       }
     },
+    "profile.healthkit.manageInHealth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage in Health"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“健康”中管理"
+          }
+        }
+      }
+    },
     "profile.healthkit.authorized": {
       "extractionState": "manual",
       "localizations": {
@@ -2864,6 +2898,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "已授权"
+          }
+        }
+      }
+    },
+    "profile.healthkit.connectedNoData": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Connected — no recent data"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已连接 — 暂无最新数据"
           }
         }
       }

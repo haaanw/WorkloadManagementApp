@@ -61,9 +61,20 @@ struct DashboardView: View {
                         TrainingProfileCard(onComplete: { showTrainingProfile = true })
                     }
 
+                    // HealthKit empty-state routing:
+                    //  - .notRequested → connect CTA
+                    //  - .requestedNoData → benign "connected, no recent data" (NOT the connect CTA)
+                    //  - .connected → nothing (normal data view)
                     if !viewModel.hasRealData {
-                        EmptyStateCard {
-                            Task { try? await container.healthKitService.requestAuthorization() }
+                        switch viewModel.healthKitState {
+                        case .notRequested:
+                            EmptyStateCard {
+                                Task { try? await container.healthKitService.requestAuthorization() }
+                            }
+                        case .requestedNoData:
+                            HealthKitNoDataCard()
+                        case .connected:
+                            EmptyView()
                         }
                     }
 
@@ -402,6 +413,27 @@ struct EmptyStateCard: View {
                         Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                     )
             }
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 24)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ColorTokens.background)
+        .overlay(alignment: .bottom) {
+            Rectangle()
+                .fill(ColorTokens.divider)
+                .frame(height: 0.5)
+        }
+    }
+}
+
+/// Shown when the user has connected Apple Health but no recent samples are visible yet.
+/// This is a benign informational state — NOT the connect CTA and NOT an error.
+struct HealthKitNoDataCard: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            Text("dashboard.healthkit.noRecentData")
+                .font(.Tokens.body)
+                .foregroundStyle(ColorTokens.text2)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 24)
