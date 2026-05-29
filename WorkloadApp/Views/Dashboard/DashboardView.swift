@@ -39,6 +39,11 @@ struct DashboardView: View {
         !cyclePromptDismissed && cycleSnapshots.isEmpty
     }
 
+    /// Latest cycle snapshot (D-02). Nil when no HealthKit menstrual data exists (SC6 — UI invisible).
+    private var latestCycleSnapshot: MenstrualCycleSnapshot? {
+        cycleSnapshots.sorted { $0.date > $1.date }.first
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -105,6 +110,13 @@ struct DashboardView: View {
                     }
 
                     Spacer().frame(height: 8)
+
+                    // Unobtrusive opt-in cycle indicator (CYCLE-06 SC1, D-07).
+                    // Invisible when no HealthKit menstrual data (latestCycleSnapshot == nil, SC6/D-01).
+                    if let snap = latestCycleSnapshot {
+                        CycleStatusStrip(snapshot: snap)
+                        Spacer().frame(height: 8)
+                    }
 
                     MetricsStrip(viewModel: viewModel)
 
