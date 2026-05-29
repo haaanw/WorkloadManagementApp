@@ -61,8 +61,14 @@ final class HealthKitService {
         didSet { UserDefaults.standard.set(hasRequestedAccess, forKey: Self.hasRequestedKey) }
     }
 
-    /// True once a read has actually returned data this session (or migration probe confirmed it).
+    /// Whether the most recent authoritative read cycle returned data.
     /// Drives the distinction between `.requestedNoData` and `.connected`.
+    ///
+    /// This reflects the LATEST full fetch outcome (see `updateObservedData(_:)`) rather than a
+    /// one-way session latch, so a user who had data and then revokes Health access in Settings
+    /// correctly falls back to `.requestedNoData` ("connected — no recent data") on the next
+    /// recovery run instead of being stuck on a stale `.connected`. The persisted
+    /// `hasRequestedAccess` flag stays sticky regardless, so we never regress to the connect CTA.
     private(set) var hasObservedData = false
 
     /// Legacy alias kept for read sites that just need "should we attempt reads / treat as connected".
@@ -84,6 +90,18 @@ final class HealthKitService {
     /// Idempotent; only ever sets the flag true (empty reads must not clear it — see probe rules).
     func noteObservedData() {
         hasObservedData = true
+    }
+
+    /// Update the "currently has data" signal from a COMPLETE authoritative read cycle.
+    ///
+    /// Unlike `noteObservedData()` (one-way latch, used by the best-effort migration probe which
+    /// must never flip the flag to false), this is called by `RecoveryPipeline` after it has
+    /// attempted ALL of its HealthKit reads for the run. Passing `false` here means the full read
+    /// cycle returned nothing — which legitimately downgrades a previously-`.connected` user to
+    /// `.requestedNoData` when they've revoked access (or genuinely have no recent samples).
+    /// The persisted `hasRequestedAccess` flag is untouched, so the connect CTA never reappears.
+    func updateObservedData(_ present: Bool) {
+        hasObservedData = present
     }
 
     /// HealthKit data types we want to read

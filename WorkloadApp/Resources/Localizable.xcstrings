@@ -36,6 +36,23 @@
         }
       }
     },
+    "action.copied": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Copied"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已复制"
+          }
+        }
+      }
+    },
     "action.copy": {
       "extractionState": "manual",
       "localizations": {
@@ -665,23 +682,6 @@
         }
       }
     },
-    "cyclePhase.earlyFollicular": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Early Follicular"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "卵泡期早期"
-          }
-        }
-      }
-    },
     "cycle.fueling.fasted": {
       "extractionState": "manual",
       "localizations": {
@@ -903,6 +903,23 @@
         }
       }
     },
+    "cyclePhase.earlyFollicular": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Early Follicular"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "卵泡期早期"
+          }
+        }
+      }
+    },
     "cyclePhase.earlyLuteal": {
       "extractionState": "manual",
       "localizations": {
@@ -1090,23 +1107,6 @@
         }
       }
     },
-    "dashboard.healthkit.noRecentData": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Apple Health is connected, but there's no recent data yet. Readings will appear here as your device syncs."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已连接 Apple Health，但暂无最新数据。设备同步后，读数将显示在此处。"
-          }
-        }
-      }
-    },
     "dashboard.empty.noSessions": {
       "extractionState": "manual",
       "localizations": {
@@ -1120,6 +1120,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "还没有训练记录。点击「记录训练」开始。"
+          }
+        }
+      }
+    },
+    "dashboard.healthkit.noRecentData": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Health is connected, but there's no recent data yet. Readings will appear here as your device syncs."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已连接 Apple Health，但暂无最新数据。设备同步后，读数将显示在此处。"
           }
         }
       }
@@ -1702,6 +1719,40 @@
         }
       }
     },
+    "muscleGroup.adductors": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Adductors"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "内收肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.anteriorDelts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Front Delts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "前三角肌"
+          }
+        }
+      }
+    },
     "muscleGroup.arms": {
       "extractionState": "manual",
       "localizations": {
@@ -1732,6 +1783,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "背"
+          }
+        }
+      }
+    },
+    "muscleGroup.biceps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Biceps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "二头肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.calves": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Calves"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "小腿"
           }
         }
       }
@@ -1770,329 +1855,6 @@
         }
       }
     },
-    "muscleGroup.fullBody": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Full Body"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "全身"
-          }
-        }
-      }
-    },
-    "muscleGroup.legs": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Legs"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "腿"
-          }
-        }
-      }
-    },
-    "muscleGroup.shoulders": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shoulders"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "肩"
-          }
-        }
-      }
-    },
-    "muscleGroup.none": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "None"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "无"
-          }
-        }
-      }
-    },
-    "muscleGroup.suggested": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Suggested"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "建议"
-          }
-        }
-      }
-    },
-    "muscleGroup.quads": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Quads"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "股四头肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.hamstrings": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hamstrings"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "腘绳肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.glutes": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Glutes"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "臀肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.calves": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Calves"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "小腿"
-          }
-        }
-      }
-    },
-    "muscleGroup.hipFlexors": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hip Flexors"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "髋屈肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.psoas": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Psoas"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "腰大肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.adductors": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Adductors"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "内收肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.hipRotators": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hip Rotators"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "髋旋转肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.tibialisAnterior": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tibialis Anterior"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "胫骨前肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.lats": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lats"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "背阔肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.trapsUpper": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Upper Traps"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上斜方肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.trapsMid": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Mid Traps"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "中斜方肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.trapsLower": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lower Traps"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "下斜方肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.rhomboids": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rhomboids"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "菱形肌"
-          }
-        }
-      }
-    },
     "muscleGroup.erectors": {
       "extractionState": "manual",
       "localizations": {
@@ -2106,125 +1868,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "竖脊肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.pecsUpper": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Upper Chest"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "上胸"
-          }
-        }
-      }
-    },
-    "muscleGroup.pecsLower": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Lower Chest"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "下胸"
-          }
-        }
-      }
-    },
-    "muscleGroup.anteriorDelts": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Front Delts"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "前三角肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.lateralDelts": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Side Delts"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "中三角肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.posteriorDelts": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Rear Delts"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "后三角肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.biceps": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Biceps"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "二头肌"
-          }
-        }
-      }
-    },
-    "muscleGroup.triceps": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Triceps"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "三头肌"
           }
         }
       }
@@ -2246,19 +1889,155 @@
         }
       }
     },
-    "muscleGroup.rectusAbdominis": {
+    "muscleGroup.fullBody": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rectus Abdominis"
+            "value": "Full Body"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "腹直肌"
+            "value": "全身"
+          }
+        }
+      }
+    },
+    "muscleGroup.glutes": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Glutes"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "臀肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.hamstrings": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hamstrings"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腘绳肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.hipFlexors": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hip Flexors"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "髋屈肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.hipRotators": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hip Rotators"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "髋旋转肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.lateralDelts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Side Delts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中三角肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.lats": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lats"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "背阔肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.legs": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腿"
+          }
+        }
+      }
+    },
+    "muscleGroup.none": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "None"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无"
           }
         }
       }
@@ -2280,6 +2059,176 @@
         }
       }
     },
+    "muscleGroup.pecsLower": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lower Chest"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "下胸"
+          }
+        }
+      }
+    },
+    "muscleGroup.pecsUpper": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upper Chest"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上胸"
+          }
+        }
+      }
+    },
+    "muscleGroup.posteriorDelts": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rear Delts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "后三角肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.psoas": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Psoas"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腰大肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.quads": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quads"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "股四头肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.rectusAbdominis": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rectus Abdominis"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腹直肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.rhomboids": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rhomboids"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "菱形肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.shoulders": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoulders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肩"
+          }
+        }
+      }
+    },
+    "muscleGroup.suggested": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Suggested"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "建议"
+          }
+        }
+      }
+    },
+    "muscleGroup.tibialisAnterior": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tibialis Anterior"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "胫骨前肌"
+          }
+        }
+      }
+    },
     "muscleGroup.transverseAbdominis": {
       "extractionState": "manual",
       "localizations": {
@@ -2297,19 +2246,87 @@
         }
       }
     },
-    "muscleRegion.legs": {
+    "muscleGroup.trapsLower": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Legs"
+            "value": "Lower Traps"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "腿部"
+            "value": "下斜方肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.trapsMid": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mid Traps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中斜方肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.trapsUpper": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Upper Traps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "上斜方肌"
+          }
+        }
+      }
+    },
+    "muscleGroup.triceps": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Triceps"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "三头肌"
+          }
+        }
+      }
+    },
+    "muscleRegion.arms": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Arms"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "手臂"
           }
         }
       }
@@ -2348,40 +2365,6 @@
         }
       }
     },
-    "muscleRegion.shoulders": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Shoulders"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "肩部"
-          }
-        }
-      }
-    },
-    "muscleRegion.arms": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Arms"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "手臂"
-          }
-        }
-      }
-    },
     "muscleRegion.core": {
       "extractionState": "manual",
       "localizations": {
@@ -2412,6 +2395,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "全身"
+          }
+        }
+      }
+    },
+    "muscleRegion.legs": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Legs"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "腿部"
+          }
+        }
+      }
+    },
+    "muscleRegion.shoulders": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shoulders"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "肩部"
           }
         }
       }
@@ -2548,6 +2565,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "连接健康"
+          }
+        }
+      }
+    },
+    "onboarding.healthkit.connected": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apple Health is connected."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已连接 Apple 健康。"
           }
         }
       }
@@ -3198,23 +3232,6 @@
         }
       }
     },
-    "profile.healthkit.manageInHealth": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Manage in Health"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "在“健康”中管理"
-          }
-        }
-      }
-    },
     "profile.healthkit.authorized": {
       "extractionState": "manual",
       "localizations": {
@@ -3300,6 +3317,23 @@
         }
       }
     },
+    "profile.healthkit.manageInHealth": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage in Health"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "在“健康”中管理"
+          }
+        }
+      }
+    },
     "profile.healthkit.navTitle": {
       "extractionState": "manual",
       "localizations": {
@@ -3347,6 +3381,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "运动员邮箱"
+          }
+        }
+      }
+    },
+    "profile.invite.cardSubtitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Generate a one-time code so your coach can link to your training."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "生成一次性邀请码，让你的教练关联你的训练。"
+          }
+        }
+      }
+    },
+    "profile.invite.cardTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Invite Your Coach"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请你的教练"
           }
         }
       }
@@ -3402,6 +3470,23 @@
         }
       }
     },
+    "profile.invite.codeExpiry": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Expires in 48 hours"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "48 小时后过期"
+          }
+        }
+      }
+    },
     "profile.invite.codePlaceholder": {
       "extractionState": "manual",
       "localizations": {
@@ -3415,6 +3500,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "输入 6 位邀请码"
+          }
+        }
+      }
+    },
+    "profile.invite.codeSheetTitle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INVITE CODE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "邀请码"
           }
         }
       }
@@ -3466,6 +3568,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "邀请已发送!他们会收到一封带链接的邮件。"
+          }
+        }
+      }
+    },
+    "profile.invite.shareCodeHint": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Share this code with your coach."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "把这个邀请码分享给你的教练。"
           }
         }
       }
@@ -3721,6 +3840,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "重量单位"
+          }
+        }
+      }
+    },
+    "profile.section.account": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACCOUNT"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "账户"
           }
         }
       }
@@ -5387,125 +5523,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "负荷平稳"
-          }
-        }
-      }
-    },
-    "profile.invite.cardTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Invite Your Coach"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "邀请你的教练"
-          }
-        }
-      }
-    },
-    "profile.invite.cardSubtitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Generate a one-time code so your coach can link to your training."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "生成一次性邀请码，让你的教练关联你的训练。"
-          }
-        }
-      }
-    },
-    "profile.invite.codeSheetTitle": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "INVITE CODE"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "邀请码"
-          }
-        }
-      }
-    },
-    "profile.invite.codeExpiry": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Expires in 48 hours"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "48 小时后过期"
-          }
-        }
-      }
-    },
-    "profile.invite.shareCodeHint": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Share this code with your coach."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "把这个邀请码分享给你的教练。"
-          }
-        }
-      }
-    },
-    "profile.section.account": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ACCOUNT"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "账户"
-          }
-        }
-      }
-    },
-    "action.copied": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Copied"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "已复制"
           }
         }
       }

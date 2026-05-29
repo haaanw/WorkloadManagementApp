@@ -228,37 +228,69 @@ struct OnboardingView: View {
 
             Spacer()
 
-            // Connect Health button
-            Button {
-                Task {
-                    try? await container.healthKitService.requestAuthorization()
-                    completeOnboarding()
+            // Route the primary action on the LIVE HealthKit connection state. A legacy/returning
+            // user who already granted access (.requestedNoData / .connected) should not be asked
+            // to "Connect" again — show a connected affirmation + Continue. Only .notRequested
+            // actually presents the system authorization sheet.
+            switch container.healthKitService.connectionState {
+            case .notRequested:
+                // Connect Health button
+                Button {
+                    Task {
+                        try? await container.healthKitService.requestAuthorization()
+                        completeOnboarding()
+                    }
+                } label: {
+                    Text("onboarding.healthkit.connect")
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text1)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(ColorTokens.surface)
+                        .overlay(
+                            Rectangle().stroke(ColorTokens.text3, lineWidth: 1.0)
+                        )
                 }
-            } label: {
-                Text("onboarding.healthkit.connect")
-                    .font(.Tokens.body)
-                    .foregroundStyle(ColorTokens.text1)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(ColorTokens.surface)
-                    .overlay(
-                        Rectangle().stroke(ColorTokens.text3, lineWidth: 1.0)
-                    )
-            }
-            .padding(.horizontal, 16)
+                .padding(.horizontal, 16)
 
-            // Skip for now
-            Button {
-                completeOnboarding()
-            } label: {
-                Text("onboarding.skipForNow")
+                // Skip for now
+                Button {
+                    completeOnboarding()
+                } label: {
+                    Text("onboarding.skipForNow")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
+
+            case .requestedNoData, .connected:
+                // Already connected — affirm and continue without re-prompting.
+                Text("onboarding.healthkit.connected")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 16)
+
+                Button {
+                    completeOnboarding()
+                } label: {
+                    Text("action.continue")
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text1)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, 16)
+                        .background(ColorTokens.surface)
+                        .overlay(
+                            Rectangle().stroke(ColorTokens.text3, lineWidth: 1.0)
+                        )
+                }
+                .padding(.horizontal, 16)
+                .padding(.bottom, 8)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 8)
         }
     }
 

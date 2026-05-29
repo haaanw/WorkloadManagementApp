@@ -59,10 +59,11 @@ struct RecoveryPipeline {
             bodyTemp = try? await healthKitService.fetchLatestBodyTemp()
             vo2Max = try? await healthKitService.fetchLatestVO2Max()
 
-            // Live data confirms connection → upgrade state from .requestedNoData to .connected.
-            if hrv != nil || rhr != nil || sleep != nil {
-                healthKitService.noteObservedData()
-            }
+            // Reflect the LATEST full read cycle: data present → .connected; nothing returned →
+            // .requestedNoData (e.g. access revoked in Settings, or no recent samples). This is an
+            // authoritative cycle (all reads attempted), so it may downgrade a stale .connected.
+            // hasRequestedAccess stays sticky, so the connect CTA never reappears.
+            healthKitService.updateObservedData(hrv != nil || rhr != nil || sleep != nil)
         }
 
         let staleness = HealthKitStaleness(lastHRVDate: hrvDate, lastSleepDate: sleepDate, lastRHRDate: rhrDate)
