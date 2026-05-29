@@ -87,6 +87,90 @@ struct AutoregulationEngine {
 
     // MARK: - Compute Recommendation
 
+    /// Cycle-aware overload (Phase 20, D-07/D-08/D-09). Additive and non-breaking:
+    /// `cycleContext == nil` produces output byte-identical to `recommend(input:)` (D-12),
+    /// so all existing call sites keep their exact behavior.
+    ///
+    /// The soft volume modifier (downward-only, 5–15%) is applied ONLY when:
+    ///   - `input.recoveryZone == .yellow` (never green or red — criterion 2),
+    ///   - the base recommendation is not `.rest`/`.activeRecovery` (never overrides — criterion 2),
+    ///   - a same-direction NON-phase signal corroborates (D-09: no reduction from phase alone),
+    ///   - AND `CycleModifierGate.shouldApply` is true (double-gate: eligible AND activated).
+    ///
+    /// Because `CycleModifierActivation.isEnabled` is false this phase, `shouldApply` is
+    /// always false → the returned recommendation is UNCHANGED in every case. The would-be
+    /// factor is still computable via `cycleVolumeFactor(input:cycleContext:)` for shadow logging.
+    static func recommend(
+        input: DailyInput,
+        cycleContext: CycleContext?,
+        cyclesObserved: Int = 0
+    ) -> TrainingRecommendation {
+        let base = recommend(input: input)
+
+        guard let cycleContext,
+              CycleModifierGate.shouldApply(context: cycleContext, cyclesObserved: cyclesObserved) else {
+            // nil context OR not eligible/activated → identical to base (D-12 / D-06).
+            return base
+        }
+
+        let factor = cycleVolumeFactor(input: input, cycleContext: cycleContext)
+        guard factor < 1.0 else { return base }
+
+        return TrainingRecommendation(
+            intensityCap: base.intensityCap,
+            volumeModifier: base.volumeModifier * factor,  // downward-only (factor <= 1.0)
+            sessionType: base.sessionType,
+            warnings: base.warnings,
+            headline: base.headline,
+            detail: base.detail
+        )
+    }
+
+    /// The would-be soft volume factor in `[0.85, 1.0]` (0–15% reduction). Pure and always
+    /// computable so Plan 03 can shadow-log it regardless of activation.
+    ///
+    /// Returns exactly `1.0` (no reduction) unless ALL hold:
+    ///   - recovery zone is `.yellow`,
+    ///   - the base session type is not `.rest`/`.activeRecovery`,
+    ///   - the cycle phase buckets to `.luteal` (phase contributes direction only),
+    ///   - a corroborating NON-phase negative signal exists (D-09). The magnitude scales
+    ///     with that corroboration (D-08): stronger downward signal → larger reduction,
+    ///     capped at 15%. No corroboration → 1.0 (no reduction from phase alone, D-09).
+    static func cycleVolumeFactor(input: DailyInput, cycleContext: CycleContext) -> Double {
+        // Yellow-zone only.
+        guard input.recoveryZone == .yellow else { return 1.0 }
+
+        // Never override rest / active recovery (use the base recommendation's type).
+        let baseType = recommend(input: input).sessionType
+        guard baseType != .rest, baseType != .activeRecovery else { return 1.0 }
+
+        // Phase contributes DIRECTION only: must be luteal bucket.
+        guard RecoveryScoreEngine.bucket(for: cycleContext.phase) == .luteal else { return 1.0 }
+
+        // D-09: corroboration from a same-direction NON-phase signal.
+        // Yellow recovery zone spans ~[40, 70). "Lower part of yellow" (closer to 40) and
+        // low wellness / high soreness each independently corroborate a downward nudge.
+        // corroboration in [0, 1]; 0 → no reduction (no phase-alone change).
+        var corroboration = 0.0
+
+        // (a) recovery score in the lower part of the yellow band
+        if input.recoveryScore < 70 {
+            let depth = (60.0 - input.recoveryScore) / 20.0  // 0 at 60, 1 at 40
+            corroboration = max(corroboration, min(1.0, max(0.0, depth)))
+        }
+        // (b) low subjective wellness
+        if let wellness = input.wellnessScore, wellness < 50 {
+            let depth = (50.0 - wellness) / 30.0  // 0 at 50, ~1 at 20
+            corroboration = max(corroboration, min(1.0, max(0.0, depth)))
+        }
+
+        guard corroboration > 0 else { return 1.0 }  // D-09 no phase-alone reduction
+
+        // D-08: scale 5–15% reduction by corroboration strength.
+        let reduction = 0.05 + 0.10 * corroboration   // [0.05, 0.15]
+        return 1.0 - reduction                          // [0.85, 0.95]
+    }
+
     static func recommend(input: DailyInput) -> TrainingRecommendation {
         var warnings: [TrainingRecommendation.Warning] = []
 

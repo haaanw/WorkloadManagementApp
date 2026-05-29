@@ -28,7 +28,7 @@ struct ProgressionEngine {
         let distanceMeters: Double?
     }
 
-    enum ProgressionType {
+    enum ProgressionType: Equatable {
         case increase       // Progressive overload — push forward
         case maintain       // Hold current level (recovery limited)
         case deload         // Reduce load (fatigue or detraining)
@@ -41,6 +41,72 @@ struct ProgressionEngine {
         let volumeModifier: Double      // from AutoregulationEngine (0.0-1.0)
         let intensityCap: Double         // max RPE from AutoregulationEngine
         let acwrZone: ACWRZone
+    }
+
+    // MARK: - Late-luteal maintain bias (Phase 20, D-11)
+
+    /// Marginal-progression threshold (kg/week). A positive progression rate strictly below
+    /// this is considered "marginal" — small enough that holding in late luteal costs little.
+    static let marginalProgressionThresholdKgPerWeek: Double = 1.0
+
+    /// Cycle-aware overload (Phase 20, D-11). Additive and non-breaking: `cycleContext == nil`
+    /// returns output byte-identical to the base `suggest(...)` (D-12).
+    ///
+    /// In **late luteal only**, when the chosen progressionType would be `.increase` AND the
+    /// observed progression rate is marginal (positive but below the threshold) AND the gate
+    /// passes, bias the type to `.maintain`. Never makes a suggestion more aggressive, never
+    /// touches `.maintain`/`.deload`/`.returnFromBreak`, never affects non-late-luteal phases.
+    ///
+    /// Because `CycleModifierActivation.isEnabled` is false this phase, `shouldApply` is false
+    /// → the returned suggestion is UNCHANGED. The would-be bias is computable via
+    /// `wouldBiasToMaintain(...)` for shadow logging.
+    static func suggest(
+        exerciseName: String,
+        category: ExerciseCategory,
+        context: TrainingContext,
+        recentEntries: [ExerciseHistoryRecord],
+        cycleContext: CycleContext?,
+        cyclesObserved: Int = 0
+    ) -> ExerciseSuggestion {
+        let base = suggest(
+            exerciseName: exerciseName,
+            category: category,
+            context: context,
+            recentEntries: recentEntries
+        )
+
+        guard let cycleContext,
+              CycleModifierGate.shouldApply(context: cycleContext, cyclesObserved: cyclesObserved),
+              wouldBiasToMaintain(base: base, category: category, recentEntries: recentEntries, cycleContext: cycleContext) else {
+            return base  // nil / ineligible / not a late-luteal marginal increase → identical
+        }
+
+        let explanation = CycleModifierGate
+            .eligibility(context: cycleContext, cyclesObserved: cyclesObserved).explanation
+        let rationale = explanation.map { "Holding steady this session. \($0)" }
+            ?? "Holding steady this session."
+
+        return ExerciseSuggestion(
+            exerciseName: base.exerciseName,
+            suggestedSets: base.suggestedSets,
+            rationale: rationale,
+            progressionType: .maintain
+        )
+    }
+
+    /// Whether the late-luteal maintain bias WOULD trigger (computable regardless of
+    /// activation, for shadow logging). True only when phase is `.lateLuteal`, the base
+    /// progressionType is `.increase`, and the progression rate is marginal (D-11).
+    static func wouldBiasToMaintain(
+        base: ExerciseSuggestion,
+        category: ExerciseCategory,
+        recentEntries: [ExerciseHistoryRecord],
+        cycleContext: CycleContext
+    ) -> Bool {
+        guard cycleContext.phase == .lateLuteal else { return false }
+        guard case .increase = base.progressionType else { return false }
+        let rate = computeProgressionRate(entries: recentEntries, category: category)
+        return rate > 0 && rate < marginalProgressionThresholdKgPerWeek
     }
 
     // MARK: - Suggest

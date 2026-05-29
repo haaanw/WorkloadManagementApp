@@ -89,6 +89,81 @@ struct FatigueIndexEngine {
 
     // MARK: - Compute
 
+    /// Fraction of the recoveryTrend component's contribution retained in the luteal
+    /// bucket when dampening is active (D-10). 0.5 = halve the residual cyclic variance
+    /// that the Phase 18 same-phase recovery baseline has not already removed.
+    private static let lutealRecoveryTrendRetention: Double = 0.5
+
+    /// Cycle-aware overload (Phase 20, D-10). Additive and non-breaking: `cycleContext == nil`
+    /// returns output byte-identical to `compute(input:)` (D-12).
+    ///
+    /// Hypothesis (D-10, double-counting): luteal progesterone suppresses HRV / raises RHR,
+    /// which the Phase 18 same-phase recovery baseline already corrects in the recovery
+    /// component — but `recoveryTrend` consumes recovery scores that may carry residual
+    /// cyclic variance, inflating fatigue in the luteal bucket. When eligible AND activated
+    /// AND the phase buckets to luteal, the recoveryTrend contribution is dampened.
+    ///
+    /// Because `CycleModifierActivation.isEnabled` is false this phase, `shouldApply` is
+    /// false → the returned index is UNCHANGED. The would-be dampened index is computable
+    /// via `lutealDampenedIndex(input:cycleContext:)` for shadow logging.
+    static func compute(
+        input: FatigueInput,
+        cycleContext: CycleContext?,
+        cyclesObserved: Int = 0
+    ) -> FatigueResult {
+        let base = compute(input: input)
+
+        guard let cycleContext,
+              CycleModifierGate.shouldApply(context: cycleContext, cyclesObserved: cyclesObserved),
+              RecoveryScoreEngine.bucket(for: cycleContext.phase) == .luteal else {
+            return base  // nil context / ineligible / not luteal → identical (D-12 / D-06)
+        }
+
+        return dampenedResult(from: base, input: input)
+    }
+
+    /// The would-be dampened fatigue index (0–100), computable regardless of activation
+    /// so Plan 03 can shadow-log it. Returns the unchanged index when the phase does not
+    /// bucket to luteal (phase contributes nothing outside the luteal half).
+    static func lutealDampenedIndex(input: FatigueInput, cycleContext: CycleContext) -> Double {
+        let base = compute(input: input)
+        guard RecoveryScoreEngine.bucket(for: cycleContext.phase) == .luteal else {
+            return base.index
+        }
+        return dampenedResult(from: base, input: input).index
+    }
+
+    /// Recompute the weighted index with the recoveryTrend component dampened toward the
+    /// neutral 0.5 by `lutealRecoveryTrendRetention`. Re-uses the existing component scores
+    /// and weight set so only the recoveryTrend contribution changes.
+    private static func dampenedResult(from base: FatigueResult, input: FatigueInput) -> FatigueResult {
+        // Dampen residual cyclic variance: pull recoveryTrend toward neutral (0.5).
+        let dampenedRecoveryTrend = 0.5 + (base.recoveryTrend - 0.5) * lutealRecoveryTrendRetention
+
+        let components: [(score: Double, weight: Double)] = [
+            (base.loadElevation, loadWeight),
+            (base.sessionDensity, densityWeight),
+            (dampenedRecoveryTrend, recoveryWeight),
+            (base.restDebt, restDebtWeight),
+            (base.wellnessTrend, wellnessWeight),
+            (base.softTissueRisk, softTissueWeight)
+        ]
+        let totalWeight = components.reduce(0) { $0 + $1.weight }
+        let rawIndex = components.reduce(0.0) { $0 + $1.score * ($1.weight / totalWeight) }
+        let index = clamp(rawIndex * 100, min: 0, max: 100)
+
+        return FatigueResult(
+            index: index,
+            zone: FatigueZone.classify(index: index),
+            loadElevation: base.loadElevation,
+            sessionDensity: base.sessionDensity,
+            recoveryTrend: dampenedRecoveryTrend,
+            restDebt: base.restDebt,
+            wellnessTrend: base.wellnessTrend,
+            softTissueRisk: base.softTissueRisk
+        )
+    }
+
     /// Compute fatigue accumulation index from available inputs.
     /// Missing components are redistributed proportionally.
     static func compute(input: FatigueInput) -> FatigueResult {

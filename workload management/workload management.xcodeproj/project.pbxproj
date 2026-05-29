@@ -63,6 +63,7 @@
 		18AABB012F66CB0E00A9C2BE /* MenstrualCycleSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18AABB022F66CB0E00A9C2BE /* MenstrualCycleSnapshot.swift */; };
 		DD2001010000000000000001 /* CyclePredictionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2001000000000000000001 /* CyclePredictionLog.swift */; };
 		DD2002010000000000000001 /* ShadowPredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2002000000000000000001 /* ShadowPredictor.swift */; };
+		DD2003010000000000000001 /* CycleModifierGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2003000000000000000001 /* CycleModifierGate.swift */; };
 		62324C3C2F66CB0E00A9C2BE /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C0E2F66CB0E00A9C2BE /* SignUpView.swift */; };
 		62324C3D2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */; };
 		19A0001A2F66CB0E00A9C2BE /* REDSRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A0001B2F66CB0E00A9C2BE /* REDSRiskEngine.swift */; };
@@ -224,6 +225,7 @@
 		18AABB022F66CB0E00A9C2BE /* MenstrualCycleSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenstrualCycleSnapshot.swift; sourceTree = "<group>"; };
 		DD2001000000000000000001 /* CyclePredictionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePredictionLog.swift; sourceTree = "<group>"; };
 		DD2002000000000000000001 /* ShadowPredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowPredictor.swift; sourceTree = "<group>"; };
+		DD2003000000000000000001 /* CycleModifierGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleModifierGate.swift; sourceTree = "<group>"; };
 		62324BEF2F66CB0E00A9C2BE /* WorkloadSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadSnapshot.swift; sourceTree = "<group>"; };
 		62324BF02F66CB0E00A9C2BE /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
 		62324BF22F66CB0E00A9C2BE /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
@@ -527,6 +529,7 @@
 				62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */,
 				62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */,
 				DD2002000000000000000001 /* ShadowPredictor.swift */,
+				DD2003000000000000000001 /* CycleModifierGate.swift */,
 				19A0001B2F66CB0E00A9C2BE /* REDSRiskEngine.swift */,
 				62324C002F66CB0E00A9C2BE /* SyncService.swift */,
 				DD1401010000000000000002 /* SyncEntity.swift */,
@@ -969,6 +972,7 @@
 				18AABB012F66CB0E00A9C2BE /* MenstrualCycleSnapshot.swift in Sources */,
 				DD2001010000000000000001 /* CyclePredictionLog.swift in Sources */,
 				DD2002010000000000000001 /* ShadowPredictor.swift in Sources */,
+				DD2003010000000000000001 /* CycleModifierGate.swift in Sources */,
 				62324C3C2F66CB0E00A9C2BE /* SignUpView.swift in Sources */,
 				62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */,
 				62324C3D2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift in Sources */,

@@ -153,4 +153,76 @@ final class AutoregulationEngineTests: XCTestCase {
         let rec = AutoregulationEngine.recommend(input: input(recovery: .green, acwr: .optimal, daysSinceRest: 7))
         XCTAssertEqual(rec.sessionType, .power)
     }
+
+    // MARK: - Phase 20: cycle soft volume modifier (D-07/D-08/D-09)
+
+    private func luteal(confidence: Double = 0.8) -> CycleContext {
+        CycleContext(
+            phase: .lateLuteal, confidence: confidence, cycleDay: 24, cycleLength: 28,
+            isOnHormonalContraceptive: false, isPregnant: false, isLactating: false
+        )
+    }
+
+    /// D-12: nil context is byte-identical to the base recommend(input:) across representative cells.
+    func test_nilContext_identicalToBase() {
+        let cells: [(RecoveryZone, ACWRZone)] = [
+            (.green, .optimal), (.green, .danger), (.yellow, .optimal),
+            (.yellow, .caution), (.yellow, .danger), (.red, .optimal), (.red, .danger)
+        ]
+        for (rz, az) in cells {
+            let inp = input(recovery: rz, acwr: az)
+            let base = AutoregulationEngine.recommend(input: inp)
+            let cycle = AutoregulationEngine.recommend(input: inp, cycleContext: nil, cyclesObserved: 5)
+            XCTAssertEqual(base.volumeModifier, cycle.volumeModifier, accuracy: 0.0001)
+            XCTAssertEqual(base.intensityCap, cycle.intensityCap, accuracy: 0.0001)
+            XCTAssertEqual(base.sessionType, cycle.sessionType)
+        }
+    }
+
+    /// Criterion 2: never in green zone.
+    func test_greenLuteal_factorIsOne() {
+        let inp = input(recovery: .green, recoveryScore: 85, acwr: .optimal)
+        XCTAssertEqual(AutoregulationEngine.cycleVolumeFactor(input: inp, cycleContext: luteal()), 1.0, accuracy: 0.0001)
+    }
+
+    /// Criterion 2: never in red zone; rest/activeRecovery preserved.
+    func test_redLuteal_factorIsOne_andRestPreserved() {
+        let inp = input(recovery: .red, recoveryScore: 25, acwr: .danger)
+        XCTAssertEqual(AutoregulationEngine.cycleVolumeFactor(input: inp, cycleContext: luteal()), 1.0, accuracy: 0.0001)
+        let rec = AutoregulationEngine.recommend(input: inp, cycleContext: luteal(), cyclesObserved: 5)
+        XCTAssertEqual(rec.sessionType, .rest)
+        XCTAssertEqual(rec.volumeModifier, 0.0, accuracy: 0.0001)
+    }
+
+    /// D-07/D-08: yellow + luteal + corroborating low signal → factor in [0.85, 1.0).
+    func test_yellowLuteal_lowSignal_factorInRange() {
+        let inp = input(recovery: .yellow, recoveryScore: 45, acwr: .optimal, wellness: 30)
+        let factor = AutoregulationEngine.cycleVolumeFactor(input: inp, cycleContext: luteal())
+        XCTAssertGreaterThanOrEqual(factor, 0.85)
+        XCTAssertLessThan(factor, 1.0)
+    }
+
+    /// D-06: even with a would-be reduction, returned volume is UNCHANGED (activation off).
+    func test_yellowLuteal_lowSignal_returnedVolumeUnchanged_activationOff() {
+        let inp = input(recovery: .yellow, recoveryScore: 45, acwr: .optimal, wellness: 30)
+        let base = AutoregulationEngine.recommend(input: inp)
+        let cycle = AutoregulationEngine.recommend(input: inp, cycleContext: luteal(), cyclesObserved: 5)
+        XCTAssertEqual(base.volumeModifier, cycle.volumeModifier, accuracy: 0.0001)
+    }
+
+    /// D-09: yellow + luteal + normal recovery/wellness + no soreness → no reduction (phase alone).
+    func test_yellowLuteal_noCorroboration_factorIsOne() {
+        let inp = input(recovery: .yellow, recoveryScore: 68, acwr: .optimal, wellness: 80)
+        XCTAssertEqual(AutoregulationEngine.cycleVolumeFactor(input: inp, cycleContext: luteal()), 1.0, accuracy: 0.0001)
+    }
+
+    /// Phase contributes direction only: follicular bucket never reduces.
+    func test_yellowFollicular_factorIsOne() {
+        let follicular = CycleContext(
+            phase: .lateFollicular, confidence: 0.8, cycleDay: 10, cycleLength: 28,
+            isOnHormonalContraceptive: false, isPregnant: false, isLactating: false
+        )
+        let inp = input(recovery: .yellow, recoveryScore: 45, acwr: .optimal, wellness: 30)
+        XCTAssertEqual(AutoregulationEngine.cycleVolumeFactor(input: inp, cycleContext: follicular), 1.0, accuracy: 0.0001)
+    }
 }
