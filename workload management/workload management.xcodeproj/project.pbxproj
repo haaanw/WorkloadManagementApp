@@ -64,6 +64,8 @@
 		DD2001010000000000000001 /* CyclePredictionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2001000000000000000001 /* CyclePredictionLog.swift */; };
 		DD2002010000000000000001 /* ShadowPredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2002000000000000000001 /* ShadowPredictor.swift */; };
 		DD2003010000000000000001 /* CycleModifierGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2003000000000000000001 /* CycleModifierGate.swift */; };
+		DD2004010000000000000001 /* CyclePredictionLogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2004000000000000000001 /* CyclePredictionLogRepository.swift */; };
+		DD2005010000000000000001 /* ShadowAnalyticsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2005000000000000000001 /* ShadowAnalyticsService.swift */; };
 		62324C3C2F66CB0E00A9C2BE /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C0E2F66CB0E00A9C2BE /* SignUpView.swift */; };
 		62324C3D2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */; };
 		19A0001A2F66CB0E00A9C2BE /* REDSRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A0001B2F66CB0E00A9C2BE /* REDSRiskEngine.swift */; };
@@ -226,6 +228,8 @@
 		DD2001000000000000000001 /* CyclePredictionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePredictionLog.swift; sourceTree = "<group>"; };
 		DD2002000000000000000001 /* ShadowPredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowPredictor.swift; sourceTree = "<group>"; };
 		DD2003000000000000000001 /* CycleModifierGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleModifierGate.swift; sourceTree = "<group>"; };
+		DD2004000000000000000001 /* CyclePredictionLogRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePredictionLogRepository.swift; sourceTree = "<group>"; };
+		DD2005000000000000000001 /* ShadowAnalyticsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowAnalyticsService.swift; sourceTree = "<group>"; };
 		62324BEF2F66CB0E00A9C2BE /* WorkloadSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadSnapshot.swift; sourceTree = "<group>"; };
 		62324BF02F66CB0E00A9C2BE /* WorkoutSession.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutSession.swift; sourceTree = "<group>"; };
 		62324BF22F66CB0E00A9C2BE /* PreviewData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreviewData.swift; sourceTree = "<group>"; };
@@ -484,6 +488,7 @@
 				CC0301010000000000000004 /* BehaviorTagRepository.swift */,
 				62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */,
 				DD1802000000000000000001 /* CycleSnapshotRepository.swift */,
+				DD2004000000000000000001 /* CyclePredictionLogRepository.swift */,
 				62324BF62F66CB0E00A9C2BE /* WorkloadRepository.swift */,
 				CC0903000000000000000001 /* TemplateRepository.swift */,
 				AA10010100000000000002 /* TrainingProfileRepository.swift */,
@@ -530,6 +535,7 @@
 				62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */,
 				DD2002000000000000000001 /* ShadowPredictor.swift */,
 				DD2003000000000000000001 /* CycleModifierGate.swift */,
+				DD2005000000000000000001 /* ShadowAnalyticsService.swift */,
 				19A0001B2F66CB0E00A9C2BE /* REDSRiskEngine.swift */,
 				62324C002F66CB0E00A9C2BE /* SyncService.swift */,
 				DD1401010000000000000002 /* SyncEntity.swift */,
@@ -973,6 +979,8 @@
 				DD2001010000000000000001 /* CyclePredictionLog.swift in Sources */,
 				DD2002010000000000000001 /* ShadowPredictor.swift in Sources */,
 				DD2003010000000000000001 /* CycleModifierGate.swift in Sources */,
+				DD2004010000000000000001 /* CyclePredictionLogRepository.swift in Sources */,
+				DD2005010000000000000001 /* ShadowAnalyticsService.swift in Sources */,
 				62324C3C2F66CB0E00A9C2BE /* SignUpView.swift in Sources */,
 				62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */,
 				62324C3D2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift in Sources */,

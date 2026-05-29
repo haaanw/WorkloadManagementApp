@@ -67,6 +67,11 @@ final class DashboardViewModel {
 
         // Run recovery pipeline
         var fullRecoveryResult: RecoveryScoreEngine.RecoveryResult?
+        // Phase 20: cycle context surfaced from the pipeline, passed into the Plan 02 engine
+        // overloads below. With CycleModifierActivation.isEnabled == false the engines return
+        // their base values, so the dashboard is visually identical (wiring only).
+        var cycleContext: CycleContext = .none
+        var cyclesObserved = 0
         #if DEBUG
         let isScreenshotMode = ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE")
         #else
@@ -86,6 +91,8 @@ final class DashboardViewModel {
                 recoveryZone = recoveryResult.zone
                 fullRecoveryResult = recoveryResult.snapshot
                 staleness = recoveryResult.staleness
+                cycleContext = recoveryResult.cycleContext
+                cyclesObserved = recoveryResult.cyclesObserved
             } catch {
                 print("Recovery pipeline error: \(error)")
             }
@@ -240,7 +247,12 @@ final class DashboardViewModel {
                 softTissueInjuryCount: 0,
                 daysSinceLastInjury: nil
             )
-            let fatigueResult = FatigueIndexEngine.compute(input: fatigueInput)
+            // Phase 20: pass cycle context (activation off → identical to base, D-06/D-12).
+            let fatigueResult = FatigueIndexEngine.compute(
+                input: fatigueInput,
+                cycleContext: cycleContext.phase == .unknown ? nil : cycleContext,
+                cyclesObserved: cyclesObserved
+            )
             fatigueIndex = fatigueResult.index
             fatigueZone = fatigueResult.zone
         }
@@ -255,7 +267,12 @@ final class DashboardViewModel {
             daysSinceLastRest: daysSinceRest,
             fatigueIndex: fatigueIndex
         )
-        recommendation = AutoregulationEngine.recommend(input: autoInput)
+        // Phase 20: pass cycle context (activation off → identical to base, D-06/D-12).
+        recommendation = AutoregulationEngine.recommend(
+            input: autoInput,
+            cycleContext: cycleContext.phase == .unknown ? nil : cycleContext,
+            cyclesObserved: cyclesObserved
+        )
 
         // Build reasoning factors (requires real data)
         if hasRealData, let result = fullRecoveryResult {

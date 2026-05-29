@@ -10,6 +10,11 @@ struct RecoveryPipeline {
         let zone: RecoveryZone
         let snapshot: RecoveryScoreEngine.RecoveryResult
         let staleness: HealthKitStaleness
+        /// Current cycle context, surfaced so the Dashboard can pass it into the Plan 02
+        /// engine overloads without a second cycle query. `.none` when no cycle service ran.
+        let cycleContext: CycleContext
+        /// Number of observed cycle boundaries in the recent window (for CycleModifierGate).
+        let cyclesObserved: Int
     }
 
     /// Run on app launch and after wellness check-in.
@@ -71,8 +76,20 @@ struct RecoveryPipeline {
         // fields stay nil → the engine uses the 7-day baselines (identical-behavior path).
         var samePhaseHRVBaseline: Double?
         var samePhaseRestingHRBaseline: Double?
+        // Surfaced to the Dashboard (Phase 20) so it can call the Plan 02 engine overloads.
+        // Defaults to `.none` / 0 so the nil-service path leaves them inert and run() byte-identical.
+        var cycleContextForResult: CycleContext = .none
+        var cyclesObservedForResult = 0
         if let cycleTrackingService {
             let ctx = await cycleTrackingService.run(athlete: athlete, context: modelContext)
+            cycleContextForResult = ctx
+
+            // Count observed cycle boundaries in a ~1-year window for the CycleModifierGate's
+            // 3+ usable cycles requirement (D-05). isCycleStart rows mark cycle boundaries;
+            // this never recounts regularity (confidence already encodes it — Phase 17/18).
+            let cycleSnaps = (try? CycleSnapshotRepository(modelContext: modelContext)
+                .fetchCycleSnapshots(days: 365, athlete: athlete)) ?? []
+            cyclesObservedForResult = cycleSnaps.filter { $0.isCycleStart }.count
 
             // D-04 gate: confident, non-excluded, known phase.
             // D-05: OC / pregnant / lactating users (hasExclusion) always fall through to 7-day.
@@ -149,11 +166,82 @@ struct RecoveryPipeline {
             }
         }
 
+        // 6. Shadow-mode logging (Phase 20, D-03). Local-only — runs ONLY when a cycle
+        //    service is injected, so the nil-service path is byte-identical (D-12). No cycle
+        //    or shadow field is added to upsertRecoverySnapshot or the syncService push (D-13).
+        if cycleTrackingService != nil {
+            // Stage 2 first: resolve yesterday-and-earlier rows against observed outcomes.
+            try? ShadowAnalyticsService.resolveOutcomes(athlete: athlete, asOf: .now, modelContext: modelContext)
+
+            // Stage 1: write today's prediction row (predictions are about tomorrow).
+            // Build recent series from already-fetched / cheap reads. Completion = 1/0 per day.
+            let calendar = Calendar.current
+            let sortedHistory = recoveryHistory.sorted { $0.date < $1.date }
+            let recoverySeries = sortedHistory.map(\.recoveryScore)
+
+            let workoutRepo = WorkoutRepository(modelContext: modelContext)
+            let recentSessions = (try? workoutRepo.fetchSessions(last: 7, athlete: athlete)) ?? []
+            let sessionDays = Set(recentSessions.map { calendar.startOfDay(for: $0.sessionDate) })
+            var completionSeries: [Double] = []
+            for offset in stride(from: 6, through: 0, by: -1) {
+                let day = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -offset, to: .now)!)
+                completionSeries.append(sessionDays.contains(day) ? 1.0 : 0.0)
+            }
+
+            let wellnessCheckIns = (try? fetchRecentWellness(athlete: athlete, modelContext: modelContext)) ?? []
+            let wellnessSeries = wellnessCheckIns.map(\.wellnessScore)
+            let painSeries = wellnessCheckIns.map { Double($0.soreness) }
+
+            // Would-be modifier effects (computed, never applied — activation off).
+            let zoneForFactor = result.zone
+            let autoInput = AutoregulationEngine.DailyInput(
+                recoveryZone: zoneForFactor,
+                recoveryScore: result.score,
+                acwrZone: .noData,
+                acwr: 0,
+                wellnessScore: wellnessScore,
+                daysSinceLastRest: 0
+            )
+            let wouldBeVolumeFactor = AutoregulationEngine.cycleVolumeFactor(
+                input: autoInput, cycleContext: cycleContextForResult
+            )
+
+            try? ShadowAnalyticsService.recordPrediction(
+                athlete: athlete,
+                context: cycleContextForResult,
+                cyclesObserved: cyclesObservedForResult,
+                recoveryHistory: recoverySeries,
+                wellnessHistory: wellnessSeries,
+                completionHistory: completionSeries,
+                painHistory: painSeries,
+                wouldBeVolumeFactor: wouldBeVolumeFactor,
+                wouldBeDampenedFatigueIndex: nil,
+                wouldBiasProgressionToMaintain: nil,
+                modelContext: modelContext
+            )
+        }
+
         return RecoveryResult(
             score: result.score,
             zone: result.zone,
             snapshot: result,
-            staleness: staleness
+            staleness: staleness,
+            cycleContext: cycleContextForResult,
+            cyclesObserved: cyclesObservedForResult
         )
+    }
+
+    /// Recent wellness check-ins (last 7 days, oldest first) for shadow wellness/pain series.
+    private static func fetchRecentWellness(
+        athlete: Athlete,
+        modelContext: ModelContext
+    ) throws -> [WellnessCheckIn] {
+        let start = Calendar.current.date(byAdding: .day, value: -7, to: .now)!
+        let athleteId = athlete.id
+        let descriptor = FetchDescriptor<WellnessCheckIn>(
+            predicate: #Predicate { $0.date >= start && $0.athlete?.id == athleteId },
+            sortBy: [SortDescriptor(\.date)]
+        )
+        return try modelContext.fetch(descriptor)
     }
 }
