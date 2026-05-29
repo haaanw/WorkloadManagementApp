@@ -21,6 +21,9 @@ final class Athlete {
     var isOnHormonalContraceptive: Bool?
     var isPregnant: Bool?
     var isLactating: Bool?
+    // Additive local-only RED-S exclusion flags (Phase 19 D-11a). NOT synced (Phase 18 CR-01).
+    var hasPCOS: Bool?
+    var isPerimenopausal: Bool?
 
     @Relationship(deleteRule: .cascade, inverse: \WorkoutSession.athlete)
     var sessions: [WorkoutSession] = []

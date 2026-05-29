@@ -589,4 +589,20 @@ enum CyclePhase: String, Codable, CaseIterable, Identifiable {
         case .unknown: String(localized: "cyclePhase.unknown", defaultValue: "Unknown")
         }
     }
+
+    /// Readiness-first 2-bucket context-copy localization key (Phase 19 D-05).
+    /// Follicular bucket (earlyFollicular/lateFollicular/ovulatory) -> follicular key,
+    /// luteal bucket (earlyLuteal/lateLuteal) -> luteal key, .unknown -> nil.
+    /// The copy explains the readiness score; it never prescribes training.
+    /// Views localize the returned key at render time (LocalizedStringKey).
+    var contextCopyKey: String? {
+        switch self {
+        case .earlyFollicular, .lateFollicular, .ovulatory:
+            return "cyclePhase.context.follicular"
+        case .earlyLuteal, .lateLuteal:
+            return "cyclePhase.context.luteal"
+        case .unknown:
+            return nil
+        }
+    }
 }

@@ -682,6 +682,227 @@
         }
       }
     },
+    "cycle.fueling.fasted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Avoid hard sessions fasted — fuel before high-intensity work."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高强度训练前先补充能量，避免空腹进行。"
+          }
+        }
+      }
+    },
+    "cycle.fueling.lutealHeat": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You may run warmer this phase — prioritize hydration and cooling during hard efforts."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一阶段体温可能偏高——大强度训练时注意补水和降温。"
+          }
+        }
+      }
+    },
+    "cycle.fueling.lutealNutrition": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A little extra protein and complex carbs can help this phase."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "这一阶段适量增加蛋白质和复合碳水会有帮助。"
+          }
+        }
+      }
+    },
+    "cycle.fueling.protein": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aim for protein within ~45 minutes after training."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练后约 45 分钟内补充蛋白质。"
+          }
+        }
+      }
+    },
+    "cycle.fueling.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fueling & recovery"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "补给与恢复"
+          }
+        }
+      }
+    },
+    "cycle.indicator.day": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Day %lld"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "第 %lld 天"
+          }
+        }
+      }
+    },
+    "cycle.indicator.label": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "CYCLE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周期"
+          }
+        }
+      }
+    },
+    "cycle.reds.body": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your cycle patterns have changed recently. This can sometimes mean your body needs more fuel or recovery. It may be worth speaking with a healthcare provider."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你近期的月经周期规律发生了变化。这有时意味着身体需要更多能量或恢复。建议咨询医疗专业人士。"
+          }
+        }
+      }
+    },
+    "cycle.reds.dismiss": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "忽略"
+          }
+        }
+      }
+    },
+    "cycle.reds.dismiss.a11y": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dismiss cycle pattern notice"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "忽略周期变化提示"
+          }
+        }
+      }
+    },
+    "cycle.reds.title": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cycle pattern change"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "周期规律变化"
+          }
+        }
+      }
+    },
+    "cyclePhase.context.follicular": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're in your follicular phase — HRV and recovery markers tend to run higher. Your readiness score reflects your own same-phase normal."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你正处于卵泡期——心率变异性和恢复指标通常会偏高。你的状态评分已参照你同阶段的个人基线。"
+          }
+        }
+      }
+    },
+    "cyclePhase.context.luteal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You're in your luteal phase — lower HRV and a higher resting heart rate are expected here. Your readiness score already accounts for this."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你正处于黄体期——心率变异性偏低、静息心率偏高都属正常。你的状态评分已将此考虑在内。"
+          }
+        }
+      }
+    },
     "cyclePhase.earlyLuteal": {
       "extractionState": "manual",
       "localizations": {
@@ -3034,6 +3255,40 @@
           "stringUnit": {
             "state": "translated",
             "value": "负荷指标"
+          }
+        }
+      }
+    },
+    "profile.row.pcos": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "PCOS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "多囊卵巢综合征"
+          }
+        }
+      }
+    },
+    "profile.row.perimenopausal": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Perimenopausal"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "围绝经期"
           }
         }
       }

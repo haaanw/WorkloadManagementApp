@@ -63,6 +63,10 @@
 		18AABB012F66CB0E00A9C2BE /* MenstrualCycleSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 18AABB022F66CB0E00A9C2BE /* MenstrualCycleSnapshot.swift */; };
 		62324C3C2F66CB0E00A9C2BE /* SignUpView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C0E2F66CB0E00A9C2BE /* SignUpView.swift */; };
 		62324C3D2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */; };
+		19A0001A2F66CB0E00A9C2BE /* REDSRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A0001B2F66CB0E00A9C2BE /* REDSRiskEngine.swift */; };
+		19A0001C2F66CB0E00A9C2BE /* CycleStatusStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A0001D2F66CB0E00A9C2BE /* CycleStatusStrip.swift */; };
+		19A0001E2F66CB0E00A9C2BE /* CycleFuelingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A0001F2F66CB0E00A9C2BE /* CycleFuelingCard.swift */; };
+		19A000202F66CB0E00A9C2BE /* REDSAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 19A000212F66CB0E00A9C2BE /* REDSAttentionBanner.swift */; };
 		62324C3E2F66CB0E00A9C2BE /* RecoverySnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEC2F66CB0E00A9C2BE /* RecoverySnapshot.swift */; };
 		62324C3F2F66CB0E00A9C2BE /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C142F66CB0E00A9C2BE /* ProfileView.swift */; };
 		62324C402F66CB0E00A9C2BE /* Athlete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE82F66CB0E00A9C2BE /* Athlete.swift */; };
@@ -231,6 +235,10 @@
 		62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRDetector.swift; sourceTree = "<group>"; };
 		62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryPipeline.swift; sourceTree = "<group>"; };
 		62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScoreEngine.swift; sourceTree = "<group>"; };
+		19A0001B2F66CB0E00A9C2BE /* REDSRiskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REDSRiskEngine.swift; sourceTree = "<group>"; };
+		19A0001D2F66CB0E00A9C2BE /* CycleStatusStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleStatusStrip.swift; sourceTree = "<group>"; };
+		19A0001F2F66CB0E00A9C2BE /* CycleFuelingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleFuelingCard.swift; sourceTree = "<group>"; };
+		19A000212F66CB0E00A9C2BE /* REDSAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REDSAttentionBanner.swift; sourceTree = "<group>"; };
 		62324C002F66CB0E00A9C2BE /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
 		DD1401010000000000000002 /* SyncEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEntity.swift; sourceTree = "<group>"; };
 		DD1401010000000000000004 /* SyncTimestampStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncTimestampStore.swift; sourceTree = "<group>"; };
@@ -420,6 +428,9 @@
 				62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */,
 				1101010100000000000000B2 /* ToastBanner.swift */,
 				FF0801010000000000000002 /* FatigueAttentionBanner.swift */,
+				19A0001D2F66CB0E00A9C2BE /* CycleStatusStrip.swift */,
+				19A0001F2F66CB0E00A9C2BE /* CycleFuelingCard.swift */,
+				19A000212F66CB0E00A9C2BE /* REDSAttentionBanner.swift */,
 				AA0201010000000000000002 /* StalenessWarningBadge.swift */,
 				AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */,
 				AA0202010000000000000003 /* ChartTooltipOverlay.swift */,
@@ -510,6 +521,7 @@
 				62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */,
 				62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */,
 				62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */,
+				19A0001B2F66CB0E00A9C2BE /* REDSRiskEngine.swift */,
 				62324C002F66CB0E00A9C2BE /* SyncService.swift */,
 				DD1401010000000000000002 /* SyncEntity.swift */,
 				DD1401010000000000000004 /* SyncTimestampStore.swift */,
@@ -952,6 +964,10 @@
 				62324C3C2F66CB0E00A9C2BE /* SignUpView.swift in Sources */,
 				62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */,
 				62324C3D2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift in Sources */,
+				19A0001A2F66CB0E00A9C2BE /* REDSRiskEngine.swift in Sources */,
+				19A0001C2F66CB0E00A9C2BE /* CycleStatusStrip.swift in Sources */,
+				19A0001E2F66CB0E00A9C2BE /* CycleFuelingCard.swift in Sources */,
+				19A000202F66CB0E00A9C2BE /* REDSAttentionBanner.swift in Sources */,
 				627EC1892F75904200B89262 /* PrescribedWorkout.swift in Sources */,
 				627EC18A2F75904200B89262 /* WorkoutTemplate.swift in Sources */,
 				62324C3E2F66CB0E00A9C2BE /* RecoverySnapshot.swift in Sources */,
