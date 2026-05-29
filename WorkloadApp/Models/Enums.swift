@@ -104,9 +104,9 @@ enum ACWRZone: String, Codable {
 
     var displayName: String {
         switch self {
-        case .undertrained: String(localized: "zone.low", defaultValue: "Undertrained")
-        case .optimal: String(localized: "zone.optimal", defaultValue: "Optimal")
-        case .caution: String(localized: "zone.caution", defaultValue: "Caution")
+        case .undertrained: String(localized: "zone.low", defaultValue: "Load Light")
+        case .optimal: String(localized: "zone.optimal", defaultValue: "Load Steady")
+        case .caution: String(localized: "zone.caution", defaultValue: "Load Building")
         case .danger: String(localized: "zone.danger", defaultValue: "High Load")
         case .noData: String(localized: "zone.noData", defaultValue: "No Data")
         }

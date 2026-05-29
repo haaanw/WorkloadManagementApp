@@ -240,8 +240,8 @@ struct AutoregulationEngine {
 
         case (.green, .optimal):
             base = (10.0, 1.0, .power,
-                    "Go Zone — Full Send",
-                    "Recovery is high and load is in the sweet spot. Ideal day for PR attempts, high-intensity intervals, plyometrics, or max effort training.")
+                    "Go Zone — Recovery Is High",
+                    "Recovery is high and your load is steady relative to baseline. Good day for PR attempts, high-intensity intervals, plyometrics, or max effort training.")
 
         case (.green, .undertrained), (.green, .noData):
             base = (9.0, 1.0, .strength,

@@ -5312,13 +5312,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Caution"
+            "value": "Load Building"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "注意"
+            "value": "负荷上升中"
           }
         }
       }
@@ -5335,7 +5335,7 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "高风险"
+            "value": "负荷偏高"
           }
         }
       }
@@ -5346,13 +5346,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Undertrained"
+            "value": "Load Light"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "偏低"
+            "value": "负荷偏低"
           }
         }
       }
@@ -5380,13 +5380,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Optimal"
+            "value": "Load Steady"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "适宜"
+            "value": "负荷平稳"
           }
         }
       }
