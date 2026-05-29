@@ -25,6 +25,23 @@ struct HealthKitStaleness {
     }
 }
 
+/// Coarse connection state for HealthKit-dependent UI.
+///
+/// Apple does NOT report READ authorization via `authorizationStatus(for:)`, so we can never
+/// prove the user granted (or denied) read access. We can only know whether we have *asked*
+/// (`hasRequestedAccess`) and whether reads currently *return data*. These three states are
+/// what the UI needs to route between a connect CTA, a benign "no recent data" message, and
+/// the normal data view.
+enum HealthKitConnectionState: Equatable {
+    /// Authorization was never requested → show the "Connect Apple Health" CTA.
+    case notRequested
+    /// Requested, but no recent samples are visible. Could be a brand-new account with no data
+    /// yet, or revoked permissions — we cannot distinguish, so this is NOT an error.
+    case requestedNoData
+    /// Reads are returning data → normal UI.
+    case connected
+}
+
 /// Service for reading health and fitness data from HealthKit.
 /// All wearable data (Apple Watch, Whoop, Oura, Garmin) flows through HealthKit
 /// as the unified API when their companion apps are installed.
@@ -32,7 +49,42 @@ struct HealthKitStaleness {
 @Observable
 final class HealthKitService {
     private let store = HKHealthStore()
-    private(set) var isAuthorized = false
+
+    /// UserDefaults key persisting that we have completed an authorization request at least once.
+    /// NOTE: "requested" ≠ "read-granted". Apple never exposes read-grant status, so this only
+    /// records that the system permission sheet was shown and dismissed.
+    private static let hasRequestedKey = "hasRequestedHealthKitAccess"
+
+    /// True once the user has been through `requestAuthorization()` (persisted across launches).
+    /// Survives cold launch — this is what fixes the "connect CTA every launch" bug.
+    private(set) var hasRequestedAccess: Bool {
+        didSet { UserDefaults.standard.set(hasRequestedAccess, forKey: Self.hasRequestedKey) }
+    }
+
+    /// True once a read has actually returned data this session (or migration probe confirmed it).
+    /// Drives the distinction between `.requestedNoData` and `.connected`.
+    private(set) var hasObservedData = false
+
+    /// Legacy alias kept for read sites that just need "should we attempt reads / treat as connected".
+    /// Now backed by the persisted request flag instead of in-memory-only session state, so it no
+    /// longer resets to false on cold launch.
+    var isAuthorized: Bool { hasRequestedAccess }
+
+    /// Coarse state for HealthKit-dependent UI surfaces.
+    var connectionState: HealthKitConnectionState {
+        guard hasRequestedAccess else { return .notRequested }
+        return hasObservedData ? .connected : .requestedNoData
+    }
+
+    init() {
+        self.hasRequestedAccess = UserDefaults.standard.bool(forKey: Self.hasRequestedKey)
+    }
+
+    /// Record that a live read returned data (called by the pipeline after a successful fetch).
+    /// Idempotent; only ever sets the flag true (empty reads must not clear it — see probe rules).
+    func noteObservedData() {
+        hasObservedData = true
+    }
 
     /// HealthKit data types we want to read
     private var readTypes: Set<HKObjectType> {
@@ -66,11 +118,42 @@ final class HealthKitService {
         HKHealthStore.isHealthDataAvailable()
     }
 
-    /// Request read-only authorization for all required data types
+    /// Request read-only authorization for all required data types.
+    /// Persists `hasRequestedAccess` so subsequent cold launches don't re-show the connect CTA.
     func requestAuthorization() async throws {
         guard isAvailable else { return }
         try await store.requestAuthorization(toShare: [], read: readTypes)
-        isAuthorized = true
+        hasRequestedAccess = true
+    }
+
+    /// Non-blocking migration / liveness probe.
+    ///
+    /// Run AFTER authenticated UI appears (never on the launch critical path). Performs a single
+    /// lightweight recent-sample read. If any data returns:
+    ///  - sets `hasObservedData = true` → state becomes `.connected`
+    ///  - persists `hasRequestedAccess = true` to migrate legacy v1.3 users who granted Health
+    ///    access before the persisted flag existed.
+    ///
+    /// Empty reads are treated as UNKNOWN: we never flip a flag to false here. "No samples" cannot
+    /// prove denial (HK may simply have no data yet), and a revoked-permission user keeps their
+    /// persisted `hasRequestedAccess` so the UI shows "no recent data", not the connect CTA.
+    /// Skips under SCREENSHOT_MODE.
+    func runMigrationProbe() async {
+        guard isAvailable else { return }
+        #if DEBUG
+        if ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE") { return }
+        #endif
+
+        // Reuse existing fetch helpers; any one returning a value is enough to confirm liveness.
+        let hrv = try? await fetchLatestHRVWithDate()
+        let rhr = (hrv == nil) ? (try? await fetchLatestRestingHRWithDate()) : nil
+        let sleep = (hrv == nil && rhr == nil) ? (try? await fetchLastNightSleepWithDate()) : nil
+
+        if hrv != nil || rhr != nil || sleep != nil {
+            hasObservedData = true
+            hasRequestedAccess = true   // migrate legacy granters
+        }
+        // else: UNKNOWN — leave flags untouched (do not flip to false).
     }
 
     // MARK: - HRV

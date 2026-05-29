@@ -41,7 +41,9 @@ struct RecoveryPipeline {
         var rhrDate: Date?
         var sleepDate: Date?
 
-        if healthKitService.isAuthorized {
+        // Attempt reads whenever HealthKit is available AND the user has requested access.
+        // Absence of data is treated as "no recent data" downstream, never as "unauthorized".
+        if healthKitService.isAvailable && healthKitService.hasRequestedAccess {
             let hrvResult = try? await healthKitService.fetchLatestHRVWithDate()
             hrv = hrvResult?.value
             hrvDate = hrvResult?.date
@@ -56,6 +58,11 @@ struct RecoveryPipeline {
 
             bodyTemp = try? await healthKitService.fetchLatestBodyTemp()
             vo2Max = try? await healthKitService.fetchLatestVO2Max()
+
+            // Live data confirms connection → upgrade state from .requestedNoData to .connected.
+            if hrv != nil || rhr != nil || sleep != nil {
+                healthKitService.noteObservedData()
+            }
         }
 
         let staleness = HealthKitStaleness(lastHRVDate: hrvDate, lastSleepDate: sleepDate, lastRHRDate: rhrDate)
