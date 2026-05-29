@@ -65,8 +65,15 @@ struct DashboardView: View {
                     //  - .notRequested → connect CTA
                     //  - .requestedNoData → benign "connected, no recent data" (NOT the connect CTA)
                     //  - .connected → nothing (normal data view)
+                    //
+                    // Read the LIVE connectionState from the @Observable HealthKitService (not a
+                    // stale copy snapshotted in viewModel.load()). HealthKitService is @MainActor
+                    // @Observable, so reading connectionState here registers an Observation
+                    // dependency on its `hasRequestedAccess` / `hasObservedData` stored properties.
+                    // When the detached migration probe (AppRouter) or a Connect tap flips either
+                    // flag, SwiftUI re-renders this view body immediately — no reload required.
                     if !viewModel.hasRealData {
-                        switch viewModel.healthKitState {
+                        switch container.healthKitService.connectionState {
                         case .notRequested:
                             EmptyStateCard {
                                 Task { try? await container.healthKitService.requestAuthorization() }

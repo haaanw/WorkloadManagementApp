@@ -41,9 +41,10 @@ final class DashboardViewModel {
     var reasoningFactors: [ReasoningEngine.Factor] = []
     var hasRealData: Bool = false
 
-    /// HealthKit connection state, used to route the empty-state UI between the connect CTA,
-    /// a benign "connected — no recent data" message, and the normal data view.
-    var healthKitState: HealthKitConnectionState = .notRequested
+    // NOTE: HealthKit connection state is intentionally NOT cached on the ViewModel.
+    // The Dashboard reads `container.healthKitService.connectionState` LIVE in its view body
+    // so SwiftUI's Observation tracking re-renders when the async migration probe or a Connect
+    // tap updates the service. A cached copy here would go stale (the original bug).
 
     // Staleness tracking
     var staleness: HealthKitStaleness = HealthKitStaleness(lastHRVDate: nil, lastSleepDate: nil, lastRHRDate: nil)
@@ -68,9 +69,6 @@ final class DashboardViewModel {
         cycleTrackingService: CycleTrackingService? = nil
     ) async {
         isLoading = true
-
-        // Capture HealthKit connection state for empty-state routing.
-        healthKitState = healthKitService.connectionState
 
         // Run recovery pipeline
         var fullRecoveryResult: RecoveryScoreEngine.RecoveryResult?
@@ -137,9 +135,6 @@ final class DashboardViewModel {
             recoveryScore = snap.recoveryScore
             recoveryZone = snap.zone
         }
-
-        // Re-read state after the pipeline — a successful read upgrades it to `.connected`.
-        healthKitState = healthKitService.connectionState
 
         // SCREENSHOT_MODE: synthesize a RecoveryResult from the seeded snapshot so
         // reasoning factors populate the hero card.
