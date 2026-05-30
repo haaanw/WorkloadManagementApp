@@ -11,16 +11,20 @@ final class StrainRiskEngineTests: XCTestCase {
     private func fatigue(
         index: Double = 0,
         restDebt: Double = 0,
-        softTissueRisk: Double = 0
+        softTissueRisk: Double = 0,
+        loadElevation: Double = 0,
+        sessionDensity: Double = 0,
+        recoveryTrend: Double = 0,
+        wellnessTrend: Double = 0
     ) -> FatigueIndexEngine.FatigueResult {
         FatigueIndexEngine.FatigueResult(
             index: index,
             zone: FatigueIndexEngine.FatigueZone.classify(index: index),
-            loadElevation: 0,
-            sessionDensity: 0,
-            recoveryTrend: 0,
+            loadElevation: loadElevation,
+            sessionDensity: sessionDensity,
+            recoveryTrend: recoveryTrend,
             restDebt: restDebt,
-            wellnessTrend: 0,
+            wellnessTrend: wellnessTrend,
             softTissueRisk: softTissueRisk
         )
     }
@@ -67,15 +71,21 @@ final class StrainRiskEngineTests: XCTestCase {
     // MARK: - Worked-example fusion (all components present)
 
     func test_fuse_allComponentsPresent_scoreInRangeAndZone() {
+        // Component 3 (Finding 1 / GA-30-A) now reads the four EXPOSED fatigue component fields
+        // (load/density/recovery/wellness) re-normalised over 0.75 — NOT the composite `index`.
+        // Set those four to 1.0 so the de-double-counted fatigue is 1.0 and the all-maxed
+        // worked example still reaches its intended high score.
         let input = StrainRiskEngine.Input(
             strengthLoad: strengthResult(elevation: 1.0, hardSetCount: 10, unscoredCount: 0),
             loadDistribution: loadDist(monotony: 3.0, gate: .computed),
-            fatigue: fatigue(index: 100, restDebt: 1.0, softTissueRisk: 1.0),
+            fatigue: fatigue(index: 100, restDebt: 1.0, softTissueRisk: 1.0,
+                             loadElevation: 1.0, sessionDensity: 1.0,
+                             recoveryTrend: 1.0, wellnessTrend: 1.0),
             enduranceLoadElevation: 1.0,
             baselineConfidence: 1.0
         )
         let r = StrainRiskEngine.fuse(input)
-        // Everything maxed → score should be at/near 1 and zone .high.
+        // Everything maxed → all six components = 1.0, weights sum to 1.0 → score = 1.0, zone .high.
         XCTAssertGreaterThan(r.score, 0.9)
         XCTAssertEqual(r.zone, .high)
         XCTAssertGreaterThanOrEqual(r.score, 0)
@@ -152,17 +162,21 @@ final class StrainRiskEngineTests: XCTestCase {
     }
 
     func test_fuse_signConstraint_fatigue() {
+        // Component 3 now reads the EXPOSED fatigue component fields (Finding 1 / GA-30-A), so
+        // raising them (not the composite `index`) must raise the score.
         let base = StrainRiskEngine.Input(
             strengthLoad: strengthResult(elevation: 0.3),
             loadDistribution: loadDist(monotony: 1.5, gate: .computed),
-            fatigue: fatigue(index: 20),
+            fatigue: fatigue(index: 20, loadElevation: 0.2, sessionDensity: 0.2,
+                             recoveryTrend: 0.2, wellnessTrend: 0.2),
             enduranceLoadElevation: 0.3,
             baselineConfidence: 0.5
         )
         let raised = StrainRiskEngine.Input(
             strengthLoad: strengthResult(elevation: 0.3),
             loadDistribution: loadDist(monotony: 1.5, gate: .computed),
-            fatigue: fatigue(index: 90),
+            fatigue: fatigue(index: 90, loadElevation: 0.9, sessionDensity: 0.9,
+                             recoveryTrend: 0.9, wellnessTrend: 0.9),
             enduranceLoadElevation: 0.3,
             baselineConfidence: 0.5
         )
@@ -211,6 +225,116 @@ final class StrainRiskEngineTests: XCTestCase {
             baselineConfidence: 0.9
         )
         XCTAssertGreaterThan(StrainRiskEngine.fuse(high).confidence, StrainRiskEngine.fuse(low).confidence)
+    }
+
+    // MARK: - Single-count soft-tissue / rest-debt (Finding 1 / GA-30-A)
+
+    /// Raising softTissueRisk raises the score by ONLY the comp-5 single-channel contribution
+    /// (no comp-3 echo), proving soft-tissue is counted once. The four exposed fatigue fields are
+    /// held fixed so component 3 does not move; only softTissueRisk changes between the two inputs.
+    func test_fuse_softTissueCountedOnce_deltaIsSingleChannel() {
+        let baseFatigue = fatigue(index: 50, restDebt: 0.0, softTissueRisk: 0.0,
+                                  loadElevation: 0.4, sessionDensity: 0.4,
+                                  recoveryTrend: 0.4, wellnessTrend: 0.4)
+        let raisedFatigue = fatigue(index: 50, restDebt: 0.0, softTissueRisk: 1.0,
+                                    loadElevation: 0.4, sessionDensity: 0.4,
+                                    recoveryTrend: 0.4, wellnessTrend: 0.4)
+        // No recurrence flags (so soft-tissue value == softTissueRisk exactly). All six
+        // components present → totalWeight = 1.0 → normalised weight == raw weight.
+        func make(_ f: FatigueIndexEngine.FatigueResult) -> StrainRiskEngine.Input {
+            StrainRiskEngine.Input(
+                strengthLoad: strengthResult(elevation: 0.3, hardSetCount: 4, recurrence: []),
+                loadDistribution: loadDist(monotony: 1.5, gate: .computed),
+                fatigue: f,
+                enduranceLoadElevation: 0.3,
+                baselineConfidence: 0.5
+            )
+        }
+        let lo = StrainRiskEngine.fuse(make(baseFatigue)).score
+        let hi = StrainRiskEngine.fuse(make(raisedFatigue)).score
+        // softTissue goes 0 → 1 at comp-5 weight 0.12 (all components present, totalWeight 1.0).
+        // If it were double-counted (also via comp 3), the delta would exceed 0.12.
+        XCTAssertEqual(hi - lo, StrainRiskEngine.Weights.softTissue, accuracy: 1e-9)
+    }
+
+    /// Raising rest-debt raises the score by ONLY the comp-6 single-channel contribution.
+    func test_fuse_restDebtCountedOnce_deltaIsSingleChannel() {
+        let baseFatigue = fatigue(index: 50, restDebt: 0.0, softTissueRisk: 0.0,
+                                  loadElevation: 0.4, sessionDensity: 0.4,
+                                  recoveryTrend: 0.4, wellnessTrend: 0.4)
+        let raisedFatigue = fatigue(index: 50, restDebt: 1.0, softTissueRisk: 0.0,
+                                    loadElevation: 0.4, sessionDensity: 0.4,
+                                    recoveryTrend: 0.4, wellnessTrend: 0.4)
+        func make(_ f: FatigueIndexEngine.FatigueResult) -> StrainRiskEngine.Input {
+            StrainRiskEngine.Input(
+                strengthLoad: strengthResult(elevation: 0.3, hardSetCount: 4),
+                loadDistribution: loadDist(monotony: 1.5, gate: .computed),
+                fatigue: f,
+                enduranceLoadElevation: 0.3,
+                baselineConfidence: 0.5
+            )
+        }
+        let lo = StrainRiskEngine.fuse(make(baseFatigue)).score
+        let hi = StrainRiskEngine.fuse(make(raisedFatigue)).score
+        XCTAssertEqual(hi - lo, StrainRiskEngine.Weights.restDebt, accuracy: 1e-9)
+    }
+
+    /// The de-double-counted fatigue helper re-normalises the four retained components over 0.75.
+    func test_fatigueExcludingSoftTissueRestDebt_renormalises() {
+        // All four retained fields = 0.75 → weighted = 0.75*0.75 = 0.5625 → /0.75 = 0.75.
+        let f = fatigue(restDebt: 1.0, softTissueRisk: 1.0, // rest/soft excluded
+                        loadElevation: 0.75, sessionDensity: 0.75,
+                        recoveryTrend: 0.75, wellnessTrend: 0.75)
+        XCTAssertEqual(StrainRiskEngine.fatigueExcludingSoftTissueRestDebt(f), 0.75, accuracy: 1e-9)
+        // All retained = 1.0 → 1.0.
+        let g = fatigue(loadElevation: 1.0, sessionDensity: 1.0, recoveryTrend: 1.0, wellnessTrend: 1.0)
+        XCTAssertEqual(StrainRiskEngine.fatigueExcludingSoftTissueRestDebt(g), 1.0, accuracy: 1e-9)
+        // All zero → 0.
+        XCTAssertEqual(StrainRiskEngine.fatigueExcludingSoftTissueRestDebt(fatigue()), 0.0, accuracy: 1e-9)
+    }
+
+    // MARK: - Easy-inclusive + baseline-discounted coverage (Finding 5 / GA-30-E + GA-30-C)
+
+    /// An all-easy fully-scored session now reports full coverage (was 0), so its confidence is
+    /// strictly higher than an all-unscored session with the same baseline/gate.
+    func test_confidence_allEasyScored_isFullCoverage() {
+        let allEasy = StrainRiskEngine.Input(
+            strengthLoad: strengthResult(hardSetCount: 0, unscoredCount: 0, easyCount: 8),
+            loadDistribution: loadDist(monotony: 2.0, gate: .computed),
+            fatigue: fatigue(index: 50),
+            enduranceLoadElevation: 0.5,
+            baselineConfidence: 0.8
+        )
+        let allUnscored = StrainRiskEngine.Input(
+            strengthLoad: strengthResult(hardSetCount: 0, unscoredCount: 8, easyCount: 0),
+            loadDistribution: loadDist(monotony: 2.0, gate: .computed),
+            fatigue: fatigue(index: 50),
+            enduranceLoadElevation: 0.5,
+            baselineConfidence: 0.8
+        )
+        XCTAssertGreaterThan(StrainRiskEngine.fuse(allEasy).confidence,
+                             StrainRiskEngine.fuse(allUnscored).confidence)
+    }
+
+    /// Confidence is discounted when the contributing muscles lack a chronic baseline (a heavy
+    /// new-exercise session reads low-confidence, not high-strain / not silently safe).
+    func test_confidence_discountsWhenNoChronicBaseline() {
+        let withBaseline = StrainRiskEngine.Input(
+            strengthLoad: strengthResult(hardSetCount: 8, unscoredCount: 0, hasChronicBaseline: true),
+            loadDistribution: loadDist(monotony: 2.0, gate: .computed),
+            fatigue: fatigue(index: 50),
+            enduranceLoadElevation: 0.5,
+            baselineConfidence: 0.9
+        )
+        let noBaseline = StrainRiskEngine.Input(
+            strengthLoad: strengthResult(hardSetCount: 8, unscoredCount: 0, hasChronicBaseline: false),
+            loadDistribution: loadDist(monotony: 2.0, gate: .computed),
+            fatigue: fatigue(index: 50),
+            enduranceLoadElevation: 0.5,
+            baselineConfidence: 0.9
+        )
+        XCTAssertLessThan(StrainRiskEngine.fuse(noBaseline).confidence,
+                          StrainRiskEngine.fuse(withBaseline).confidence)
     }
 
     // MARK: - Determinism

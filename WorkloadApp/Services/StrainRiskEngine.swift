@@ -120,8 +120,13 @@ struct StrainRiskEngine {
             components.append(("Endurance-load above personal baseline", clamp01(endurance), Weights.enduranceLoadElevation))
         }
 
-        // 3. FatigueIndex composite (0…100 → 0…1).
-        components.append(("Accumulated fatigue", clamp01(input.fatigue.index / 100.0), Weights.fatigueIndex))
+        // 3. FatigueIndex composite — but EXCLUDING its internal soft-tissue + rest-debt
+        //    contributions (Finding 1 / GA-30-A). The composite `index` folds softTissueRisk
+        //    (internal w 0.10) and restDebt (internal w 0.15); components 5 and 6 below re-add
+        //    those standalone, so consuming the full `index` here double-counts them. Re-derive
+        //    a "fatigue without soft-tissue / rest-debt" value from the exposed component fields
+        //    so each underlying signal contributes exactly once.
+        components.append(("Accumulated fatigue", fatigueExcludingSoftTissueRestDebt(input.fatigue), Weights.fatigueIndex))
 
         // 4. Monotony/strain — gated. Computed → normalized monotony at full weight; fell back
         //    → fallbackLoadSignal at reduced weight, honestly labeled.
@@ -184,10 +189,42 @@ struct StrainRiskEngine {
         }
     }
 
+    // MARK: - De-double-counted fatigue (Finding 1 / GA-30-A)
+
+    /// FatigueIndex internal component weights, re-declared locally because they are `private`
+    /// in `FatigueIndexEngine` (cited: FatigueIndexEngine.swift L83-88: load 0.20, density 0.20,
+    /// recovery 0.20, restDebt 0.15, wellness 0.15, softTissue 0.10). Re-declaring avoids a
+    /// cross-engine API change / blast radius; `FatigueResult` already exposes every field.
+    private enum FatigueInternalWeights {
+        static let load: Double = 0.20
+        static let density: Double = 0.20
+        static let recovery: Double = 0.20
+        static let wellness: Double = 0.15
+        // Excluded from the re-normalisation (counted standalone in comps 5/6):
+        // restDebt 0.15, softTissue 0.10.
+        /// Sum of the four retained (non-soft-tissue, non-rest-debt) weights.
+        static let retainedSum: Double = load + density + recovery + wellness // 0.75
+    }
+
+    /// Re-compose a FatigueIndex-style 0…1 value from ONLY the four components that are NOT
+    /// soft-tissue or rest-debt, re-normalised over their retained weights (0.75). This is the
+    /// "Accumulated fatigue" signal stripped of the soft-tissue (comp 5) and rest-debt (comp 6)
+    /// contributions so those are not double-counted (Finding 1 / GA-30-A). The
+    /// `FatigueResult.loadElevation/sessionDensity/recoveryTrend/wellnessTrend` fields are each
+    /// already 0…1 component scores.
+    static func fatigueExcludingSoftTissueRestDebt(_ f: FatigueIndexEngine.FatigueResult) -> Double {
+        let weighted = f.loadElevation * FatigueInternalWeights.load
+            + f.sessionDensity * FatigueInternalWeights.density
+            + f.recoveryTrend * FatigueInternalWeights.recovery
+            + f.wellnessTrend * FatigueInternalWeights.wellness
+        return clamp01(weighted / FatigueInternalWeights.retainedSum)
+    }
+
     // MARK: - Confidence
 
     /// Composite 0…1 confidence: baseline confidence (nil ⇒ 0) × monotony-gate factor ×
-    /// hard-set scored-coverage ratio. Any one being low pulls the product down (honest).
+    /// scored-coverage blend × chronic-baseline-coverage blend. Any one being low pulls the
+    /// product down (honest).
     static func confidence(_ input: Input) -> Double {
         let baselineConf = clamp01(input.baselineConfidence ?? 0)
 
@@ -197,14 +234,27 @@ struct StrainRiskEngine {
         case .fellBack: gateFactor = 0.5
         }
 
-        // Scored-coverage ratio: fraction of working sets that were scorable (not unscored).
+        // Scored-coverage ratio (Finding 5 / GA-30-E): fraction of working sets that were
+        // SCORED (hard + easy) vs unscored. Previously this used only hardSets, so an all-easy
+        // fully-scored session reported coverage 0 — now it reports 1.0.
         let hardSets = input.strengthLoad.perMuscle.values.reduce(0) { $0 + $1.hardSetCount }
+        let easySets = input.strengthLoad.perMuscle.values.reduce(0) { $0 + $1.easyCount }
         let unscored = input.strengthLoad.perMuscle.values.reduce(0) { $0 + $1.unscoredCount }
-        let scoredTotal = hardSets + unscored
-        let coverage = scoredTotal > 0 ? Double(hardSets) / Double(scoredTotal) : 0.0
+        let scored = hardSets + easySets
+        let coverageTotal = scored + unscored
+        let coverage = coverageTotal > 0 ? Double(scored) / Double(coverageTotal) : 0.0
 
-        // Blend so a present baseline dominates but coverage + gate modulate it.
-        let raw = baselineConf * gateFactor * (0.5 + 0.5 * coverage)
+        // Chronic-baseline coverage (Finding 3 / GA-30-C consumption): fraction of contributing
+        // muscles that have an established chronic-exclusive baseline. A heavy session made up
+        // entirely of new exercises (no chronic baseline) reads as LOW-confidence — not silently
+        // safe, not high-strain. Blended the same shape as coverage so a present baseline is
+        // never zeroed but a missing one pulls honestly downward.
+        let muscleCount = input.strengthLoad.perMuscle.count
+        let withBaseline = input.strengthLoad.perMuscle.values.filter { $0.hasChronicBaseline }.count
+        let baselineCoverage = muscleCount > 0 ? Double(withBaseline) / Double(muscleCount) : 0.0
+
+        // Blend so a present baseline dominates but coverage, gate, and baseline-coverage modulate it.
+        let raw = baselineConf * gateFactor * (0.5 + 0.5 * coverage) * (0.5 + 0.5 * baselineCoverage)
         return clamp01(raw)
     }
 
