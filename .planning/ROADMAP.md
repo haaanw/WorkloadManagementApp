@@ -269,7 +269,7 @@ Plans:
   - [ ] 25-02-PLAN.md — `.niggleSeverity` graded shadow outcome end-to-end (enum + niggleSeverityActual column + date-contract-safe max-in-window resolution + all switch-ripple sites; both arms nil)
   - [ ] 25-03-PLAN.md — Pure NiggleInjuryDeriver (DOMS-excluded qualifying rule) + wire 14d wellness + injury count/days-since into DashboardViewModel fatigue path
   - [ ] 25-04-PLAN.md — DESIGN-compliant NiggleLogSheet + on-demand Dashboard affordance + non-blocking post-workout nudge (autonomous: false; human-verify checkpoint)
-- [ ] **Phase 26: Individualized baselines** — robust EWMA/Welford/MAD per-signal baselines + Altini-style 60-day normal-band + CV early-warning; prequential (no-leak) personal z-scores; day-bucketed inputs (never update from repeated stale HealthKit samples); stale/missing → reduce confidence, not learned physiology. Pure structs; per-day state in a local-only never-synced model.
+- [x] **Phase 26: Individualized baselines** — robust EWMA/Welford/MAD per-signal baselines + Altini-style 60-day normal-band + CV early-warning; prequential (no-leak) personal z-scores; day-bucketed inputs (never update from repeated stale HealthKit samples); stale/missing → reduce confidence, not learned physiology. Pure structs; per-day state in a local-only never-synced model.
   **Goal:** Build the robust individualized-baseline substrate (per-signal robust EWMA + Welford/MAD baselines, prequential no-leak personal z-scores, Altini CV early-warning on innovations, composite 0–1 confidence, day-bucketed inputs, a local-only never-synced `BaselineState` model, and a seeded convergence report) — parallel and gated OFF; the flat 7-day mean stays the LIVE baseline (D-01..D-04, substrate-only).
   **Plans:** 4 plans (4 waves)
 
