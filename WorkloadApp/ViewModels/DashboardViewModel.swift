@@ -233,13 +233,35 @@ final class DashboardViewModel {
             .sorted { $0.date < $1.date }
             .suffix(7)
             .map(\.recoveryScore)
-        let recentWellnessScores: [Double] = []  // TODO: fetch from WellnessCheckIn history
 
         if isColdStartActive {
-            // COLD-07: suppress FatigueIndex during cold-start window (D-16, D-17)
+            // COLD-07: suppress FatigueIndex during cold-start window (D-16, D-17).
+            // Cold-start does NO extra work: the 14d wellness fetch, the 28d niggle fetch,
+            // and both NiggleInjuryDeriver derivations are gated inside the else branch below.
             fatigueIndex = nil
             fatigueZone = nil
         } else {
+            // P25 D-12: last 14 days of WellnessCheckIn.wellnessScore (oldest-first), passed in
+            // full — the FatigueIndexEngine wellness-trend slope is gated on count>=3, so 14
+            // points are valid (RESEARCH §4 A2). Fetched ONLY here (non-cold-start) so cold-start
+            // does no extra work; athlete filtered in Swift to avoid the optional-relationship
+            // #Predicate trap (mirrors SorenessLogRepository / PersonalRecord precedent).
+            let wellnessWindowStart = Calendar.current.date(byAdding: .day, value: -14, to: .now) ?? .now
+            let wellnessDescriptor = FetchDescriptor<WellnessCheckIn>(
+                predicate: #Predicate<WellnessCheckIn> { $0.date >= wellnessWindowStart },
+                sortBy: [SortDescriptor(\.date, order: .forward)]
+            )
+            let athleteId = athlete.id
+            let recentWellnessScores: [Double] = ((try? modelContext.fetch(wellnessDescriptor)) ?? [])
+                .filter { $0.athlete?.id == athleteId }
+                .map(\.wellnessScore)
+
+            // P25 D-10/D-11: derive soft-tissue injury inputs from logged niggles over a 28d window.
+            // Fetched ONLY here (non-cold-start). The deriver excludes routine soreness (DOMS) so
+            // it never inflates fatigue — honest load-tolerance context, NOT injury prediction.
+            let niggleLogs = SorenessLogRepository(modelContext: modelContext)
+                .fetchRecent(days: NiggleInjuryDeriver.injuryWindowDays, athlete: athlete)
+
             let fatigueInput = FatigueIndexEngine.FatigueInput(
                 recentSessionTSS: recentSessionTSS,
                 baselineSessionTSS: baselineTSS,
@@ -249,8 +271,8 @@ final class DashboardViewModel {
                 daysSinceRestPeriod: nil,
                 recentRecoveryScores: recentRecoveryScores,
                 recentWellnessScores: recentWellnessScores,
-                softTissueInjuryCount: 0,
-                daysSinceLastInjury: nil
+                softTissueInjuryCount: NiggleInjuryDeriver.softTissueInjuryCount(logs: niggleLogs),
+                daysSinceLastInjury: NiggleInjuryDeriver.daysSinceLastInjury(logs: niggleLogs)
             )
             // Phase 20: pass cycle context (activation off → identical to base, D-06/D-12).
             let fatigueResult = FatigueIndexEngine.compute(
