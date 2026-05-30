@@ -40,7 +40,7 @@ Last full run on HEAD (eb10579, re-confirmed after the doc commits): **xcodebuil
 > and flag-gated; only test-target compilation + one outdated pre-existing assertion (the Phase-24
 > "exactly two arms" guard, now expecting three) needed repair. commit eb10579 is verified green (xcodebuild exit 0).
 
-## HARD INVARIANTS — all machine-verified on HEAD (8f2a1c4)
+## HARD INVARIANTS — all machine-verified on HEAD (green commit eb10579)
 
 - **Master flag defaults FALSE:** `PRSActivation.isEnabled == false` (`test_PRSActivation_defaultsFalse`).
 - **Live recovery byte-unchanged:** `RecoveryScoreEngine` untouched; `BaselineTierFenceTests` (3/3) green.
