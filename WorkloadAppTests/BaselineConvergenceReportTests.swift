@@ -415,17 +415,25 @@ final class BaselineConvergenceReportTests: XCTestCase {
         // FLAG 1: CV sensitivity on clean Gaussian noise.
         if let s = stable {
             let overFires = s.cvMaxLevel == .high
+            let win = BaselineEngine.BaselineConstants.cvShortWindow
+            let long = BaselineEngine.BaselineConstants.cvLongWindow
             md += "- **Altini CV sensitivity:** on the CLEAN `stable` trace (flat mean + N(0,\(fmt(s.trace.noiseSD,1))) "
             md += "noise), the CV early-warning reaches `\(s.cvMaxLevel.rawValue)` "
             md += "(first .elevated day \(s.cvFirstElevatedDay.map(String.init) ?? "—"), "
             md += "first .high day \(s.cvFirstHighDay.map(String.init) ?? "—")). "
             if overFires {
-                md += "It **over-fires** on noise with no real instability — the short(7)/long(28)-window MAD ratio "
-                md += "swings above the 1.25/1.5 thresholds by chance on small windows. "
-                md += "**Suggested re-tune:** raise `cvElevated`/`cvHigh` (e.g. 1.4/1.7), widen `cvShortWindow`, "
+                md += "It **over-fires** on noise with no real instability — the short(\(win))/long(\(long))-window MAD ratio "
+                md += "swings above the \(fmt(BaselineEngine.BaselineConstants.cvElevated,2))/\(fmt(BaselineEngine.BaselineConstants.cvHigh,2)) thresholds by chance on small windows. "
+                md += "**Suggested re-tune:** widen `cvShortWindow`, raise `cvElevated`/`cvHigh`, "
                 md += "or require more `cvMinValid` long-window residuals before `.high`. "
+                md += "The DISCRIMINATOR still holds (see below), so CV is directionally correct but mis-calibrated in absolute terms.\n"
+            } else {
+                md += "After the calibration re-tune (short window \(win), thresholds "
+                md += "\(fmt(BaselineEngine.BaselineConstants.cvElevated,2))/\(fmt(BaselineEngine.BaselineConstants.cvHigh,2)), "
+                md += "`cvMinValid` \(BaselineEngine.BaselineConstants.cvMinValid)) the flag NO LONGER over-fires on clean noise — "
+                md += "the wider short window damps the small-window chance swings that used to reach `.high`. "
+                md += "The genuine early-warning is preserved (see the discriminator below).\n"
             }
-            md += "The DISCRIMINATOR still holds (see below), so CV is directionally correct but mis-calibrated in absolute terms.\n"
         }
 
         // FLAG 2: the discriminator (instability fires earlier than clean) — the valid claim.

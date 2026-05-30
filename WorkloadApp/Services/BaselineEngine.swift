@@ -128,13 +128,32 @@ struct BaselineEngine {
         static let sleepSigmaFloor: Double = 15.0 // minutes
 
         // Altini CV early-warning (§3).
-        static let cvShortWindow: Int = 7
+        // RE-TUNED (Phase 26 calibration, 26-convergence-report): the original 7/28-window,
+        // 1.25/1.50-threshold pairing OVER-FIRED on clean Gaussian noise — a 7-sample MAD median is
+        // a noisy dispersion estimate, so the short/long ratio swung past 1.25/1.50 by chance and
+        // the flag reached `.high` on a flat-mean N(0,5) "stable" trace (cry-wolf). Widening the
+        // short window to 11 shrinks that chance variance, and raising the thresholds restores a
+        // genuine-instability-only flag. Verified on the seeded convergence report: the `stable`
+        // trace now reads `.normal` throughout (0 elevated / 0 high) while `rising-instability`
+        // still fires `.elevated` (~day 25, where true SD has ~doubled) and reaches `.high` (~day
+        // 30). The discriminator (instability flags no later than clean) is preserved.
+        /// W_s — short (recent) dispersion window. Widened 7→11: an 11-sample MAD median is a far
+        /// less noisy scale estimate than 7, killing the small-window chance ratio swings that made
+        /// the flag over-fire on clean noise.
+        static let cvShortWindow: Int = 11
         static let cvLongWindow: Int = 28
-        static let cvElevated: Double = 1.25
-        static let cvHigh: Double = 1.5
+        /// ELEVATED dispersion-ratio threshold. Raised 1.25→1.50: clean-noise short/long ratios peak
+        /// near 1.5 under the wider window, so 1.50 keeps clean data at `.normal` while still
+        /// catching a genuine ~1.5× dispersion rise.
+        static let cvElevated: Double = 1.50
+        /// HIGH dispersion-ratio threshold. Raised 1.50→1.70: leaves clean noise below `.high`
+        /// entirely while a true variance ramp (≥1.7× recent-vs-baseline dispersion) still escalates.
+        static let cvHigh: Double = 1.70
         static let cvClear: Double = 1.10
-        /// Min valid residuals in the long window required before HIGH may fire.
-        static let cvMinValid: Int = 14
+        /// Min valid residuals in the long window required before HIGH may fire. Raised 14→20: HIGH
+        /// now demands a more fully-populated long window, so the long-run dispersion baseline is
+        /// well-estimated before the strongest flag can fire.
+        static let cvMinValid: Int = 20
         /// Below this many residuals the CV warning is suppressed to .normal (low-confidence).
         static let cvShortMin: Int = 7
 
@@ -256,8 +275,10 @@ struct BaselineEngine {
 
     /// Update the dispersion-ratio early-warning from the current innovation buffer + today's raw
     /// innovation. Compares a short-window robust dispersion to a long-window one (volatility of
-    /// volatility). Hysteresis: fire HIGH ≥1.5 (and ≥`cvMinValid` long-window residuals), ELEVATED
-    /// ≥1.25, clear to NORMAL ≤1.10; suppressed to .normal while short-window residuals < `cvShortMin`.
+    /// volatility). Hysteresis: fire HIGH ≥`cvHigh` (and ≥`cvMinValid` long-window residuals),
+    /// ELEVATED ≥`cvElevated`, clear to NORMAL ≤`cvClear`; suppressed to .normal while short-window
+    /// residuals < `cvShortMin`. (Thresholds re-tuned in `BaselineConstants` — see the calibration
+    /// note there; the old 7/28-window, 1.25/1.50 pairing over-fired on clean Gaussian noise.)
     ///
     /// - Parameter previousLevel: the carried hysteresis level (for the clear-gap logic).
     /// - Returns: `(ratio, level)` — `ratio` nil when suppressed (insufficient data).
