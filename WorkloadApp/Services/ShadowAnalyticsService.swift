@@ -25,6 +25,10 @@ struct ShadowAnalyticsService {
     struct OutcomeMAE {
         var baselineMAE: Double
         var cycleAwareMAE: Double
+        /// Phase 28, Wave 3: PRS-v1 arm MAE over the SAME resolved rows (nil if the PRS arm has no
+        /// prediction for this outcome — e.g. no resolved rows carry a PRS prediction). Report-only;
+        /// no activation logic (Phase 29).
+        var prsMAE: Double?
         var n: Int
     }
 
@@ -105,6 +109,13 @@ struct ShadowAnalyticsService {
             row.completionCycleAware = ShadowPredictor.cycleAwarePrediction(series: completionHistory, phase: phase, outcome: .completion)
             row.painBaseline = ShadowPredictor.baselinePrediction(series: painHistory)
             row.painCycleAware = ShadowPredictor.cycleAwarePrediction(series: painHistory, phase: phase, outcome: .pain)
+
+            // Phase 28, Wave 3: parallel PRS-v1 columns (local-only, never synced — migration-safety
+            // parallels to the generic arm store; the arm store remains the source of truth).
+            row.recoveryPRS = ShadowPredictor.prsPrediction(series: recoveryHistory, outcome: .recovery)
+            row.wellnessPRS = ShadowPredictor.prsPrediction(series: wellnessHistory, outcome: .wellness)
+            row.completionPRS = ShadowPredictor.prsPrediction(series: completionHistory, outcome: .completion)
+            row.painPRS = ShadowPredictor.prsPrediction(series: painHistory, outcome: .pain)
 
             // Would-be modifier effects (recorded, never applied — activation off).
             row.wouldBeVolumeFactor = wouldBeVolumeFactor
@@ -263,6 +274,8 @@ struct ShadowAnalyticsService {
 
         for outcome in ShadowPredictor.Outcome.allCases {
             var baseSum = 0.0, cycleSum = 0.0, n = 0
+            // PRS accumulates only over rows where the PRS arm also has a prediction (report-only).
+            var prsSum = 0.0, prsN = 0
             for row in resolvedRows {
                 guard let b = row.armPrediction(armId: "baseline", outcome: outcome),
                       let c = row.armPrediction(armId: "cycleAware", outcome: outcome),
@@ -270,9 +283,18 @@ struct ShadowAnalyticsService {
                 baseSum += ShadowPredictor.absoluteError(predicted: b, actual: a)
                 cycleSum += ShadowPredictor.absoluteError(predicted: c, actual: a)
                 n += 1
+                if let p = row.armPrediction(armId: "prs", outcome: outcome) {
+                    prsSum += ShadowPredictor.absoluteError(predicted: p, actual: a)
+                    prsN += 1
+                }
             }
             guard n > 0 else { continue }
-            result[outcome] = OutcomeMAE(baselineMAE: baseSum / Double(n), cycleAwareMAE: cycleSum / Double(n), n: n)
+            result[outcome] = OutcomeMAE(
+                baselineMAE: baseSum / Double(n),
+                cycleAwareMAE: cycleSum / Double(n),
+                prsMAE: prsN > 0 ? prsSum / Double(prsN) : nil,
+                n: n
+            )
         }
 
         return result

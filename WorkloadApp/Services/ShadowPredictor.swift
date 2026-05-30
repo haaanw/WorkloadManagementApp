@@ -129,6 +129,38 @@ struct ShadowPredictor {
         }
     }
 
+    // MARK: - PRS-v1 prediction (Phase 28, Wave 3 — shadow only)
+
+    /// PRS-v1 next-day prediction for an outcome.
+    ///
+    /// The PRS arm is the **predicting** arm of the algorithm moat. Within the existing harness
+    /// contract `(outcome, series)` it forms a baseline persistence/trend extrapolation and then
+    /// applies a small, sign-correct **readiness-trend** adjustment derived from the recent series
+    /// itself (a proxy for the `ReadinessFusionEngine` direction): when the athlete's own recent
+    /// trajectory is improving, nudge the prediction up; when declining, nudge it down. This keeps
+    /// the arm deterministic and leak-free (it uses only the supplied historical series, never the
+    /// target day), while being a genuinely DIFFERENT predictor from `baseline` so the Phase-29
+    /// shadow comparison is meaningful.
+    ///
+    /// Validated against RAW self-report labels (wellness / pain / adherence) in the harness; the
+    /// `recovery` outcome stays flagged engine-derived / secondary (codex §315).
+    static func prsPrediction(series: [Double], outcome: Outcome) -> Double {
+        let base = baselinePrediction(series: series)
+        guard series.count >= 3,
+              let slope = RecoveryScoreEngine.computeSlope(values: series) else {
+            return base
+        }
+        // Readiness-trend nudge: a fraction of the recent slope, in the outcome's own units.
+        // Pain is inverted (a rising pain trend is "worse"), but the slope is already in pain units
+        // so we keep the same additive form — the arm simply trusts the recent trajectory more than
+        // pure persistence. Magnitude is deliberately conservative (0.5× the one-step slope).
+        let nudge = 0.5 * slope
+        switch outcome {
+        case .niggleSeverity: return base // no arm predicts niggleSeverity in v1 (P25 D-04)
+        default: return base + nudge
+        }
+    }
+
     // MARK: - Error metric
 
     /// Absolute prediction error for a single resolved outcome.
@@ -184,6 +216,17 @@ extension ShadowPredictor {
                 return ShadowPredictor.cycleAwarePrediction(series: series, context: context, outcome: outcome)
             }
         )
-        return [baseline, cycleAware]
+        // Phase 28, Wave 3: the PRS-v1 predicting arm. Runs UNCONDITIONALLY (shadow-only) —
+        // independent of PRSActivation.isEnabled (which gates only the live user-facing swap).
+        let prs = ExperimentalArm(
+            id: "prs",
+            engineDerivedOutcomes: engineDerivedOutcomes,
+            predict: { outcome, series, _ in
+                // P25 D-04: no arm predicts .niggleSeverity in v1.
+                guard outcome != .niggleSeverity else { return nil }
+                return ShadowPredictor.prsPrediction(series: series, outcome: outcome)
+            }
+        )
+        return [baseline, cycleAware, prs]
     }
 }

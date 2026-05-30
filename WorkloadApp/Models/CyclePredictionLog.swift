@@ -78,6 +78,19 @@ final class CyclePredictionLog {
     var painCycleAware: Double?
     var painActual: Double?
 
+    // MARK: - PRS-v1 predicting arm (Phase 28, Wave 3 — LOCAL-ONLY, NEVER SYNCED)
+    //
+    // Parallel `*PRS` columns mirroring the legacy `*Baseline`/`*CycleAware` pairs, for the third
+    // competing arm (PRS Readiness, shadow-only). Additive lightweight migration on the local-only
+    // store. Like every field on this @Model they have NO `Codable` conformance and are ABSENT from
+    // SyncService (D-13 posture) — asserted by the Wave-3 sync-omission test. The generic
+    // `ShadowArmPrediction` store remains the source of truth for aggregation; these columns are
+    // migration-safety parallels only.
+    var recoveryPRS: Double?
+    var wellnessPRS: Double?
+    var completionPRS: Double?
+    var painPRS: Double?
+
     /// P25 D-04: max localized niggle severity (0-10, as Double) logged on the target day, 0 if
     /// none. Additive, local-only (lightweight migration); no arm predicts it in v1 so there is no
     /// `*Baseline`/`*CycleAware` pair — only the resolved actual. NO Codable, never synced.
@@ -119,6 +132,10 @@ final class CyclePredictionLog {
         painBaseline: Double? = nil,
         painCycleAware: Double? = nil,
         painActual: Double? = nil,
+        recoveryPRS: Double? = nil,
+        wellnessPRS: Double? = nil,
+        completionPRS: Double? = nil,
+        painPRS: Double? = nil,
         niggleSeverityActual: Double? = nil,
         wouldBeVolumeFactor: Double? = nil,
         wouldBeDampenedFatigueIndex: Double? = nil,
@@ -150,6 +167,10 @@ final class CyclePredictionLog {
         self.painBaseline = painBaseline
         self.painCycleAware = painCycleAware
         self.painActual = painActual
+        self.recoveryPRS = recoveryPRS
+        self.wellnessPRS = wellnessPRS
+        self.completionPRS = completionPRS
+        self.painPRS = painPRS
         self.niggleSeverityActual = niggleSeverityActual
         self.wouldBeVolumeFactor = wouldBeVolumeFactor
         self.wouldBeDampenedFatigueIndex = wouldBeDampenedFatigueIndex
