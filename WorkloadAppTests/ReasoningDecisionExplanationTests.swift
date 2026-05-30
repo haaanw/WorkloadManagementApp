@@ -83,9 +83,16 @@ final class ReasoningDecisionExplanationTests: XCTestCase {
 
     private func recoveryStub() -> RecoveryScoreEngine.RecoveryResult {
         RecoveryScoreEngine.RecoveryResult(
-            score: 55, zone: .yellow, breakdown: nil,
-            hrvContribution: nil, rhrContribution: nil, sleepContribution: nil,
-            dataSource: .healthKit, hasRealData: true
+            score: 55,
+            baseScore: 55,
+            zone: .yellow,
+            hrvContribution: nil,
+            rhrContribution: nil,
+            sleepContribution: nil,
+            wellnessContribution: nil,
+            trendSlope3Day: nil,
+            trendSlope7Day: nil,
+            trendModifier: 0
         )
     }
 

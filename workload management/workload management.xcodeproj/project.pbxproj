@@ -57,6 +57,7 @@
 		62324C352F66CB0E00A9C2BE /* RecoveryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */; };
 		DD1802010000000000000001 /* CycleSnapshotRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1802000000000000000001 /* CycleSnapshotRepository.swift */; };
 		62324C362F66CB0E00A9C2BE /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C102F66CB0E00A9C2BE /* DashboardView.swift */; };
+		EE2805020000000000000001 /* PRSDualRunCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2805010000000000000001 /* PRSDualRunCard.swift */; };
 		62324C372F66CB0E00A9C2BE /* RecoveryPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */; };
 		62324C382F66CB0E00A9C2BE /* HRVTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE42F66CB0E00A9C2BE /* HRVTrendChart.swift */; };
 		62324C392F66CB0E00A9C2BE /* AthleteRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF42F66CB0E00A9C2BE /* AthleteRepository.swift */; };
@@ -169,6 +170,7 @@
 		EE2701020000000000000001 /* StrengthLoadEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2701010000000000000001 /* StrengthLoadEngine.swift */; };
 		EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2702010000000000000001 /* LoadDistributionEngine.swift */; };
 		EE2703020000000000000001 /* StrainRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2703010000000000000001 /* StrainRiskEngine.swift */; };
+		EE2804020000000000000001 /* PRSDualRunSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2804010000000000000001 /* PRSDualRunSurface.swift */; };
 		EE2801020000000000000001 /* PRSActivation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2801010000000000000001 /* PRSActivation.swift */; };
 		EE2802020000000000000001 /* ReadinessFusionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2802010000000000000001 /* ReadinessFusionEngine.swift */; };
 		DD2503020000000000000001 /* NiggleInjuryDeriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2503010000000000000001 /* NiggleInjuryDeriver.swift */; };
@@ -278,6 +280,7 @@
 		62324C0D2F66CB0E00A9C2BE /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		62324C0E2F66CB0E00A9C2BE /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 		62324C102F66CB0E00A9C2BE /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		EE2805010000000000000001 /* PRSDualRunCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRSDualRunCard.swift; sourceTree = "<group>"; };
 		62324C142F66CB0E00A9C2BE /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		14B27B1AC91147CB45348512 /* SyncStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatusView.swift; sourceTree = "<group>"; };
 		62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInSheet.swift; sourceTree = "<group>"; };
@@ -356,6 +359,7 @@
 		EE2701010000000000000001 /* StrengthLoadEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthLoadEngine.swift; sourceTree = "<group>"; };
 		EE2702010000000000000001 /* LoadDistributionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadDistributionEngine.swift; sourceTree = "<group>"; };
 		EE2703010000000000000001 /* StrainRiskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainRiskEngine.swift; sourceTree = "<group>"; };
+		EE2804010000000000000001 /* PRSDualRunSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRSDualRunSurface.swift; sourceTree = "<group>"; };
 		EE2801010000000000000001 /* PRSActivation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRSActivation.swift; sourceTree = "<group>"; };
 		EE2802010000000000000001 /* ReadinessFusionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessFusionEngine.swift; sourceTree = "<group>"; };
 		DD2503010000000000000001 /* NiggleInjuryDeriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleInjuryDeriver.swift; sourceTree = "<group>"; };
@@ -571,6 +575,7 @@
 				EE2701010000000000000001 /* StrengthLoadEngine.swift */,
 				EE2702010000000000000001 /* LoadDistributionEngine.swift */,
 				EE2703010000000000000001 /* StrainRiskEngine.swift */,
+				EE2804010000000000000001 /* PRSDualRunSurface.swift */,
 				EE2801010000000000000001 /* PRSActivation.swift */,
 				EE2802010000000000000001 /* ReadinessFusionEngine.swift */,
 				DD2503010000000000000001 /* NiggleInjuryDeriver.swift */,
@@ -632,6 +637,7 @@
 				62F32CB72F71849300B6135F /* HRVDetailView.swift */,
 				62F32CB82F71849300B6135F /* SleepDetailView.swift */,
 				62324C102F66CB0E00A9C2BE /* DashboardView.swift */,
+				EE2805010000000000000001 /* PRSDualRunCard.swift */,
 				BB0203010000000000000004 /* WeeklySummaryCard.swift */,
 				AA10010200000000000002 /* TrainingProfileCard.swift */,
 				DD0403010000000000000002 /* WelcomeActionCard.swift */,
@@ -995,6 +1001,7 @@
 				62324C352F66CB0E00A9C2BE /* RecoveryRepository.swift in Sources */,
 				DD1802010000000000000001 /* CycleSnapshotRepository.swift in Sources */,
 				62324C362F66CB0E00A9C2BE /* DashboardView.swift in Sources */,
+				EE2805020000000000000001 /* PRSDualRunCard.swift in Sources */,
 				62324C372F66CB0E00A9C2BE /* RecoveryPipeline.swift in Sources */,
 				62F32C972F7167E000B6135F /* FontTokens.swift in Sources */,
 				62324C382F66CB0E00A9C2BE /* HRVTrendChart.swift in Sources */,
@@ -1084,6 +1091,7 @@
 				EE2701020000000000000001 /* StrengthLoadEngine.swift in Sources */,
 				EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */,
 				EE2703020000000000000001 /* StrainRiskEngine.swift in Sources */,
+				EE2804020000000000000001 /* PRSDualRunSurface.swift in Sources */,
 				EE2801020000000000000001 /* PRSActivation.swift in Sources */,
 				EE2802020000000000000001 /* ReadinessFusionEngine.swift in Sources */,
 				DD2503020000000000000001 /* NiggleInjuryDeriver.swift in Sources */,

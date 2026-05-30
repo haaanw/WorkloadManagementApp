@@ -30,7 +30,7 @@ final class PRSShadowArmTests: XCTestCase {
     }
 
     private func makeAthlete(_ ctx: ModelContext) -> Athlete {
-        let a = Athlete(name: "Test", sex: .female)
+        let a = Athlete(displayName: "Test")
         ctx.insert(a)
         return a
     }
@@ -160,10 +160,10 @@ final class PRSShadowArmTests: XCTestCase {
         }
         let rows = try ctx.fetch(FetchDescriptor<CyclePredictionLog>())
         let result = ShadowAnalyticsService.aggregate(resolvedRows: rows)
-        XCTAssertNotNil(result[.recovery])
-        XCTAssertEqual(result[.recovery]?.baselineMAE, 10, accuracy: 1e-9)
-        XCTAssertEqual(result[.recovery]?.cycleAwareMAE, 5, accuracy: 1e-9)
-        XCTAssertEqual(result[.recovery]?.prsMAE, 2, accuracy: 1e-9) // |68-70| = 2
+        let rec = try XCTUnwrap(result[.recovery])
+        XCTAssertEqual(rec.baselineMAE, 10, accuracy: 1e-9)
+        XCTAssertEqual(rec.cycleAwareMAE, 5, accuracy: 1e-9)
+        XCTAssertEqual(try XCTUnwrap(rec.prsMAE), 2, accuracy: 1e-9) // |68-70| = 2
     }
 
     func test_aggregate_prsMetricNilWhenNoPRSRows_graceful() throws {
@@ -198,7 +198,8 @@ final class PRSShadowArmTests: XCTestCase {
         }
         let rows = try ctx.fetch(FetchDescriptor<CyclePredictionLog>())
         let report = ShadowAnalyticsService.metricsReport(resolvedRows: rows, armId: "prs")
-        XCTAssertEqual(report[.wellness]?.n, 3)
-        XCTAssertEqual(report[.wellness]?.mae, 2, accuracy: 1e-9)
+        let well = try XCTUnwrap(report[.wellness])
+        XCTAssertEqual(well.n, 3)
+        XCTAssertEqual(try XCTUnwrap(well.mae), 2, accuracy: 1e-9)
     }
 }
