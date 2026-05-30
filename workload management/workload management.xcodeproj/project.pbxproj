@@ -66,6 +66,7 @@
 		DD2001010000000000000001 /* CyclePredictionLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2001000000000000000001 /* CyclePredictionLog.swift */; };
 		DD2024010000000000000001 /* ShadowArmPrediction.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2024000000000000000001 /* ShadowArmPrediction.swift */; };
 		DD2501010000000000000001 /* SorenessLog.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2501000000000000000001 /* SorenessLog.swift */; };
+		DD2601010000000000000001 /* BaselineState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2601000000000000000001 /* BaselineState.swift */; };
 		DD2502010000000000000001 /* SorenessLogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2502000000000000000001 /* SorenessLogRepository.swift */; };
 		DD2025010000000000000001 /* ShadowMetrics.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2025000000000000000001 /* ShadowMetrics.swift */; };
 		DD2002010000000000000001 /* ShadowPredictor.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2002000000000000000001 /* ShadowPredictor.swift */; };
@@ -228,6 +229,7 @@
 		DD2001000000000000000001 /* CyclePredictionLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CyclePredictionLog.swift; sourceTree = "<group>"; };
 		DD2024000000000000000001 /* ShadowArmPrediction.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowArmPrediction.swift; sourceTree = "<group>"; };
 		DD2501000000000000000001 /* SorenessLog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SorenessLog.swift; sourceTree = "<group>"; };
+		DD2601000000000000000001 /* BaselineState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineState.swift; sourceTree = "<group>"; };
 		DD2025000000000000000001 /* ShadowMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowMetrics.swift; sourceTree = "<group>"; };
 		DD2002000000000000000001 /* ShadowPredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowPredictor.swift; sourceTree = "<group>"; };
 		DD2003000000000000000001 /* CycleModifierGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleModifierGate.swift; sourceTree = "<group>"; };
@@ -461,6 +463,7 @@
 				DD2001000000000000000001 /* CyclePredictionLog.swift */,
 				DD2024000000000000000001 /* ShadowArmPrediction.swift */,
 				DD2501000000000000000001 /* SorenessLog.swift */,
+				DD2601000000000000000001 /* BaselineState.swift */,
 				62324BEF2F66CB0E00A9C2BE /* WorkloadSnapshot.swift */,
 				62324BF02F66CB0E00A9C2BE /* WorkoutSession.swift */,
 				4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */,
@@ -981,6 +984,7 @@
 				DD2001010000000000000001 /* CyclePredictionLog.swift in Sources */,
 				DD2024010000000000000001 /* ShadowArmPrediction.swift in Sources */,
 				DD2501010000000000000001 /* SorenessLog.swift in Sources */,
+				DD2601010000000000000001 /* BaselineState.swift in Sources */,
 				DD2002010000000000000001 /* ShadowPredictor.swift in Sources */,
 				DD2003010000000000000001 /* CycleModifierGate.swift in Sources */,
 				DD2004010000000000000001 /* CyclePredictionLogRepository.swift in Sources */,
