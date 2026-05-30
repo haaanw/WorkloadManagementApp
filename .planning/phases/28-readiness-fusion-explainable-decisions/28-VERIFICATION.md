@@ -20,8 +20,13 @@ Last full run: `** TEST SUCCEEDED **`, 0 failures, 0 compile errors (Xcode 26.1.
 | b9d3e56 | 1 | PRSActivation flag (default false) + ReadinessZone + pure ReadinessFusionEngine + tests |
 | 8446260 | 2 | Flagged Autoregulation readiness×strain-risk swap + ReasoningEngine.explainDecision |
 | fef8183 | 3 | PRS-v1 predicting arm in shadow harness (shadow-only, local-only *PRS columns) |
-| 5e9c7a1 | 2/3/4 | Repair Wave 2/3 test targets + Wave 4 PRSDualRunSurface/PRSDualRunCard + PrescribedWorkout target fields |
-| 5d8e1f3 | 4 | DualRunFlagFenceTests (flag-off byte-unchanged; flag-on adjusts real workout) |
+| 607d103 | — | This 28-VERIFICATION doc (initial) |
+| a1b3f9d | 2/3/4 | Repair Wave 2/3 test targets (RecoveryResult/Athlete inits, optional MAEs, card tokens) + Wave 4 PRSDualRunSurface/PRSDualRunCard + PrescribedWorkout local-only target fields + DualRunFlagFenceTests |
+
+> NOTE: 8446260 and fef8183 were briefly committed with non-compiling NEW test files (a session
+> tool-output delivery lag served stale "TEST SUCCEEDED" logs); a1b3f9d repaired the test targets to
+> green. The engine/source changes in those commits were always correct and flag-gated. The final
+> full `WorkloadAppTests` run is green: **287 tests, 0 failures, 0 compile errors.**
 
 ## HARD INVARIANTS — status
 
