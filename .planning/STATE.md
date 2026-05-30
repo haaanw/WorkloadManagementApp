@@ -2,15 +2,15 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Algorithm Moat (Personal Readiness v1)
-status: completed
-stopped_at: Phase 25 context gathered
-last_updated: "2026-05-30T05:31:20.658Z"
-last_activity: 2026-05-30 -- Phases 19,20,21,22 executed via parallel-plan/serial-execute sub-agent team
+status: in_progress
+stopped_at: Phase 25 Plan 01 complete (SorenessLog data foundation)
+last_updated: "2026-05-30T14:10:00.000Z"
+last_activity: 2026-05-30 -- Phase 25 Plan 01 executed (local-only SorenessLog @Model + NiggleType + repository, build+tests green)
 progress:
   total_phases: 13
   completed_phases: 12
-  total_plans: 36
-  completed_plans: 36
+  total_plans: 40
+  completed_plans: 37
   percent: 92
 ---
 
@@ -25,9 +25,11 @@ See: .planning/PROJECT.md (updated 2026-05-10)
 
 ## Current Position
 
-Phase: 19-22 all COMPLETE (sub-agent team execution 2026-05-30) — pending human UAT
-Status: v1.4 (17-20) + v1.5 (21-22) phase-complete; full app build green; modifiers shipped dark
-Last activity: 2026-05-30 -- Phases 19,20,21,22 executed via parallel-plan/serial-execute sub-agent team
+Phase: 25 (soreness-tweak-self-log) IN PROGRESS — Plan 01 of 4 COMPLETE (2026-05-30)
+Status: 25-01 data foundation shipped — local-only SorenessLog @Model + NiggleType enum + SorenessLogRepository, build+tests green (4/4); Wave 1 done, Plans 02/03/04 remain
+Last activity: 2026-05-30 -- Phase 25 Plan 01 executed (SorenessLog data foundation)
+
+Prior: Phases 19-22 all COMPLETE (sub-agent team execution 2026-05-30) — pending human UAT; v1.4 (17-20) + v1.5 (21-22) phase-complete; full app build green; modifiers shipped dark
 
 v1.3-live-feedback improvement pass (2026-05-30): HealthKit re-prompt bug FIXED; UI hierarchy upgraded (Dashboard+Profile only — DESIGN.md luminance revised, card/section primitives); invite-coach redesigned; ACWR copy demoted to load-context. Codex-reviewed, 1 P1 + 3 P2 found and fixed, gate PASS, build green. 8 commits local on main. Algorithm redesign DEFERRED to its own milestone (needs user direction).
 
@@ -67,6 +69,7 @@ Progress (v1.4+v1.5): [███████████████] 100% (Phas
 
 *Updated after each plan completion*
 | Phase 18 P2 | 12min | 3 tasks | 9 files |
+| Phase 25 P1 | ~10min | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -114,6 +117,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-30T05:31:20.650Z
-Stopped at: Phase 25 context gathered
-Resume file: .planning/phases/25-soreness-tweak-self-log/25-CONTEXT.md
+Last session: 2026-05-30T14:10:00.000Z
+Stopped at: Phase 25 Plan 01 complete (SorenessLog data foundation) — resume at Plan 02
+Resume file: .planning/phases/25-soreness-tweak-self-log/25-02-PLAN.md

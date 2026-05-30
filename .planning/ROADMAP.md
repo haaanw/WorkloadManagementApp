@@ -264,8 +264,8 @@ Plans:
 
 - [ ] **Phase 24: Validation data-contract + shadow-harness upgrade** — define predictionDate/targetDate/feature-cutoff/outcome-window (fix the existing same-day date-contract bug); add calibration + Spearman + blocked/purged CV + bootstrap-with-autocorrelation handling to ShadowAnalyticsService; raw self-report/wellness/soreness/adherence outcome labels (NOT engine-derived recovery). No scoring model yet. Foundation.
 - [ ] **Phase 25: Soreness / tweak self-log** — lightweight optional pain/soreness/niggle log (SwiftData model + minimal UI), local-only, to honestly validate Strain-Risk against real breakdown. Wire wellness history + injury count into the dashboard fatigue path (currently empty/hardcoded-0).
-  **Plans:** 4 plans (2 waves)
-  - [ ] 25-01-PLAN.md — Local-only SorenessLog @Model + NiggleType enum + repository + schema registration + persistence tests (foundation)
+  **Plans:** 4 plans (2 waves) — 1/4 complete
+  - [x] 25-01-PLAN.md — Local-only SorenessLog @Model + NiggleType enum + repository + schema registration + persistence tests (foundation) ✅ 2026-05-30 (build+tests green 4/4)
   - [ ] 25-02-PLAN.md — `.niggleSeverity` graded shadow outcome end-to-end (enum + niggleSeverityActual column + date-contract-safe max-in-window resolution + all switch-ripple sites; both arms nil)
   - [ ] 25-03-PLAN.md — Pure NiggleInjuryDeriver (DOMS-excluded qualifying rule) + wire 14d wellness + injury count/days-since into DashboardViewModel fatigue path
   - [ ] 25-04-PLAN.md — DESIGN-compliant NiggleLogSheet + on-demand Dashboard affordance + non-blocking post-workout nudge (autonomous: false; human-verify checkpoint)
