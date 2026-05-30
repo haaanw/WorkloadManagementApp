@@ -70,6 +70,53 @@ final class ShadowAnalyticsServiceTests: XCTestCase {
         XCTAssertTrue(ShadowAnalyticsService.aggregate(resolvedRows: []).isEmpty)
     }
 
+    // MARK: - metricsReport orchestration (Plan 02 Task 3 — delegates to ShadowMetrics)
+
+    func test_metricsReport_wiresSlopeAndSpearman_fromArmStore() {
+        // Four resolved rows, baseline arm, recovery outcome. actual == predicted → slope 1.0,
+        // strictly monotone → Spearman 1.0; report fields must equal what ShadowMetrics returns.
+        let preds: [Double] = [40, 50, 60, 70]
+        var rows: [CyclePredictionLog] = []
+        for p in preds {
+            let r = CyclePredictionLog(predictionDate: .now)
+            r.recoveryActual = p
+            arm(r, .recovery, baseline: p, cycleAware: p)
+            rows.append(r)
+        }
+        let report = ShadowAnalyticsService.metricsReport(resolvedRows: rows, armId: "baseline")
+        let rec = report[.recovery]!
+        XCTAssertEqual(rec.n, 4)
+        XCTAssertEqual(rec.mae!, 0, accuracy: 1e-9)
+        XCTAssertEqual(rec.calibrationSlope!, 1.0, accuracy: 1e-9)
+        XCTAssertEqual(rec.spearmanRho!, 1.0, accuracy: 1e-9)
+        XCTAssertTrue(rec.engineDerived, "recovery label is engine-derived")
+        // A raw label is NOT engine-derived.
+        XCTAssertFalse(report[.wellness]!.engineDerived)
+    }
+
+    func test_metricsReport_thinData_nilFields_noCrash() {
+        let r = CyclePredictionLog(predictionDate: .now)
+        r.recoveryActual = 50
+        arm(r, .recovery, baseline: 50, cycleAware: 48)
+        let report = ShadowAnalyticsService.metricsReport(resolvedRows: [r], armId: "baseline")
+        let rec = report[.recovery]!
+        XCTAssertEqual(rec.n, 1)
+        XCTAssertNil(rec.calibrationSlope)  // n < 2
+        XCTAssertNil(rec.spearmanRho)       // n < 3
+        // An outcome with no arm prediction / actual → n == 0, all nil.
+        XCTAssertEqual(report[.pain]!.n, 0)
+        XCTAssertNil(report[.pain]!.mae)
+    }
+
+    func test_pairedMAEDifferenceCI_thinData_isNil() {
+        let r = CyclePredictionLog(predictionDate: .now)
+        r.recoveryActual = 50
+        arm(r, .recovery, baseline: 55, cycleAware: 50)
+        // Single row < blockLength → nil (graceful).
+        XCTAssertNil(ShadowAnalyticsService.pairedMAEDifferenceCI(
+            resolvedRows: [r], outcome: .recovery, blockLength: 7, resamples: 100))
+    }
+
     // MARK: - resolveOutcomes (idempotent, SwiftData-backed)
 
     func test_resolve_fillsActuals_andIsIdempotent() throws {

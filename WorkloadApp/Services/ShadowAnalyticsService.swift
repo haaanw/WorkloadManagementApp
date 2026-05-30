@@ -236,4 +236,101 @@ struct ShadowAnalyticsService {
 
         return result
     }
+
+    // MARK: - Metrics report (Phase 24 Plan 02 — orchestration only; math in ShadowMetrics)
+
+    /// Per-outcome validation metrics for ONE arm over resolved rows: MAE (from `aggregate`'s
+    /// formula), calibration slope, and Spearman ρ. The service ONLY extracts the time-ordered
+    /// `(predicted, actual)` pairs and delegates all statistics to `ShadowMetrics`. Fields are
+    /// `nil` on thin data (the common case this phase). `n` is the number of paired rows.
+    struct OutcomeMetrics {
+        var n: Int
+        var mae: Double?
+        var calibrationSlope: Double?
+        var spearmanRho: Double?
+        /// True when this outcome's label is engine-derived (recovery) → secondary / non-gating.
+        var engineDerived: Bool
+    }
+
+    /// Extract the time-ordered (predicted, actual) pairs for `armId` + `outcome`. Rows are assumed
+    /// pre-sorted by `targetDate` (the repository's `fetchResolved` sorts ascending); pairs preserve
+    /// that order so the block bootstrap / CV see the true time order. Rows missing the arm's
+    /// prediction OR the outcome's actual are dropped.
+    private static func pairs(
+        resolvedRows: [CyclePredictionLog],
+        armId: String,
+        outcome: ShadowPredictor.Outcome
+    ) -> [(predicted: Double, actual: Double)] {
+        func actual(_ row: CyclePredictionLog) -> Double? {
+            switch outcome {
+            case .recovery:   return row.recoveryActual
+            case .wellness:   return row.wellnessActual
+            case .completion: return row.completionActual
+            case .pain:       return row.painActual
+            }
+        }
+        var out: [(predicted: Double, actual: Double)] = []
+        for row in resolvedRows {
+            guard let p = row.armPrediction(armId: armId, outcome: outcome), let a = actual(row) else { continue }
+            out.append((predicted: p, actual: a))
+        }
+        return out
+    }
+
+    /// MAE + calibration slope + Spearman ρ per outcome for one arm. Math delegated to ShadowMetrics.
+    static func metricsReport(
+        resolvedRows: [CyclePredictionLog],
+        armId: String
+    ) -> [ShadowPredictor.Outcome: OutcomeMetrics] {
+        var report: [ShadowPredictor.Outcome: OutcomeMetrics] = [:]
+        for outcome in ShadowPredictor.Outcome.allCases {
+            let p = pairs(resolvedRows: resolvedRows, armId: armId, outcome: outcome)
+            let mae: Double? = p.isEmpty ? nil
+                : p.reduce(0.0) { $0 + ShadowPredictor.absoluteError(predicted: $1.predicted, actual: $1.actual) } / Double(p.count)
+            report[outcome] = OutcomeMetrics(
+                n: p.count,
+                mae: mae,
+                calibrationSlope: ShadowMetrics.calibrationSlope(pairs: p),
+                spearmanRho: ShadowMetrics.spearmanRho(pairs: p),
+                engineDerived: ShadowPredictor.engineDerivedOutcomes.contains(outcome)
+            )
+        }
+        return report
+    }
+
+    /// Block-bootstrap CI for the paired-MAE difference between two arms on one outcome (default
+    /// `baseline` vs `cycleAware`). Pairs are extracted time-ordered and aligned across both arms
+    /// (only rows where BOTH arms have a prediction and the outcome has an actual). Delegates the
+    /// bootstrap to `ShadowMetrics`. `nil` on insufficient data.
+    static func pairedMAEDifferenceCI(
+        resolvedRows: [CyclePredictionLog],
+        outcome: ShadowPredictor.Outcome,
+        armA: String = "baseline",
+        armB: String = "cycleAware",
+        blockLength: Int = 7,
+        resamples: Int = 1000,
+        alpha: Double = 0.05,
+        seed: UInt64 = 0x5EED
+    ) -> (lower: Double, upper: Double, point: Double)? {
+        func actual(_ row: CyclePredictionLog) -> Double? {
+            switch outcome {
+            case .recovery:   return row.recoveryActual
+            case .wellness:   return row.wellnessActual
+            case .completion: return row.completionActual
+            case .pain:       return row.painActual
+            }
+        }
+        var a: [(predicted: Double, actual: Double)] = []
+        var b: [(predicted: Double, actual: Double)] = []
+        for row in resolvedRows {
+            guard let pa = row.armPrediction(armId: armA, outcome: outcome),
+                  let pb = row.armPrediction(armId: armB, outcome: outcome),
+                  let act = actual(row) else { continue }
+            a.append((predicted: pa, actual: act))
+            b.append((predicted: pb, actual: act))
+        }
+        return ShadowMetrics.pairedMAEDifferenceBlockBootstrapCI(
+            armA: a, armB: b, blockLength: blockLength, resamples: resamples, alpha: alpha, seed: seed
+        )
+    }
 }
