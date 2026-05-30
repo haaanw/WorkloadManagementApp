@@ -288,3 +288,12 @@ Plans:
 - [x] 27-03-PLAN.md — Pure `StrainRiskEngine` fixed glass-box fusion (score + `StrainRiskZone` + ranked factors + confidence; reuses FatigueIndexEngine/NiggleInjuryDeriver/BaselineEngine) + isolation + tier-fence + full-suite + no-prediction-copy guards ✅ 2026-05-30 (commit 6e8d9f2; full suite green, isolation grep==0)
 - [ ] **Phase 28: Readiness fusion + explainable decisions + ACWR demotion** — fixed sign-constrained glass-box logistic fusion → Readiness scalar (separate from Strain-Risk); upgrade ReasoningEngine to explain the DECISION ("volume cut because HRV −x%, sleep debt, high per-muscle hard sets, no rest day") with confidence; swap AutoregulationEngine matrix (recovery × ACWR) → (readiness × strain-risk), ACWR → context label only; dual-run period + "method updated" messaging; the recommendation must adjust a real logged/planned workout.
 - [ ] **Phase 29: Shadow validation + activation gates** — run PRS-v1 arm in shadow vs current algorithm; gates: MAE beat on ≥3/4 outcomes (bootstrap CI excl 0), Spearman ≥0.50, calibration slope ∈[0.8,1.2]; no live activation until gates pass; master activation flag defaults false.
+  **Goal:** Build the activation-gate evaluation layer (pure `ActivationGateEvaluator` consuming the EXISTING Phase-24 `ShadowMetrics`/`ShadowAnalyticsService` PRS-vs-baseline metrics — MAE-beat ≥3/4 with bootstrap CI excl 0, Spearman ≥0.50, calibration slope ∈[0.8,1.2], data-maturity precondition) plus a NEW `PRSMasterActivation` flag (defaults FALSE, stays FALSE) and a seeded deterministic shadow-validation report artifact. Wires + evaluates + reports ONLY; absolutely NO live activation; the master flag is not flipped (D-29-GA-01..GA-10, gate-eval + report-only).
+  **Plans:** 2 plans (2 SERIAL waves)
+
+Plans:
+**Wave 1**
+- [ ] 29-01-PLAN.md — `PRSMasterActivation` flag (default FALSE) + pure report-only `ActivationGateEvaluator` + `GateReport` (consumes existing shadow metrics; 4 gates w/ fixed named thresholds) + oracle/boundary/thin-data tests + activation-flag fence + no-mutation isolation grep
+
+**Wave 2** *(blocked on Wave 1 completion)*
+- [ ] 29-02-PLAN.md — Seeded deterministic shadow-validation report generator (test target; synthetic PRS-wins/loses/thin/ambiguous traces → real harness resolve → evaluator → `29-shadow-validation-report.md`) + per-scenario verdict XCTAsserts + hash-equality + master-flag-stays-FALSE asserts + no-prediction-copy grep + human review (autonomous: false)
