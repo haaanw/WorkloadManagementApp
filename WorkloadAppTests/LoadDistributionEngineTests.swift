@@ -26,6 +26,21 @@ final class LoadDistributionEngineTests: XCTestCase {
         WorkoutSession(sessionDate: date, sportType: .running, durationSeconds: minutes * 60, sessionRPE: rpe)
     }
 
+    /// A strength session with `hardSets` heavy hard sets (each ≈ 0.85 of a 100 est-1RM ref →
+    /// heavy bucket, strain weight 1.0). No sessionRPE so it carries NO endurance load.
+    private func strengthSession(date: Date, hardSets: Int) -> WorkoutSession {
+        let session = WorkoutSession(sessionDate: date)
+        let entry = ExerciseEntry(exerciseName: "Back Squat", muscleGroup: .quads)
+        // 100kg x1 establishes a ~103 est-1RM; 85kg sets are ~0.82 → heavy hard.
+        var sets = [SetRecord(reps: 1, weightKg: 100, rpe: nil, rir: nil, isWarmup: false)]
+        for _ in 0..<hardSets {
+            sets.append(SetRecord(reps: 3, weightKg: 85, rpe: nil, rir: 1, isWarmup: false))
+        }
+        entry.sets = sets
+        session.exerciseEntries = [entry]
+        return session
+    }
+
     // MARK: - Monotony / strain numerics
 
     func test_monotony_uniformSeriesIsHigh() {
@@ -162,5 +177,75 @@ final class LoadDistributionEngineTests: XCTestCase {
         let a = LoadDistributionEngine.distribution(sessions: sessions, asOf: asOf, calendar: calendar)
         let b = LoadDistributionEngine.distribution(sessions: sessions, asOf: asOf, calendar: calendar)
         XCTAssertEqual(a, b)
+    }
+
+    // MARK: - Per-stream standardisation (Finding 2 / GA-30-B)
+
+    /// Adding strength hard sets on a subset of days measurably changes monotony vs the same
+    /// endurance-only log — strength is no longer drowned out by the larger endurance scale.
+    func test_distribution_strengthMeasurablyMovesMonotony() {
+        // Fixed 8-day endurance log (same logged days in both cases).
+        let minutesByDay = [30, 50, 20, 60, 25, 45, 35, 55]
+        var enduranceOnly: [WorkoutSession] = []
+        for (i, m) in minutesByDay.enumerated() {
+            enduranceOnly.append(enduranceSession(date: daysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        // Same log + strength hard sets folded onto days 1, 4, 7 (same calendar days → same
+        // loggedDays count; only the strength stream differs).
+        var withStrength = enduranceOnly
+        withStrength.append(strengthSession(date: daysAgo(1), hardSets: 2))
+        withStrength.append(strengthSession(date: daysAgo(4), hardSets: 3))
+        withStrength.append(strengthSession(date: daysAgo(7), hardSets: 1))
+
+        let base = LoadDistributionEngine.distribution(sessions: enduranceOnly, asOf: asOf, calendar: calendar)
+        let withStr = LoadDistributionEngine.distribution(sessions: withStrength, asOf: asOf, calendar: calendar)
+
+        XCTAssertEqual(base.gateState, .computed)
+        XCTAssertEqual(withStr.gateState, .computed)
+        XCTAssertEqual(base.loggedDays, withStr.loggedDays) // same logged days
+        XCTAssertNotNil(base.monotony)
+        XCTAssertNotNil(withStr.monotony)
+        // Strength now contributes: monotony differs measurably (was identical when strength
+        // was drowned out at the raw scale).
+        XCTAssertGreaterThan(abs(base.monotony! - withStr.monotony!), 1e-6)
+    }
+
+    /// A zero-strength-variance (endurance-only) dense log yields a FINITE monotony — the
+    /// zero-variance strength stream standardises to a constant and the endurance stream drives
+    /// the result. No NaN / inf.
+    func test_distribution_zeroStrengthVariance_finiteMonotony_noNaN() {
+        var sessions: [WorkoutSession] = []
+        let minutesByDay = [30, 50, 20, 60, 25, 45, 35, 55]
+        for (i, m) in minutesByDay.enumerated() {
+            sessions.append(enduranceSession(date: daysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        let result = LoadDistributionEngine.distribution(sessions: sessions, asOf: asOf, calendar: calendar)
+        XCTAssertEqual(result.gateState, .computed)
+        let m = result.monotony
+        XCTAssertNotNil(m)
+        XCTAssertTrue(m!.isFinite)
+        XCTAssertNotNil(result.strain)
+        XCTAssertTrue(result.strain!.isFinite)
+    }
+
+    /// The standardise() helper returns zeros (not NaN) for <2 values or zero variance.
+    func test_standardize_via_monotonyInputSeries_constantInputNoNaN() {
+        // 7 identical endurance days → zero variance in both streams → constant series.
+        var sessions: [WorkoutSession] = []
+        for i in 1...7 {
+            sessions.append(enduranceSession(date: daysAgo(i), minutes: 30, rpe: 6))
+        }
+        let series = LoadDistributionEngine.monotonyInputSeries(sessions: sessions, asOf: asOf, calendar: calendar)
+        XCTAssertEqual(series.count, 7)
+        XCTAssertTrue(series.allSatisfy { $0.isFinite }) // no NaN from zero-variance standardisation
+    }
+
+    /// The raw dailyLoadSeries oracle is UNCHANGED by the standardisation path (separate path).
+    func test_dailyLoadSeries_rawOracleUnchanged() {
+        let s1 = enduranceSession(date: daysAgo(1), minutes: 30, rpe: 6) // 180
+        let s2 = enduranceSession(date: daysAgo(1), minutes: 20, rpe: 5) // 100
+        let series = LoadDistributionEngine.dailyLoadSeries(sessions: [s1, s2], asOf: asOf, calendar: calendar)
+        let day1 = series.first { calendar.isDate($0.dayStart, inSameDayAs: daysAgo(1)) }!
+        XCTAssertEqual(day1.load, 280.0, accuracy: 1e-9) // raw absolute load preserved
     }
 }
