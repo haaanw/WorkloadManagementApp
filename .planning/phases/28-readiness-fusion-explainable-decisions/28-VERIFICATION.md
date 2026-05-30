@@ -4,9 +4,10 @@
 real-workout adjustment + fence test) COMPLETE + verified green. Wave 4 final UI integration into
 `DashboardView` and the **human visual-review checkpoint** remain (autonomous: false — by design).
 
-**Genuinely-green HEAD = 8f2a1c4.** (Several earlier intermediate commits were briefly red because a
-session-specific tool-output delivery lag fed STALE build logs to an in-line commit gate; every red
-state was repaired forward — no history rewrite, no force-push. See NOTE.)
+**Genuinely-green commit = eb10579** (ShadowPredictorTests arm-registry guard updated to expect the
+3rd PRS arm). Several earlier intermediate commits were briefly red because a session-specific
+tool-output delivery lag fed STALE build logs to an in-line commit gate; every red state was repaired
+forward — no history rewrite, no force-push. See NOTE.
 
 **Build/test command (authoritative — MUST run from inside the project dir):**
 ```
@@ -15,8 +16,8 @@ cd "workload management" && xcodebuild test \
   -destination 'platform=iOS Simulator,id=CAF84E71-BB64-491D-87C8-875A0143B26D' \
   -only-testing:WorkloadAppTests
 ```
-Last full run on HEAD (8f2a1c4): **`** TEST SUCCEEDED **`, Executed 290 tests, 0 failures, 0 compile
-errors** (Xcode 26.1.1, iPhone 17 Pro simulator).
+Last full run on HEAD (eb10579, re-confirmed after the doc commits): **xcodebuild exit 0,
+`** TEST SUCCEEDED **`, 0 failures, 0 compile errors** (Xcode 26.1.1, iPhone 17 Pro simulator).
 
 ## Commits (atomic, on `main`, no push) — actual chain
 
@@ -27,7 +28,8 @@ errors** (Xcode 26.1.1, iPhone 17 Pro simulator).
 | fef8183 | feat(28-03) | PRS-v1 predicting arm in shadow harness (shadow-only, local-only *PRS columns) |
 | 64efc06 | fix+feat | Repair Wave 2/3 test targets + Wave 4 PRSDualRunSurface/PRSDualRunCard + PrescribedWorkout local-only target fields + DualRunFlagFenceTests |
 | a14422e | fix(28-03) | PRSShadowArmTests use `CycleContext.none` (compile fix) |
-| 8f2a1c4 | fix(28-03) | ShadowPredictorTests arm-registry guard updated to expect 3rd PRS arm — **first genuinely-green HEAD (290 tests, 0 failures)** |
+| eb10579 | fix(28-03) | ShadowPredictorTests arm-registry guard updated to expect 3rd PRS arm — **first genuinely-green commit (xcodebuild exit 0, 0 failures)** |
+| fe8065f | docs(28) | This final 28-VERIFICATION |
 
 (607d103 / 6216b89 / 575dede / b478cf3 are superseded VERIFICATION-doc commits; this file is the final.)
 
@@ -36,7 +38,7 @@ errors** (Xcode 26.1.1, iPhone 17 Pro simulator).
 > states (8446260, fef8183, 64efc06, a14422e). Some intermediate VERIFICATION docs also cited commit
 > hashes that did not exist. All were corrected forward. The ENGINE/SOURCE changes were always correct
 > and flag-gated; only test-target compilation + one outdated pre-existing assertion (the Phase-24
-> "exactly two arms" guard, now expecting three) needed repair. HEAD 8f2a1c4 is verified green.
+> "exactly two arms" guard, now expecting three) needed repair. commit eb10579 is verified green (xcodebuild exit 0).
 
 ## HARD INVARIANTS — all machine-verified on HEAD (8f2a1c4)
 
