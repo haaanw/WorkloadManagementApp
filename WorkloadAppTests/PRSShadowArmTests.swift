@@ -90,8 +90,7 @@ final class PRSShadowArmTests: XCTestCase {
 
     func test_prsArm_doesNotPredictNiggleSeverity() {
         let arm = ShadowPredictor.registeredArms().first { $0.id == "prs" }!
-        let neutralContext = CycleContext(phase: .unknown)
-        XCTAssertNil(arm.predict(.niggleSeverity, [1, 2, 3, 4], neutralContext))
+        XCTAssertNil(arm.predict(.niggleSeverity, [1, 2, 3, 4], CycleContext.none))
     }
 
     // MARK: - MUST-FIX: *PRS columns local-only (sync-omission negative assertion)
