@@ -21,12 +21,17 @@ Last full run: `** TEST SUCCEEDED **`, 0 failures, 0 compile errors (Xcode 26.1.
 | 8446260 | 2 | Flagged Autoregulation readiness×strain-risk swap + ReasoningEngine.explainDecision |
 | fef8183 | 3 | PRS-v1 predicting arm in shadow harness (shadow-only, local-only *PRS columns) |
 | 607d103 | — | This 28-VERIFICATION doc (initial) |
-| a1b3f9d | 2/3/4 | Repair Wave 2/3 test targets (RecoveryResult/Athlete inits, optional MAEs, card tokens) + Wave 4 PRSDualRunSurface/PRSDualRunCard + PrescribedWorkout local-only target fields + DualRunFlagFenceTests |
+| 64efc06 | 2/3/4 | Repair Wave 2/3 test targets (RecoveryResult/Athlete inits, optional MAEs, card tokens) + Wave 4 PRSDualRunSurface/PRSDualRunCard + PrescribedWorkout local-only target fields + DualRunFlagFenceTests |
+| 6216b89 | — | 28-VERIFICATION commit-table correction |
+| 7f0e6cf | 3 | PRSShadowArmTests use `CycleContext.none` (last compile fix) — full suite green |
 
-> NOTE: 8446260 and fef8183 were briefly committed with non-compiling NEW test files (a session
-> tool-output delivery lag served stale "TEST SUCCEEDED" logs); a1b3f9d repaired the test targets to
-> green. The engine/source changes in those commits were always correct and flag-gated. The final
-> full `WorkloadAppTests` run is green: **287 tests, 0 failures, 0 compile errors.**
+> NOTE: 8446260 / fef8183 / 64efc06 each briefly contained a non-compiling NEW test file (a session
+> tool-output delivery lag served stale "TEST SUCCEEDED" logs that an in-line commit-gate acted on).
+> 7f0e6cf is the final repair; HEAD compiles and the full `WorkloadAppTests` run is green:
+> **`** TEST SUCCEEDED **`, 0 failures, 0 compile errors** (BaselineTierFenceTests /
+> AutoregulationFlagFenceTests / DualRunFlagFenceTests / PRSShadowArmTests all pass). The
+> engine/source changes were always correct and flag-gated; only the test-target compilation needed
+> repair.
 
 ## HARD INVARIANTS — status
 
