@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Algorithm Moat (Personal Readiness v1)
-status: in_progress
-stopped_at: Phase 25 Plan 01 complete (SorenessLog data foundation)
-last_updated: "2026-05-30T14:10:00.000Z"
-last_activity: 2026-05-30 -- Phase 25 Plan 01 executed (local-only SorenessLog @Model + NiggleType + repository, build+tests green)
+status: completed
+stopped_at: Phase 26 Plan 01 complete (BaselineState local-only @Model) — resume at Plan 02
+last_updated: "2026-05-30T09:42:00.000Z"
+last_activity: 2026-05-30 -- Phase 26 Plan 01 executed (BaselineState individualized-baseline state model)
 progress:
-  total_phases: 13
-  completed_phases: 12
-  total_plans: 40
-  completed_plans: 37
-  percent: 92
+  total_phases: 14
+  completed_phases: 13
+  total_plans: 44
+  completed_plans: 41
+  percent: 93
 ---
 
 # Project State
@@ -25,9 +25,11 @@ See: .planning/PROJECT.md (updated 2026-05-10)
 
 ## Current Position
 
-Phase: 25 (soreness-tweak-self-log) IN PROGRESS — Plan 01 of 4 COMPLETE (2026-05-30)
-Status: 25-01 data foundation shipped — local-only SorenessLog @Model + NiggleType enum + SorenessLogRepository, build+tests green (4/4); Wave 1 done, Plans 02/03/04 remain
-Last activity: 2026-05-30 -- Phase 25 Plan 01 executed (SorenessLog data foundation)
+Phase: 26 (individualized-baselines) IN PROGRESS — Plan 01 of 4 COMPLETE (2026-05-30)
+Status: 26-01 persistence foundation shipped — local-only BaselineState @Model (ONE row/athlete, flattened HRV/RHR/sleep sub-states, no Codable, absent from SyncService), registered in app+test schemas, build+tests green (4/4); [Double] MAD buffer round-trips natively (A7 cleared); Wave 1 done, Plans 02/03/04 remain
+Last activity: 2026-05-30 -- Phase 26 Plan 01 executed (BaselineState individualized-baseline state model)
+
+Prior: Phase 25 (soreness-tweak-self-log) Plan 01 COMPLETE — local-only SorenessLog @Model + NiggleType enum + SorenessLogRepository (4/4 green); Plans 02/03/04 remain
 
 Prior: Phases 19-22 all COMPLETE (sub-agent team execution 2026-05-30) — pending human UAT; v1.4 (17-20) + v1.5 (21-22) phase-complete; full app build green; modifiers shipped dark
 
@@ -70,6 +72,7 @@ Progress (v1.4+v1.5): [███████████████] 100% (Phas
 *Updated after each plan completion*
 | Phase 18 P2 | 12min | 3 tasks | 9 files |
 | Phase 25 P1 | ~10min | 2 tasks | 5 files |
+| Phase 26 P1 | ~4min | 1 task | 4 files |
 
 ## Accumulated Context
 
@@ -117,6 +120,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-30T14:10:00.000Z
-Stopped at: Phase 25 Plan 01 complete (SorenessLog data foundation) — resume at Plan 02
-Resume file: .planning/phases/25-soreness-tweak-self-log/25-02-PLAN.md
+Last session: 2026-05-30T17:42:00.000Z
+Stopped at: Phase 26 Plan 01 complete (BaselineState local-only @Model) — resume at Plan 02
+Resume file: .planning/phases/26-individualized-baselines/26-02-PLAN.md
