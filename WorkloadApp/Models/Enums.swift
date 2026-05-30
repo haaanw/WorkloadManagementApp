@@ -444,6 +444,43 @@ enum RecoveryDataSource: String, Codable {
     case manual
 }
 
+// MARK: - Strain-Risk Enum (Phase 27 — heuristic load-tolerance context, NOT injury prediction)
+
+/// Categorical zone for the Phase-27 Strain-Risk channel.
+///
+/// Strain-Risk is an HONEST heuristic **load-tolerance / overreaching-caution** flag produced
+/// by the glass-box `StrainRiskEngine`. It is display/shadow context only this phase and
+/// deliberately NEVER frames itself as injury prediction — none of the copy below contains
+/// "injury prediction", "injury risk", "predicts injury", or "will get injured" (D-27-01,
+/// enforced by a string-audit test). It does NOT drive the live recommendation or recovery
+/// score in Phase 27.
+enum StrainRiskZone: String, Codable, CaseIterable, Identifiable {
+    case low
+    case moderate
+    case elevated
+    case high
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .low: String(localized: "strainRiskZone.low", defaultValue: "Low")
+        case .moderate: String(localized: "strainRiskZone.moderate", defaultValue: "Moderate")
+        case .elevated: String(localized: "strainRiskZone.elevated", defaultValue: "Elevated load-tolerance caution")
+        case .high: String(localized: "strainRiskZone.high", defaultValue: "High overreaching caution")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .low: "checkmark.circle"
+        case .moderate: "circle.lefthalf.filled"
+        case .elevated: "exclamationmark.triangle"
+        case .high: "exclamationmark.triangle.fill"
+        }
+    }
+}
+
 // MARK: - Coach / Role Enums
 
 enum RelationshipStatus: String, Codable {

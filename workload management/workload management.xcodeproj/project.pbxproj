@@ -168,6 +168,7 @@
 		FF0801020000000000000001 /* FatigueIndexEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000001 /* FatigueIndexEngine.swift */; };
 		EE2701020000000000000001 /* StrengthLoadEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2701010000000000000001 /* StrengthLoadEngine.swift */; };
 		EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2702010000000000000001 /* LoadDistributionEngine.swift */; };
+		EE2703020000000000000001 /* StrainRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2703010000000000000001 /* StrainRiskEngine.swift */; };
 		DD2503020000000000000001 /* NiggleInjuryDeriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2503010000000000000001 /* NiggleInjuryDeriver.swift */; };
 		FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000002 /* FatigueAttentionBanner.swift */; };
 /* End PBXBuildFile section */
@@ -352,6 +353,7 @@
 		FF0801010000000000000001 /* FatigueIndexEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueIndexEngine.swift; sourceTree = "<group>"; };
 		EE2701010000000000000001 /* StrengthLoadEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthLoadEngine.swift; sourceTree = "<group>"; };
 		EE2702010000000000000001 /* LoadDistributionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadDistributionEngine.swift; sourceTree = "<group>"; };
+		EE2703010000000000000001 /* StrainRiskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainRiskEngine.swift; sourceTree = "<group>"; };
 		DD2503010000000000000001 /* NiggleInjuryDeriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleInjuryDeriver.swift; sourceTree = "<group>"; };
 		FF0801010000000000000002 /* FatigueAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueAttentionBanner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -564,6 +566,7 @@
 				FF0801010000000000000001 /* FatigueIndexEngine.swift */,
 				EE2701010000000000000001 /* StrengthLoadEngine.swift */,
 				EE2702010000000000000001 /* LoadDistributionEngine.swift */,
+				EE2703010000000000000001 /* StrainRiskEngine.swift */,
 				DD2503010000000000000001 /* NiggleInjuryDeriver.swift */,
 				CC030101000000000000000A /* BehaviorCorrelationEngine.swift */,
 				EE0501010000000000000001 /* StreakEngine.swift */,
@@ -1074,6 +1077,7 @@
 				FF0801020000000000000001 /* FatigueIndexEngine.swift in Sources */,
 				EE2701020000000000000001 /* StrengthLoadEngine.swift in Sources */,
 				EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */,
+				EE2703020000000000000001 /* StrainRiskEngine.swift in Sources */,
 				DD2503020000000000000001 /* NiggleInjuryDeriver.swift in Sources */,
 				CC0301010000000000000009 /* BehaviorCorrelationEngine.swift in Sources */,
 				EE0501020000000000000001 /* StreakEngine.swift in Sources */,
