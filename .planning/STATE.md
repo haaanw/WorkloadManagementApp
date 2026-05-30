@@ -3,15 +3,15 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Algorithm Moat (Personal Readiness v1)
 status: completed
-stopped_at: Phase 26 Plan 02 complete (pure BaselineEngine, tests 10/10) — resume at Plan 03
-last_updated: "2026-05-30T09:54:00.000Z"
-last_activity: 2026-05-30 -- Phase 26 Plan 02 executed (pure stateless BaselineEngine + numerics-vs-oracle tests)
+stopped_at: Phase 26 Plan 03 complete (pure DayBucketer + tier-fence, tests 14/14) — resume at Plan 04
+last_updated: "2026-05-30T10:05:17.129Z"
+last_activity: 2026-05-30 -- Phase 26 Plan 03 executed (pure DayBucketer + W-1 fold guard + additive fetchRestingHRHistory + machine-enforced tier fence)
 progress:
   total_phases: 14
   completed_phases: 13
   total_plans: 44
-  completed_plans: 41
-  percent: 93
+  completed_plans: 44
+  percent: 95
 ---
 
 # Project State
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-10)
 
 ## Current Position
 
-Phase: 26 (individualized-baselines) IN PROGRESS — Plan 02 of 4 COMPLETE (2026-05-30)
-Status: 26-02 engine math core shipped — pure stateless BaselineEngine (EWMA/Welford/MAD/Huber, prequential no-leak score/step, Altini CV hysteresis, 0–1 confidence; all §8.3 named constants; ZERO Date/RNG; tier-fence held — RecoveryScoreEngine byte-unchanged), 10/10 numerics-vs-oracle tests green to 1e-9; W-1 caller-owned idempotency contract documented, W-2 Welford centering fixed, W-3 proven by xcodebuild test. Wave 1+2 done, Plans 03/04 remain
-Last activity: 2026-05-30 -- Phase 26 Plan 02 executed (pure stateless BaselineEngine + numerics-vs-oracle tests)
+Phase: 26 (individualized-baselines) IN PROGRESS — Plan 03 of 4 COMPLETE (2026-05-30)
+Status: 26-03 input layer + tier fence shipped — pure DayBucketer (morning-window MEDIAN per calendar day for HRV/RHR, last-night aggregate for sleep, GAP-honest, no carry-forward/imputation, structural stale-dedup; Foundation-only, Calendar injected, ZERO Date.now/RNG/HealthKit; reuses BaselineEngine.median). W-1 idempotency guard NOW IMPLEMENTED as DayBucketer.foldBuckets (drives BaselineEngine.step once per advanced day, startOfDay(t) > lastBucketedDate; re-presenting same/older day is a no-op; GAPs skipped). Additive HealthKitService.fetchRestingHRHistory(days:) (RHR mirror of fetchHRVHistory; existing fetches byte-unchanged). HIGH-risk tier fence MACHINE-ENFORCED: BaselineTierFenceTests asserts computeBaseline .suffix(7) 7-day mean intact + substrate (DayBucketer/BaselineEngine/BaselineState) not on live RecoveryPipeline path (comment-stripped). 14/14 tests green via real xcodebuild (sim iPhone 17 Pro Max). pbxproj: DayBucketer.swift 4 app-target entries. Wave 1+2+3 done, Plan 04 (convergence report) remains
+Last activity: 2026-05-30 -- Phase 26 Plan 03 executed (pure DayBucketer + W-1 fold guard + additive fetchRestingHRHistory + machine-enforced tier fence)
 
 Prior: Phase 25 (soreness-tweak-self-log) Plan 01 COMPLETE — local-only SorenessLog @Model + NiggleType enum + SorenessLogRepository (4/4 green); Plans 02/03/04 remain
 
