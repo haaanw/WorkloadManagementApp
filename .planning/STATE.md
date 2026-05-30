@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Algorithm Moat (Personal Readiness v1)
 status: in_progress
-stopped_at: Phases 27/28/29 BUILT + verification-complete (xcodebuild green, verifier PASS, adversarial review 0-crit, codex PASS), NOT pushed — Phase 30 (shadow-engine quality fixes) PLANNED; Phase 28 human UI visual review OWED
-last_updated: "2026-05-31T02:10:00.000Z"
-last_activity: 2026-05-31 -- v1.6 Phases 27/28/29 fully gated via workflow (verifier+adversarial review) + I re-verified build green myself (430 unit/0 fail HEAD 90cec6b; 448/0 incl Phase-29, lone ScreenshotTests.test03_Recovery flake passed isolated) + codex review PASS (4 P2/P3 shadow-only findings). User chose: fix the 6 shadow/display findings now as Phase 30, update docs, HOLD push until human UI visual review of Phase-28 dual-run surface. Nothing pushed, nothing activated, master flag FALSE.
+stopped_at: Phase 30 (shadow-engine quality fixes) COMPLETE — all 6 findings fixed across 4 serial waves, full xcodebuild suite green at HEAD 634e3f2, three live fences untouched, no activation; NOT pushed — Phase 28 human UI visual review still OWED
+last_updated: "2026-05-31T04:30:00.000Z"
+last_activity: 2026-05-31 -- Phase 30 executed serially (Waves 1-4: StrengthLoadEngine Findings 3+4, LoadDistributionEngine Finding 2, StrainRiskEngine Findings 1+5, PRSDualRunSurface Finding 6). 4 atomic commits to main (1e5314a, 466df41, bd5739d, 634e3f2) + docs commit 5352d96. Full WorkloadAppTests green; BaselineTierFence/AutoregulationFlagFence/DualRunFlagFence byte-unmodified; PRSActivation+PRSMasterActivation defaults FALSE; MuscleStrengthLoad/StrengthLoadResult unsynced. NOT pushed. (Wave-2 used a positive offset on z-standardised streams — literal mean-0 sum made Foster monotony degenerate; documented.)
 progress:
   total_phases: 14
   completed_phases: 13

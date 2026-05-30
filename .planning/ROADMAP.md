@@ -319,11 +319,11 @@ Findings to fix:
 
 Invariants: no live-path change (BaselineTierFence + AutoregulationFlagFence + DualRunFlagFence stay green), no activation, master flag FALSE, full xcodebuild green. Engine snapshot tests for changed shadow outputs updated to new correct values; fences untouched.
 
-**Plans:** 4 plans (1 overview + 4 waves), SERIAL.
+**Plans:** 4/5 plans executed
 
 Plans:
 - [ ] 30-PLAN.md — overview (wave structure, invariants, source audit)
-- [ ] 30-01-PLAN.md — Wave 1: StrengthLoadEngine (Findings 3+4 + MuscleStrengthLoad easyCount/hasChronicBaseline)
-- [ ] 30-02-PLAN.md — Wave 2: LoadDistributionEngine (Finding 2 per-stream z-standardised monotony series)
-- [ ] 30-03-PLAN.md — Wave 3: StrainRiskEngine (Findings 1+5: single-count fatigue + easy-inclusive baseline-discounted coverage)
-- [ ] 30-04-PLAN.md — Wave 4: PRSDualRunSurface (Finding 6 nil-targetVolume effective base + updatedAt)
+- [x] 30-01-PLAN.md — Wave 1: StrengthLoadEngine (Findings 3+4 + MuscleStrengthLoad easyCount/hasChronicBaseline)
+- [x] 30-02-PLAN.md — Wave 2: LoadDistributionEngine (Finding 2 per-stream z-standardised monotony series)
+- [x] 30-03-PLAN.md — Wave 3: StrainRiskEngine (Findings 1+5: single-count fatigue + easy-inclusive baseline-discounted coverage)
+- [x] 30-04-PLAN.md — Wave 4: PRSDualRunSurface (Finding 6 nil-targetVolume effective base + updatedAt)
