@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Algorithm Moat (Personal Readiness v1)
 status: completed
-stopped_at: Phase 26 Plan 01 complete (BaselineState local-only @Model) — resume at Plan 02
-last_updated: "2026-05-30T09:42:00.000Z"
-last_activity: 2026-05-30 -- Phase 26 Plan 01 executed (BaselineState individualized-baseline state model)
+stopped_at: Phase 26 Plan 02 complete (pure BaselineEngine, tests 10/10) — resume at Plan 03
+last_updated: "2026-05-30T09:54:00.000Z"
+last_activity: 2026-05-30 -- Phase 26 Plan 02 executed (pure stateless BaselineEngine + numerics-vs-oracle tests)
 progress:
   total_phases: 14
   completed_phases: 13
@@ -25,9 +25,9 @@ See: .planning/PROJECT.md (updated 2026-05-10)
 
 ## Current Position
 
-Phase: 26 (individualized-baselines) IN PROGRESS — Plan 01 of 4 COMPLETE (2026-05-30)
-Status: 26-01 persistence foundation shipped — local-only BaselineState @Model (ONE row/athlete, flattened HRV/RHR/sleep sub-states, no Codable, absent from SyncService), registered in app+test schemas, build+tests green (4/4); [Double] MAD buffer round-trips natively (A7 cleared); Wave 1 done, Plans 02/03/04 remain
-Last activity: 2026-05-30 -- Phase 26 Plan 01 executed (BaselineState individualized-baseline state model)
+Phase: 26 (individualized-baselines) IN PROGRESS — Plan 02 of 4 COMPLETE (2026-05-30)
+Status: 26-02 engine math core shipped — pure stateless BaselineEngine (EWMA/Welford/MAD/Huber, prequential no-leak score/step, Altini CV hysteresis, 0–1 confidence; all §8.3 named constants; ZERO Date/RNG; tier-fence held — RecoveryScoreEngine byte-unchanged), 10/10 numerics-vs-oracle tests green to 1e-9; W-1 caller-owned idempotency contract documented, W-2 Welford centering fixed, W-3 proven by xcodebuild test. Wave 1+2 done, Plans 03/04 remain
+Last activity: 2026-05-30 -- Phase 26 Plan 02 executed (pure stateless BaselineEngine + numerics-vs-oracle tests)
 
 Prior: Phase 25 (soreness-tweak-self-log) Plan 01 COMPLETE — local-only SorenessLog @Model + NiggleType enum + SorenessLogRepository (4/4 green); Plans 02/03/04 remain
 
@@ -73,6 +73,7 @@ Progress (v1.4+v1.5): [███████████████] 100% (Phas
 | Phase 18 P2 | 12min | 3 tasks | 9 files |
 | Phase 25 P1 | ~10min | 2 tasks | 5 files |
 | Phase 26 P1 | ~4min | 1 task | 4 files |
+| Phase 26 P2 | ~10min | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -121,5 +122,5 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-05-30T17:42:00.000Z
-Stopped at: Phase 26 Plan 01 complete (BaselineState local-only @Model) — resume at Plan 02
-Resume file: .planning/phases/26-individualized-baselines/26-02-PLAN.md
+Stopped at: Phase 26 Plan 02 complete (pure BaselineEngine, tests 10/10) — resume at Plan 03
+Resume file: .planning/phases/26-individualized-baselines/26-03-PLAN.md

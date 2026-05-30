@@ -274,8 +274,8 @@ Plans:
   **Plans:** 4 plans (4 waves)
 
 Plans:
-- [ ] 26-01-PLAN.md — Local-only `BaselineState` @Model (one row, flattened HRV/RHR/sleep sub-states) + Schema registration + persistence/sync-omission tests (foundation)
-- [ ] 26-02-PLAN.md — Pure `BaselineEngine`: EWMA/Welford/MAD/Huber, prequential no-leak z + σ floor, Altini CV, 0–1 confidence (all named constants) + numerics-vs-oracle unit tests
+- [x] 26-01-PLAN.md — Local-only `BaselineState` @Model (one row, flattened HRV/RHR/sleep sub-states) + Schema registration + persistence/sync-omission tests (foundation) (2026-05-30; tests 4/4)
+- [x] 26-02-PLAN.md — Pure `BaselineEngine`: EWMA/Welford/MAD/Huber, prequential no-leak z + σ floor, Altini CV, 0–1 confidence (all named constants) + numerics-vs-oracle unit tests (2026-05-30; tests 10/10, tier-fence held)
 - [ ] 26-03-PLAN.md — Pure `DayBucketer` (median morning window, gap, stale-dedup) + additive `fetchRestingHRHistory(days:)` + machine-enforced tier-fence test (live 7-day mean unchanged)
 - [ ] 26-04-PLAN.md — Seeded deterministic convergence-report generator + invariant asserts + hash-equality; human reviews the markdown artifact (autonomous: false; Phase 26 result checkpoint, D-04)
 - [ ] **Phase 27: Strength-load model + Strain-Risk fusion** — per-muscle hard sets + relative-intensity buckets (est-1RM / RPE / RIR) from SetRecord/ExerciseEntry (NOT raw tonnage); fuse with sRPE/TRIMP endurance load + FatigueIndexEngine (FEA lineage) + Foster monotony/strain (completeness-gated) into the Strain-Risk channel. Honest "load-tolerance context / overreaching caution", never "injury prediction".
