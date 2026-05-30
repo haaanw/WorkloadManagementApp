@@ -190,3 +190,29 @@ Ship the strain channel as "you're ramping faster than you've adapted / your wee
 5. **Injury self-log.** Strain-Risk can only be honestly validated against soreness/adherence proxies without an outcome label. Add a lightweight "tweak"/injury log, or accept proxy-only validation?
 6. **Altini relationship.** Are we comfortable *explicitly crediting/borrowing* Altini's normal-band + CV approach (more defensible and honest) rather than claiming a novel baseline? This affects both the math and the marketing voice.
 7. **Strength subset weight.** How central is the strength/hybrid athlete to the launch target? If they're the core, CHANGE 1 is mandatory; if endurance-leaning amateurs are the beachhead, sRPE-only v1 may suffice and G3 becomes a v2 expansion.
+
+---
+
+## Codex review of THIS analysis (2026-05-30) — reality check
+
+Adversarial codex review (verified claims against actual code). Verdict: **recommended v1 is directionally right ONLY if scoped as a narrow, credible strength-hybrid autoregulation v1; the wedge is useful positioning, NOT a defensible moat yet.**
+
+### CRITICAL
+1. **Wedge ≠ moat.** The "empty cell" is overstated — competitors the research missed already own adjacent pieces: **Bevel** (Apple Watch recovery/strain + Strength Builder + AI coaching + generated plans + injury constraints), **Athlytic** (Apple Watch recovery + target exertion), **WHOOP Coach** (LLM coaching), Garmin adaptive strength plans, Strava richer strength logging. Reposition: "Apple-first, explainable, strength-biased readiness-to-session adjustment," not "only product structurally able to do this."
+2. **"Prescription" overstated.** AutoregulationEngine returns guardrails (session type, RPE cap, volume modifier, headline) — not a session prescription — and is still ACWR-driven (AutoregulationEngine.swift:12, :196). Call it "autoregulation guardrails" until v1 actually adjusts the user's planned workout or generates a concrete one.
+3. **Explainability not yet real.** ReasoningEngine ignores workloadSnapshot, has no recommendation rationale / strain explanation / confidence, fixed 7h sleep target (ReasoningEngine.swift:9,:65). v1 must explain the DECISION, not just the recovery score.
+
+### MAJOR
+- Tonnage/hard-set count is a naive mechanical-load proxy (ignores %1RM, proximity to failure, exercise type, per-muscle distribution). Use **per-muscle hard sets + relative-intensity buckets (est-1RM/RPE/RIR)**; tonnage as context only.
+- Demoting ACWR changes live recommendations (DashboardViewModel.swift:266, ActiveWorkoutSheet.swift:259) → ship a **dual-run period + "method updated" messaging**, ACWR→context only after shadow parity.
+- Don't make Altini copycat positioning; baseline = table stakes; lead with "turns recovery + recent training into today's adjusted plan."
+- Not honest enough on injury: drop "injury-conscious/lens/RCT injury reduction" framing → "load-tolerance context"/"overreaching caution" unless a self-reported tweak/pain outcome + validation exists.
+- Strain inputs incomplete in code TODAY: DashboardViewModel recentWellnessScores empty + injury count hardcoded 0 (:236,:252). Min v1 needs soreness/pain/tweak logging + compliance gates before claiming strain-risk.
+- Market underweights fast followers: WHOOP/Bevel/Garmin/Strava can copy the surface promise fast. Defensibility = trust + narrow strength-hybrid workflow quality + transparent adjustment logic, NOT algorithm exclusivity.
+
+### MINOR
+- "No new hardware" = table stakes (Athlytic/Bevel/HRV4Training already exploit the Apple base).
+- G1/G5 "v1 wins" premature — current code is still (recovery × ACWR) + shallow factors.
+
+## CONVERGED minimum-credible v1 (build target)
+Apple-Health recovery + **Altini-style 60-day normal-band + CV** early-warning · **ACWR removed from decisions** (dual-run, kept as context) · **per-muscle strength load** from hard sets / RIR / %e1RM buckets (not raw tonnage) + sRPE endurance/internal load · a simple **readiness × strain-risk** adjustment that **modifies a real logged/planned workout** (so "prescription" becomes true) · **decision-level explanations** ("volume cut because HRV −x%, sleep debt, high per-muscle hard sets, no rest day") · **soreness/tweak self-log** to make strain-risk honest + validatable · "**not injury prediction**" language throughout · all behind the shadow harness + prequential validation contract, gated OFF until parity proven. Positioning: trust + transparency + strength-hybrid workflow quality, not algorithm exclusivity.
