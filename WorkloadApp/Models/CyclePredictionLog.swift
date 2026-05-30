@@ -1,14 +1,24 @@
 import Foundation
 import SwiftData
 
-/// Append-only, **local-only** shadow-mode prediction log (Phase 20, D-01/D-13).
+/// Append-only, **local-only** shadow-mode prediction log (Phase 20, D-01/D-13; Phase 24 data-contract).
 ///
-/// One row per athlete per prediction-target day. Each row captures the cycle state
-/// at prediction time plus, for each of the four tracked outcomes (D-02), a competing
-/// pair of predictions — a **baseline** prediction (the model WITHOUT cycle phase) and
-/// a **cycle-aware** prediction (the model WITH a fixed literature-derived phase offset).
-/// The observed actual for each outcome is filled in later (Stage-2 resolution, D-03),
-/// letting `ShadowAnalyticsService` ask "did adding cycle phase reduce prediction error?".
+/// One row per athlete per **prediction day** (the day the prediction is *made*). Each row
+/// captures the cycle state at prediction time plus, for each tracked outcome (D-02), the
+/// competing predictions of every registered experimental arm — written through the generic
+/// `ShadowArmPrediction` child store (Phase 24, D-11/D-12). The legacy hard-coded
+/// `*Baseline`/`*CycleAware` columns are RETAINED (parallel) so pre-Phase-24 shadow rows are
+/// never lost; the arm store is the new source of truth going forward.
+///
+/// ## Phase 24 date contract (the same-day-leak fix)
+/// A prediction made on day **D** is *about* day **D+1** (default horizon 1). The row therefore
+/// carries two explicit dates:
+/// - `predictionDate` — start-of-day of the day the prediction is *made* (the upsert key).
+/// - `targetDate` — start-of-day of the day the prediction is *about* (`predictionDate +
+///   predictionHorizonDays`). Stage-2 resolution joins ALL actuals on `targetDate` only, so a
+///   D+1 prediction is scored against D+1's outcomes — never D's (closes codex CRITICAL #3).
+/// The legacy `date` field is kept as a stored alias of `predictionDate` for migration safety
+/// (additive lightweight migration on the local-only store — see SUMMARY).
 ///
 /// This is the measurement substrate only — it never alters app behavior. It is also a
 /// **local-only** model: like `MenstrualCycleSnapshot` it is NEVER added to any Supabase
@@ -18,8 +28,20 @@ import SwiftData
 @Model
 final class CyclePredictionLog {
     @Attribute(.unique) var id: UUID
-    /// The prediction-target day (the day whose outcomes the predictions are about).
+
+    /// Legacy field (Phase 20). Kept as a stored alias of `predictionDate` for migration safety.
+    /// Pre-Phase-24 rows populated this with the *prediction* day; it now mirrors `predictionDate`.
     var date: Date
+
+    /// Phase 24, D-01: the day the prediction is *made* (start-of-day). The upsert key.
+    var predictionDate: Date
+    /// Phase 24, D-01: the day the prediction is *about* (start-of-day) =
+    /// `predictionDate + predictionHorizonDays`. Resolution joins actuals on THIS day only (D-03).
+    var targetDate: Date
+    /// Phase 24, D-01: prediction horizon in days (default 1 = next-day). Stored so a future
+    /// phase can log a multi-day-ahead arm without a schema change.
+    var predictionHorizonDays: Int
+
     var updatedAt: Date
 
     // MARK: - Cycle state at prediction time
@@ -30,7 +52,15 @@ final class CyclePredictionLog {
     var confidence: Double
     var hadExclusion: Bool
 
-    // MARK: - Per-outcome predictions + actuals (D-02: recovery, wellness, completion, pain)
+    // MARK: - Per-arm predictions (Phase 24, D-11/D-12 — generic arm store)
+
+    /// Generic per-arm prediction child rows: one per (registered arm × outcome). Replaces the
+    /// hard-coded `*Baseline`/`*CycleAware` columns as the source of truth (those are kept in
+    /// parallel for migration safety only). Cascade-deletes with the parent log.
+    @Relationship(deleteRule: .cascade, inverse: \ShadowArmPrediction.log)
+    var armPredictions: [ShadowArmPrediction] = []
+
+    // MARK: - Legacy per-outcome predictions (Phase 20 — RETAINED in parallel, D-12 fallback)
 
     var recoveryBaseline: Double?
     var recoveryCycleAware: Double?
@@ -66,7 +96,8 @@ final class CyclePredictionLog {
 
     init(
         id: UUID = UUID(),
-        date: Date = .now,
+        predictionDate: Date = .now,
+        predictionHorizonDays: Int = 1,
         estimatedPhase: CyclePhase? = nil,
         phaseBucketRaw: String? = nil,
         confidence: Double = 0.0,
@@ -88,8 +119,14 @@ final class CyclePredictionLog {
         wouldBiasProgressionToMaintain: Bool? = nil,
         resolvedAt: Date? = nil
     ) {
+        let calendar = Calendar.current
+        let predDay = calendar.startOfDay(for: predictionDate)
+        let horizon = max(0, predictionHorizonDays)
         self.id = id
-        self.date = date
+        self.predictionDate = predDay
+        self.date = predDay  // legacy alias
+        self.predictionHorizonDays = horizon
+        self.targetDate = calendar.date(byAdding: .day, value: horizon, to: predDay) ?? predDay
         self.updatedAt = .now
         self.estimatedPhase = estimatedPhase
         self.phaseBucketRaw = phaseBucketRaw
@@ -111,5 +148,13 @@ final class CyclePredictionLog {
         self.wouldBeDampenedFatigueIndex = wouldBeDampenedFatigueIndex
         self.wouldBiasProgressionToMaintain = wouldBiasProgressionToMaintain
         self.resolvedAt = resolvedAt
+    }
+
+    // MARK: - Arm-store helpers (Phase 24)
+
+    /// The predicted value for a given arm + outcome from the generic arm store (nil if absent).
+    func armPrediction(armId: String, outcome: ShadowPredictor.Outcome) -> Double? {
+        let key = ShadowArmPrediction.outcomeRaw(for: outcome)
+        return armPredictions.first { $0.armId == armId && $0.outcomeRaw == key }?.predicted
     }
 }

@@ -178,25 +178,45 @@ struct RecoveryPipeline {
         //    service is injected, so the nil-service path is byte-identical (D-12). No cycle
         //    or shadow field is added to upsertRecoverySnapshot or the syncService push (D-13).
         if cycleTrackingService != nil {
-            // Stage 2 first: resolve yesterday-and-earlier rows against observed outcomes.
+            // Phase 24 date contract: the prediction is MADE today (predictionDate) and is ABOUT
+            // tomorrow (targetDate = predictionDate + 1). Stage-2 resolution joins actuals strictly
+            // on targetDate (resolve-on-targetDate), so a row written on D about D+1 is scored only
+            // against D+1's outcomes — closing the prior same-day leak.
+            //
+            // Stage 2 first: resolve rows whose targetDate has elapsed against observed outcomes.
             try? ShadowAnalyticsService.resolveOutcomes(athlete: athlete, asOf: .now, modelContext: modelContext)
 
-            // Stage 1: write today's prediction row (predictions are about tomorrow).
-            // Build recent series from already-fetched / cheap reads. Completion = 1/0 per day.
+            // Stage 1: write today's prediction row. Build recent series from already-fetched /
+            // cheap reads. Adherence(completion) = 1/0 per day.
+            //
+            // Feature cutoff (D-02, prequential guarantee): every series fed to a predictor must
+            // contain ONLY observations dated <= predictionDate (today's start-of-day). No
+            // information after the prediction day may enter a prediction. The series below are
+            // built from history up to "now"; we clamp the cutoff explicitly and assert it in DEBUG.
             let calendar = Calendar.current
-            let sortedHistory = recoveryHistory.sorted { $0.date < $1.date }
+            let featureCutoff = calendar.startOfDay(for: .now)  // = predictionDate
+            let sortedHistory = recoveryHistory
+                .filter { calendar.startOfDay(for: $0.date) <= featureCutoff }
+                .sorted { $0.date < $1.date }
+            assert(sortedHistory.allSatisfy { calendar.startOfDay(for: $0.date) <= featureCutoff },
+                   "feature cutoff violated: recovery history contains a day after predictionDate")
             let recoverySeries = sortedHistory.map(\.recoveryScore)
 
             let workoutRepo = WorkoutRepository(modelContext: modelContext)
             let recentSessions = (try? workoutRepo.fetchSessions(last: 7, athlete: athlete)) ?? []
             let sessionDays = Set(recentSessions.map { calendar.startOfDay(for: $0.sessionDate) })
+            // Adherence series spans the 7 days up to AND INCLUDING the cutoff (predictionDate),
+            // never a future day — the stride starts at offset 0 = today's start-of-day.
             var completionSeries: [Double] = []
             for offset in stride(from: 6, through: 0, by: -1) {
                 let day = calendar.startOfDay(for: calendar.date(byAdding: .day, value: -offset, to: .now)!)
                 completionSeries.append(sessionDays.contains(day) ? 1.0 : 0.0)
             }
 
-            let wellnessCheckIns = (try? fetchRecentWellness(athlete: athlete, modelContext: modelContext)) ?? []
+            let allWellness = (try? fetchRecentWellness(athlete: athlete, modelContext: modelContext)) ?? []
+            let wellnessCheckIns = allWellness.filter { calendar.startOfDay(for: $0.date) <= featureCutoff }
+            assert(wellnessCheckIns.allSatisfy { calendar.startOfDay(for: $0.date) <= featureCutoff },
+                   "feature cutoff violated: wellness history contains a day after predictionDate")
             let wellnessSeries = wellnessCheckIns.map(\.wellnessScore)
             let painSeries = wellnessCheckIns.map { Double($0.soreness) }
 

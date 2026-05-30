@@ -12,9 +12,9 @@ final class ShadowAnalyticsServiceTests: XCTestCase {
         let schema = Schema([
             Athlete.self, WorkoutSession.self, ExerciseEntry.self, SetRecord.self,
             WorkloadSnapshot.self, RecoverySnapshot.self, MenstrualCycleSnapshot.self,
-            CyclePredictionLog.self, WellnessCheckIn.self, PersonalRecord.self,
-            CoachAthleteRelationship.self, WorkoutTemplate.self, ExerciseGroup.self,
-            TemplateExercise.self, TemplateSet.self, PrescribedWorkout.self,
+            CyclePredictionLog.self, ShadowArmPrediction.self, WellnessCheckIn.self,
+            PersonalRecord.self, CoachAthleteRelationship.self, WorkoutTemplate.self,
+            ExerciseGroup.self, TemplateExercise.self, TemplateSet.self, PrescribedWorkout.self,
             CustomExercise.self, BehaviorTag.self, TrainingProfile.self
         ])
         let container = try ModelContainer(
@@ -24,15 +24,23 @@ final class ShadowAnalyticsServiceTests: XCTestCase {
         return ModelContext(container)
     }
 
+    /// Attach baseline + cycleAware arm-store predictions to a row (aggregate reads the arm store).
+    private func arm(_ row: CyclePredictionLog, _ outcome: ShadowPredictor.Outcome, baseline: Double, cycleAware: Double) {
+        row.armPredictions.append(ShadowArmPrediction(armId: "baseline", outcome: outcome, predicted: baseline))
+        row.armPredictions.append(ShadowArmPrediction(armId: "cycleAware", outcome: outcome, predicted: cycleAware))
+    }
+
     // MARK: - aggregate (pure MAE)
 
     func test_aggregate_recoveryMAE_math() {
         // baseline preds [70, 60] vs actuals [65, 72] → |70-65|+|60-72| = 5+12 = 17, /2 = 8.5
         // cycleAware preds [66, 64] vs actuals → |66-65|+|64-72| = 1+8 = 9, /2 = 4.5
-        let r1 = CyclePredictionLog(date: .now)
-        r1.recoveryBaseline = 70; r1.recoveryCycleAware = 66; r1.recoveryActual = 65
-        let r2 = CyclePredictionLog(date: .now)
-        r2.recoveryBaseline = 60; r2.recoveryCycleAware = 64; r2.recoveryActual = 72
+        let r1 = CyclePredictionLog(predictionDate: .now)
+        r1.recoveryActual = 65
+        arm(r1, .recovery, baseline: 70, cycleAware: 66)
+        let r2 = CyclePredictionLog(predictionDate: .now)
+        r2.recoveryActual = 72
+        arm(r2, .recovery, baseline: 60, cycleAware: 64)
 
         let agg = ShadowAnalyticsService.aggregate(resolvedRows: [r1, r2])
         let rec = agg[.recovery]
@@ -43,10 +51,12 @@ final class ShadowAnalyticsServiceTests: XCTestCase {
     }
 
     func test_aggregate_excludesRowsMissingActual() {
-        let r1 = CyclePredictionLog(date: .now)
-        r1.wellnessBaseline = 50; r1.wellnessCycleAware = 47; r1.wellnessActual = 55
-        let r2 = CyclePredictionLog(date: .now)  // missing wellnessActual → excluded
-        r2.wellnessBaseline = 60; r2.wellnessCycleAware = 57; r2.wellnessActual = nil
+        let r1 = CyclePredictionLog(predictionDate: .now)
+        r1.wellnessActual = 55
+        arm(r1, .wellness, baseline: 50, cycleAware: 47)
+        let r2 = CyclePredictionLog(predictionDate: .now)  // missing wellnessActual → excluded
+        r2.wellnessActual = nil
+        arm(r2, .wellness, baseline: 60, cycleAware: 57)
 
         let agg = ShadowAnalyticsService.aggregate(resolvedRows: [r1, r2])
         let well = agg[.wellness]
@@ -89,8 +99,9 @@ final class ShadowAnalyticsServiceTests: XCTestCase {
         session.athlete = athlete
         context.insert(session)
 
-        // Unresolved Stage-1 row for yesterday.
-        let row = CyclePredictionLog(date: yesterday)
+        // Unresolved Stage-1 row: predictionDate = day-before-yesterday, targetDate = yesterday.
+        let dayBeforeYesterday = cal.date(byAdding: .day, value: -1, to: yesterday)!
+        let row = CyclePredictionLog(predictionDate: dayBeforeYesterday, predictionHorizonDays: 1)
         row.athlete = athlete
         row.recoveryBaseline = 60; row.recoveryCycleAware = 58
         row.wellnessBaseline = 70; row.wellnessCycleAware = 67
@@ -128,7 +139,8 @@ final class ShadowAnalyticsServiceTests: XCTestCase {
         let snap = RecoverySnapshot(date: yesterday, recoveryScore: 50)
         snap.athlete = athlete
         context.insert(snap)
-        let row = CyclePredictionLog(date: yesterday)
+        let dayBeforeYesterday = cal.date(byAdding: .day, value: -1, to: yesterday)!
+        let row = CyclePredictionLog(predictionDate: dayBeforeYesterday, predictionHorizonDays: 1)
         row.athlete = athlete
         row.recoveryBaseline = 55; row.recoveryCycleAware = 53
         context.insert(row)

@@ -92,4 +92,55 @@ final class ShadowPredictorTests: XCTestCase {
         XCTAssertEqual(ShadowPredictor.absoluteError(predicted: 60, actual: 72), 12, accuracy: 0.0001)
         XCTAssertEqual(ShadowPredictor.absoluteError(predicted: 50, actual: 50), 0, accuracy: 0.0001)
     }
+
+    // MARK: - Phase 24: ExperimentalArm registry (D-11/D-13)
+
+    private func cycleContext(phase: CyclePhase) -> CycleContext {
+        CycleContext(
+            phase: phase, confidence: 1, cycleDay: nil, cycleLength: nil,
+            isOnHormonalContraceptive: false, isPregnant: false, isLactating: false
+        )
+    }
+
+    func test_registeredArms_exactlyBaselineAndCycleAware() {
+        let ids = ShadowPredictor.registeredArms().map(\.id)
+        XCTAssertEqual(ids, ["baseline", "cycleAware"], "exactly two arms, stable order, no model arm")
+    }
+
+    func test_baselineArm_equalsBaselinePrediction_byteIdentical() {
+        let arms = ShadowPredictor.registeredArms()
+        let baseline = arms.first { $0.id == "baseline" }!
+        let series = [55.0, 60, 65, 70]
+        for outcome in ShadowPredictor.Outcome.allCases {
+            // Baseline ignores context; equals baselinePrediction for any phase.
+            for phase in [CyclePhase.unknown, .lateLuteal, .earlyFollicular] {
+                let armValue = baseline.predict(outcome, series, cycleContext(phase: phase))
+                XCTAssertEqual(armValue ?? .nan, ShadowPredictor.baselinePrediction(series: series), accuracy: 0.0)
+            }
+        }
+    }
+
+    func test_cycleAwareArm_equalsCycleAwarePrediction_byteIdentical() {
+        let arms = ShadowPredictor.registeredArms()
+        let cycleAware = arms.first { $0.id == "cycleAware" }!
+        let series = [60.0, 62, 64]
+        for outcome in ShadowPredictor.Outcome.allCases {
+            for phase in [CyclePhase.unknown, .lateLuteal, .earlyLuteal, .lateFollicular, .ovulatory] {
+                let ctx = cycleContext(phase: phase)
+                let armValue = cycleAware.predict(outcome, series, ctx)
+                let expected = ShadowPredictor.cycleAwarePrediction(series: series, context: ctx, outcome: outcome)
+                XCTAssertEqual(armValue ?? .nan, expected, accuracy: 0.0)
+            }
+        }
+    }
+
+    func test_cycleAwareArm_collapsesToBaseline_forUnknownPhase() {
+        let cycleAware = ShadowPredictor.registeredArms().first { $0.id == "cycleAware" }!
+        let series = [50.0, 55, 60]
+        let base = ShadowPredictor.baselinePrediction(series: series)
+        for outcome in ShadowPredictor.Outcome.allCases {
+            let armValue = cycleAware.predict(outcome, series, cycleContext(phase: .unknown))
+            XCTAssertEqual(armValue ?? .nan, base, accuracy: 0.0)
+        }
+    }
 }

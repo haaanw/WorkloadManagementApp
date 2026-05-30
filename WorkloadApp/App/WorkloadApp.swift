@@ -76,6 +76,7 @@ struct WorkloadApp: App {
                 RecoverySnapshot.self,
                 MenstrualCycleSnapshot.self,
                 CyclePredictionLog.self,
+                ShadowArmPrediction.self,
                 WellnessCheckIn.self,
                 PersonalRecord.self,
                 CoachAthleteRelationship.self,
