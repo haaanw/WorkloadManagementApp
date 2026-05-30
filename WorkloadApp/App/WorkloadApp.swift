@@ -8,17 +8,17 @@ struct WorkloadApp: App {
 
     init() {
         #if DEBUG
-        assert(
-            UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("general") }),
-            "General Sans font not found. Add GeneralSans-Variable.ttf to the project and UIAppFonts in Info.plist."
-        )
-        assert(
-            UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("noto sans sc") }),
-            "Noto Sans SC not registered. Add NotoSansSC-Regular.otf + NotoSansSC-Medium.otf and UIAppFonts entries."
-        )
-        // One-shot DEBUG print: exact PostScript names iOS resolves for the Noto Sans SC family.
-        // Cascade descriptors in FontTokens.swift MUST use these exact PostScript names (RESEARCH Pitfall 3).
-        print("Noto family fonts: \(UIFont.fontNames(forFamilyName: "Noto Sans SC"))")
+        // Under the XCTest host, the test bundle's resources (fonts) are NOT
+        // loaded into the host app's bundle, so these assertions would fire and
+        // crash the host on launch — taking down the ENTIRE unit-test suite
+        // before any test runs. Downgrade to non-fatal logging in that case;
+        // keep the hard assertions for normal DEBUG app runs so real font-bundle
+        // regressions are still caught by developers.
+        let isRunningUnderTest = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
+            || NSClassFromString("XCTestCase") != nil
+
+        let hasGeneralSans = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("general") })
+        let hasNotoSansSC = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("noto sans sc") })
 
         // Assert the exact PostScript names FontTokens.cascaded(...) requires.
         // If any of these miss, UIFont silently falls back to system font with no CJK cascade (WR-05).
@@ -28,10 +28,34 @@ struct WorkloadApp: App {
             "NotoSansSC-Regular",
             "NotoSansSC-Medium"
         ]
-        for name in requiredPostScriptNames {
+        let missingPostScriptNames = requiredPostScriptNames.filter { UIFont(name: $0, size: 12) == nil }
+
+        if isRunningUnderTest {
+            // Non-fatal: fonts aren't bundled into the test host; just log.
+            if !hasGeneralSans {
+                print("[font-check] General Sans font not found (test host — non-fatal).")
+            }
+            if !hasNotoSansSC {
+                print("[font-check] Noto Sans SC not registered (test host — non-fatal).")
+            }
+            if !missingPostScriptNames.isEmpty {
+                print("[font-check] Missing font PostScript names (test host — non-fatal): \(missingPostScriptNames)")
+            }
+        } else {
             assert(
-                UIFont(name: name, size: 12) != nil,
-                "Missing font PostScript name: \(name). Cascade in FontTokens.swift will silently fall back to system font."
+                hasGeneralSans,
+                "General Sans font not found. Add GeneralSans-Variable.ttf to the project and UIAppFonts in Info.plist."
+            )
+            assert(
+                hasNotoSansSC,
+                "Noto Sans SC not registered. Add NotoSansSC-Regular.otf + NotoSansSC-Medium.otf and UIAppFonts entries."
+            )
+            // One-shot DEBUG print: exact PostScript names iOS resolves for the Noto Sans SC family.
+            // Cascade descriptors in FontTokens.swift MUST use these exact PostScript names (RESEARCH Pitfall 3).
+            print("Noto family fonts: \(UIFont.fontNames(forFamilyName: "Noto Sans SC"))")
+            assert(
+                missingPostScriptNames.isEmpty,
+                "Missing font PostScript name(s): \(missingPostScriptNames). Cascade in FontTokens.swift will silently fall back to system font."
             )
         }
         #endif
