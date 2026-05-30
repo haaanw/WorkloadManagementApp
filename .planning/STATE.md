@@ -32,7 +32,7 @@ Last activity: 2026-05-30 -- Phases 19,20,21,22 executed via parallel-plan/seria
 v1.3-live-feedback improvement pass (2026-05-30): HealthKit re-prompt bug FIXED; UI hierarchy upgraded (Dashboard+Profile only — DESIGN.md luminance revised, card/section primitives); invite-coach redesigned; ACWR copy demoted to load-context. Codex-reviewed, 1 P1 + 3 P2 found and fixed, gate PASS, build green. 8 commits local on main. Algorithm redesign DEFERRED to its own milestone (needs user direction).
 
 Outstanding before ship:
-- Algorithm redesign milestone — user must pick moat direction (5 candidates; recommended: unified longitudinal recovery×load×injury-risk×cycle over adaptive baselines, validate via shadow harness)
+- Algorithm v1 — SCOPE LOCKED + user-approved 2026-05-30, BUILD DEFERRED to a later milestone (per-muscle strength load, ACWR-out dual-run, Altini baselines, Readiness+Strain-Risk, honest framing, behind shadow harness). See memory project_algorithm_v1_locked + .planning/research/{algorithm-moat-design,competitive-algorithm-analysis}.md. Do not start until user reactivates.
 - Design brand sign-off: luminance bump + DesignToggleStyle need user's eyes in running app
 - UI hierarchy pass NOT applied to Recovery + Workload screens yet (bounded per codex)
 - Manual deploy: `supabase functions deploy parse-workout` (Phase 22 Edge Function enum expansion)
