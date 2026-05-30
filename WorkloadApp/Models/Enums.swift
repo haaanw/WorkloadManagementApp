@@ -362,6 +362,27 @@ enum MuscleGroup: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+/// Localized self-reported niggle type for the on-device Soreness self-log (Phase 25, D-02).
+///
+/// The `rawValue`s ("soreness"/"pain"/"tweak") are a **permanent serialization contract** — they
+/// are persisted into `SorenessLog.typeRaw` and must never be renamed. The enum being `Codable`
+/// is fine; only the `SorenessLog` @Model must avoid `Codable` to stay local-only (D-01).
+enum NiggleType: String, Codable, CaseIterable, Identifiable {
+    case soreness
+    case pain
+    case tweak
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .soreness: String(localized: "niggleType.soreness", defaultValue: "Soreness")
+        case .pain: String(localized: "niggleType.pain", defaultValue: "Pain")
+        case .tweak: String(localized: "niggleType.tweak", defaultValue: "Tweak")
+        }
+    }
+}
+
 enum PRType: String, Codable, CaseIterable {
     case maxWeight
     case maxReps
