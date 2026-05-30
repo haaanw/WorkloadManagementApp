@@ -293,3 +293,34 @@ Baseline replacement first (lowest risk, highest certainty of improvement) → f
 - `WorkloadApp/Services/AutoregulationEngine.swift` — `(recoveryZone × acwrZone)` decision matrix, cycle double-gate.
 - `WorkloadApp/Services/ReasoningEngine.swift` — ranked human-readable factors (explainability pattern to preserve).
 - `WorkloadApp/Services/ShadowPredictor.swift`, `ShadowAnalyticsService.swift`, `Models/CyclePredictionLog.swift`, `Services/CycleModifierGate.swift` — the shadow-validation substrate to extend for PRS.
+
+---
+
+## Codex adversarial review (2026-05-30) — VERDICT: build simplified v1, not PRS as specified
+
+A second-opinion adversarial review (codex, high-effort, read full spec + engines + harness) returned 4 CRITICAL + 12 MAJOR findings. **Verdict: do NOT build PRS as specified. Build a simplified robust-personal-baseline v1 with fixed glass-box weights + a separate heuristic Strain-Risk context flag.**
+
+### CRITICAL (design will fail as written)
+1. **Kalman per-user Q/R not identifiable** on sparse/irregular consumer HRV/RHR/sleep — bad days inflate R or Q (ignores real fatigue, or chases it as new baseline). → Start with robust EWMA/Welford/MAD baselines, bounded smoothing, Huber/winsorized updates, stale-data handling. Kalman only AFTER shadow proves it beats this.
+2. **Per-user logistic weights on ~60 days is statistically bogus** — autocorrelated, noisy, self-reported, confounded by training plan; fits calendar rhythm/compliance/noise. → No per-user weight fitting in v1. Fixed sign-constrained weights; personalize only intercept/scale much later with heavy shrinkage.
+3. **Validation plan overstates the harness.** Current shadow harness is MAE-only — no calibration, Spearman, blocked CV, bootstrap CI, rare-event eval. Plus a date-contract bug: comments say predictions are for tomorrow but rows are written with today's date and resolved against the same date. → Define predictionDate, targetDate, feature cutoff, outcome window BEFORE adding PRS.
+4. **Per-user Strain-Risk AUC is meaningless** — near-zero injury events per consumer; AUC undefined/unstable with 0-2 positives. → Don't gate activation on injury AUC. Validate Strain-Risk against soreness/load-tolerance proxies; event-ranking claims need large aggregate datasets.
+
+### MAJOR (must address before build)
+- Uncertainty story conflates epistemic vs physiological variance — score against posterior predictive variance P_prior+R with signal-specific floors; separate confidence from valid-sample count/staleness.
+- HealthKit `fetchLatest*` can return the same stale sample across days → fake stability. Bucket observations by target day; never update from repeated samples; stale/missing = no update.
+- CV-of-innovations is mathematically suspect (centered near zero). Use rolling SD/MAD or CV of positive HRV values with min valid-day gates; treat as volatility/context, not a magic signal.
+- Leakage: must use PREQUENTIAL scoring — predict baseline from yesterday's state, compute today's deviation vs the prior, THEN update.
+- Missingness ≠ physiology (watch not worn, revoked perms, travel, dead battery). Reduce confidence + reweight present signals; don't learn a missingness weight.
+- Outcome labels weak/circular: "next-day recovery score" is engine-generated (PRS would predict its own transformed inputs); "completion" makes planned rest look like failure. Use raw self-report/wellness/soreness + planned-vs-completed adherence.
+- Moat overstated: on-device = no pooled-data/cohort/network-effect advantage; a competitor mimics "learns your normal" with EWMA+z-scores. Position moat as trust, UX, longitudinal adherence, validation discipline.
+- Cold start hand-wavy: rely on sleep+wellness+simple load history, show LOW confidence, suppress physiology-driven claims until enough valid daily observations.
+- Logistic fusion needs sign-locked/bounded coefficients + grouped correlated channels; no unconstrained per-user optimization.
+- Foster monotony/strain fragile on sparse consumer logs — gate on load-entry completeness; else fall back to streak/session-density/load-spike heuristics.
+
+### MINOR
+- VO2 max (slow/stale) + body/wrist temp (noisy, cycle/illness-sensitive) — hold out of daily fusion or low-weight context after separate validation.
+- Explainability only defensible if every score decomposes from PRE-update features (raw value, baseline, z/deviation, staleness, confidence).
+
+### Revised v1 scope (codex-corrected, locked product decisions retained: two channels, context-flag framing, on-device, gated off)
+**v1 "Robust Personal Baseline":** robust EWMA/Welford/MAD per-signal baselines → prequential personal z-scores (no leakage, day-bucketed inputs, stale/missing → confidence reduction) → FIXED sign-constrained glass-box logistic fusion → daily Readiness scalar + separate heuristic Strain-Risk context flag (FatigueIndex + monotony/strain w/ completeness gate + FEA soft-tissue). FIRST deliverable before any model code: a prequential validation data-contract + a shadow-harness upgrade (predictionDate/targetDate/cutoff/window, calibration + Spearman + blocked CV, raw self-report/soreness/adherence labels, optional injury self-log). Defer Kalman + per-user weight learning to a later evidence-gated phase, only if v1 shadow data justifies it.
