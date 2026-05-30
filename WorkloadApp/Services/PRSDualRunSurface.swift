@@ -59,8 +59,11 @@ enum PRSDualRunSurface {
     @discardableResult
     static func adjust(
         prescribedWorkout workout: PrescribedWorkout,
-        with recommendation: AutoregulationEngine.TrainingRecommendation
+        with recommendation: AutoregulationEngine.TrainingRecommendation,
+        now: Date = .now
     ) -> WorkoutAdjustment? {
+        // KEEP FIRST — with the flag OFF this returns nil and mutates NOTHING (DualRunFlagFence
+        // no-op stays byte-identical). Everything below runs flag-ON only.
         guard PRSActivation.isEnabled else { return nil }
 
         // RPE: cap downward at the recommendation's intensity cap.
@@ -71,16 +74,37 @@ enum PRSDualRunSurface {
             cappedRPE = recommendation.intensityCap
         }
 
-        // Volume: scale the existing target by the recommendation's volume modifier (if present).
-        let newVolume: Double?
-        if let existing = workout.targetVolume {
-            newVolume = existing * recommendation.volumeModifier
-        } else {
-            newVolume = nil
-        }
+        // Volume (Finding 6 / GA-30-F): a normal first-time PrescribedWorkout has
+        // `targetVolume == nil` (the initializer / sync-pull never populate it). Previously the
+        // else branch set newVolume = nil, silently DISCARDING a 50%-volume / rest recommendation.
+        // Now: when there is no existing target, derive an effective base from the prescription's
+        // template so the modifier is applied, not lost. The modifier is exact for an existing
+        // target (byte-identical to before) and yields a real reduction (or 0.0 rest) when derived.
+        let effectiveBase = workout.targetVolume ?? derivedBaseVolume(workout)
+        let newVolume = effectiveBase * recommendation.volumeModifier
 
         workout.targetRPE = cappedRPE
         workout.targetVolume = newVolume
+        workout.updatedAt = now   // bump on any mutation (deterministic via injected `now`)
         return WorkoutAdjustment(newTargetRPE: cappedRPE, newTargetVolume: newVolume)
+    }
+
+    /// Derive an effective base volume for a prescription whose `targetVolume` is nil, from the
+    /// frozen template snapshot (`allExercises` → `TemplateSet`s). Volume proxy = Σ target reps
+    /// across NON-warmup sets; if no reps are specified, the count of non-warmup working sets; if
+    /// nothing is derivable (empty / warmup-only template), a NEUTRAL base of 1.0 so the modifier
+    /// becomes the fraction-of-full (e.g. 0.5 → 0.5, rest 0.0 → 0.0) instead of being discarded.
+    static func derivedBaseVolume(_ workout: PrescribedWorkout) -> Double {
+        var totalReps = 0
+        var workingSetCount = 0
+        for exercise in workout.allExercises {
+            for set in exercise.sortedSets where !set.isWarmup {
+                workingSetCount += 1
+                if let reps = set.targetReps { totalReps += reps }
+            }
+        }
+        if totalReps > 0 { return Double(totalReps) }
+        if workingSetCount > 0 { return Double(workingSetCount) }
+        return 1.0   // neutral base — modifier becomes the fraction of full
     }
 }
