@@ -202,6 +202,21 @@ final class HealthKitService {
         return sample?.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
     }
 
+    /// Fetch resting heart rate readings for the past N days.
+    ///
+    /// Additive mirror of `fetchHRVHistory(days:)` so RHR day-buckets uniformly with HRV via
+    /// `DayBucketer` (Phase 26 open-question #1). Reuses the shared `fetchSamples(type:days:)`
+    /// helper and the bpm unit already used by `fetchLatestRestingHRWithDate`. Does NOT alter
+    /// any existing fetch — the live recovery path's HealthKit reads are unchanged.
+    func fetchRestingHRHistory(days: Int) async throws -> [(date: Date, value: Double)] {
+        let type = HKQuantityType(.restingHeartRate)
+        let samples = try await fetchSamples(type: type, days: days)
+        return samples.map { sample in
+            (date: sample.startDate,
+             value: sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())))
+        }
+    }
+
     // MARK: - Sleep
 
     /// Fetch last night's sleep duration in minutes
