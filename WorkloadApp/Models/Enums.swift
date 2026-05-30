@@ -481,6 +481,48 @@ enum StrainRiskZone: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+// MARK: - Readiness Enum (Phase 28 — PRS-v1 Personal Readiness, separate channel from Strain-Risk)
+
+/// Categorical zone for the Phase-28 **Readiness** channel (PRS-v1).
+///
+/// Readiness is a SEPARATE scalar from Strain-Risk (GA-1): it answers "how recovered / ready to
+/// train is this athlete today" via a FIXED sign-constrained glass-box logistic fusion of the
+/// Phase-26 personal z-scores (`ReadinessFusionEngine`). It is NOT a load-tolerance flag (that is
+/// `StrainRiskZone`) and it is NEVER framed as injury prediction — none of the copy below contains
+/// "injury prediction", "injury risk", "predicts injury", or "will get injured" (GA-11, enforced by
+/// the no-prediction-copy grep guard).
+///
+/// 3 levels (low / moderate / high — GA-3) mirroring `RecoveryZone` granularity so the new
+/// (readiness × strain-risk) decision matrix has the same shape discipline as the legacy
+/// (recovery × ACWR) matrix. Zone-cut thresholds are FIXED named constants defined on
+/// `ReadinessFusionEngine` (not magic numbers here).
+///
+/// This is shadow/flagged context this phase: with `PRSActivation.isEnabled == false` it never
+/// reaches the live recommendation.
+enum ReadinessZone: String, Codable, CaseIterable, Identifiable {
+    case low
+    case moderate
+    case high
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .low: String(localized: "readinessZone.low", defaultValue: "Low Readiness")
+        case .moderate: String(localized: "readinessZone.moderate", defaultValue: "Moderate Readiness")
+        case .high: String(localized: "readinessZone.high", defaultValue: "High Readiness")
+        }
+    }
+
+    var systemImage: String {
+        switch self {
+        case .low: "battery.25"
+        case .moderate: "battery.50"
+        case .high: "battery.100"
+        }
+    }
+}
+
 // MARK: - Coach / Role Enums
 
 enum RelationshipStatus: String, Codable {
