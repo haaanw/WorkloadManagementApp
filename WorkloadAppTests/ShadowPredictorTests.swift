@@ -102,9 +102,10 @@ final class ShadowPredictorTests: XCTestCase {
         )
     }
 
-    func test_registeredArms_exactlyBaselineAndCycleAware() {
+    func test_registeredArms_baselineCycleAwareAndPRS() {
+        // Phase 28 (Wave 3): the PRS-v1 predicting arm joins as a THIRD arm (shadow-only, stable order).
         let ids = ShadowPredictor.registeredArms().map(\.id)
-        XCTAssertEqual(ids, ["baseline", "cycleAware"], "exactly two arms, stable order, no model arm")
+        XCTAssertEqual(ids, ["baseline", "cycleAware", "prs"], "baseline + cycleAware + prs, stable order")
     }
 
     func test_baselineArm_equalsBaselinePrediction_byteIdentical() {
