@@ -110,11 +110,17 @@ struct AppRouter: View {
                 let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
                 if athletes.isEmpty {
                     let athlete = Athlete(displayName: "Alex", sportType: .lifting)
+                    // Mark onboarding complete so the post-auth re-evaluation below keeps
+                    // needsOnboarding = false and the app lands directly on the tab bar.
+                    athlete.trainingFrequency = .threeToFour
+                    athlete.experienceLevel = .intermediate
                     modelContext.insert(athlete)
                     try? modelContext.save()
                     MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
                 } else if let athlete = athletes.first {
                     athlete.isCoachOnly = isCoachMode
+                    if athlete.trainingFrequency == nil { athlete.trainingFrequency = .threeToFour }
+                    if athlete.experienceLevel == nil { athlete.experienceLevel = .intermediate }
                     try? modelContext.save()
                     MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
                 }
@@ -215,13 +221,22 @@ struct MainTabView: View {
         TabView {
             if effectiveMode == .coach {
                 CoachRosterView()
-                    .tabItem { Label("tab.roster", systemImage: "person.2.fill") }
+                    .tabItem {
+                        Label("tab.roster", systemImage: "person.2.fill")
+                            .accessibilityIdentifier("tab.roster")
+                    }
                 NavigationStack {
                     TemplateListView()
                 }
-                    .tabItem { Label("tab.templates", systemImage: "doc.text.fill") }
+                    .tabItem {
+                        Label("tab.templates", systemImage: "doc.text.fill")
+                            .accessibilityIdentifier("tab.templates")
+                    }
                 ProfileView()
-                    .tabItem { Label("tab.profile", systemImage: "person.fill") }
+                    .tabItem {
+                        Label("tab.profile", systemImage: "person.fill")
+                            .accessibilityIdentifier("tab.profile")
+                    }
                     .overlay(alignment: .topTrailing) {
                         if syncStore.hasAnyFailure {
                             Circle()
@@ -235,15 +250,30 @@ struct MainTabView: View {
                     }
             } else {
                 DashboardView()
-                    .tabItem { Label("tab.home", systemImage: "house.fill") }
+                    .tabItem {
+                        Label("tab.home", systemImage: "house.fill")
+                            .accessibilityIdentifier("tab.home")
+                    }
                 WorkoutLogView()
-                    .tabItem { Label("tab.log", systemImage: "list.bullet.clipboard.fill") }
+                    .tabItem {
+                        Label("tab.log", systemImage: "list.bullet.clipboard.fill")
+                            .accessibilityIdentifier("tab.log")
+                    }
                 RecoveryView()
-                    .tabItem { Label("tab.recovery", systemImage: "heart.fill") }
+                    .tabItem {
+                        Label("tab.recovery", systemImage: "heart.fill")
+                            .accessibilityIdentifier("tab.recovery")
+                    }
                 WorkloadView()
-                    .tabItem { Label("tab.load", systemImage: "chart.line.uptrend.xyaxis") }
+                    .tabItem {
+                        Label("tab.load", systemImage: "chart.line.uptrend.xyaxis")
+                            .accessibilityIdentifier("tab.load")
+                    }
                 ProfileView()
-                    .tabItem { Label("tab.profile", systemImage: "person.fill") }
+                    .tabItem {
+                        Label("tab.profile", systemImage: "person.fill")
+                            .accessibilityIdentifier("tab.profile")
+                    }
                     .overlay(alignment: .topTrailing) {
                         if syncStore.hasAnyFailure {
                             Circle()

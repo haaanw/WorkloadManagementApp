@@ -14,8 +14,14 @@ struct WorkloadApp: App {
         // before any test runs. Downgrade to non-fatal logging in that case;
         // keep the hard assertions for normal DEBUG app runs so real font-bundle
         // regressions are still caught by developers.
+        // UI (screenshot) tests launch the app as a SEPARATE process with no XCTest
+        // injected, so the env/class checks below are both false there. SCREENSHOT_MODE
+        // is the marker for that automated-launch path — treat it like the test host so
+        // the font assertions stay non-fatal (the test host doesn't bundle the fonts and
+        // the assert would otherwise trap the app on launch, failing all screenshots).
         let isRunningUnderTest = ProcessInfo.processInfo.environment["XCTestConfigurationFilePath"] != nil
             || NSClassFromString("XCTestCase") != nil
+            || ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE")
 
         let hasGeneralSans = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("general") })
         let hasNotoSansSC = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("noto sans sc") })

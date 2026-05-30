@@ -25,25 +25,25 @@ final class ScreenshotTests: XCTestCase {
     // MARK: - Athlete Mode Screenshots (1-4, 6)
 
     func test01_Dashboard() throws {
-        app.tabBars.buttons["Home"].tap()
+        tapTab("tab.home")
         sleep(2)
         saveScreenshot("01_Dashboard")
     }
 
     func test02_Workload() throws {
-        app.tabBars.buttons["Load"].tap()
+        tapTab("tab.load")
         sleep(2)
         saveScreenshot("02_Workload")
     }
 
     func test03_Recovery() throws {
-        app.tabBars.buttons["Recovery"].tap()
+        tapTab("tab.recovery")
         sleep(2)
         saveScreenshot("03_Recovery")
     }
 
     func test04_WorkoutLog() throws {
-        app.tabBars.buttons["Log"].tap()
+        tapTab("tab.log")
         sleep(2)
         saveScreenshot("04_WorkoutLog")
     }
@@ -62,8 +62,8 @@ final class ScreenshotTests: XCTestCase {
         let tabBar = app.tabBars.firstMatch
         XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "Coach mode failed to load")
 
-        // Coach mode shows "Roster" tab
-        let rosterTab = app.tabBars.buttons["Roster"]
+        // Coach mode shows the roster tab (queried by stable accessibility id)
+        let rosterTab = app.tabBars.buttons["tab.roster"]
         if rosterTab.waitForExistence(timeout: 5) {
             rosterTab.tap()
         }
@@ -81,7 +81,7 @@ final class ScreenshotTests: XCTestCase {
 
     func test06_PDFExport() throws {
         // Navigate to Load tab where PDF export is accessible via toolbar
-        app.tabBars.buttons["Load"].tap()
+        tapTab("tab.load")
         sleep(2)
 
         // Tap the export button in the navigation bar toolbar
@@ -107,6 +107,17 @@ final class ScreenshotTests: XCTestCase {
     }
 
     // MARK: - Helpers
+
+    /// Tap a tab bar button by its stable accessibility identifier (locale-independent).
+    /// Waits for the button to exist first to avoid taps racing the app launch.
+    private func tapTab(_ identifier: String) {
+        let button = app.tabBars.buttons[identifier]
+        XCTAssertTrue(
+            button.waitForExistence(timeout: 10),
+            "Tab '\(identifier)' not found — check accessibilityIdentifier in AppRouter tab items"
+        )
+        button.tap()
+    }
 
     private func saveScreenshot(_ name: String) {
         let screenshot = app.screenshot()
