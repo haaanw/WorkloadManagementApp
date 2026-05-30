@@ -1,4 +1,10 @@
-# Tonus
+# Tuwa
+
+> Product name is **Tuwa** (Tonus/Faros are dead names; repo dir stays `Tonus/`, bundle ID `com.tonus.app`).
+
+## Core Target Users (narrowed 2026-05-30)
+
+**Amateur serious trainers and part-time athletes who train hard but have no access to professional coaching, physiotherapy, or sports-science support.** They want pro-grade readiness, load, and injury-risk guidance that a coach/physio would otherwise provide. That absence of professional support is the defining need. Previously the audience was a more generic "athletes" group — deliberately narrowed. Every algorithm, UX, and copy decision optimizes for this group, and the core algorithm must be measurably better than generic competitor apps (Whoop/Oura/Garmin/TrainingPeaks/etc.) for them specifically.
 
 ## What This Is
 

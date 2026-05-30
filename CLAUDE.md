@@ -93,6 +93,8 @@ Athlete workload management iOS app that combines recovery scoring (HRV, sleep, 
 
 **Core Value:** The combination of recovery and load tracked over time — giving athletes long-term insight into how their body responds to training, so they can train smarter and avoid injury.
 
+**Core target users (narrowed 2026-05-30):** Amateur *serious* trainers and part-time athletes who train hard but have **no access to professional coaching, physiotherapy, or sports-science support**. The product must deliver pro-grade readiness/load/injury-risk guidance in lieu of a human expert — that absence of professional help is the defining need, and the algorithm must be measurably better than generic competitor apps for THIS group. (Previously targeted a more generic "athletes" audience; deliberately narrowed.) All algorithm, UX, and copy decisions optimize for this group.
+
 ### Constraints
 
 - **Platform**: iOS 17+ only, SwiftUI + SwiftData
