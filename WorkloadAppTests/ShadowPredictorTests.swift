@@ -111,7 +111,8 @@ final class ShadowPredictorTests: XCTestCase {
         let arms = ShadowPredictor.registeredArms()
         let baseline = arms.first { $0.id == "baseline" }!
         let series = [55.0, 60, 65, 70]
-        for outcome in ShadowPredictor.Outcome.allCases {
+        // P25 D-04/D-05: no arm predicts .niggleSeverity in v1 (returns nil by design); exclude it.
+        for outcome in ShadowPredictor.Outcome.allCases where outcome != .niggleSeverity {
             // Baseline ignores context; equals baselinePrediction for any phase.
             for phase in [CyclePhase.unknown, .lateLuteal, .earlyFollicular] {
                 let armValue = baseline.predict(outcome, series, cycleContext(phase: phase))
@@ -124,7 +125,8 @@ final class ShadowPredictorTests: XCTestCase {
         let arms = ShadowPredictor.registeredArms()
         let cycleAware = arms.first { $0.id == "cycleAware" }!
         let series = [60.0, 62, 64]
-        for outcome in ShadowPredictor.Outcome.allCases {
+        // P25 D-04/D-05: no arm predicts .niggleSeverity in v1 (returns nil by design); exclude it.
+        for outcome in ShadowPredictor.Outcome.allCases where outcome != .niggleSeverity {
             for phase in [CyclePhase.unknown, .lateLuteal, .earlyLuteal, .lateFollicular, .ovulatory] {
                 let ctx = cycleContext(phase: phase)
                 let armValue = cycleAware.predict(outcome, series, ctx)
@@ -138,7 +140,8 @@ final class ShadowPredictorTests: XCTestCase {
         let cycleAware = ShadowPredictor.registeredArms().first { $0.id == "cycleAware" }!
         let series = [50.0, 55, 60]
         let base = ShadowPredictor.baselinePrediction(series: series)
-        for outcome in ShadowPredictor.Outcome.allCases {
+        // P25 D-04/D-05: no arm predicts .niggleSeverity in v1 (returns nil by design); exclude it.
+        for outcome in ShadowPredictor.Outcome.allCases where outcome != .niggleSeverity {
             let armValue = cycleAware.predict(outcome, series, cycleContext(phase: .unknown))
             XCTAssertEqual(armValue ?? .nan, base, accuracy: 0.0)
         }
