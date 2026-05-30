@@ -154,6 +154,11 @@ struct ShadowAnalyticsService {
             startDay: calendar.startOfDay(for: earliestTarget),
             athlete: athlete, modelContext: modelContext
         )
+        // P25 D-04: max localized niggle severity per target day (0 if none → dense label).
+        let maxNiggleSeverityByDay = try fetchMaxNiggleSeverityByDay(
+            startDay: calendar.startOfDay(for: earliestTarget),
+            athlete: athlete, modelContext: modelContext
+        )
 
         var resolvedCount = 0
         for row in unresolved {
@@ -167,6 +172,11 @@ struct ShadowAnalyticsService {
             }
             // Adherence actual: 1 if a session was logged on the target day, else 0 (always observable).
             row.completionActual = sessionDays.contains(day) ? 1.0 : 0.0
+            // P25 D-04/D-06: max localized niggle severity on the TARGET day, 0 if none (dense label,
+            // always resolvable on targetDate elapse like completionActual). Joined ONLY on the target
+            // day — never predictionDate/row.date — so a niggle on prediction day D does not leak into
+            // the D->D+1 row (no same-day leak).
+            row.niggleSeverityActual = maxNiggleSeverityByDay[day] ?? 0.0
 
             row.resolvedAt = .now
             row.updatedAt = .now
@@ -199,6 +209,35 @@ struct ShadowAnalyticsService {
         var map: [Date: (wellness: Double, soreness: Int)] = [:]
         for c in checkIns {
             map[calendar.startOfDay(for: c.date)] = (c.wellnessScore, c.soreness)
+        }
+        return map
+    }
+
+    /// P25 D-04: max `SorenessLog.severity` (as Double) per start-of-day over the window, for one
+    /// athlete. Mirrors `SorenessLogRepository.fetchRecent`'s safe pattern — the `#Predicate`
+    /// filters by `date` ONLY (no optional to-one relationship predicate, which traps the iOS 26.1
+    /// in-memory store); the athlete match is applied IN SWIFT after the fetch. Grouping takes the
+    /// max severity per day so the densest niggle on the target day wins.
+    private static func fetchMaxNiggleSeverityByDay(
+        startDay: Date,
+        athlete: Athlete?,
+        modelContext: ModelContext
+    ) throws -> [Date: Double] {
+        let descriptor = FetchDescriptor<SorenessLog>(
+            predicate: #Predicate { $0.date >= startDay },
+            sortBy: [SortDescriptor(\.date)]
+        )
+        var logs = try modelContext.fetch(descriptor)
+        if let athlete {
+            let athleteId = athlete.id
+            logs = logs.filter { $0.athlete?.id == athleteId }
+        }
+        let calendar = Calendar.current
+        var map: [Date: Double] = [:]
+        for log in logs {
+            let day = calendar.startOfDay(for: log.date)
+            let severity = Double(log.severity)
+            map[day] = Swift.max(map[day] ?? severity, severity)
         }
         return map
     }
