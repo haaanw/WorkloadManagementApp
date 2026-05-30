@@ -162,6 +162,7 @@
 		FF0602010000000000000001 /* PDFGenerationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0602010000000000000002 /* PDFGenerationSheet.swift */; };
 		FF0603010000000000000001 /* CoachExportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0603010000000000000002 /* CoachExportSheet.swift */; };
 		FF0801020000000000000001 /* FatigueIndexEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000001 /* FatigueIndexEngine.swift */; };
+		DD2503020000000000000001 /* NiggleInjuryDeriver.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2503010000000000000001 /* NiggleInjuryDeriver.swift */; };
 		FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000002 /* FatigueAttentionBanner.swift */; };
 /* End PBXBuildFile section */
 
@@ -339,6 +340,7 @@
 		FF0602010000000000000002 /* PDFGenerationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGenerationSheet.swift; sourceTree = "<group>"; };
 		FF0603010000000000000002 /* CoachExportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CoachExportSheet.swift; sourceTree = "<group>"; };
 		FF0801010000000000000001 /* FatigueIndexEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueIndexEngine.swift; sourceTree = "<group>"; };
+		DD2503010000000000000001 /* NiggleInjuryDeriver.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleInjuryDeriver.swift; sourceTree = "<group>"; };
 		FF0801010000000000000002 /* FatigueAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueAttentionBanner.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -545,6 +547,7 @@
 				CC0301010000000000000006 /* PeriodizationEngine.swift */,
 				CC0301010000000000000008 /* FatiguePatternEngine.swift */,
 				FF0801010000000000000001 /* FatigueIndexEngine.swift */,
+				DD2503010000000000000001 /* NiggleInjuryDeriver.swift */,
 				CC030101000000000000000A /* BehaviorCorrelationEngine.swift */,
 				EE0501010000000000000001 /* StreakEngine.swift */,
 				EE0501010000000000000002 /* NotificationService.swift */,
@@ -1047,6 +1050,7 @@
 				CC0301010000000000000005 /* PeriodizationEngine.swift in Sources */,
 				CC0301010000000000000007 /* FatiguePatternEngine.swift in Sources */,
 				FF0801020000000000000001 /* FatigueIndexEngine.swift in Sources */,
+				DD2503020000000000000001 /* NiggleInjuryDeriver.swift in Sources */,
 				CC0301010000000000000009 /* BehaviorCorrelationEngine.swift in Sources */,
 				EE0501020000000000000001 /* StreakEngine.swift in Sources */,
 				EE0501020000000000000002 /* NotificationService.swift in Sources */,
