@@ -112,6 +112,51 @@ final class ShadowDataContractTests: XCTestCase {
         XCTAssertEqual(cycleMAE, 4.5, accuracy: 0.0000001)
     }
 
+    // MARK: - P25 D-04: .niggleSeverity case plumbing (Plan 25-02 Task 1)
+
+    func test_niggleSeverity_outcomeRawKey_isStable() {
+        XCTAssertEqual(ShadowArmPrediction.outcomeRaw(for: .niggleSeverity), "niggleSeverity")
+    }
+
+    func test_niggleSeverity_phaseOffset_isZeroInEveryPhase() {
+        // No cycle offset in v1 — every phase (incl. luteal) returns 0.
+        for phase in CyclePhase.allCases {
+            XCTAssertEqual(
+                ShadowPredictor.phaseOffset(for: phase, outcome: .niggleSeverity), 0,
+                "niggleSeverity must carry no phase offset (phase=\(phase))"
+            )
+        }
+    }
+
+    func test_niggleSeverity_bothArmsReturnNil() {
+        // P25 D-04: neither registered arm predicts .niggleSeverity (nil, not the 50.0 neutral).
+        let ctx = CycleContext.none
+        for arm in ShadowPredictor.registeredArms() {
+            XCTAssertNil(
+                arm.predict(.niggleSeverity, [1, 2, 3], ctx),
+                "arm \(arm.id) must return nil for .niggleSeverity"
+            )
+            // Sanity: the same arm still predicts a normal outcome (no over-broad guard).
+            XCTAssertNotNil(arm.predict(.wellness, [50, 52, 54], ctx))
+        }
+    }
+
+    func test_niggleSeverity_notFlaggedEngineDerived() {
+        // It's a raw self-report label (like wellness/pain), not engine-derived.
+        XCTAssertFalse(ShadowPredictor.engineDerivedOutcomes.contains(.niggleSeverity))
+    }
+
+    func test_aggregate_omitsNiggleSeverity_whenNoArmPredictsIt() {
+        // Two resolved rows with a niggle actual but NO arm predictions for .niggleSeverity →
+        // aggregate yields n=0 for it and omits the key entirely (no crash).
+        let r1 = CyclePredictionLog(predictionDate: .now)
+        r1.niggleSeverityActual = 6
+        let r2 = CyclePredictionLog(predictionDate: .now)
+        r2.niggleSeverityActual = 0
+        let mae = ShadowAnalyticsService.aggregate(resolvedRows: [r1, r2])
+        XCTAssertNil(mae[.niggleSeverity], "aggregate must omit .niggleSeverity (n=0, no predictions)")
+    }
+
     // MARK: - helpers
 
     private func attach(_ preds: inout [ShadowArmPrediction], baseline: Double, cycleAware: Double, outcome: ShadowPredictor.Outcome) {

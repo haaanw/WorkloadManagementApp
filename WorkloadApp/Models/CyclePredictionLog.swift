@@ -78,6 +78,11 @@ final class CyclePredictionLog {
     var painCycleAware: Double?
     var painActual: Double?
 
+    /// P25 D-04: max localized niggle severity (0-10, as Double) logged on the target day, 0 if
+    /// none. Additive, local-only (lightweight migration); no arm predicts it in v1 so there is no
+    /// `*Baseline`/`*CycleAware` pair — only the resolved actual. NO Codable, never synced.
+    var niggleSeverityActual: Double?
+
     // MARK: - Would-be modifier effects (Plan 02 helpers — recorded, NEVER applied)
 
     /// AutoregulationEngine.cycleVolumeFactor — would-be soft volume factor in [0.85, 1.0].
@@ -114,6 +119,7 @@ final class CyclePredictionLog {
         painBaseline: Double? = nil,
         painCycleAware: Double? = nil,
         painActual: Double? = nil,
+        niggleSeverityActual: Double? = nil,
         wouldBeVolumeFactor: Double? = nil,
         wouldBeDampenedFatigueIndex: Double? = nil,
         wouldBiasProgressionToMaintain: Bool? = nil,
@@ -144,6 +150,7 @@ final class CyclePredictionLog {
         self.painBaseline = painBaseline
         self.painCycleAware = painCycleAware
         self.painActual = painActual
+        self.niggleSeverityActual = niggleSeverityActual
         self.wouldBeVolumeFactor = wouldBeVolumeFactor
         self.wouldBeDampenedFatigueIndex = wouldBeDampenedFatigueIndex
         self.wouldBiasProgressionToMaintain = wouldBiasProgressionToMaintain

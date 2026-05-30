@@ -27,6 +27,7 @@ struct ShadowPredictor {
         case wellness    // next-day wellness score (0-100)
         case completion  // next-day workout completion (0 or 1) — reframed as ADHERENCE (D-06)
         case pain        // next-day reported soreness (WellnessCheckIn.soreness, 1-5 scale)
+        case niggleSeverity   // max SorenessLog severity (0-10) in the outcome window, 0 if none (P25 D-04)
     }
 
     // MARK: - Outcome label provenance (Phase 24, D-06)
@@ -123,6 +124,7 @@ struct ShadowPredictor {
             case .wellness:   return lutealWellnessOffset
             case .completion: return lutealCompletionOffset
             case .pain:       return lutealPainOffset
+            case .niggleSeverity: return 0  // no cycle offset in v1 (P25 D-04); no arm predicts it
             }
         }
     }
@@ -166,15 +168,20 @@ extension ShadowPredictor {
         let baseline = ExperimentalArm(
             id: "baseline",
             engineDerivedOutcomes: engineDerivedOutcomes,
-            predict: { _, series, _ in
-                ShadowPredictor.baselinePrediction(series: series)
+            predict: { outcome, series, _ in
+                // P25 D-04: no arm predicts .niggleSeverity in v1. Returning the 50.0 neutral
+                // score on a 0–10 scale would pollute metrics; nil is correct (harness tolerates it).
+                guard outcome != .niggleSeverity else { return nil }
+                return ShadowPredictor.baselinePrediction(series: series)
             }
         )
         let cycleAware = ExperimentalArm(
             id: "cycleAware",
             engineDerivedOutcomes: engineDerivedOutcomes,
             predict: { outcome, series, context in
-                ShadowPredictor.cycleAwarePrediction(series: series, context: context, outcome: outcome)
+                // P25 D-04: no arm predicts .niggleSeverity in v1 (see baseline arm above).
+                guard outcome != .niggleSeverity else { return nil }
+                return ShadowPredictor.cycleAwarePrediction(series: series, context: context, outcome: outcome)
             }
         )
         return [baseline, cycleAware]

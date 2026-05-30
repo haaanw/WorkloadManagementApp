@@ -58,6 +58,7 @@ final class ShadowArmPrediction {
         case .wellness:   return "wellness"
         case .completion: return "completion"  // reframed as "adherence" (D-06); raw key unchanged
         case .pain:       return "pain"
+        case .niggleSeverity: return "niggleSeverity"  // P25 D-04: stable permanent key
         }
     }
 }

@@ -68,6 +68,7 @@ struct ShadowAnalyticsService {
             case .wellness:   return wellnessHistory
             case .completion: return completionHistory
             case .pain:       return painHistory
+            case .niggleSeverity: return []  // P25 D-04: no input series — no arm consumes it in v1
             }
         }
 
@@ -217,6 +218,7 @@ struct ShadowAnalyticsService {
             case .wellness:   return row.wellnessActual
             case .completion: return row.completionActual
             case .pain:       return row.painActual
+            case .niggleSeverity: return row.niggleSeverityActual
             }
         }
 
@@ -267,6 +269,7 @@ struct ShadowAnalyticsService {
             case .wellness:   return row.wellnessActual
             case .completion: return row.completionActual
             case .pain:       return row.painActual
+            case .niggleSeverity: return row.niggleSeverityActual
             }
         }
         var out: [(predicted: Double, actual: Double)] = []
@@ -318,6 +321,7 @@ struct ShadowAnalyticsService {
             case .wellness:   return row.wellnessActual
             case .completion: return row.completionActual
             case .pain:       return row.painActual
+            case .niggleSeverity: return row.niggleSeverityActual
             }
         }
         var a: [(predicted: Double, actual: Double)] = []
