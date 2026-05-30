@@ -29,13 +29,17 @@ final class StrainRiskEngineTests: XCTestCase {
         elevation: Double = 0,
         hardSetCount: Int = 0,
         unscoredCount: Int = 0,
+        easyCount: Int = 0,
+        hasChronicBaseline: Bool = true,
         recurrence: Set<MuscleRegion> = []
     ) -> StrengthLoadEngine.StrengthLoadResult {
         let muscle = StrengthLoadEngine.MuscleStrengthLoad(
             hardSetCount: hardSetCount,
             strengthLoad: Double(hardSetCount),
             unscoredCount: unscoredCount,
-            elevation: elevation
+            elevation: elevation,
+            easyCount: easyCount,
+            hasChronicBaseline: hasChronicBaseline
         )
         return StrengthLoadEngine.StrengthLoadResult(
             perMuscle: [.quads: muscle],

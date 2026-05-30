@@ -58,6 +58,15 @@ struct StrengthLoadEngine {
         let unscoredCount: Int
         /// Acute-vs-chronic strength-load elevation, 0…1 (deadband + clamp).
         let elevation: Double
+        /// Scored working sets classified `.easy` (below the hard bar) in the ACUTE window.
+        /// Captured for Finding-5 coverage confidence (Wave 3): coverage counts easy +
+        /// hard scored sets, not just hard.
+        let easyCount: Int
+        /// Whether this muscle has a non-zero CHRONIC-EXCLUSIVE baseline (load in the
+        /// 7..<28-day window). When false (new exercise / warmups-only history), elevation
+        /// is reported as 0 (NOT an artifactual 4× ratio) and Wave-3 confidence discounts the
+        /// muscle as insufficient-baseline rather than treating it as silently safe.
+        let hasChronicBaseline: Bool
     }
 
     /// Full engine result for a window of sessions.
@@ -114,9 +123,26 @@ struct StrengthLoadEngine {
 
     /// Estimated reps-in-reserve for a set: logged `rir` wins; else bridge from `rpe`
     /// (`max(0, 10 − rpe)`); else `nil`.
+    ///
+    /// NOTE: this TRUNCATES the RPE bridge (`Int(2.5) == 2`) and is kept ONLY for the
+    /// display / back-compat callers that need an `Int`. Classification uses
+    /// `estRIRPrecise` (Double) so a fractional RPE is not rounded into the hard bucket
+    /// (Finding 4 / GA-30-D).
     static func estRIR(_ set: SetRecord) -> Int? {
         if let rir = set.rir { return rir }
         if let rpe = set.rpe { return Int(max(0.0, Constants.rpeToRIRMax - rpe)) }
+        return nil
+    }
+
+    /// Un-truncated reps-in-reserve for classification: logged `rir` wins as `Double(rir)`;
+    /// else bridge from `rpe` (`max(0, 10 − rpe)`) WITHOUT truncation; else `nil`.
+    ///
+    /// Finding 4 / GA-30-D: `estRIR` truncated RPE 7.5 → RIR 2 → falsely `.hard` (≤ 2 bar).
+    /// Comparing the precise Double (2.5) against the Double threshold keeps a 7.5-RPE set
+    /// `.easy`. RPE 8.0 → 2.0 stays hard.
+    static func estRIRPrecise(_ set: SetRecord) -> Double? {
+        if let rir = set.rir { return Double(rir) }
+        if let rpe = set.rpe { return max(0.0, Constants.rpeToRIRMax - rpe) }
         return nil
     }
 
@@ -141,13 +167,16 @@ struct StrengthLoadEngine {
         if set.isWarmup { return .warmup }
 
         let relIntensity = relativeIntensity(set: set, e1RMReference: e1RMReference)
-        let rir = estRIR(set)
+        // Use the precise (un-truncated) RIR for the hard-set decision (Finding 4 / GA-30-D).
+        let rirPrecise = estRIRPrecise(set)
 
         // Cannot score at all (no weight AND no rpe/rir) → unscored.
-        guard relIntensity != nil || rir != nil else { return .unscored }
+        guard relIntensity != nil || rirPrecise != nil else { return .unscored }
 
         let hardByIntensity = (relIntensity ?? 0) >= Constants.hardSetIntensityThreshold
-        let hardByRIR = (rir ?? Int.max) <= Constants.hardSetRIRThreshold
+        // Compare in Double against the threshold (2.0) BEFORE any truncation so
+        // RPE 7.5 → 2.5 RIR → not hard, while RPE 8.0 → 2.0 → hard.
+        let hardByRIR = (rirPrecise ?? .greatestFiniteMagnitude) <= Double(Constants.hardSetRIRThreshold)
 
         if hardByIntensity || hardByRIR {
             let bucket = relIntensity.map(intensityBucket)
@@ -189,10 +218,11 @@ struct StrengthLoadEngine {
         muscle: MuscleGroup,
         sessions: [WorkoutSession],
         references: [String: Double]
-    ) -> (hardSetCount: Int, strengthLoad: Double, unscoredCount: Int) {
+    ) -> (hardSetCount: Int, strengthLoad: Double, unscoredCount: Int, easyCount: Int) {
         var hardSetCount = 0
         var strengthLoad = 0.0
         var unscoredCount = 0
+        var easyCount = 0
 
         for session in sessions {
             for entry in session.exerciseEntries where entry.muscleGroup == muscle {
@@ -204,7 +234,9 @@ struct StrengthLoadEngine {
                     case .unscored:
                         unscoredCount += 1
                     case .easy:
-                        continue
+                        // Finding 5 (GA-30-E): count scored easy sets so Wave-3 coverage
+                        // confidence can include them (was silently dropped).
+                        easyCount += 1
                     case .hard(let bucket):
                         hardSetCount += 1
                         strengthLoad += Constants.strainWeight(for: bucket)
@@ -212,7 +244,7 @@ struct StrengthLoadEngine {
                 }
             }
         }
-        return (hardSetCount, strengthLoad, unscoredCount)
+        return (hardSetCount, strengthLoad, unscoredCount, easyCount)
     }
 
     /// Acute-vs-chronic strength-load elevation (FatigueIndex `computeLoadElevation`
@@ -253,24 +285,35 @@ struct StrengthLoadEngine {
         acuteWindowDays: Int = Constants.acuteWindowDays,
         chronicWindowDays: Int = Constants.chronicWindowDays
     ) -> StrengthLoadResult {
-        let acuteSessions = windowed(sessions, days: acuteWindowDays, asOf: asOf, calendar: calendar)
-        let chronicSessions = windowed(sessions, days: chronicWindowDays, asOf: asOf, calendar: calendar)
+        // Finding 3 (GA-30-C): acute and chronic are EXACTLY PARTITIONED half-open windows so
+        // chronic is NOT a superset of acute. Acute = days [0, acuteWindowDays);
+        // chronic-exclusive = days [acuteWindowDays, chronicWindowDays). A steady-state athlete
+        // therefore gets ratio ≈ 1 (elevation 0) instead of the old superset artefact (~4×).
+        let acuteSessions = windowedRange(
+            sessions, lowerDayInclusive: 0, upperDayExclusive: acuteWindowDays,
+            asOf: asOf, calendar: calendar
+        )
+        let chronicExclSessions = windowedRange(
+            sessions, lowerDayInclusive: acuteWindowDays, upperDayExclusive: chronicWindowDays,
+            asOf: asOf, calendar: calendar
+        )
 
         // References computed from the FULL passed-in history (rolling best is monotone).
         let references = e1RMReferences(sessions: sessions)
 
-        // Which muscles appear at all in the chronic window.
+        // Consider muscles appearing in EITHER window so a new acute-only muscle is still
+        // evaluated (and flagged insufficient-baseline) rather than skipped.
         var muscles = Set<MuscleGroup>()
-        for session in chronicSessions {
+        for session in acuteSessions + chronicExclSessions {
             for entry in session.exerciseEntries {
                 if let m = entry.muscleGroup { muscles.insert(m) }
             }
         }
 
-        // Per-day-normalised chronic load so acute(7d) and chronic(28d) compare on the same
-        // per-day basis (mirrors FatigueIndex window-normalised ratios).
+        // Per-day-normalised load so acute and the chronic-EXCLUSIVE window compare on the same
+        // per-day basis. Chronic normaliser is the exclusive span (chronic − acute) days.
         let acuteDays = Double(max(1, acuteWindowDays))
-        let chronicDays = Double(max(1, chronicWindowDays))
+        let chronicExclDays = Double(max(1, chronicWindowDays - acuteWindowDays))
 
         var perMuscle: [MuscleGroup: MuscleStrengthLoad] = [:]
         var perRegion: [MuscleRegion: Double] = [:]
@@ -278,17 +321,24 @@ struct StrengthLoadEngine {
 
         for muscle in muscles {
             let acute = aggregateMuscle(muscle: muscle, sessions: acuteSessions, references: references)
-            let chronic = aggregateMuscle(muscle: muscle, sessions: chronicSessions, references: references)
+            let chronicExcl = aggregateMuscle(muscle: muscle, sessions: chronicExclSessions, references: references)
 
             let acutePerDay = acute.strengthLoad / acuteDays
-            let chronicPerDay = chronic.strengthLoad / chronicDays
-            let elevation = perMuscleElevation(acute: acutePerDay, chronic: chronicPerDay)
+            let chronicPerDay = chronicExcl.strengthLoad / chronicExclDays
+            // Zero chronic-exclusive load = new exercise / warmups only → insufficient baseline:
+            // report elevation 0 (never 4×) and flag it so Wave-3 confidence discounts honestly.
+            let hasChronicBaseline = chronicExcl.strengthLoad > 0
+            let elevation = hasChronicBaseline
+                ? perMuscleElevation(acute: acutePerDay, chronic: chronicPerDay)
+                : 0
 
             perMuscle[muscle] = MuscleStrengthLoad(
                 hardSetCount: acute.hardSetCount,
                 strengthLoad: acute.strengthLoad,
                 unscoredCount: acute.unscoredCount,
-                elevation: elevation
+                elevation: elevation,
+                easyCount: acute.easyCount,
+                hasChronicBaseline: hasChronicBaseline
             )
 
             let region = muscle.region
@@ -310,11 +360,20 @@ struct StrengthLoadEngine {
 
     // MARK: - Helpers
 
-    /// Sessions whose `sessionDate` falls within the last `days` of `asOf` (inclusive of the
-    /// −`days` boundary), compared on `calendar.startOfDay`. Future-dated sessions excluded.
-    private static func windowed(
+    /// Sessions whose `sessionDate` day-difference from `asOf` falls in the HALF-OPEN range
+    /// `[lowerDayInclusive, upperDayExclusive)`, compared on `calendar.startOfDay`.
+    /// Future-dated sessions (diff < 0) are excluded.
+    ///
+    /// Finding 3 / GA-30-C: the previous `diff >= 0 && diff <= days` form was inclusive of
+    /// BOTH endpoints (spanning `days+1` calendar days) and was reused for acute and chronic,
+    /// making chronic a superset of acute. This half-open form lets the caller partition acute
+    /// `[0, acuteWindowDays)` and chronic-exclusive `[acuteWindowDays, chronicWindowDays)` with
+    /// no shared boundary day: a session exactly at `diff == acuteWindowDays` lands in chronic,
+    /// not acute.
+    private static func windowedRange(
         _ sessions: [WorkoutSession],
-        days: Int,
+        lowerDayInclusive: Int,
+        upperDayExclusive: Int,
         asOf: Date,
         calendar: Calendar
     ) -> [WorkoutSession] {
@@ -322,7 +381,7 @@ struct StrengthLoadEngine {
         return sessions.filter { session in
             let from = calendar.startOfDay(for: session.sessionDate)
             guard let diff = calendar.dateComponents([.day], from: from, to: to).day else { return false }
-            return diff >= 0 && diff <= days
+            return diff >= lowerDayInclusive && diff < upperDayExclusive
         }
     }
 
