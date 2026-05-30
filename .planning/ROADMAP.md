@@ -1,4 +1,4 @@
-# Roadmap: Faros
+# Roadmap: Tuwa
 
 ## Milestones
 
@@ -8,6 +8,7 @@
 - ✅ **v1.3 LLM Import, Sharing & Polish** — Phases 13-16 (shipped 2026-05-14)
 - ✅ **v1.4 Female Athlete Optimization** — Phases 17-20 (phase-complete 2026-05-30, pending UAT)
 - ✅ **v1.5 UX Interaction Polish** — Phases 21-22 (phase-complete 2026-05-30, pending UAT)
+- 🚧 **v1.6 Algorithm Moat (Personal Readiness v1)** — Phases 24-29 (started 2026-05-30; scope locked, see memory project_algorithm_v1_locked + .planning/research/competitive-algorithm-analysis.md)
 
 ## Phases
 
@@ -256,3 +257,14 @@ Plans:
 - [x] 23-04-PLAN.md — zh-Hans translations + marketing-tone second pass + density audit + human review checkpoint
 - [x] 23-05-PLAN.md — App Store Connect zh-Hans metadata draft + scheme + screenshots (autonomous: false; human-verify gates per memory feedback_asc_caution.md)
 - [ ] 23-06-PLAN.md — Gap closure: zh-Hans string-coverage sweep across Auth/Dashboard/Profile/Workload/Recovery/WorkoutLog views (closes VERIFICATION gap #2 / REVIEW WR-01 deferred)
+
+## Phase Details — v1.6 Algorithm Moat (Personal Readiness v1)
+
+**Milestone Goal:** Replace the commodity recovery+autoregulation core with a defensible, honest, strength-aware Personal Readiness v1 for the narrowed target user (amateur serious / part-time athletes without pro support). Scope locked + triple-reviewed 2026-05-30 (see `.planning/research/algorithm-moat-design.md` + `competitive-algorithm-analysis.md`, both with codex addenda; memory `project_algorithm_v1_locked`). Everything behind the shadow harness, gated OFF until parity gates pass. Defensibility = trust + transparency + strength-hybrid workflow quality, NOT algorithm exclusivity. Dropped from v1 (codex: unsound on consumer data): per-user Kalman Q/R learning + per-user logistic weight tuning.
+
+- [ ] **Phase 24: Validation data-contract + shadow-harness upgrade** — define predictionDate/targetDate/feature-cutoff/outcome-window (fix the existing same-day date-contract bug); add calibration + Spearman + blocked/purged CV + bootstrap-with-autocorrelation handling to ShadowAnalyticsService; raw self-report/wellness/soreness/adherence outcome labels (NOT engine-derived recovery). No scoring model yet. Foundation.
+- [ ] **Phase 25: Soreness / tweak self-log** — lightweight optional pain/soreness/niggle log (SwiftData model + minimal UI), local-only, to honestly validate Strain-Risk against real breakdown. Wire wellness history + injury count into the dashboard fatigue path (currently empty/hardcoded-0).
+- [ ] **Phase 26: Individualized baselines** — robust EWMA/Welford/MAD per-signal baselines + Altini-style 60-day normal-band + CV early-warning; prequential (no-leak) personal z-scores; day-bucketed inputs (never update from repeated stale HealthKit samples); stale/missing → reduce confidence, not learned physiology. Pure structs; per-day state in a local-only never-synced model.
+- [ ] **Phase 27: Strength-load model + Strain-Risk fusion** — per-muscle hard sets + relative-intensity buckets (est-1RM / RPE / RIR) from SetRecord/ExerciseEntry (NOT raw tonnage); fuse with sRPE/TRIMP endurance load + FatigueIndexEngine (FEA lineage) + Foster monotony/strain (completeness-gated) into the Strain-Risk channel. Honest "load-tolerance context / overreaching caution", never "injury prediction".
+- [ ] **Phase 28: Readiness fusion + explainable decisions + ACWR demotion** — fixed sign-constrained glass-box logistic fusion → Readiness scalar (separate from Strain-Risk); upgrade ReasoningEngine to explain the DECISION ("volume cut because HRV −x%, sleep debt, high per-muscle hard sets, no rest day") with confidence; swap AutoregulationEngine matrix (recovery × ACWR) → (readiness × strain-risk), ACWR → context label only; dual-run period + "method updated" messaging; the recommendation must adjust a real logged/planned workout.
+- [ ] **Phase 29: Shadow validation + activation gates** — run PRS-v1 arm in shadow vs current algorithm; gates: MAE beat on ≥3/4 outcomes (bootstrap CI excl 0), Spearman ≥0.50, calibration slope ∈[0.8,1.2]; no live activation until gates pass; master activation flag defaults false.

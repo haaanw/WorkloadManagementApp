@@ -1,11 +1,11 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.5
-milestone_name: UX Interaction Polish
-status: phase-complete-pending-uat
-stopped_at: Phases 19-22 executed (sub-agent team), build green, pending UAT
+milestone: v1.6
+milestone_name: Algorithm Moat (Personal Readiness v1)
+status: executing
+stopped_at: v1.6 milestone started — Phase 24 (validation contract) planning kicked off
 last_updated: "2026-05-30T00:00:00.000Z"
-last_activity: 2026-05-30 -- v1.4 (19,20) + v1.5 (21,22) executed via sub-agent team, full build green
+last_activity: 2026-05-30 -- pushed 142 commits to origin/main; started v1.6 algorithm milestone (Phases 24-29 scoped)
 progress:
   total_phases: 7
   completed_phases: 7
