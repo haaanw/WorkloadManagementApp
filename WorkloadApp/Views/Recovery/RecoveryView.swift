@@ -123,136 +123,97 @@ struct RecoveryView: View {
                         REDSAttentionBanner(onDismiss: {
                             redsDismissedPeriod = currentPeriodKey
                         })
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.sm)
                     }
 
                     if todayCheckIn == nil {
                         MorningCheckInPrompt {
                             showMorningCheckIn = true
                         }
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.sm)
                     }
 
                     RecoveryScoreCard(recovery: todayRecovery, cycleSnapshot: latestCycleSnapshot)
-
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.sm)
 
                     // Cycle-aware fueling & recovery suggestions (CYCLE-07, D-08).
                     // Only when cycle data exists and the D-03 phase gate passes.
                     if let snap = latestCycleSnapshot, cycleGatePasses(snap) {
-                        CycleFuelingCard(phase: snap.estimatedPhase ?? .unknown)
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
+                        SectionContainer {
+                            CycleFuelingCard(phase: snap.estimatedPhase ?? .unknown)
+                                .padding(.horizontal, Spacing.sm)
+                        }
                     }
 
-                    HRVTrendChart(data: viewModel.hrvHistory)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
+                    SectionContainer(header: "recovery.section.hrvTrend") {
+                        HRVTrendChart(data: viewModel.hrvHistory)
+                            .cardStyle()
+                            .padding(.horizontal, Spacing.sm)
+                    }
 
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-
-                    SleepTrendChart(recoverySnapshots: Array(scopedRecoverySnapshots.prefix(28).reversed()))
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
+                    SectionContainer(header: "recovery.section.sleepTrend") {
+                        SleepTrendChart(recoverySnapshots: Array(scopedRecoverySnapshots.prefix(28).reversed()))
+                            .cardStyle()
+                            .padding(.horizontal, Spacing.sm)
+                    }
 
                     if !scopedWellnessCheckIns.isEmpty {
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
-
-                        WellnessHistorySection(checkIns: Array(scopedWellnessCheckIns.prefix(7)))
+                        SectionContainer(header: "recovery.section.wellnessCheckIns") {
+                            WellnessHistorySection(checkIns: Array(scopedWellnessCheckIns.prefix(7)))
+                        }
                     }
 
                     // INSIGHTS section (INTEL-05, D-07)
                     if !viewModel.fatigueInsights.isEmpty || !viewModel.behaviorCorrelations.isEmpty || !viewModel.behaviorSufficiency.isEmpty {
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
-
                         // Fatigue insights
                         if !viewModel.fatigueInsights.isEmpty {
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("recovery.section.insights")
-                                    .font(.Tokens.micro)
-                                    .tracking(1.2)
-                                    .textCase(.uppercase)
-                                    .foregroundStyle(ColorTokens.text3)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 16)
-                                    .padding(.bottom, 8)
-
-                                ForEach(Array(viewModel.fatigueInsights.prefix(5).enumerated()), id: \.offset) { _, insight in
-                                    InsightCard(text: insight.text, sampleSize: insight.sampleSize)
+                            SectionContainer(header: "recovery.section.insights") {
+                                VStack(alignment: .leading, spacing: Spacing.sm) {
+                                    ForEach(Array(viewModel.fatigueInsights.prefix(5).enumerated()), id: \.offset) { _, insight in
+                                        InsightCard(text: insight.text, sampleSize: insight.sampleSize)
+                                    }
                                 }
+                                .padding(.horizontal, Spacing.sm)
                             }
                         }
 
                         // Behavior impact
                         if !viewModel.behaviorCorrelations.isEmpty || !viewModel.behaviorSufficiency.isEmpty {
-                            Rectangle()
-                                .fill(ColorTokens.divider)
-                                .frame(height: 0.5)
+                            SectionContainer(header: "recovery.section.behaviorImpact") {
+                                VStack(alignment: .leading, spacing: Spacing.sm) {
+                                    // Sufficient correlations first
+                                    ForEach(viewModel.behaviorCorrelations.filter { $0.isSufficient }, id: \.tagName) { correlation in
+                                        BehaviorCorrelationRow(
+                                            tagName: correlation.tagName,
+                                            impactPercentage: correlation.impactPercentage,
+                                            sampleCountWith: correlation.sampleCountWith,
+                                            sampleCountWithout: correlation.sampleCountWithout,
+                                            isSufficient: true,
+                                            neededDays: 0
+                                        )
+                                    }
 
-                            VStack(alignment: .leading, spacing: 0) {
-                                Text("recovery.section.behaviorImpact")
-                                    .font(.Tokens.micro)
-                                    .tracking(1.2)
-                                    .textCase(.uppercase)
-                                    .foregroundStyle(ColorTokens.text3)
-                                    .padding(.horizontal, 16)
-                                    .padding(.top, 16)
-                                    .padding(.bottom, 8)
-
-                                // Sufficient correlations first
-                                ForEach(viewModel.behaviorCorrelations.filter { $0.isSufficient }, id: \.tagName) { correlation in
-                                    BehaviorCorrelationRow(
-                                        tagName: correlation.tagName,
-                                        impactPercentage: correlation.impactPercentage,
-                                        sampleCountWith: correlation.sampleCountWith,
-                                        sampleCountWithout: correlation.sampleCountWithout,
-                                        isSufficient: true,
-                                        neededDays: 0
-                                    )
+                                    // Insufficient tags below
+                                    ForEach(viewModel.behaviorSufficiency.filter { $0.neededWith > 0 || $0.neededWithout > 0 }, id: \.tagName) { info in
+                                        BehaviorCorrelationRow(
+                                            tagName: info.tagName,
+                                            impactPercentage: 0,
+                                            sampleCountWith: info.daysWithTag,
+                                            sampleCountWithout: info.daysWithoutTag,
+                                            isSufficient: false,
+                                            neededDays: max(info.neededWith, info.neededWithout)
+                                        )
+                                    }
                                 }
-
-                                // Insufficient tags below
-                                ForEach(viewModel.behaviorSufficiency.filter { $0.neededWith > 0 || $0.neededWithout > 0 }, id: \.tagName) { info in
-                                    BehaviorCorrelationRow(
-                                        tagName: info.tagName,
-                                        impactPercentage: 0,
-                                        sampleCountWith: info.daysWithTag,
-                                        sampleCountWithout: info.daysWithoutTag,
-                                        isSufficient: false,
-                                        neededDays: max(info.neededWith, info.neededWithout)
-                                    )
-                                }
+                                .padding(.horizontal, Spacing.sm)
                             }
                         }
                     } else if viewModel.recoveryHistory.count > 7 {
                         // Has some recovery data but no insights yet -- show encouragement
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
-
-                        VStack(spacing: 0) {
-                            Text("recovery.section.insights")
-                                .font(.Tokens.micro)
-                                .tracking(1.2)
-                                .textCase(.uppercase)
-                                .foregroundStyle(ColorTokens.text3)
-                                .padding(.horizontal, 16)
-                                .padding(.top, 16)
-                                .padding(.bottom, 8)
-
+                        SectionContainer(header: "recovery.section.insights") {
                             DataSufficiencyRing(
                                 progress: 0,
                                 label: "Tag behaviors in your morning check-in to see recovery impact",
@@ -260,6 +221,8 @@ struct RecoveryView: View {
                             )
                         }
                     }
+
+                    Spacer().frame(height: Spacing.lg)
                 }
             }
             .background(ColorTokens.background)
@@ -319,9 +282,7 @@ struct MorningCheckInPrompt: View {
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
-            .background(ColorTokens.surface)
+            .cardStyle(verticalPadding: Spacing.sm)
         }
         .foregroundStyle(.primary)
     }
@@ -419,9 +380,7 @@ struct RecoveryScoreCard: View {
                     .foregroundStyle(ColorTokens.text2)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.surface)
+        .cardStyle()
     }
 }
 
@@ -451,18 +410,11 @@ struct WellnessHistorySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("recovery.section.wellnessCheckIns")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-
             Rectangle()
                 .fill(ColorTokens.divider)
                 .frame(height: 0.5)
 
-            ForEach(checkIns, id: \.id) { checkIn in
+            ForEach(Array(checkIns.enumerated()), id: \.element.id) { index, checkIn in
                 HStack {
                     Text(checkIn.date.relativeString(locale: locale))
                         .font(.Tokens.label)
@@ -473,13 +425,17 @@ struct WellnessHistorySection: View {
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.sm)
 
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
+                if index < checkIns.count - 1 {
+                    RowSeparator()
+                }
             }
+
+            Rectangle()
+                .fill(ColorTokens.divider)
+                .frame(height: 0.5)
         }
         .background(ColorTokens.background)
     }

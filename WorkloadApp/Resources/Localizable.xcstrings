@@ -4275,7 +4275,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "BEHAVIOR IMPACT"
+            "value": "Behavior Impact"
           }
         },
         "zh-Hans": {
@@ -4292,13 +4292,47 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "INSIGHTS"
+            "value": "Insights"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
             "value": "洞察"
+          }
+        }
+      }
+    },
+    "recovery.section.hrvTrend": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRV Trend"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HRV 趋势"
+          }
+        }
+      }
+    },
+    "recovery.section.sleepTrend": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep Trend"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠趋势"
           }
         }
       }
@@ -4326,7 +4360,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "WELLNESS CHECK-INS"
+            "value": "Wellness Check-Ins"
           }
         },
         "zh-Hans": {
