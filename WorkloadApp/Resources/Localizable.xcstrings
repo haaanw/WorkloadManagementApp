@@ -2,6 +2,74 @@
   "sourceLanguage": "en",
   "version": "1.0",
   "strings": {
+    "Anything bother you?": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anything bother you?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "有哪里不舒服吗？"
+          }
+        }
+      }
+    },
+    "Log a niggle": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log a niggle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录不适"
+          }
+        }
+      }
+    },
+    "Optional — note a sore spot to track how your body handles load.": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Optional — note a sore spot to track how your body handles load."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "可选——记录酸痛部位，了解身体对训练负荷的反应。"
+          }
+        }
+      }
+    },
+    "Skip": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Skip"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "跳过"
+          }
+        }
+      }
+    },
     "action.cancel": {
       "extractionState": "manual",
       "localizations": {
@@ -1188,6 +1256,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "仪表盘"
+          }
+        }
+      }
+    },
+    "dashboard.niggle.logAction": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log a niggle"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录不适"
           }
         }
       }
@@ -4286,23 +4371,6 @@
         }
       }
     },
-    "recovery.section.insights": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Insights"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "洞察"
-          }
-        }
-      }
-    },
     "recovery.section.hrvTrend": {
       "extractionState": "manual",
       "localizations": {
@@ -4320,19 +4388,19 @@
         }
       }
     },
-    "recovery.section.sleepTrend": {
+    "recovery.section.insights": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Sleep Trend"
+            "value": "Insights"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "睡眠趋势"
+            "value": "洞察"
           }
         }
       }
@@ -4350,6 +4418,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "恢复评分"
+          }
+        }
+      }
+    },
+    "recovery.section.sleepTrend": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sleep Trend"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "睡眠趋势"
           }
         }
       }
@@ -5187,23 +5272,6 @@
         }
       }
     },
-    "workload.section.recoveryVsLoad": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Recovery vs Load"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "恢复与负荷"
-          }
-        }
-      }
-    },
     "workload.section.recentPRs": {
       "extractionState": "manual",
       "localizations": {
@@ -5217,6 +5285,23 @@
           "stringUnit": {
             "state": "translated",
             "value": "最新个人最佳 (PR)"
+          }
+        }
+      }
+    },
+    "workload.section.recoveryVsLoad": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery vs Load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复与负荷"
           }
         }
       }

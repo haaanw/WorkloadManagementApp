@@ -18,6 +18,7 @@ struct DashboardView: View {
     @State private var showActiveWorkout = false
     @State private var showWellnessCheckIn = false
     @State private var showTrainingProfile = false
+    @State private var showNiggleLog = false
     @State private var viewModel = DashboardViewModel()
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
     @AppStorage("cyclePromptDismissed") private var cyclePromptDismissed: Bool = false
@@ -195,6 +196,29 @@ struct DashboardView: View {
                     Spacer().frame(height: Spacing.lg)
 
                     RecentSessionsSection(sessions: Array(recentSessions.prefix(5)))
+
+                    Spacer().frame(height: Spacing.lg)
+
+                    // On-demand niggle log affordance (D-07) — no nag, no reminder.
+                    Button {
+                        showNiggleLog = true
+                    } label: {
+                        HStack(spacing: Spacing.xs) {
+                            Image(systemName: "bandage")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text2)
+                            Text("dashboard.niggle.logAction")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text1)
+                            Spacer()
+                            Image(systemName: "chevron.right")
+                                .font(.Tokens.micro)
+                                .foregroundStyle(ColorTokens.text3)
+                        }
+                        .cardStyle(verticalPadding: Spacing.sm)
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.horizontal, Spacing.sm)
                 }
             }
             .background(ColorTokens.background)
@@ -220,6 +244,9 @@ struct DashboardView: View {
             }
             .sheet(isPresented: $showTrainingProfile) {
                 TrainingProfileSheet()
+            }
+            .sheet(isPresented: $showNiggleLog) {
+                NiggleLogSheet()
             }
             .navigationDestination(for: TrendDestination.self) { dest in
                 switch dest {

@@ -27,6 +27,10 @@ struct ActiveWorkoutSheet: View {
     @State private var showTemplateSavedToast = false
     @State private var templateSaveError = false
     @State private var sourceTemplate: WorkoutTemplate?
+    // Non-blocking post-workout niggle nudge (D-08). Never gates the save; sequenced
+    // AFTER the spike/PR early-return branches so it never collides with them.
+    @State private var showNiggleNudge = false
+    @State private var showNiggleLog = false
 
     private var athlete: Athlete? { athletes.first }
 
@@ -157,7 +161,7 @@ struct ActiveWorkoutSheet: View {
                     PRCelebrationOverlay(prs: newPRs) {
                         showPRCelebration = false
                         if showSpikeAlert { return }
-                        dismiss()
+                        finishOrNudge()
                     }
                 }
             }
@@ -165,7 +169,7 @@ struct ActiveWorkoutSheet: View {
                 if showSpikeAlert, !showPRCelebration, let spikeAlert {
                     SpikeAlertBanner(alert: spikeAlert) {
                         showSpikeAlert = false
-                        dismiss()
+                        finishOrNudge()
                     }
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .padding(.bottom, 16)
@@ -185,6 +189,22 @@ struct ActiveWorkoutSheet: View {
                 }
             }
             .animation(.easeOut(duration: 0.25), value: showTemplateSavedToast)
+            // Non-blocking, skippable post-workout niggle nudge (D-08). The save is already
+            // committed; "Skip" is one tap and simply closes the workout sheet, "Log a niggle"
+            // opens the separate NiggleLogSheet. Never gates or rolls back the save.
+            .confirmationDialog(
+                "Anything bother you?",
+                isPresented: $showNiggleNudge,
+                titleVisibility: .visible
+            ) {
+                Button("Log a niggle") { showNiggleLog = true }
+                Button("Skip", role: .cancel) { dismiss() }
+            } message: {
+                Text("Optional — note a sore spot to track how your body handles load.")
+            }
+            .sheet(isPresented: $showNiggleLog, onDismiss: { dismiss() }) {
+                NiggleLogSheet()
+            }
             .onAppear {
                 loadPrescription()
                 if template != nil && entries.isEmpty {
@@ -535,7 +555,18 @@ struct ActiveWorkoutSheet: View {
             }
         }
 
-        dismiss()
+        // No PR/spike branch fired — the save is already committed above; present the
+        // optional, non-blocking niggle nudge instead of dismissing immediately (D-08).
+        finishOrNudge()
+    }
+
+    /// Terminal exit for the post-save flow. The session is ALREADY saved by the time this
+    /// runs (D-08: the nudge never gates the save). If the optional niggle nudge has not yet
+    /// been offered this save, present it; otherwise dismiss. Routed from the success path and
+    /// from the PR/spike overlay dismissals so the nudge is sequenced strictly AFTER those
+    /// branches resolve and never collides with them.
+    private func finishOrNudge() {
+        showNiggleNudge = true
     }
 
     // MARK: - Save as Template
