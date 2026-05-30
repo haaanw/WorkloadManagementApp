@@ -4,9 +4,15 @@
 
 | Wave | Plan | Commit | Result |
 |------|------|--------|--------|
-| 1 | 27-01 StrengthLoadEngine | `3f7b29c` | Green — targeted 23/23 + full suite |
-| 2 | 27-02 LoadDistributionEngine | `9c8f9e1` | Green — targeted + full suite |
-| 3 | 27-03 StrainRiskEngine + StrainRiskZone | `6e8d9f2` | Green — targeted + full suite (shared Enums.swift) |
+| 1 | 27-01 StrengthLoadEngine | `4fc4ffa` | Green — targeted 23/23 + full suite |
+| 2 | 27-02 LoadDistributionEngine | `0fa3207` | Green — targeted + full suite |
+| 3 | 27-03 StrainRiskEngine + StrainRiskZone | `75ba4cf` | Green — targeted + full suite (shared Enums.swift) |
+
+**Hash correction (2026-05-31):** the table originally cited `3f7b29c`/`9c8f9e1`/`6e8d9f2`,
+which never existed in git history. The real Phase-27 commits on `main` are
+`4fc4ffa` / `0fa3207` / `75ba4cf` (+ `f61719e` docs). Source on disk was always correct;
+only these doc hashes were wrong. Re-verified green by xcodebuild on HEAD `90cec6b`:
+430 unit tests passed / 0 failed, all fence families green.
 
 ## Success criteria (from ROADMAP / 27-PLAN)
 

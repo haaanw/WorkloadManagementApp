@@ -283,11 +283,16 @@ Plans:
   **Plans:** 3 plans (3 SERIAL waves)
 
 Plans:
-- [x] 27-01-PLAN.md — Pure `StrengthLoadEngine` (reuses `SetRecord.estimated1RM`/`rir`/`rpe`; relative-intensity buckets, hard-set rule, per-muscle hard sets + acute/chronic elevation + same-region recurrence); StrengthLoadState SKIPPED (D-27-02, pure recompute) ✅ 2026-05-30 (commit 3f7b29c; targeted 23/23 + full suite green)
-- [x] 27-02-PLAN.md — Pure `LoadDistributionEngine` (unified daily-load series + completeness-gated Foster monotony/strain with density/spike fallback) ✅ 2026-05-30 (commit 9c8f9e1; full suite green)
-- [x] 27-03-PLAN.md — Pure `StrainRiskEngine` fixed glass-box fusion (score + `StrainRiskZone` + ranked factors + confidence; reuses FatigueIndexEngine/NiggleInjuryDeriver/BaselineEngine) + isolation + tier-fence + full-suite + no-prediction-copy guards ✅ 2026-05-30 (commit 6e8d9f2; full suite green, isolation grep==0)
-- [ ] **Phase 28: Readiness fusion + explainable decisions + ACWR demotion** — fixed sign-constrained glass-box logistic fusion → Readiness scalar (separate from Strain-Risk); upgrade ReasoningEngine to explain the DECISION ("volume cut because HRV −x%, sleep debt, high per-muscle hard sets, no rest day") with confidence; swap AutoregulationEngine matrix (recovery × ACWR) → (readiness × strain-risk), ACWR → context label only; dual-run period + "method updated" messaging; the recommendation must adjust a real logged/planned workout.
-- [ ] **Phase 29: Shadow validation + activation gates** — run PRS-v1 arm in shadow vs current algorithm; gates: MAE beat on ≥3/4 outcomes (bootstrap CI excl 0), Spearman ≥0.50, calibration slope ∈[0.8,1.2]; no live activation until gates pass; master activation flag defaults false.
+- [x] 27-01-PLAN.md — Pure `StrengthLoadEngine` (reuses `SetRecord.estimated1RM`/`rir`/`rpe`; relative-intensity buckets, hard-set rule, per-muscle hard sets + acute/chronic elevation + same-region recurrence); StrengthLoadState SKIPPED (D-27-02, pure recompute) ✅ 2026-05-30 (commit 4fc4ffa; targeted 23/23 + full suite green)
+- [x] 27-02-PLAN.md — Pure `LoadDistributionEngine` (unified daily-load series + completeness-gated Foster monotony/strain with density/spike fallback) ✅ 2026-05-30 (commit 0fa3207; full suite green)
+- [x] 27-03-PLAN.md — Pure `StrainRiskEngine` fixed glass-box fusion (score + `StrainRiskZone` + ranked factors + confidence; reuses FatigueIndexEngine/NiggleInjuryDeriver/BaselineEngine) + isolation + tier-fence + full-suite + no-prediction-copy guards ✅ 2026-05-30 (commit 75ba4cf; full suite green, isolation grep==0)
+
+**Phase 27 verification-complete 2026-05-31:** xcodebuild green on HEAD (430 unit / 0 fail), gsd-verifier PASS 4/4 invariants, adversarial review 0 critical, codex review PASS. Strain-Risk display/shadow-only, NOT wired live. (Stale hashes 3f7b29c/9c8f9e1/6e8d9f2 corrected to real 4fc4ffa/0fa3207/75ba4cf.)
+
+- [x] **Phase 28: Readiness fusion + explainable decisions + ACWR demotion** — fixed sign-constrained glass-box logistic fusion → Readiness scalar (separate from Strain-Risk); upgrade ReasoningEngine to explain the DECISION ("volume cut because HRV −x%, sleep debt, high per-muscle hard sets, no rest day") with confidence; swap AutoregulationEngine matrix (recovery × ACWR) → (readiness × strain-risk), ACWR → context label only; dual-run period + "method updated" messaging; the recommendation must adjust a real logged/planned workout.
+**Phase 28 verification-complete 2026-05-31:** built behind `PRSActivation` (default FALSE) — commits b9d3e56, 8446260, fef8183, 64efc06, a14422e, eb10579. xcodebuild green (430/0), gsd-verifier PASS 4/4, adversarial review 0 critical, codex PASS. Flag-off live recommendation byte-identical (AutoregulationFlagFenceTests + DualRunFlagFenceTests). **OWED: human UI visual review of dual-run "method updated" surface + Wave-4 DashboardView wiring (deferred by design).**
+
+- [x] **Phase 29: Shadow validation + activation gates** — run PRS-v1 arm in shadow vs current algorithm; gates: MAE beat on ≥3/4 outcomes (bootstrap CI excl 0), Spearman ≥0.50, calibration slope ∈[0.8,1.2]; no live activation until gates pass; master activation flag defaults false.
   **Goal:** Build the activation-gate evaluation layer (pure `ActivationGateEvaluator` consuming the EXISTING Phase-24 `ShadowMetrics`/`ShadowAnalyticsService` PRS-vs-baseline metrics — MAE-beat ≥3/4 with bootstrap CI excl 0, Spearman ≥0.50, calibration slope ∈[0.8,1.2], data-maturity precondition) plus a NEW `PRSMasterActivation` flag (defaults FALSE, stays FALSE) and a seeded deterministic shadow-validation report artifact. Wires + evaluates + reports ONLY; absolutely NO live activation; the master flag is not flipped (D-29-GA-01..GA-10, gate-eval + report-only).
   **Plans:** 2 plans (2 SERIAL waves)
 
@@ -297,3 +302,19 @@ Plans:
 
 **Wave 2** *(blocked on Wave 1 completion)*
 - [ ] 29-02-PLAN.md — Seeded deterministic shadow-validation report generator (test target; synthetic PRS-wins/loses/thin/ambiguous traces → real harness resolve → evaluator → `29-shadow-validation-report.md`) + per-scenario verdict XCTAsserts + hash-equality + master-flag-stays-FALSE asserts + no-prediction-copy grep + human review (autonomous: false)
+
+**Phase 29 done — Wave 1 `7f5b03e`, Wave 2 `cb23fab`, docs `eb1fa0a`/`2cd41aa`.** xcodebuild green (448 unit / 0 fail; the lone red `ScreenshotTests.test03_Recovery` re-ran green in isolation — confirmed XCUITest flake). gsd-verifier PASS 11/11 + 4/4 invariants, adversarial review 0 critical (3 minor: maturity-n vs paired-CI-n, grep-guard whitespace, dead `withEnabled` helper), codex PASS. `PRSMasterActivation` defaults FALSE; gate evaluator pure/report-only; NOTHING activated.
+
+### Phase 30: Shadow-engine quality fixes (pre-activation cleanup)
+
+**Status:** PLANNED 2026-05-31 (user chose fix-now over defer). Fix the 6 shadow/display/flag-on quality findings surfaced by Phase 27/28/29 adversarial review + codex review. ALL live behavior stays byte-identical (fences hold); nothing activated; master flag stays FALSE. Goal: clean shadow Strain-Risk + readiness inputs so the eventual activation-gate evaluation runs on correct data.
+
+Findings to fix:
+1. `StrainRiskEngine` — soft-tissue + rest-debt double-count (FatigueIndex composite already folds them, then components 5/6 re-add standalone). [high conf, workflow]
+2. `LoadDistributionEngine` — endurance sRPE load (10s–100s) summed with strength hard-set strain weights (~1) into one Foster series → strength drowned out. [high conf, workflow]
+3. `StrengthLoadEngine:256-257` — chronic 28d window ⊇ acute 7d, ÷28 → artificial ~4× ratio for sparse/new-exercise history; exclude acute from chronic (or roll per training-day). [codex P2 + workflow]
+4. `StrengthLoadEngine:119` — `Int(10-rpe)` truncates RPE 7.5→RIR 2; round-half-up or compare in Double before the ≤2 hard-set test. [codex P2 + workflow]
+5. `StrainRiskEngine:200-204` — `confidence()` coverage uses `hard/(hard+unscored)`, omitting EASY scored sets; use `(hard+easy)/(hard+easy+unscored)`. [codex P3 + workflow]
+6. `PRSDualRunSurface:75-79` — flag-on: `targetVolume` nil on first-time prescriptions → volume reductions discarded in else branch; populate or handle nil. [codex P2 + workflow]
+
+Invariants: no live-path change (BaselineTierFence + AutoregulationFlagFence + DualRunFlagFence stay green), no activation, master flag FALSE, full xcodebuild green. Engine snapshot tests for changed shadow outputs updated to new correct values; fences untouched.

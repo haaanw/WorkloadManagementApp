@@ -2,10 +2,10 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Algorithm Moat (Personal Readiness v1)
-status: completed
-stopped_at: Phase 27 COMPLETE (3/3 waves committed to main, NOT pushed) — next = build gate / Phase 28 Readiness fusion
-last_updated: "2026-05-30T13:00:00.000Z"
-last_activity: 2026-05-30 -- Phase 27 executed (StrengthLoadEngine 4fc4ffa, LoadDistributionEngine 0fa3207, StrainRiskEngine+StrainRiskZone 75ba4cf, docs bbf98b6); all pure structs gated OFF, isolation grep==0, BaselineTierFenceTests green, live recovery score byte-unchanged
+status: in_progress
+stopped_at: Phases 27/28/29 BUILT + verification-complete (xcodebuild green, verifier PASS, adversarial review 0-crit, codex PASS), NOT pushed — Phase 30 (shadow-engine quality fixes) PLANNED; Phase 28 human UI visual review OWED
+last_updated: "2026-05-31T02:10:00.000Z"
+last_activity: 2026-05-31 -- v1.6 Phases 27/28/29 fully gated via workflow (verifier+adversarial review) + I re-verified build green myself (430 unit/0 fail HEAD 90cec6b; 448/0 incl Phase-29, lone ScreenshotTests.test03_Recovery flake passed isolated) + codex review PASS (4 P2/P3 shadow-only findings). User chose: fix the 6 shadow/display findings now as Phase 30, update docs, HOLD push until human UI visual review of Phase-28 dual-run surface. Nothing pushed, nothing activated, master flag FALSE.
 progress:
   total_phases: 14
   completed_phases: 13
@@ -25,9 +25,10 @@ See: .planning/PROJECT.md (updated 2026-05-10)
 
 ## Current Position
 
-Phase: 26 (individualized-baselines) IN PROGRESS — Plan 03 of 4 COMPLETE (2026-05-30)
-Status: 26-03 input layer + tier fence shipped — pure DayBucketer (morning-window MEDIAN per calendar day for HRV/RHR, last-night aggregate for sleep, GAP-honest, no carry-forward/imputation, structural stale-dedup; Foundation-only, Calendar injected, ZERO Date.now/RNG/HealthKit; reuses BaselineEngine.median). W-1 idempotency guard NOW IMPLEMENTED as DayBucketer.foldBuckets (drives BaselineEngine.step once per advanced day, startOfDay(t) > lastBucketedDate; re-presenting same/older day is a no-op; GAPs skipped). Additive HealthKitService.fetchRestingHRHistory(days:) (RHR mirror of fetchHRVHistory; existing fetches byte-unchanged). HIGH-risk tier fence MACHINE-ENFORCED: BaselineTierFenceTests asserts computeBaseline .suffix(7) 7-day mean intact + substrate (DayBucketer/BaselineEngine/BaselineState) not on live RecoveryPipeline path (comment-stripped). 14/14 tests green via real xcodebuild (sim iPhone 17 Pro Max). pbxproj: DayBucketer.swift 4 app-target entries. Wave 1+2+3 done, Plan 04 (convergence report) remains
-Last activity: 2026-05-30 -- Phase 26 Plan 03 executed (pure DayBucketer + W-1 fold guard + additive fetchRestingHRHistory + machine-enforced tier fence)
+Phase: 27/28/29 BUILT + verification-complete (NOT pushed); Phase 30 PLANNED
+Status: v1.6 Algorithm Moat — Phases 27 (strength-load + Strain-Risk), 28 (readiness fusion + explainable decisions + ACWR demotion + PRS-v1 shadow arm, all behind PRSActivation default FALSE), 29 (PRSMasterActivation flag default FALSE + report-only ActivationGateEvaluator + shadow-validation report) all committed to `main`, 24 commits ahead of origin. Each gated: I re-verified xcodebuild green myself (430 unit/0 fail at HEAD; 448/0 with Phase-29; lone ScreenshotTests.test03_Recovery red was a confirmed XCUITest flake — passed isolated); gsd-verifier PASS all invariants; adversarial code review 0 critical; codex review GATE PASS (4 P2/P3 findings, all shadow/display/flag-on, none live). Invariants hold: live recovery score + live recommendation byte-identical with flags off (BaselineTierFence + AutoregulationFlagFence + DualRunFlagFence all green); new models/columns local-only/never-synced; NOTHING activated; master flag FALSE.
+Next: (1) Phase 30 — fix the 6 shadow-engine quality findings (see ROADMAP Phase 30); (2) Phase 28 human UI visual review (DEBUG, enable PRSActivation, verify dual-run surface per DESIGN.md / "Tuwa" / no "injury prediction") + Wave-4 DashboardView wiring; (3) push to origin (HELD until UI review — needs user approval).
+Last activity: 2026-05-31 -- v1.6 27/28/29 verification-complete via gated workflow + self-verified build + codex; docs updated; Phase 30 planned
 
 Prior: Phase 25 (soreness-tweak-self-log) Plan 01 COMPLETE — local-only SorenessLog @Model + NiggleType enum + SorenessLogRepository (4/4 green); Plans 02/03/04 remain
 
