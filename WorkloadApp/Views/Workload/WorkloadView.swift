@@ -71,11 +71,10 @@ struct WorkloadView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     ACWRGaugeCard(snapshot: latestSnapshot)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.sm)
 
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-
+                    // ATL / CTL / TSB — flat inline strip lifted onto the page.
                     HStack(spacing: 0) {
                         MetricTile(
                             title: "ATL",
@@ -83,14 +82,12 @@ struct WorkloadView: View {
                             subtitle: "Acute \u{00B7} 7-day",
                             color: ColorTokens.chartATL
                         )
-                        Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                         MetricTile(
                             title: "CTL",
                             value: String(format: "%.0f", latestSnapshot?.chronicLoad ?? 0),
                             subtitle: "Chronic \u{00B7} 28-day",
                             color: ColorTokens.chartCTL
                         )
-                        Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                         MetricTile(
                             title: "TSB",
                             value: String(format: "%+.0f", latestSnapshot?.tsb ?? 0),
@@ -98,52 +95,54 @@ struct WorkloadView: View {
                             color: ColorTokens.chartTSB
                         )
                     }
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.xs)
 
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
+                    SectionContainer(header: "workload.section.loadTrend") {
+                        VStack(spacing: 0) {
+                            if container.subscriptionService.isPro {
+                                TimeRangeSegmentedControl(selected: $viewModel.selectedRange)
+                                    .padding(.bottom, Spacing.sm)
+                            }
 
-                    if container.subscriptionService.isPro {
-                        TimeRangeSegmentedControl(selected: $viewModel.selectedRange)
-                            .padding(.vertical, 16)
-
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
-                    }
-
-                    if trendData.count > 1 {
-                        LoadTrendChartView(
-                            snapshots: trendData,
-                            selectedDate: $selectedTrendDate
-                        )
-
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
+                            if trendData.count > 1 {
+                                LoadTrendChartView(
+                                    snapshots: trendData,
+                                    selectedDate: $selectedTrendDate
+                                )
+                                .cardStyle()
+                            }
+                        }
+                        .padding(.horizontal, Spacing.sm)
                     }
 
                     if lockedWeeks > 0 {
-                        HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
-                            showUpgrade = true
+                        SectionContainer {
+                            HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
+                                showUpgrade = true
+                            }
+                            .padding(.horizontal, Spacing.sm)
                         }
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                     }
 
                     if container.subscriptionService.isPro {
-                        RecoveryLoadChart(
-                            loadSnapshots: viewModel.correlationLoadSnapshots,
-                            recoverySnapshots: viewModel.correlationRecoverySnapshots
-                        )
-
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
+                        SectionContainer(header: "workload.section.recoveryVsLoad") {
+                            RecoveryLoadChart(
+                                loadSnapshots: viewModel.correlationLoadSnapshots,
+                                recoverySnapshots: viewModel.correlationRecoverySnapshots
+                            )
+                            .cardStyle()
+                            .padding(.horizontal, Spacing.sm)
+                        }
                     }
 
                     if !visibleRecords.isEmpty {
-                        PRHistorySection(records: visibleRecords)
+                        SectionContainer(header: "workload.section.recentPRs") {
+                            PRHistorySection(records: visibleRecords)
+                        }
                     }
+
+                    Spacer().frame(height: Spacing.lg)
                 }
             }
             .background(ColorTokens.background)
@@ -276,9 +275,7 @@ struct ACWRGaugeCard: View {
                     .foregroundStyle(ColorTokens.text2)
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.surface)
+        .cardStyle()
     }
 }
 
@@ -291,11 +288,6 @@ struct LoadTrendChartView: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("workload.section.loadTrend")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
-
             Chart {
                 ForEach(snapshots, id: \.id) { snapshot in
                     LineMark(
@@ -337,9 +329,6 @@ struct LoadTrendChartView: View {
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.background)
     }
 }
 
@@ -350,18 +339,11 @@ struct PRHistorySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("workload.section.recentPRs")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-
             Rectangle()
                 .fill(ColorTokens.divider)
                 .frame(height: 0.5)
 
-            ForEach(records, id: \.id) { pr in
+            ForEach(Array(records.enumerated()), id: \.element.id) { index, pr in
                 HStack {
                     VStack(alignment: .leading, spacing: 4) {
                         Text(pr.exerciseName)
@@ -385,13 +367,17 @@ struct PRHistorySection: View {
                         }
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 12)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.sm)
 
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
+                if index < records.count - 1 {
+                    RowSeparator()
+                }
             }
+
+            Rectangle()
+                .fill(ColorTokens.divider)
+                .frame(height: 0.5)
         }
         .background(ColorTokens.background)
     }

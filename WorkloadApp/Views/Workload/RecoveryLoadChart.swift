@@ -11,25 +11,15 @@ struct RecoveryLoadChart: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("RECOVERY vs LOAD \u{00B7} 28 DAYS")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 16)
-
             if loadSnapshots.count < 7 {
                 Text("Log workouts for 7+ days to see recovery-load patterns.")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 24)
             } else {
                 chartContent
             }
         }
-        .padding(.vertical, 16)
-        .background(ColorTokens.background)
     }
 
     private var chartContent: some View {
@@ -73,6 +63,5 @@ struct RecoveryLoadChart: View {
                 )
             }
         }
-        .padding(.horizontal, 16)
     }
 }

@@ -5176,7 +5176,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "LOAD TREND"
+            "value": "Load Trend"
           }
         },
         "zh-Hans": {
@@ -5187,13 +5187,30 @@
         }
       }
     },
+    "workload.section.recoveryVsLoad": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery vs Load"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复与负荷"
+          }
+        }
+      }
+    },
     "workload.section.recentPRs": {
       "extractionState": "manual",
       "localizations": {
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "RECENT PRS"
+            "value": "Recent PRs"
           }
         },
         "zh-Hans": {
