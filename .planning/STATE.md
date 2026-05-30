@@ -2,16 +2,16 @@
 gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Algorithm Moat (Personal Readiness v1)
-status: executing
-stopped_at: v1.6 Phase 24 COMPLETE (validation foundation, 262 tests pass, pushed). Phase 25 next. Paused for user context-clear.
-last_updated: "2026-05-30T00:00:00.000Z"
-last_activity: 2026-05-30 -- v1.6 Phase 24 done+pushed (f159a21); paused at user request for context-window clear; resume at Phase 25
+status: completed
+stopped_at: Phase 25 context gathered
+last_updated: "2026-05-30T05:31:20.658Z"
+last_activity: 2026-05-30 -- Phases 19,20,21,22 executed via parallel-plan/serial-execute sub-agent team
 progress:
-  total_phases: 7
-  completed_phases: 7
-  total_plans: 24
-  completed_plans: 24
-  percent: 100
+  total_phases: 13
+  completed_phases: 12
+  total_plans: 36
+  completed_plans: 36
+  percent: 92
 ---
 
 # Project State
@@ -32,6 +32,7 @@ Last activity: 2026-05-30 -- Phases 19,20,21,22 executed via parallel-plan/seria
 v1.3-live-feedback improvement pass (2026-05-30): HealthKit re-prompt bug FIXED; UI hierarchy upgraded (Dashboard+Profile only — DESIGN.md luminance revised, card/section primitives); invite-coach redesigned; ACWR copy demoted to load-context. Codex-reviewed, 1 P1 + 3 P2 found and fixed, gate PASS, build green. 8 commits local on main. Algorithm redesign DEFERRED to its own milestone (needs user direction).
 
 Outstanding before ship:
+
 - Algorithm v1 — SCOPE LOCKED + user-approved 2026-05-30, BUILD DEFERRED to a later milestone (per-muscle strength load, ACWR-out dual-run, Altini baselines, Readiness+Strain-Risk, honest framing, behind shadow harness). See memory project_algorithm_v1_locked + .planning/research/{algorithm-moat-design,competitive-algorithm-analysis}.md. Do not start until user reactivates.
 - Design brand sign-off: luminance bump + DesignToggleStyle need user's eyes in running app
 - UI hierarchy pass NOT applied to Recovery + Workload screens yet (bounded per codex)
@@ -113,6 +114,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-26T10:05:45.668Z
-Stopped at: Phase 23 UI-SPEC approved
-Resume file: .planning/phases/23-multi-language-in-app-support-simplified-chinese/23-UI-SPEC.md
+Last session: 2026-05-30T05:31:20.650Z
+Stopped at: Phase 25 context gathered
+Resume file: .planning/phases/25-soreness-tweak-self-log/25-CONTEXT.md
