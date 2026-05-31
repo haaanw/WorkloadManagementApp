@@ -17,7 +17,7 @@ Read this + STATE.md + memory [[project_v16_progress]] + [[feedback_gsd_executio
 ## NEXT — resume here
 **v1.6 BUILD COMPLETE + UI-REVIEWED.** Phases 27/28/29/30(+Wave5) all gated green, 0 critical, self-verified builds, all fences green, nothing activated, flags FALSE. Phase-28 Wave-4 DashboardView wiring DONE (`560a194`, flag-gated, build 488/0). Phase-28 dual-run UI visually reviewed on sim → PASS, DESIGN.md-compliant, placement endorsed (`975826c`, see 28-UI-REVIEW.md). 39 commits ahead of origin.
 
-**ONLY ONE THING REMAINS: push.** 39 commits, HELD for user approval. **NEVER push without user approval.** (Optional future polish noted in 28-UI-REVIEW.md: tighten dual-run headlines / vertical spacing — taste calls, non-blocking.)
+**v1.6 PUSHED to origin/main @ `5b6bf15` (2026-05-31).** Polish (dual-run card hierarchy + spacing, `5b6bf15`) done + UI review PASS. Nothing activated, all flags FALSE. Milestone closed to remote. Optional future: tighten dual-run recommendation headlines (engine output) if desired — non-blocking.
 
 **Phase 30 DONE** (commits Waves 1-4 `1e5314a`/`466df41`/`bd5739d`/`634e3f2`; Wave 5 `510188f`/`02ad347`/`d45ae5a`): 6 findings fixed; Wave-2's z-standardise+offset monotony fix regressed (saturated StrainRisk monotony at 1.0) → Wave 5 replaced it with a single real-unit combined series (strength→sRPE-equiv ×5.0), Foster monotony back in ~1-3, non-saturated + distribution-sensitive (5 integration tests), gate shares the series, half-open windows. Build 484/0, verifier PASS, review 0 critical.
 
