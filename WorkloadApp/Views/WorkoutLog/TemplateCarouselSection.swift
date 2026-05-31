@@ -178,7 +178,7 @@ struct TemplateCarouselSection: View {
                         .background(ColorTokens.surface)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Archive template")
+                    .accessibilityLabel("a11y.archiveTemplate")
 
                     Button {
                         templateToDelete = template
@@ -199,7 +199,7 @@ struct TemplateCarouselSection: View {
                         .background(ColorTokens.surface)
                     }
                     .buttonStyle(.plain)
-                    .accessibilityLabel("Delete template")
+                    .accessibilityLabel("a11y.deleteTemplate")
                 }
             }
 

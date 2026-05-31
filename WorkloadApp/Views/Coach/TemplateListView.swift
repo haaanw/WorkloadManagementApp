@@ -50,7 +50,7 @@ struct TemplateListView: View {
                     selectedTemplate = nil
                     showEditor = true
                 } label: {
-                    Label("New Template", systemImage: "plus")
+                    Label("action.newTemplate", systemImage: "plus")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)

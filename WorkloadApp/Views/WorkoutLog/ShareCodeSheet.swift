@@ -91,7 +91,7 @@ struct ShareCodeSheet: View {
                         .foregroundStyle(ColorTokens.text1)
                         .padding(.horizontal, 16)
                         .padding(.top, 8)
-                        .accessibilityLabel("Share code")
+                        .accessibilityLabel("a11y.shareCode")
                         .accessibilityValue(code)
 
                     Text("shareCode.expiryText")

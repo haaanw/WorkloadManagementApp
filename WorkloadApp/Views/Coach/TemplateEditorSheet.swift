@@ -70,7 +70,7 @@ struct TemplateEditorSheet: View {
                         let nextName = "Group \(Character(UnicodeScalar(65 + min(groups.count, 25))!))"
                         groups.append(GroupDraft(groupName: nextName))
                     } label: {
-                        Label("Add Group", systemImage: "plus")
+                        Label("action.addGroup", systemImage: "plus")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
@@ -86,12 +86,12 @@ struct TemplateEditorSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
+                    Button("action.save") { save() }
                         .font(.Tokens.label)
                         .foregroundStyle(
                             templateName.isEmpty ? ColorTokens.text3 : ColorTokens.text1
@@ -244,7 +244,7 @@ struct GroupEditorCard: View {
 
             // Add exercise to this group
             Button { onAddExercise() } label: {
-                Label("Add Exercise", systemImage: "plus")
+                Label("action.addExercise", systemImage: "plus")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(.horizontal, 16)
@@ -302,7 +302,7 @@ struct TemplateExerciseCard: View {
             Button {
                 exercise.sets.append(TargetSetDraft())
             } label: {
-                Label("Add Set", systemImage: "plus")
+                Label("action.addSet", systemImage: "plus")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
             }

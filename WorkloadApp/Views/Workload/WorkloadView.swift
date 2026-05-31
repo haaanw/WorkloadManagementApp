@@ -162,7 +162,7 @@ struct WorkloadView: View {
                         Image(systemName: "square.and.arrow.up")
                             .foregroundStyle(ColorTokens.text1)
                     }
-                    .accessibilityLabel("Export workout data")
+                    .accessibilityLabel("a11y.exportWorkoutData")
                 }
             }
             .confirmationDialog("workload.export.title", isPresented: $showExportOptions, titleVisibility: .visible) {

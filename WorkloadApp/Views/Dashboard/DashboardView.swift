@@ -105,7 +105,7 @@ struct DashboardView: View {
                                         .font(.Tokens.smallLabel)
                                         .foregroundStyle(ColorTokens.text2)
                                 }
-                                .accessibilityLabel("Dismiss cycle tracking prompt")
+                                .accessibilityLabel(String(localized: "a11y.dismissCyclePrompt", defaultValue: "Dismiss cycle tracking prompt"))
                             }
                             Text("dashboard.cycleAware.body")
                                 .font(.Tokens.label)
@@ -324,8 +324,8 @@ struct HeroReadinessCard: View {
                       sufficiency.weeksAvailable > 0 {
                 DataSufficiencyRing(
                     progress: Double(sufficiency.weeksAvailable) / Double(sufficiency.weeksRequired),
-                    label: "\(sufficiency.weeksAvailable) of \(sufficiency.weeksRequired) weeks",
-                    message: "Keep logging -- periodization insights unlock after \(sufficiency.weeksRequired) weeks of consistent training"
+                    label: String(localized: "dashboard.periodization.progress", defaultValue: "\(sufficiency.weeksAvailable) of \(sufficiency.weeksRequired) weeks"),
+                    message: String(localized: "dashboard.periodization.unlock", defaultValue: "Keep logging -- periodization insights unlock after \(sufficiency.weeksRequired) weeks of consistent training")
                 )
             }
 

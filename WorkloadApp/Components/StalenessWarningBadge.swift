@@ -15,6 +15,6 @@ struct StalenessWarningBadge: View {
                 .foregroundStyle(ColorTokens.text2)
         }
         .accessibilityElement(children: .combine)
-        .accessibilityLabel("Warning: health data last updated \(daysAgo) days ago")
+        .accessibilityLabel(String(localized: "a11y.stalenessWarning", defaultValue: "Warning: health data last updated \(daysAgo) days ago"))
     }
 }

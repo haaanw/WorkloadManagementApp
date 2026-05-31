@@ -46,7 +46,7 @@ struct CoachRosterView: View {
                         Image(systemName: "doc.text")
                             .foregroundStyle(ColorTokens.text1)
                     }
-                    .accessibilityLabel("Export roster report")
+                    .accessibilityLabel("a11y.exportRosterReport")
                     .accessibilityHint("Generates a PDF report of your training data")
                 }
             }

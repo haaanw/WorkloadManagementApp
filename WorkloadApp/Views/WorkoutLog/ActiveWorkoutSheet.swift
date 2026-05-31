@@ -198,9 +198,9 @@ struct ActiveWorkoutSheet: View {
                 titleVisibility: .visible
             ) {
                 Button("action.logNiggle") { showNiggleLog = true }
-                Button("Skip", role: .cancel) { dismiss() }
+                Button("action.skip", role: .cancel) { dismiss() }
             } message: {
-                Text("Optional — note a sore spot to track how your body handles load.")
+                Text("workout.soreness.optionalNote")
             }
             .sheet(isPresented: $showNiggleLog, onDismiss: { dismiss() }) {
                 NiggleLogSheet()

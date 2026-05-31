@@ -79,7 +79,7 @@ struct PrescribedWorkoutCard: View {
                 Rectangle().fill(ColorTokens.divider).frame(width: 0.5, height: 44)
 
                 Button { onSkip() } label: {
-                    Text("Skip")
+                    Text("action.skip")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text3)
                         .frame(maxWidth: .infinity)

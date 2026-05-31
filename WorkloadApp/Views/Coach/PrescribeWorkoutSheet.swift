@@ -107,12 +107,12 @@ struct PrescribeWorkoutSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Assign") { assign() }
+                    Button("action.assign") { assign() }
                         .font(.Tokens.label)
                         .foregroundStyle(
                             selectedTemplate == nil ? ColorTokens.text3 : ColorTokens.text1
@@ -200,7 +200,7 @@ struct PrescribeWorkoutSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showTemplatePicker = false }
+                    Button("action.cancel") { showTemplatePicker = false }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
