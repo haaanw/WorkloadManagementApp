@@ -108,12 +108,12 @@ struct UpgradeSheet: View {
                     // MARK: Plan toggle
                     HStack(spacing: 0) {
                         planButton(.annual,
-                                   title: "ANNUAL",
+                                   title: String(localized: "upgrade.plan.annual", defaultValue: "ANNUAL"),
                                    price: annualPackage?.localizedPriceString ?? selectedTier.fallbackAnnualPrice,
                                    badge: selectedTier.annualSavingsBadge)
                         Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                         planButton(.monthly,
-                                   title: "MONTHLY",
+                                   title: String(localized: "upgrade.plan.monthly", defaultValue: "MONTHLY"),
                                    price: monthlyPackage?.localizedPriceString ?? selectedTier.fallbackMonthlyPrice,
                                    badge: nil)
                     }
@@ -389,8 +389,8 @@ enum SubscriptionTier: String, CaseIterable {
 
     var annualSavingsBadge: String {
         switch self {
-        case .athletePro: return "SAVE 29%"
-        case .coach: return "SAVE 25%"
+        case .athletePro: return String(localized: "upgrade.savings.pro", defaultValue: "SAVE 29%")
+        case .coach: return String(localized: "upgrade.savings.coach", defaultValue: "SAVE 25%")
         }
     }
 }
