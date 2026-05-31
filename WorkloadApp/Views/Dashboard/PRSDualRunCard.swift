@@ -26,17 +26,22 @@ struct PRSDualRunCard: View {
                     .fixedSize(horizontal: false, vertical: true)
 
                 // Previous vs updated, shown side-by-side during the dual-run window.
+                // The superseded "Previous" guidance is de-emphasized (text2) and the new
+                // "Updated" guidance is primary (text1) — hierarchy via semantic tokens only,
+                // no accent/extra weight (DESIGN.md).
                 HStack(alignment: .top, spacing: 16) {
                     column(
                         title: String(localized: "prs.dualRun.previous", defaultValue: "Previous"),
-                        value: message.previousHeadline
+                        value: message.previousHeadline,
+                        muted: true
                     )
                     Rectangle()
                         .fill(ColorTokens.divider)
                         .frame(width: 1)
                     column(
                         title: String(localized: "prs.dualRun.updated", defaultValue: "Updated"),
-                        value: message.updatedHeadline
+                        value: message.updatedHeadline,
+                        muted: false
                     )
                 }
             }
@@ -47,19 +52,22 @@ struct PRSDualRunCard: View {
                 Rectangle()
                     .stroke(ColorTokens.divider, lineWidth: 1)
             )
+            // Breathing room below the hero block (only when the card renders; flag-off path is
+            // EmptyView, so the Dashboard stays byte-identical).
+            .padding(.top, 8)
         } else {
             EmptyView()
         }
     }
 
-    private func column(title: String, value: String) -> some View {
+    private func column(title: String, value: String, muted: Bool) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
                 .font(Font.Tokens.smallLabel)
                 .foregroundStyle(ColorTokens.text2)
             Text(value)
                 .font(Font.Tokens.body)
-                .foregroundStyle(ColorTokens.text1)
+                .foregroundStyle(muted ? ColorTokens.text2 : ColorTokens.text1)
                 .fixedSize(horizontal: false, vertical: true)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
