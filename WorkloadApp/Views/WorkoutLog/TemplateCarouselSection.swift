@@ -142,7 +142,7 @@ struct TemplateCarouselSection: View {
             Button("action.delete", role: .destructive) {
                 if let t = templateToDelete { deleteTemplate(t) }
             }
-            Button("Cancel", role: .cancel) {}
+            Button("action.cancel", role: .cancel) {}
         } message: {
             Text(String(format: String(localized: "confirm.deleteTemplate.message", defaultValue: "This will permanently remove '%@'. This cannot be undone."), templateToDelete?.templateName ?? ""))
         }

@@ -10,7 +10,7 @@ struct WorkoutImportBanner: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("IMPORT FROM WATCH")
+            Text("import.watch.header")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -65,7 +65,7 @@ private struct ImportSuggestionRow: View {
             Button {
                 onAccept()
             } label: {
-                Text("Add")
+                Text("action.add")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, 12)

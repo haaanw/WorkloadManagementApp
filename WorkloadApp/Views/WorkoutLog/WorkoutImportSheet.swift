@@ -94,7 +94,7 @@ struct WorkoutImportSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -218,7 +218,7 @@ struct WorkoutImportSheet: View {
 
     private var pdfTabContent: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Select a PDF file containing your workout")
+            Text("import.pdf.instruction")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
 
@@ -228,7 +228,7 @@ struct WorkoutImportSheet: View {
                 HStack(spacing: 8) {
                     Image(systemName: "doc.richtext")
                         .font(.Tokens.body)
-                    Text("Choose PDF")
+                    Text("import.pdf.choose")
                         .font(.Tokens.body)
                 }
                 .foregroundStyle(ColorTokens.text1)
@@ -246,7 +246,7 @@ struct WorkoutImportSheet: View {
 
     private var photoTabContent: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Take a photo of a workout or choose from your library")
+            Text("import.photo.instruction")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
 
@@ -257,7 +257,7 @@ struct WorkoutImportSheet: View {
                     HStack(spacing: 8) {
                         Image(systemName: "camera")
                             .font(.Tokens.body)
-                        Text("Camera")
+                        Text("import.photo.camera")
                             .font(.Tokens.body)
                     }
                     .foregroundStyle(ColorTokens.text1)
@@ -276,7 +276,7 @@ struct WorkoutImportSheet: View {
                     HStack(spacing: 8) {
                         Image(systemName: "photo.on.rectangle")
                             .font(.Tokens.body)
-                        Text("Library")
+                        Text("import.photo.library")
                             .font(.Tokens.body)
                     }
                     .foregroundStyle(ColorTokens.text1)
@@ -299,7 +299,7 @@ struct WorkoutImportSheet: View {
             VStack(spacing: 16) {
                 ProgressView()
                     .tint(ColorTokens.text2)
-                Text("Analyzing workout...")
+                Text("import.analyzing")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text2)
             }
@@ -319,7 +319,7 @@ struct WorkoutImportSheet: View {
                 errorMessage = nil
                 retryLastAction()
             } label: {
-                Text("Retry")
+                Text("action.retry")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, 24)

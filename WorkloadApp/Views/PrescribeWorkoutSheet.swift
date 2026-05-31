@@ -29,7 +29,7 @@ struct PrescribeWorkoutSheet: View {
                 VStack(spacing: 0) {
                     // Template selection
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("TEMPLATE")
+                        Text("coach.prescribe.fieldTemplate")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -38,7 +38,7 @@ struct PrescribeWorkoutSheet: View {
                             showTemplatePicker = true
                         } label: {
                             HStack {
-                                Text(selectedTemplate?.templateName ?? "Select a template")
+                                Text(selectedTemplate?.templateName ?? String(localized: "coach.prescribe.selectTemplatePlaceholder", defaultValue: "Select a template"))
                                     .font(.Tokens.body)
                                     .foregroundStyle(
                                         selectedTemplate == nil ? ColorTokens.text3 : ColorTokens.text1
@@ -67,7 +67,7 @@ struct PrescribeWorkoutSheet: View {
 
                     // Date picker
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("SCHEDULED DATE")
+                        Text("coach.prescribe.fieldScheduledDate")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -87,12 +87,12 @@ struct PrescribeWorkoutSheet: View {
 
                     // Notes
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("NOTES FOR ATHLETE")
+                        Text("coach.prescribe.fieldNotes")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
 
-                        TextField("Optional notes...", text: $notes, axis: .vertical)
+                        TextField("coach.prescribe.notes.placeholder", text: $notes, axis: .vertical)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                             .textFieldStyle(SharpTextFieldStyle())
@@ -103,16 +103,16 @@ struct PrescribeWorkoutSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Prescribe Workout")
+            .navigationTitle("coach.nav.prescribeWorkout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Assign") { assign() }
+                    Button("coach.action.assign") { assign() }
                         .font(.Tokens.label)
                         .foregroundStyle(
                             selectedTemplate == nil ? ColorTokens.text3 : ColorTokens.text1
@@ -188,7 +188,7 @@ struct PrescribeWorkoutSheet: View {
                     }
 
                     if templates.isEmpty {
-                        Text("No templates yet. Create one first.")
+                        Text("coach.prescribe.noTemplates")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text3)
                             .padding(.vertical, 48)
@@ -196,11 +196,11 @@ struct PrescribeWorkoutSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Select Template")
+            .navigationTitle("template.nav.select")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { showTemplatePicker = false }
+                    Button("action.cancel") { showTemplatePicker = false }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }

@@ -150,7 +150,7 @@ struct ShareCodeSheet: View {
 
     private func generateCode() async {
         guard let athlete else {
-            errorMessage = "Could not generate share code. Check your connection and try again."
+            errorMessage = String(localized: "share.error.generate", defaultValue: "Could not generate share code. Check your connection and try again.")
             isLoading = false
             return
         }
@@ -163,7 +163,7 @@ struct ShareCodeSheet: View {
             shareCode = code
         } catch {
             print("Share code generation error: \(error)")
-            errorMessage = "Could not generate share code. Check your connection and try again."
+            errorMessage = String(localized: "share.error.generate", defaultValue: "Could not generate share code. Check your connection and try again.")
         }
         isLoading = false
     }

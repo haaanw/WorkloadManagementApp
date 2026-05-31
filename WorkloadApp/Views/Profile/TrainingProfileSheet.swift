@@ -86,7 +86,7 @@ struct TrainingProfileSheet: View {
                         String(localized: "profile.trainingProfile.sessionsPerWeek", defaultValue: "Sessions per week"),
                         selection: $sessionsPerWeek,
                         options: Array(1...14),
-                        placeholder: "Select",
+                        placeholder: String(localized: "profile.trainingProfile.placeholder.select", defaultValue: "Select"),
                         displayName: { "\($0)" }
                     )
                     divider()
@@ -95,7 +95,7 @@ struct TrainingProfileSheet: View {
                         String(localized: "profile.trainingProfile.avgDuration", defaultValue: "Average duration"),
                         selection: $avgDurationMinutes,
                         options: [15, 30, 45, 60, 75, 90, 120, 150, 180],
-                        placeholder: "Select",
+                        placeholder: String(localized: "profile.trainingProfile.placeholder.select", defaultValue: "Select"),
                         displayName: { "\($0) min" }
                     )
                     divider()
@@ -104,7 +104,7 @@ struct TrainingProfileSheet: View {
                         String(localized: "profile.trainingProfile.typicalEffort", defaultValue: "Typical effort"),
                         selection: $typicalSRPE,
                         options: Array(1...10),
-                        placeholder: "Select",
+                        placeholder: String(localized: "profile.trainingProfile.placeholder.select", defaultValue: "Select"),
                         displayName: { srpeLabel($0) }
                     )
                     divider()
@@ -113,8 +113,10 @@ struct TrainingProfileSheet: View {
                         String(localized: "profile.trainingProfile.weeksAtLevel", defaultValue: "Weeks at current level"),
                         selection: $weeksAtLevel,
                         options: [1, 2, 3, 4, 6, 8, 12, 16, 24, 52],
-                        placeholder: "Select",
-                        displayName: { $0 == 1 ? "1 week" : "\($0) weeks" }
+                        placeholder: String(localized: "profile.trainingProfile.placeholder.select", defaultValue: "Select"),
+                        displayName: { $0 == 1
+                            ? String(localized: "profile.trainingProfile.weeks.one", defaultValue: "1 week")
+                            : String(localized: "profile.trainingProfile.weeks.other", defaultValue: "\($0) weeks") }
                     )
                     sectionDivider()
 
@@ -125,8 +127,10 @@ struct TrainingProfileSheet: View {
                         String(localized: "profile.trainingProfile.trainingAge", defaultValue: "Training age"),
                         selection: $trainingAgeYears,
                         options: Array(0...30),
-                        placeholder: "---",
-                        displayName: { $0 == 1 ? "1 year" : "\($0) years" }
+                        placeholder: String(localized: "profile.trainingProfile.placeholder.dash", defaultValue: "---"),
+                        displayName: { $0 == 1
+                            ? String(localized: "profile.trainingProfile.years.one", defaultValue: "1 year")
+                            : String(localized: "profile.trainingProfile.years.other", defaultValue: "\($0) years") }
                     )
                     divider()
 
@@ -134,7 +138,7 @@ struct TrainingProfileSheet: View {
                         String(localized: "profile.trainingProfile.scheduleType", defaultValue: "Schedule type"),
                         selection: $scheduleType,
                         options: ["Steady", "Periodized"],
-                        placeholder: "---",
+                        placeholder: String(localized: "profile.trainingProfile.placeholder.dash", defaultValue: "---"),
                         displayName: { $0 }
                     )
                     divider()
@@ -293,11 +297,11 @@ struct TrainingProfileSheet: View {
             } label: {
                 HStack(spacing: 4) {
                     if selectedMovementTypes.isEmpty {
-                        Text("---")
+                        Text("profile.trainingProfile.placeholder.dash")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text3)
                     } else {
-                        Text("\(selectedMovementTypes.count) selected")
+                        Text(String(localized: "profile.trainingProfile.movementTypes.selected", defaultValue: "\(selectedMovementTypes.count) selected"))
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                     }
@@ -326,11 +330,13 @@ struct TrainingProfileSheet: View {
                     Spacer()
                     HStack(spacing: 4) {
                         if selectedBodyRegions.isEmpty {
-                            Text("---")
+                            Text("profile.trainingProfile.placeholder.dash")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text3)
                         } else {
-                            Text("\(selectedBodyRegions.count) area\(selectedBodyRegions.count == 1 ? "" : "s")")
+                            Text(selectedBodyRegions.count == 1
+                                ? String(localized: "profile.trainingProfile.areas.one", defaultValue: "\(selectedBodyRegions.count) area")
+                                : String(localized: "profile.trainingProfile.areas.other", defaultValue: "\(selectedBodyRegions.count) areas"))
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                         }
@@ -452,7 +458,7 @@ struct TrainingProfileSheet: View {
                 Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
                 dismiss()
             } catch {
-                saveError = "Couldn't save your training profile. Please try again."
+                saveError = String(localized: "profile.trainingProfile.saveError", defaultValue: "Couldn't save your training profile. Please try again.")
             }
         } else {
             // New profile
@@ -474,7 +480,7 @@ struct TrainingProfileSheet: View {
                 Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
                 dismiss()
             } catch {
-                saveError = "Couldn't save your training profile. Please try again."
+                saveError = String(localized: "profile.trainingProfile.saveError", defaultValue: "Couldn't save your training profile. Please try again.")
             }
         }
     }

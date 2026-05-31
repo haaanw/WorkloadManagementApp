@@ -32,10 +32,10 @@ struct CoachExportSheet: View {
             VStack(spacing: 0) {
                 // Title section
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Select Athletes")
+                    Text("export.coach.selectAthletes.title")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
-                    Text("Choose athletes to include in the roster report")
+                    Text("export.coach.selectAthletes.subtitle")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -69,12 +69,12 @@ struct CoachExportSheet: View {
             .background(ColorTokens.background)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button(allSelected ? "Deselect All" : "Select All") {
+                    Button(allSelected ? "export.action.deselectAll" : "export.action.selectAll") {
                         toggleSelectAll()
                     }
                     .font(.Tokens.label)
@@ -93,8 +93,8 @@ struct CoachExportSheet: View {
                 ShareSheet(items: [url])
             }
         }
-        .alert("Error", isPresented: .constant(errorMessage != nil)) {
-            Button("OK") { errorMessage = nil }
+        .alert("alert.error.title", isPresented: .constant(errorMessage != nil)) {
+            Button("action.ok") { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
         }
@@ -184,7 +184,7 @@ struct CoachExportSheet: View {
         Button {
             generateReport()
         } label: {
-            Text(isGenerating ? "Generating..." : "Generate Roster Report")
+            Text(isGenerating ? "profile.action.generating" : "export.coach.generateButton")
                 .font(.Tokens.bodyMedium)
                 .foregroundStyle(ColorTokens.background)
                 .frame(maxWidth: .infinity)

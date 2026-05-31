@@ -49,15 +49,15 @@ struct ActiveWorkoutSheet: View {
                 VStack(spacing: 0) {
                     // Session info
                     VStack(spacing: 16) {
-                        TextField("Session Name (optional)", text: $sessionName)
+                        TextField(String(localized: "workout.field.sessionName.placeholder", defaultValue: "Session Name (optional)"), text: $sessionName)
                             .textFieldStyle(SharpTextFieldStyle())
 
-                        RadialPicker(selection: $sportType, title: "Sport Type")
+                        RadialPicker(selection: $sportType, title: "picker.sportType.title")
                             .onChange(of: sportType) { _, newSport in
                                 sessionType = defaultSessionType(for: newSport)
                             }
 
-                        RadialPicker(selection: $sessionType, title: "Session Type")
+                        RadialPicker(selection: $sessionType, title: "picker.sessionType.title")
 
                         TimelineView(.periodic(from: startTime, by: 1)) { _ in
                             Text(Date.durationString(seconds: Int(elapsed), locale: locale))
@@ -114,12 +114,12 @@ struct ActiveWorkoutSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Finish") { showFinishConfirmation = true }
+                    Button("action.finish") { showFinishConfirmation = true }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                 }
@@ -642,7 +642,7 @@ struct PRCelebrationOverlay: View {
                 .ignoresSafeArea()
 
             VStack(spacing: 24) {
-                Text("New PR\(prs.count > 1 ? "s" : "")!")
+                Text(String(format: String(localized: "workout.pr.title", defaultValue: "New PR%@!"), prs.count > 1 ? "s" : ""))
                     .font(.Tokens.pageTitle)
                     .foregroundStyle(ColorTokens.text1)
 
@@ -669,7 +669,7 @@ struct PRCelebrationOverlay: View {
                 .background(ColorTokens.surface)
                 .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
 
-                Button("Done") { onDismiss() }
+                Button("action.done") { onDismiss() }
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, 32)
@@ -747,7 +747,7 @@ struct ExerciseEntryCard: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 8)
             } else if entry.sets.first?.isFromHistory == true {
-                Text("PRE-FILLED FROM LAST SESSION")
+                Text("exercise.label.prefilledFromLast")
                     .font(.Tokens.micro)
                     .tracking(1.0)
                     .foregroundStyle(ColorTokens.text3)
@@ -793,7 +793,7 @@ struct ExerciseEntryCard: View {
             Button {
                 entry.sets.append(SetDraft())
             } label: {
-                Label("Add Set", systemImage: "plus")
+                Label("set.action.add", systemImage: "plus")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
             }
@@ -851,9 +851,9 @@ struct SetEntryRow: View {
         let formatted = String(format: "%.1f", weight)
         switch progressionType {
         case .increase:
-            return "\(formatted)kg suggested"
+            return String(format: String(localized: "set.suggestion.increase", defaultValue: "%@kg suggested"), formatted)
         case .maintain, .deload, .returnFromBreak, .none:
-            return "maintain \(formatted)kg"
+            return String(format: String(localized: "set.suggestion.maintain", defaultValue: "maintain %@kg"), formatted)
         }
     }
 
@@ -942,7 +942,7 @@ struct SetEntryRow: View {
                 .foregroundStyle(ColorTokens.text3)
                 .padding(.horizontal, 48)
                 .padding(.bottom, 8)
-                .accessibilityLabel("Suggested: \(text)")
+                .accessibilityLabel(String(format: String(localized: "set.suggestion.accessibility", defaultValue: "Suggested: %@"), text))
             }
         }
     }
@@ -959,7 +959,7 @@ struct FillButtonBar: View {
             Button {
                 fillLast()
             } label: {
-                Text("Fill last")
+                Text("workout.fill.last")
                     .font(.Tokens.bodyMedium)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, 16)
@@ -972,7 +972,7 @@ struct FillButtonBar: View {
                 Button {
                     fillSuggested()
                 } label: {
-                    Text("Fill suggested")
+                    Text("workout.fill.suggested")
                         .font(.Tokens.bodyMedium)
                         .foregroundStyle(ColorTokens.text1)
                         .padding(.horizontal, 16)

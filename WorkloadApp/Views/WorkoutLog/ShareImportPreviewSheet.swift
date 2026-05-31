@@ -193,7 +193,7 @@ struct ShareImportPreviewSheet: View {
 
     private func importTemplate() async {
         guard let athlete else {
-            importError = "Could not import template. Try again."
+            importError = String(localized: "share.error.import", defaultValue: "Could not import template. Try again.")
             return
         }
         isImporting = true
@@ -209,7 +209,7 @@ struct ShareImportPreviewSheet: View {
             try modelContext.save()
         } catch {
             print("Import save error: \(error)")
-            importError = "Could not import template. Try again."
+            importError = String(localized: "share.error.import", defaultValue: "Could not import template. Try again.")
             isImporting = false
             return
         }

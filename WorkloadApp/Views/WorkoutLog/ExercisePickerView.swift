@@ -48,7 +48,7 @@ struct ExercisePickerView: View {
             VStack(spacing: 0) {
                 ScrollView(.horizontal, showsIndicators: false) {
                     HStack(spacing: 8) {
-                        FilterChip(label: "All", isSelected: selectedCategory == nil) {
+                        FilterChip(label: String(localized: "filter.all", defaultValue: "All"), isSelected: selectedCategory == nil) {
                             selectedCategory = nil
                         }
                         ForEach(relevantCategories) { category in
@@ -100,7 +100,7 @@ struct ExercisePickerView: View {
                                             }
                                             if exercise.isCustom {
                                                 Text("·")
-                                                Text("Custom")
+                                                Text("sport.custom")
                                             }
                                         }
                                         .font(.Tokens.label)
@@ -115,7 +115,7 @@ struct ExercisePickerView: View {
                                     Button(role: .destructive) {
                                         deleteCustomExercise(named: exercise.name)
                                     } label: {
-                                        Label("Delete", systemImage: "trash")
+                                        Label("action.delete", systemImage: "trash")
                                     }
                                 }
                             }
@@ -127,10 +127,10 @@ struct ExercisePickerView: View {
             .background(ColorTokens.background)
             .navigationTitle("exercise.nav.select")
             .navigationBarTitleDisplayMode(.inline)
-            .searchable(text: $searchText, prompt: "Search exercises")
+            .searchable(text: $searchText, prompt: "exercise.search.prompt")
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button {
@@ -196,7 +196,7 @@ struct AddCustomExerciseSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 16) {
-                TextField("Exercise name", text: $name)
+                TextField(String(localized: "exercise.field.name.placeholder", defaultValue: "Exercise name"), text: $name)
                     .textFieldStyle(SharpTextFieldStyle())
 
                 Picker("Category", selection: $category) {
@@ -210,11 +210,11 @@ struct AddCustomExerciseSheet: View {
                     MuscleGroupSelector(selection: $muscleGroup)
                 } label: {
                     HStack(spacing: 8) {
-                        Text("Muscle Group (optional)")
+                        Text("exercise.field.muscleGroup.optional")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                         Spacer()
-                        Text(muscleGroup?.displayName ?? "None")
+                        Text(muscleGroup?.displayName ?? String(localized: "muscleGroup.none", defaultValue: "None"))
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                         Image(systemName: "chevron.right")
@@ -234,14 +234,14 @@ struct AddCustomExerciseSheet: View {
             }
             .padding(16)
             .background(ColorTokens.background)
-            .navigationTitle("Add Exercise")
+            .navigationTitle("action.addExercise")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Add") {
+                    Button("action.add") {
                         guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
                         let exercise = CustomExercise(
                             name: name.trimmingCharacters(in: .whitespaces),

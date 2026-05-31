@@ -25,10 +25,10 @@ struct TemplateListView: View {
             VStack(spacing: 0) {
                 if templates.isEmpty {
                     VStack(spacing: 8) {
-                        Text("No templates yet")
+                        Text("empty.noTemplates")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
-                        Text("Create a workout template to prescribe to your athletes.")
+                        Text("coach.template.empty.subtitle")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
                     }
@@ -50,7 +50,7 @@ struct TemplateListView: View {
                     selectedTemplate = nil
                     showEditor = true
                 } label: {
-                    Label("New Template", systemImage: "plus")
+                    Label("template.nav.newTemplate", systemImage: "plus")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
@@ -62,7 +62,7 @@ struct TemplateListView: View {
             }
         }
         .background(ColorTokens.background)
-        .navigationTitle("Templates")
+        .navigationTitle("nav.templates")
         .navigationBarTitleDisplayMode(.inline)
         .sheet(isPresented: $showEditor) {
             if let coachId {

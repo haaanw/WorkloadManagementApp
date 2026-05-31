@@ -47,24 +47,24 @@ struct TemplateEditorSheet: View {
                 VStack(spacing: 0) {
                     // Header fields
                     VStack(spacing: 16) {
-                        TextField("Template Name", text: $templateName)
+                        TextField("template.field.name.placeholder", text: $templateName)
                             .textFieldStyle(SharpTextFieldStyle())
 
-                        Picker("Sport", selection: $sportType) {
+                        Picker("template.picker.sport", selection: $sportType) {
                             ForEach(SportType.allCases) { sport in
                                 Text(sport.displayName).tag(sport)
                             }
                         }
                         .pickerStyle(.segmented)
 
-                        Picker("Type", selection: $sessionType) {
+                        Picker("template.picker.type", selection: $sessionType) {
                             ForEach(SessionType.allCases) { type in
                                 Text(type.displayName).tag(type)
                             }
                         }
                         .pickerStyle(.segmented)
 
-                        TextField("Notes (optional)", text: $notes, axis: .vertical)
+                        TextField("template.field.notes.placeholder", text: $notes, axis: .vertical)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                             .textFieldStyle(SharpTextFieldStyle())
@@ -142,7 +142,7 @@ struct TemplateEditorSheet: View {
                             : "Group \(groups.count + 1)"
                         groups.append(GroupDraft(groupName: nextName))
                     } label: {
-                        Label("Add Group", systemImage: "plus")
+                        Label("template.group.action.add", systemImage: "plus")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
@@ -166,12 +166,12 @@ struct TemplateEditorSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
+                    Button("action.save") { save() }
                         .font(.Tokens.label)
                         .foregroundStyle(
                             templateName.trimmingCharacters(in: .whitespaces).isEmpty ? ColorTokens.text3 : ColorTokens.text1
@@ -316,7 +316,7 @@ struct GroupEditorCard: View {
         VStack(alignment: .leading, spacing: 0) {
             // Group header
             HStack {
-                TextField("Group Name", text: $group.groupName)
+                TextField("template.group.field.name.placeholder", text: $group.groupName)
                     .font(.Tokens.sectionHead)
                     .foregroundStyle(ColorTokens.text1)
 
@@ -343,7 +343,7 @@ struct GroupEditorCard: View {
 
             // Add exercise to this group
             Button { onAddExercise() } label: {
-                Label("Add Exercise", systemImage: "plus")
+                Label("action.addExercise", systemImage: "plus")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(.horizontal, 16)
@@ -396,7 +396,7 @@ struct TemplateExerciseCard: View {
             Button {
                 exercise.sets.append(TargetSetDraft())
             } label: {
-                Label("Add Set", systemImage: "plus")
+                Label("set.action.add", systemImage: "plus")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
             }
@@ -408,16 +408,16 @@ struct TemplateExerciseCard: View {
     @ViewBuilder
     private var setHeaderRow: some View {
         HStack {
-            Text("SET")
+            Text("table.header.set")
                 .frame(width: 32)
             switch inputMode {
             case .weightReps:
-                Text("WEIGHT")
+                Text("table.header.weight")
                     .frame(maxWidth: .infinity)
-                Text("REPS")
+                Text("table.header.reps")
                     .frame(maxWidth: .infinity)
             case .repsOnly:
-                Text("REPS")
+                Text("table.header.reps")
                     .frame(maxWidth: .infinity)
             case .distanceDuration:
                 Text("exercise.label.distance")

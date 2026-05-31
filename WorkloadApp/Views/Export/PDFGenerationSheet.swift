@@ -28,7 +28,7 @@ struct PDFGenerationSheet: View {
             VStack(spacing: 0) {
                 // Title section
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Export PDF Report")
+                    Text("export.pdf.title")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
                     Text(subtitleText)
@@ -55,7 +55,7 @@ struct PDFGenerationSheet: View {
             .background(ColorTokens.background)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                 }
@@ -66,8 +66,8 @@ struct PDFGenerationSheet: View {
                 ShareSheet(items: [url])
             }
         }
-        .alert("Error", isPresented: .constant(errorMessage != nil)) {
-            Button("OK") { errorMessage = nil }
+        .alert("alert.error.title", isPresented: .constant(errorMessage != nil)) {
+            Button("action.ok") { errorMessage = nil }
         } message: {
             Text(errorMessage ?? "")
         }
@@ -116,11 +116,11 @@ struct PDFGenerationSheet: View {
                 if isGenerating {
                     ProgressView()
                         .tint(ColorTokens.background)
-                    Text("Generating...")
+                    Text("profile.action.generating")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.background)
                 } else {
-                    Text("Generate Report")
+                    Text("export.pdf.generateButton")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.background)
                 }

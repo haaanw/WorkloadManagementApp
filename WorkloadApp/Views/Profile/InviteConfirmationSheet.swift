@@ -76,7 +76,7 @@ struct InviteConfirmationSheet: View {
                         Button {
                             dismiss()
                         } label: {
-                            Text("Cancel")
+                            Text("action.cancel")
                                 .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                                 .frame(maxWidth: .infinity)
@@ -100,7 +100,7 @@ struct InviteConfirmationSheet: View {
         do {
             resolved = try await InviteService.resolveCode(code, client: container.supabase)
         } catch {
-            errorMessage = "Invalid or expired invite code."
+            errorMessage = String(localized: "invite.error.invalid", defaultValue: "Invalid or expired invite code.")
         }
         isLoading = false
     }

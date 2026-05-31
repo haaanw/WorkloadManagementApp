@@ -101,7 +101,7 @@ struct TextTemplateImportSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("action.saveAll") { saveTemplates() }

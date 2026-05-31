@@ -64,7 +64,7 @@ struct SyncStatusView: View {
                     .foregroundStyle(ColorTokens.text1)
 
                 if hasFailed, let error = store.lastErrors[entity] {
-                    Text("Failed \(Self.relativeFormatter.localizedString(for: error.timestamp, relativeTo: Date()))")
+                    Text(String(format: String(localized: "sync.status.failed", defaultValue: "Failed %@"), Self.relativeFormatter.localizedString(for: error.timestamp, relativeTo: Date())))
                         .font(.Tokens.smallLabel)
                         .foregroundStyle(ColorTokens.text2)
                 } else if let date = lastSync {

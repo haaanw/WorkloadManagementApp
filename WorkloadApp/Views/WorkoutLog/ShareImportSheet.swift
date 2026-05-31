@@ -86,7 +86,7 @@ struct ShareImportSheet: View {
                         .foregroundStyle(ColorTokens.text1)
                 }
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+                    Button("action.close") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }

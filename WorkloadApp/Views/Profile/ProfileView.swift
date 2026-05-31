@@ -606,7 +606,7 @@ struct ProfileView: View {
                         do {
                             try await container.deleteAccount(modelContext: modelContext)
                         } catch {
-                            errorMessage = "Failed to delete account: \(error.localizedDescription)"
+                            errorMessage = String(format: String(localized: "profile.deleteAccount.error", defaultValue: "Failed to delete account: %@"), error.localizedDescription)
                             isDeletingAccount = false
                         }
                     }
