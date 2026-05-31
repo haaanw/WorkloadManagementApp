@@ -3,7 +3,7 @@
 Read this + STATE.md + memory [[project_v16_progress]] + [[feedback_gsd_execution_gotchas]] + [[feedback_verify_before_claiming]] + [[feedback_subagent_driven]] FIRST.
 
 ## Git state
-- Branch `main`, **NOT pushed**. origin/main = `2efce31` (Phases 25+26). Local HEAD = `d45ae5a` (Phase 30 Wave-5 docs). **35 commits ahead.**
+- Branch `main`, **PUSHED**. origin/main = local HEAD = `65e936c` (2026-05-31). v1.6 (Phases 27/28/29/30 + Wave-4 wiring + UI review + polish) fully on remote. 0 ahead. Nothing activated, all flags FALSE.
 - Phase 27: `4fc4ffa` `0fa3207` `75ba4cf` `f61719e`.
 - Phase 28: `b9d3e56` `8446260` `fef8183` `64efc06` `a14422e` `eb10579` (+ doc commits). All behind `PRSActivation` (default FALSE).
 - Phase 29: `7f5b03e` (PRSMasterActivation flag default FALSE + report-only ActivationGateEvaluator), `cb23fab` (shadow-validation report), docs `eb1fa0a`/`2cd41aa`.
