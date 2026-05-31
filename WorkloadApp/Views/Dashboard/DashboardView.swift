@@ -51,6 +51,10 @@ struct DashboardView: View {
                 VStack(spacing: 0) {
                     HeroReadinessCard(viewModel: viewModel)
 
+                    // Phase 28 Wave 4 — FLAGGED dual-run card; placement PROVISIONAL, flagged for human visual review.
+                    // Flag OFF (default) → dualRunMessage nil → PRSDualRunCard renders EmptyView → layout byte-identical.
+                    PRSDualRunCard(message: viewModel.dualRunMessage)
+
                     if showWelcomeCard {
                         WelcomeActionCard(
                             onLogWorkout: { showActiveWorkout = true },

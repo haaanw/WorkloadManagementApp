@@ -29,6 +29,12 @@ final class DashboardViewModel {
     // Recommendation
     var recommendation: AutoregulationEngine.TrainingRecommendation?
 
+    // Phase 28 Wave 4 — FLAGGED dual-run "method updated" surface. Default nil; only ever assigned
+    // non-nil inside the `if PRSActivation.isEnabled` guard at the end of load(). With the flag OFF
+    // (default, production) this stays nil → PRSDualRunCard renders EmptyView → Dashboard
+    // byte-unchanged.
+    var dualRunMessage: PRSDualRunSurface.DualRunMessage?
+
     // Fatigue Accumulation Index
     var fatigueIndex: Double?
     var fatigueZone: FatigueIndexEngine.FatigueZone?
@@ -234,6 +240,11 @@ final class DashboardViewModel {
             .suffix(7)
             .map(\.recoveryScore)
 
+        // Phase 28 Wave 4: hoist the REAL FatigueResult so the flag-gated dual-run build below can
+        // reuse it (cold-start leaves it nil → builder returns nil → dualRunMessage stays nil). This
+        // does NOT change any existing published property or the fatigueIndex/fatigueZone assignments.
+        var fatigueResultForReadiness: FatigueIndexEngine.FatigueResult? = nil
+
         if isColdStartActive {
             // COLD-07: suppress FatigueIndex during cold-start window (D-16, D-17).
             // Cold-start does NO extra work: the 14d wellness fetch, the 28d niggle fetch,
@@ -282,6 +293,7 @@ final class DashboardViewModel {
             )
             fatigueIndex = fatigueResult.index
             fatigueZone = fatigueResult.zone
+            fatigueResultForReadiness = fatigueResult
         }
 
         // Generate recommendation (with fatigue index)
@@ -299,6 +311,15 @@ final class DashboardViewModel {
             input: autoInput,
             cycleContext: cycleContext.phase == .unknown ? nil : cycleContext,
             cyclesObserved: cyclesObserved
+        )
+
+        // Phase 28 Wave 4 — FLAGGED dual-run build. Factored into a SYNCHRONOUS method so it can be
+        // unit-tested under `PRSActivation.withEnabled(true)` (the override is sync-scoped). With the
+        // flag OFF this is an immediate no-op: dualRunMessage stays nil, no builder/engine call runs.
+        buildDualRunMessage(
+            allSessions: allSessions,
+            fatigueResult: fatigueResultForReadiness,
+            daysSinceRest: daysSinceRest
         )
 
         // Build reasoning factors (requires real data)
@@ -319,6 +340,45 @@ final class DashboardViewModel {
         }
 
         isLoading = false
+    }
+
+    /// Phase 28 Wave 4 — build the FLAGGED dual-run "method updated" message, gated entirely by
+    /// `PRSActivation.isEnabled`. With the flag OFF (default, production) the guard body is skipped
+    /// in full: NO `PRSReadinessInputBuilder` / `ReadinessFusionEngine` / `StrainRiskEngine` /
+    /// `recommendReadiness` call occurs, `dualRunMessage` stays nil, and no other published property
+    /// changes — the byte-identical guarantee. With the flag ON it recomputes a REAL `ReadinessInput`
+    /// (no live source exists to reuse — see `PRSReadinessInputBuilder`) and emits the legacy +
+    /// updated headlines via `PRSDualRunSurface`.
+    ///
+    /// Synchronous on purpose: `PRSActivation.withEnabled(_:)` restores the override via `defer` the
+    /// instant its closure returns, so the flag-gated build must run inside a SYNC scope to be
+    /// exercisable under the test override (it cannot straddle an `await`).
+    func buildDualRunMessage(
+        allSessions: [WorkoutSession],
+        fatigueResult: FatigueIndexEngine.FatigueResult?,
+        daysSinceRest: Int
+    ) {
+        if PRSActivation.isEnabled {
+            // FLAG ON ONLY — recompute readiness/strain with the real engines over real history.
+            if let legacy = recommendation,
+               let readinessInput = PRSReadinessInputBuilder.build(
+                   recentSnapshots: recentSnapshots,
+                   latestHRV: latestHRV,
+                   latestRHR: latestRHR,
+                   latestSleepMinutes: latestSleepMinutes,
+                   allSessions: allSessions,
+                   fatigueResult: fatigueResult,
+                   daysSinceRest: daysSinceRest,
+                   wellnessScore: nil,           // matches the legacy autoInput.wellnessScore source today
+                   acwr: acwr,
+                   acwrZone: acwrZone,
+                   asOf: .now,
+                   calendar: .current
+               ) {
+                let updated = AutoregulationEngine.recommendReadiness(input: readinessInput)
+                dualRunMessage = PRSDualRunSurface.dualRunMessage(legacy: legacy, updated: updated)
+            }
+        }
     }
 
     /// Refresh the pending weekly notification with current summary data (NOTF-01 staleness prevention).

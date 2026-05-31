@@ -171,6 +171,7 @@
 		EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2702010000000000000001 /* LoadDistributionEngine.swift */; };
 		EE2703020000000000000001 /* StrainRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2703010000000000000001 /* StrainRiskEngine.swift */; };
 		EE2804020000000000000001 /* PRSDualRunSurface.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2804010000000000000001 /* PRSDualRunSurface.swift */; };
+		EE2806020000000000000001 /* PRSReadinessInputBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2806010000000000000001 /* PRSReadinessInputBuilder.swift */; };
 		EE2801020000000000000001 /* PRSActivation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2801010000000000000001 /* PRSActivation.swift */; };
 		EE2802020000000000000001 /* ReadinessFusionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2802010000000000000001 /* ReadinessFusionEngine.swift */; };
 		EE2901020000000000000001 /* PRSMasterActivation.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2901010000000000000001 /* PRSMasterActivation.swift */; };
@@ -362,6 +363,7 @@
 		EE2702010000000000000001 /* LoadDistributionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadDistributionEngine.swift; sourceTree = "<group>"; };
 		EE2703010000000000000001 /* StrainRiskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainRiskEngine.swift; sourceTree = "<group>"; };
 		EE2804010000000000000001 /* PRSDualRunSurface.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRSDualRunSurface.swift; sourceTree = "<group>"; };
+		EE2806010000000000000001 /* PRSReadinessInputBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRSReadinessInputBuilder.swift; sourceTree = "<group>"; };
 		EE2801010000000000000001 /* PRSActivation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRSActivation.swift; sourceTree = "<group>"; };
 		EE2802010000000000000001 /* ReadinessFusionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessFusionEngine.swift; sourceTree = "<group>"; };
 		EE2901010000000000000001 /* PRSMasterActivation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRSMasterActivation.swift; sourceTree = "<group>"; };
@@ -580,6 +582,7 @@
 				EE2702010000000000000001 /* LoadDistributionEngine.swift */,
 				EE2703010000000000000001 /* StrainRiskEngine.swift */,
 				EE2804010000000000000001 /* PRSDualRunSurface.swift */,
+				EE2806010000000000000001 /* PRSReadinessInputBuilder.swift */,
 				EE2801010000000000000001 /* PRSActivation.swift */,
 				EE2802010000000000000001 /* ReadinessFusionEngine.swift */,
 				EE2901010000000000000001 /* PRSMasterActivation.swift */,
@@ -1098,6 +1101,7 @@
 				EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */,
 				EE2703020000000000000001 /* StrainRiskEngine.swift in Sources */,
 				EE2804020000000000000001 /* PRSDualRunSurface.swift in Sources */,
+				EE2806020000000000000001 /* PRSReadinessInputBuilder.swift in Sources */,
 				EE2801020000000000000001 /* PRSActivation.swift in Sources */,
 				EE2802020000000000000001 /* ReadinessFusionEngine.swift in Sources */,
 				EE2901020000000000000001 /* PRSMasterActivation.swift in Sources */,
