@@ -80,10 +80,10 @@ struct TrainingProfileSheet: View {
             ScrollView {
                 VStack(spacing: 0) {
                     // REQUIRED section
-                    sectionHeader("REQUIRED")
+                    sectionHeader(String(localized: "profile.trainingProfile.sectionRequired", defaultValue: "REQUIRED"))
 
                     pickerRow(
-                        "Sessions per week",
+                        String(localized: "profile.trainingProfile.sessionsPerWeek", defaultValue: "Sessions per week"),
                         selection: $sessionsPerWeek,
                         options: Array(1...14),
                         placeholder: "Select",
@@ -92,7 +92,7 @@ struct TrainingProfileSheet: View {
                     divider()
 
                     pickerRow(
-                        "Average duration",
+                        String(localized: "profile.trainingProfile.avgDuration", defaultValue: "Average duration"),
                         selection: $avgDurationMinutes,
                         options: [15, 30, 45, 60, 75, 90, 120, 150, 180],
                         placeholder: "Select",
@@ -101,7 +101,7 @@ struct TrainingProfileSheet: View {
                     divider()
 
                     pickerRow(
-                        "Typical effort",
+                        String(localized: "profile.trainingProfile.typicalEffort", defaultValue: "Typical effort"),
                         selection: $typicalSRPE,
                         options: Array(1...10),
                         placeholder: "Select",
@@ -110,7 +110,7 @@ struct TrainingProfileSheet: View {
                     divider()
 
                     pickerRow(
-                        "Weeks at current level",
+                        String(localized: "profile.trainingProfile.weeksAtLevel", defaultValue: "Weeks at current level"),
                         selection: $weeksAtLevel,
                         options: [1, 2, 3, 4, 6, 8, 12, 16, 24, 52],
                         placeholder: "Select",
@@ -119,10 +119,10 @@ struct TrainingProfileSheet: View {
                     sectionDivider()
 
                     // OPTIONAL section
-                    sectionHeader("OPTIONAL")
+                    sectionHeader(String(localized: "profile.trainingProfile.sectionOptional", defaultValue: "OPTIONAL"))
 
                     pickerRow(
-                        "Training age",
+                        String(localized: "profile.trainingProfile.trainingAge", defaultValue: "Training age"),
                         selection: $trainingAgeYears,
                         options: Array(0...30),
                         placeholder: "---",
@@ -131,7 +131,7 @@ struct TrainingProfileSheet: View {
                     divider()
 
                     pickerRow(
-                        "Schedule type",
+                        String(localized: "profile.trainingProfile.scheduleType", defaultValue: "Schedule type"),
                         selection: $scheduleType,
                         options: ["Steady", "Periodized"],
                         placeholder: "---",
@@ -155,17 +155,17 @@ struct TrainingProfileSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Training Profile")
+            .navigationTitle("profile.trainingProfile.navTitle")
             .navigationBarTitleDisplayMode(.inline)
             .interactiveDismissDisabled(hasChanges)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Discard Changes") { dismiss() }
+                    Button("action.discardChanges") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save Profile") { save() }
+                    Button("action.saveProfile") { save() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .disabled(!isFormValid)
@@ -268,7 +268,7 @@ struct TrainingProfileSheet: View {
     @ViewBuilder
     private func movementTypesRow() -> some View {
         HStack {
-            Text("Movement types")
+            Text("profile.trainingProfile.movementTypes")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
             Spacer()
@@ -320,7 +320,7 @@ struct TrainingProfileSheet: View {
                 }
             } label: {
                 HStack {
-                    Text("Injury history")
+                    Text("profile.trainingProfile.injuryHistory")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text2)
                     Spacer()
@@ -387,7 +387,7 @@ struct TrainingProfileSheet: View {
                         .frame(height: 0.5)
                         .padding(.leading, 16)
 
-                    TextField("Notes (optional)", text: $injuryNotes, axis: .vertical)
+                    TextField("profile.trainingProfile.injuryNotes", text: $injuryNotes, axis: .vertical)
                         .lineLimit(2...4)
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)

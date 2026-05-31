@@ -15,8 +15,8 @@ struct SpikeAlertBanner: View {
 
     private var severityLabel: String {
         switch alert.severity {
-        case .high: "HIGH LOAD SPIKE"
-        case .moderate: "SESSION LOAD SPIKE"
+        case .high: String(localized: "spike.alert.severity.high", defaultValue: "HIGH LOAD SPIKE")
+        case .moderate: String(localized: "spike.alert.severity.moderate", defaultValue: "SESSION LOAD SPIKE")
         }
     }
 
@@ -33,7 +33,7 @@ struct SpikeAlertBanner: View {
                     .tracking(0.88)
                     .foregroundStyle(borderColor)
 
-                Text("This session's load was \(String(format: "%.1f", alert.ratio))x your 28-day average. Consider extra recovery.")
+                Text(String(format: String(localized: "spike.alert.message", defaultValue: "This session's load was %@x your 28-day average. Consider extra recovery."), String(format: "%.1f", alert.ratio)))
                     .font(.Tokens.smallLabel)
                     .foregroundStyle(ColorTokens.text1)
                     .fixedSize(horizontal: false, vertical: true)
@@ -44,7 +44,7 @@ struct SpikeAlertBanner: View {
                             .font(.Tokens.smallLabelMedium)
                             .monospacedDigit()
                     } icon: {
-                        Text("SESSION")
+                        Text("spike.alert.label.session")
                             .font(.Tokens.micro)
                             .tracking(0.88)
                     }
@@ -55,7 +55,7 @@ struct SpikeAlertBanner: View {
                             .font(.Tokens.smallLabelMedium)
                             .monospacedDigit()
                     } icon: {
-                        Text("AVG")
+                        Text("spike.alert.label.average")
                             .font(.Tokens.micro)
                             .tracking(0.88)
                     }

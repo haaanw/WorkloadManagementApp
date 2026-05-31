@@ -8,7 +8,7 @@ struct TrainingProfileCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("TRAINING PROFILE")
+            Text("trainingProfile.card.header")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -16,12 +16,12 @@ struct TrainingProfileCard: View {
                 .padding(.top, 16)
                 .padding(.bottom, 8)
 
-            Text("Set up your training profile")
+            Text("trainingProfile.card.title")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
                 .padding(.horizontal, 16)
 
-            Text("Answer a few questions about your training to get estimated workload data right away.")
+            Text("trainingProfile.card.body")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
                 .padding(.horizontal, 16)
@@ -29,7 +29,7 @@ struct TrainingProfileCard: View {
                 .padding(.bottom, 16)
 
             Button(action: onComplete) {
-                Text("Complete Profile")
+                Text("trainingProfile.card.action")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .frame(maxWidth: .infinity)

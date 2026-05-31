@@ -29,7 +29,7 @@ struct PrescribeWorkoutSheet: View {
                 VStack(spacing: 0) {
                     // Template selection
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("TEMPLATE")
+                        Text("coach.prescribe.fieldTemplate")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -67,7 +67,7 @@ struct PrescribeWorkoutSheet: View {
 
                     // Date picker
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("SCHEDULED DATE")
+                        Text("coach.prescribe.fieldScheduledDate")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -87,7 +87,7 @@ struct PrescribeWorkoutSheet: View {
 
                     // Notes
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("NOTES FOR ATHLETE")
+                        Text("coach.prescribe.fieldNotes")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -103,7 +103,7 @@ struct PrescribeWorkoutSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Prescribe Workout")
+            .navigationTitle("coach.nav.prescribeWorkout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -143,7 +143,7 @@ struct PrescribeWorkoutSheet: View {
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text1)
                         Spacer()
-                        Text("\(exercise.sets.count) sets")
+                        Text(String(localized: "coach.prescribe.setCount", defaultValue: "\(exercise.sets.count) sets"))
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
                     }
@@ -170,7 +170,7 @@ struct PrescribeWorkoutSheet: View {
                                         .font(.Tokens.body)
                                         .foregroundStyle(ColorTokens.text1)
                                     let count = template.groups.flatMap(\.exercises).count
-                                    Text("\(count) exercise\(count == 1 ? "" : "s")")
+                                    Text(String(localized: "coach.prescribe.exerciseCount", defaultValue: "\(count) exercise"))
                                         .font(.Tokens.label)
                                         .foregroundStyle(ColorTokens.text3)
                                 }
@@ -188,7 +188,7 @@ struct PrescribeWorkoutSheet: View {
                     }
 
                     if templates.isEmpty {
-                        Text("No templates yet. Create one first.")
+                        Text("coach.prescribe.noTemplates")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text3)
                             .padding(.vertical, 48)
@@ -196,7 +196,7 @@ struct PrescribeWorkoutSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Select Template")
+            .navigationTitle("template.nav.select")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

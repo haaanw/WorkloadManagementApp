@@ -8,7 +8,7 @@ struct WelcomeActionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("GET STARTED")
+            Text("welcome.card.header")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -16,12 +16,12 @@ struct WelcomeActionCard: View {
                 .padding(.top, 16)
                 .padding(.bottom, 8)
 
-            Text("Welcome to Tuwa")
+            Text("welcome.card.title")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
                 .padding(.horizontal, 16)
 
-            Text("Track your first activity to start building your training profile.")
+            Text("welcome.card.body")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
                 .padding(.horizontal, 16)
@@ -30,7 +30,7 @@ struct WelcomeActionCard: View {
 
             HStack(spacing: 8) {
                 Button(action: onLogWorkout) {
-                    Text("Log Workout")
+                    Text("dashboard.action.logWorkout")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
@@ -41,7 +41,7 @@ struct WelcomeActionCard: View {
                 }
 
                 Button(action: onWellnessCheckIn) {
-                    Text("Wellness Check-In")
+                    Text("welcome.card.action.checkIn")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)

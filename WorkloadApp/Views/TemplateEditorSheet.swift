@@ -75,7 +75,7 @@ struct TemplateEditorSheet: View {
                     .background(ColorTokens.surface)
 
                     // Schedule picker
-                    Text("SCHEDULE")
+                    Text("template.label.schedule")
                         .font(.Tokens.micro)
                         .tracking(1.2)
                         .textCase(.uppercase)
@@ -109,7 +109,7 @@ struct TemplateEditorSheet: View {
 
                     // Favorite toggle
                     Toggle(isOn: $isFavorite) {
-                        Text("Favorite")
+                        Text("template.label.favorite")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                     }
@@ -162,7 +162,7 @@ struct TemplateEditorSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle(existingTemplate == nil ? "New Template" : "Edit Template")
+            .navigationTitle(existingTemplate == nil ? "template.nav.newTemplate" : "action.editTemplate")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -420,12 +420,12 @@ struct TemplateExerciseCard: View {
                 Text("REPS")
                     .frame(maxWidth: .infinity)
             case .distanceDuration:
-                Text("DISTANCE")
+                Text("exercise.label.distance")
                     .frame(maxWidth: .infinity)
-                Text("DURATION")
+                Text("exercise.label.duration")
                     .frame(maxWidth: .infinity)
             case .durationOnly:
-                Text("DURATION")
+                Text("exercise.label.duration")
                     .frame(maxWidth: .infinity)
             }
         }

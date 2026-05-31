@@ -21,10 +21,10 @@ struct HRVDetailView: View {
             VStack(spacing: 0) {
                 // Header
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("HRV TREND")
+                    Text("hrv.detail.header.title")
                         .font(.Tokens.pageTitle)
                         .foregroundStyle(ColorTokens.text1)
-                    Text("28-day heart rate variability")
+                    Text("hrv.detail.header.subtitle")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -38,19 +38,19 @@ struct HRVDetailView: View {
                 // Stats row
                 HStack(spacing: 0) {
                     statCell(
-                        label: "LATEST",
+                        label: String(localized: "hrv.detail.label.latest", defaultValue: "LATEST"),
                         value: latest.map { "\(Int($0))" } ?? "—",
                         unit: latest != nil ? "ms" : nil
                     )
                     Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                     statCell(
-                        label: "7-DAY AVG",
+                        label: String(localized: "detail.label.sevenDayAvg", defaultValue: "7-DAY AVG"),
                         value: sevenDayAvg.map { "\(Int($0))" } ?? "—",
                         unit: sevenDayAvg != nil ? "ms" : nil
                     )
                     Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                     statCell(
-                        label: "DELTA",
+                        label: String(localized: "hrv.detail.label.delta", defaultValue: "DELTA"),
                         value: deltaText ?? "—",
                         unit: nil
                     )
@@ -68,11 +68,11 @@ struct HRVDetailView: View {
 
                 // Explanation
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("ABOUT HRV")
+                    Text("hrv.detail.section.about")
                         .font(.Tokens.micro)
                         .tracking(1.2)
                         .foregroundStyle(ColorTokens.text3)
-                    Text("Heart rate variability (SDNN) measures the variation between beats. Higher values indicate better autonomic recovery. The dashed line shows your 7-day rolling average.")
+                    Text("hrv.detail.explanation")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -82,7 +82,7 @@ struct HRVDetailView: View {
             }
         }
         .background(ColorTokens.background)
-        .navigationTitle("HRV")
+        .navigationTitle(Text("recovery.label.hrv"))
         .navigationBarTitleDisplayMode(.inline)
     }
 

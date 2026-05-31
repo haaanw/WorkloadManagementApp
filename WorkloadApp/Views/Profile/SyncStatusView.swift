@@ -11,7 +11,7 @@ struct SyncStatusView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Section header: "SYNC STATUS" in 12pt General Sans Regular, ColorTokens.text2, all-caps
-                Text("SYNC STATUS")
+                Text("profile.sync.statusTitle")
                     .font(.Tokens.micro)
                     .foregroundStyle(ColorTokens.text2)
                     .tracking(0.88)
@@ -36,7 +36,7 @@ struct SyncStatusView: View {
             }
         }
         .background(ColorTokens.background)
-        .navigationTitle("Sync Status")
+        .navigationTitle("profile.sync.navTitle")
         .navigationBarTitleDisplayMode(.inline)
         .refreshable {
             // Pull-to-refresh triggers immediate sync per UI-SPEC interaction contract
@@ -72,7 +72,7 @@ struct SyncStatusView: View {
                         .font(.Tokens.smallLabel)
                         .foregroundStyle(ColorTokens.text2)
                 } else {
-                    Text("Never")
+                    Text("profile.sync.neverSynced")
                         .font(.Tokens.smallLabel)
                         .foregroundStyle(ColorTokens.text2)
                 }

@@ -16,11 +16,11 @@ struct FinishWorkoutSheet: View {
             VStack(spacing: 24) {
                 // RPE section
                 VStack(spacing: 8) {
-                    Text("How hard was this session?")
+                    Text("workout.prompt.rpe")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
 
-                    Text("RPE: \(Int(rpe))")
+                    Text(String(format: String(localized: "workout.rpe.display", defaultValue: "RPE: %d"), Int(rpe)))
                         .font(.Tokens.pageTitle)
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
@@ -35,7 +35,7 @@ struct FinishWorkoutSheet: View {
 
                 // Save as template toggle
                 Toggle(isOn: $saveAsTemplate) {
-                    Text("Save as Template")
+                    Text("action.saveAsTemplate")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
                 }
@@ -43,7 +43,7 @@ struct FinishWorkoutSheet: View {
 
                 // Template name field (visible when toggle is ON)
                 if saveAsTemplate {
-                    TextField("Template name", text: $templateName)
+                    TextField("field.templateName", text: $templateName)
                         .textFieldStyle(SharpTextFieldStyle())
                         .transition(.opacity)
                 }
@@ -52,16 +52,16 @@ struct FinishWorkoutSheet: View {
             }
             .padding(24)
             .background(ColorTokens.background)
-            .navigationTitle("Finish Workout")
+            .navigationTitle("nav.finishWorkout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Keep Editing") { dismiss() }
+                    Button("action.keepEditing") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Finish") {
+                    Button("action.finish") {
                         onFinish()
                         dismiss()
                     }

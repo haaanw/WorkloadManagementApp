@@ -100,7 +100,7 @@ struct ActiveWorkoutSheet: View {
                     Button {
                         showExercisePicker = true
                     } label: {
-                        Label("Add Exercise", systemImage: "plus")
+                        Label("action.addExercise", systemImage: "plus")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
@@ -110,7 +110,7 @@ struct ActiveWorkoutSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Workout")
+            .navigationTitle("nav.workout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -180,7 +180,7 @@ struct ActiveWorkoutSheet: View {
             .overlay(alignment: .bottom) {
                 if showTemplateSavedToast {
                     ToastBanner(
-                        message: templateSaveError ? "Couldn't save template. Try again." : "Template saved",
+                        message: templateSaveError ? String(localized: "error.templateSave", defaultValue: "Couldn't save template. Try again.") : String(localized: "message.templateSaved", defaultValue: "Template saved"),
                         isError: templateSaveError,
                         isPresented: $showTemplateSavedToast
                     )
@@ -197,7 +197,7 @@ struct ActiveWorkoutSheet: View {
                 isPresented: $showNiggleNudge,
                 titleVisibility: .visible
             ) {
-                Button("Log a niggle") { showNiggleLog = true }
+                Button("action.logNiggle") { showNiggleLog = true }
                 Button("Skip", role: .cancel) { dismiss() }
             } message: {
                 Text("Optional — note a sore spot to track how your body handles load.")

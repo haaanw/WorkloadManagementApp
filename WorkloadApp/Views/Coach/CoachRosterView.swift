@@ -27,11 +27,11 @@ struct CoachRosterView: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Roster")
+            .navigationTitle("coach.nav.roster")
             .withContextSwitcher()
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Add Client") { showAddClient = true }
+                    Button("coach.action.addClient") { showAddClient = true }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                 }
@@ -51,7 +51,7 @@ struct CoachRosterView: View {
                 }
             }
             .sheet(isPresented: $showAddClient) {
-                Text("Invite an athlete — see Profile for invite options")
+                Text("coach.roster.emptyHint")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(24)
@@ -109,10 +109,10 @@ struct CoachRosterView: View {
 
     private var emptyState: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("No clients yet")
+            Text("coach.roster.empty.title")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
-            Text("Invite an athlete from your Profile to see their workload here.")
+            Text("coach.roster.empty.subtitle")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text3)
         }

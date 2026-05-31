@@ -25,10 +25,10 @@ struct TemplateListView: View {
             VStack(spacing: 0) {
                 if templates.isEmpty {
                     VStack(spacing: 8) {
-                        Text("No templates yet")
+                        Text("coach.template.empty.title")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
-                        Text("Create a workout template to prescribe to your athletes.")
+                        Text("coach.template.empty.subtitle")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
                     }

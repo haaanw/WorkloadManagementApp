@@ -36,7 +36,7 @@ struct TemplatePickerSheet: View {
                         dismiss()
                         onStartBlank()
                     } label: {
-                        Text("Start blank workout")
+                        Text("action.startBlankWorkout")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
                             .frame(maxWidth: .infinity)
@@ -48,7 +48,7 @@ struct TemplatePickerSheet: View {
                 }
             }
             .background(ColorTokens.surfaceEl)
-            .navigationTitle("Templates")
+            .navigationTitle("nav.templates")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -64,10 +64,10 @@ struct TemplatePickerSheet: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Text("No templates yet")
+            Text("empty.noTemplates")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
-            Text("Create a template from the Templates tab, or start a blank workout.")
+            Text("empty.noTemplates.hint")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
                 .multilineTextAlignment(.center)
@@ -75,7 +75,7 @@ struct TemplatePickerSheet: View {
                 dismiss()
                 onCreateTemplate()
             } label: {
-                Text("Create Template")
+                Text("action.createTemplate")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, 24)
@@ -124,7 +124,7 @@ struct TemplatePickerSheet: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
-                Text("\(exercises.count) exercises")
+                Text(String(format: String(localized: "template.exerciseCount", defaultValue: "%d exercises"), exercises.count))
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
 

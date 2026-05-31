@@ -33,7 +33,7 @@ struct TextTemplateImportSheet: View {
             VStack(spacing: 0) {
                 // Input area
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("Paste your workout program below. Each day/session should start with a header line.")
+                    Text("import.instructionText")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
 
@@ -45,7 +45,7 @@ struct TextTemplateImportSheet: View {
                     Button {
                         parseInput()
                     } label: {
-                        Text("Parse")
+                        Text("action.parse")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
@@ -97,14 +97,14 @@ struct TextTemplateImportSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Import Program")
+            .navigationTitle("nav.importProgram")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save All") { saveTemplates() }
+                    Button("action.saveAll") { saveTemplates() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .disabled(parsedTemplates.isEmpty || isSaving)
@@ -152,7 +152,7 @@ struct TextTemplateImportSheet: View {
         }
 
         if templates.isEmpty {
-            parseError = "Could not parse any exercises. Try format: \"Bench Press 4x8 @RPE 7\""
+            parseError = String(localized: "error.parseFailure", defaultValue: "Could not parse any exercises. Try format: \"Bench Press 4x8 @RPE 7\"")
         }
 
         parsedTemplates = templates

@@ -66,11 +66,11 @@ struct TemplateCarouselSection: View {
 
     private var emptyState: some View {
         VStack(spacing: 16) {
-            Text("No Templates Yet")
+            Text("empty.noTemplates.title")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
 
-            Text("Create your first template to speed up workout logging.")
+            Text("empty.noTemplates.description")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
                 .multilineTextAlignment(.center)
@@ -78,7 +78,7 @@ struct TemplateCarouselSection: View {
             Button {
                 onCreateTemplate()
             } label: {
-                Text("Create Template")
+                Text("action.createTemplate")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, 24)
@@ -97,7 +97,7 @@ struct TemplateCarouselSection: View {
 
     private var carouselContent: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("MY TEMPLATES")
+            Text("section.myTemplates")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .textCase(.uppercase)
@@ -138,13 +138,13 @@ struct TemplateCarouselSection: View {
                 computeSuggestion()
             }
         }
-        .confirmationDialog("Delete Template?", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
-            Button("Delete", role: .destructive) {
+        .confirmationDialog("confirm.deleteTemplate", isPresented: $showDeleteConfirmation, titleVisibility: .visible) {
+            Button("action.delete", role: .destructive) {
                 if let t = templateToDelete { deleteTemplate(t) }
             }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This will permanently remove '\(templateToDelete?.templateName ?? "")'. This cannot be undone.")
+            Text(String(format: String(localized: "confirm.deleteTemplate.message", defaultValue: "This will permanently remove '%@'. This cannot be undone."), templateToDelete?.templateName ?? ""))
         }
     }
 
@@ -170,7 +170,7 @@ struct TemplateCarouselSection: View {
                         VStack(spacing: 4) {
                             Image(systemName: "archivebox")
                                 .font(.system(size: 17))
-                            Text("Archive")
+                            Text("action.archive")
                                 .font(.Tokens.micro)
                         }
                         .foregroundStyle(ColorTokens.text1)
@@ -191,7 +191,7 @@ struct TemplateCarouselSection: View {
                         VStack(spacing: 4) {
                             Image(systemName: "trash")
                                 .font(.system(size: 17))
-                            Text("Delete")
+                            Text("action.delete")
                                 .font(.Tokens.micro)
                         }
                         .foregroundStyle(ColorTokens.zoneDanger)
@@ -213,11 +213,11 @@ struct TemplateCarouselSection: View {
                             .foregroundStyle(ColorTokens.text1)
                             .lineLimit(2)
 
-                        Text("\(template.sportType.displayName) - \(template.sessionType.displayName)")
+                        Text(String(format: String(localized: "template.typeDisplay", defaultValue: "%@ - %@"), template.sportType.displayName, template.sessionType.displayName))
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
 
-                        Text("\(exercises.count) exercises, \(totalSets) sets")
+                        Text(String(format: String(localized: "template.exerciseSetCount", defaultValue: "%d exercises, %d sets"), exercises.count, totalSets))
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                     }
@@ -236,7 +236,7 @@ struct TemplateCarouselSection: View {
                     Spacer()
 
                     if let lastUsed = template.lastUsedAt {
-                        Text("Last used \(lastUsed.formatted(.relative(presentation: .named)))")
+                        Text(String(format: String(localized: "template.lastUsed", defaultValue: "Last used %@"), lastUsed.formatted(.relative(presentation: .named))))
                             .font(.Tokens.micro)
                             .foregroundStyle(ColorTokens.text3)
                     }
@@ -250,7 +250,7 @@ struct TemplateCarouselSection: View {
                 if container.subscriptionService.isPro,
                    let suggestion = suggestionResult,
                    suggestion.template.id == template.id {
-                    Text(suggestion.isRecoveryAdjusted ? "RECOVERY-ADJUSTED" : "SUGGESTED")
+                    Text(suggestion.isRecoveryAdjusted ? "template.label.recoveryAdjusted" : "template.label.suggested")
                         .font(.Tokens.micro)
                         .tracking(1.2)
                         .textCase(.uppercase)
@@ -306,33 +306,33 @@ struct TemplateCarouselSection: View {
             .contextMenu {
                 if let onPreviewTemplate {
                     Button { onPreviewTemplate(template) } label: {
-                        Label("Preview", systemImage: "eye")
+                        Label("action.preview", systemImage: "eye")
                     }
                 }
                 Button { onEditTemplate(template) } label: {
-                    Label("Edit Template", systemImage: "pencil")
+                    Label("action.editTemplate", systemImage: "pencil")
                 }
                 Button { duplicateTemplate(template) } label: {
-                    Label("Duplicate Template", systemImage: "doc.on.doc")
+                    Label("action.duplicateTemplate", systemImage: "doc.on.doc")
                 }
                 if let onShareTemplate {
                     Button { onShareTemplate(template) } label: {
-                        Label("Share Template", systemImage: "square.and.arrow.up")
+                        Label("action.shareTemplate", systemImage: "square.and.arrow.up")
                     }
                 }
                 Button { toggleFavorite(template) } label: {
-                    Label(template.isFavorite ? "Unfavorite" : "Favorite",
+                    Label(template.isFavorite ? "action.unfavorite" : "action.favorite",
                           systemImage: template.isFavorite ? "star.fill" : "star")
                 }
                 Button { archiveTemplate(template) } label: {
-                    Label("Archive Template", systemImage: "archivebox")
+                    Label("action.archiveTemplate", systemImage: "archivebox")
                 }
                 Divider()
                 Button(role: .destructive) {
                     templateToDelete = template
                     showDeleteConfirmation = true
                 } label: {
-                    Label("Delete Template", systemImage: "trash")
+                    Label("action.deleteTemplate", systemImage: "trash")
                 }
             }
         }
@@ -345,7 +345,7 @@ struct TemplateCarouselSection: View {
             Image(systemName: "plus")
                 .font(.system(size: 24))
                 .foregroundStyle(ColorTokens.text2)
-            Text("Create Template")
+            Text("action.createTemplate")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
         }

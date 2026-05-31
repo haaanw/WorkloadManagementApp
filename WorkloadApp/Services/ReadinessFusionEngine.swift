@@ -123,25 +123,27 @@ struct ReadinessFusionEngine {
     // MARK: - Fusion
 
     static func compute(_ input: ReadinessInput) -> ReadinessResult {
-        // Present components: (label, z, fixed weight). Absent (nil) z's are simply not appended →
-        // their weight is renormalized away by the proportional sum below (NO mean-imputation).
-        var components: [(label: String, z: Double, weight: Double)] = []
+        // Present components: (stable signal key, localized display label, z, fixed weight). The
+        // `isSubjectiveTrend` flag drives the renormalization branch (NOT a string compare, so it is
+        // localization-safe). Absent (nil) z's are simply not appended → their weight is renormalized
+        // away by the proportional sum below (NO mean-imputation).
+        var components: [(label: String, isSubjectiveTrend: Bool, z: Double, weight: Double)] = []
         var missing = false
 
         if let z = input.hrvZ {
-            components.append(("Heart Rate Variability", z, Weights.hrv))
+            components.append((String(localized: "factor.heartRateVariability", defaultValue: "Heart Rate Variability"), false, z, Weights.hrv))
         } else { missing = true }
 
         if let z = input.sleepZ {
-            components.append(("Sleep", z, Weights.sleep))
+            components.append((String(localized: "factor.sleep", defaultValue: "Sleep"), false, z, Weights.sleep))
         } else { missing = true }
 
         if let z = input.rhrZ {
-            components.append(("Resting Heart Rate", z, Weights.rhr))
+            components.append((String(localized: "factor.restingHeartRate", defaultValue: "Resting Heart Rate"), false, z, Weights.rhr))
         } else { missing = true }
 
         if let slope = input.subjectiveTrendSlope {
-            components.append(("Subjective Trend", slope, Weights.subjectiveTrend))
+            components.append((String(localized: "factor.subjectiveTrend", defaultValue: "Subjective Trend"), true, slope, Weights.subjectiveTrend))
         }
         // Note: the subjective trend is genuinely optional (not one of the 3 core signals), so its
         // absence does NOT set `missingSignals` — that flag tracks the core HRV/RHR/sleep triad.
@@ -151,7 +153,7 @@ struct ReadinessFusionEngine {
         // the subjective trend rides on top of the renormalized core (small additive nudge).
         let coreReference = Weights.hrv + Weights.sleep + Weights.rhr
         let presentCoreWeight = components
-            .filter { $0.label != "Subjective Trend" }
+            .filter { !$0.isSubjectiveTrend }
             .reduce(0.0) { $0 + $1.weight }
 
         var logit = Constants.intercept
@@ -160,7 +162,7 @@ struct ReadinessFusionEngine {
         if presentCoreWeight > 0 {
             for c in components {
                 let normWeight: Double
-                if c.label == "Subjective Trend" {
+                if c.isSubjectiveTrend {
                     // Additive nudge — not part of the core renormalization.
                     normWeight = c.weight
                 } else {

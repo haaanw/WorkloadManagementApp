@@ -9,7 +9,7 @@ struct NotificationPrePermissionCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("NOTIFICATIONS")
+            Text("notificationCard.title")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -17,12 +17,12 @@ struct NotificationPrePermissionCard: View {
                 .padding(.top, 16)
                 .padding(.bottom, 8)
 
-            Text("Stay on track")
+            Text("notificationCard.subtitle")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
                 .padding(.horizontal, 16)
 
-            Text("Get a weekly summary of your sessions, PRs, and streak every Sunday.")
+            Text("notificationCard.body")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
                 .padding(.horizontal, 16)
@@ -31,7 +31,7 @@ struct NotificationPrePermissionCard: View {
 
             HStack(spacing: 8) {
                 Button(action: onEnable) {
-                    Text("Enable Notifications")
+                    Text("notificationCard.action.enable")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
@@ -42,7 +42,7 @@ struct NotificationPrePermissionCard: View {
                 }
 
                 Button(action: onDismiss) {
-                    Text("Not Now")
+                    Text("notificationCard.action.dismiss")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)

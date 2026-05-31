@@ -22,7 +22,7 @@ struct ShareImportSheet: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: 0) {
                 // Instruction text
-                Text("Enter the 8-character share code")
+                Text("import.instructionCode")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(.horizontal, 16)
@@ -51,7 +51,7 @@ struct ShareImportSheet: View {
                         if isLoading {
                             ProgressView()
                         } else {
-                            Text("Look Up")
+                            Text("action.lookup")
                                 .font(.Tokens.body)
                         }
                     }
@@ -81,7 +81,7 @@ struct ShareImportSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Import Template")
+                    Text("nav.importTemplate")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
                 }
@@ -116,9 +116,9 @@ struct ShareImportSheet: View {
         } catch {
             let errorStr = "\(error)"
             if errorStr.contains("expired") || errorStr.contains("406") || errorStr.contains("PGRST116") {
-                errorMessage = "This share link has expired. Ask the sender for a new code."
+                errorMessage = String(localized: "error.shareExpired", defaultValue: "This share link has expired. Ask the sender for a new code.")
             } else {
-                errorMessage = "No template found for this code. Check the code and try again."
+                errorMessage = String(localized: "error.templateNotFound", defaultValue: "No template found for this code. Check the code and try again.")
             }
         }
         isLoading = false

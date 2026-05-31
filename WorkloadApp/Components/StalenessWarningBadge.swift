@@ -10,7 +10,7 @@ struct StalenessWarningBadge: View {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.Tokens.micro)
                 .foregroundStyle(ColorTokens.zoneCaution)
-            Text("Updated \(daysAgo)d ago")
+            Text(String(format: String(localized: "staleness.badge", defaultValue: "Updated %dd ago"), daysAgo))
                 .font(.Tokens.micro)
                 .foregroundStyle(ColorTokens.text2)
         }

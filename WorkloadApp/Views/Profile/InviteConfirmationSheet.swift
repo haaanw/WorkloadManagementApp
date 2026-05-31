@@ -26,7 +26,7 @@ struct InviteConfirmationSheet: View {
         NavigationStack {
             VStack(spacing: 0) {
                 if isLoading {
-                    ProgressView("Looking up invite...")
+                    ProgressView(String(localized: "profile.invite.lookingUp", defaultValue: "Looking up invite..."))
                         .padding(.top, 64)
                 } else if let error = errorMessage {
                     Text(error)
@@ -61,7 +61,7 @@ struct InviteConfirmationSheet: View {
                                 if isConfirming {
                                     ProgressView()
                                 } else {
-                                    Text("Confirm Link")
+                                    Text("profile.invite.confirmLink")
                                         .font(.Tokens.label)
                                         .foregroundStyle(ColorTokens.text1)
                                 }

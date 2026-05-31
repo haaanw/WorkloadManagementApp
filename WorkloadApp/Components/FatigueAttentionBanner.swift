@@ -18,23 +18,23 @@ struct FatigueAttentionBanner: View {
 
     private var zoneLabel: String {
         switch zone {
-        case .low: "FATIGUE LOW"
-        case .elevated: "FATIGUE ELEVATED"
-        case .high: "FATIGUE HIGH"
-        case .saturation: "FATIGUE VERY HIGH"
+        case .low: String(localized: "fatigue.zone.low", defaultValue: "FATIGUE LOW")
+        case .elevated: String(localized: "fatigue.zone.elevated", defaultValue: "FATIGUE ELEVATED")
+        case .high: String(localized: "fatigue.zone.high", defaultValue: "FATIGUE HIGH")
+        case .saturation: String(localized: "fatigue.zone.saturation", defaultValue: "FATIGUE VERY HIGH")
         }
     }
 
     private var message: String {
         switch zone {
         case .low:
-            "Training stress is within normal range."
+            String(localized: "fatigue.message.low", defaultValue: "Training stress is within normal range.")
         case .elevated:
-            "Accumulated training stress is building. Consider lighter sessions or extra recovery."
+            String(localized: "fatigue.message.elevated", defaultValue: "Accumulated training stress is building. Consider lighter sessions or extra recovery.")
         case .high:
-            "Body stress is elevated. A deload day or active recovery session is recommended."
+            String(localized: "fatigue.message.high", defaultValue: "Body stress is elevated. A deload day or active recovery session is recommended.")
         case .saturation:
-            "Training stress is very high. Prioritize rest to avoid diminishing returns."
+            String(localized: "fatigue.message.saturation", defaultValue: "Training stress is very high. Prioritize rest to avoid diminishing returns.")
         }
     }
 

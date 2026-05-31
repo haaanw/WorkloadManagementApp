@@ -28,7 +28,7 @@ struct MorningCheckInSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    Text("How are you feeling this morning?")
+                    Text("morning.checkin.heading")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -40,11 +40,11 @@ struct MorningCheckInSheet: View {
                         .frame(height: 0.5)
 
                     WellnessSlider(
-                        title: "Sleep Quality",
-                        subtitle: "How well did you sleep?",
+                        title: String(localized: "morning.field.sleepQuality", defaultValue: "Sleep Quality"),
+                        subtitle: String(localized: "morning.field.sleepQuality.subtitle", defaultValue: "How well did you sleep?"),
                         value: $sleepQuality,
-                        lowLabel: "Terrible",
-                        highLabel: "Great"
+                        lowLabel: String(localized: "morning.scale.sleep.low", defaultValue: "Terrible"),
+                        highLabel: String(localized: "morning.scale.sleep.high", defaultValue: "Great")
                     )
 
                     Rectangle()
@@ -52,11 +52,11 @@ struct MorningCheckInSheet: View {
                         .frame(height: 0.5)
 
                     WellnessSlider(
-                        title: "Muscle Soreness",
-                        subtitle: "How sore are you?",
+                        title: String(localized: "morning.field.soreness", defaultValue: "Muscle Soreness"),
+                        subtitle: String(localized: "morning.field.soreness.subtitle", defaultValue: "How sore are you?"),
                         value: $soreness,
-                        lowLabel: "Very Sore",
-                        highLabel: "Fresh"
+                        lowLabel: String(localized: "morning.scale.soreness.low", defaultValue: "Very Sore"),
+                        highLabel: String(localized: "morning.scale.soreness.high", defaultValue: "Fresh")
                     )
 
                     Rectangle()
@@ -64,11 +64,11 @@ struct MorningCheckInSheet: View {
                         .frame(height: 0.5)
 
                     WellnessSlider(
-                        title: "Energy / Mood",
-                        subtitle: "How's your energy level?",
+                        title: String(localized: "morning.field.energy", defaultValue: "Energy / Mood"),
+                        subtitle: String(localized: "morning.field.energy.subtitle", defaultValue: "How's your energy level?"),
                         value: $energy,
-                        lowLabel: "Exhausted",
-                        highLabel: "Energized"
+                        lowLabel: String(localized: "morning.scale.energy.low", defaultValue: "Exhausted"),
+                        highLabel: String(localized: "morning.scale.energy.high", defaultValue: "Energized")
                     )
 
                     Rectangle()
@@ -76,11 +76,11 @@ struct MorningCheckInSheet: View {
                         .frame(height: 0.5)
 
                     WellnessSlider(
-                        title: "Stress Level",
-                        subtitle: "How stressed are you?",
+                        title: String(localized: "morning.field.stress", defaultValue: "Stress Level"),
+                        subtitle: String(localized: "morning.field.stress.subtitle", defaultValue: "How stressed are you?"),
                         value: $stress,
-                        lowLabel: "Very Stressed",
-                        highLabel: "Relaxed"
+                        lowLabel: String(localized: "morning.scale.stress.low", defaultValue: "Very Stressed"),
+                        highLabel: String(localized: "morning.scale.stress.high", defaultValue: "Relaxed")
                     )
 
                     Rectangle()
@@ -89,7 +89,7 @@ struct MorningCheckInSheet: View {
 
                     // BEHAVIORS section (D-03, D-04)
                     VStack(alignment: .leading, spacing: 16) {
-                        Text("BEHAVIORS")
+                        Text("morning.section.behaviors")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .textCase(.uppercase)
@@ -119,7 +119,7 @@ struct MorningCheckInSheet: View {
                             Button {
                                 showingTagManagement = true
                             } label: {
-                                Text("Manage Tags")
+                                Text("morning.action.manageTags")
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
                             }
@@ -133,7 +133,7 @@ struct MorningCheckInSheet: View {
                         .frame(height: 0.5)
 
                     // Notes field
-                    TextField("Notes (optional)", text: $notes, axis: .vertical)
+                    TextField("morning.field.notes.placeholder", text: $notes, axis: .vertical)
                         .lineLimit(3...6)
                         .textFieldStyle(SharpTextFieldStyle())
                         .padding(.horizontal, 16)
@@ -145,7 +145,7 @@ struct MorningCheckInSheet: View {
 
                     // Score preview
                     HStack {
-                        Text("WELLNESS SCORE")
+                        Text("morning.section.wellnessScore")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -160,16 +160,16 @@ struct MorningCheckInSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Morning Check-in")
+            .navigationTitle("morning.nav.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
+                    Button("action.save") { save() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                 }
@@ -367,27 +367,27 @@ private struct CustomTagManagementSheet: View {
 
                 if customTagNames.count < maxCustomTags {
                     HStack {
-                        TextField("Tag name", text: $newTagName)
+                        TextField("tags.field.name.placeholder", text: $newTagName)
                             .font(.Tokens.body)
                             .onChange(of: newTagName) { _, new in
                                 if new.count > maxTagLength {
                                     newTagName = String(new.prefix(maxTagLength))
                                 }
                             }
-                        Button("Add") { addTag() }
+                        Button("action.add") { addTag() }
                             .font(.Tokens.label)
                             .disabled(newTagName.trimmingCharacters(in: .whitespaces).isEmpty)
                     }
                 } else {
-                    Text("Maximum \(maxCustomTags) custom tags")
+                    Text(String(format: String(localized: "tags.max.message", defaultValue: "Maximum %d custom tags"), maxCustomTags))
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
             }
-            .navigationTitle("Manage Tags")
+            .navigationTitle("tags.nav.title")
             .toolbar {
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    Button("action.done") { dismiss() }
                         .font(.Tokens.label)
                 }
             }

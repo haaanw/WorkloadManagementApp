@@ -278,13 +278,13 @@ struct TemplateExerciseCard: View {
 
             // Set headers
             HStack {
-                Text("SET")
+                Text("coach.template.columnSet")
                     .frame(width: 32)
-                Text("WEIGHT")
+                Text("coach.template.columnWeight")
                     .frame(maxWidth: .infinity)
-                Text("REPS")
+                Text("coach.template.columnReps")
                     .frame(maxWidth: .infinity)
-                Text("RPE")
+                Text("coach.template.columnRPE")
                     .frame(width: 48)
             }
             .font(.Tokens.micro)

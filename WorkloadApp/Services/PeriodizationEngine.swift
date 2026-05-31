@@ -20,10 +20,10 @@ struct PeriodizationEngine {
 
         var displayLabel: String {
             switch phase {
-            case .building:    return "Building"
-            case .pushing:     return "Pushing"
-            case .tapering:    return "Tapering"
-            case .maintaining: return "Maintaining"
+            case .building:    return String(localized: "trainingPhase.building", defaultValue: "Building")
+            case .pushing:     return String(localized: "trainingPhase.pushing", defaultValue: "Pushing")
+            case .tapering:    return String(localized: "trainingPhase.tapering", defaultValue: "Tapering")
+            case .maintaining: return String(localized: "trainingPhase.maintaining", defaultValue: "Maintaining")
             }
         }
     }

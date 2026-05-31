@@ -67,19 +67,19 @@ struct AutoregulationEngine {
             var message: String {
                 switch self {
                 case .acwrDanger:
-                    "Recent load is well above your baseline. Consider reducing volume."
+                    String(localized: "warning.acwrDanger", defaultValue: "Recent load is well above your baseline. Consider reducing volume.")
                 case .acwrCaution:
-                    "Load is building relative to your baseline. Stay controlled."
+                    String(localized: "warning.acwrCaution", defaultValue: "Load is building relative to your baseline. Stay controlled.")
                 case .recoveryRed:
-                    "Recovery score is low. Prioritize rest and parasympathetic activities."
+                    String(localized: "warning.recoveryRed", defaultValue: "Recovery score is low. Prioritize rest and parasympathetic activities.")
                 case .consecutiveTrainingDays(let days):
-                    "\(days) consecutive training days. Consider scheduling a rest day."
+                    String(localized: "warning.consecutiveTrainingDays", defaultValue: "\(days) consecutive training days. Consider scheduling a rest day.")
                 case .lowWellness:
-                    "Subjective wellness is low. Listen to your body."
+                    String(localized: "warning.lowWellness", defaultValue: "Subjective wellness is low. Listen to your body.")
                 case .fatigueHigh:
-                    "Accumulated fatigue is high. Consider a lighter session or extra recovery."
+                    String(localized: "warning.fatigueHigh", defaultValue: "Accumulated fatigue is high. Consider a lighter session or extra recovery.")
                 case .fatigueSaturation:
-                    "Body stress is very elevated. A rest day or active recovery is strongly recommended."
+                    String(localized: "warning.fatigueSaturation", defaultValue: "Body stress is very elevated. A rest day or active recovery is strongly recommended.")
                 }
             }
         }
@@ -260,48 +260,48 @@ struct AutoregulationEngine {
         // LOW readiness — always limit, regardless of strain-risk.
         case (.low, .high), (.low, .elevated):
             base = (5.0, 0.0, .rest,
-                    "Full Rest Day",
-                    "Readiness is low and accumulated strain is high. Prioritize sleep, nutrition, and parasympathetic recovery.")
+                    String(localized: "recommendation.headline.fullRest", defaultValue: "Full Rest Day"),
+                    String(localized: "recommendation.detail.fullRestStrain", defaultValue: "Readiness is low and accumulated strain is high. Prioritize sleep, nutrition, and parasympathetic recovery."))
         case (.low, .moderate), (.low, .low):
             base = (5.0, 0.5, .activeRecovery,
-                    "Active Recovery Only",
-                    "Readiness is low. Keep to light movement (Zone 1-2, mobility, foam rolling). Reduce volume by 50%.")
+                    String(localized: "recommendation.headline.activeRecovery", defaultValue: "Active Recovery Only"),
+                    String(localized: "recommendation.detail.activeRecoveryStrain", defaultValue: "Readiness is low. Keep to light movement (Zone 1-2, mobility, foam rolling). Reduce volume by 50%."))
 
         // MODERATE readiness.
         case (.moderate, .high):
             base = (6.0, 0.5, .activeRecovery,
-                    "Light Day — Strain Is High",
-                    "Readiness is moderate and accumulated strain is high. Reduce volume by 50% and keep intensity low — a deload opportunity.")
+                    String(localized: "recommendation.headline.lightDayHighStrain", defaultValue: "Light Day — Strain Is High"),
+                    String(localized: "recommendation.detail.lightDayHighStrain", defaultValue: "Readiness is moderate and accumulated strain is high. Reduce volume by 50% and keep intensity low — a deload opportunity."))
         case (.moderate, .elevated):
             base = (7.0, 0.75, .conditioning,
-                    "Moderate Day — Stay Controlled",
-                    "Readiness is fair and strain is building. Hold volume near 75%, cap RPE at 7, avoid max-effort sets.")
+                    String(localized: "recommendation.headline.moderateControlled", defaultValue: "Moderate Day — Stay Controlled"),
+                    String(localized: "recommendation.detail.moderateControlledStrain", defaultValue: "Readiness is fair and strain is building. Hold volume near 75%, cap RPE at 7, avoid max-effort sets."))
         case (.moderate, .moderate):
             base = (8.0, 0.75, .hypertrophy,
-                    "Moderate Training OK",
-                    "Readiness is moderate. Train at 75% volume, cap RPE at 8 — good for hypertrophy or moderate conditioning.")
+                    String(localized: "recommendation.headline.moderateTrainingOk", defaultValue: "Moderate Training OK"),
+                    String(localized: "recommendation.detail.moderateTrainingStrain", defaultValue: "Readiness is moderate. Train at 75% volume, cap RPE at 8 — good for hypertrophy or moderate conditioning."))
         case (.moderate, .low):
             base = (8.0, 1.0, .strength,
-                    "Build Gradually",
-                    "Readiness is moderate and accumulated strain is low. Progressively build capacity, but don't push past RPE 8.")
+                    String(localized: "recommendation.headline.buildGradually", defaultValue: "Build Gradually"),
+                    String(localized: "recommendation.detail.buildGradually", defaultValue: "Readiness is moderate and accumulated strain is low. Progressively build capacity, but don't push past RPE 8."))
 
         // HIGH readiness — the two-channel case: high strain still caps volume (GA-1).
         case (.high, .high):
             base = (7.0, 0.75, .conditioning,
-                    "Feeling Good, But Strain Is High",
-                    "Readiness is high, but accumulated strain is high relative to your tolerance. Don't let good readiness mask it — train at 75% volume, stay controlled.")
+                    String(localized: "recommendation.headline.feelingGoodHighStrain", defaultValue: "Feeling Good, But Strain Is High"),
+                    String(localized: "recommendation.detail.feelingGoodHighStrain", defaultValue: "Readiness is high, but accumulated strain is high relative to your tolerance. Don't let good readiness mask it — train at 75% volume, stay controlled."))
         case (.high, .elevated):
             base = (8.0, 0.85, .strength,
-                    "Train Smart — Strain Building",
-                    "You're recovered and strain is building. Good day for quality work; avoid big volume spikes. Hold ~85% planned volume.")
+                    String(localized: "recommendation.headline.trainSmartStrainBuilding", defaultValue: "Train Smart — Strain Building"),
+                    String(localized: "recommendation.detail.trainSmartStrainBuilding", defaultValue: "You're recovered and strain is building. Good day for quality work; avoid big volume spikes. Hold ~85% planned volume."))
         case (.high, .moderate):
             base = (9.0, 1.0, .strength,
-                    "Strong Day",
-                    "Readiness is high and strain is moderate. Push quality work toward RPE 9.")
+                    String(localized: "recommendation.headline.strongDay", defaultValue: "Strong Day"),
+                    String(localized: "recommendation.detail.strongDay", defaultValue: "Readiness is high and strain is moderate. Push quality work toward RPE 9."))
         case (.high, .low):
             base = (10.0, 1.0, .power,
-                    "Go Zone — Fully Ready",
-                    "Readiness is high and accumulated strain is low. Great day for PR attempts, high-intensity intervals, plyometrics, or max-effort training.")
+                    String(localized: "recommendation.headline.goZoneFullyReady", defaultValue: "Go Zone — Fully Ready"),
+                    String(localized: "recommendation.detail.goZoneFullyReady", defaultValue: "Readiness is high and accumulated strain is low. Great day for PR attempts, high-intensity intervals, plyometrics, or max-effort training."))
         }
 
         // Apply continuous fatigue modulation within guardrails (same as legacy shell).
@@ -317,21 +317,21 @@ struct AutoregulationEngine {
             finalVol = modVol
             if finalVol <= 0.3 && base.type != .rest && base.type != .activeRecovery {
                 finalType = .activeRecovery
-                finalHeadline = "Fatigue Is Elevated — Go Light"
-                finalDetail = "Accumulated training stress suggests lighter work today. Active recovery will help you come back stronger."
+                finalHeadline = String(localized: "recommendation.headline.fatigueElevated", defaultValue: "Fatigue Is Elevated — Go Light")
+                finalDetail = String(localized: "recommendation.detail.fatigueElevated", defaultValue: "Accumulated training stress suggests lighter work today. Active recovery will help you come back stronger.")
             }
         }
 
         // Consecutive-day override (kept from the legacy shell).
         if input.daysSinceLastRest >= 7 && input.readinessZone != .high {
             finalType = .rest
-            finalHeadline = "Rest Day Recommended"
-            finalDetail = "You've trained \(input.daysSinceLastRest) consecutive days without rest. Schedule a recovery day to maintain long-term quality."
+            finalHeadline = String(localized: "recommendation.headline.restDayRecommended", defaultValue: "Rest Day Recommended")
+            finalDetail = String(localized: "recommendation.detail.restDayRecommendedQuality", defaultValue: "You've trained \(input.daysSinceLastRest) consecutive days without rest. Schedule a recovery day to maintain long-term quality.")
         }
 
         // GA-4: ACWR appears ONLY as a context label appended to detail — never a decision input.
         if !input.acwrContextLabel.isEmpty {
-            finalDetail += " (Load context: \(input.acwrContextLabel).)"
+            finalDetail += String(localized: "recommendation.acwr.contextSuffix", defaultValue: " (Load context: \(input.acwrContextLabel).)")
         }
 
         return TrainingRecommendation(
@@ -371,55 +371,55 @@ struct AutoregulationEngine {
         // RED recovery — always limit
         case (.red, .danger), (.red, .caution):
             base = (5.0, 0.0, .rest,
-                    "Full Rest Day",
-                    "Recovery is low and recent load is elevated. Focus on sleep, nutrition, and parasympathetic activities (breathing drills, light walking).")
+                    String(localized: "recommendation.headline.fullRest", defaultValue: "Full Rest Day"),
+                    String(localized: "recommendation.detail.fullRestLoad", defaultValue: "Recovery is low and recent load is elevated. Focus on sleep, nutrition, and parasympathetic activities (breathing drills, light walking)."))
 
         case (.red, .optimal), (.red, .undertrained), (.red, .noData):
             base = (5.0, 0.5, .activeRecovery,
-                    "Active Recovery Only",
-                    "Your body needs recovery. Light movement (Zone 1-2 cardio, mobility work, foam rolling) only. Reduce volume by 50% and cap intensity.")
+                    String(localized: "recommendation.headline.activeRecovery", defaultValue: "Active Recovery Only"),
+                    String(localized: "recommendation.detail.activeRecoveryLoad", defaultValue: "Your body needs recovery. Light movement (Zone 1-2 cardio, mobility work, foam rolling) only. Reduce volume by 50% and cap intensity."))
 
         // YELLOW recovery
         case (.yellow, .danger):
             base = (6.0, 0.5, .activeRecovery,
-                    "Light Day — Load Is High",
-                    "Recent load is elevated and recovery is moderate. Reduce volume by 50% and keep intensity low. Consider this a deload opportunity.")
+                    String(localized: "recommendation.headline.lightDayLoadHigh", defaultValue: "Light Day — Load Is High"),
+                    String(localized: "recommendation.detail.lightDayLoadHigh", defaultValue: "Recent load is elevated and recovery is moderate. Reduce volume by 50% and keep intensity low. Consider this a deload opportunity."))
 
         case (.yellow, .caution):
             base = (7.0, 0.75, .conditioning,
-                    "Moderate Day — Stay Controlled",
-                    "Recovery is fair but load is building. Maintain volume at 75% and cap RPE at 7. Avoid max effort sets.")
+                    String(localized: "recommendation.headline.moderateControlled", defaultValue: "Moderate Day — Stay Controlled"),
+                    String(localized: "recommendation.detail.moderateControlledLoad", defaultValue: "Recovery is fair but load is building. Maintain volume at 75% and cap RPE at 7. Avoid max effort sets."))
 
         case (.yellow, .optimal):
             base = (8.0, 0.75, .hypertrophy,
-                    "Moderate Training OK",
-                    "Recovery is moderate. Train at 75% volume, cap RPE at 8. Good day for hypertrophy or moderate conditioning work.")
+                    String(localized: "recommendation.headline.moderateTrainingOk", defaultValue: "Moderate Training OK"),
+                    String(localized: "recommendation.detail.moderateTrainingLoad", defaultValue: "Recovery is moderate. Train at 75% volume, cap RPE at 8. Good day for hypertrophy or moderate conditioning work."))
 
         case (.yellow, .undertrained), (.yellow, .noData):
             base = (8.0, 1.0, .strength,
-                    "Build Load Gradually",
-                    "Your chronic load is low. Use today to progressively build capacity, but don't push past RPE 8 given moderate recovery.")
+                    String(localized: "recommendation.headline.buildLoadGradually", defaultValue: "Build Load Gradually"),
+                    String(localized: "recommendation.detail.buildLoadGradually", defaultValue: "Your chronic load is low. Use today to progressively build capacity, but don't push past RPE 8 given moderate recovery."))
 
         // GREEN recovery
         case (.green, .danger):
             base = (7.0, 0.75, .conditioning,
-                    "Feeling Good, But Load Is High",
-                    "Recovery is great, but recent load is elevated relative to your baseline. Don't let good recovery mask accumulated fatigue. Train at 75% volume, stay controlled.")
+                    String(localized: "recommendation.headline.feelingGoodLoadHigh", defaultValue: "Feeling Good, But Load Is High"),
+                    String(localized: "recommendation.detail.feelingGoodLoadHigh", defaultValue: "Recovery is great, but recent load is elevated relative to your baseline. Don't let good recovery mask accumulated fatigue. Train at 75% volume, stay controlled."))
 
         case (.green, .caution):
             base = (8.0, 0.85, .strength,
-                    "Train Smart — Load Building",
-                    "You're recovered and your load is building. Good day for quality work, but avoid massive volume spikes. Stay at ~85% planned volume.")
+                    String(localized: "recommendation.headline.trainSmartLoadBuilding", defaultValue: "Train Smart — Load Building"),
+                    String(localized: "recommendation.detail.trainSmartLoadBuilding", defaultValue: "You're recovered and your load is building. Good day for quality work, but avoid massive volume spikes. Stay at ~85% planned volume."))
 
         case (.green, .optimal):
             base = (10.0, 1.0, .power,
-                    "Go Zone — Recovery Is High",
-                    "Recovery is high and your load is steady relative to baseline. Good day for PR attempts, high-intensity intervals, plyometrics, or max effort training.")
+                    String(localized: "recommendation.headline.goZoneRecoveryHigh", defaultValue: "Go Zone — Recovery Is High"),
+                    String(localized: "recommendation.detail.goZoneRecoveryHigh", defaultValue: "Recovery is high and your load is steady relative to baseline. Good day for PR attempts, high-intensity intervals, plyometrics, or max effort training."))
 
         case (.green, .undertrained), (.green, .noData):
             base = (9.0, 1.0, .strength,
-                    "Build Your Base",
-                    "You're fresh and your chronic load is low. Great opportunity to progressively build training capacity. Push toward RPE 9.")
+                    String(localized: "recommendation.headline.buildYourBase", defaultValue: "Build Your Base"),
+                    String(localized: "recommendation.detail.buildYourBase", defaultValue: "You're fresh and your chronic load is low. Great opportunity to progressively build training capacity. Push toward RPE 9."))
         }
 
         // Apply continuous fatigue modulation within guardrails
@@ -441,16 +441,16 @@ struct AutoregulationEngine {
             // If fatigue pushed volume below 0.3, recommend active recovery or rest
             if finalVol <= 0.3 && base.type != .rest && base.type != .activeRecovery {
                 finalType = .activeRecovery
-                finalHeadline = "Fatigue Is Elevated — Go Light"
-                finalDetail = "Accumulated training stress suggests your body needs lighter work today. Active recovery will help you come back stronger."
+                finalHeadline = String(localized: "recommendation.headline.fatigueElevated", defaultValue: "Fatigue Is Elevated — Go Light")
+                finalDetail = String(localized: "recommendation.detail.fatigueElevatedBody", defaultValue: "Accumulated training stress suggests your body needs lighter work today. Active recovery will help you come back stronger.")
             }
         }
 
         // Override for excessive consecutive training days
         if input.daysSinceLastRest >= 7 && input.recoveryZone != .green {
             finalType = .rest
-            finalHeadline = "Rest Day Recommended"
-            finalDetail = "You've trained \(input.daysSinceLastRest) consecutive days without rest. Schedule a recovery day to maintain long-term training quality."
+            finalHeadline = String(localized: "recommendation.headline.restDayRecommended", defaultValue: "Rest Day Recommended")
+            finalDetail = String(localized: "recommendation.detail.restDayRecommendedTraining", defaultValue: "You've trained \(input.daysSinceLastRest) consecutive days without rest. Schedule a recovery day to maintain long-term training quality.")
         }
 
         return TrainingRecommendation(

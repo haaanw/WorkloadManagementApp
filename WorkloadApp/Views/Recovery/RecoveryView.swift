@@ -216,7 +216,7 @@ struct RecoveryView: View {
                         SectionContainer(header: "recovery.section.insights") {
                             DataSufficiencyRing(
                                 progress: 0,
-                                label: "Tag behaviors in your morning check-in to see recovery impact",
+                                label: String(localized: "recovery.section.insights.prompt", defaultValue: "Tag behaviors in your morning check-in to see recovery impact"),
                                 message: ""
                             )
                         }

@@ -18,7 +18,7 @@ struct SocialLoginButtons: View {
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
-                Text("OR")
+                Text("auth.divider.or")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text3)
                 Rectangle()
@@ -57,13 +57,13 @@ struct SocialLoginButtons: View {
                         if isLoading {
                             ProgressView()
                         } else {
-                            Text("G")
+                            Text("auth.google.icon")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                                 .frame(width: 24, height: 24)
                             Text(mode == .signIn
-                                ? "Sign in with Google"
-                                : "Sign up with Google")
+                                ? LocalizedStringKey("auth.google.signIn")
+                                : LocalizedStringKey("auth.google.signUp"))
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                         }

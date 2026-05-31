@@ -33,13 +33,13 @@ struct SessionDetailView: View {
                 // Metric row
                 HStack(spacing: 0) {
                     MetricTile(
-                        title: "Duration",
+                        title: String(localized: "metric.duration", defaultValue: "Duration"),
                         value: Date.durationString(seconds: session.durationSeconds, locale: locale)
                     )
                     if let rpe = session.sessionRPE {
                         Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                         MetricTile(
-                            title: "RPE",
+                            title: String(localized: "metric.rpe", defaultValue: "RPE"),
                             value: String(format: "%.0f", rpe),
                             color: rpe >= 8 ? ColorTokens.zoneDanger : rpe >= 6 ? ColorTokens.zoneCaution : ColorTokens.zoneOptimal
                         )
@@ -47,7 +47,7 @@ struct SessionDetailView: View {
                     if session.totalVolume > 0 {
                         Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                         MetricTile(
-                            title: "Volume",
+                            title: String(localized: "metric.volume", defaultValue: "Volume"),
                             value: String(format: "%.0f kg", session.totalVolume)
                         )
                     }
@@ -61,20 +61,20 @@ struct SessionDetailView: View {
                     HStack(spacing: 0) {
                         if session.trainingStress > 0 {
                             MetricTile(
-                                title: "TSS",
+                                title: String(localized: "metric.tss", defaultValue: "TSS"),
                                 value: String(format: "%.1f", session.trainingStress)
                             )
                         }
                         if session.acuteLoad > 0 {
                             Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                             MetricTile(
-                                title: "ATL",
+                                title: String(localized: "metric.atl", defaultValue: "ATL"),
                                 value: String(format: "%.0f", session.acuteLoad),
                                 color: ColorTokens.chartATL
                             )
                             Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                             MetricTile(
-                                title: "CTL",
+                                title: String(localized: "metric.ctl", defaultValue: "CTL"),
                                 value: String(format: "%.0f", session.chronicLoad),
                                 color: ColorTokens.chartCTL
                             )
@@ -128,15 +128,15 @@ struct ExerciseDetailCard: View {
 
             // Column headers
             HStack {
-                Text("SET")
+                Text("table.header.set")
                     .frame(width: 32, alignment: .leading)
-                Text("WEIGHT")
+                Text("table.header.weight")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text("REPS")
+                Text("table.header.reps")
                     .frame(width: 48, alignment: .leading)
-                Text("RPE")
+                Text("table.header.rpe")
                     .frame(width: 40, alignment: .trailing)
-                Text("VOL")
+                Text("table.header.volume")
                     .frame(width: 56, alignment: .trailing)
             }
             .font(.Tokens.micro)
@@ -176,7 +176,7 @@ struct ExerciseDetailCard: View {
             if entry.totalVolume > 0 {
                 HStack {
                     Spacer()
-                    Text("Total: \(String(format: "%.0f kg", entry.totalVolume))")
+                    Text(String(format: String(localized: "exercise.totalVolume", defaultValue: "Total: %.0f kg"), entry.totalVolume))
                         .font(.Tokens.label)
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text2)

@@ -124,11 +124,11 @@ struct UpgradeSheet: View {
                     // MARK: Monthly/Annual explanation
                     VStack(alignment: .leading, spacing: 8) {
                         if selectedPlan == .annual {
-                            Text("Best value — billed once per year. Comes out to \(selectedTier.monthlyEquivalent) per month. Cancel anytime.")
+                            Text(String(format: NSLocalizedString("upgrade.label.annualBenefit", comment: ""), selectedTier.monthlyEquivalent))
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
                         } else {
-                            Text("Flexible month-to-month. No commitment — cancel anytime from Settings on your device.")
+                            Text("upgrade.label.monthlyBenefit")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
                         }
@@ -152,7 +152,7 @@ struct UpgradeSheet: View {
                                 .tint(ColorTokens.text2)
                                 .frame(maxWidth: .infinity, minHeight: 48)
                         } else if offeringUnavailable {
-                            Text("Subscriptions unavailable — check your connection and try again")
+                            Text("upgrade.error.unavailable")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
                                 .multilineTextAlignment(.center)
@@ -160,7 +160,7 @@ struct UpgradeSheet: View {
                             Button {
                                 Task { await loadOffering() }
                             } label: {
-                                Text("Retry")
+                                Text("action.retry")
                                     .font(.Tokens.bodyMedium)
                                     .foregroundStyle(ColorTokens.background)
                                     .frame(maxWidth: .infinity, minHeight: 48)
@@ -195,13 +195,13 @@ struct UpgradeSheet: View {
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                     HStack(spacing: 24) {
-                        Button("Restore purchases") {
+                        Button("upgrade.button.restorePurchases") {
                             Task { await doRestore() }
                         }
-                        Button("Terms") {
+                        Button("link.terms") {
                             openURL(URL(string: "https://haaanw.github.io/WorkloadManagementApp/terms.html")!)
                         }
-                        Button("Privacy") {
+                        Button("link.privacy") {
                             openURL(URL(string: "https://haaanw.github.io/WorkloadManagementApp/privacy.html")!)
                         }
                     }
@@ -405,10 +405,10 @@ struct HistoryTeaserBanner: View {
         Button(action: onTap) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("\(lockedWeeks) week\(lockedWeeks == 1 ? "" : "s") of training data locked")
+                    Text(String(format: NSLocalizedString("upgrade.label.lockedWeeks", comment: ""), lockedWeeks))
                         .font(.Tokens.bodyMedium)
                         .foregroundStyle(ColorTokens.text1)
-                    Text("Unlock your full history with Pro")
+                    Text("upgrade.label.unlockHistory")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }

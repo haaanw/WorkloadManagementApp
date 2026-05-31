@@ -12,7 +12,7 @@ struct RecoveryLoadChart: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             if loadSnapshots.count < 7 {
-                Text("Log workouts for 7+ days to see recovery-load patterns.")
+                Text("workload.chart.insufficientData")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .frame(maxWidth: .infinity, alignment: .leading)

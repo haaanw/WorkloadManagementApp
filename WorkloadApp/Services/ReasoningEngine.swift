@@ -36,10 +36,10 @@ struct ReasoningEngine {
             let abs = Swift.abs(delta)
             let direction: Factor.Direction = delta > 5 ? .positive : delta < -5 ? .negative : .neutral
             let text = delta >= 0
-                ? String(format: "%.0f%% above baseline", abs)
-                : String(format: "%.0f%% below baseline", abs)
+                ? String(format: String(localized: "delta.aboveBaseline", defaultValue: "%.0f%% above baseline"), abs)
+                : String(format: String(localized: "delta.belowBaseline", defaultValue: "%.0f%% below baseline"), abs)
             factors.append(Factor(
-                label: "Heart Rate Variability",
+                label: String(localized: "factor.heartRateVariability", defaultValue: "Heart Rate Variability"),
                 deltaText: text,
                 impact: min(abs / 30, 1.0),
                 direction: direction
@@ -52,10 +52,10 @@ struct ReasoningEngine {
             let abs = Swift.abs(delta)
             let direction: Factor.Direction = delta > 5 ? .negative : delta < -5 ? .positive : .neutral
             let text = delta >= 0
-                ? String(format: "%.0f%% above baseline", abs)
-                : String(format: "%.0f%% below baseline", abs)
+                ? String(format: String(localized: "delta.aboveBaseline", defaultValue: "%.0f%% above baseline"), abs)
+                : String(format: String(localized: "delta.belowBaseline", defaultValue: "%.0f%% below baseline"), abs)
             factors.append(Factor(
-                label: "Resting Heart Rate",
+                label: String(localized: "factor.restingHeartRate", defaultValue: "Resting Heart Rate"),
                 deltaText: text,
                 impact: min(abs / 30, 1.0),
                 direction: direction
@@ -69,12 +69,12 @@ struct ReasoningEngine {
             let direction: Factor.Direction = delta >= 30 ? .positive : delta <= -30 ? .negative : .neutral
             let text: String
             if delta >= 0 {
-                text = "\(Int(delta)) min above average"
+                text = String(localized: "delta.minAboveAverage", defaultValue: "\(Int(delta)) min above average")
             } else {
-                text = "\(Int(abs)) min below average"
+                text = String(localized: "delta.minBelowAverage", defaultValue: "\(Int(abs)) min below average")
             }
             factors.append(Factor(
-                label: "Sleep Duration",
+                label: String(localized: "factor.sleepDuration", defaultValue: "Sleep Duration"),
                 deltaText: text,
                 impact: min(abs / 90, 1.0),  // 90 min deviation = max impact
                 direction: direction
@@ -85,8 +85,8 @@ struct ReasoningEngine {
         if input.daysSinceRest >= 4 {
             let days = input.daysSinceRest
             factors.append(Factor(
-                label: "Training Streak",
-                deltaText: "\(days) consecutive training days",
+                label: String(localized: "factor.trainingStreak", defaultValue: "Training Streak"),
+                deltaText: String(localized: "reason.consecutiveTrainingDays", defaultValue: "\(days) consecutive training days"),
                 impact: min(Double(days - 3) / 4.0, 1.0),
                 direction: .negative
             ))
@@ -149,11 +149,14 @@ struct ReasoningEngine {
         // Readiness factors (each +z = better; a NEGATIVE contribution lowers readiness → a reason
         // to hold back). Surface the depressing factors first when we are reducing.
         for f in input.readiness.factors {
-            let direction = f.contribution < 0 ? "below" : "above"
-            let magnitude = String(format: "%.1f", abs(f.z))
-            let verb = isReduction && f.contribution < 0 ? "Holding back" : "Supported by"
+            let direction = f.contribution < 0
+                ? String(localized: "reason.direction.below", defaultValue: "below")
+                : String(localized: "reason.direction.above", defaultValue: "above")
+            let verb = isReduction && f.contribution < 0
+                ? String(localized: "reason.verb.holdingBack", defaultValue: "Holding back")
+                : String(localized: "reason.verb.supportedBy", defaultValue: "Supported by")
             reasons.append(DecisionReason(
-                text: "\(verb) — \(f.label) \(magnitude)σ \(direction) your baseline",
+                text: String(localized: "reason.readinessFactor", defaultValue: "\(verb) — \(f.label) \(abs(f.z), specifier: "%.1f")σ \(direction) your baseline"),
                 source: f.label,
                 contribution: f.contribution
             ))
@@ -162,7 +165,7 @@ struct ReasoningEngine {
         // Strain-Risk factors (each pushes risk UP; a higher contribution is a reason to cut load).
         for f in input.strainRisk.factors where f.contribution > 0 {
             reasons.append(DecisionReason(
-                text: "Caution — \(f.label)",
+                text: String(localized: "reason.caution", defaultValue: "Caution — \(f.label)"),
                 source: f.label,
                 // Strain-risk contributions raise risk → represent as a downward (negative) pressure
                 // on the decision so ranking by |contribution| interleaves both channels coherently.
@@ -176,8 +179,8 @@ struct ReasoningEngine {
             // A sleep readiness factor already encodes deviation; this line names the personal target
             // explicitly for the explanation only.
             reasons.append(DecisionReason(
-                text: "Your personal sleep baseline is ~\(Int(baseline / 60))h \(Int(baseline.truncatingRemainder(dividingBy: 60)))m",
-                source: "Sleep",
+                text: String(localized: "reason.personalSleepBaseline", defaultValue: "Your personal sleep baseline is ~\(Int(baseline / 60))h \(Int(baseline.truncatingRemainder(dividingBy: 60)))m"),
+                source: String(localized: "factor.sleep", defaultValue: "Sleep"),
                 contribution: 0
             ))
         }

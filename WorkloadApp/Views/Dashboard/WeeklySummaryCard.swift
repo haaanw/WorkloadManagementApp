@@ -18,7 +18,7 @@ struct WeeklySummaryCard: View {
                 }
             } label: {
                 HStack {
-                    Text("THIS WEEK")
+                    Text("weekly.summary.header")
                         .font(.Tokens.micro)
                         .tracking(1.2)
                         .foregroundStyle(ColorTokens.text3)
@@ -46,7 +46,7 @@ struct WeeklySummaryCard: View {
                                 .font(.Tokens.sectionHead)
                                 .monospacedDigit()
                                 .foregroundStyle(ColorTokens.text1)
-                            Text("week streak")
+                            Text("weekly.summary.streak.label")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
                         }
@@ -56,16 +56,16 @@ struct WeeklySummaryCard: View {
 
                     // Row 1: Sessions + Volume (2-column)
                     HStack(spacing: 16) {
-                        metricCell(title: "SESSIONS", value: "\(summary.sessionCount)", delta: summary.sessionCountDelta)
-                        metricCell(title: "VOLUME", value: String(format: "%.0f", summary.totalVolume), delta: summary.volumeDelta)
+                        metricCell(title: String(localized: "weekly.summary.metric.sessions", defaultValue: "SESSIONS"), value: "\(summary.sessionCount)", delta: summary.sessionCountDelta)
+                        metricCell(title: String(localized: "weekly.summary.metric.volume", defaultValue: "VOLUME"), value: String(format: "%.0f", summary.totalVolume), delta: summary.volumeDelta)
                     }
                     .padding(.horizontal, 16)
 
                     // Row 2: Avg Recovery + Load Trend (2-column)
                     HStack(spacing: 16) {
-                        metricCell(title: "AVG RECOVERY", value: String(format: "%.0f", summary.avgRecoveryScore), delta: summary.recoveryDelta)
+                        metricCell(title: String(localized: "weekly.summary.metric.avgRecovery", defaultValue: "AVG RECOVERY"), value: String(format: "%.0f", summary.avgRecoveryScore), delta: summary.recoveryDelta)
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("LOAD TREND")
+                            Text("weekly.summary.metric.loadTrend")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
                                 .foregroundStyle(ColorTokens.text3)
@@ -80,7 +80,7 @@ struct WeeklySummaryCard: View {
                     // Row 3: ACWR Zone Distribution
                     if !summary.acwrZoneDistribution.isEmpty {
                         VStack(alignment: .leading, spacing: 8) {
-                            Text("ZONE DISTRIBUTION")
+                            Text("weekly.summary.metric.zoneDistribution")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
                                 .foregroundStyle(ColorTokens.text3)

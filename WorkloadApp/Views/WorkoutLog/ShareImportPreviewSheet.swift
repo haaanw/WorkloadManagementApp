@@ -37,7 +37,7 @@ struct ShareImportPreviewSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         // Banner
-                        Text("SHARED TEMPLATE")
+                        Text("template.label.shared")
                             .font(.Tokens.smallLabel)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -133,7 +133,7 @@ struct ShareImportPreviewSheet: View {
                                 ProgressView()
                                     .tint(ColorTokens.background)
                             } else {
-                                Text("Import Template")
+                                Text("action.importTemplate")
                                     .font(.Tokens.body)
                                     .fontWeight(.medium)
                             }
@@ -153,7 +153,7 @@ struct ShareImportPreviewSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Close") { dismiss() }
+                    Button("action.close") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }

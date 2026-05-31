@@ -32,7 +32,7 @@ struct NiggleLogSheet: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    Text("Log a niggle")
+                    Text("niggle.heading")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -62,7 +62,7 @@ struct NiggleLogSheet: View {
                     divider
 
                     // Note (optional)
-                    TextField("Note (optional)", text: $note, axis: .vertical)
+                    TextField("niggle.field.note.placeholder", text: $note, axis: .vertical)
                         .lineLimit(3...6)
                         .textFieldStyle(SharpTextFieldStyle())
                         .padding(.horizontal, Spacing.sm)
@@ -72,16 +72,16 @@ struct NiggleLogSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Niggle")
+            .navigationTitle("niggle.nav.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("Cancel") { dismiss() }
+                    Button("action.cancel") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Save") { save() }
+                    Button("action.save") { save() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                 }
@@ -99,7 +99,7 @@ struct NiggleLogSheet: View {
 
     private var regionRow: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text("Where")
+            Text("niggle.field.region")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
 
@@ -137,7 +137,7 @@ struct NiggleLogSheet: View {
 
     private var typeRow: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text("What")
+            Text("niggle.field.type")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
 
@@ -174,10 +174,10 @@ struct NiggleLogSheet: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 VStack(alignment: .leading, spacing: 4) {
-                    Text("How bad")
+                    Text("niggle.field.severity")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
-                    Text("0 = barely there, 10 = severe")
+                    Text("niggle.field.severity.hint")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -202,9 +202,9 @@ struct NiggleLogSheet: View {
             }
 
             HStack {
-                Text("Mild")
+                Text("niggle.scale.severity.low")
                 Spacer()
-                Text("Severe")
+                Text("niggle.scale.severity.high")
             }
             .font(.Tokens.micro)
             .foregroundStyle(ColorTokens.text3)
@@ -226,10 +226,10 @@ struct NiggleLogSheet: View {
     private var limitedTrainingRow: some View {
         HStack {
             VStack(alignment: .leading, spacing: 4) {
-                Text("Limited your training?")
+                Text("niggle.field.limitedTraining")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
-                Text("Did it hold you back today?")
+                Text("niggle.field.limitedTraining.subtitle")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
             }

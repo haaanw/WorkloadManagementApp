@@ -69,7 +69,7 @@ struct PrescribedWorkoutCard: View {
             // Action buttons
             HStack(spacing: 0) {
                 Button { onStart() } label: {
-                    Text("Start")
+                    Text("action.start")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)

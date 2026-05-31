@@ -10,7 +10,7 @@ struct InsightCard: View {
             Text(text)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
-            Text("Based on \(sampleSize) occurrences")
+            Text(String(format: String(localized: "insight.sample.suffix", defaultValue: "Based on %d occurrences"), sampleSize))
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
         }

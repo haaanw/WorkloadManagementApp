@@ -83,8 +83,8 @@ struct ProgressionEngine {
 
         let explanation = CycleModifierGate
             .eligibility(context: cycleContext, cyclesObserved: cyclesObserved).explanation
-        let rationale = explanation.map { "Holding steady this session. \($0)" }
-            ?? "Holding steady this session."
+        let rationale = explanation.map { String(localized: "progression.cycleBias", defaultValue: "Holding steady this session. \($0)") }
+            ?? String(localized: "progression.cycleBias.noExplanation", defaultValue: "Holding steady this session.")
 
         return ExerciseSuggestion(
             exerciseName: base.exerciseName,
@@ -124,7 +124,7 @@ struct ProgressionEngine {
             return ExerciseSuggestion(
                 exerciseName: exerciseName,
                 suggestedSets: [],
-                rationale: "No previous data — log your first session to get suggestions.",
+                rationale: String(localized: "progression.noPreviousData", defaultValue: "No previous data — log your first session to get suggestions."),
                 progressionType: .maintain
             )
         }
@@ -206,9 +206,9 @@ struct ProgressionEngine {
         var description: String {
             switch self {
             case .none: return ""
-            case .mild: return "Slight break detected — easing back in."
-            case .moderate: return "2+ weeks off — reducing load to rebuild safely."
-            case .significant: return "Extended break — starting at 60% to prevent injury."
+            case .mild: return String(localized: "detraining.mild", defaultValue: "Slight break detected — easing back in.")
+            case .moderate: return String(localized: "detraining.moderate", defaultValue: "2+ weeks off — reducing load to rebuild safely.")
+            case .significant: return String(localized: "detraining.significant", defaultValue: "Extended break — starting at 60% to prevent injury.")
             }
         }
     }
@@ -264,7 +264,7 @@ struct ProgressionEngine {
                 suggestedSets: lastEntry.sets.map { set in
                     SetSuggestion(weightKg: set.weightKg, reps: set.reps, rpe: min(set.rpe ?? 7, context.intensityCap), durationSeconds: nil, distanceMeters: nil)
                 },
-                rationale: "Repeating last session — no weight data to progress from.",
+                rationale: String(localized: "progression.noWeightData", defaultValue: "Repeating last session — no weight data to progress from."),
                 progressionType: .maintain
             )
         }
@@ -278,13 +278,13 @@ struct ProgressionEngine {
             rationale = detrainingLevel.description
         } else if context.recoveryZone == .red || context.volumeModifier < 0.6 {
             progressionType = .deload
-            rationale = "Recovery is low — reducing load to protect adaptation."
+            rationale = String(localized: "progression.deload", defaultValue: "Recovery is low — reducing load to protect adaptation.")
         } else if context.recoveryZone == .green && context.acwrZone == .optimal {
             progressionType = .increase
-            rationale = "Recovery is strong and load is balanced — pushing forward."
+            rationale = String(localized: "progression.increase", defaultValue: "Recovery is strong and load is balanced — pushing forward.")
         } else {
             progressionType = .maintain
-            rationale = "Maintaining current level — recovery or load not ideal for progression."
+            rationale = String(localized: "progression.maintain", defaultValue: "Maintaining current level — recovery or load not ideal for progression.")
         }
 
         // Calculate target weight
@@ -328,7 +328,7 @@ struct ProgressionEngine {
         let trimmedSets = Array(suggestedSets.prefix(setCount))
 
         if progressionType == .increase {
-            rationale += " Target: \(String(format: "%.1f", targetWeight))kg (+" + String(format: "%.1f", increment) + "kg)."
+            rationale += " " + String(localized: "progression.targetWeight", defaultValue: "Target: \(targetWeight, specifier: "%.1f")kg (+\(increment, specifier: "%.1f")kg).")
         }
 
         return ExerciseSuggestion(
@@ -355,7 +355,7 @@ struct ProgressionEngine {
         }
         let rationale = detrainingLevel != .none
             ? detrainingLevel.description
-            : "Based on last session, adjusted for recovery."
+            : String(localized: "progression.repsOnlyDefault", defaultValue: "Based on last session, adjusted for recovery.")
         return ExerciseSuggestion(
             exerciseName: exerciseName,
             suggestedSets: suggestedSets,
@@ -381,7 +381,7 @@ struct ProgressionEngine {
         }
         let rationale = detrainingLevel != .none
             ? detrainingLevel.description
-            : "Adjusted for current recovery."
+            : String(localized: "progression.distanceDurationDefault", defaultValue: "Adjusted for current recovery.")
         return ExerciseSuggestion(
             exerciseName: exerciseName,
             suggestedSets: suggestedSets,
@@ -407,7 +407,7 @@ struct ProgressionEngine {
         return ExerciseSuggestion(
             exerciseName: exerciseName,
             suggestedSets: suggestedSets,
-            rationale: detrainingLevel != .none ? detrainingLevel.description : "Based on last session.",
+            rationale: detrainingLevel != .none ? detrainingLevel.description : String(localized: "progression.durationOnlyDefault", defaultValue: "Based on last session."),
             progressionType: detrainingLevel != .none ? .returnFromBreak : .maintain
         )
     }

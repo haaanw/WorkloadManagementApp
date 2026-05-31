@@ -113,11 +113,11 @@ struct StrainRiskEngine {
 
         // 1. Strength-load elevation — max per-muscle elevation (highest weight).
         let maxStrengthElevation = input.strengthLoad.perMuscle.values.map(\.elevation).max() ?? 0
-        components.append(("Per-muscle strength-load elevation", clamp01(maxStrengthElevation), Weights.strengthLoadElevation))
+        components.append((String(localized: "factor.strengthLoadElevation", defaultValue: "Per-muscle strength-load elevation"), clamp01(maxStrengthElevation), Weights.strengthLoadElevation))
 
         // 2. Endurance-load elevation (absent when nil ⇒ weight redistributed).
         if let endurance = input.enduranceLoadElevation {
-            components.append(("Endurance-load above personal baseline", clamp01(endurance), Weights.enduranceLoadElevation))
+            components.append((String(localized: "factor.enduranceLoadElevation", defaultValue: "Endurance-load above personal baseline"), clamp01(endurance), Weights.enduranceLoadElevation))
         }
 
         // 3. FatigueIndex composite — but EXCLUDING its internal soft-tissue + rest-debt
@@ -126,7 +126,7 @@ struct StrainRiskEngine {
         //    those standalone, so consuming the full `index` here double-counts them. Re-derive
         //    a "fatigue without soft-tissue / rest-debt" value from the exposed component fields
         //    so each underlying signal contributes exactly once.
-        components.append(("Accumulated fatigue", fatigueExcludingSoftTissueRestDebt(input.fatigue), Weights.fatigueIndex))
+        components.append((String(localized: "factor.accumulatedFatigue", defaultValue: "Accumulated fatigue"), fatigueExcludingSoftTissueRestDebt(input.fatigue), Weights.fatigueIndex))
 
         // 4. Monotony/strain — gated. Computed WITH monotony → normalized monotony at full
         //    weight; fell back (or W2 defence: computed-but-nil monotony) → fallbackLoadSignal at
@@ -137,14 +137,14 @@ struct StrainRiskEngine {
             // if a residual .computed-with-nil ever arrives, degrade to the SAME reduced-weight
             // fallback as .fellBack — never read 0-at-full-weight (zero-monotony-at-high-confidence).
             if let m = input.loadDistribution.monotony {
-                components.append(("Training-load monotony", clamp01(m / Constants.monotonyNormaliser), Weights.monotonyStrain))
+                components.append((String(localized: "factor.trainingLoadMonotony", defaultValue: "Training-load monotony"), clamp01(m / Constants.monotonyNormaliser), Weights.monotonyStrain))
             } else {
-                components.append(("Load distribution: limited data — using fallback",
+                components.append((String(localized: "factor.loadDistributionFallback", defaultValue: "Load distribution: limited data — using fallback"),
                                    clamp01(input.loadDistribution.fallbackLoadSignal),
                                    Weights.monotonyStrainFallback))
             }
         case .fellBack:
-            components.append(("Load distribution: limited data — using fallback",
+            components.append((String(localized: "factor.loadDistributionFallback", defaultValue: "Load distribution: limited data — using fallback"),
                                clamp01(input.loadDistribution.fallbackLoadSignal),
                                Weights.monotonyStrainFallback))
         }
@@ -152,10 +152,10 @@ struct StrainRiskEngine {
         // 5. Soft-tissue (SINGLE source: FatigueResult.softTissueRisk) + same-region recurrence bonus.
         let recurrenceBonus = Double(input.strengthLoad.recurrenceFlags.count) * Constants.recurrenceBonusPerRegion
         let softTissue = clamp01(input.fatigue.softTissueRisk + recurrenceBonus)
-        components.append(("Soft-tissue memory", softTissue, Weights.softTissue))
+        components.append((String(localized: "factor.softTissueMemory", defaultValue: "Soft-tissue memory"), softTissue, Weights.softTissue))
 
         // 6. Rest debt (FatigueIndexEngine only).
-        components.append(("Rest debt", clamp01(input.fatigue.restDebt), Weights.restDebt))
+        components.append((String(localized: "factor.restDebt", defaultValue: "Rest debt"), clamp01(input.fatigue.restDebt), Weights.restDebt))
 
         // Weighted sum, renormalized over PRESENT components (redistribution, not imputation).
         let totalWeight = components.reduce(0) { $0 + $1.weight }

@@ -36,12 +36,12 @@ struct ShareCodeSheet: View {
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .principal) {
-                    Text("Share Template")
+                    Text("nav.shareTemplate")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("Done") { dismiss() }
+                    Button("action.done") { dismiss() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -77,7 +77,7 @@ struct ShareCodeSheet: View {
 
                 // Share code card
                 VStack(alignment: .leading, spacing: 0) {
-                    Text("SHARE CODE")
+                    Text("label.shareCode")
                         .font(.Tokens.smallLabel)
                         .tracking(1.2)
                         .foregroundStyle(ColorTokens.text3)
@@ -94,7 +94,7 @@ struct ShareCodeSheet: View {
                         .accessibilityLabel("Share code")
                         .accessibilityValue(code)
 
-                    Text("Expires in 30 days")
+                    Text("shareCode.expiryText")
                         .font(.Tokens.smallLabel)
                         .foregroundStyle(ColorTokens.text3)
                         .padding(.horizontal, 16)
@@ -118,7 +118,7 @@ struct ShareCodeSheet: View {
                             showCopied = false
                         }
                     } label: {
-                        Text(showCopied ? "Copied" : "Copy Code")
+                        Text(showCopied ? "action.copied" : "action.copyCode")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
@@ -132,7 +132,7 @@ struct ShareCodeSheet: View {
                     // Share Link button via ShareLink
                     let shareURL = URL(string: "https://tuwa.app/t/\(code)")!
                     ShareLink(item: shareURL) {
-                        Text("Share Link")
+                        Text("action.shareLink")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)

@@ -21,7 +21,7 @@ struct SleepTrendChart: View {
 
     var body: some View {
         if sleepData.isEmpty {
-            Text("Sleep data from Apple Health will appear here.")
+            Text("sleep.chart.empty.message")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -41,7 +41,7 @@ struct SleepTrendChart: View {
                         .foregroundStyle(ColorTokens.text3)
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
                         .annotation(position: .top, alignment: .trailing) {
-                            Text("7h target")
+                            Text("sleep.chart.annotation")
                                 .font(.Tokens.micro)
                                 .foregroundStyle(ColorTokens.text3)
                         }
@@ -51,9 +51,9 @@ struct SleepTrendChart: View {
                 .id(locale)
 
                 HStack(spacing: 16) {
-                    legendItem(color: ColorTokens.zoneOptimal, label: "7h+")
-                    legendItem(color: ColorTokens.zoneCaution, label: "6–7h")
-                    legendItem(color: ColorTokens.zoneDanger,  label: "<6h")
+                    legendItem(color: ColorTokens.zoneOptimal, label: String(localized: "sleep.chart.legend.excellent", defaultValue: "7h+"))
+                    legendItem(color: ColorTokens.zoneCaution, label: String(localized: "sleep.chart.legend.good", defaultValue: "6–7h"))
+                    legendItem(color: ColorTokens.zoneDanger,  label: String(localized: "sleep.chart.legend.poor", defaultValue: "<6h"))
                 }
             }
         }

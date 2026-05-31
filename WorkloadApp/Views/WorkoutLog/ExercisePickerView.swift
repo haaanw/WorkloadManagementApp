@@ -67,13 +67,13 @@ struct ExercisePickerView: View {
 
                 if filteredExercises.isEmpty && !searchText.isEmpty {
                     VStack(spacing: 16) {
-                        Text("No exercises found")
+                        Text("empty.noExercises")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
                         Button {
                             tryAddCustom()
                         } label: {
-                            Label("Add \"\(searchText)\" as custom exercise", systemImage: "plus")
+                            Label(String(format: String(localized: "action.addCustomExercise", defaultValue: "Add \"%@\" as custom exercise"), searchText), systemImage: "plus")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                         }
@@ -125,7 +125,7 @@ struct ExercisePickerView: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Select Exercise")
+            .navigationTitle("exercise.nav.select")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "Search exercises")
             .toolbar {
@@ -322,7 +322,7 @@ struct MuscleGroupSelector: View {
         }
         .listStyle(.plain)
         .background(ColorTokens.background)
-        .navigationTitle("Muscle Group")
+        .navigationTitle("exercise.nav.muscleGroup")
         .navigationBarTitleDisplayMode(.inline)
     }
 

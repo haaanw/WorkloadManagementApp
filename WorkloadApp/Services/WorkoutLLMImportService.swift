@@ -50,15 +50,15 @@ enum WorkoutLLMImportService {
         var errorDescription: String? {
             switch self {
             case .invalidPDF:
-                return "Could not read the PDF file. It may be corrupted or password-protected."
+                return String(localized: "error.import.invalidPDF", defaultValue: "Could not read the PDF file. It may be corrupted or password-protected.")
             case .invalidImage:
-                return "Could not process the image. Please try a different photo."
+                return String(localized: "error.import.invalidImage", defaultValue: "Could not process the image. Please try a different photo.")
             case .noTextFound:
-                return "No readable text found in the file. Try a clearer image or a different format."
+                return String(localized: "error.import.noTextFound", defaultValue: "No readable text found in the file. Try a clearer image or a different format.")
             case .parseFailed(let detail):
-                return "Failed to parse workout: \(detail)"
+                return String(localized: "error.import.parseFailed", defaultValue: "Failed to parse workout: \(detail)")
             case .notAuthenticated:
-                return "You must be signed in to import workouts."
+                return String(localized: "error.import.notAuthenticated", defaultValue: "You must be signed in to import workouts.")
             }
         }
     }

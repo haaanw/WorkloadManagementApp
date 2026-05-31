@@ -149,10 +149,10 @@ enum PRSReadinessInputBuilder {
 
     private static func contextLabel(for zone: ACWRZone) -> String {
         switch zone {
-        case .optimal: return "Load Steady"
-        case .caution: return "Load Building"
-        case .danger: return "Load High"
-        case .undertrained: return "Building Base"
+        case .optimal: return String(localized: "acwr.context.optimal", defaultValue: "Load Steady")
+        case .caution: return String(localized: "acwr.context.caution", defaultValue: "Load Building")
+        case .danger: return String(localized: "acwr.context.danger", defaultValue: "Load High")
+        case .undertrained: return String(localized: "acwr.context.undertrained", defaultValue: "Building Base")
         case .noData: return ""
         }
     }

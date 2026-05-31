@@ -28,7 +28,7 @@ struct CoachWorkoutEntrySheet: View {
 
                     // Date
                     HStack {
-                        Text("DATE")
+                        Text("coach.workout.fieldDate")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -44,7 +44,7 @@ struct CoachWorkoutEntrySheet: View {
 
                     // Session Type
                     VStack(alignment: .leading, spacing: 8) {
-                        Text("SESSION TYPE")
+                        Text("coach.workout.fieldSessionType")
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
@@ -64,7 +64,7 @@ struct CoachWorkoutEntrySheet: View {
                     // Duration
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("DURATION")
+                            Text("coach.workout.fieldDuration")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
                                 .foregroundStyle(ColorTokens.text3)
@@ -85,7 +85,7 @@ struct CoachWorkoutEntrySheet: View {
                     // sRPE
                     VStack(alignment: .leading, spacing: 8) {
                         HStack {
-                            Text("SRPE")
+                            Text("coach.workout.fieldSRPE")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
                                 .foregroundStyle(ColorTokens.text3)
@@ -120,7 +120,7 @@ struct CoachWorkoutEntrySheet: View {
                             if isLoading {
                                 ProgressView()
                             } else {
-                                Text("Log Workout for \(athlete.displayName)")
+                                Text(String(localized: "coach.workout.title", defaultValue: "Log Workout for \(athlete.displayName)"))
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                             }
@@ -135,7 +135,7 @@ struct CoachWorkoutEntrySheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("Log Workout")
+            .navigationTitle("coach.nav.logWorkout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

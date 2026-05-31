@@ -78,7 +78,7 @@ struct ClientDetailView: View {
 
                 HStack(spacing: 0) {
                     Button { showWorkoutEntry = true } label: {
-                        Text("Log Workout")
+                        Text("coach.client.logWorkout")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
@@ -89,7 +89,7 @@ struct ClientDetailView: View {
                     Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
 
                     Button { showPrescribeSheet = true } label: {
-                        Text("Prescribe Workout")
+                        Text("coach.client.prescribeWorkout")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
@@ -125,7 +125,7 @@ struct ClientDetailView: View {
 
     private var recoveryHero: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text("RECOVERY")
+            Text("coach.client.sectionRecovery")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -141,7 +141,7 @@ struct ClientDetailView: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
             } else {
-                Text("No recovery data")
+                Text("coach.client.recovery.empty")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text3)
             }
@@ -154,7 +154,7 @@ struct ClientDetailView: View {
 
     private var acwrTrend: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("ACWR TREND (28 DAYS)")
+            Text("coach.client.sectionACWRTrend")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -163,7 +163,7 @@ struct ClientDetailView: View {
                 .padding(.bottom, 8)
 
             if recentWorkload.isEmpty {
-                Text("No workload data")
+                Text("coach.client.workload.empty")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
                     .padding(.horizontal, 16)
@@ -186,7 +186,7 @@ struct ClientDetailView: View {
 
     private var workloadSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("RECENT LOAD")
+            Text("coach.client.sectionRecentLoad")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -195,7 +195,7 @@ struct ClientDetailView: View {
                 .padding(.bottom, 8)
 
             if recentWorkloadList.isEmpty {
-                Text("No workload data")
+                Text("coach.client.workload.empty")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
                     .padding(.horizontal, 16)
@@ -225,7 +225,7 @@ struct ClientDetailView: View {
 
     private var prSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("PERSONAL RECORDS")
+            Text("coach.client.sectionPRs")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -234,7 +234,7 @@ struct ClientDetailView: View {
                 .padding(.bottom, 8)
 
             if recentPRs.isEmpty {
-                Text("No records yet")
+                Text("coach.client.prs.empty")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
                     .padding(.horizontal, 16)
@@ -260,7 +260,7 @@ struct ClientDetailView: View {
 
     private var prescriptionsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("PRESCRIBED")
+            Text("coach.client.sectionPrescribed")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -269,7 +269,7 @@ struct ClientDetailView: View {
                 .padding(.bottom, 8)
 
             if upcomingPrescriptions.isEmpty {
-                Text("No upcoming prescriptions")
+                Text("coach.client.prescribed.empty")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
                     .padding(.horizontal, 16)
@@ -300,7 +300,7 @@ struct ClientDetailView: View {
 
     private var sessionsSection: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("SESSIONS")
+            Text("coach.client.sectionSessions")
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
@@ -313,13 +313,13 @@ struct ClientDetailView: View {
             Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
             if sessions.isEmpty {
-                Text("No sessions yet")
+                Text("coach.client.sessions.empty")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
             } else if filteredSessions.isEmpty {
-                Text("No \(selectedSessionType?.displayName ?? "matching") sessions found.")
+                Text(String(localized: "coach.client.sessions.noMatch", defaultValue: "No \(selectedSessionType?.displayName ?? "matching") sessions found."))
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(.horizontal, 16)

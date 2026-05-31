@@ -17,10 +17,10 @@ struct SleepDetailView: View {
             VStack(spacing: 0) {
                 // Header
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("SLEEP TREND")
+                    Text("sleep.detail.header.title")
                         .font(.Tokens.pageTitle)
                         .foregroundStyle(ColorTokens.text1)
-                    Text("28-day sleep duration")
+                    Text("sleep.detail.header.subtitle")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -33,9 +33,9 @@ struct SleepDetailView: View {
 
                 // Stats row
                 HStack(spacing: 0) {
-                    statCell(label: "LAST NIGHT", value: lastNight.map { sleepString($0) } ?? "—")
+                    statCell(label: String(localized: "sleep.detail.label.lastNight", defaultValue: "LAST NIGHT"), value: lastNight.map { sleepString($0) } ?? "—")
                     Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
-                    statCell(label: "7-DAY AVG", value: sevenDayAvgMinutes.map { sleepString($0) } ?? "—")
+                    statCell(label: String(localized: "detail.label.sevenDayAvg", defaultValue: "7-DAY AVG"), value: sevenDayAvgMinutes.map { sleepString($0) } ?? "—")
                 }
                 .background(ColorTokens.surface)
 
@@ -50,11 +50,11 @@ struct SleepDetailView: View {
 
                 // Explanation
                 VStack(alignment: .leading, spacing: 8) {
-                    Text("ABOUT SLEEP SCORING")
+                    Text("sleep.detail.section.about")
                         .font(.Tokens.micro)
                         .tracking(1.2)
                         .foregroundStyle(ColorTokens.text3)
-                    Text("Sleep below 6 hours significantly reduces recovery score. The 7-hour target line is your minimum threshold for a green readiness score contribution.")
+                    Text("sleep.detail.explanation")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -64,7 +64,7 @@ struct SleepDetailView: View {
             }
         }
         .background(ColorTokens.background)
-        .navigationTitle("Sleep")
+        .navigationTitle(Text("recovery.label.sleep"))
         .navigationBarTitleDisplayMode(.inline)
     }
 

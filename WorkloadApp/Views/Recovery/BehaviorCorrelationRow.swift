@@ -23,10 +23,10 @@ struct BehaviorCorrelationRow: View {
                 Text(tagName)
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
-                Text("Recovery \(impactPercentage >= 0 ? "+" : "")\(String(format: "%.0f", impactPercentage))% on tagged days")
+                Text(String(format: String(localized: "behavior.impact.suffix", defaultValue: "Recovery %@ on tagged days"), "\(impactPercentage >= 0 ? "+" : "")\(String(format: "%.0f", impactPercentage))%"))
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                Text("\(sampleCountWith) days with, \(sampleCountWithout) days without")
+                Text(String(format: String(localized: "behavior.sample.count", defaultValue: "%d days with, %d days without"), sampleCountWith, sampleCountWithout))
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
             }
@@ -56,7 +56,7 @@ struct BehaviorCorrelationRow: View {
                 Text(tagName)
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
-                Text("\(neededDays) more tagged days needed")
+                Text(String(format: String(localized: "behavior.insufficient.days", defaultValue: "%d more tagged days needed"), neededDays))
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
             }

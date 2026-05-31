@@ -90,7 +90,7 @@ struct WorkoutImportSheet: View {
                     loadingOverlay
                 }
             }
-            .navigationTitle("Import Workout")
+            .navigationTitle("nav.importWorkout")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
@@ -138,7 +138,7 @@ struct WorkoutImportSheet: View {
                     )
                     .environment(container)
                 } else {
-                    Text("Unable to load athlete data.")
+                    Text("error.loadingAthleteData")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text2)
                 }
@@ -180,7 +180,7 @@ struct WorkoutImportSheet: View {
 
     private var textTabContent: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("Paste any workout text below")
+            Text("import.label.workoutInstruction")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
 
@@ -198,7 +198,7 @@ struct WorkoutImportSheet: View {
             Button {
                 handleTextParse()
             } label: {
-                Text("Parse Workout")
+                Text("action.parseWorkout")
                     .font(.Tokens.body)
                     .foregroundStyle(
                         inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty

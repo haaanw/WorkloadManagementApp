@@ -14,7 +14,7 @@ struct HRVTrendChart: View {
 
     var body: some View {
         if data.isEmpty {
-            Text("No HRV data available. Connect a wearable device through Apple Health.")
+            Text("hrv.chart.empty.message")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
                 .frame(maxWidth: .infinity, alignment: .leading)
@@ -36,7 +36,7 @@ struct HRVTrendChart: View {
                         .foregroundStyle(ColorTokens.text3)
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
                         .annotation(position: .top, alignment: .trailing) {
-                            Text("7d avg: \(Int(baseline)) ms")
+                            Text(String(format: String(localized: "hrv.chart.annotation", defaultValue: "7d avg: %d ms"), Int(baseline)))
                                 .font(.Tokens.micro)
                                 .foregroundStyle(ColorTokens.text3)
                         }
