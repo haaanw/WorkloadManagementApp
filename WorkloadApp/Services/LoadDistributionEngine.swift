@@ -55,14 +55,19 @@ struct LoadDistributionEngine {
         static let spikeBump: Double = 0.25
         /// Spike-detection lookback (days) for the fallback heuristic.
         static let spikeLookbackDays: Int = 14
-        /// Positive offset added to each per-stream z-score before summing for the monotony
-        /// input (Finding 2 / GA-30-B). Foster monotony is mean/SD and is undefined / degenerate
-        /// on a zero-mean series; summing two zero-mean standardised streams would always yield
-        /// mean ≈ 0 → monotony ≈ 0 regardless of the streams. Shifting each z-score onto a
-        /// positive baseline (z-scores are almost always within ±3) keeps the per-stream SHAPE
-        /// that standardisation equalises while giving Foster a well-defined positive-mean
-        /// series, so BOTH streams measurably move monotony/strain.
-        static let standardizedOffset: Double = 3.0
+        /// Converts a strength STRAIN-UNIT (`StrengthLoadEngine.Constants.strainWeight`, where a
+        /// heavy hard set ≈ 1.0) into an sRPE-EQUIVALENT internal load so endurance srpeLoad
+        /// (minutes × RPE) and strength load live on ONE real-unit scale (Wave-5, W1).
+        ///
+        /// ~5 ≈ a hard set carrying roughly the internal load of ~0.7 min × RPE 7 (≈5 sRPE
+        /// units). Classic Foster monotony (mean / SD) on this single real-unit combined series
+        /// then lands in the natural ~1–3 range, so the downstream
+        /// `clamp01(monotony / monotonyNormaliser=3.0)` is MEANINGFUL (never pinned at 1.0) and
+        /// strength contributes PROPORTIONALLY. The natural endurance > strength per-session
+        /// asymmetry is intentional — both streams move monotony; neither is artificially
+        /// equalised (which is what the superseded Wave-2 z-standardise+offset hack did, at the
+        /// cost of saturating clamp01 to 1.0 for every gate-passing log).
+        static let strengthSRPEEquivalentPerStrainUnit: Double = 5.0
     }
 
     // MARK: - Daily-load series (Task 1)
@@ -78,10 +83,13 @@ struct LoadDistributionEngine {
         windowDays: Int = Constants.seriesWindowDays
     ) -> [DailyLoad] {
         let to = calendar.startOfDay(for: asOf)
+        // Finding 3 / GA-30-C (Wave-5 W3): half-open window — a session exactly `windowDays` old
+        // is EXCLUDED so a "window of N days" spans exactly N calendar days, matching
+        // StrengthLoadEngine.windowedRange's exclusive-upper form.
         let windowed = sessions.filter { session in
             let from = calendar.startOfDay(for: session.sessionDate)
             guard let diff = calendar.dateComponents([.day], from: from, to: to).day else { return false }
-            return diff >= 0 && diff <= windowDays
+            return diff >= 0 && diff < windowDays
         }
 
         // est-1RM references for the strength component (rolling best over FULL history).
@@ -126,78 +134,68 @@ struct LoadDistributionEngine {
         return load
     }
 
-    // MARK: - Per-stream standardisation for monotony/strain (Finding 2 / GA-30-B)
+    // MARK: - Single real-unit combined series for monotony/strain (Wave-5, W1)
 
-    /// Z-standardise a per-day value stream: `z = (value − mean) / sampleSD`.
+    /// The series fed to Foster monotony/strain: ONE real-unit per-logged-day value, over the
+    /// SAME windowed/logged days as `dailyLoadSeries`, equal to
+    /// `enduranceSrpeLoad + strengthStrainSum × strengthSRPEEquivalentPerStrainUnit`, ordered by
+    /// day. (The public name `monotonyInputSeries` is retained, but it now returns this single
+    /// real-unit combined series — NOT the superseded Wave-2 z-standardise+offset series.)
     ///
-    /// Finding 2 / GA-30-B: the raw unified series sums endurance sRPE load (minutes×RPE,
-    /// tens–hundreds) with strength hard-set strain weights (~0.6–1.3 per set, single digits).
-    /// Fed straight to Foster monotony (a mean/SD ratio), endurance dominates and strength
-    /// becomes noise whenever sessionRPE is logged. Standardising EACH stream to mean-0/SD-1
-    /// before summing puts both on a comparable footing so each contributes to monotony/strain
-    /// regardless of native scale.
+    /// W1: putting strength on an sRPE-equivalent scale and running classic Foster monotony
+    /// (mean / SD) on the single combined series keeps monotony in the natural ~1–3 range, so
+    /// the downstream `clamp01(monotony / 3.0)` is meaningful and never saturates at 1.0; both
+    /// streams move monotony proportionally (no z-standardise / no offset).
     ///
-    /// Degrades gracefully: a stream with fewer than 2 values, or zero variance (SD == 0 — e.g.
-    /// only endurance logged, or constant load), contributes a constant 0 for every day (no NaN,
-    /// no divide-by-zero) so the OTHER stream drives the result.
-    private static func standardize(_ values: [Double]) -> [Double] {
-        guard values.count >= 2 else { return Array(repeating: 0, count: values.count) }
-        let mean = values.reduce(0, +) / Double(values.count)
-        guard let sd = sampleSD(values, mean: mean), sd > 0 else {
-            return Array(repeating: 0, count: values.count)
-        }
-        return values.map { ($0 - mean) / sd }
-    }
-
-    /// The series fed to Foster monotony/strain: build a per-logged-day endurance sub-series and
-    /// strength sub-series (over the SAME logged days and windowing as `dailyLoadSeries`),
-    /// z-standardise EACH stream separately, then sum element-wise. This is a SEPARATE path from
-    /// the raw `dailyLoadSeries` (whose absolute per-day load keeps its meaning for other
-    /// consumers); only the values handed to monotony/strain change.
+    /// W2: this is the EXACT series the completeness gate runs on (see `distribution`), so a log
+    /// that passes the gate (≥ monotonyMinLoggedDays AND SD > 0) can NEVER yield a nil monotony —
+    /// `.computed` ⇒ monotony non-nil structurally.
     static func monotonyInputSeries(
         sessions: [WorkoutSession],
         asOf: Date,
         calendar: Calendar,
         windowDays: Int = Constants.seriesWindowDays
     ) -> [Double] {
+        combinedDailyLoadSeries(sessions: sessions, asOf: asOf, calendar: calendar, windowDays: windowDays)
+            .map(\.load)
+    }
+
+    /// The single real-unit combined daily series as `[DailyLoad]` (so the gate and monotony can
+    /// share one series). Per logged day:
+    /// `Σ srpeLoad(endurance) + Σ strengthStrain × strengthSRPEEquivalentPerStrainUnit`.
+    static func combinedDailyLoadSeries(
+        sessions: [WorkoutSession],
+        asOf: Date,
+        calendar: Calendar,
+        windowDays: Int = Constants.seriesWindowDays
+    ) -> [DailyLoad] {
         let to = calendar.startOfDay(for: asOf)
+        // Finding 3 / GA-30-C (Wave-5 W3): half-open window (exclusive upper), matching
+        // dailyLoadSeries + StrengthLoadEngine.windowedRange.
         let windowed = sessions.filter { session in
             let from = calendar.startOfDay(for: session.sessionDate)
             guard let diff = calendar.dateComponents([.day], from: from, to: to).day else { return false }
-            return diff >= 0 && diff <= windowDays
+            return diff >= 0 && diff < windowDays
         }
 
         let references = StrengthLoadEngine.e1RMReferences(sessions: sessions)
 
-        // Per-day endurance and strength sub-series, keyed by the SAME logged days as the raw
-        // series (a day is "logged" iff it had a session in the window).
-        var enduranceByDay: [Date: Double] = [:]
-        var strengthByDay: [Date: Double] = [:]
+        var byDay: [Date: Double] = [:]
         for session in windowed {
             let day = calendar.startOfDay(for: session.sessionDate)
-            // Ensure every logged day exists in BOTH maps (default 0) so the two ordered series
-            // align element-wise even when a day has only one stream.
-            enduranceByDay[day, default: 0] += 0
-            strengthByDay[day, default: 0] += 0
+            var load = 0.0
             if let rpe = session.sessionRPE {
-                enduranceByDay[day, default: 0] += WorkloadCalculator.srpeLoad(
-                    durationSeconds: session.durationSeconds, sessionRPE: rpe
-                )
+                load += WorkloadCalculator.srpeLoad(durationSeconds: session.durationSeconds, sessionRPE: rpe)
             }
-            strengthByDay[day, default: 0] += sessionStrengthLoad(session: session, references: references)
+            // Strength strain-units → sRPE-equivalent so both streams share one real-unit scale.
+            load += sessionStrengthLoad(session: session, references: references)
+                * Constants.strengthSRPEEquivalentPerStrainUnit
+            byDay[day, default: 0] += load
         }
 
-        let orderedDays = enduranceByDay.keys.sorted()
-        let endurance = orderedDays.map { enduranceByDay[$0] ?? 0 }
-        let strength = orderedDays.map { strengthByDay[$0] ?? 0 }
-
-        // Shift each standardised stream onto a positive baseline before summing so Foster
-        // monotony (mean/SD) is well-defined and responds to BOTH streams (see standardizedOffset).
-        let offset = Constants.standardizedOffset
-        let zEndurance = standardize(endurance).map { $0 + offset }
-        let zStrength = standardize(strength).map { $0 + offset }
-
-        return zip(zEndurance, zStrength).map(+)
+        return byDay
+            .map { DailyLoad(dayStart: $0.key, load: $0.value) }
+            .sorted { $0.dayStart < $1.dayStart }
     }
 
     // MARK: - Foster monotony / strain (Task 1)
@@ -244,12 +242,17 @@ struct LoadDistributionEngine {
         calendar: Calendar,
         windowDays: Int = Constants.seriesWindowDays
     ) -> LoadDistributionResult {
-        let series = dailyLoadSeries(sessions: sessions, asOf: asOf, calendar: calendar, windowDays: windowDays)
-        let loggedDays = series.count
+        // W2 (Wave-5): the gate and Foster monotony/strain MUST run on the SAME series. Build the
+        // single real-unit combined series ONCE; gate on it; feed it to monotony/strain. This
+        // structurally guarantees `.computed ⇒ monotony non-nil` (the gate's SD>0 + count checks
+        // are exactly the conditions monotony() needs to be non-nil).
+        let combined = combinedDailyLoadSeries(
+            sessions: sessions, asOf: asOf, calendar: calendar, windowDays: windowDays
+        )
+        let loggedDays = combined.count
         let fallback = fallbackLoadSignal(sessions: sessions, asOf: asOf, calendar: calendar)
 
-        // Gate on the RAW series (its loggedDays + variance meaning is unchanged).
-        guard completenessGate(series) else {
+        guard completenessGate(combined) else {
             return LoadDistributionResult(
                 monotony: nil,
                 strain: nil,
@@ -259,15 +262,10 @@ struct LoadDistributionEngine {
             )
         }
 
-        // Finding 2 / GA-30-B: feed monotony/strain the PER-STREAM-STANDARDISED series (not the
-        // raw absolute loads) so strength contributes comparably to endurance instead of being
-        // drowned out when sessionRPE is logged.
-        let standardized = monotonyInputSeries(
-            sessions: sessions, asOf: asOf, calendar: calendar, windowDays: windowDays
-        )
+        let values = combined.map(\.load)
         return LoadDistributionResult(
-            monotony: monotony(standardized),
-            strain: strain(standardized),
+            monotony: monotony(values),
+            strain: strain(values),
             gateState: .computed,
             fallbackLoadSignal: fallback,
             loggedDays: loggedDays
@@ -285,10 +283,12 @@ struct LoadDistributionEngine {
         calendar: Calendar
     ) -> Double {
         let to = calendar.startOfDay(for: asOf)
+        // Finding 3 / GA-30-C (Wave-5 W3): half-open lookback window (exclusive upper), matching
+        // the series windows + StrengthLoadEngine.windowedRange.
         let recent = sessions.filter { session in
             let from = calendar.startOfDay(for: session.sessionDate)
             guard let diff = calendar.dateComponents([.day], from: from, to: to).day else { return false }
-            return diff >= 0 && diff <= Constants.spikeLookbackDays
+            return diff >= 0 && diff < Constants.spikeLookbackDays
         }
 
         // Density component (sessions / 14d, clamped 0…1) — same shape as FatigueIndexEngine.

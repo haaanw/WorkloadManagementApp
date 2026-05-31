@@ -1,9 +1,11 @@
 import XCTest
 @testable import workload_management
 
-/// Wave-2 unit tests for the pure `LoadDistributionEngine`: unified daily-load series, Foster
-/// monotony/strain numerics + guards, the completeness gate, and the heuristic fallback. All
-/// dates derive from a FIXED anchor + FIXED UTC calendar (deterministic; no `.now`).
+/// Wave-2 → Wave-5 unit tests for the pure `LoadDistributionEngine`: unified daily-load series,
+/// Foster monotony/strain numerics + guards, the completeness gate, the heuristic fallback, the
+/// Wave-5 single real-unit combined series (no z-standardise+offset), half-open windows, and the
+/// W1/W2 non-saturation guarantees. All dates derive from a FIXED anchor + FIXED UTC calendar
+/// (deterministic; no `.now`).
 final class LoadDistributionEngineTests: XCTestCase {
 
     private var calendar: Calendar {
@@ -41,7 +43,7 @@ final class LoadDistributionEngineTests: XCTestCase {
         return session
     }
 
-    // MARK: - Monotony / strain numerics
+    // MARK: - Monotony / strain numerics (pure [Double] — UNCHANGED by Wave-5)
 
     func test_monotony_uniformSeriesIsHigh() {
         // Near-uniform series → tiny SD → very high monotony.
@@ -109,6 +111,24 @@ final class LoadDistributionEngineTests: XCTestCase {
         XCTAssertEqual(series[0].load, 0.0, accuracy: 1e-9)
     }
 
+    // MARK: - Half-open window boundary (Finding 3 / GA-30-C, Wave-5 W3)
+
+    /// Wave-5 W3: windows are now HALF-OPEN. A session exactly `windowDays` (14) old is EXCLUDED;
+    /// a session `windowDays - 1` (13) old is INCLUDED — so a "window of N days" spans exactly N
+    /// calendar days, matching StrengthLoadEngine.windowedRange's exclusive-upper form. (Under the
+    /// superseded inclusive form, a diff==14 session was wrongly counted, spanning 15 calendar
+    /// days.)
+    func test_dailyLoadSeries_windowBoundaryHalfOpen() {
+        let atBoundary = enduranceSession(date: daysAgo(14), minutes: 30, rpe: 6) // diff == windowDays → EXCLUDED
+        let justInside = enduranceSession(date: daysAgo(13), minutes: 30, rpe: 6) // diff == windowDays-1 → INCLUDED
+        let series = LoadDistributionEngine.dailyLoadSeries(
+            sessions: [atBoundary, justInside], asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(series.count, 1) // only the justInside session
+        XCTAssertTrue(series.contains { calendar.isDate($0.dayStart, inSameDayAs: daysAgo(13)) })
+        XCTAssertFalse(series.contains { calendar.isDate($0.dayStart, inSameDayAs: daysAgo(14)) })
+    }
+
     // MARK: - Completeness gate + distribution
 
     func test_distribution_denseVariedLog_computed() {
@@ -152,7 +172,7 @@ final class LoadDistributionEngineTests: XCTestCase {
     }
 
     func test_completenessGate_boundaryAtMinLoggedDays() {
-        // Exactly monotonyMinLoggedDays (7) varied days → gate passes.
+        // Exactly monotonyMinLoggedDays (7) varied days → gate passes (raw series helper).
         var sessions: [WorkoutSession] = []
         let mins = [30, 50, 20, 60, 25, 45, 35]
         for (i, m) in mins.enumerated() {
@@ -179,10 +199,13 @@ final class LoadDistributionEngineTests: XCTestCase {
         XCTAssertEqual(a, b)
     }
 
-    // MARK: - Per-stream standardisation (Finding 2 / GA-30-B)
+    // MARK: - Single real-unit combined series (Wave-5 W1) — supersedes z-standardise+offset
 
-    /// Adding strength hard sets on a subset of days measurably changes monotony vs the same
-    /// endurance-only log — strength is no longer drowned out by the larger endurance scale.
+    /// W1: folding strength hard sets onto a subset of days measurably changes monotony vs the
+    /// same endurance-only log. Strength is converted to an sRPE-equivalent load on the SINGLE
+    /// real-unit combined series (no z-standardise), so it contributes proportionally — both
+    /// streams move monotony. (Re-derived from the Wave-2 standardise-based test; under the
+    /// single-series model the delta is the natural shift in mean/SD, not an artificial one.)
     func test_distribution_strengthMeasurablyMovesMonotony() {
         // Fixed 8-day endurance log (same logged days in both cases).
         let minutesByDay = [30, 50, 20, 60, 25, 45, 35, 55]
@@ -205,15 +228,16 @@ final class LoadDistributionEngineTests: XCTestCase {
         XCTAssertEqual(base.loggedDays, withStr.loggedDays) // same logged days
         XCTAssertNotNil(base.monotony)
         XCTAssertNotNil(withStr.monotony)
-        // Strength now contributes: monotony differs measurably (was identical when strength
-        // was drowned out at the raw scale).
+        // Strength contributes on the single real-unit scale: monotony differs measurably.
         XCTAssertGreaterThan(abs(base.monotony! - withStr.monotony!), 1e-6)
     }
 
-    /// A zero-strength-variance (endurance-only) dense log yields a FINITE monotony — the
-    /// zero-variance strength stream standardises to a constant and the endurance stream drives
-    /// the result. No NaN / inf.
-    func test_distribution_zeroStrengthVariance_finiteMonotony_noNaN() {
+    /// W1 core assertion (engine layer): an 8-day VARIED endurance-only log yields a FINITE
+    /// monotony in the natural ~1–3 range, so the downstream clamp01(monotony / 3.0) is STRICTLY
+    /// < 1.0 — the channel is NOT pinned at max. (Re-derived oracle: srpeLoads
+    /// [180,300,120,360,150,270,210,330] → mean 240, sampleSD ≈ 87.83 → monotony ≈ 2.733 →
+    /// clamp01(/3) ≈ 0.911. Under the superseded z-offset hack this was ≈4–6 → clamp01 == 1.0.)
+    func test_distribution_enduranceOnlyVaried_finiteMonotonyInNaturalRange() {
         var sessions: [WorkoutSession] = []
         let minutesByDay = [30, 50, 20, 60, 25, 45, 35, 55]
         for (i, m) in minutesByDay.enumerated() {
@@ -224,23 +248,95 @@ final class LoadDistributionEngineTests: XCTestCase {
         let m = result.monotony
         XCTAssertNotNil(m)
         XCTAssertTrue(m!.isFinite)
+        XCTAssertGreaterThan(m!, 0)
+        XCTAssertLessThan(m!, 3.0) // natural Foster range — NOT saturated at the /3.0 normaliser
         XCTAssertNotNil(result.strain)
         XCTAssertTrue(result.strain!.isFinite)
+        // Explicit non-saturation: clamp01(monotony / 3.0) < 1.0.
+        let clamped = Swift.min(1.0, Swift.max(0.0, m! / 3.0))
+        XCTAssertLessThan(clamped, 1.0)
     }
 
-    /// The standardise() helper returns zeros (not NaN) for <2 values or zero variance.
-    func test_standardize_via_monotonyInputSeries_constantInputNoNaN() {
-        // 7 identical endurance days → zero variance in both streams → constant series.
+    /// A constant 7-day endurance log → the single combined series is finite (no NaN) and the gate
+    /// FAILS (zero variance) → monotony nil. (Replaces the standardise-helper NaN guard test.)
+    func test_combinedSeries_constantInputNoNaN() {
         var sessions: [WorkoutSession] = []
         for i in 1...7 {
             sessions.append(enduranceSession(date: daysAgo(i), minutes: 30, rpe: 6))
         }
         let series = LoadDistributionEngine.monotonyInputSeries(sessions: sessions, asOf: asOf, calendar: calendar)
         XCTAssertEqual(series.count, 7)
-        XCTAssertTrue(series.allSatisfy { $0.isFinite }) // no NaN from zero-variance standardisation
+        XCTAssertTrue(series.allSatisfy { $0.isFinite }) // finite real-unit loads, no NaN
+        let result = LoadDistributionEngine.distribution(sessions: sessions, asOf: asOf, calendar: calendar)
+        XCTAssertEqual(result.gateState, .fellBack) // zero variance → gate fails
+        XCTAssertNil(result.monotony)
     }
 
-    /// The raw dailyLoadSeries oracle is UNCHANGED by the standardisation path (separate path).
+    // MARK: - W2: gate and metric share ONE series (.computed ⇒ monotony non-nil)
+
+    /// W2: the completeness gate now runs on the SAME single combined series fed to Foster
+    /// monotony/strain. For any dense varied log that passes the gate, gateState == .computed
+    /// implies monotony != nil AND strain != nil — the divergence hazard (gate passes on one
+    /// series while monotony is nil on the other → StrainRisk read 0-at-full-weight) is
+    /// structurally impossible.
+    func test_distribution_computedImpliesMonotonyNonNil() {
+        var sessions: [WorkoutSession] = []
+        let minutesByDay = [30, 50, 20, 60, 25, 45, 35, 55]
+        for (i, m) in minutesByDay.enumerated() {
+            sessions.append(enduranceSession(date: daysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        // Mix in strength too, to exercise the combined real-unit path under the gate.
+        sessions.append(strengthSession(date: daysAgo(2), hardSets: 2))
+        sessions.append(strengthSession(date: daysAgo(5), hardSets: 3))
+        let result = LoadDistributionEngine.distribution(sessions: sessions, asOf: asOf, calendar: calendar)
+        XCTAssertEqual(result.gateState, .computed)
+        XCTAssertNotNil(result.monotony) // .computed ⇒ monotony never nil (single shared series)
+        XCTAssertNotNil(result.strain)
+    }
+
+    /// W1 saturation oracle (mixed endurance+strength): a dense varied mixed log → monotony finite
+    /// and clamp01(monotony / 3.0) STRICTLY < 1.0.
+    func test_distribution_variedLog_monotonyNotSaturated() {
+        var sessions: [WorkoutSession] = []
+        let minutesByDay = [30, 50, 20, 60, 25, 45, 35, 55]
+        for (i, m) in minutesByDay.enumerated() {
+            sessions.append(enduranceSession(date: daysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        sessions.append(strengthSession(date: daysAgo(1), hardSets: 2))
+        sessions.append(strengthSession(date: daysAgo(4), hardSets: 1))
+        let result = LoadDistributionEngine.distribution(sessions: sessions, asOf: asOf, calendar: calendar)
+        XCTAssertEqual(result.gateState, .computed)
+        let m = result.monotony
+        XCTAssertNotNil(m)
+        XCTAssertTrue(m!.isFinite)
+        let clamped = Swift.min(1.0, Swift.max(0.0, m! / 3.0))
+        XCTAssertLessThan(clamped, 1.0) // the core W1 assertion: NOT pinned at 1.0
+    }
+
+    /// W1 movement oracle: a NEAR-UNIFORM daily distribution yields strictly HIGHER monotony than
+    /// a VARIED one (monotony = mean/SD, so uniformity raises it). Compared on raw monotony so the
+    /// ordering is visible even when the uniform case saturates clamp01 (the legitimate ceiling).
+    func test_distribution_uniformVsVaried_monotonyOrders() {
+        // Near-uniform 8-day endurance log.
+        var uniform: [WorkoutSession] = []
+        let uniformMins = [40, 41, 39, 40, 40, 41, 39, 40]
+        for (i, m) in uniformMins.enumerated() {
+            uniform.append(enduranceSession(date: daysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        // Varied 8-day endurance log over the same logged days.
+        var varied: [WorkoutSession] = []
+        let variedMins = [30, 50, 20, 60, 25, 45, 35, 55]
+        for (i, m) in variedMins.enumerated() {
+            varied.append(enduranceSession(date: daysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        let mUniform = LoadDistributionEngine.distribution(sessions: uniform, asOf: asOf, calendar: calendar)
+        let mVaried = LoadDistributionEngine.distribution(sessions: varied, asOf: asOf, calendar: calendar)
+        XCTAssertEqual(mUniform.gateState, .computed)
+        XCTAssertEqual(mVaried.gateState, .computed)
+        XCTAssertGreaterThan(mUniform.monotony!, mVaried.monotony!) // uniform > varied
+    }
+
+    /// The raw dailyLoadSeries oracle is UNCHANGED by the combined-series path (separate path).
     func test_dailyLoadSeries_rawOracleUnchanged() {
         let s1 = enduranceSession(date: daysAgo(1), minutes: 30, rpe: 6) // 180
         let s2 = enduranceSession(date: daysAgo(1), minutes: 20, rpe: 5) // 100
