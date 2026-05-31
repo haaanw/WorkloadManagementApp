@@ -163,6 +163,7 @@ struct WorkloadView: View {
                             .foregroundStyle(ColorTokens.text1)
                     }
                     .accessibilityLabel("a11y.exportWorkoutData")
+                    .accessibilityIdentifier("export.workoutData")
                 }
             }
             .confirmationDialog("workload.export.title", isPresented: $showExportOptions, titleVisibility: .visible) {
@@ -175,6 +176,7 @@ struct WorkloadView: View {
                 Button("workload.export.pdfReport") {
                     showPDFSheet = true
                 }
+                .accessibilityIdentifier("export.pdfReport")
                 Button("action.cancel", role: .cancel) {}
             }
             .sheet(isPresented: $showShareSheet) {

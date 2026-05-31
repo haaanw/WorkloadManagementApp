@@ -85,13 +85,13 @@ final class ScreenshotTests: XCTestCase {
         sleep(2)
 
         // Tap the export button in the navigation bar toolbar
-        let exportButton = app.buttons["Export workout data"]
+        let exportButton = app.buttons["export.workoutData"]
         if exportButton.waitForExistence(timeout: 3) {
             exportButton.tap()
             sleep(1)
 
-            // Tap "PDF Report (Pro)" in the confirmation dialog
-            let pdfButton = app.buttons["PDF Report (Pro)"]
+            // Tap the PDF report button in the confirmation dialog (stable id, locale-independent)
+            let pdfButton = app.buttons["export.pdfReport"]
             if pdfButton.waitForExistence(timeout: 3) {
                 pdfButton.tap()
                 sleep(2)
