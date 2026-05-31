@@ -3,9 +3,9 @@ gsd_state_version: 1.0
 milestone: v1.6
 milestone_name: Algorithm Moat (Personal Readiness v1)
 status: in_progress
-stopped_at: Phase 30 (shadow-engine quality fixes) COMPLETE — all 6 findings fixed across 4 serial waves, full xcodebuild suite green at HEAD 634e3f2, three live fences untouched, no activation; NOT pushed — Phase 28 human UI visual review still OWED
-last_updated: "2026-05-31T04:30:00.000Z"
-last_activity: 2026-05-31 -- Phase 30 executed serially (Waves 1-4: StrengthLoadEngine Findings 3+4, LoadDistributionEngine Finding 2, StrainRiskEngine Findings 1+5, PRSDualRunSurface Finding 6). 4 atomic commits to main (1e5314a, 466df41, bd5739d, 634e3f2) + docs commit 5352d96. Full WorkloadAppTests green; BaselineTierFence/AutoregulationFlagFence/DualRunFlagFence byte-unmodified; PRSActivation+PRSMasterActivation defaults FALSE; MuscleStrengthLoad/StrengthLoadResult unsynced. NOT pushed. (Wave-2 used a positive offset on z-standardised streams — literal mean-0 sum made Foster monotony degenerate; documented.)
+stopped_at: Phase 30 (shadow-engine quality fixes) COMPLETE incl Wave-5 monotony correction — all 6 findings + 3 review WARNINGS fixed, full xcodebuild green at HEAD d45ae5a (484/0; lone ScreenshotTests flake passed isolated), three live fences untouched, no activation; NOT pushed (35 ahead) — Phase 28 human UI visual review still OWED
+last_updated: "2026-05-31T11:25:00.000Z"
+last_activity: 2026-05-31 -- Phase 30 done. Waves 1-4 fixed the 6 findings (commits 1e5314a/466df41/bd5739d/634e3f2 + docs 5352d96/56da61c) but adversarial review found Wave-2's z-standardise+offset monotony fix REGRESSED (Foster monotony pinned → StrainRisk clamp01(/3.0) saturated at 1.0 for all gate-passing logs) + gate/series divergence (W2) + half-done Finding-3 window (W3). User chose corrective Wave 5: replaced z-offset hack with a SINGLE real-unit combined series (strength→sRPE-equivalent ×5.0) so Foster monotony lands ~1-3 and is non-saturated + distribution-sensitive (5 new integration tests prove it); gate now shares that series (W2); half-open windows in LoadDistributionEngine (W3). Commits 510188f/02ad347/d45ae5a. Build green 484/0, verifier PASS (monotonyNotSaturated true, 4/4 invariants), adversarial review 0 critical (1 unreachable dead-code note). Fences byte-unmodified; flags FALSE; engines unsynced. NOT pushed.
 progress:
   total_phases: 14
   completed_phases: 13
@@ -27,8 +27,9 @@ See: .planning/PROJECT.md (updated 2026-05-10)
 
 Phase: 27/28/29 BUILT + verification-complete (NOT pushed); Phase 30 PLANNED
 Status: v1.6 Algorithm Moat — Phases 27 (strength-load + Strain-Risk), 28 (readiness fusion + explainable decisions + ACWR demotion + PRS-v1 shadow arm, all behind PRSActivation default FALSE), 29 (PRSMasterActivation flag default FALSE + report-only ActivationGateEvaluator + shadow-validation report) all committed to `main`, 24 commits ahead of origin. Each gated: I re-verified xcodebuild green myself (430 unit/0 fail at HEAD; 448/0 with Phase-29; lone ScreenshotTests.test03_Recovery red was a confirmed XCUITest flake — passed isolated); gsd-verifier PASS all invariants; adversarial code review 0 critical; codex review GATE PASS (4 P2/P3 findings, all shadow/display/flag-on, none live). Invariants hold: live recovery score + live recommendation byte-identical with flags off (BaselineTierFence + AutoregulationFlagFence + DualRunFlagFence all green); new models/columns local-only/never-synced; NOTHING activated; master flag FALSE.
-Next: (1) Phase 30 — fix the 6 shadow-engine quality findings (see ROADMAP Phase 30); (2) Phase 28 human UI visual review (DEBUG, enable PRSActivation, verify dual-run surface per DESIGN.md / "Tuwa" / no "injury prediction") + Wave-4 DashboardView wiring; (3) push to origin (HELD until UI review — needs user approval).
-Last activity: 2026-05-31 -- v1.6 27/28/29 verification-complete via gated workflow + self-verified build + codex; docs updated; Phase 30 planned
+v1.6 BUILD COMPLETE: Phases 27/28/29/30 (+Wave 5) all gated green, 0 critical, self-verified builds, all fences green, nothing activated, flags FALSE. 35 commits ahead of origin.
+Next: (1) Phase 28 human UI visual review (DEBUG, enable PRSActivation, verify dual-run "method updated" surface per DESIGN.md / "Tuwa" / no "injury prediction") + Wave-4 DashboardView wiring (deferred by design); (2) push to origin (HELD until UI review — needs user approval).
+Last activity: 2026-05-31 -- v1.6 27/28/29 verification-complete + Phase 30 (6 fixes) + Phase 30 Wave 5 (monotony saturation/divergence/window correction) all done via gated workflows + self-verified builds + codex; docs updated
 
 Prior: Phase 25 (soreness-tweak-self-log) Plan 01 COMPLETE — local-only SorenessLog @Model + NiggleType enum + SorenessLogRepository (4/4 green); Plans 02/03/04 remain
 

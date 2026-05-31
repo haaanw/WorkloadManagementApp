@@ -307,7 +307,11 @@ Plans:
 
 ### Phase 30: Shadow-engine quality fixes (pre-activation cleanup)
 
-**Status:** PLANNED 2026-05-31 (user chose fix-now over defer). Fix the 6 shadow/display/flag-on quality findings surfaced by Phase 27/28/29 adversarial review + codex review. ALL live behavior stays byte-identical (fences hold); nothing activated; master flag stays FALSE. Goal: clean shadow Strain-Risk + readiness inputs so the eventual activation-gate evaluation runs on correct data.
+**Status:** DONE 2026-05-31 (user chose fix-now over defer). Fixed the 6 shadow/display/flag-on quality findings + the 3 follow-up review WARNINGS. ALL live behavior byte-identical (fences hold); nothing activated; master flag FALSE. Goal: clean shadow Strain-Risk + readiness inputs so the eventual activation-gate evaluation runs on correct data.
+
+- **Waves 1-4** (`1e5314a`/`466df41`/`bd5739d`/`634e3f2`): the 6 findings. Build green. BUT adversarial review found Wave-2's monotony fix regressed.
+- **Wave 5** (`510188f`/`02ad347`/`d45ae5a`): corrected the regression. Wave-2 had z-standardised the two load streams + added a +3.0 offset → Foster monotony pinned ~4-6 → StrainRisk `clamp01(monotony/3.0)` SATURATED at 1.0 for every gate-passing log (W1); gate ran on raw series while monotony ran on the standardised one (W2); Finding-3 half-open window was applied to StrengthLoadEngine but not LoadDistributionEngine (W3). Wave 5 replaced the z-offset hack with a SINGLE real-unit combined daily series (strength hard-set strain → sRPE-equivalent ×5.0) so Foster monotony lands in the natural ~1-3 band, is non-saturated, and moves with distribution (5 new `LoadDistributionEngine.distribution()`→`StrainRiskEngine.fuse()` integration tests prove it); gate now shares that series (W2 fixed structurally); half-open windows applied to LoadDistributionEngine lines 84/167/291 (W3). Build green 484/0 (lone ScreenshotTests flake passed isolated), verifier PASS (monotonyNotSaturated, 4/4 invariants), adversarial review 0 critical (1 unreachable dead-code note re confidence gateFactor for an impossible `.computed`+nil state).
+- **Verification:** xcodebuild green, gsd-verifier PASS, adversarial review 0 critical, all three fences byte-unmodified, flags FALSE. Strain-Risk/Readiness remain shadow/display-only, NOT wired live.
 
 Findings to fix:
 1. `StrainRiskEngine` — soft-tissue + rest-debt double-count (FatigueIndex composite already folds them, then components 5/6 re-add standalone). [high conf, workflow]

@@ -3,7 +3,7 @@
 Read this + STATE.md + memory [[project_v16_progress]] + [[feedback_gsd_execution_gotchas]] + [[feedback_verify_before_claiming]] + [[feedback_subagent_driven]] FIRST.
 
 ## Git state
-- Branch `main`, **NOT pushed**. origin/main = `2efce31` (Phases 25+26). Local HEAD = `2cd41aa` (Phase 29 docs). **24 commits ahead.**
+- Branch `main`, **NOT pushed**. origin/main = `2efce31` (Phases 25+26). Local HEAD = `d45ae5a` (Phase 30 Wave-5 docs). **35 commits ahead.**
 - Phase 27: `4fc4ffa` `0fa3207` `75ba4cf` `f61719e`.
 - Phase 28: `b9d3e56` `8446260` `fef8183` `64efc06` `a14422e` `eb10579` (+ doc commits). All behind `PRSActivation` (default FALSE).
 - Phase 29: `7f5b03e` (PRSMasterActivation flag default FALSE + report-only ActivationGateEvaluator), `cb23fab` (shadow-validation report), docs `eb1fa0a`/`2cd41aa`.
@@ -15,9 +15,11 @@ Read this + STATE.md + memory [[project_v16_progress]] + [[feedback_gsd_executio
 - **Invariants hold:** live recovery score + live recommendation byte-identical with flags off; new models/columns local-only/never-synced; NOTHING activated; PRSActivation + PRSMasterActivation default FALSE.
 
 ## NEXT — resume here
-1. **Phase 30 (shadow-engine quality fixes)** — user chose fix-now. 6 findings (all shadow/display/flag-on, none live), full spec in ROADMAP "### Phase 30". Run via gated workflow (plan→check→exec→build→verify→review), SERIAL, commit-local-only, fences must stay green, nothing activated. Findings: (1) StrainRiskEngine soft-tissue/rest-debt double-count; (2) LoadDistributionEngine endurance/strength scale-mismatch; (3) StrengthLoadEngine chronic⊇acute ~4× ratio; (4) StrengthLoadEngine RIR Int-truncation; (5) StrainRiskEngine easy-set coverage denominator; (6) PRSDualRunSurface targetVolume-nil first-time prescription.
-2. **Phase 28 human UI visual review (OWED, user task)** — DEBUG build, enable PRSActivation, confirm dual-run "method updated" surface + real-workout adjustment render per DESIGN.md (0pt corners, no shadows, General Sans, 8pt grid, accent only on hero), say "Tuwa", NEVER "injury prediction". Wave-4 DashboardView wiring still deferred (PRSDualRunCard exists, call-site not wired).
-3. **Push** — 24 commits, HELD until UI review. **NEVER push without user approval.**
+**v1.6 BUILD COMPLETE.** Phases 27/28/29/30 (+Wave 5) all gated green, 0 critical, self-verified builds, all fences green, nothing activated, flags FALSE. 35 commits ahead of origin. Only two things remain:
+1. **Phase 28 human UI visual review (OWED, user task)** — DEBUG build, enable `PRSActivation`, confirm dual-run "method updated" surface + real-workout adjustment render per DESIGN.md (0pt corners, no shadows, General Sans, 8pt grid, accent only on hero), say "Tuwa", NEVER "injury prediction". Wave-4 DashboardView wiring still deferred (PRSDualRunCard exists, call-site not wired).
+2. **Push** — 35 commits, HELD until UI review. **NEVER push without user approval.**
+
+**Phase 30 DONE** (commits Waves 1-4 `1e5314a`/`466df41`/`bd5739d`/`634e3f2`; Wave 5 `510188f`/`02ad347`/`d45ae5a`): 6 findings fixed; Wave-2's z-standardise+offset monotony fix regressed (saturated StrainRisk monotony at 1.0) → Wave 5 replaced it with a single real-unit combined series (strength→sRPE-equiv ×5.0), Foster monotony back in ~1-3, non-saturated + distribution-sensitive (5 integration tests), gate shares the series, half-open windows. Build 484/0, verifier PASS, review 0 critical.
 
 ## Phase 30 findings — full review provenance
 Codex P2/P3: PRSDualRunSurface:75-79 (flag-on volume-nil), StrengthLoadEngine:256-257 (chronic⊇acute), StrengthLoadEngine:119 (RIR trunc), StrainRiskEngine:200-204 (easy-set coverage). Workflow adversarial review ALSO found (codex missed): StrainRiskEngine soft-tissue/rest-debt double-count (components 3+5+6), LoadDistributionEngine Foster-series scale mismatch. Phase-29 review minor (non-blocking, optional in P30): maturity-n uses PRS-only count vs paired-CI count; no-mutation grep guard misses spaceless assignment; dead `withEnabled` helper.
