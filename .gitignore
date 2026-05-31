@@ -35,3 +35,17 @@ build/
 .Trashes
 .superpowers/
 .gstack/
+
+# Agent / workflow runtime scratch (local-only)
+.claude/
+.context/
+.playwright-mcp/
+Supabase/.temp/
+
+# Local assets / research / crash logs (kept local, not in history)
+Alpino_Complete/
+algorithm research file/
+appstore screenshots/
+Tonus_Market_Competitive_Analysis.md
+Tonus crash log/
+crash log v1/
