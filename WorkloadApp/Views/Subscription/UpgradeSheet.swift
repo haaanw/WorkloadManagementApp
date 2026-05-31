@@ -177,7 +177,7 @@ struct UpgradeSheet: View {
                                         .tint(ColorTokens.background)
                                         .frame(maxWidth: .infinity, minHeight: 48)
                                 } else {
-                                    Text(trialAvailable ? "Start 7-Day Free Trial" : "Subscribe")
+                                    Text(trialAvailable ? String(localized: "upgrade.cta.trial", defaultValue: "Start 7-Day Free Trial") : String(localized: "upgrade.cta.subscribe", defaultValue: "Subscribe"))
                                         .font(.Tokens.bodyMedium)
                                         .foregroundStyle(ColorTokens.background)
                                         .frame(maxWidth: .infinity, minHeight: 48)
@@ -325,17 +325,17 @@ enum SubscriptionTier: String, CaseIterable {
 
     var headline: String {
         switch self {
-        case .athletePro: return "Train smarter, not harder"
-        case .coach: return "Your athletes, one dashboard"
+        case .athletePro: return String(localized: "upgrade.tier.athletePro.headline", defaultValue: "Train smarter, not harder")
+        case .coach: return String(localized: "upgrade.tier.coach.headline", defaultValue: "Your athletes, one dashboard")
         }
     }
 
     var subtitle: String {
         switch self {
         case .athletePro:
-            return "Unlock the full power of Tuwa to push your training forward with data-driven precision."
+            return String(localized: "upgrade.tier.athletePro.subtitle", defaultValue: "Unlock the full power of Tuwa to push your training forward with data-driven precision.")
         case .coach:
-            return "Manage your roster, prescribe workouts, and monitor every athlete's load and recovery in real time."
+            return String(localized: "upgrade.tier.coach.subtitle", defaultValue: "Manage your roster, prescribe workouts, and monitor every athlete's load and recovery in real time.")
         }
     }
 
@@ -343,25 +343,25 @@ enum SubscriptionTier: String, CaseIterable {
         switch self {
         case .athletePro:
             return [
-                "Full training history (free tier: 7 days only)",
-                "Smart progressive overload suggestions",
-                "Recovery-aware volume and intensity targets",
-                "Detraining detection after breaks",
-                "Advanced ACWR and workload charts",
-                "Unlimited custom exercises",
-                "Workout program import",
-                "Personal record tracking across all time",
+                String(localized: "upgrade.feat.pro.history", defaultValue: "Full training history (free tier: 7 days only)"),
+                String(localized: "upgrade.feat.pro.overload", defaultValue: "Smart progressive overload suggestions"),
+                String(localized: "upgrade.feat.pro.targets", defaultValue: "Recovery-aware volume and intensity targets"),
+                String(localized: "upgrade.feat.pro.detraining", defaultValue: "Detraining detection after breaks"),
+                String(localized: "upgrade.feat.pro.acwr", defaultValue: "Advanced ACWR and workload charts"),
+                String(localized: "upgrade.feat.pro.customExercises", defaultValue: "Unlimited custom exercises"),
+                String(localized: "upgrade.feat.pro.import", defaultValue: "Workout program import"),
+                String(localized: "upgrade.feat.pro.pr", defaultValue: "Personal record tracking across all time"),
             ]
         case .coach:
             return [
-                "Everything in Athlete Pro",
-                "Coach dashboard with full athlete roster",
-                "Real-time recovery scores and ACWR for each athlete",
-                "Prescribe workouts with target weight, reps, and RPE",
-                "Workout template builder with exercise groups",
-                "Log workouts on behalf of any athlete",
-                "Coach-only mode (hide athlete tabs entirely)",
-                "Link athletes via invite code or email",
+                String(localized: "upgrade.feat.coach.everything", defaultValue: "Everything in Athlete Pro"),
+                String(localized: "upgrade.feat.coach.dashboard", defaultValue: "Coach dashboard with full athlete roster"),
+                String(localized: "upgrade.feat.coach.realtime", defaultValue: "Real-time recovery scores and ACWR for each athlete"),
+                String(localized: "upgrade.feat.coach.prescribe", defaultValue: "Prescribe workouts with target weight, reps, and RPE"),
+                String(localized: "upgrade.feat.coach.templates", defaultValue: "Workout template builder with exercise groups"),
+                String(localized: "upgrade.feat.coach.logForAthlete", defaultValue: "Log workouts on behalf of any athlete"),
+                String(localized: "upgrade.feat.coach.coachOnly", defaultValue: "Coach-only mode (hide athlete tabs entirely)"),
+                String(localized: "upgrade.feat.coach.link", defaultValue: "Link athletes via invite code or email"),
             ]
         }
     }

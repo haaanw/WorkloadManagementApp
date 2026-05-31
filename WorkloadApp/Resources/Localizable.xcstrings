@@ -12738,6 +12738,358 @@
           }
         }
       }
+    },
+    "upgrade.tier.athletePro.headline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Train smarter, not harder"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更聪明地训练，而非更拼命"
+          }
+        }
+      }
+    },
+    "upgrade.tier.coach.headline": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Your athletes, one dashboard"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "你的所有运动员，一个仪表盘"
+          }
+        }
+      }
+    },
+    "upgrade.tier.athletePro.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlock the full power of Tuwa to push your training forward with data-driven precision."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "释放 Tuwa 的全部能力，以数据驱动的精准推动你的训练。"
+          }
+        }
+      }
+    },
+    "upgrade.tier.coach.subtitle": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Manage your roster, prescribe workouts, and monitor every athlete's load and recovery in real time."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "管理你的花名册、安排训练，并实时监控每位运动员的负荷与恢复。"
+          }
+        }
+      }
+    },
+    "upgrade.feat.pro.history": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Full training history (free tier: 7 days only)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "完整训练历史（免费版仅 7 天）"
+          }
+        }
+      }
+    },
+    "upgrade.feat.pro.overload": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Smart progressive overload suggestions"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "智能渐进超负荷建议"
+          }
+        }
+      }
+    },
+    "upgrade.feat.pro.targets": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recovery-aware volume and intensity targets"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "恢复感知的训练量与强度目标"
+          }
+        }
+      }
+    },
+    "upgrade.feat.pro.detraining": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Detraining detection after breaks"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "中断后的退训检测"
+          }
+        }
+      }
+    },
+    "upgrade.feat.pro.acwr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Advanced ACWR and workload charts"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "高级 ACWR 与负荷图表"
+          }
+        }
+      }
+    },
+    "upgrade.feat.pro.customExercises": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unlimited custom exercises"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无限自定义练习"
+          }
+        }
+      }
+    },
+    "upgrade.feat.pro.import": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workout program import"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "训练计划导入"
+          }
+        }
+      }
+    },
+    "upgrade.feat.pro.pr": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Personal record tracking across all time"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "全周期个人纪录追踪"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.everything": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Everything in Athlete Pro"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "包含 Athlete Pro 的全部功能"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.dashboard": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach dashboard with full athlete roster"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "含完整运动员花名册的教练仪表盘"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.realtime": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Real-time recovery scores and ACWR for each athlete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "每位运动员的实时恢复评分与 ACWR"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.prescribe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prescribe workouts with target weight, reps, and RPE"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "安排训练并设定目标重量、次数与 RPE"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.templates": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Workout template builder with exercise groups"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "支持练习分组的训练模板构建器"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.logForAthlete": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Log workouts on behalf of any athlete"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "代任意运动员记录训练"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.coachOnly": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Coach-only mode (hide athlete tabs entirely)"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "纯教练模式（完全隐藏运动员标签页）"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.link": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link athletes via invite code or email"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通过邀请码或邮箱关联运动员"
+          }
+        }
+      }
+    },
+    "upgrade.cta.trial": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Start 7-Day Free Trial"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "开始 7 天免费试用"
+          }
+        }
+      }
+    },
+    "upgrade.cta.subscribe": {
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Subscribe"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "订阅"
+          }
+        }
+      }
     }
   }
 }
