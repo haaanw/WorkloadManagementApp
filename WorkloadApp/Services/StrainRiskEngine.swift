@@ -128,12 +128,21 @@ struct StrainRiskEngine {
         //    so each underlying signal contributes exactly once.
         components.append(("Accumulated fatigue", fatigueExcludingSoftTissueRestDebt(input.fatigue), Weights.fatigueIndex))
 
-        // 4. Monotony/strain — gated. Computed → normalized monotony at full weight; fell back
-        //    → fallbackLoadSignal at reduced weight, honestly labeled.
+        // 4. Monotony/strain — gated. Computed WITH monotony → normalized monotony at full
+        //    weight; fell back (or W2 defence: computed-but-nil monotony) → fallbackLoadSignal at
+        //    reduced weight, honestly labeled.
         switch input.loadDistribution.gateState {
         case .computed:
-            let m = input.loadDistribution.monotony ?? 0
-            components.append(("Training-load monotony", clamp01(m / Constants.monotonyNormaliser), Weights.monotonyStrain))
+            // W2 (Wave-5) defence: after the single-series fix .computed ⇒ monotony non-nil, but
+            // if a residual .computed-with-nil ever arrives, degrade to the SAME reduced-weight
+            // fallback as .fellBack — never read 0-at-full-weight (zero-monotony-at-high-confidence).
+            if let m = input.loadDistribution.monotony {
+                components.append(("Training-load monotony", clamp01(m / Constants.monotonyNormaliser), Weights.monotonyStrain))
+            } else {
+                components.append(("Load distribution: limited data — using fallback",
+                                   clamp01(input.loadDistribution.fallbackLoadSignal),
+                                   Weights.monotonyStrainFallback))
+            }
         case .fellBack:
             components.append(("Load distribution: limited data — using fallback",
                                clamp01(input.loadDistribution.fallbackLoadSignal),

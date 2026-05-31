@@ -416,4 +416,134 @@ final class StrainRiskEngineTests: XCTestCase {
         // Pure: same input twice → identical result, no hidden live-path dependency.
         XCTAssertEqual(StrainRiskEngine.fuse(input), StrainRiskEngine.fuse(input))
     }
+
+    // MARK: - W2 defence: .computed-but-nil-monotony → reduced-weight fallback (Wave-5)
+
+    /// W2 defence: a (should-be-impossible-after-Wave-1) .computed-with-nil-monotony input must
+    /// NOT read as 0-at-full-weight. It degrades to the SAME reduced-weight fallback channel as a
+    /// .fellBack input with the same fallback signal — proven by emitting the "limited data" label
+    /// and producing an IDENTICAL score to the parallel .fellBack input.
+    func test_fuse_computedButNilMonotony_usesReducedWeightFallback() {
+        let computedNil = StrainRiskEngine.Input(
+            strengthLoad: strengthResult(elevation: 0.3, hardSetCount: 4),
+            loadDistribution: loadDist(monotony: nil, gate: .computed, fallback: 0.8),
+            fatigue: fatigue(index: 40),
+            enduranceLoadElevation: 0.3,
+            baselineConfidence: 0.5
+        )
+        let fellBack = StrainRiskEngine.Input(
+            strengthLoad: strengthResult(elevation: 0.3, hardSetCount: 4),
+            loadDistribution: loadDist(monotony: nil, gate: .fellBack, fallback: 0.8),
+            fatigue: fatigue(index: 40),
+            enduranceLoadElevation: 0.3,
+            baselineConfidence: 0.5
+        )
+        let rComputedNil = StrainRiskEngine.fuse(computedNil)
+        let rFellBack = StrainRiskEngine.fuse(fellBack)
+
+        // Uses the fallback channel, not a 0-at-full-weight "Training-load monotony" factor.
+        XCTAssertTrue(rComputedNil.factors.contains { $0.label.contains("limited data") })
+        XCTAssertFalse(rComputedNil.factors.contains { $0.label.contains("Training-load monotony") })
+        // Byte-identical to the .fellBack path (same reduced-weight fallback component).
+        XCTAssertEqual(rComputedNil.score, rFellBack.score, accuracy: 1e-12)
+    }
+
+    // MARK: - Real end-to-end integration: distribution() → fuse() (Wave-5 test-gap closure)
+
+    /// FIXED UTC calendar + FIXED anchor (no .now), mirroring LoadDistributionEngineTests.
+    private var integCalendar: Calendar {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = TimeZone(identifier: "UTC")!
+        return c
+    }
+    private var integAsOf: Date {
+        DateComponents(calendar: integCalendar, year: 2026, month: 3, day: 15).date!
+    }
+    private func integDaysAgo(_ n: Int) -> Date {
+        integCalendar.date(byAdding: .day, value: -n, to: integAsOf)!
+    }
+    private func integEnduranceSession(date: Date, minutes: Int, rpe: Double) -> WorkoutSession {
+        WorkoutSession(sessionDate: date, sportType: .running, durationSeconds: minutes * 60, sessionRPE: rpe)
+    }
+    private func integStrengthSession(date: Date, hardSets: Int) -> WorkoutSession {
+        let session = WorkoutSession(sessionDate: date)
+        let entry = ExerciseEntry(exerciseName: "Back Squat", muscleGroup: .quads)
+        var sets = [SetRecord(reps: 1, weightKg: 100, rpe: nil, rir: nil, isWarmup: false)]
+        for _ in 0..<hardSets {
+            sets.append(SetRecord(reps: 3, weightKg: 85, rpe: nil, rir: 1, isWarmup: false))
+        }
+        entry.sets = sets
+        session.exerciseEntries = [entry]
+        return session
+    }
+
+    private func fuseInput(_ dist: LoadDistributionEngine.LoadDistributionResult) -> StrainRiskEngine.Input {
+        StrainRiskEngine.Input(
+            strengthLoad: strengthResult(elevation: 0.4, hardSetCount: 4),
+            loadDistribution: dist,
+            fatigue: fatigue(index: 40),
+            enduranceLoadElevation: 0.3,
+            baselineConfidence: 0.6
+        )
+    }
+
+    /// TEST-GAP CLOSURE (the gap that hid W1): drive the REAL LoadDistributionEngine.distribution()
+    /// (not a hand-fed monotony) into StrainRiskEngine.fuse() and assert the surfaced monotony
+    /// factor is NOT saturated at 1.0. A VARIED 8-day mixed log → .computed, monotony non-nil, and
+    /// clamp01(monotony / normaliser) < 1.0; the "Training-load monotony" factor contributes > 0.
+    func test_integration_realDistributionToFuse_monotonyNotSaturated() {
+        var sessions: [WorkoutSession] = []
+        let minutesByDay = [30, 50, 20, 60, 25, 45, 35, 55]
+        for (i, m) in minutesByDay.enumerated() {
+            sessions.append(integEnduranceSession(date: integDaysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        sessions.append(integStrengthSession(date: integDaysAgo(1), hardSets: 2))
+        sessions.append(integStrengthSession(date: integDaysAgo(4), hardSets: 1))
+
+        let dist = LoadDistributionEngine.distribution(sessions: sessions, asOf: integAsOf, calendar: integCalendar)
+        XCTAssertEqual(dist.gateState, .computed)
+        XCTAssertNotNil(dist.monotony)
+
+        // The core regression guard: the REAL monotony does NOT saturate clamp01(/normaliser).
+        let clamped = Swift.min(1.0, Swift.max(0.0, dist.monotony! / StrainRiskEngine.Constants.monotonyNormaliser))
+        XCTAssertLessThan(clamped, 1.0)
+
+        let r = StrainRiskEngine.fuse(fuseInput(dist))
+        let monotonyFactor = r.factors.first { $0.label.contains("Training-load monotony") }
+        // (Top-N may truncate; assert presence OR that the channel is non-saturated via dist.)
+        if let f = monotonyFactor {
+            XCTAssertGreaterThan(f.contribution, 0)
+        }
+        XCTAssertGreaterThanOrEqual(r.score, 0)
+        XCTAssertLessThanOrEqual(r.score, 1)
+    }
+
+    /// Monotony moves with distribution through the SAME real path: a near-UNIFORM mixed log
+    /// yields a higher monotony factor (clamp01) than a VARIED one over the same logged days.
+    func test_integration_realDistribution_uniformVsVaried_monotonyFactorOrders() {
+        // Near-uniform endurance log.
+        var uniform: [WorkoutSession] = []
+        for (i, m) in [40, 41, 39, 40, 40, 41, 39, 40].enumerated() {
+            uniform.append(integEnduranceSession(date: integDaysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        // Varied endurance log over the same logged days.
+        var varied: [WorkoutSession] = []
+        for (i, m) in [30, 50, 20, 60, 25, 45, 35, 55].enumerated() {
+            varied.append(integEnduranceSession(date: integDaysAgo(i + 1), minutes: m, rpe: 6))
+        }
+        let distUniform = LoadDistributionEngine.distribution(sessions: uniform, asOf: integAsOf, calendar: integCalendar)
+        let distVaried = LoadDistributionEngine.distribution(sessions: varied, asOf: integAsOf, calendar: integCalendar)
+        XCTAssertEqual(distUniform.gateState, .computed)
+        XCTAssertEqual(distVaried.gateState, .computed)
+        XCTAssertNotNil(distUniform.monotony)
+        XCTAssertNotNil(distVaried.monotony)
+
+        let norm = StrainRiskEngine.Constants.monotonyNormaliser
+        let clampUniform = Swift.min(1.0, Swift.max(0.0, distUniform.monotony! / norm))
+        let clampVaried = Swift.min(1.0, Swift.max(0.0, distVaried.monotony! / norm))
+        // Monotony moves with distribution through the real path: uniform >= varied (uniform
+        // saturates at the legitimate 1.0 ceiling; varied sits strictly below).
+        XCTAssertGreaterThan(clampUniform, clampVaried)
+        XCTAssertLessThan(clampVaried, 1.0)
+    }
 }
