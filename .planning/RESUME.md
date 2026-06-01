@@ -3,11 +3,12 @@
 Read this + STATE.md + memory [[project_v16_progress]] + [[feedback_gsd_execution_gotchas]] + [[feedback_verify_before_claiming]] + [[feedback_subagent_driven]] FIRST.
 
 ## Git state
-- Branch `main`, **PUSHED**. origin/main = local HEAD = `056a229` (2026-05-31). 0 ahead. Nothing activated, all flags FALSE.
+- Branch `main`, **PUSHED**. origin/main = local HEAD = `ae25147` (2026-06-01). 0 ahead. Nothing activated, all flags FALSE.
 
-## NEXT APP STORE RELEASE = 1.4 (build 12) — staged on main, NOT yet archived/submitted
-Bundles vs live 1.3: v1.4 cycle features + v1.5 UX (radial picker, muscle taxonomy) + v1.6 algorithm moat (DORMANT — flags FALSE, no user-visible change, collecting shadow data) + **full Simplified Chinese (zh-Hans)** — wired + 748 catalog keys @100%, Dashboard render-verified 100% Chinese, English byte-identical (fences green). MARKETING_VERSION bumped 1.3→1.4, build 11→12.
-Pre-submission OWED (human): native-reviewer zh-Hans marketing-pass + 4 muscle-term review + CJK font eyeball; device UAT (Phase-21 gestures, Phase-19 cycle UI); `supabase functions deploy parse-workout` (Phase-22 enum); then archive + ASC upload (no auto-submit — [[feedback_asc_caution]]).
+## v1.4 App Store release — SUBMITTED to review 2026-06-01 (build 12), Waiting for Review
+Bundles vs live 1.3: v1.4 cycle features + v1.5 UX (radial picker, muscle taxonomy) + v1.6 algorithm moat (DORMANT — flags FALSE, no user-visible change, collecting shadow data) + **full Simplified Chinese (zh-Hans)** — wired + 774 catalog keys @100%, paywall + billing labels localized, render-verified 100% Chinese, English byte-identical (fences green). MARKETING_VERSION 1.4 / build 12.
+DONE: edge fn `parse-workout` redeployed; CLI-archived (ARCHIVE SUCCEEDED, dist-signed) → uploaded via Xcode Organizer → ASC metadata both locales + 6/6 zh + 5/6 en screenshots (EN WorkoutLog flaked, shipped 5) + release notes → submitted. Artifacts: `.planning/{release-notes-1.4,asc-listing-1.4,SUBMISSION-GUIDE-1.4}.md`, `appstore screenshots/1.4-{en,zh-Hans}/`.
+NEXT (post-review): if rejected, read reason + fix; if approved, release (manual). Deferred non-blockers: native zh-Hans marketing eyeball; DEBUG font assertionFailure that crashes XCTest host; ROADMAP v1.6 bullet-format; EN WorkoutLog screenshot (optional 6th).
 
 ## v1.6 (shipped to main earlier this session)
 - Phase 27: `4fc4ffa` `0fa3207` `75ba4cf` `f61719e`.
