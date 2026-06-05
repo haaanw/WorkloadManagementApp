@@ -27,7 +27,7 @@
   </div>
 
   <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: March 27, 2026</p>
+  <p class="updated">Last updated: June 5, 2026</p>
 
   <p>Tuwa ("the app") is developed by Hanwen Ma. This policy explains what data the app collects, how it is used, and your rights.</p>
 
@@ -35,7 +35,7 @@
 
   <h3>Data you provide</h3>
   <ul>
-    <li><strong>Account information:</strong> Email address and display name (used for authentication and coach-athlete pairing)</li>
+    <li><strong>Account information:</strong> Email address and display name (used for authentication and account sync)</li>
     <li><strong>Workout logs:</strong> Exercises, sets, reps, weights, RPE, session duration, and notes you enter</li>
     <li><strong>Wellness check-ins:</strong> Self-reported sleep quality, soreness, energy, and stress ratings</li>
   </ul>
@@ -52,24 +52,17 @@
   <p>Tuwa <strong>never writes</strong> data to HealthKit. HealthKit access is optional and requires your explicit permission.</p>
 
   <h3>Data we compute</h3>
-  <p>Recovery scores, ACWR (Acute:Chronic Workload Ratio), training stress, and personal records are calculated on your device from the data above.</p>
+  <p>Recovery scores, training load metrics, training stress, readiness guidance, and personal records are calculated on your device from the data above.</p>
 
   <h2>How Data Is Stored</h2>
   <ul>
     <li><strong>On your device:</strong> All data is stored locally using SwiftData. The app works fully offline.</li>
-    <li><strong>In the cloud:</strong> Composite scores (recovery score, workload snapshots, wellness ratings, workout session headers, and personal records) sync to Supabase (hosted on AWS) for coach-athlete features and multi-device access.</li>
+    <li><strong>In the cloud:</strong> Composite scores (recovery score, workload snapshots, wellness ratings, workout session headers, and personal records) sync to Supabase (hosted on AWS) for account backup and multi-device access.</li>
     <li><strong>Raw HealthKit data is never uploaded.</strong> Only computed scores derived from HealthKit data are synced.</li>
   </ul>
 
-  <h2>Coach-Athlete Data Sharing</h2>
-  <p>If you link with a coach, they can view:</p>
-  <ul>
-    <li>Your recovery scores and ACWR trends</li>
-    <li>Workout session summaries</li>
-    <li>Personal records</li>
-    <li>Wellness check-in ratings</li>
-  </ul>
-  <p>Coaches cannot access your raw HealthKit data, and you can unlink from a coach at any time.</p>
+  <h2>Data Sharing</h2>
+  <p>Tuwa does not share your training or recovery data with coaches, other users, advertisers, or data brokers. If future sharing features are added, they will require your explicit consent.</p>
 
   <h2>Third-Party Services</h2>
   <ul>
@@ -84,7 +77,7 @@
     <li>Go to Profile &rarr; Sign Out in the app</li>
     <li>Contact us at the email below to request full account and data deletion from our servers</li>
   </ol>
-  <p>Upon deletion, all your data — including workout logs, scores, and coach relationships — is permanently removed from our servers.</p>
+  <p>Upon deletion, all your data — including workout logs, recovery scores, training load snapshots, and personal records — is permanently removed from our servers.</p>
 
   <h2>Your Rights</h2>
   <p>You have the right to:</p>
