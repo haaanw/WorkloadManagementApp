@@ -1,0 +1,140 @@
+[
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "E2F9DAFB-8BE7-45C5-8F87-6372EC2838DB.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "01_Dashboard_0_E199F3F8-1816-42BB-84E8-A41E64085F85.png",
+        "timestamp" : 1780666734.98
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "9CCEE7B2-D11F-4497-8B76-1BAF1B84C24E.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "ScreenshotTests/test01_Dashboard()",
+    "testIdentifierURL" : "test://com.apple.xcode/workload%20management/ScreenshotTests/ScreenshotTests/test01_Dashboard"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "F65EF585-0EE6-4664-95E2-65F8C1C0B602.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "02_Workload_0_FBA5C372-71B9-4EBD-9FD9-7B032A305167.png",
+        "timestamp" : 1780666767.213
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "F9B6EF7A-48B0-49C1-BBBC-9245B71EE081.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "ScreenshotTests/test02_Workload()",
+    "testIdentifierURL" : "test://com.apple.xcode/workload%20management/ScreenshotTests/ScreenshotTests/test02_Workload"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "12AB873F-D032-4D65-972D-5DA7DDDE7F5E.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "03_Recovery_0_0902E31F-A7FD-4612-A9B2-70503ED986C5.png",
+        "timestamp" : 1780666784.849
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "50E51772-EF37-44E6-A53C-D73E1B6EE73D.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "ScreenshotTests/test03_Recovery()",
+    "testIdentifierURL" : "test://com.apple.xcode/workload%20management/ScreenshotTests/ScreenshotTests/test03_Recovery"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "97FDF945-D53D-4CDF-AD70-12B3798A7E89.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "04_WorkoutLog_0_6C85E481-F42B-4F47-B795-4B10D4D971FD.png",
+        "timestamp" : 1780666799.139
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "1A76CC7E-FC59-44CA-8DC0-2DA1EA8F5E9C.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "ScreenshotTests/test04_WorkoutLog()",
+    "testIdentifierURL" : "test://com.apple.xcode/workload%20management/ScreenshotTests/ScreenshotTests/test04_WorkoutLog"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "F8C461F2-796A-491E-BF01-1B361C6751EC.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "05_ActiveWorkout_0_6F0A63F8-B7B9-4B96-B96A-20CD7434AB0C.png",
+        "timestamp" : 1780666827.676
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "E0241C26-936D-4734-8A63-A395D3E32823.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "ScreenshotTests/test05_ActiveWorkout()",
+    "testIdentifierURL" : "test://com.apple.xcode/workload%20management/ScreenshotTests/ScreenshotTests/test05_ActiveWorkout"
+  },
+  {
+    "attachments" : [
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "69C9DDC6-6635-4668-B1D3-702ACC913E42.png",
+        "isAssociatedWithFailure" : false,
+        "suggestedHumanReadableName" : "06_PDFExport_0_09FC1485-E095-416C-BC55-C2AFE175B1DE.png",
+        "timestamp" : 1780666847.812
+      },
+      {
+        "configurationName" : "Test Scheme Action",
+        "deviceId" : "8E872500-703D-4292-9758-38ADFCCFB126",
+        "deviceName" : "iPhone 17 Pro Max",
+        "exportedFileName" : "CBDFE202-D57B-418D-9D5D-D1D1BBCEC64F.txt",
+        "isAssociatedWithFailure" : true,
+        "suggestedHumanReadableName" : "Complete Issue Description.txt"
+      }
+    ],
+    "testIdentifier" : "ScreenshotTests/test06_PDFExport()",
+    "testIdentifierURL" : "test://com.apple.xcode/workload%20management/ScreenshotTests/ScreenshotTests/test06_PDFExport"
+  }
+]
