@@ -6,6 +6,8 @@ import SwiftUI
 struct FatigueAttentionBanner: View {
     let fatigueIndex: Double
     let zone: FatigueIndexEngine.FatigueZone
+    /// Fire the caution haptic only on first surfacing — not on every dashboard re-render.
+    @State private var didSignal = false
 
     private var borderColor: Color {
         switch zone {
@@ -67,10 +69,16 @@ struct FatigueAttentionBanner: View {
             .padding(.horizontal, 16)
             .padding(.vertical, 16)
         }
-        .background(ColorTokens.surface)
+        .background(ColorTokens.surfaceEl)
         .overlay(
             Rectangle()
                 .stroke(ColorTokens.divider, lineWidth: 0.5)
         )
+        .onAppear {
+            // Caution surfaced → one warning haptic (guarded so reloads don't re-fire).
+            guard !didSignal else { return }
+            didSignal = true
+            Haptics.warning()
+        }
     }
 }

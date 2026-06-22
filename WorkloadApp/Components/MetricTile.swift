@@ -8,7 +8,7 @@ struct MetricTile: View {
     var color: Color = ColorTokens.text1
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(title)
                 .font(.Tokens.micro)
                 .tracking(1.2)
@@ -23,13 +23,7 @@ struct MetricTile: View {
                     .foregroundStyle(ColorTokens.text2)
             }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.surface)
-        .overlay(
-            Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
-        )
+        .cardStyle(horizontalPadding: Spacing.sm, verticalPadding: Spacing.sm)
     }
 }
 

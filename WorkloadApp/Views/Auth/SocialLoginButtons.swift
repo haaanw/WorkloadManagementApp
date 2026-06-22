@@ -75,6 +75,7 @@ struct SocialLoginButtons: View {
                         Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                     )
                 }
+                .buttonStyle(.pressable)
                 .disabled(isLoading)
             }
             .padding(.horizontal, 16)

@@ -10,17 +10,12 @@ struct SyncStatusView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Section header: "SYNC STATUS" in 12pt General Sans Regular, ColorTokens.text2, all-caps
-                Text("profile.sync.statusTitle")
-                    .font(.Tokens.micro)
-                    .foregroundStyle(ColorTokens.text2)
-                    .tracking(0.88)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 24)
-                    .padding(.bottom, 8)
+                // Section header: 19pt Medium sectionHead per DESIGN.md separator grammar.
+                SectionHeader(title: "profile.sync.statusTitle")
+                    .padding(.top, Spacing.md)
+                    .padding(.bottom, Spacing.sm)
 
-                // Card container: entity rows with dividers
+                // Card container: entity rows on the surfaceEl plane with row hairlines
                 VStack(spacing: 0) {
                     ForEach(Array(SyncEntity.allCases.enumerated()), id: \.element.id) { index, entity in
                         entityRow(entity)
@@ -32,7 +27,8 @@ struct SyncStatusView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 16)
+                .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+                .padding(.horizontal, Spacing.sm)
             }
         }
         .background(ColorTokens.background)

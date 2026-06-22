@@ -6,20 +6,9 @@ struct ProfileView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.locale) private var locale
     @Query private var athletes: [Athlete]
-    @Query private var relationships: [CoachAthleteRelationship]
     @Query private var trainingProfiles: [TrainingProfile]
-    @Query private var cycleSnapshots: [MenstrualCycleSnapshot]
 
     private var athlete: Athlete? { athletes.first }
-
-    private var showCycleSection: Bool {
-        !cycleSnapshots.isEmpty ||
-        athlete?.isOnHormonalContraceptive != nil ||
-        athlete?.isPregnant != nil ||
-        athlete?.isLactating != nil ||
-        athlete?.hasPCOS != nil ||
-        athlete?.isPerimenopausal != nil
-    }
 
     // Notification settings
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
@@ -27,16 +16,7 @@ struct ProfileView: View {
     @AppStorage("notificationTime") private var notificationTime: String = "19:00"
     @State private var notificationsDenied: Bool = false
 
-    // Invite flow state
-    @State private var showInviteCodeSheet = false
-    @State private var showEnterCodeSheet = false
-    @State private var showEmailInviteSheet = false
-    @State private var generatedCode: String?
-    @State private var isGeneratingCode = false
-    @State private var pendingInviteFromProfile: PendingInvite?
-
     @State private var errorMessage: String?
-    @State private var showUpgrade = false
     @State private var showTrainingProfileSheet = false
     @State private var showDeleteConfirmation = false
     @State private var isDeletingAccount = false
@@ -47,7 +27,7 @@ struct ProfileView: View {
                 VStack(spacing: 0) {
                     if let athlete {
                         // Athlete Info
-                        sectionHeader("profile.section.athlete")
+                        profileSection("profile.section.athlete") {
                         editableTextField("profile.field.name", value: Binding(
                             get: { athlete.displayName },
                             set: { athlete.displayName = $0; saveAthlete(athlete) }
@@ -67,10 +47,10 @@ struct ProfileView: View {
                             get: { athlete.experienceLevel ?? .intermediate },
                             set: { athlete.experienceLevel = $0; saveAthlete(athlete) }
                         ), options: ExperienceLevel.allCases) { $0.displayName }
-                        sectionDivider()
+                        }
 
                         // Training Profile (D-03)
-                        sectionHeader("profile.section.trainingProfile")
+                        profileSection("profile.section.trainingProfile") {
                         if let profile = trainingProfiles.first {
                             // Profile exists: show summary rows
                             profileRow("profile.field.sessionsPerWeek", value: "\(profile.sessionsPerWeek)")
@@ -90,116 +70,10 @@ struct ProfileView: View {
                                 showTrainingProfileSheet = true
                             }
                         }
-                        sectionDivider()
-
-                        // Cycle & Hormones (D-03)
-                        if showCycleSection {
-                            sectionHeader("profile.section.cycleHormones")
-
-                            HStack {
-                                Text("profile.row.hormonalContraceptive")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                                Toggle("", isOn: Binding(
-                                    get: { athlete.isOnHormonalContraceptive ?? false },
-                                    set: { newValue in
-                                        athlete.isOnHormonalContraceptive = newValue
-                                        saveAthlete(athlete)
-                                    }
-                                ))
-                                .labelsHidden()
-                                .toggleStyle(.design)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-
-                            divider()
-
-                            HStack {
-                                Text("profile.row.pregnant")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                                Toggle("", isOn: Binding(
-                                    get: { athlete.isPregnant ?? false },
-                                    set: { newValue in
-                                        athlete.isPregnant = newValue
-                                        saveAthlete(athlete)
-                                    }
-                                ))
-                                .labelsHidden()
-                                .toggleStyle(.design)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-
-                            divider()
-
-                            HStack {
-                                Text("profile.row.lactating")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                                Toggle("", isOn: Binding(
-                                    get: { athlete.isLactating ?? false },
-                                    set: { newValue in
-                                        athlete.isLactating = newValue
-                                        saveAthlete(athlete)
-                                    }
-                                ))
-                                .labelsHidden()
-                                .toggleStyle(.design)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-
-                            divider()
-
-                            // PCOS / Perimenopause (D-11a) — local-only RED-S exclusion flags.
-                            HStack {
-                                Text("profile.row.pcos")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                                Toggle("", isOn: Binding(
-                                    get: { athlete.hasPCOS ?? false },
-                                    set: { newValue in
-                                        athlete.hasPCOS = newValue
-                                        saveAthlete(athlete)
-                                    }
-                                ))
-                                .labelsHidden()
-                                .toggleStyle(.design)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-
-                            divider()
-
-                            HStack {
-                                Text("profile.row.perimenopausal")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                                Toggle("", isOn: Binding(
-                                    get: { athlete.isPerimenopausal ?? false },
-                                    set: { newValue in
-                                        athlete.isPerimenopausal = newValue
-                                        saveAthlete(athlete)
-                                    }
-                                ))
-                                .labelsHidden()
-                                .toggleStyle(.design)
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-
-                            sectionDivider()
                         }
 
                         // Preferences
-                        sectionHeader("profile.section.preferences")
+                        profileSection("profile.section.preferences") {
                         NavigationLink {
                             LanguagePickerView()
                         } label: {
@@ -217,26 +91,18 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
+                            .background(ColorTokens.surfaceEl)
                         }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         divider()
                         editablePicker("profile.row.weightUnit", selection: Binding(
                             get: { athlete.weightUnit },
                             set: { athlete.weightUnit = $0; saveAthlete(athlete) }
                         ), options: WeightUnit.allCases) { $0.displayName }
-                        divider()
-                        editablePicker("profile.row.acwrMethod", selection: Binding(
-                            get: { athlete.acwrMethod },
-                            set: { athlete.acwrMethod = $0; saveAthlete(athlete) }
-                        ), options: ACWRMethod.allCases) { $0.displayName }
-                        divider()
-                        editablePicker("profile.row.loadMetric", selection: Binding(
-                            get: { athlete.loadMetricPreference },
-                            set: { athlete.loadMetricPreference = $0; saveAthlete(athlete) }
-                        ), options: LoadSource.allCases) { $0.displayName }
-                        sectionDivider()
+                        }
 
                         // NOTIFICATIONS section (NOTF-03)
-                        sectionHeader("profile.section.notifications")
+                        profileSection("profile.section.notifications") {
 
                         // Toggle row
                         HStack {
@@ -247,6 +113,7 @@ struct ProfileView: View {
                             Toggle("", isOn: Binding(
                                 get: { notificationsEnabled },
                                 set: { newValue in
+                                    Haptics.tap()
                                     if newValue {
                                         Task {
                                             let status = await container.notificationService.authorizationStatus()
@@ -275,15 +142,18 @@ struct ProfileView: View {
                             .toggleStyle(.design)
                         }
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 16)
+                        .background(ColorTokens.surfaceEl)
 
                         // System denied warning
                         if notificationsDenied {
                             Text("profile.notif.deniedHint")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text3)
+                                .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 16)
                                 .padding(.bottom, 8)
+                                .background(ColorTokens.surfaceEl)
                         }
 
                         divider()
@@ -338,11 +208,10 @@ struct ProfileView: View {
                         )
                         .disabled(!notificationsEnabled)
                         .foregroundStyle(notificationsEnabled ? ColorTokens.text1 : ColorTokens.text3)
-
-                        sectionDivider()
+                        }
 
                         // HealthKit
-                        sectionHeader("profile.section.connectedDevices")
+                        profileSection("profile.section.connectedDevices") {
                         NavigationLink {
                             HealthKitPermissionsView()
                         } label: {
@@ -357,17 +226,21 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
+                            .background(ColorTokens.surfaceEl)
                         }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         divider()
                         Text("profile.healthkit.devicesHint")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
-                        sectionDivider()
+                            .background(ColorTokens.surfaceEl)
+                        }
 
                         // Data Sync
-                        sectionHeader("profile.section.dataSync")
+                        profileSection("profile.section.dataSync") {
                         NavigationLink {
                             SyncStatusView()
                         } label: {
@@ -395,133 +268,39 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, 16)
                             .padding(.vertical, 16)
+                            .background(ColorTokens.surfaceEl)
                         }
-                        sectionDivider()
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                        }
 
-                        // Coach
-                        sectionHeader("profile.section.coach")
-                        if !athlete.isCoach {
-                            HStack {
-                                Text("profile.row.coachMode")
+                        // Validation signals — quiet internal readout (METRIC-02). NOT a hero row:
+                        // no accent, mirrors the Sync row treatment.
+                        profileSection("profile.section.measurement") {
+                        NavigationLink {
+                            VerdictMeasurementView()
+                        } label: {
+                            HStack(spacing: 8) {
+                                Image(systemName: "chart.bar")
+                                    .font(.Tokens.label)
+                                    .foregroundStyle(ColorTokens.text2)
+                                    .frame(width: 24)
+                                Text("profile.measurement.row")
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
-                                Toggle("", isOn: Binding(
-                                    get: { athlete.isCoach },
-                                    set: { newValue in
-                                        athlete.isCoach = newValue
-                                        athlete.updatedAt = .now
-                                        try? modelContext.save()
-                                        Task { await container.syncService.pushAthlete(athlete) }
-                                    }
-                                ))
-                                .labelsHidden()
-                                .toggleStyle(.design)
+                                Image(systemName: "chevron.right")
+                                    .font(.Tokens.micro)
+                                    .foregroundStyle(ColorTokens.text3)
                             }
                             .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            divider()
+                            .padding(.vertical, 16)
+                            .background(ColorTokens.surfaceEl)
                         }
-
-                        if athlete.isCoach {
-                            HStack {
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("profile.row.coachOnly")
-                                        .font(.Tokens.body)
-                                        .foregroundStyle(ColorTokens.text1)
-                                    Text("profile.row.coachOnlyHint")
-                                        .font(.Tokens.label)
-                                        .foregroundStyle(ColorTokens.text2)
-                                }
-                                Spacer()
-                                if container.subscriptionService.isCoach {
-                                    Toggle("", isOn: Binding(
-                                        get: { athlete.isCoachOnly },
-                                        set: { newValue in
-                                            athlete.isCoachOnly = newValue
-                                            athlete.updatedAt = .now
-                                            try? modelContext.save()
-                                            if newValue {
-                                                container.setMode(.coach)
-                                            }
-                                            Task { await container.syncService.pushAthlete(athlete) }
-                                        }
-                                    ))
-                                    .labelsHidden()
-                                } else {
-                                    Image(systemName: "lock.fill")
-                                        .font(.Tokens.micro)
-                                        .foregroundStyle(ColorTokens.text3)
-                                }
-                            }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
-                            .contentShape(Rectangle())
-                            .onTapGesture {
-                                if !container.subscriptionService.isCoach {
-                                    showUpgrade = true
-                                }
-                            }
-                            divider()
-                        }
-
-                        InviteCoachCard(isGenerating: isGeneratingCode) {
-                            Task { await generateCode(for: athlete) }
-                        }
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.top, Spacing.sm)
-
-                        if athlete.isCoach {
-                            Spacer().frame(height: Spacing.sm)
-                            actionButton("profile.action.inviteAthleteEmail") {
-                                showEmailInviteSheet = true
-                            }
-                            divider()
-                            actionButton("profile.action.enterAthleteCode") {
-                                showEnterCodeSheet = true
-                            }
-                        }
-
-
-                        // Linked Coaches
-                        let myCoachRels = relationships.filter {
-                            $0.athleteId == athlete.id && $0.status == .accepted
-                        }
-                        if !myCoachRels.isEmpty {
-                            sectionDivider()
-                            sectionHeader("profile.section.myCoaches")
-                            ForEach(myCoachRels) { rel in
-                                LinkedPartyRow(athleteId: rel.coachId)
-                                    .padding(.horizontal, 16)
-                                    .padding(.vertical, 12)
-                                if rel.id != myCoachRels.last?.id {
-                                    divider()
-                                }
-                            }
-                        }
-
-                        // My Athletes (coach mode)
-                        if athlete.isCoach {
-                            let myAthleteRels = relationships.filter {
-                                $0.coachId == athlete.id && $0.status == .accepted
-                            }
-                            if !myAthleteRels.isEmpty {
-                                sectionDivider()
-                                sectionHeader("profile.section.myAthletes")
-                                ForEach(myAthleteRels) { rel in
-                                    LinkedPartyRow(athleteId: rel.athleteId)
-                                        .padding(.horizontal, 16)
-                                        .padding(.vertical, 12)
-                                    if rel.id != myAthleteRels.last?.id {
-                                        divider()
-                                    }
-                                }
-                            }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         }
 
                         // Account — destructive actions, grouped + separated
-                        sectionDivider()
-                        sectionHeader("profile.section.account")
+                        profileSection("profile.section.account") {
                         Button {
                             Task {
                                 try? await container.signOut(modelContext: modelContext)
@@ -529,29 +308,35 @@ struct ProfileView: View {
                         } label: {
                             Text("profile.signOut")
                                 .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.zoneDanger)
+                                .foregroundStyle(ColorTokens.text1)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 16)
+                                .background(ColorTokens.surfaceEl)
                         }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         divider()
                         Button {
                             showDeleteConfirmation = true
                         } label: {
                             Text(isDeletingAccount ? "profile.action.deleting" : "profile.action.deleteAccount")
-                                .font(.Tokens.body)
+                                .font(.Tokens.bodyMedium)
                                 .foregroundStyle(ColorTokens.zoneDanger)
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, 16)
                                 .padding(.vertical, 16)
+                                .background(ColorTokens.surfaceEl)
                         }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         .disabled(isDeletingAccount)
-                        divider()
+                        }
+
+                        Spacer().frame(height: Spacing.lg)
                     } else {
                         Text("profile.empty.noAthlete")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text3)
-                            .padding(32)
+                            .padding(Spacing.lg)
                     }
                 }
             }
@@ -567,32 +352,6 @@ struct ProfileView: View {
             .navigationTitle("profile.nav.title")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .withContextSwitcher()
-            // Generated code display — designed sheet (not the system alert)
-            .sheet(isPresented: $showInviteCodeSheet, onDismiss: { generatedCode = nil }) {
-                if let code = generatedCode {
-                    InviteCodeSheet(code: code)
-                }
-            }
-            // Enter code sheet
-            .sheet(isPresented: $showEnterCodeSheet) {
-                EnterInviteCodeSheet()
-                    .environment(container)
-            }
-            // Email invite sheet
-            .sheet(isPresented: $showEmailInviteSheet) {
-                EmailInviteSheet()
-                    .environment(container)
-            }
-            // Confirmation sheet
-            .sheet(item: $pendingInviteFromProfile) { pending in
-                InviteConfirmationSheet(code: pending.code, mode: .coachConfirming)
-                    .environment(container)
-            }
-            .sheet(isPresented: $showUpgrade) {
-                UpgradeSheet(trigger: .coach)
-                    .environment(container)
-            }
             .sheet(isPresented: $showTrainingProfileSheet) {
                 TrainingProfileSheet(existingProfile: trainingProfiles.first)
                     .environment(container)
@@ -628,6 +387,25 @@ struct ProfileView: View {
 
     // MARK: - Helpers
 
+    /// Wraps a top-level grouped section: 32pt break + 19pt header, then the rows on a single
+    /// bordered card plane (Tuwa v2 separation — each section reads as a distinct surface).
+    @ViewBuilder
+    private func profileSection<Content: View>(
+        _ header: LocalizedStringKey,
+        @ViewBuilder _ content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer().frame(height: Spacing.lg)
+            SectionHeader(title: header)
+            Spacer().frame(height: Spacing.sm)
+            VStack(spacing: 0) {
+                content()
+            }
+            .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+            .padding(.horizontal, Spacing.sm)
+        }
+    }
+
     @ViewBuilder
     private func sectionHeader(_ title: LocalizedStringKey) -> some View {
         SectionHeader(title: title)
@@ -646,8 +424,9 @@ struct ProfileView: View {
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .background(ColorTokens.surfaceEl)
     }
 
     @ViewBuilder
@@ -659,7 +438,9 @@ struct ProfileView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
+                .background(ColorTokens.surfaceEl)
         }
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
     }
 
     @ViewBuilder
@@ -689,8 +470,9 @@ struct ProfileView: View {
                 .foregroundStyle(ColorTokens.text1)
                 .multilineTextAlignment(.trailing)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .background(ColorTokens.surfaceEl)
     }
 
     @ViewBuilder
@@ -708,11 +490,12 @@ struct ProfileView: View {
             Menu {
                 ForEach(options, id: \.self) { option in
                     Button(displayName(option)) {
+                        Haptics.select()
                         selection.wrappedValue = option
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.baselinePair) {
                     Text(displayName(selection.wrappedValue))
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
@@ -720,8 +503,9 @@ struct ProfileView: View {
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .background(ColorTokens.surfaceEl)
     }
 
     private func scheduleNotification() {
@@ -743,292 +527,6 @@ struct ProfileView: View {
         athlete.updatedAt = .now
         try? modelContext.save()
         Task { await container.syncService.pushAthlete(athlete) }
-    }
-
-    // MARK: - Actions
-
-    private func generateCode(for athlete: Athlete) async {
-        isGeneratingCode = true
-        do {
-            generatedCode = try await InviteService.generateInviteCode(for: athlete.id, client: container.supabase)
-            showInviteCodeSheet = true
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-        isGeneratingCode = false
-    }
-
-    private func removeRelationship(_ rel: CoachAthleteRelationship) async {
-        do {
-            try await container.syncService.removeRelationship(id: rel.id, context: modelContext)
-        } catch {
-            errorMessage = error.localizedDescription
-        }
-    }
-}
-
-// MARK: - Supporting views
-
-/// Designed invite affordance — the primary coach-linking action, distinguished from the
-/// flat preference rows by a card plane (`cardStyle`), a leading icon, a title + subtitle,
-/// and a bordered action. Replaces the bare flat row that read as just another setting.
-struct InviteCoachCard: View {
-    let isGenerating: Bool
-    let action: () -> Void
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            HStack(spacing: Spacing.xs) {
-                Image(systemName: "person.badge.plus")
-                    .font(.Tokens.sectionHead)
-                    .foregroundStyle(ColorTokens.text1)
-                Text("profile.invite.cardTitle")
-                    .font(.Tokens.sectionHead)
-                    .foregroundStyle(ColorTokens.text1)
-            }
-            Text("profile.invite.cardSubtitle")
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text2)
-            Button(action: action) {
-                HStack(spacing: Spacing.xs) {
-                    if isGenerating {
-                        ProgressView()
-                        Text("profile.action.generating")
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text2)
-                    } else {
-                        Text("profile.action.inviteMyCoach")
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text1)
-                    }
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.sm)
-                // Heavier 1pt border marks this as the primary action vs the 0.5pt row hairlines.
-                .overlay(Rectangle().stroke(ColorTokens.text2, lineWidth: 1))
-            }
-            .disabled(isGenerating)
-        }
-        .cardStyle()
-    }
-}
-
-/// Designed sheet that displays a generated invite code, replacing the default system alert.
-/// Big tabular code on the card plane, copy + done actions in the separator grammar.
-struct InviteCodeSheet: View {
-    @Environment(\.dismiss) private var dismiss
-    let code: String
-    @State private var copied = false
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    Text("profile.invite.codeSheetTitle")
-                        .font(.Tokens.micro)
-                        .tracking(1.2)
-                        .textCase(.uppercase)
-                        .foregroundStyle(ColorTokens.text3)
-                    Text(code)
-                        .font(.Tokens.pageTitle)
-                        .monospacedDigit()
-                        .tracking(4)
-                        .foregroundStyle(ColorTokens.text1)
-                    Text("profile.invite.shareCodeHint")
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                    Text("profile.invite.codeExpiry")
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.text3)
-                }
-                .cardStyle()
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-
-                Button {
-                    UIPasteboard.general.string = code
-                    copied = true
-                } label: {
-                    Text(LocalizedStringKey(copied ? "action.copied" : "action.copy"))
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.sm)
-                }
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-
-                Button { dismiss() } label: {
-                    Text("action.done")
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text2)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, Spacing.sm)
-                }
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                Spacer()
-            }
-            .background(ColorTokens.background)
-            .navigationBarHidden(true)
-        }
-    }
-}
-
-struct LinkedPartyRow: View {
-    @Query private var athletes: [Athlete]
-    let athleteId: UUID
-
-    private var linkedAthlete: Athlete? {
-        athletes.first(where: { $0.id == athleteId })
-    }
-
-    var body: some View {
-        if let a = linkedAthlete {
-            VStack(alignment: .leading, spacing: 2) {
-                Text(a.displayName)
-                    .font(.Tokens.body)
-                    .foregroundStyle(ColorTokens.text1)
-                Text(a.sportType.displayName)
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text3)
-            }
-        } else {
-            Text("common.unknown")
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text3)
-        }
-    }
-}
-
-struct EnterInviteCodeSheet: View {
-    @Environment(AppContainer.self) private var container
-    @Environment(\.dismiss) private var dismiss
-    @State private var code = ""
-    @State private var pending: PendingInvite?
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("profile.invite.code")
-                        .font(.Tokens.micro)
-                        .tracking(0.88)
-                        .foregroundStyle(ColorTokens.text3)
-                        .padding(.horizontal, 16).padding(.top, 16).padding(.bottom, 8)
-                    TextField("profile.invite.codePlaceholder", text: $code)
-                        .font(.Tokens.body)
-                        .textInputAutocapitalization(.characters)
-                        .autocorrectionDisabled()
-                        .padding(.horizontal, 16).padding(.bottom, 16)
-                }
-                .background(ColorTokens.surface)
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                Button {
-                    pending = PendingInvite(code: code.uppercased())
-                } label: {
-                    Text("profile.invite.lookUp")
-                        .font(.Tokens.body)
-                        .foregroundStyle(code.count == 6 ? ColorTokens.text1 : ColorTokens.text3)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                }
-                .disabled(code.count != 6)
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                Spacer()
-            }
-            .background(ColorTokens.background)
-            .navigationBarHidden(true)
-            .sheet(item: $pending) { p in
-                InviteConfirmationSheet(code: p.code, mode: .coachConfirming)
-                    .environment(container)
-                    .onDisappear { dismiss() }
-            }
-        }
-    }
-}
-
-struct EmailInviteSheet: View {
-    @Environment(AppContainer.self) private var container
-    @Environment(\.dismiss) private var dismiss
-    @Query private var athletes: [Athlete]
-    @State private var email = ""
-    @State private var isSending = false
-    @State private var sent = false
-    @State private var error: String?
-
-    private var athlete: Athlete? { athletes.first }
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                VStack(alignment: .leading, spacing: 0) {
-                    Text("profile.invite.athleteEmail")
-                        .font(.Tokens.micro)
-                        .tracking(0.88)
-                        .foregroundStyle(ColorTokens.text3)
-                        .padding(.horizontal, 16).padding(.top, 16).padding(.bottom, 8)
-                    TextField("athlete@example.com", text: $email)
-                        .font(.Tokens.body)
-                        .keyboardType(.emailAddress)
-                        .textInputAutocapitalization(.never)
-                        .autocorrectionDisabled()
-                        .padding(.horizontal, 16).padding(.bottom, 16)
-                }
-                .background(ColorTokens.surface)
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                if let error {
-                    Text(error)
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.zoneDanger)
-                        .padding(.horizontal, 16).padding(.vertical, 12)
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                }
-                if sent {
-                    Text("profile.invite.sentConfirmation")
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                        .padding(16)
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                    Button("action.done") { dismiss() }
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
-                        .frame(maxWidth: .infinity).padding(.vertical, 16)
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                } else {
-                    Button {
-                        Task { await sendInvite() }
-                    } label: {
-                        Group {
-                            if isSending { ProgressView() }
-                            else {
-                                Text("profile.invite.send")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(email.contains("@") ? ColorTokens.text1 : ColorTokens.text3)
-                            }
-                        }
-                        .frame(maxWidth: .infinity).padding(.vertical, 16)
-                    }
-                    .disabled(!email.contains("@") || isSending)
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                }
-                Spacer()
-            }
-            .background(ColorTokens.background)
-            .navigationBarHidden(true)
-        }
-    }
-
-    private func sendInvite() async {
-        guard let athlete else { return }
-        isSending = true
-        do {
-            try await InviteService.sendEmailInvite(to: email, from: athlete.id, client: container.supabase)
-            sent = true
-        } catch {
-            self.error = error.localizedDescription
-        }
-        isSending = false
     }
 }
 
@@ -1064,7 +562,7 @@ struct HealthKitPermissionsView: View {
                 sectionHeader("profile.healthkit.dataWeRead")
 
                 ForEach(dataTypes, id: \.0) { item in
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.xs) {
                         Image(systemName: item.1)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
@@ -1074,9 +572,9 @@ struct HealthKitPermissionsView: View {
                             .foregroundStyle(ColorTokens.text1)
                         Spacer()
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 12)
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5).padding(.leading, 52)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
+                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5).padding(.leading, Spacing.xl)
                 }
 
                 Spacer().frame(height: 24)
@@ -1129,6 +627,7 @@ struct HealthKitPermissionsView: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
                 }
+                .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                 .disabled(isAuthorizing || hkState != .notRequested)
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
@@ -1157,6 +656,7 @@ struct HealthKitPermissionsView: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 16)
                     }
+                    .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                 }
@@ -1165,8 +665,8 @@ struct HealthKitPermissionsView: View {
                     Text(error)
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.zoneDanger)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.xs)
                 }
             }
         }

@@ -85,34 +85,35 @@ struct SignUpView: View {
                 // Sport picker
                 VStack(alignment: .leading, spacing: 16) {
                     Text("auth.signup.primarySport")
-                        .font(.Tokens.micro)
-                        .tracking(1.2)
-                        .foregroundStyle(ColorTokens.text3)
+                        .font(.Tokens.sectionHead)
+                        .foregroundStyle(ColorTokens.text1)
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: 8) {
                         ForEach(SportType.allCases) { sport in
                             Button {
+                                Haptics.select()
                                 selectedSport = sport
                             } label: {
                                 VStack(spacing: 8) {
                                     Image(systemName: sport.systemImage)
-                                        .font(.system(size: 20))
-                                        .foregroundStyle(selectedSport == sport ? ColorTokens.text1 : ColorTokens.text2)
+                                        .font(.Tokens.sectionHead)
+                                        .foregroundStyle(selectedSport == sport ? ColorTokens.accent : ColorTokens.text2)
                                     Text(sport.displayName)
                                         .font(.Tokens.micro)
                                         .tracking(0.5)
-                                        .foregroundStyle(selectedSport == sport ? ColorTokens.text1 : ColorTokens.text2)
+                                        .foregroundStyle(selectedSport == sport ? ColorTokens.accent : ColorTokens.text2)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, 16)
-                                .background(selectedSport == sport ? ColorTokens.surface : ColorTokens.background)
+                                .background(selectedSport == sport ? ColorTokens.accentSubtle : ColorTokens.surfaceEl)
                                 .overlay(
                                     Rectangle().stroke(
-                                        selectedSport == sport ? ColorTokens.text3 : ColorTokens.divider,
+                                        selectedSport == sport ? ColorTokens.accent : ColorTokens.divider,
                                         lineWidth: selectedSport == sport ? 1.0 : 0.5
                                     )
                                 )
                             }
+                            .buttonStyle(.pressable)
                         }
                     }
                 }
@@ -130,7 +131,7 @@ struct SignUpView: View {
                         .foregroundStyle(ColorTokens.zoneDanger)
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
+                        .padding(.vertical, 16)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
@@ -146,14 +147,21 @@ struct SignUpView: View {
                             ProgressView()
                         } else {
                             Text("auth.signup.heading")
-                                .font(.Tokens.body)
-                                .foregroundStyle(isFormValid ? ColorTokens.text1 : ColorTokens.text3)
+                                .font(.Tokens.bodyMedium)
+                                .foregroundStyle(isFormValid ? ColorTokens.background : ColorTokens.text3)
                         }
                     }
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
-                    .background(ColorTokens.surface)
+                    .background(isFormValid ? ColorTokens.text1 : ColorTokens.surface)
+                    .overlay(
+                        Rectangle().stroke(
+                            isFormValid ? ColorTokens.accent : ColorTokens.divider,
+                            lineWidth: isFormValid ? 1 : 0.5
+                        )
+                    )
                 }
+                .buttonStyle(.pressable)
                 .disabled(!isFormValid || isLoading || isSocialLoading)
 
                 Rectangle()
@@ -219,6 +227,7 @@ struct SignUpView: View {
             await container.syncService.pushAthlete(athlete)
 
             // 4. Mark as authenticated
+            Haptics.success()
             container.setAuthenticated(true)
         } catch {
             lastAuthError = error
@@ -258,6 +267,7 @@ struct SignUpView: View {
             }
             await container.syncService.pullAll(context: modelContext)
             isSocialLoading = false
+            Haptics.success()
             container.setAuthenticated(true)
         } catch {
             lastAuthError = error
@@ -294,6 +304,7 @@ struct SignUpView: View {
             }
             await container.syncService.pullAll(context: modelContext)
             isSocialLoading = false
+            Haptics.success()
             container.setAuthenticated(true)
         } catch {
             lastAuthError = error
@@ -334,9 +345,8 @@ struct InputField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(label)
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
+                .font(.Tokens.sectionHead)
+                .foregroundStyle(ColorTokens.text1)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 8)
@@ -346,7 +356,7 @@ struct InputField: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
         }
-        .background(ColorTokens.surface)
+        .background(ColorTokens.surfaceEl)
     }
 }
 
@@ -358,9 +368,8 @@ struct SecureInputField: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(label)
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
+                .font(.Tokens.sectionHead)
+                .foregroundStyle(ColorTokens.text1)
                 .padding(.horizontal, 16)
                 .padding(.top, 16)
                 .padding(.bottom, 8)
@@ -370,6 +379,6 @@ struct SecureInputField: View {
                 .padding(.horizontal, 16)
                 .padding(.bottom, 16)
         }
-        .background(ColorTokens.surface)
+        .background(ColorTokens.surfaceEl)
     }
 }

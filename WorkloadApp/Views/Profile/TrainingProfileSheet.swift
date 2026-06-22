@@ -80,7 +80,7 @@ struct TrainingProfileSheet: View {
             ScrollView {
                 VStack(spacing: 0) {
                     // REQUIRED section
-                    sectionHeader(String(localized: "profile.trainingProfile.sectionRequired", defaultValue: "REQUIRED"))
+                    formSection(String(localized: "profile.trainingProfile.sectionRequired", defaultValue: "REQUIRED")) {
 
                     pickerRow(
                         String(localized: "profile.trainingProfile.sessionsPerWeek", defaultValue: "Sessions per week"),
@@ -118,10 +118,10 @@ struct TrainingProfileSheet: View {
                             ? String(localized: "profile.trainingProfile.weeks.one", defaultValue: "1 week")
                             : String(localized: "profile.trainingProfile.weeks.other", defaultValue: "\($0) weeks") }
                     )
-                    sectionDivider()
+                    }
 
                     // OPTIONAL section
-                    sectionHeader(String(localized: "profile.trainingProfile.sectionOptional", defaultValue: "OPTIONAL"))
+                    formSection(String(localized: "profile.trainingProfile.sectionOptional", defaultValue: "OPTIONAL")) {
 
                     pickerRow(
                         String(localized: "profile.trainingProfile.trainingAge", defaultValue: "Training age"),
@@ -147,6 +147,7 @@ struct TrainingProfileSheet: View {
                     divider()
 
                     injuryHistoryRow()
+                    }
 
                     // Error message if save fails
                     if let saveError {
@@ -201,16 +202,30 @@ struct TrainingProfileSheet: View {
 
     // MARK: - Helper Views
 
+    /// Wraps a form section: 32pt break + 19pt header, then the rows on a single bordered card
+    /// plane (Tuwa v2 separation — each section reads as a distinct surface).
+    @ViewBuilder
+    private func formSection<Content: View>(
+        _ title: String,
+        @ViewBuilder _ content: () -> Content
+    ) -> some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Spacer().frame(height: Spacing.lg)
+            SectionHeader(title: LocalizedStringKey(title))
+            Spacer().frame(height: Spacing.sm)
+            VStack(spacing: 0) {
+                content()
+            }
+            .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+            .padding(.horizontal, Spacing.sm)
+        }
+    }
+
     @ViewBuilder
     private func sectionHeader(_ title: String) -> some View {
-        Text(title)
-            .font(.Tokens.micro)
-            .foregroundStyle(ColorTokens.text3)
-            .tracking(1.2)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, 16)
-            .padding(.top, 24)
-            .padding(.bottom, 8)
+        SectionHeader(title: LocalizedStringKey(title))
+            .padding(.top, Spacing.md)
+            .padding(.bottom, Spacing.sm)
     }
 
     @ViewBuilder
@@ -244,12 +259,13 @@ struct TrainingProfileSheet: View {
             Menu {
                 ForEach(options, id: \.self) { option in
                     Button(displayName(option)) {
+                        Haptics.select()
                         selection.wrappedValue = option
                         userHasEdited = true
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.baselinePair) {
                     if let value = selection.wrappedValue {
                         Text(displayName(value))
                             .font(.Tokens.body)
@@ -260,13 +276,14 @@ struct TrainingProfileSheet: View {
                             .foregroundStyle(ColorTokens.text3)
                     }
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 10))
+                        .font(.Tokens.micro)
                         .foregroundStyle(ColorTokens.text3)
                 }
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
+        .background(ColorTokens.surfaceEl)
     }
 
     @ViewBuilder
@@ -279,6 +296,7 @@ struct TrainingProfileSheet: View {
             Menu {
                 ForEach(SportType.allCases) { sport in
                     Button {
+                        Haptics.tap()
                         if selectedMovementTypes.contains(sport) {
                             selectedMovementTypes.remove(sport)
                         } else {
@@ -295,7 +313,7 @@ struct TrainingProfileSheet: View {
                     }
                 }
             } label: {
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.baselinePair) {
                     if selectedMovementTypes.isEmpty {
                         Text("profile.trainingProfile.placeholder.dash")
                             .font(.Tokens.body)
@@ -306,20 +324,22 @@ struct TrainingProfileSheet: View {
                             .foregroundStyle(ColorTokens.text1)
                     }
                     Image(systemName: "chevron.up.chevron.down")
-                        .font(.system(size: 10))
+                        .font(.Tokens.micro)
                         .foregroundStyle(ColorTokens.text3)
                 }
             }
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
+        .background(ColorTokens.surfaceEl)
     }
 
     @ViewBuilder
     private func injuryHistoryRow() -> some View {
         VStack(spacing: 0) {
             Button {
-                withAnimation(.easeOut(duration: 0.25)) {
+                Haptics.tap()
+                withAnimation(Motion.state) {
                     showInjuryDetail.toggle()
                 }
             } label: {
@@ -328,7 +348,7 @@ struct TrainingProfileSheet: View {
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text2)
                     Spacer()
-                    HStack(spacing: 4) {
+                    HStack(spacing: Spacing.baselinePair) {
                         if selectedBodyRegions.isEmpty {
                             Text("profile.trainingProfile.placeholder.dash")
                                 .font(.Tokens.body)
@@ -341,13 +361,15 @@ struct TrainingProfileSheet: View {
                                 .foregroundStyle(ColorTokens.text1)
                         }
                         Image(systemName: showInjuryDetail ? "chevron.up" : "chevron.down")
-                            .font(.system(size: 10))
+                            .font(.Tokens.micro)
                             .foregroundStyle(ColorTokens.text3)
                     }
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
+                .background(ColorTokens.surfaceEl)
             }
+            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 
             if showInjuryDetail {
                 Rectangle()
@@ -358,6 +380,7 @@ struct TrainingProfileSheet: View {
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(BodyRegion.allCases) { region in
                         Button {
+                            Haptics.tap()
                             if selectedBodyRegions.contains(region) {
                                 selectedBodyRegions.remove(region)
                             } else {
@@ -372,13 +395,14 @@ struct TrainingProfileSheet: View {
                                 Spacer()
                                 if selectedBodyRegions.contains(region) {
                                     Image(systemName: "checkmark")
-                                        .font(.system(size: 14))
+                                        .font(.Tokens.label)
                                         .foregroundStyle(ColorTokens.text1)
                                 }
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.xs)
                         }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 
                         if region != BodyRegion.allCases.last {
                             Rectangle()
@@ -401,7 +425,7 @@ struct TrainingProfileSheet: View {
                         .padding(.vertical, 16)
                         .onChange(of: injuryNotes) { userHasEdited = true }
                 }
-                .background(ColorTokens.surface)
+                .background(ColorTokens.surfaceEl)
             }
         }
     }
@@ -456,6 +480,7 @@ struct TrainingProfileSheet: View {
                 try repo.updateProfile(existing)
                 // WR-01: sync re-edited profile to Supabase
                 Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
+                Haptics.success()
                 dismiss()
             } catch {
                 saveError = String(localized: "profile.trainingProfile.saveError", defaultValue: "Couldn't save your training profile. Please try again.")
@@ -478,6 +503,7 @@ struct TrainingProfileSheet: View {
             do {
                 try repo.saveProfile(profile)
                 Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
+                Haptics.success()
                 dismiss()
             } catch {
                 saveError = String(localized: "profile.trainingProfile.saveError", defaultValue: "Couldn't save your training profile. Please try again.")

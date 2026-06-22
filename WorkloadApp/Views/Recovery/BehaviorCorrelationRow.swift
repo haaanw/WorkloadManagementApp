@@ -19,7 +19,7 @@ struct BehaviorCorrelationRow: View {
 
     private var sufficientView: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(tagName)
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
@@ -36,9 +36,9 @@ struct BehaviorCorrelationRow: View {
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text1)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.surface)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
+        .background(ColorTokens.surfaceEl)
         .overlay(alignment: .leading) {
             Rectangle()
                 .fill(impactPercentage >= 0 ? ColorTokens.zoneOptimal : ColorTokens.zoneDanger)
@@ -52,7 +52,7 @@ struct BehaviorCorrelationRow: View {
 
     private var insufficientView: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(tagName)
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
@@ -62,9 +62,9 @@ struct BehaviorCorrelationRow: View {
             }
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.surface)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
+        .background(ColorTokens.surfaceEl)
         .overlay(
             Rectangle()
                 .stroke(ColorTokens.divider, lineWidth: 0.5)

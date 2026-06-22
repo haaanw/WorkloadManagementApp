@@ -436,6 +436,10 @@ struct SetHistoryRecord {
     let rpe: Double?
     let durationSeconds: Int?
     let distanceMeters: Double?
+    /// Carried through from the source `SetRecord.isWarmup` so callers (e.g. the
+    /// weight-picker suggestion heuristic) can exclude warmups. Progression MATH
+    /// does not read this flag — it is purely a passthrough for presentation reads.
+    var isWarmup: Bool = false
 }
 
 // MARK: - Query Helper
@@ -463,7 +467,8 @@ extension ProgressionEngine {
                         reps: set.reps,
                         rpe: set.rpe,
                         durationSeconds: set.durationSeconds,
-                        distanceMeters: set.distanceMeters
+                        distanceMeters: set.distanceMeters,
+                        isWarmup: set.isWarmup
                     )
                 }
             )

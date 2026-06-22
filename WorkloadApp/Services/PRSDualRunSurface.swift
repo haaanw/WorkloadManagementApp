@@ -32,7 +32,7 @@ enum PRSDualRunSurface {
         legacy: AutoregulationEngine.TrainingRecommendation,
         updated: AutoregulationEngine.TrainingRecommendation
     ) -> DualRunMessage? {
-        guard PRSActivation.isEnabled else { return nil }
+        guard VerdictSurfaceActivation.isEnabled || PRSActivation.isEnabled else { return nil }
         return DualRunMessage(
             title: String(localized: "prs.dualRun.title", defaultValue: "Recommendation method updated"),
             explanation: String(localized: "prs.dualRun.explanation",
@@ -62,9 +62,9 @@ enum PRSDualRunSurface {
         with recommendation: AutoregulationEngine.TrainingRecommendation,
         now: Date = .now
     ) -> WorkoutAdjustment? {
-        // KEEP FIRST — with the flag OFF this returns nil and mutates NOTHING (DualRunFlagFence
-        // no-op stays byte-identical). Everything below runs flag-ON only.
-        guard PRSActivation.isEnabled else { return nil }
+        // KEEP FIRST — with BOTH flags OFF this returns nil and mutates NOTHING (DualRunFlagFence
+        // no-op stays byte-identical: false-OR-false ⇒ nil). Everything below runs flag-ON only.
+        guard VerdictSurfaceActivation.isEnabled || PRSActivation.isEnabled else { return nil }
 
         // RPE: cap downward at the recommendation's intensity cap.
         let cappedRPE: Double

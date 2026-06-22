@@ -12,38 +12,30 @@ struct TrainingProfileCard: View {
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
+                .padding(.bottom, Spacing.xs)
 
             Text("trainingProfile.card.title")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
-                .padding(.horizontal, 16)
 
             Text("trainingProfile.card.body")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-                .padding(.bottom, 16)
+                .padding(.top, Spacing.xs)
+                .padding(.bottom, Spacing.sm)
 
             Button(action: onComplete) {
                 Text("trainingProfile.card.action")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 8)
+                    .padding(.vertical, Spacing.xs)
                     .overlay(
                         Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                     )
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
+            .buttonStyle(.pressable)
         }
-        .background(ColorTokens.surface)
-        .overlay(
-            Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
-        )
+        .cardStyle()
     }
 }

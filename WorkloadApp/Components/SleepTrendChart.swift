@@ -68,7 +68,7 @@ struct SleepTrendChart: View {
     }
 
     private func legendItem(color: Color, label: String) -> some View {
-        HStack(spacing: 6) {
+        HStack(spacing: Spacing.xs) {
             Rectangle()
                 .fill(color)
                 .frame(width: 8, height: 8)

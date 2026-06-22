@@ -159,4 +159,23 @@ final class RecoveryRepository {
         }
         return try modelContext.fetch(descriptor).first
     }
+
+    /// Fetch the most recent wellness check-in (newest first), regardless of date.
+    /// Read-only "latest prior" query for pre-filling the morning check-in sheet;
+    /// the caller prefers today's via `fetchTodayWellnessCheckIn` and falls back here.
+    func fetchLatestWellnessCheckIn(athlete: Athlete? = nil) throws -> WellnessCheckIn? {
+        let descriptor: FetchDescriptor<WellnessCheckIn>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<WellnessCheckIn>(
+                predicate: #Predicate { $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.date, order: .reverse)]
+            )
+        } else {
+            descriptor = FetchDescriptor<WellnessCheckIn>(
+                sortBy: [SortDescriptor(\.date, order: .reverse)]
+            )
+        }
+        return try modelContext.fetch(descriptor).first
+    }
 }

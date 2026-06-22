@@ -29,7 +29,7 @@ struct OnboardingView: View {
                 healthKitStep
                     .opacity(currentStep == 3 ? 1 : 0)
             }
-            .animation(.easeOut(duration: 0.25), value: currentStep)
+            .animation(Motion.screen, value: currentStep)
 
             // MARK: Dot indicators + Continue button
 
@@ -72,6 +72,7 @@ struct OnboardingView: View {
     @ViewBuilder
     private func languageRow(for locale: Locale) -> some View {
         Button {
+            Haptics.select()
             container.localeManager.setLocale(locale)
         } label: {
             HStack {
@@ -91,7 +92,7 @@ struct OnboardingView: View {
             .frame(height: 56)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
     }
 
     private func languageAutonym(for locale: Locale) -> String {
@@ -116,31 +117,33 @@ struct OnboardingView: View {
             ) {
                 ForEach(TrainingFrequency.allCases) { freq in
                     Button {
+                        Haptics.select()
                         selectedFrequency = freq
                     } label: {
                         Text(freq.displayName)
-                            .font(.Tokens.body)
+                            .font(selectedFrequency == freq ? .Tokens.bodyMedium : .Tokens.body)
                             .foregroundStyle(
                                 selectedFrequency == freq
-                                    ? ColorTokens.text1
+                                    ? ColorTokens.accent
                                     : ColorTokens.text2
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 24)
                             .background(
                                 selectedFrequency == freq
-                                    ? ColorTokens.surface
-                                    : ColorTokens.background
+                                    ? ColorTokens.accentSubtle
+                                    : ColorTokens.surfaceEl
                             )
                             .overlay(
                                 Rectangle().stroke(
                                     selectedFrequency == freq
-                                        ? ColorTokens.text3
+                                        ? ColorTokens.accent
                                         : ColorTokens.divider,
                                     lineWidth: selectedFrequency == freq ? 1.0 : 0.5
                                 )
                             )
                     }
+                    .buttonStyle(.pressable)
                 }
             }
             .padding(.horizontal, 16)
@@ -161,6 +164,7 @@ struct OnboardingView: View {
             VStack(spacing: 8) {
                 ForEach(ExperienceLevel.allCases) { level in
                     Button {
+                        Haptics.select()
                         selectedLevel = level
                     } label: {
                         VStack(alignment: .leading, spacing: 8) {
@@ -168,7 +172,7 @@ struct OnboardingView: View {
                                 .font(.Tokens.body)
                                 .foregroundStyle(
                                     selectedLevel == level
-                                        ? ColorTokens.text1
+                                        ? ColorTokens.accent
                                         : ColorTokens.text2
                                 )
                             Text(level.subtitle)
@@ -180,18 +184,19 @@ struct OnboardingView: View {
                         .padding(.vertical, 24)
                         .background(
                             selectedLevel == level
-                                ? ColorTokens.surface
-                                : ColorTokens.background
+                                ? ColorTokens.accentSubtle
+                                : ColorTokens.surfaceEl
                         )
                         .overlay(
                             Rectangle().stroke(
                                 selectedLevel == level
-                                    ? ColorTokens.text3
+                                    ? ColorTokens.accent
                                     : ColorTokens.divider,
                                 lineWidth: selectedLevel == level ? 1.0 : 0.5
                             )
                         )
                     }
+                    .buttonStyle(.pressable)
                 }
             }
             .padding(.horizontal, 16)
@@ -242,15 +247,16 @@ struct OnboardingView: View {
                     }
                 } label: {
                     Text("onboarding.healthkit.connect")
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
+                        .font(.Tokens.bodyMedium)
+                        .foregroundStyle(ColorTokens.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(ColorTokens.surface)
+                        .background(ColorTokens.text1)
                         .overlay(
-                            Rectangle().stroke(ColorTokens.text3, lineWidth: 1.0)
+                            Rectangle().stroke(ColorTokens.accent, lineWidth: 1)
                         )
                 }
+                .buttonStyle(.pressable)
                 .padding(.horizontal, 16)
 
                 // Skip for now
@@ -263,6 +269,7 @@ struct OnboardingView: View {
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                 }
+                .buttonStyle(.pressable)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 8)
 
@@ -279,15 +286,16 @@ struct OnboardingView: View {
                     completeOnboarding()
                 } label: {
                     Text("action.continue")
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
+                        .font(.Tokens.bodyMedium)
+                        .foregroundStyle(ColorTokens.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(ColorTokens.surface)
+                        .background(ColorTokens.text1)
                         .overlay(
-                            Rectangle().stroke(ColorTokens.text3, lineWidth: 1.0)
+                            Rectangle().stroke(ColorTokens.accent, lineWidth: 1)
                         )
                 }
+                .buttonStyle(.pressable)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 8)
             }
@@ -336,23 +344,25 @@ struct OnboardingView: View {
 
     private var continueButton: some View {
         Button {
-            withAnimation(.easeOut(duration: 0.25)) {
+            Haptics.tap()
+            withAnimation(Motion.screen) {
                 currentStep += 1
             }
         } label: {
             Text(continueLabelKey)
-                .font(.Tokens.body)
-                .foregroundStyle(isContinueEnabled ? ColorTokens.text1 : ColorTokens.text3)
+                .font(.Tokens.bodyMedium)
+                .foregroundStyle(isContinueEnabled ? ColorTokens.background : ColorTokens.text3)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(ColorTokens.surface)
+                .background(isContinueEnabled ? ColorTokens.text1 : ColorTokens.surface)
                 .overlay(
                     Rectangle().stroke(
-                        isContinueEnabled ? ColorTokens.text3 : ColorTokens.divider,
-                        lineWidth: isContinueEnabled ? 1.0 : 0.5
+                        isContinueEnabled ? ColorTokens.accent : ColorTokens.divider,
+                        lineWidth: isContinueEnabled ? 1 : 0.5
                     )
                 )
         }
+        .buttonStyle(.pressable)
         .disabled(!isContinueEnabled)
     }
 
@@ -386,6 +396,7 @@ struct OnboardingView: View {
         athlete.updatedAt = .now
         try? modelContext.save()
         Task { await container.syncService.pushAthlete(athlete) }
+        Haptics.success()
         onComplete()
     }
 }

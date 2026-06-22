@@ -14,7 +14,7 @@ struct DeltaIndicator: View {
         } else {
             HStack(spacing: 2) {
                 Image(systemName: delta > 0 ? "arrow.up" : "arrow.down")
-                    .font(.system(size: 11, weight: .medium))
+                    .font(.Tokens.smallLabel)
                 Text(String(format: "%+.0f%%", delta))
                     .font(.Tokens.label)
             }

@@ -29,7 +29,16 @@
       "mcp__Desktop_Commander__read_file",
       "Bash(xargs ls:*)",
       "Bash(cp AppIcon-1024.png AppIcon-1024-original.png)",
-      "Bash(sips -z 1024 1024 AppIcon-1024.png)"
+      "Bash(sips -z 1024 1024 AppIcon-1024.png)",
+      "Skill(gsd-explore)",
+      "Skill(gsd-explore:*)",
+      "WebSearch",
+      "WebFetch(domain:www.reddit.com)",
+      "WebFetch(domain:html.duckduckgo.com)",
+      "WebFetch(domain:www.community.whoop.com)",
+      "WebFetch(domain:deepsquatsshallowthoughts.substack.com)",
+      "Bash(rdt --help)",
+      "WebFetch(domain:old.reddit.com)"
     ]
   }
 }

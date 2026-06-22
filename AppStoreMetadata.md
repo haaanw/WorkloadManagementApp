@@ -1,56 +1,56 @@
-# App Store Connect Metadata — Tonus
+# App Store Connect Metadata — Tuwa v1.5
 
 ## App Name
-Tonus
+Tuwa
 
 ## Subtitle (30 chars max)
-Training Load & Recovery
+Adaptive Strength Training
 
 ## Category
 Health & Fitness
 
 ## Keywords (100 chars max)
-workload,ACWR,recovery,HRV,training load,coach,athlete,RPE,periodization,readiness
+strength,workout log,readiness,HRV,recovery,training load,RPE,progress,Apple Watch,gym
 
 ## Promotional Text (170 chars, updatable without review)
-Track training load, recovery readiness, and ACWR — with coach-athlete sync, prescribed workouts, and evidence-based autoregulation.
+Plan and log strength workouts, adjust volume from recovery and load, and review progress without juggling a notebook, spreadsheet, and recovery app.
 
 ## Description
 
-Tonus is a precision training load and recovery management tool for serious athletes and their coaches.
+Tuwa is a self-coaching system for serious strength and hybrid athletes who train hard without a full-time coach.
 
-Every morning, Tonus synthesizes your HRV, resting heart rate, sleep, and wellness data into a single readiness score with plain-language explanations — so you know exactly how to train today.
+It brings your workout plan, live logging, recovery signals, training load, and progress history into one adaptive loop, so you can decide what to do today and understand what is working over time.
 
-TRAINING LOAD TRACKING
-- Log workouts with exercises, sets, RPE, and reps in reserve
-- EWMA-based Acute:Chronic Workload Ratio (ACWR) monitoring
-- Session spike detection warns when a single workout exceeds safe load thresholds
-- Personal record tracking across max weight, reps, and volume
+FAST STRENGTH LOGGING
+- Start blank or from saved training templates
+- Log sets, weight, reps, RPE, and reps in reserve
+- Reuse recent targets so repeated sessions are faster
+- Track personal records across weight, reps, and volume
 
-RECOVERY SCORING
-- Integrates HRV, resting heart rate, sleep duration, body temperature, and VO2 Max from Apple Watch, Whoop, Oura, and Garmin via HealthKit
-- Daily readiness score with reasoning factors explaining why you scored the way you did
-- Morning wellness check-ins for subjective soreness, energy, and stress
+PLAN THE NEXT SESSION
+- Build reusable strength workouts and future training sessions
+- Import or create templates from the way you already train
+- Carry forward targets without locking yourself into rigid programming
+- Adjust session content when life, recovery, or readiness changes
 
-COACH + ATHLETE
-- Link with your coach via invite code, email, or NFC
-- Coaches see real-time recovery scores, ACWR trends, and session history for each athlete
-- Coaches log workouts on behalf of athletes
-- Prescribed workouts with named exercise groups, target sets, and weight/rep goals
-- Athletes load prescriptions directly into their workout session with target placeholders
+ADAPT FROM LIVE HEALTH DATA
+- Read recovery signals from Apple Health, including HRV, resting heart rate, and sleep
+- Combine readiness, recent workload, and subjective check-ins
+- Get plain-English guidance for whether to push, maintain, reduce volume, or recover
+- Keep raw HealthKit data on device; only composite training scores sync
 
-AUTOREGULATION
-- Evidence-based volume and intensity recommendations adjusted to your current recovery zone
-- Red/yellow/green zones with specific RPE caps and volume modifiers
+REVIEW YOUR PROGRESS
+- See training load, recent sessions, weekly summaries, and strength progress together
+- Understand how sleep, recovery, soreness, and workload relate to your training
+- Spot when you are building well, stalling, or accumulating too much fatigue
+- Use history to make the next week better, not just to collect charts
 
-DESIGNED FOR CLARITY
-- No clutter, no gamification. Every screen earns its place.
-- Both dark and light mode supported.
+Tuwa is designed for the athlete who wants the discipline of a strength notebook, the awareness of a recovery tracker, and the decision support of a good training review.
 
-Tonus reads HealthKit data to calculate recovery. Raw health data never leaves your device — only composite scores sync to the cloud.
+Tuwa is for fitness and performance guidance only. It is not medical advice.
 
-## What's New (v1.0)
-Initial release — training load tracking, recovery scoring, coach-athlete sync, prescribed workouts, and subscription tiers.
+## What's New (v1.5)
+Tuwa v1.5 refocuses the app around self-coached strength training: faster workout logging, cleaner planning, recovery-informed training adjustments, and a leaner dashboard for reviewing progress.
 
 ## Privacy URL
 https://haaanw.github.io/WorkloadManagementApp/privacy.html

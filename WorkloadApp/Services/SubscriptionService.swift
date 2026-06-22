@@ -71,14 +71,14 @@ final class SubscriptionService {
 
     // MARK: - Offerings
 
-    /// Returns the offering for the given subscription tier.
-    /// RevenueCat offering identifiers: "athlete_pro" and "coach".
+    /// Returns the self-coached Tuwa Pro offering (v1.5 is single-tier).
+    /// RevenueCat offering identifier: "athlete_pro". A legacy `coach` entitlement is still
+    /// recognized as Pro access in `refreshEntitlement`, but the coach OFFERING is no longer fetched.
     /// Falls back to the default current offering if the named one isn't found.
     func fetchOffering(for tier: SubscriptionTier) async throws -> Offering? {
         guard isConfigured else { return nil }
         let offerings = try await Purchases.shared.offerings()
-        let identifier = tier == .coach ? "coach" : "athlete_pro"
-        return offerings.offering(identifier: identifier) ?? offerings.current
+        return offerings.offering(identifier: "athlete_pro") ?? offerings.current
     }
 
     // MARK: - Purchase

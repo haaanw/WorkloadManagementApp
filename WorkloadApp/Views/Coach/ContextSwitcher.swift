@@ -31,7 +31,7 @@ struct ContextSwitcher: ViewModifier {
                                 Image(systemName: container.currentMode == .athlete
                                       ? "arrow.right.arrow.left"
                                       : "arrow.right.arrow.left")
-                                    .font(.system(size: 12))
+                                    .font(.Tokens.micro)
                                 Text(switchLabel)
                                     .font(.Tokens.micro)
                             }

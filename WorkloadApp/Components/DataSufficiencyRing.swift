@@ -7,14 +7,14 @@ struct DataSufficiencyRing: View {
     let message: String    // "Keep logging -- periodization insights unlock after 8 weeks"
 
     var body: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.sm) {
             ZStack {
                 Circle()
                     .stroke(ColorTokens.divider, lineWidth: 2)
                     .frame(width: 48, height: 48)
                 Circle()
                     .trim(from: 0, to: progress)
-                    .stroke(ColorTokens.text2, lineWidth: 2)
+                    .stroke(ColorTokens.accent, lineWidth: 2)
                     .frame(width: 48, height: 48)
                     .rotationEffect(.degrees(-90))
             }
@@ -26,6 +26,6 @@ struct DataSufficiencyRing: View {
                 .foregroundStyle(ColorTokens.text2)
                 .multilineTextAlignment(.center)
         }
-        .padding(16)
+        .padding(Spacing.sm)
     }
 }

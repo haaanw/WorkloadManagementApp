@@ -35,6 +35,15 @@ final class DashboardViewModel {
     // byte-unchanged.
     var dualRunMessage: PRSDualRunSurface.DualRunMessage?
 
+    // ACT-01 — stored inputs for the verdict-surface dual-run build. `load()` snapshots the three
+    // locals the build needs (it no longer builds the message itself); the View's explicit
+    // production opt-in `activateVerdictSurface()` then re-supplies them to `buildDualRunMessage`
+    // inside `VerdictSurfaceActivation.withEnabled(true)`. Default-empty/nil so a never-loaded VM
+    // (or a cold-start opt-in) honestly defers.
+    private var lastDualRunSessions: [WorkoutSession] = []
+    private var lastDualRunFatigue: FatigueIndexEngine.FatigueResult? = nil
+    private var lastDualRunDaysSinceRest: Int = 0
+
     // Fatigue Accumulation Index
     var fatigueIndex: Double?
     var fatigueZone: FatigueIndexEngine.FatigueZone?
@@ -71,18 +80,12 @@ final class DashboardViewModel {
         athlete: Athlete,
         healthKitService: HealthKitService,
         modelContext: ModelContext,
-        syncService: SyncService? = nil,
-        cycleTrackingService: CycleTrackingService? = nil
+        syncService: SyncService? = nil
     ) async {
         isLoading = true
 
         // Run recovery pipeline
         var fullRecoveryResult: RecoveryScoreEngine.RecoveryResult?
-        // Phase 20: cycle context surfaced from the pipeline, passed into the Plan 02 engine
-        // overloads below. With CycleModifierActivation.isEnabled == false the engines return
-        // their base values, so the dashboard is visually identical (wiring only).
-        var cycleContext: CycleContext = .none
-        var cyclesObserved = 0
         #if DEBUG
         let isScreenshotMode = ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE")
         #else
@@ -95,15 +98,12 @@ final class DashboardViewModel {
                     athlete: athlete,
                     healthKitService: healthKitService,
                     modelContext: modelContext,
-                    syncService: syncService,
-                    cycleTrackingService: cycleTrackingService
+                    syncService: syncService
                 )
                 recoveryScore = recoveryResult.score
                 recoveryZone = recoveryResult.zone
                 fullRecoveryResult = recoveryResult.snapshot
                 staleness = recoveryResult.staleness
-                cycleContext = recoveryResult.cycleContext
-                cyclesObserved = recoveryResult.cyclesObserved
             } catch {
                 print("Recovery pipeline error: \(error)")
             }
@@ -285,11 +285,10 @@ final class DashboardViewModel {
                 softTissueInjuryCount: NiggleInjuryDeriver.softTissueInjuryCount(logs: niggleLogs),
                 daysSinceLastInjury: NiggleInjuryDeriver.daysSinceLastInjury(logs: niggleLogs)
             )
-            // Phase 20: pass cycle context (activation off → identical to base, D-06/D-12).
             let fatigueResult = FatigueIndexEngine.compute(
                 input: fatigueInput,
-                cycleContext: cycleContext.phase == .unknown ? nil : cycleContext,
-                cyclesObserved: cyclesObserved
+                cycleContext: nil,
+                cyclesObserved: 0
             )
             fatigueIndex = fatigueResult.index
             fatigueZone = fatigueResult.zone
@@ -306,21 +305,20 @@ final class DashboardViewModel {
             daysSinceLastRest: daysSinceRest,
             fatigueIndex: fatigueIndex
         )
-        // Phase 20: pass cycle context (activation off → identical to base, D-06/D-12).
         recommendation = AutoregulationEngine.recommend(
             input: autoInput,
-            cycleContext: cycleContext.phase == .unknown ? nil : cycleContext,
-            cyclesObserved: cyclesObserved
+            cycleContext: nil,
+            cyclesObserved: 0
         )
 
-        // Phase 28 Wave 4 — FLAGGED dual-run build. Factored into a SYNCHRONOUS method so it can be
-        // unit-tested under `PRSActivation.withEnabled(true)` (the override is sync-scoped). With the
-        // flag OFF this is an immediate no-op: dualRunMessage stays nil, no builder/engine call runs.
-        buildDualRunMessage(
-            allSessions: allSessions,
-            fatigueResult: fatigueResultForReadiness,
-            daysSinceRest: daysSinceRest
-        )
+        // ACT-01 — DO NOT build the dual-run message here. `load()` only SNAPSHOTS the three inputs
+        // the build needs; a BARE `load()` therefore leaves `dualRunMessage` nil (keeping the
+        // `DashboardViewModelDualRunTests.test_flagOff_dualRunMessage_nilAfterLoad` fence green
+        // unchanged). The PRODUCTION dashboard path activates the verdict surface explicitly via
+        // `DashboardView.loadData()` → `activateVerdictSurface()` AFTER this `await load()` returns.
+        lastDualRunSessions = allSessions
+        lastDualRunFatigue = fatigueResultForReadiness
+        lastDualRunDaysSinceRest = daysSinceRest
 
         // Build reasoning factors (requires real data)
         if hasRealData, let result = fullRecoveryResult {
@@ -342,23 +340,25 @@ final class DashboardViewModel {
         isLoading = false
     }
 
-    /// Phase 28 Wave 4 — build the FLAGGED dual-run "method updated" message, gated entirely by
-    /// `PRSActivation.isEnabled`. With the flag OFF (default, production) the guard body is skipped
-    /// in full: NO `PRSReadinessInputBuilder` / `ReadinessFusionEngine` / `StrainRiskEngine` /
-    /// `recommendReadiness` call occurs, `dualRunMessage` stays nil, and no other published property
-    /// changes — the byte-identical guarantee. With the flag ON it recomputes a REAL `ReadinessInput`
-    /// (no live source exists to reuse — see `PRSReadinessInputBuilder`) and emits the legacy +
-    /// updated headlines via `PRSDualRunSurface`.
+    /// ACT-01 — build the dual-run "method updated" message, gated by the OR of the surface flag and
+    /// the app-wide swap flag (`VerdictSurfaceActivation.isEnabled || PRSActivation.isEnabled`). With
+    /// BOTH flags OFF (a bare call) the guard body is skipped in full: NO `PRSReadinessInputBuilder` /
+    /// `ReadinessFusionEngine` / `StrainRiskEngine` / `recommendReadiness` call occurs,
+    /// `dualRunMessage` stays nil, and no other published property changes — the byte-identical
+    /// guarantee. When EITHER flag is on it recomputes a REAL `ReadinessInput` (no live source exists
+    /// to reuse — see `PRSReadinessInputBuilder`) and emits the legacy + updated headlines via
+    /// `PRSDualRunSurface`. In production this runs via `activateVerdictSurface()` (surface flag on);
+    /// the existing flag-on unit tests still satisfy the OR via `PRSActivation.withEnabled(true)`.
     ///
-    /// Synchronous on purpose: `PRSActivation.withEnabled(_:)` restores the override via `defer` the
-    /// instant its closure returns, so the flag-gated build must run inside a SYNC scope to be
-    /// exercisable under the test override (it cannot straddle an `await`).
+    /// Synchronous on purpose: `withEnabled(_:)` restores the override via `defer` the instant its
+    /// closure returns, so the flag-gated build must run inside a SYNC scope to be exercisable under
+    /// the override (it cannot straddle an `await`).
     func buildDualRunMessage(
         allSessions: [WorkoutSession],
         fatigueResult: FatigueIndexEngine.FatigueResult?,
         daysSinceRest: Int
     ) {
-        if PRSActivation.isEnabled {
+        if VerdictSurfaceActivation.isEnabled || PRSActivation.isEnabled {
             // FLAG ON ONLY — recompute readiness/strain with the real engines over real history.
             if let legacy = recommendation,
                let readinessInput = PRSReadinessInputBuilder.build(
@@ -378,6 +378,32 @@ final class DashboardViewModel {
                 let updated = AutoregulationEngine.recommendReadiness(input: readinessInput)
                 dualRunMessage = PRSDualRunSurface.dualRunMessage(legacy: legacy, updated: updated)
             }
+        }
+    }
+
+    /// ACT-01 — the PRODUCTION opt-in that activates the verdict-feeding dashboard surface.
+    ///
+    /// Called by `DashboardView.loadData()` synchronously AFTER `await load(...)` returns. It runs the
+    /// gated dual-run build inside `VerdictSurfaceActivation.withEnabled(true)` over the inputs `load()`
+    /// snapshotted, making the live PRS readiness/strain pipeline run in production on this surface —
+    /// no longer tests-only. This does NOT flip `PRSActivation` / `PRSMasterActivation` (their defaults
+    /// stay false → the app-wide legacy-byte-identical fences are untouched), and it does NOT change
+    /// the legacy recovery score or legacy recommendation (both computed earlier and independently in
+    /// `load()`).
+    ///
+    /// Synchronous on purpose: `withEnabled` restores the override via `defer` the instant its closure
+    /// returns, so the gated build runs fully inside the sync override scope with no `await` straddle.
+    ///
+    /// Honest-confidence deferral is inherited: on cold-start / low confidence
+    /// `PRSReadinessInputBuilder.build(...)` returns nil, so `buildDualRunMessage` leaves
+    /// `dualRunMessage` nil — no fabricated verdict.
+    func activateVerdictSurface() {
+        VerdictSurfaceActivation.withEnabled(true) {
+            self.buildDualRunMessage(
+                allSessions: lastDualRunSessions,
+                fatigueResult: lastDualRunFatigue,
+                daysSinceRest: lastDualRunDaysSinceRest
+            )
         }
     }
 

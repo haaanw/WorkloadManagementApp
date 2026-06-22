@@ -76,14 +76,12 @@ final class RecoveryViewModel {
     func onWellnessCheckInSaved(
         athlete: Athlete,
         healthKitService: HealthKitService,
-        modelContext: ModelContext,
-        cycleTrackingService: CycleTrackingService? = nil
+        modelContext: ModelContext
     ) async {
         _ = try? await RecoveryPipeline.run(
             athlete: athlete,
             healthKitService: healthKitService,
-            modelContext: modelContext,
-            cycleTrackingService: cycleTrackingService
+            modelContext: modelContext
         )
         await load(
             athlete: athlete,

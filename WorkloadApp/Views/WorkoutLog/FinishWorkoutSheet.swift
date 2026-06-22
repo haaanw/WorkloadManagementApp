@@ -69,10 +69,12 @@ struct FinishWorkoutSheet: View {
                     .foregroundStyle(ColorTokens.text1)
                 }
             }
-            .animation(.easeOut(duration: 0.15), value: saveAsTemplate)
+            .animation(Motion.entrance, value: saveAsTemplate)
         }
         .interactiveDismissDisabled(true)
         .onAppear {
+            // Warm the haptic generators: the imminent Finish triggers the save-commit feedback.
+            Haptics.prepare()
             if templateName.isEmpty {
                 templateName = sessionName.isEmpty ? sportType.displayName : sessionName
             }

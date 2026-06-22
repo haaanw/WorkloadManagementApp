@@ -15,7 +15,7 @@ struct PRSDualRunCard: View {
 
     var body: some View {
         if let message {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(message.title)
                     .font(Font.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
@@ -29,7 +29,7 @@ struct PRSDualRunCard: View {
                 // The superseded "Previous" guidance is de-emphasized (text2) and the new
                 // "Updated" guidance is primary (text1) — hierarchy via semantic tokens only,
                 // no accent/extra weight (DESIGN.md).
-                HStack(alignment: .top, spacing: 16) {
+                HStack(alignment: .top, spacing: Spacing.sm) {
                     column(
                         title: String(localized: "prs.dualRun.previous", defaultValue: "Previous"),
                         value: message.previousHeadline,
@@ -45,23 +45,18 @@ struct PRSDualRunCard: View {
                     )
                 }
             }
-            .padding(16)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .background(ColorTokens.surface)
-            .overlay(
-                Rectangle()
-                    .stroke(ColorTokens.divider, lineWidth: 1)
-            )
-            // Breathing room below the hero block (only when the card renders; flag-off path is
-            // EmptyView, so the Dashboard stays byte-identical).
-            .padding(.top, 8)
+            .cardStyle()
+            .padding(.horizontal, Spacing.sm)
+            // v2: 32pt section break below the hero block (only when the card renders; flag-off
+            // path is EmptyView, so the Dashboard stays byte-identical).
+            .padding(.top, Spacing.lg)
         } else {
             EmptyView()
         }
     }
 
     private func column(title: String, value: String, muted: Bool) -> some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(title)
                 .font(Font.Tokens.smallLabel)
                 .foregroundStyle(ColorTokens.text2)

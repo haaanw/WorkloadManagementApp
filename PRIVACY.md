@@ -1,13 +1,13 @@
 # Privacy Policy — Tuwa
 
-**Last updated:** March 27, 2026
+**Last updated:** June 5, 2026
 
 Tuwa ("the app") is developed by Hanwen Ma. This policy explains what data the app collects, how it is used, and your rights.
 
 ## What Data We Collect
 
 ### Data you provide
-- **Account information:** Email address and display name (used for authentication and coach-athlete pairing)
+- **Account information:** Email address and display name (used for authentication and account sync)
 - **Workout logs:** Exercises, sets, reps, weights, RPE, session duration, and notes you enter
 - **Wellness check-ins:** Self-reported sleep quality, soreness, energy, and stress ratings
 
@@ -22,23 +22,17 @@ Tuwa ("the app") is developed by Hanwen Ma. This policy explains what data the a
 Tuwa **never writes** data to HealthKit. HealthKit access is optional and requires your explicit permission.
 
 ### Data we compute
-- Recovery scores, ACWR (Acute:Chronic Workload Ratio), training stress, and personal records are calculated on your device from the data above.
+- Recovery scores, training load metrics, training stress, readiness guidance, and personal records are calculated on your device from the data above.
 
 ## How Data Is Stored
 
 - **On your device:** All data is stored locally using SwiftData. The app works fully offline.
-- **In the cloud:** Composite scores (recovery score, workload snapshots, wellness ratings, workout session headers, and personal records) sync to Supabase (hosted on AWS) for coach-athlete features and multi-device access.
+- **In the cloud:** Composite scores (recovery score, workload snapshots, wellness ratings, workout session headers, and personal records) sync to Supabase (hosted on AWS) for account backup and multi-device access.
 - **Raw HealthKit data is never uploaded.** Only computed scores derived from HealthKit data are synced.
 
-## Coach-Athlete Data Sharing
+## Data Sharing
 
-If you link with a coach, they can view:
-- Your recovery scores and ACWR trends
-- Workout session summaries
-- Personal records
-- Wellness check-in ratings
-
-Coaches cannot access your raw HealthKit data, and you can unlink from a coach at any time.
+Tuwa does not share your training or recovery data with coaches, other users, advertisers, or data brokers. If future sharing features are added, they will require your explicit consent.
 
 ## Third-Party Services
 
@@ -54,7 +48,7 @@ Your data is retained as long as your account exists. To delete all your data:
 1. Go to **Profile → Sign Out** in the app
 2. Contact us at the email below to request full account and data deletion from our servers
 
-Upon deletion, all your data — including workout logs, scores, and coach relationships — is permanently removed from our servers.
+Upon deletion, all your data — including workout logs, recovery scores, training load snapshots, and personal records — is permanently removed from our servers.
 
 ## Your Rights
 

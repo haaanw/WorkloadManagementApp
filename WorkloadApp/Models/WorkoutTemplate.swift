@@ -168,6 +168,20 @@ final class TemplateSet {
 
     var exercise: TemplateExercise?
 
+    // MARK: - Verdict Targets (PLAN-11, additive-nullable, local-only)
+    //
+    // Additive-nullable slots: every field defaults to nil/false so existing SwiftData rows
+    // decode without any migration (automatic lightweight migration). These are populated ONLY
+    // by a future verdict pass (Phase 43) writing onto a PRESCRIPTION'S FROZEN COPY — never the
+    // source authored template. They are EXCLUDED from the synced payload: the hand-rolled
+    // `SetDTO` in SyncService is NOT extended, so these never serialize into `groupsJson`.
+    // Phase 42 builds the slots only; no engine and no UI reads or writes them this phase.
+    var adjustedTargetWeightKg: Double? = nil   // verdict's suggested adjusted weight; nil = unadjusted
+    var adjustedTargetRPE: Double? = nil         // verdict's RPE cap for this set's exercise; nil = unadjusted
+    var verdictReason: String? = nil             // one-line plain-language why
+    var verdictAppliedAt: Date? = nil            // when the verdict was computed
+    var athleteOverrode: Bool = false            // true once the athlete confirms/edits — the accept/decline marker
+
     init(
         id: UUID = UUID(),
         setIndex: Int = 0,

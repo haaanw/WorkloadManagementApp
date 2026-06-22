@@ -34,6 +34,10 @@ struct LoginView: View {
         }
     }
 
+    private var signInEnabled: Bool {
+        !email.isEmpty && !password.isEmpty
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -59,9 +63,8 @@ struct LoginView: View {
                     // Email field
                     VStack(alignment: .leading, spacing: 0) {
                         Text("auth.field.email")
-                            .font(.Tokens.micro)
-                            .tracking(1.2)
-                            .foregroundStyle(ColorTokens.text3)
+                            .font(.Tokens.sectionHead)
+                            .foregroundStyle(ColorTokens.text1)
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
                             .padding(.bottom, 8)
@@ -76,7 +79,7 @@ struct LoginView: View {
                             .padding(.horizontal, 16)
                             .padding(.bottom, 16)
                     }
-                    .background(ColorTokens.surface)
+                    .background(ColorTokens.surfaceEl)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
@@ -85,9 +88,8 @@ struct LoginView: View {
                     // Password field
                     VStack(alignment: .leading, spacing: 0) {
                         Text("auth.field.password")
-                            .font(.Tokens.micro)
-                            .tracking(1.2)
-                            .foregroundStyle(ColorTokens.text3)
+                            .font(.Tokens.sectionHead)
+                            .foregroundStyle(ColorTokens.text1)
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
                             .padding(.bottom, 8)
@@ -99,7 +101,7 @@ struct LoginView: View {
                             .padding(.horizontal, 16)
                             .padding(.bottom, 16)
                     }
-                    .background(ColorTokens.surface)
+                    .background(ColorTokens.surfaceEl)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
@@ -111,7 +113,7 @@ struct LoginView: View {
                             .foregroundStyle(ColorTokens.zoneDanger)
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
+                            .padding(.vertical, 16)
 
                         Rectangle()
                             .fill(ColorTokens.divider)
@@ -127,15 +129,22 @@ struct LoginView: View {
                                 ProgressView()
                             } else {
                                 Text("auth.action.signIn")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(email.isEmpty || password.isEmpty ? ColorTokens.text3 : ColorTokens.text1)
+                                    .font(.Tokens.bodyMedium)
+                                    .foregroundStyle(signInEnabled ? ColorTokens.background : ColorTokens.text3)
                             }
                         }
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(ColorTokens.surface)
+                        .background(signInEnabled ? ColorTokens.text1 : ColorTokens.surface)
+                        .overlay(
+                            Rectangle().stroke(
+                                signInEnabled ? ColorTokens.accent : ColorTokens.divider,
+                                lineWidth: signInEnabled ? 1 : 0.5
+                            )
+                        )
                     }
-                    .disabled(email.isEmpty || password.isEmpty || isLoading || isSocialLoading)
+                    .buttonStyle(.pressable)
+                    .disabled(!signInEnabled || isLoading || isSocialLoading)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
@@ -167,6 +176,7 @@ struct LoginView: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                     }
+                    .buttonStyle(.pressable)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
@@ -215,6 +225,7 @@ struct LoginView: View {
 
             // 4. Mark as authenticated (after sync — no race condition)
             isLoading = false
+            Haptics.success()
             container.setAuthenticated(true)
         } catch {
             lastAuthError = error
@@ -254,6 +265,7 @@ struct LoginView: View {
             }
             await container.syncService.pullAll(context: modelContext)
             isSocialLoading = false
+            Haptics.success()
             container.setAuthenticated(true)
         } catch {
             lastAuthError = error
@@ -290,6 +302,7 @@ struct LoginView: View {
             }
             await container.syncService.pullAll(context: modelContext)
             isSocialLoading = false
+            Haptics.success()
             container.setAuthenticated(true)
         } catch {
             lastAuthError = error

@@ -9,15 +9,18 @@ struct TimeRangeSegmentedControl: View {
         HStack(spacing: 0) {
             ForEach(TimeRange.allCases) { range in
                 Button(range.rawValue) {
-                    withAnimation(.easeOut(duration: 0.25)) {
+                    guard selected != range else { return }
+                    Haptics.select()
+                    withAnimation(Motion.state) {
                         selected = range
                     }
                 }
                 .font(selected == range ? .Tokens.bodyMedium : .Tokens.body)
-                .foregroundStyle(selected == range ? ColorTokens.text1 : ColorTokens.text2)
+                .foregroundStyle(selected == range ? ColorTokens.accent : ColorTokens.text2)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
-                .background(selected == range ? ColorTokens.surface : ColorTokens.background)
+                .background(selected == range ? ColorTokens.accentSubtle : ColorTokens.surface)
+                .buttonStyle(.pressable)
             }
         }
         .overlay(

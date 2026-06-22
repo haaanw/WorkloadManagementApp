@@ -152,6 +152,7 @@ struct WorkoutImportSheet: View {
         HStack(spacing: 0) {
             ForEach(ImportTab.allCases) { tab in
                 Button {
+                    Haptics.select()
                     selectedTab = tab
                 } label: {
                     HStack(spacing: 8) {
@@ -160,16 +161,17 @@ struct WorkoutImportSheet: View {
                         Text(tab.displayName)
                             .font(.Tokens.label)
                     }
-                    .foregroundStyle(selectedTab == tab ? ColorTokens.text1 : ColorTokens.text2)
+                    // Active segment carries the accent (live / you-are-here); idle stays neutral.
+                    .foregroundStyle(selectedTab == tab ? ColorTokens.accent : ColorTokens.text2)
                     .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(selectedTab == tab ? ColorTokens.surface : ColorTokens.background)
+                    .padding(.vertical, Spacing.sm)
+                    .background(selectedTab == tab ? ColorTokens.accentSubtle : ColorTokens.background)
                     .overlay(
                         Rectangle()
-                            .stroke(ColorTokens.divider, lineWidth: 0.5)
+                            .stroke(selectedTab == tab ? ColorTokens.accent : ColorTokens.divider, lineWidth: 0.5)
                     )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
         .padding(.horizontal, 16)
@@ -196,8 +198,10 @@ struct WorkoutImportSheet: View {
                 )
 
             Button {
+                Haptics.tap()
                 handleTextParse()
             } label: {
+                // Primary CTA → accent outline (live / actionable), not a filled accent button.
                 Text("action.parseWorkout")
                     .font(.Tokens.body)
                     .foregroundStyle(
@@ -207,9 +211,10 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                        Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5)
                     )
             }
+            .buttonStyle(.pressable)
             .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isLoading)
         }
     }
@@ -223,8 +228,10 @@ struct WorkoutImportSheet: View {
                 .foregroundStyle(ColorTokens.text2)
 
             Button {
+                Haptics.tap()
                 showDocumentPicker = true
             } label: {
+                // Primary CTA → accent outline (live / actionable), not a filled accent button.
                 HStack(spacing: 8) {
                     Image(systemName: "doc.richtext")
                         .font(.Tokens.body)
@@ -235,9 +242,10 @@ struct WorkoutImportSheet: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .overlay(
-                    Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                    Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5)
                 )
             }
+            .buttonStyle(.pressable)
             .disabled(isLoading)
         }
     }
@@ -252,8 +260,10 @@ struct WorkoutImportSheet: View {
 
             HStack(spacing: 16) {
                 Button {
+                    Haptics.tap()
                     showCamera = true
                 } label: {
+                    // Primary CTA → accent outline (live / actionable), not a filled accent button.
                     HStack(spacing: 8) {
                         Image(systemName: "camera")
                             .font(.Tokens.body)
@@ -264,15 +274,17 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                        Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5)
                     )
                 }
+                .buttonStyle(.pressable)
                 .disabled(isLoading)
 
                 PhotosPicker(
                     selection: $selectedPhotoItem,
                     matching: .images
                 ) {
+                    // Primary CTA → accent outline (live / actionable), not a filled accent button.
                     HStack(spacing: 8) {
                         Image(systemName: "photo.on.rectangle")
                             .font(.Tokens.body)
@@ -283,7 +295,7 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                        Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5)
                     )
                 }
                 .disabled(isLoading)
@@ -316,6 +328,7 @@ struct WorkoutImportSheet: View {
                 .multilineTextAlignment(.center)
 
             Button {
+                Haptics.tap()
                 errorMessage = nil
                 retryLastAction()
             } label: {
@@ -328,8 +341,13 @@ struct WorkoutImportSheet: View {
                         Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                     )
             }
+            .buttonStyle(.pressable)
         }
+        .frame(maxWidth: .infinity)
         .padding(16)
+        // Banner = surfaceEl plane + thin zone-colored border + text label (never a flooded fill).
+        .background(ColorTokens.surfaceEl)
+        .overlay(Rectangle().stroke(ColorTokens.zoneDanger, lineWidth: 0.5))
     }
 
     // MARK: - Handlers
@@ -346,6 +364,7 @@ struct WorkoutImportSheet: View {
             } catch {
                 errorMessage = error.localizedDescription
                 isLoading = false
+                Haptics.warning()
             }
         }
     }
@@ -365,6 +384,7 @@ struct WorkoutImportSheet: View {
             } catch {
                 errorMessage = error.localizedDescription
                 isLoading = false
+                Haptics.warning()
             }
         }
     }
@@ -382,6 +402,7 @@ struct WorkoutImportSheet: View {
             } catch {
                 errorMessage = error.localizedDescription
                 isLoading = false
+                Haptics.warning()
             }
         }
     }
@@ -393,6 +414,7 @@ struct WorkoutImportSheet: View {
         parsedSessionType = mapped.sessionType
         parsedGroups = mapped.groups
         isLoading = false
+        Haptics.success()
         showEditor = true
     }
 

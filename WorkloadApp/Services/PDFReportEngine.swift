@@ -1,9 +1,11 @@
 import Foundation
+import SwiftUI
 import UIKit
 
 /// Pure PDF generation engine. No state, no side effects.
 /// Generates athlete training reports and coach roster summaries using UIGraphicsPDFRenderer.
-/// Uses hardcoded light-mode colors for print/share readability -- never references ColorTokens.
+/// Colors are pinned to the LIGHT trait for print/share readability, but resolve through
+/// ColorTokens so the recooled palette tracks automatically (no hardcoded literals).
 /// Excludes raw HealthKit data (HRV, RHR, sleep duration) per Apple guidelines -- only composite scores.
 struct PDFReportEngine {
 
@@ -30,16 +32,6 @@ struct PDFReportEngine {
         }
     }
 
-    /// Input data for a single athlete row in the coach roster report.
-    struct RosterAthleteData {
-        let name: String
-        let recoveryScore: Double?
-        let acwrZone: ACWRZone
-        let sessionsCount: Int
-        let streakCount: Int
-        let isOverreaching: Bool
-    }
-
     // MARK: - Page Constants
 
     private static let pageWidth: CGFloat = 612
@@ -50,18 +42,24 @@ struct PDFReportEngine {
     private static let headerHeight: CGFloat = 48
     private static let footerHeight: CGFloat = 24
 
-    // MARK: - PDF Colors (hardcoded light-mode, never ColorTokens)
+    // MARK: - PDF Colors (resolved from ColorTokens, pinned to the LIGHT trait)
 
-    private static let textPrimary = UIColor(red: 0.11, green: 0.10, blue: 0.08, alpha: 1)
-    private static let textSecondary = UIColor(red: 0.41, green: 0.40, blue: 0.37, alpha: 1)
-    private static let dividerColor = UIColor(red: 0.81, green: 0.80, blue: 0.77, alpha: 1)
-    private static let accentMetric = UIColor(red: 0.48, green: 0.43, blue: 0.36, alpha: 1)
-    private static let chartATL = UIColor(red: 0.42, green: 0.35, blue: 0.16, alpha: 1)
-    private static let chartCTL = UIColor(red: 0.23, green: 0.29, blue: 0.36, alpha: 1)
-    private static let zoneOptimal = UIColor(red: 0.24, green: 0.36, blue: 0.29, alpha: 1)
-    private static let zoneCaution = UIColor(red: 0.42, green: 0.35, blue: 0.16, alpha: 1)
-    private static let zoneDanger = UIColor(red: 0.43, green: 0.23, blue: 0.23, alpha: 1)
-    private static let zoneLow = UIColor(red: 0.23, green: 0.29, blue: 0.36, alpha: 1)
+    /// Resolve a ColorTokens `Color` to a concrete light-trait `UIColor`. PDFs are always
+    /// rendered light for print/share, but now track the (recooled) design palette automatically.
+    private static func light(_ token: Color) -> UIColor {
+        UIColor(token).resolvedColor(with: UITraitCollection(userInterfaceStyle: .light))
+    }
+
+    private static let textPrimary = light(ColorTokens.text1)
+    private static let textSecondary = light(ColorTokens.text2)
+    private static let dividerColor = light(ColorTokens.divider)
+    private static let accentMetric = light(ColorTokens.accent)
+    private static let chartATL = light(ColorTokens.chartATL)
+    private static let chartCTL = light(ColorTokens.chartCTL)
+    private static let zoneOptimal = light(ColorTokens.zoneOptimal)
+    private static let zoneCaution = light(ColorTokens.zoneCaution)
+    private static let zoneDanger = light(ColorTokens.zoneDanger)
+    private static let zoneLow = light(ColorTokens.zoneLow)
 
     // MARK: - Font Helpers
 
@@ -318,87 +316,6 @@ struct PDFReportEngine {
             }
 
             // -- Footer on final page
-            drawFooter(context: cgContext, pageNumber: pageNumber)
-        }
-    }
-
-    // MARK: - Coach Roster Report (EXPRT-02)
-
-    /// Generates a PDF roster summary for a coach showing all linked athletes.
-    ///
-    /// Includes a table with each athlete's recovery score, ACWR zone, session count,
-    /// streak, and overreaching flag.
-    ///
-    /// - Parameters:
-    ///   - coachName: The coach's display name
-    ///   - athletes: Array of roster data for each athlete
-    ///   - dateRange: The reporting time window
-    /// - Returns: PDF file data
-    static func generateCoachRosterReport(
-        coachName: String,
-        athletes: [RosterAthleteData],
-        dateRange: ReportDateRange
-    ) -> Data {
-        let pageRect = CGRect(x: 0, y: 0, width: pageWidth, height: pageHeight)
-        let renderer = UIGraphicsPDFRenderer(bounds: pageRect)
-
-        let endDate = Date.now
-        let startDate = Calendar.current.date(byAdding: .day, value: -dateRange.days, to: endDate) ?? endDate
-        let subtitleText = "\(coachName) | \(dateFormatter.string(from: startDate)) - \(dateFormatter.string(from: endDate))"
-        let headerTitle = "Roster Summary"
-
-        let rosterColumns: [(text: String, width: CGFloat)] = [
-            ("ATHLETE", 140),
-            ("RECOVERY", 80),
-            ("ZONE", 70),
-            ("SESSIONS", 80),
-            ("STREAK", 70),
-            ("FLAG", 76)
-        ]
-
-        return renderer.pdfData { pdfContext in
-            var pageNumber = 1
-            var cursorY: CGFloat = marginV + headerHeight + 16
-
-            pdfContext.beginPage()
-            let cgContext = pdfContext.cgContext
-            drawHeader(context: cgContext, title: headerTitle, subtitle: subtitleText)
-
-            // Table header
-            drawTableRow(context: cgContext, columns: rosterColumns, y: cursorY, font: fontMedium(11), color: textSecondary)
-            cursorY += 24
-
-            if athletes.isEmpty {
-                drawText("No athletes linked to this account.", in: CGRect(x: marginH, y: cursorY, width: contentWidth, height: 20), font: fontRegular(13), color: textSecondary)
-                cursorY += 24
-            } else {
-                for athlete in athletes {
-                    ensureSpace(24, context: pdfContext, cursorY: &cursorY, pageNumber: &pageNumber, headerTitle: headerTitle, headerSubtitle: subtitleText)
-
-                    if cursorY <= marginV + headerHeight + 24 {
-                        drawTableRow(context: cgContext, columns: rosterColumns, y: cursorY, font: fontMedium(11), color: textSecondary)
-                        cursorY += 24
-                    }
-
-                    let recoveryText = athlete.recoveryScore.map { String(format: "%.0f", $0) } ?? "--"
-                    let zoneText = athlete.acwrZone.displayName
-
-                    let rowData: [(text: String, width: CGFloat)] = [
-                        (athlete.name, 140),
-                        (recoveryText, 80),
-                        (zoneText, 70),
-                        ("\(athlete.sessionsCount)", 80),
-                        ("\(athlete.streakCount)", 70),
-                        (athlete.isOverreaching ? "!" : "", 76)
-                    ]
-
-                    let rowColor = athlete.isOverreaching ? zoneDanger : textPrimary
-                    drawTableRow(context: cgContext, columns: rowData, y: cursorY, font: fontRegular(13), color: rowColor)
-
-                    cursorY += 24
-                }
-            }
-
             drawFooter(context: cgContext, pageNumber: pageNumber)
         }
     }

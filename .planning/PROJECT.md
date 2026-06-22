@@ -2,17 +2,17 @@
 
 > Product name is **Tuwa** (Tonus/Faros are dead names; repo dir stays `Tonus/`, bundle ID `com.tonus.app`).
 
-## Core Target Users (narrowed 2026-05-30)
+## Core Target Users (narrowed 2026-05-30, sharpened 2026-06-12)
 
-**Amateur serious trainers and part-time athletes who train hard but have no access to professional coaching, physiotherapy, or sports-science support.** They want pro-grade readiness, load, and injury-risk guidance that a coach/physio would otherwise provide. That absence of professional support is the defining need. Previously the audience was a more generic "athletes" group — deliberately narrowed. Every algorithm, UX, and copy decision optimizes for this group, and the core algorithm must be measurably better than generic competitor apps (Whoop/Oura/Garmin/TrainingPeaks/etc.) for them specifically.
+**Amateur serious self-coached hybrid athletes** — people who train sport skill + strength + conditioning in parallel, hard, by themselves, with no access to professional coaching, physiotherapy, or sports-science support today. They author their own training plans (or will bring a coach's plan later); what they lack is the pro team's back room — the sports-science staff that turns a plan plus a body's signals into daily decisions. That absence is the defining need. The founder is the reference user: self-training hybrid athlete who will collaborate with skill and S&C coaches in the future, with the app remaining the decision/data layer either way. Every algorithm, UX, and copy decision optimizes for this group, and the core engine must be measurably better than generic competitor apps (Whoop/Bevel/Oura/Garmin/TrainingPeaks/etc.) for them specifically.
 
 ## What This Is
 
-Athlete workload management iOS app that combines recovery scoring (HRV, sleep, RHR) with training load tracking (ACWR, EWMA) to give athletes a daily readiness picture and long-term overtraining prevention. Includes training intelligence (periodization detection, fatigue patterns, behavior correlation) and guided onboarding. Supports both individual athletes and coach-athlete relationships with two-tier subscriptions.
+**The sports-science staff layer for self-coached athletes.** An iOS app where the athlete (or their coach) authors the training program; Tuwa ingests it whole — blocks, weeks, periodization position — fuses it with physiology (HRV, sleep, RHR, training history), and supports decisions at three horizons: today (concrete number adjustments + go/modify/hold verdicts), mid-term (fatigue trajectory vs remaining block, overreach forecast), long-term (how this body responds to training). Built on recovery scoring + unified hybrid load tracking (one fatigue budget across sport, strength, conditioning). It never writes the program. It never makes you chat with it.
 
-## Core Value
+## Core Value (redefined 2026-06-12)
 
-The combination of recovery and load tracked over time — giving athletes long-term insight into how their body responds to training, so they can train smarter and avoid injury.
+Readiness-driven modulation of a user-authored hybrid plan with periodization-position awareness — the open market gap (validated 2026-06-12: every competitor that modulates owns the program; every competitor that accepts your plan refuses to modulate it). Anti-positioning: Whoop/Bevel = scores without your plan; AI-coach apps = their plan, not yours; TrainingPeaks = your plan, no decisions; **Tuwa = your plan, made safe and optimal.** See `.planning/notes/core-redefinition-plan-aware-engine.md`.
 
 ## Requirements
 
@@ -72,30 +72,30 @@ The combination of recovery and load tracked over time — giving athletes long-
 - [ ] RED-S cycle irregularity monitoring with clinician-referral language
 - [ ] Shadow-mode cycle analytics validating prediction improvement before algorithmic modifiers
 
-## Current Milestone: v1.3 LLM Import, Sharing & Polish
+## Current Milestone: v2.0 Plan-Aware Decision Engine — TODAY Verdict Wedge
 
-**Goal:** Enable AI-powered workout import from any format, let users share templates, rebrand typography to Alpino, and harden remaining tech debt from code review.
+**Goal:** Ship the validated MVP wedge — the plan-aware TODAY verdict. For a planned strength session, fuse readiness + cross-modal fatigue + periodization position into a go/modify/hold verdict + adjusted top-set number + one-line why, as suggest-and-confirm (never overwrite). This is the core-identity pivot from monitoring app to plan-aware decision engine — and the first paid-validation milestone (instrument WTP + the green-light signal before building further horizons).
+
+**Strategic basis:** Redefinition (2026-06-12) validated MODIFY-SCOPE against 51 real self-coached hybrid athletes + 5 adversarial kills (`.planning/research/plan-aware-thesis-pressure-test.md`). TODAY horizon = the wedge; MID/LONG deferred until WTP clears. ~70% of the verdict engine already exists flag-gated OFF from the dormant v1.6 algo work (`.planning/research/v2-verdict-engine.md`); v2.0 activates it, adds the one genuine gap (directional cross-modal carry), wraps it in nocebo-safe suggest-and-confirm UX, and instruments validation.
 
 **Target features:**
-- LLM-powered workout import (PDF/image/text → templates)
-- Template sharing between users/coaches via link/code
-- Alpino font replacement (DM Sans → Alpino from FontShare)
-- SyncService pull-side `try?` hardening (silent failure fix)
-- Rounded border fix (`.roundedBorder` → 0pt corners per design system)
+- Activate the dormant PRS readiness pipeline (ReadinessFusionEngine + StrainRiskEngine + BaselineEngine + AutoregulationEngine matrix) on a live verdict surface
+- Directional cross-modal fatigue carry (yesterday's run penalizes today's squat, spares bench) — the differentiator vs Garmin/Whoop, shadow-validated before it drives the verdict
+- Plan input via existing templates + manual today-entry (full multi-week program parse deferred)
+- TODAY verdict: go/modify/hold + adjusted top-set number (−5% default, −10% ceiling, volume-cut preferred, plate-rounded) + one-line reason
+- Suggest-and-confirm UX: accept/decline/keep-as-written, feel-override-as-input, number+reason never a red gate (autonomy + nocebo guards)
+- Measurement framework BEFORE launch: VerdictEvent log, differing-verdict green-light rate, Day7/Day30 retention, Sean Ellis + WTP capture (composite-only, no raw HealthKit)
 
-### Out of Scope
+### Out of Scope (v2.0)
 
-- Real-time chat between coach and athlete — high complexity, not core to training insight
-- Video analysis — different product category
-- Android — iOS-first, revisit after establishing market fit
-- Apple Watch companion app — defer until core iOS experience is polished
-- Manual mesocycle/ATP planner — TrainingPeaks owns this space; Tonus's value is automated detection
-- AI chatbot / conversational coach — LLM cost + liability; keep autoregulation rule-based
-- LLM-powered file/image workout import — promoted to v1.3
-- Template sharing between users/coaches — promoted to v1.3
-- Perceptual bias continuous calibration — deferred, needs research on longitudinal sRPE adjustment
-- Injury-aware loading management — deferred, needs deep longitudinal data + dedicated research
-- Cycle-driven algorithmic modifiers (AutoregulationEngine, FatigueIndex, ProgressionEngine volume overrides) — deferred to v1.4 Wave 2 pending shadow-mode validation; ship context/baselines first
+- MID-horizon overreach forecast (FCST) — latent demand; deferred until WTP clears
+- LONG-horizon response profiling — near-zero validated demand; HOLD
+- Full multi-week program ingestion / LLM parse of whole periodized plans (PLAN-01 full) — deferred; templates + manual entry suffice for the wedge
+- Coach re-entry as plan author — seed `.planning/seeds/coach-as-plan-author.md`, triggers later
+- Conditioning/endurance-PRIMARY verdict — strength session is the v2.0 focus; conditioning enters only as cross-modal fatigue input
+- AI chat coach — permanently rejected (LLM = engine for parsing + structured outputs, not chat)
+- Android, Apple Watch app — iOS-first
+- Real-time coach↔athlete chat, video analysis — different product categories
 
 ## Context
 
@@ -143,6 +143,11 @@ The combination of recovery and load tracked over time — giving athletes long-
 | Same-phase baseline is measurement correction, not modifier | Claude-Codex consensus after Round 2: 7-day rolling baseline is male-normative bias for cycling women; same-phase comparison removes predictable variance | Pending |
 | Zero-friction cycle data via HealthKit | Read existing data from Clue/Flo/Apple Cycle Tracking — never ask user to re-enter; reduces adoption friction | Pending |
 | RED-S alerts use clinician-referral language only | Missed periods have many causes (pregnancy, OC, PCOS, perimenopause); never imply diagnosis | Pending |
+| Core redefinition: plan-aware decision support (2026-06-12) | Drift toward generic monitoring = Whoop/Bevel turf; validated open gap = readiness-driven modulation of user-authored hybrid plan with periodization awareness; app never authors programs, never chats | Pending — PLAN/MOD/LOAD/FCST requirements defined, unscheduled |
+| LLM as engine, not chat UI | User explicitly rejected conversational coach; LLM powers plan parsing + reasoned structured outputs only — deterministic, liability-bounded | Pending |
+| Redefinition validated MODIFY-SCOPE (2026-06-13) | 51 real online self-coached hybrid athletes + 5 adversarial kills (all "weakened"): PROBLEM strongly validated (≥5 built own readiness→plan adjusters); TODAY horizon = wedge, MID latent, LONG hold; WTP is the real open risk | See .planning/research/plan-aware-thesis-pressure-test.md |
+| Modulation must be suggest-and-confirm, never overwrite | Every adversary converged on the autonomy/identity objection; self-coached athletes prize "I autoregulate myself" — verdict must be feel-overridable number+reason, not a red gate (nocebo). Tightens MOD-03 | Hard product constraint |
+| MVP wedge = TODAY verdict on one strength session w/ cross-modal fatigue | Best demand signal + lowest build cost; cross-modal anchor (yesterday's run → today's squat) is what differentiates from Garmin/Whoop. Validate WTP before mid/long | Pending — next milestone candidate |
 
 ## Evolution
 
@@ -162,4 +167,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-05-10 — Milestone v1.3 LLM Import, Sharing & Polish started*
+*Last updated: 2026-06-13 — Milestone v2.0 Plan-Aware Decision Engine (TODAY Verdict Wedge) started; redefinition validated MODIFY-SCOPE*

@@ -34,6 +34,15 @@ struct WeightFormatter {
         }
     }
 
+    /// Snap a numeric value to the nearest multiple of `step` (pure, locale-free).
+    /// Used by the weight block picker so display values land on clean increments
+    /// (e.g. 2.5 kg / 5 lb). Operates in whatever unit the caller passes; storage
+    /// conversion to kg happens separately via `toKg`.
+    static func snapToIncrement(_ value: Double, to step: Double) -> Double {
+        guard step > 0 else { return value }
+        return (value / step).rounded() * step
+    }
+
     /// Display value without unit label (no locale needed; numeric only).
     static func displayValue(_ kg: Double, unit: WeightUnit) -> Double {
         switch unit {

@@ -86,9 +86,9 @@ struct RadialRingGeometry {
 /// bypassed for an accessible `Menu`; Reduce Motion also zeroes the animation.
 ///
 /// Design (D-10/D-11/D-12): every rectangular sub-element uses `Rectangle()` with
-/// a hairline `divider` border — only the functional ring is circular. Selected /
-/// highlighted state = `text1` + hairline `text1` border; unselected = `text2`.
-/// The accent color is never used here (reserved for the hero readiness score).
+/// a hairline border — only the functional ring is circular. Selected / highlighted
+/// state = the accent (accentSubtle fill + accent label + accent hairline), the Tuwa v2
+/// live-state semantic; unselected = `text2` + `divider` hairline.
 struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Element == Option {
     @Binding var selection: Option
     let title: LocalizedStringKey
@@ -152,10 +152,10 @@ struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Elemen
             Spacer(minLength: 8)
             Image(systemName: selection.radialIcon)
                 .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text1)
+                .foregroundStyle(ColorTokens.accent)
             Text(selection.displayName)
                 .font(.Tokens.bodyMedium)
-                .foregroundStyle(ColorTokens.text1)
+                .foregroundStyle(ColorTokens.accent)
         }
         .padding(.horizontal, chipPadding)
         .padding(.vertical, chipPadding)
@@ -221,7 +221,7 @@ struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Elemen
     }
 
     private func optionChip(_ option: Option, isHighlighted: Bool) -> some View {
-        VStack(spacing: 4) {
+        VStack(spacing: Spacing.baselinePair) {
             Image(systemName: option.radialIcon)
                 .font(.Tokens.sectionHead)
                 .frame(width: chipIconSize, height: chipIconSize)
@@ -229,17 +229,17 @@ struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Elemen
                 .font(isHighlighted ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
                 .lineLimit(1)
         }
-        .foregroundStyle(isHighlighted ? ColorTokens.text1 : ColorTokens.text2)
+        .foregroundStyle(isHighlighted ? ColorTokens.accent : ColorTokens.text2)
         .padding(.horizontal, chipPadding)
         .padding(.vertical, 8)
-        .background(ColorTokens.surface)
+        .background(isHighlighted ? ColorTokens.accentSubtle : ColorTokens.surface)
         .overlay(
             Rectangle().stroke(
-                isHighlighted ? ColorTokens.text1 : ColorTokens.divider,
+                isHighlighted ? ColorTokens.accent : ColorTokens.divider,
                 lineWidth: 0.5
             )
         )
-        .animation(.linear(duration: 0.15), value: isHighlighted)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isHighlighted)
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(option.displayName)
         .accessibilityAddTraits(.isButton)
@@ -279,14 +279,14 @@ struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Elemen
         openImpact.prepare()
         selectionFeedback.prepare()
         commitImpact.prepare()
-        withAnimation(reduceMotion ? nil : .easeOut(duration: 0.25)) {
+        withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
             isOpen = true
         }
         openImpact.impactOccurred()
     }
 
     private func close() {
-        withAnimation(reduceMotion ? nil : .easeIn(duration: 0.25)) {
+        withAnimation(Motion.resolved(Motion.exit, reduceMotion: reduceMotion)) {
             isOpen = false
         }
         highlighted = nil

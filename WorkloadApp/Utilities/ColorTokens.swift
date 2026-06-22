@@ -21,33 +21,46 @@ private extension UIColor {
 /// Semantic color tokens matching the DESIGN.md palette.
 /// All colors support both dark mode (primary) and light mode.
 enum ColorTokens {
-    // MARK: - Backgrounds
-    static let background   = Color(uiColor: .adaptive(dark: 0x0B0B0A, light: 0xF4F1ED))
-    static let surface      = Color(uiColor: .adaptive(dark: 0x161615, light: 0xEDEAE6))
-    static let surfaceEl    = Color(uiColor: .adaptive(dark: 0x1F1F1D, light: 0xE4E0DB))
-    static let divider      = Color(uiColor: .adaptive(dark: 0x232321, light: 0xCFCBC5))
+    // MARK: - Backgrounds (4-plane elevation ladder — Tuwa v2, 2026-06-17)
+    // Dark planes widened to a PERCEPTIBLE gap (old ladder sat at ΔL*~3.9, below JND — cards
+    // were invisible). Light planes inverted to page-darker / card-lighter so cards lift off the
+    // page. Every chrome token is cool true-neutral: blue channel ≥ red channel.
+    static let background    = Color(uiColor: .adaptive(dark: 0x090B0D, light: 0xECEEF1))
+    static let surface       = Color(uiColor: .adaptive(dark: 0x15191D, light: 0xF0F2F5))
+    static let surfaceEl     = Color(uiColor: .adaptive(dark: 0x1F262C, light: 0xF8FAFC))
+    /// Emphasis plane — the most important / active surface (hero, selected). The 4th step.
+    static let surfaceEl2    = Color(uiColor: .adaptive(dark: 0x28323A, light: 0xFCFDFE))
+    static let divider       = Color(uiColor: .adaptive(dark: 0x3D464D, light: 0xC0C5CB))
+    /// Stronger hairline for emphasis cards and high-priority cuts (≥2.5:1 over its fill).
+    static let dividerStrong = Color(uiColor: .adaptive(dark: 0x525E66, light: 0xA4ABB2))
 
     // MARK: - Text
-    static let text1        = Color(uiColor: .adaptive(dark: 0xC2BEB7, light: 0x1C1915))
-    static let text2        = Color(uiColor: .adaptive(dark: 0x7C7972, light: 0x696560))
-    static let text3        = Color(uiColor: .adaptive(dark: 0x3A3835, light: 0xAFABA5))
+    static let text1        = Color(uiColor: .adaptive(dark: 0xECEEF0, light: 0x14171A))
+    static let text2        = Color(uiColor: .adaptive(dark: 0xA2AAB0, light: 0x565D63))
+    static let text3        = Color(uiColor: .adaptive(dark: 0x747C82, light: 0x767D84))
 
-    // MARK: - Accent (readiness score number only — nowhere else)
-    static let accent       = Color(uiColor: .adaptive(dark: 0xA8A090, light: 0x7A6E5C))
+    // MARK: - Accent (cool stone-blue — the "live / actionable / you-are-here" semantic)
+    // Tuwa v2 relaxes the single-accent rule: the accent now marks LIVE state in a defined,
+    // restrained set — hero readiness number, strike-zone/progress fills, the active/selected
+    // state (set cell, segmented segment, current tab), primary-CTA outline, and the hero card's
+    // 2pt top rule. Still ONE hue, used with intent — never on body icons or decoration.
+    static let accent       = Color(uiColor: .adaptive(dark: 0x7FB3CC, light: 0x2E6B86))
+    /// Translucent accent for active-cell / progress fills behind content.
+    static let accentSubtle = accent.opacity(0.16)
 
-    // MARK: - Zone colors (DESIGN.md muted palette)
-    static let zoneOptimal  = Color(uiColor: .adaptive(dark: 0x607869, light: 0x3E5C49))
-    static let zoneCaution  = Color(uiColor: .adaptive(dark: 0x7E7252, light: 0x6B5828))
-    static let zoneDanger   = Color(uiColor: .adaptive(dark: 0x7E5C5C, light: 0x6E3A3A))
-    static let zoneLow      = Color(uiColor: .adaptive(dark: 0x5A6470, light: 0x3A4A5C))
+    // MARK: - Zone colors (DESIGN.md muted palette — label-led, supplementary only)
+    static let zoneOptimal  = Color(uiColor: .adaptive(dark: 0x6E8A78, light: 0x35513F))
+    static let zoneCaution  = Color(uiColor: .adaptive(dark: 0x86825E, light: 0x57532A))
+    static let zoneDanger   = Color(uiColor: .adaptive(dark: 0x9A6F6F, light: 0x6B3A3A))
+    static let zoneLow      = Color(uiColor: .adaptive(dark: 0x6C7886, light: 0x384A5C))
 
-    // MARK: - Charts (muted palette variants of zone colors)
-    static let chartATL     = Color(uiColor: .adaptive(dark: 0x7E7252, light: 0x6B5828))
-    static let chartCTL     = Color(uiColor: .adaptive(dark: 0x5A6470, light: 0x3A4A5C))
-    static let chartTSB     = Color(uiColor: .adaptive(dark: 0x607869, light: 0x3E5C49))
-    static let chartVolume  = Color(uiColor: .adaptive(dark: 0x7C7972, light: 0x696560))
-    static let chartHRV     = Color(uiColor: .adaptive(dark: 0x607869, light: 0x3E5C49))
-    static let chartSleep   = Color(uiColor: .adaptive(dark: 0x5A6470, light: 0x3A4A5C))
+    // MARK: - Charts (cool-only series — warm ATL alias retired 2026-06-17)
+    static let chartATL     = Color(uiColor: .adaptive(dark: 0x6A8392, light: 0x2E6B86))
+    static let chartCTL     = Color(uiColor: .adaptive(dark: 0x6C7886, light: 0x384A5C))
+    static let chartTSB     = Color(uiColor: .adaptive(dark: 0x6E8A78, light: 0x35513F))
+    static let chartVolume  = Color(uiColor: .adaptive(dark: 0xA2AAB0, light: 0x565D63))
+    static let chartHRV     = Color(uiColor: .adaptive(dark: 0x6E8A78, light: 0x35513F))
+    static let chartSleep   = Color(uiColor: .adaptive(dark: 0x6C7886, light: 0x384A5C))
 
     // MARK: - Legacy aliases (migrate views to new tokens progressively)
     static let primaryAccent       = text1

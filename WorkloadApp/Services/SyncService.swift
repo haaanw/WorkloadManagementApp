@@ -49,16 +49,9 @@ struct SyncService {
         if await pushWorkoutTemplates(context: context, coachId: athlete.id) {
             store.recordSuccess(for: .templates)
         }
-        if await pushPrescribedWorkouts(context: context, ownerId: athlete.id) {
-            store.recordSuccess(for: .prescribedWorkouts)
-        }
         if await pushTrainingProfile(context: context, athleteId: athlete.id) {
             store.recordSuccess(for: .trainingProfiles)
         }
-
-        // Coach relationships are managed via InviteService, not pushAll.
-        // Record success so shouldSync doesn't trigger on every foreground resume.
-        store.recordSuccess(for: .coachRelationships)
     }
 
     /// Pull all Supabase records for current user and upsert into local SwiftData (last-write-wins).
@@ -94,17 +87,9 @@ struct SyncService {
         if await pullWorkoutTemplates(context: context, coachId: athlete.id) {
             store.recordSuccess(for: .templates)
         }
-        if await pullPrescribedWorkouts(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .prescribedWorkouts)
-        }
         if await pullTrainingProfile(context: context, athleteId: athlete.id) {
             store.recordSuccess(for: .trainingProfiles)
         }
-
-        // Coach relationships are pulled via pullLinkedAthletes (coach-only flow).
-        // Record success here so shouldSync's staleness check doesn't trigger
-        // a full sync cycle every foreground resume for non-coach users.
-        store.recordSuccess(for: .coachRelationships)
     }
 
     /// Push only WorkloadSnapshot records (called after WorkoutPipeline).
@@ -588,181 +573,6 @@ struct SyncService {
         return true
     }
 
-    // MARK: - Coach pull methods
-
-    /// Fetches accepted coach_athlete_relationships and linked athlete profiles for the current coach.
-    func pullLinkedAthletes(context: ModelContext) async {
-        guard let currentAthlete = try? context.fetch(FetchDescriptor<Athlete>()).first else { return }
-
-        let rows: [CoachAthleteRelationshipRow]
-        do {
-            rows = try await client
-                .from("coach_athlete_relationships")
-                .select()
-                .eq("coach_id", value: currentAthlete.id)
-                .eq("status", value: "accepted")
-                .execute()
-                .value
-        } catch {
-            logFailure(.coachRelationships, .pull, error)
-            return
-        }
-
-        for row in rows {
-            let predicate = #Predicate<CoachAthleteRelationship> { $0.id == row.id }
-            if let existing = try? context.fetch(FetchDescriptor(predicate: predicate)).first {
-                existing.status = RelationshipStatus(rawValue: row.status) ?? .accepted
-                existing.updatedAt = row.updatedAt
-            } else {
-                let rel = CoachAthleteRelationship(
-                    id: row.id,
-                    coachId: row.coachId,
-                    athleteId: row.athleteId,
-                    status: RelationshipStatus(rawValue: row.status) ?? .accepted
-                )
-                rel.createdAt = row.createdAt
-                rel.updatedAt = row.updatedAt
-                context.insert(rel)
-            }
-        }
-        do {
-            try context.save()
-        } catch {
-            logFailure(.coachRelationships, .pull, error)
-        }
-
-        let linkedAthleteIds = rows.map { $0.athleteId }
-        for athleteId in linkedAthleteIds {
-            await pullLinkedAthleteProfile(athleteId: athleteId, context: context)
-        }
-    }
-
-    private func pullLinkedAthleteProfile(athleteId: UUID, context: ModelContext) async {
-        let row: AthleteRow
-        do {
-            row = try await client
-                .from("athletes")
-                .select()
-                .eq("id", value: athleteId)
-                .single()
-                .execute()
-                .value
-        } catch {
-            logFailure("pull linked athlete profile", error)
-            return
-        }
-
-        let predicate = #Predicate<Athlete> { $0.id == athleteId }
-        if let existing = try? context.fetch(FetchDescriptor(predicate: predicate)).first {
-            existing.displayName = row.displayName ?? existing.displayName
-            existing.sportType = SportType(rawValue: row.sportType ?? "") ?? existing.sportType
-            existing.isCoach = row.isCoach ?? existing.isCoach
-            if let freq = row.trainingFrequency {
-                existing.trainingFrequency = TrainingFrequency(rawValue: freq)
-            }
-            if let exp = row.experienceLevel {
-                existing.experienceLevel = ExperienceLevel(rawValue: exp)
-            }
-            existing.updatedAt = row.updatedAt
-        } else {
-            let athlete = Athlete(
-                id: row.id,
-                displayName: row.displayName ?? "",
-                sportType: SportType(rawValue: row.sportType ?? "") ?? .custom
-            )
-            athlete.supabaseUserId = row.userId
-            athlete.isCoach = row.isCoach ?? false
-            if let freq = row.trainingFrequency {
-                athlete.trainingFrequency = TrainingFrequency(rawValue: freq)
-            }
-            if let exp = row.experienceLevel {
-                athlete.experienceLevel = ExperienceLevel(rawValue: exp)
-            }
-            athlete.updatedAt = row.updatedAt
-            context.insert(athlete)
-        }
-        do {
-            try context.save()
-        } catch {
-            logFailure("pull linked athlete profile save", error)
-        }
-    }
-
-    /// Fetches all snapshot data for a single linked athlete.
-    func pullAthleteSnapshots(athleteId: UUID, context: ModelContext) async {
-        guard let linkedAthlete = try?
-            context.fetch(FetchDescriptor<Athlete>(predicate: #Predicate { $0.id == athleteId })).first
-        else { return }
-
-        await pullWorkloadSnapshots(context: context, athlete: linkedAthlete)
-        await pullRecoverySnapshots(context: context, athlete: linkedAthlete)
-        await pullWellnessCheckIns(context: context, athlete: linkedAthlete)
-        await pullPersonalRecords(context: context, athlete: linkedAthlete)
-        await pullWorkoutSessions(context: context, athlete: linkedAthlete)
-    }
-
-    // MARK: - Coach push methods
-
-    /// Push a workload snapshot on behalf of a linked athlete (coach-initiated).
-    func pushCoachWorkloadSnapshot(_ snapshot: WorkloadSnapshot, for athleteId: UUID) async {
-        let row = WorkloadSnapshotRow(from: snapshot, athleteId: athleteId)
-        do {
-            _ = try await client.from("workload_snapshots").upsert(row).execute()
-        } catch {
-            logFailure(.workloadSnapshots, .push, error)
-        }
-    }
-
-    /// Push a recovery snapshot on behalf of a linked athlete (coach-initiated).
-    func pushCoachRecoverySnapshot(_ snapshot: RecoverySnapshot, for athleteId: UUID) async {
-        let row = RecoverySnapshotRow(from: snapshot, athleteId: athleteId)
-        do {
-            _ = try await client.from("recovery_snapshots").upsert(row).execute()
-        } catch {
-            logFailure(.recoverySnapshots, .push, error)
-        }
-    }
-
-    /// Push a personal record on behalf of a linked athlete (coach-initiated).
-    func pushCoachPersonalRecord(_ pr: PersonalRecord, for athleteId: UUID) async {
-        let row = PersonalRecordRow(from: pr, athleteId: athleteId)
-        do {
-            _ = try await client.from("personal_records").upsert(row).execute()
-        } catch {
-            logFailure(.personalRecords, .push, error)
-        }
-    }
-
-    /// Push a workout session on behalf of a linked athlete (coach-initiated).
-    func pushCoachWorkoutSession(_ session: WorkoutSession, for athleteId: UUID) async {
-        let row = WorkoutSessionRow(from: session, athleteId: athleteId)
-        do {
-            _ = try await client.from("workout_sessions").upsert(row).execute()
-        } catch {
-            logFailure(.workouts, .push, error)
-        }
-    }
-
-    /// Deletes a coach-athlete relationship from Supabase and removes the local SwiftData record.
-    /// Callable by either party (coach or athlete) in the relationship.
-    func removeRelationship(id: UUID, context: ModelContext) async throws {
-        // 1. Delete from Supabase
-        try await client
-            .from("coach_athlete_relationships")
-            .delete()
-            .eq("id", value: id.uuidString)
-            .execute()
-
-        // 2. Remove local SwiftData record
-        let descriptor = FetchDescriptor<CoachAthleteRelationship>(
-            predicate: #Predicate { $0.id == id }
-        )
-        if let local = try context.fetch(descriptor).first {
-            context.delete(local)
-        }
-        try context.save()
-    }
-
     @discardableResult
     private func pullPersonalRecords(context: ModelContext, athlete: Athlete) async -> Bool {
         let rows: [PersonalRecordRow]
@@ -1166,156 +976,6 @@ struct WorkoutSessionRow: Codable {
         return true
     }
 
-    // MARK: - Prescription push/pull
-
-    @discardableResult
-    func pushPrescribedWorkouts(context: ModelContext, ownerId: UUID? = nil) async -> Bool {
-        let prescriptions: [PrescribedWorkout]
-        do {
-            let fetched = try context.fetch(FetchDescriptor<PrescribedWorkout>())
-            if let ownerId {
-                prescriptions = fetched.filter { $0.athleteId == ownerId || $0.coachId == ownerId }
-            } else {
-                prescriptions = fetched
-            }
-        } catch {
-            logFailure(.prescribedWorkouts, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .prescribedWorkouts, error: classifyError(error))
-            return false
-        }
-        guard !prescriptions.isEmpty else { return true }
-        let rows = prescriptions.map { PrescribedWorkoutRow(from: $0) }
-        return await run(.prescribedWorkouts, .push) {
-            _ = try await client.from("prescribed_workouts").upsert(rows).execute()
-        }
-    }
-
-    func pushPrescribedWorkout(_ prescription: PrescribedWorkout) async {
-        await run(.prescribedWorkouts, .push) {
-            let row = PrescribedWorkoutRow(from: prescription)
-            _ = try await client.from("prescribed_workouts").upsert(row).execute()
-        }
-    }
-
-    @discardableResult
-    private func pullPrescribedWorkouts(context: ModelContext, athleteId: UUID) async -> Bool {
-        let rows: [PrescribedWorkoutRow]
-        do {
-            // Pull prescriptions assigned TO this athlete
-            rows = try await client
-                .from("prescribed_workouts")
-                .select()
-                .eq("athlete_id", value: athleteId)
-                .execute()
-                .value
-        } catch {
-            logFailure(.prescribedWorkouts, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .prescribedWorkouts, error: classifyError(error))
-            return false
-        }
-
-        for row in rows {
-            let pred = #Predicate<PrescribedWorkout> { $0.id == row.id }
-            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
-            if let existing, existing.updatedAt > row.updatedAt { continue }
-            let rx = existing ?? PrescribedWorkout(
-                coachId: row.coachId,
-                athleteId: row.athleteId,
-                scheduledDate: row.scheduledDate,
-                templateName: row.templateName
-            )
-            rx.id = row.id
-            rx.coachId = row.coachId
-            rx.athleteId = row.athleteId
-            rx.templateId = row.templateId
-            rx.scheduledDate = row.scheduledDate
-            rx.status = PrescriptionStatus(rawValue: row.status) ?? .assigned
-            rx.completedSessionId = row.completedSessionId
-            rx.notes = row.notes
-            rx.templateName = row.templateName
-            rx.sportType = SportType(rawValue: row.sportType) ?? .lifting
-            rx.sessionType = SessionType(rawValue: row.sessionType) ?? .strength
-            rx.updatedAt = row.updatedAt
-            rx.createdAt = row.createdAt
-
-            // Replace groups from JSON
-            if existing != nil {
-                for group in rx.groups { context.delete(group) }
-                rx.groups = []
-            }
-            if let groupsJSON = row.groupsJson {
-                rx.groups = Self.decodeGroups(from: groupsJSON)
-            }
-
-            if existing == nil { context.insert(rx) }
-        }
-        do {
-            try context.save()
-        } catch {
-            logFailure(.prescribedWorkouts, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .prescribedWorkouts, error: classifyError(error))
-            return false
-        }
-        return true
-    }
-
-    // Also pull prescriptions the coach created (for coach-side status updates)
-    func pullCoachPrescriptions(context: ModelContext, coachId: UUID) async {
-        let rows: [PrescribedWorkoutRow]
-        do {
-            rows = try await client
-                .from("prescribed_workouts")
-                .select()
-                .eq("coach_id", value: coachId)
-                .execute()
-                .value
-        } catch {
-            logFailure(.prescribedWorkouts, .pull, error)
-            return
-        }
-
-        for row in rows {
-            let pred = #Predicate<PrescribedWorkout> { $0.id == row.id }
-            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
-            if let existing, existing.updatedAt > row.updatedAt { continue }
-            let rx = existing ?? PrescribedWorkout(
-                coachId: row.coachId,
-                athleteId: row.athleteId,
-                scheduledDate: row.scheduledDate,
-                templateName: row.templateName
-            )
-            rx.id = row.id
-            rx.coachId = row.coachId
-            rx.athleteId = row.athleteId
-            rx.templateId = row.templateId
-            rx.scheduledDate = row.scheduledDate
-            rx.status = PrescriptionStatus(rawValue: row.status) ?? .assigned
-            rx.completedSessionId = row.completedSessionId
-            rx.notes = row.notes
-            rx.templateName = row.templateName
-            rx.sportType = SportType(rawValue: row.sportType) ?? .lifting
-            rx.sessionType = SessionType(rawValue: row.sessionType) ?? .strength
-            rx.updatedAt = row.updatedAt
-            rx.createdAt = row.createdAt
-
-            // Replace groups from JSON
-            if existing != nil {
-                for group in rx.groups { context.delete(group) }
-                rx.groups = []
-            }
-            if let groupsJSON = row.groupsJson {
-                rx.groups = Self.decodeGroups(from: groupsJSON)
-            }
-
-            if existing == nil { context.insert(rx) }
-        }
-        do {
-            try context.save()
-        } catch {
-            logFailure(.prescribedWorkouts, .pull, error)
-        }
-    }
-
     // MARK: - Group JSON helpers
 
     static func encodeGroups(_ groups: [ExerciseGroup]) -> String? {
@@ -1356,17 +1016,6 @@ struct WorkoutSessionRow: Codable {
         }
     }
 
-}
-
-// MARK: - Coach Rows
-
-private struct CoachAthleteRelationshipRow: Codable {
-    let id: UUID
-    let coachId: UUID
-    let athleteId: UUID
-    let status: String
-    let createdAt: Date
-    let updatedAt: Date
 }
 
 // MARK: - Template Row
@@ -1454,42 +1103,6 @@ struct TrainingProfileRow: Codable {
         self.biasActualCtl = model.biasActualCTL
         self.biasCapturedAt = model.biasCapturedAt
         self.coldStartCompletedAt = model.coldStartCompletedAt
-        self.createdAt = model.createdAt
-        self.updatedAt = model.updatedAt
-    }
-}
-
-// MARK: - Prescription Row
-
-struct PrescribedWorkoutRow: Codable {
-    let id: UUID
-    let coachId: UUID
-    let athleteId: UUID
-    let templateId: UUID?
-    let scheduledDate: Date
-    let status: String
-    let completedSessionId: UUID?
-    let notes: String?
-    let templateName: String
-    let sportType: String
-    let sessionType: String
-    let groupsJson: String?
-    let createdAt: Date
-    let updatedAt: Date
-
-    init(from model: PrescribedWorkout) {
-        self.id = model.id
-        self.coachId = model.coachId
-        self.athleteId = model.athleteId
-        self.templateId = model.templateId
-        self.scheduledDate = model.scheduledDate
-        self.status = model.status.rawValue
-        self.completedSessionId = model.completedSessionId
-        self.notes = model.notes
-        self.templateName = model.templateName
-        self.sportType = model.sportType.rawValue
-        self.sessionType = model.sessionType.rawValue
-        self.groupsJson = SyncService.encodeGroups(model.groups)
         self.createdAt = model.createdAt
         self.updatedAt = model.updatedAt
     }

@@ -1,7 +1,7 @@
 # Requirements: Tonus
 
 **Defined:** 2026-04-22
-**Core Value:** Recovery + load tracked over time -- giving athletes long-term insight into how their body responds to training, so they can train smarter and avoid injury.
+**Core Value (redefined 2026-06-12):** Plan-aware decision support — the athlete (or their coach) authors the program; Tuwa ingests it whole, fuses it with physiology, and supports training decisions at three horizons: adjust today's numbers, go/modify/hold verdicts, and overreach forecasting — one fatigue budget across sport + strength + conditioning. Never writes the program; never a chatbot.
 
 ## v1.1 Requirements
 
@@ -128,6 +128,64 @@ Requirements for the Female Athlete Optimization milestone (cycle-aware context 
 - [ ] **CYCLE-07**: Cycle-aware fueling & recovery prompts (avoid fasted hard sessions, post-training protein within ~45 min, luteal hydration/cooling) are offered as supportive suggestions, never a training override (SC3, SC5)
 - [ ] **CYCLE-08**: A non-diagnostic RED-S monitoring notice surfaces when cycle patterns change (3+ missed periods OR consistent >35-day cycles), with clinician-referral language and full exclusion handling (pregnancy, lactation, hormonal contraceptive, perimenopause, PCOS) (SC4)
 
+## Core Redefinition Requirements (unscheduled, defined 2026-06-12)
+
+Core function redefined: plan-aware decision support engine — readiness-driven modulation of a user-authored hybrid plan with periodization-position awareness. See `.planning/notes/core-redefinition-plan-aware-engine.md`. Not yet mapped to a milestone; supersede generic monitoring framing in all future scoping.
+
+### Plan Awareness
+
+- [ ] **PLAN-01**: User can ingest a full training program (blocks/mesocycles, weekly structure, per-session exercises×sets×intensity) via LLM parsing of text/PDF/image/spreadsheet — extends v1.3 single-workout import to whole programs
+- [ ] **PLAN-02**: App models periodization position from the ingested plan (current block type, week-in-block, deload proximity) — declared intent, not just detection
+- [ ] **PLAN-03**: App tracks plan-vs-actual adherence (planned load vs executed load, per session and per week)
+
+### Daily Modulation
+
+- [ ] **MOD-01**: On a planned session day, app proposes concrete numeric adjustments within plan intent (intensity %, set count, back-off volume) driven by readiness, accumulated load, and periodization position
+- [ ] **MOD-02**: App issues a go/modify/hold session verdict with plain-language reasoning citing the signals behind it
+- [ ] **MOD-03**: Modulation is bounded and consent-based — app never silently rewrites the plan; athlete accepts/declines each adjustment, and declines are recorded
+
+### Unified Hybrid Load
+
+- [ ] **LOAD-01**: One fatigue budget across strength (tonnage + per-muscle local load), sport-skill sessions, and conditioning — sRPE as systemic common currency, TRIMP layered where HR data exists
+- [ ] **LOAD-02**: All decision thresholds use individualized rolling baselines (Altini-style); no population cut-offs and no ACWR as a decision rule
+
+### Forecast
+
+- [ ] **FCST-01**: App projects fatigue trajectory against the remaining plan and forecasts overreach risk before the scheduled deload, including deload-timing recommendations
+- [ ] **FCST-02**: App builds a long-term response profile — how this athlete's recovery responds to specific block types across mesocycles
+
+## v2.0 Requirements — Plan-Aware Decision Engine (TODAY Verdict Wedge)
+
+Milestone v2.0 scopes the TODAY horizon of the redefinition into a shippable, paid-validation wedge. Validated MODIFY-SCOPE against 51 real self-coached hybrid athletes + 5 adversarial kills (`.planning/research/plan-aware-thesis-pressure-test.md`); engine substrate ~70% pre-built and flag-gated OFF from dormant v1.6 work (`.planning/research/v2-verdict-engine.md`, `v2-crossmodal-and-measurement.md`). MID (FCST) and LONG horizons deferred until WTP clears. Subsumes the wedge-relevant slice of the unscheduled MOD/LOAD reqs; full PLAN-01 program ingestion stays deferred.
+
+### Substrate Activation
+
+- [x] **ACT-01**: The dormant PRS readiness pipeline (ReadinessFusionEngine + StrainRiskEngine + BaselineEngine + AutoregulationEngine readiness×strain matrix) is activated on a live verdict surface — Phase-28 UI review completed, runtime flag-gate removed, honest-confidence gating preserved
+- [x] **ACT-02**: Directional cross-modal fatigue carry — endurance/conditioning sessions are regionalized (sRPE × sportType → muscle region) so yesterday's run penalizes today's squat but spares bench (anchor + saturating modifier, no naive linear stacking); shadow-validated via existing ShadowMetrics before it drives the verdict *(ENGINE BUILT 41-02: CrossModalFatigueEngine green, run-hits-squat-not-bench observable. SHADOW-GATE WIRED 41-03: crossModal logs as the 4th DARK arm through the existing ShadowMetrics/ShadowAnalyticsService harness, fenced from the verdict by CrossModalShadowGate.crossModalDrivesVerdict (default OFF, report-only, no-mutation), 10/10 tests green, existing arms byte-identical. The flag flips ONLY on a FUTURE explicit human shadow-validation pass — by design, not a code merge — before Phase 43 may consume it.)*
+
+### Plan Input
+
+- [x] **PLAN-10**: User can designate "today's planned session" by loading an existing template OR entering a planned lift with target weight/reps/RPE
+- [x] **PLAN-11**: A planned set carries target fields the verdict can read and against which it writes a suggested adjusted value (additive-nullable schema, no migration or sync-payload change)
+
+### TODAY Verdict
+
+- [x] **VERDICT-01**: For today's planned strength session, the app outputs a go / modify / hold verdict driven by readiness + cross-modal fatigue + periodization position (where a plan position is known)
+- [x] **VERDICT-02**: The app proposes a concrete adjusted top-set number and/or back-off volume cut, bounded to evidence-defensible magnitude (−5% default, −10% ceiling, volume-cut preferred over load-cut), rounded to loadable plates — no false precision
+- [x] **VERDICT-03**: Each verdict displays a one-line plain-language reason citing the driving signals (via ReasoningEngine)
+
+### Verdict UX (autonomy + nocebo guards)
+
+- [x] **MOD-10**: The verdict is suggest-and-confirm — the athlete accepts or declines each suggestion, declines are recorded, and the app never silently overwrites the authored plan
+- [x] **MOD-11**: The athlete can override the verdict with their own feel (feel-as-input), and a low/hold verdict is framed as a number + reason, never a red "don't train" gate (nocebo guard)
+- [x] **MOD-12**: One-tap "keep my plan as written" leaves the planned session unchanged and records the decline
+
+### Measurement & WTP (instrumented before launch)
+
+- [x] **METRIC-01**: The app logs a VerdictEvent per planned session — the verdict, suggested vs planned numbers, whether they DIFFERED, accept/decline, and a post-session self-reported outcome — composite-only (no raw HealthKit) — *Phase 45 (45-01 substrate, 45-02 live wiring + SC4)*
+- [x] **METRIC-02**: The app computes the green-light signal (on differing-verdict days: athlete acted on the suggestion AND reported it was right) alongside activation and Day-7 / Day-30 retention — *Phase 45 (45-01 GreenLightEngine, 45-03 quiet Profile surface)*
+- [x] **METRIC-03**: The app captures a Sean-Ellis disappointment question ("how would you feel if you could no longer use this") and a willingness-to-pay / card-on-file signal from the validation cohort — *Phase 45 (45-04 Sean-Ellis store/prompt + existing-RevenueCat WTP hop; dashboard offering config deferred-external)*
+
 ## Future Requirements
 
 ### Deferred from v1.1
@@ -227,14 +285,28 @@ Requirements for the Female Athlete Optimization milestone (cycle-aware context 
 | CYCLE-06 | Phase 19 | Complete |
 | CYCLE-07 | Phase 19 | Complete |
 | CYCLE-08 | Phase 19 | Complete |
+| ACT-01 | Phase 41 | Complete |
+| ACT-02 | Phase 41 | Complete (engine built 41-02; shadow-gate wired 41-03, dark arm + verdict fence default-OFF; flip pending future human shadow-validation pass) |
+| PLAN-10 | Phase 42 | Complete |
+| PLAN-11 | Phase 42 | Complete |
+| VERDICT-01 | Phase 43 | Complete |
+| VERDICT-02 | Phase 43 | Complete |
+| VERDICT-03 | Phase 43 | Complete |
+| MOD-10 | Phase 44 | Complete |
+| MOD-11 | Phase 44 | Complete |
+| MOD-12 | Phase 44 | Complete |
+| METRIC-01 | Phase 45 | Complete |
+| METRIC-02 | Phase 45 | Complete |
+| METRIC-03 | Phase 45 | Complete |
 
 **Coverage:**
 - v1.1 requirements: 21 total, mapped: 21
 - v1.2 requirements: 19 total, mapped: 19
 - v1.3 requirements: 16 total, mapped: 16
 - v1.4 requirements: 8 total, mapped: 8
+- v2.0 requirements: 13 total, mapped: 13
 - Unmapped: 0
 
 ---
 *Requirements defined: 2026-04-22*
-*Last updated: 2026-05-30 -- v1.4 CYCLE-01..08 mapped to phases 17-19*
+*Last updated: 2026-06-13 -- v2.0 ACT/PLAN/VERDICT/MOD/METRIC (13 reqs) mapped to phases 41-45*

@@ -14,6 +14,11 @@ struct MorningCheckInSheet: View {
     @State private var selectedTags: Set<String> = []
     @State private var showingTagManagement = false
     @State private var customTagNames: [String] = []
+    @State private var isPrefilled = false
+    @State private var didSeed = false
+    @State private var seedSource: SeedSource? = nil
+
+    private enum SeedSource { case today, prior }
 
     private let defaultTags = ["Caffeine", "Alcohol", "Travel", "Stress"]
 
@@ -34,6 +39,15 @@ struct MorningCheckInSheet: View {
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding(.horizontal, 16)
                         .padding(.vertical, 24)
+
+                    if isPrefilled {
+                        Text(seedSource == .today ? "morning.editing.today.hint" : "morning.prefill.hint")
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text3)
+                            .frame(maxWidth: .infinity, alignment: .leading)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.bottom, Spacing.sm)
+                    }
 
                     Rectangle()
                         .fill(ColorTokens.divider)
@@ -90,10 +104,8 @@ struct MorningCheckInSheet: View {
                     // BEHAVIORS section (D-03, D-04)
                     VStack(alignment: .leading, spacing: 16) {
                         Text("morning.section.behaviors")
-                            .font(.Tokens.micro)
-                            .tracking(1.2)
-                            .textCase(.uppercase)
-                            .foregroundStyle(ColorTokens.text3)
+                            .font(.Tokens.sectionHead)
+                            .foregroundStyle(ColorTokens.text1)
 
                         FlowLayout(spacing: 8) {
                             ForEach(defaultTags, id: \.self) { tag in
@@ -123,6 +135,7 @@ struct MorningCheckInSheet: View {
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
                             }
+                            .buttonStyle(.pressable)
                         }
                     }
                     .padding(.horizontal, 16)
@@ -146,9 +159,8 @@ struct MorningCheckInSheet: View {
                     // Score preview
                     HStack {
                         Text("morning.section.wellnessScore")
-                            .font(.Tokens.micro)
-                            .tracking(1.2)
-                            .foregroundStyle(ColorTokens.text3)
+                            .font(.Tokens.sectionHead)
+                            .foregroundStyle(ColorTokens.text1)
                         Spacer()
                         Text("\(Int(wellnessScore))/100")
                             .font(.Tokens.sectionHead)
@@ -172,14 +184,17 @@ struct MorningCheckInSheet: View {
                     Button("action.save") { save() }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
+                        .disabled(athlete == nil)
                 }
             }
         }
         .task {
+            Haptics.prepare()
             if let athlete = athlete {
                 let repo = BehaviorTagRepository(modelContext: modelContext)
                 customTagNames = (try? repo.fetchCustomTagNames(for: athlete)) ?? []
             }
+            seedFromPriorCheckIn()
         }
         .sheet(isPresented: $showingTagManagement) {
             CustomTagManagementSheet(
@@ -194,17 +209,76 @@ struct MorningCheckInSheet: View {
         wellnessScore >= 67 ? ColorTokens.zoneOptimal : wellnessScore >= 34 ? ColorTokens.zoneCaution : ColorTokens.zoneDanger
     }
 
+    /// Seed sliders + active behavior tags from today's check-in (editing today) or, failing that,
+    /// the most recent prior check-in. Notes are intentionally NOT carried (day-specific). Runs once;
+    /// guarded by `didSeed` so a re-fired `.task` never clobbers user edits.
+    private func seedFromPriorCheckIn() {
+        // Wait for @Query to resolve a real athlete before latching `didSeed`,
+        // otherwise an unscoped fetch could seed from the wrong athlete in a
+        // coach+athlete multi-user context and permanently block a correct re-seed.
+        guard !didSeed, let athlete else { return }
+        didSeed = true
+
+        let repo = RecoveryRepository(modelContext: modelContext)
+        let source: WellnessCheckIn
+        if let today = try? repo.fetchTodayWellnessCheckIn(athlete: athlete) {
+            source = today
+            seedSource = .today
+        } else if let prior = try? repo.fetchLatestWellnessCheckIn(athlete: athlete) {
+            source = prior
+            seedSource = .prior
+        } else {
+            return
+        }
+
+        sleepQuality = source.sleepQuality
+        soreness = source.soreness
+        energy = source.energy
+        stress = source.stress
+        // Only restore tags that are still available (defaults + current custom),
+        // so a since-deleted custom tag can't linger as an unrenderable selection.
+        let available = Set(defaultTags + customTagNames)
+        selectedTags = Set(source.behaviorTags.filter { $0.isActive }.map { $0.tagName })
+            .intersection(available)
+        // notes intentionally left empty (day-specific, not carried forward)
+        isPrefilled = true
+    }
+
     private func save() {
-        let checkIn = WellnessCheckIn(
-            date: .now,
-            sleepQuality: sleepQuality,
-            soreness: soreness,
-            energy: energy,
-            stress: stress,
-            notes: notes.isEmpty ? nil : notes
-        )
-        checkIn.athlete = athlete
-        modelContext.insert(checkIn)
+        // Never persist a check-in without a resolved athlete: with athlete == nil the
+        // today-upsert query is unscoped (could update another athlete's row) and a new
+        // record would insert an orphan WellnessCheckIn (athlete = nil). Aligns save with
+        // the already athlete-gated seed path.
+        guard let athlete else { return }
+
+        let repo = RecoveryRepository(modelContext: modelContext)
+
+        // Upsert keyed on today's record so re-opening the sheet on a day the
+        // user already checked in UPDATES that row instead of inserting a
+        // duplicate same-day WellnessCheckIn (which would shadow the edit and
+        // feed an arbitrary stale row into the recovery score).
+        let checkIn: WellnessCheckIn
+        if let existing = try? repo.fetchTodayWellnessCheckIn(athlete: athlete) {
+            checkIn = existing
+        } else {
+            checkIn = WellnessCheckIn(date: .now)
+            checkIn.athlete = athlete
+            modelContext.insert(checkIn)
+        }
+
+        checkIn.sleepQuality = sleepQuality
+        checkIn.soreness = soreness
+        checkIn.energy = energy
+        checkIn.stress = stress
+        checkIn.notes = notes.isEmpty ? nil : notes
+        checkIn.updatedAt = .now
+
+        // Replace today's behavior tags rather than appending a second set
+        // (cascade-delete the old ones, then recreate from current selection).
+        for old in checkIn.behaviorTags {
+            modelContext.delete(old)
+        }
+        checkIn.behaviorTags = []
 
         // Create behavior tags for all available tags (D-04, D-06)
         let allTagNames = defaultTags + customTagNames
@@ -221,11 +295,13 @@ struct MorningCheckInSheet: View {
         }
 
         try? modelContext.save()
+        Haptics.success()
         onSaved?()
         dismiss()
     }
 
     private func toggleTag(_ tag: String) {
+        Haptics.tap()
         if selectedTags.contains(tag) {
             selectedTags.remove(tag)
         } else {
@@ -244,7 +320,7 @@ struct WellnessSlider: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                     Text(title)
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
@@ -262,7 +338,10 @@ struct WellnessSlider: View {
             HStack(spacing: 8) {
                 ForEach(1...5, id: \.self) { i in
                     Button {
-                        value = i
+                        if value != i {
+                            Haptics.select()
+                            value = i
+                        }
                     } label: {
                         Rectangle()
                             .fill(i <= value ? scoreColor : ColorTokens.divider)
@@ -274,6 +353,7 @@ struct WellnessSlider: View {
                                     .opacity(0) // hidden — bar is the indicator
                             }
                     }
+                    .buttonStyle(.pressable)
                 }
             }
 
@@ -285,9 +365,9 @@ struct WellnessSlider: View {
             .font(.Tokens.micro)
             .foregroundStyle(ColorTokens.text3)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.surface)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
+        .background(ColorTokens.surfaceEl)
     }
 
     private var scoreColor: Color {

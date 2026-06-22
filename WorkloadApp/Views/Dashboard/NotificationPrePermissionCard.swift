@@ -13,52 +13,48 @@ struct NotificationPrePermissionCard: View {
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
+                .padding(.bottom, Spacing.xs)
 
             Text("notificationCard.subtitle")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
-                .padding(.horizontal, 16)
 
             Text("notificationCard.body")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-                .padding(.bottom, 16)
+                .padding(.top, Spacing.xs)
+                .padding(.bottom, Spacing.sm)
 
-            HStack(spacing: 8) {
-                Button(action: onEnable) {
+            HStack(spacing: Spacing.xs) {
+                Button {
+                    Haptics.tap()
+                    onEnable()
+                } label: {
                     Text("notificationCard.action.enable")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, Spacing.xs)
                         .overlay(
                             Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                         )
                 }
+                .buttonStyle(.pressable)
 
                 Button(action: onDismiss) {
                     Text("notificationCard.action.dismiss")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, Spacing.xs)
                         .overlay(
                             Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                         )
                 }
+                .buttonStyle(.pressable)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
         }
-        .background(ColorTokens.surface)
-        .overlay(
-            Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
-        )
+        .cardStyle()
         .accessibilityElement(children: .contain)
     }
 }

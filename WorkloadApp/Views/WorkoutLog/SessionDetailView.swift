@@ -7,7 +7,10 @@ struct SessionDetailView: View {
 
     var body: some View {
         ScrollView {
-            VStack(spacing: 0) {
+            VStack(spacing: Spacing.sm) {
+                // Session summary card (metadata + metrics) — one bordered plane so it reads as a
+                // distinct surface lifted off the page (Tuwa v2 separation).
+                VStack(spacing: 0) {
                 // Session header
                 VStack(alignment: .leading, spacing: 8) {
                     HStack {
@@ -24,7 +27,6 @@ struct SessionDetailView: View {
                 }
                 .padding(.horizontal, 16)
                 .padding(.vertical, 16)
-                .background(ColorTokens.surface)
 
                 Rectangle()
                     .fill(ColorTokens.divider)
@@ -81,19 +83,17 @@ struct SessionDetailView: View {
                         }
                     }
                 }
+                }
+                .background(ColorTokens.surfaceEl)
+                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
 
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
-
-                // Exercises
+                // Exercises — each a distinct bordered card (Tuwa v2 separation).
                 ForEach(session.sortedEntries, id: \.id) { entry in
                     ExerciseDetailCard(entry: entry)
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
                 }
             }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.sm)
         }
         .background(ColorTokens.background)
         .navigationTitle(session.sessionName ?? session.sportType.displayName)
@@ -119,8 +119,8 @@ struct ExerciseDetailCard: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.sm)
 
             Rectangle()
                 .fill(ColorTokens.divider)
@@ -142,8 +142,8 @@ struct ExerciseDetailCard: View {
             .font(.Tokens.micro)
             .tracking(1.2)
             .foregroundStyle(ColorTokens.text3)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
 
             ForEach(entry.sortedSets, id: \.id) { set in
                 HStack {
@@ -165,8 +165,8 @@ struct ExerciseDetailCard: View {
                 }
                 .font(.Tokens.label)
                 .monospacedDigit()
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
 
                 Rectangle()
                     .fill(ColorTokens.divider)
@@ -177,14 +177,15 @@ struct ExerciseDetailCard: View {
                 HStack {
                     Spacer()
                     Text(String(format: String(localized: "exercise.totalVolume", defaultValue: "Total: %.0f kg"), entry.totalVolume))
-                        .font(.Tokens.label)
+                        .font(.Tokens.labelMedium)
                         .monospacedDigit()
-                        .foregroundStyle(ColorTokens.text2)
+                        .foregroundStyle(ColorTokens.text1)
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 10)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
             }
         }
-        .background(ColorTokens.surface)
+        .background(ColorTokens.surfaceEl)
+        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }

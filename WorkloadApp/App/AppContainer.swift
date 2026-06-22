@@ -14,19 +14,8 @@ final class AppContainer {
     let syncService: SyncService
     let notificationService: NotificationService
     let localeManager: LocaleManager
-    let cycleTrackingService: CycleTrackingService
 
     private(set) var isAuthenticated = false
-
-    var currentMode: AppMode = {
-        let stored = UserDefaults.standard.string(forKey: "appMode") ?? AppMode.athlete.rawValue
-        return AppMode(rawValue: stored) ?? .athlete
-    }()
-
-    func setMode(_ mode: AppMode) {
-        currentMode = mode
-        UserDefaults.standard.set(mode.rawValue, forKey: "appMode")
-    }
 
     init() {
         self.subscriptionService = SubscriptionService()
@@ -54,7 +43,6 @@ final class AppContainer {
         self.syncService = SyncService(client: client)
         self.notificationService = NotificationService()
         self.localeManager = LocaleManager()
-        self.cycleTrackingService = CycleTrackingService()
 
         // Phase 23 P2: Cancel any legacy weekly-summary pending requests so the next
         // schedule call reissues with deliver-time localization. Idempotent: stamps

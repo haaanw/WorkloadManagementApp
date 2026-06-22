@@ -55,7 +55,9 @@ struct HRVDetailView: View {
                         unit: nil
                     )
                 }
-                .background(ColorTokens.surface)
+                // v2: the lifted stats band sits on the elevated plane (widened ladder), bounded
+                // top/bottom by the full-width section hairlines.
+                .background(ColorTokens.surfaceEl)
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -87,7 +89,7 @@ struct HRVDetailView: View {
     }
 
     private func statCell(label: String, value: String, unit: String?) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(label)
                 .font(.Tokens.micro)
                 .tracking(1.2)

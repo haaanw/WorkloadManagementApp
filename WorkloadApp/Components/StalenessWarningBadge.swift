@@ -6,7 +6,7 @@ struct StalenessWarningBadge: View {
     let daysAgo: Int
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: "exclamationmark.triangle.fill")
                 .font(.Tokens.micro)
                 .foregroundStyle(ColorTokens.zoneCaution)

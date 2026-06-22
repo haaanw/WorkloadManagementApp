@@ -43,15 +43,18 @@ struct TextTemplateImportSheet: View {
                         .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
 
                     Button {
+                        Haptics.tap()
                         parseInput()
                     } label: {
+                        // Primary CTA → accent outline (live / actionable), not a filled accent button.
                         Text("action.parse")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 12)
-                            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                            .padding(.vertical, Spacing.sm)
+                            .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5))
                     }
+                    .buttonStyle(.pressable)
                     .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
                 }
                 .padding(16)
@@ -71,7 +74,7 @@ struct TextTemplateImportSheet: View {
                     ScrollView {
                         VStack(spacing: 0) {
                             ForEach(Array(parsedTemplates.enumerated()), id: \.offset) { _, template in
-                                VStack(alignment: .leading, spacing: 4) {
+                                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                                     Text(template.name)
                                         .font(.Tokens.sectionHead)
                                         .foregroundStyle(ColorTokens.text1)
@@ -88,8 +91,8 @@ struct TextTemplateImportSheet: View {
                                         }
                                     }
                                 }
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 12)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.xs)
                                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                             }
                         }
@@ -264,6 +267,7 @@ struct TextTemplateImportSheet: View {
         }
 
         try? modelContext.save()
+        Haptics.success()
         isSaving = false
         dismiss()
     }

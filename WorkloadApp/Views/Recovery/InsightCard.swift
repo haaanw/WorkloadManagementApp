@@ -6,7 +6,7 @@ struct InsightCard: View {
     let sampleSize: Int        // Number of occurrences
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(text)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
@@ -14,13 +14,6 @@ struct InsightCard: View {
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.surface)
-        .overlay(
-            Rectangle()
-                .stroke(ColorTokens.divider, lineWidth: 0.5)
-        )
+        .cardStyle()
     }
 }

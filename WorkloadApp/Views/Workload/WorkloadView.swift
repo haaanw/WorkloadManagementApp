@@ -139,17 +139,18 @@ struct WorkloadView: View {
                     if !visibleRecords.isEmpty {
                         SectionContainer(header: "workload.section.recentPRs") {
                             PRHistorySection(records: visibleRecords)
+                                .padding(.horizontal, Spacing.sm)
                         }
                     }
 
                     Spacer().frame(height: Spacing.lg)
                 }
             }
+            .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
             .navigationTitle("workload.nav.title")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .withContextSwitcher()
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
@@ -199,7 +200,8 @@ struct WorkloadView: View {
                 }
             }
             .onChange(of: viewModel.selectedRange) { _, _ in
-                withAnimation(.easeOut(duration: 0.25)) {
+                Haptics.select()
+                withAnimation(Motion.screen) {
                     if let athlete {
                         viewModel.loadTrendData(modelContext: modelContext, athlete: athlete)
                     }
@@ -262,7 +264,7 @@ struct ACWRGaugeCard: View {
             }
 
             if let snapshot {
-                HStack(alignment: .lastTextBaseline, spacing: 4) {
+                HStack(alignment: .lastTextBaseline, spacing: Spacing.baselinePair) {
                     Text(String(format: "%.2f", snapshot.acwr))
                         .font(.Tokens.pageTitle)
                         .monospacedDigit()
@@ -341,13 +343,9 @@ struct PRHistorySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
-
             ForEach(Array(records.enumerated()), id: \.element.id) { index, pr in
                 HStack {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                         Text(pr.exerciseName)
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
@@ -356,7 +354,7 @@ struct PRHistorySection: View {
                             .foregroundStyle(ColorTokens.text2)
                     }
                     Spacer()
-                    VStack(alignment: .trailing, spacing: 4) {
+                    VStack(alignment: .trailing, spacing: Spacing.baselinePair) {
                         Text(String(format: "%.1f", pr.value))
                             .font(.Tokens.body)
                             .monospacedDigit()
@@ -376,11 +374,7 @@ struct PRHistorySection: View {
                     RowSeparator()
                 }
             }
-
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
         }
-        .background(ColorTokens.background)
+        .cardStyle(horizontalPadding: 0, verticalPadding: 0)
     }
 }

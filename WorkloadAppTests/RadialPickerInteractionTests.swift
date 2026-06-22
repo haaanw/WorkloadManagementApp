@@ -100,7 +100,10 @@ final class RadialPickerInteractionTests: XCTestCase {
         let source = repoRoot
             .appendingPathComponent("WorkloadApp/Components/RadialPicker.swift")
         let text = try String(contentsOf: source, encoding: .utf8)
-        for forbidden in ["RoundedRectangle", ".shadow(", "ColorTokens.accent", ".system("] {
+        // Tuwa v2 (2026-06-17): ColorTokens.accent removed from the forbidden set — the accent rule
+        // relaxed to the "live / active" semantic, and RadialPicker uses it for the active selection
+        // (selected icon/label + highlighted ring chip), a sanctioned use per DESIGN.md.
+        for forbidden in ["RoundedRectangle", ".shadow(", ".system("] {
             XCTAssertFalse(text.contains(forbidden), "RadialPicker.swift must not contain \(forbidden)")
         }
     }

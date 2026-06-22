@@ -86,6 +86,7 @@ struct NiggleLogSheet: View {
                         .foregroundStyle(ColorTokens.text1)
                 }
             }
+            .onAppear { Haptics.prepare() }
         }
     }
 
@@ -106,7 +107,10 @@ struct NiggleLogSheet: View {
             Menu {
                 ForEach(MuscleRegion.allCases) { region in
                     Button {
-                        selectedRegion = region
+                        if selectedRegion != region {
+                            Haptics.select()
+                            selectedRegion = region
+                        }
                     } label: {
                         Label(region.displayName, systemImage: region.systemImage)
                     }
@@ -144,14 +148,17 @@ struct NiggleLogSheet: View {
             HStack(spacing: 0) {
                 ForEach(Array(NiggleType.allCases.enumerated()), id: \.element.id) { index, type in
                     Button {
-                        selectedType = type
+                        if selectedType != type {
+                            Haptics.select()
+                            selectedType = type
+                        }
                     } label: {
                         Text(type.displayName)
                             .font(selectedType == type ? .Tokens.labelMedium : .Tokens.label)
-                            .foregroundStyle(selectedType == type ? ColorTokens.background : ColorTokens.text2)
+                            .foregroundStyle(selectedType == type ? ColorTokens.accent : ColorTokens.text2)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, Spacing.sm)
-                            .background(selectedType == type ? ColorTokens.text1 : ColorTokens.surface)
+                            .background(selectedType == type ? ColorTokens.accentSubtle : ColorTokens.surface)
                     }
                     .buttonStyle(.plain)
 
@@ -191,13 +198,16 @@ struct NiggleLogSheet: View {
             HStack(spacing: 4) {
                 ForEach(0...10, id: \.self) { i in
                     Button {
-                        severity = i
+                        if severity != i {
+                            Haptics.select()
+                            severity = i
+                        }
                     } label: {
                         Rectangle()
                             .fill(i <= severity ? severityColor : ColorTokens.divider)
                             .frame(height: 4)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                 }
             }
 
@@ -237,6 +247,7 @@ struct NiggleLogSheet: View {
             Toggle("", isOn: $limitedTraining)
                 .labelsHidden()
                 .toggleStyle(.design)
+                .onChange(of: limitedTraining) { _, _ in Haptics.tap() }
         }
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm)
@@ -256,6 +267,7 @@ struct NiggleLogSheet: View {
             note: trimmed.isEmpty ? nil : trimmed,
             athlete: athlete
         )
+        Haptics.success()
         dismiss()
     }
 }

@@ -44,7 +44,7 @@ struct RecoveryLoadChart: View {
                 .lineStyle(StrokeStyle(lineWidth: 1.5))
             }
         }
-        .frame(height: 180)
+        .frame(height: 184)
         .id(locale)
         .chartOverlay { proxy in
             ChartTooltipGesture(

@@ -82,6 +82,7 @@ struct TemplatePreviewSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("action.editTemplate") {
+                        Haptics.tap()
                         onEdit()
                         dismiss()
                     }

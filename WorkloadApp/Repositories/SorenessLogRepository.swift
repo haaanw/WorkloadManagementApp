@@ -3,6 +3,10 @@ import SwiftData
 
 /// Persistence for the **local-only** niggle self-log (Phase 25, D-01).
 ///
+/// v1.5 self-coached reset note: the visible niggle-logging UI was removed, but this local-only
+/// log + its `SorenessLog` `@Model` are migration-sensitive and intentionally KEPT for a later
+/// migration-aware cleanup pass.
+///
 /// `SorenessLog` is a local-only model (mirrors `CyclePredictionLog` / `MenstrualCycleSnapshot`).
 /// This repository reads/writes it on-device only — it never encodes, uploads, or syncs niggle
 /// data (no `import Supabase`, no encoder, no push/pull). The type name appears nowhere in

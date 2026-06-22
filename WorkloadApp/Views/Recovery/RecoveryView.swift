@@ -9,12 +9,8 @@ struct RecoveryView: View {
     private var recoverySnapshots: [RecoverySnapshot]
     @Query(sort: \WellnessCheckIn.date, order: .reverse)
     private var wellnessCheckIns: [WellnessCheckIn]
-    @Query private var cycleSnapshots: [MenstrualCycleSnapshot]
     @State private var showMorningCheckIn = false
     @State private var viewModel = RecoveryViewModel()
-    // RED-S banner dismissal persisted per coarse period (month) so it does not nag daily
-    // but can re-surface if the pattern persists into a new cycle (D-13).
-    @AppStorage("redsBannerDismissedPeriod") private var redsDismissedPeriod: String = ""
 
     private var athlete: Athlete? { athletes.first }
 
@@ -36,97 +32,10 @@ struct RecoveryView: View {
         scopedRecoverySnapshots.first { Calendar.current.isDateInToday($0.date) }
     }
 
-    // MARK: - Cycle context (CYCLE-06/07/08)
-
-    /// Athlete-scoped cycle snapshots, newest first.
-    private var scopedCycleSnapshots: [MenstrualCycleSnapshot] {
-        guard let athleteId = athlete?.id else { return [] }
-        return cycleSnapshots
-            .filter { $0.athlete?.id == athleteId }
-            .sorted { $0.date > $1.date }
-    }
-
-    /// Latest cycle snapshot (D-02). Nil when no HealthKit menstrual data (SC6 — UI invisible).
-    private var latestCycleSnapshot: MenstrualCycleSnapshot? {
-        scopedCycleSnapshots.first
-    }
-
-    /// D-03/D-04 interpretation gate — phase context + fueling only when high-confidence,
-    /// non-unknown phase, and no exclusion (mirrors the Phase 18 engine gate).
-    private func cycleGatePasses(_ snapshot: MenstrualCycleSnapshot) -> Bool {
-        snapshot.confidence >= 0.7
-            && (snapshot.estimatedPhase ?? .unknown) != .unknown
-            && !(snapshot.isOnHormonalContraceptive || snapshot.isPregnant || snapshot.isLactating)
-    }
-
-    /// Derive the pure RED-S engine input from local snapshots + athlete exclusion flags (D-10/D-11).
-    /// All cycle math is done here (view layer); the engine stays pure (D-14).
-    private var redsRiskState: REDSRiskEngine.RiskState {
-        let calendar = Calendar.current
-        // Cycle-start dates ascending (mirror CycleTrackingService cycle-start handling).
-        let startDates = scopedCycleSnapshots
-            .filter { $0.isCycleStart }
-            .map { calendar.startOfDay(for: $0.date) }
-            .sorted()
-
-        // Cycle lengths = day-diffs between consecutive starts (most-recent last).
-        var lengths: [Int] = []
-        if startDates.count >= 2 {
-            for i in 1..<startDates.count {
-                if let days = calendar.dateComponents([.day], from: startDates[i - 1], to: startDates[i]).day {
-                    lengths.append(days)
-                }
-            }
-        }
-
-        let median: Int? = {
-            guard !lengths.isEmpty else { return nil }
-            let sorted = lengths.sorted()
-            let mid = sorted.count / 2
-            return sorted.count.isMultiple(of: 2) ? (sorted[mid - 1] + sorted[mid]) / 2 : sorted[mid]
-        }()
-
-        let daysSinceLastStart = startDates.last.flatMap {
-            calendar.dateComponents([.day], from: $0, to: .now).day
-        }
-
-        let input = REDSRiskEngine.CycleHistoryInput(
-            recentCycleLengths: lengths,
-            medianCycleLength: median,
-            daysSinceLastCycleStart: daysSinceLastStart,
-            hasSnapshotData: !scopedCycleSnapshots.isEmpty,
-            isPregnant: athlete?.isPregnant ?? false,
-            isLactating: athlete?.isLactating ?? false,
-            isOnHormonalContraceptive: athlete?.isOnHormonalContraceptive ?? false,
-            hasPCOS: athlete?.hasPCOS ?? false,
-            isPerimenopausal: athlete?.isPerimenopausal ?? false
-        )
-        return REDSRiskEngine.classify(input: input)
-    }
-
-    private var currentPeriodKey: String {
-        let comps = Calendar.current.dateComponents([.year, .month], from: .now)
-        return "\(comps.year ?? 0)-\(comps.month ?? 0)"
-    }
-
-    private var showREDSBanner: Bool {
-        redsRiskState == .monitor && redsDismissedPeriod != currentPeriodKey
-    }
-
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
-                    // Non-diagnostic RED-S monitoring notice (CYCLE-08, D-12/D-13).
-                    // Only when the pure engine returns .monitor and not dismissed this period.
-                    if showREDSBanner {
-                        REDSAttentionBanner(onDismiss: {
-                            redsDismissedPeriod = currentPeriodKey
-                        })
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.top, Spacing.sm)
-                    }
-
                     if todayCheckIn == nil {
                         MorningCheckInPrompt {
                             showMorningCheckIn = true
@@ -135,18 +44,12 @@ struct RecoveryView: View {
                         .padding(.top, Spacing.sm)
                     }
 
-                    RecoveryScoreCard(recovery: todayRecovery, cycleSnapshot: latestCycleSnapshot)
+                    RecoveryScoreCard(
+                        recovery: todayRecovery,
+                        wellnessScore: todayCheckIn?.wellnessScore
+                    )
                         .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.sm)
-
-                    // Cycle-aware fueling & recovery suggestions (CYCLE-07, D-08).
-                    // Only when cycle data exists and the D-03 phase gate passes.
-                    if let snap = latestCycleSnapshot, cycleGatePasses(snap) {
-                        SectionContainer {
-                            CycleFuelingCard(phase: snap.estimatedPhase ?? .unknown)
-                                .padding(.horizontal, Spacing.sm)
-                        }
-                    }
 
                     SectionContainer(header: "recovery.section.hrvTrend") {
                         HRVTrendChart(data: viewModel.hrvHistory)
@@ -163,6 +66,7 @@ struct RecoveryView: View {
                     if !scopedWellnessCheckIns.isEmpty {
                         SectionContainer(header: "recovery.section.wellnessCheckIns") {
                             WellnessHistorySection(checkIns: Array(scopedWellnessCheckIns.prefix(7)))
+                                .padding(.horizontal, Spacing.sm)
                         }
                     }
 
@@ -225,11 +129,11 @@ struct RecoveryView: View {
                     Spacer().frame(height: Spacing.lg)
                 }
             }
+            .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
             .navigationTitle("recovery.nav.title")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .withContextSwitcher()
             .sheet(isPresented: $showMorningCheckIn) {
                 MorningCheckInSheet(onSaved: {
                     Task { await onCheckInSaved() }
@@ -255,8 +159,7 @@ struct RecoveryView: View {
         await viewModel.onWellnessCheckInSaved(
             athlete: athlete,
             healthKitService: container.healthKitService,
-            modelContext: modelContext,
-            cycleTrackingService: container.cycleTrackingService
+            modelContext: modelContext
         )
     }
 }
@@ -269,7 +172,7 @@ struct MorningCheckInPrompt: View {
     var body: some View {
         Button(action: action) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                     Text("recovery.checkin.title")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
@@ -284,7 +187,8 @@ struct MorningCheckInPrompt: View {
             }
             .cardStyle(verticalPadding: Spacing.sm)
         }
-        .foregroundStyle(.primary)
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+        .foregroundStyle(ColorTokens.text1)
     }
 }
 
@@ -292,33 +196,32 @@ struct MorningCheckInPrompt: View {
 
 struct RecoveryScoreCard: View {
     let recovery: RecoverySnapshot?
-    var cycleSnapshot: MenstrualCycleSnapshot? = nil
+    /// Today's subjective wellness check-in score (the how-you-feel part alone), read-only.
+    /// Already feeds the composite recoveryScore at 25% in RecoveryScoreEngine — surfaced here
+    /// only as a subordinate label, never re-computed or re-fused (B.2 honest blend).
+    var wellnessScore: Double? = nil
     @Environment(\.locale) private var locale
-
-    /// D-03/D-04 gate for the readiness-first phase-context line.
-    private var phaseContextKey: String? {
-        guard let snap = cycleSnapshot,
-              snap.confidence >= 0.7,
-              let phase = snap.estimatedPhase,
-              phase != .unknown,
-              !(snap.isOnHormonalContraceptive || snap.isPregnant || snap.isLactating)
-        else { return nil }
-        return phase.contextCopyKey
-    }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("recovery.section.recoveryScore")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
+                .font(.Tokens.sectionHead)
+                .foregroundStyle(ColorTokens.text1)
+
+            // Honest blend subtitle (B.2): the composite score already combines wearable
+            // signals with how-you-feel — copy must not claim it is wearable-only.
+            Text("recovery.blend.subtitle")
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.text2)
+                .fixedSize(horizontal: false, vertical: true)
+                .frame(maxWidth: .infinity, alignment: .leading)
 
             if let recovery {
                 HStack(alignment: .lastTextBaseline) {
                     Text("\(Int(recovery.recoveryScore))")
                         .font(.Tokens.pageTitle)
                         .monospacedDigit()
-                        .foregroundStyle(ColorTokens.text1)
+                        .foregroundStyle(ColorTokens.accent)
                     Text("/ 100")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
@@ -362,15 +265,30 @@ struct RecoveryScoreCard: View {
                     }
                 }
 
-                // Readiness-first phase-context line (CYCLE-06 SC2, D-05). Explains the score
-                // in cycle terms; never prescribes training. Only when the D-03 gate passes.
-                if let key = phaseContextKey {
+                // "How you feel" element (B.2): surface today's subjective wellness score as a
+                // DISTINCT, subordinate labeled row — NOT a second zone-badge hero. Read-only
+                // from today's existing check-in; no new score math. Shown only when present.
+                if let wellnessScore {
                     Rectangle()
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
-                    Text(LocalizedStringKey(key))
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
+
+                    HStack {
+                        Text("recovery.feel.label")
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text2)
+                        Spacer()
+                        Text("\(Int(wellnessScore))/100")
+                            .font(.Tokens.label)
+                            .monospacedDigit()
+                            .foregroundStyle(ColorTokens.text1)
+                    }
+
+                    // Low-emphasis "why these differ" note: recovery = wearable + how-you-feel
+                    // combined; this score = the how-you-feel part alone.
+                    Text("recovery.feel.note")
+                        .font(.Tokens.micro)
+                        .foregroundStyle(ColorTokens.text3)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
@@ -380,7 +298,7 @@ struct RecoveryScoreCard: View {
                     .foregroundStyle(ColorTokens.text2)
             }
         }
-        .cardStyle()
+        .emphasisCardStyle()
     }
 }
 
@@ -410,10 +328,6 @@ struct WellnessHistorySection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
-
             ForEach(Array(checkIns.enumerated()), id: \.element.id) { index, checkIn in
                 HStack {
                     Text(checkIn.date.relativeString(locale: locale))
@@ -432,11 +346,7 @@ struct WellnessHistorySection: View {
                     RowSeparator()
                 }
             }
-
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
         }
-        .background(ColorTokens.background)
+        .cardStyle(horizontalPadding: 0, verticalPadding: 0)
     }
 }

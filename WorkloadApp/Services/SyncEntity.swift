@@ -10,9 +10,7 @@ enum SyncEntity: String, CaseIterable, Identifiable {
     case wellnessCheckIns
     case workloadSnapshots
     case behaviorTags
-    case coachRelationships
     case trainingProfiles
-    case prescribedWorkouts
 
     var id: String { rawValue }
 
@@ -25,9 +23,7 @@ enum SyncEntity: String, CaseIterable, Identifiable {
         case .wellnessCheckIns: "Wellness"
         case .workloadSnapshots: "Training Load"
         case .behaviorTags: "Behavior Tags"
-        case .coachRelationships: "Coach Links"
         case .trainingProfiles: "Training Profile"
-        case .prescribedWorkouts: "Prescribed Workouts"
         }
     }
 }

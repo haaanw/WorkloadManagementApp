@@ -76,34 +76,15 @@ struct PDFGenerationSheet: View {
     // MARK: - Date Range Chips
 
     private var dateRangeChips: some View {
-        HStack(spacing: 8) {
+        HStack(spacing: Spacing.xs) {
             ForEach(PDFReportEngine.ReportDateRange.allCases, id: \.self) { range in
-                Button {
-                    selectedRange = range
-                } label: {
-                    Text(range.displayName)
-                        .font(.Tokens.label)
-                        .foregroundStyle(
-                            selectedRange == range
-                                ? ColorTokens.text1
-                                : ColorTokens.text2
-                        )
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
-                        .frame(minHeight: 44)
-                        .background(ColorTokens.surface)
-                        .overlay(
-                            Rectangle()
-                                .stroke(
-                                    selectedRange == range
-                                        ? ColorTokens.text1
-                                        : ColorTokens.divider,
-                                    lineWidth: selectedRange == range ? 1 : 0.5
-                                )
-                        )
-                }
+                RangeChip(
+                    title: range.displayName,
+                    isSelected: selectedRange == range
+                ) { selectedRange = range }
             }
         }
+        .cardStyle(verticalPadding: Spacing.sm)
     }
 
     // MARK: - Generate Button
@@ -189,5 +170,32 @@ struct PDFGenerationSheet: View {
 
             isGenerating = false
         }
+    }
+}
+
+// MARK: - Range Chip
+
+/// Preset date-range chip for athlete PDF export (moved here from the deleted CoachExportSheet).
+struct RangeChip: View {
+    let title: String
+    let isSelected: Bool
+    let action: () -> Void
+
+    var body: some View {
+        Button(action: action) {
+            Text(title)
+                .font(.Tokens.label)
+                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
+                .padding(.horizontal, Spacing.sm)
+                .frame(maxWidth: .infinity, minHeight: 48)
+                .background(isSelected ? ColorTokens.surface : ColorTokens.surfaceEl)
+                .overlay(
+                    Rectangle().stroke(
+                        isSelected ? ColorTokens.text1 : ColorTokens.divider,
+                        lineWidth: 0.5
+                    )
+                )
+        }
+        .buttonStyle(.plain)
     }
 }

@@ -18,11 +18,8 @@ struct DashboardView: View {
     @State private var showActiveWorkout = false
     @State private var showWellnessCheckIn = false
     @State private var showTrainingProfile = false
-    @State private var showNiggleLog = false
     @State private var viewModel = DashboardViewModel()
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
-    @AppStorage("cyclePromptDismissed") private var cyclePromptDismissed: Bool = false
-    @Query private var cycleSnapshots: [MenstrualCycleSnapshot]
 
     private var athlete: Athlete? { athletes.first }
 
@@ -36,34 +33,143 @@ struct DashboardView: View {
         return trainingProfiles.isEmpty
     }
 
-    private var showCyclePrompt: Bool {
-        !cyclePromptDismissed && cycleSnapshots.isEmpty
-    }
-
-    /// Latest cycle snapshot (D-02). Nil when no HealthKit menstrual data exists (SC6 — UI invisible).
-    private var latestCycleSnapshot: MenstrualCycleSnapshot? {
-        cycleSnapshots.sorted { $0.date > $1.date }.first
-    }
-
     var body: some View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+                    // 1. Hero readiness — score + recommendation headline in its footer (recommendation stays "up top").
                     HeroReadinessCard(viewModel: viewModel)
+                        .padding(.horizontal, Spacing.sm)
 
-                    // Phase 28 Wave 4 — FLAGGED dual-run card; placement PROVISIONAL, flagged for human visual review.
+                    // 2. Phase 28 Wave 4 — FLAGGED dual-run card; placement PROVISIONAL, flagged for human visual review.
                     // Flag OFF (default) → dualRunMessage nil → PRSDualRunCard renders EmptyView → layout byte-identical.
+                    // UNTOUCHED — flag-gated exactly as before.
                     PRSDualRunCard(message: viewModel.dualRunMessage)
 
+                    // 3. Recommendation-aware primary action — always presents ActiveWorkoutSheet (logging never blocked).
+                    PrimaryActionCTA(
+                        recommendation: viewModel.recommendation,
+                        onTap: { showActiveWorkout = true }
+                    )
+
+                    // 4. Established-user value cluster (C.2): once the user has real data, prioritise
+                    //    "what's my load + what do I do + act" — fatigue/cold-start → load → metrics →
+                    //    weekly summary → recent sessions — directly under the hero/CTA. Setup/connect
+                    //    prompts are demoted below (group 5). Their own render guards already hide them
+                    //    once established, so cold-start users (hasRealData == false) instead see the
+                    //    setup prompts near the top (group 5 renders first because this cluster is empty).
+                    // The load/baseline cluster (fatigue/cold-start signal + TrainingLoadSection)
+                    // must surface for cold-start users too (isColdStartActive == true while
+                    // hasRealData == false) — phase-40's reorder had wrapped it in
+                    // `if hasRealData`, hiding the estimated ATL/CTL/ACWR (isEstimated) surface
+                    // during cold-start. TrainingLoadSection renders exactly once here for both
+                    // cold-start and established users; the established-only sections (metrics,
+                    // weekly summary, recent sessions) stay gated on hasRealData below.
+                    if viewModel.hasRealData || viewModel.isColdStartActive {
+                        Spacer().frame(height: Spacing.lg)
+
+                        // Fatigue attention signal (D-FAT, COLD-07)
+                        if viewModel.isColdStartActive {
+                            // D-16: Show "Building baseline..." during cold-start
+                            Text("dashboard.coldStart.buildingBaseline")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text2)
+                                .cardStyle(verticalPadding: Spacing.sm)
+                                .padding(.horizontal, Spacing.sm)
+                            Spacer().frame(height: Spacing.lg)
+                        } else if let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
+                                  zone != .low {
+                            FatigueAttentionBanner(fatigueIndex: fi, zone: zone)
+                                .padding(.horizontal, Spacing.sm)
+                            Spacer().frame(height: Spacing.lg)
+                        }
+
+                        TrainingLoadSection(viewModel: viewModel)
+                            .padding(.horizontal, Spacing.sm)
+
+                        Spacer().frame(height: Spacing.lg)
+                    }
+
+                    // Established-user value cluster (metrics → weekly summary → recent sessions)
+                    // remains hasRealData-only: these surfaces require real data and are NOT shown
+                    // during cold-start.
+                    if viewModel.hasRealData {
+                        MetricsStrip(viewModel: viewModel)
+                            .padding(.horizontal, Spacing.sm)
+
+                        Spacer().frame(height: Spacing.lg)
+
+                        // Weekly Summary (ANLYT-02, ANLYT-03, D-03)
+                        if let summary = viewModel.weeklySummary, summary.sessionCount > 0 {
+                            WeeklySummaryCard(summary: summary, streak: viewModel.currentStreak)
+                                .padding(.horizontal, Spacing.sm)
+                            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                                .padding(.horizontal, Spacing.sm)
+
+                            // Notification pre-permission card (NOTF-02, D-07)
+                            if !prePermissionShown {
+                                NotificationPrePermissionCard(
+                                    onEnable: {
+                                        prePermissionShown = true
+                                        Task {
+                                            let granted = await container.notificationService.requestAuthorization()
+                                            if granted {
+                                                container.notificationService.scheduleWeeklySummary(
+                                                    weekday: 1,
+                                                    hour: 19,
+                                                    minute: 0,
+                                                    sessionCount: viewModel.weeklySummary?.sessionCount ?? 0,
+                                                    streak: viewModel.currentStreak,
+                                                    prCount: 0,
+                                                    volumeDelta: viewModel.weeklySummary?.volumeDelta ?? 0
+                                                )
+                                                UserDefaults.standard.set(true, forKey: "notificationsEnabled")
+                                                UserDefaults.standard.set(1, forKey: "notificationDay")
+                                                UserDefaults.standard.set("19:00", forKey: "notificationTime")
+                                            }
+                                        }
+                                    },
+                                    onDismiss: {
+                                        prePermissionShown = true
+                                    }
+                                )
+                                .padding(.horizontal, Spacing.sm)
+                                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                                    .padding(.horizontal, Spacing.sm)
+                            }
+
+                            Spacer().frame(height: Spacing.lg)
+                        } else if !viewModel.isLoading {
+                            Text("dashboard.weeklySummary.firstWeekPrompt")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text2)
+                                .cardStyle(verticalPadding: Spacing.sm)
+                                .padding(.horizontal, Spacing.sm)
+                            Spacer().frame(height: Spacing.lg)
+                        }
+
+                        RecentSessionsSection(sessions: Array(recentSessions.prefix(5)))
+                            .padding(.horizontal, Spacing.sm)
+
+                        Spacer().frame(height: Spacing.lg)
+                    }
+
+                    // 5. Setup / connect prompt group — guards UNCHANGED. For cold-start users
+                    //    (hasRealData == false) these are the first content under the CTA (prominent);
+                    //    for established users their guards no-op so nothing extra renders here.
                     if showWelcomeCard {
                         WelcomeActionCard(
                             onLogWorkout: { showActiveWorkout = true },
                             onWellnessCheckIn: { showWellnessCheckIn = true }
                         )
+                        .padding(.horizontal, Spacing.sm)
                     }
 
                     if showTrainingProfileCard {
-                        TrainingProfileCard(onComplete: { showTrainingProfile = true })
+                        SectionContainer {
+                            TrainingProfileCard(onComplete: { showTrainingProfile = true })
+                                .padding(.horizontal, Spacing.sm)
+                        }
                     }
 
                     // HealthKit empty-state routing:
@@ -90,147 +196,15 @@ struct DashboardView: View {
                         }
                     }
 
-                    // Cycle-aware recovery soft prompt (D-02)
-                    if showCyclePrompt {
-                        VStack(alignment: .leading, spacing: 8) {
-                            HStack {
-                                Text("dashboard.cycleAware.title")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                                Button {
-                                    cyclePromptDismissed = true
-                                } label: {
-                                    Image(systemName: "xmark")
-                                        .font(.Tokens.smallLabel)
-                                        .foregroundStyle(ColorTokens.text2)
-                                }
-                                .accessibilityLabel(String(localized: "a11y.dismissCyclePrompt", defaultValue: "Dismiss cycle tracking prompt"))
-                            }
-                            Text("dashboard.cycleAware.body")
-                                .font(.Tokens.label)
-                                .foregroundStyle(ColorTokens.text2)
-                            Button {
-                                if let url = URL(string: UIApplication.openSettingsURLString) {
-                                    UIApplication.shared.open(url)
-                                }
-                            } label: {
-                                Text("action.openSettings")
-                                    .font(.Tokens.label)
-                                    .foregroundStyle(ColorTokens.text1)
-                                    .underline()
-                            }
-                        }
-                        .cardStyle(verticalPadding: Spacing.sm)
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.top, Spacing.xs)
-                    }
-
-                    // Unobtrusive opt-in cycle indicator (CYCLE-06 SC1, D-07).
-                    // Invisible when no HealthKit menstrual data (latestCycleSnapshot == nil, SC6/D-01).
-                    if let snap = latestCycleSnapshot {
-                        CycleStatusStrip(snapshot: snap)
-                        Spacer().frame(height: Spacing.xs)
-                    }
-
-                    MetricsStrip(viewModel: viewModel)
-
                     Spacer().frame(height: Spacing.lg)
-
-                    // Weekly Summary (ANLYT-02, ANLYT-03, D-03)
-                    if let summary = viewModel.weeklySummary, summary.sessionCount > 0 {
-                        WeeklySummaryCard(summary: summary, streak: viewModel.currentStreak)
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-
-                        // Notification pre-permission card (NOTF-02, D-07)
-                        if !prePermissionShown {
-                            NotificationPrePermissionCard(
-                                onEnable: {
-                                    prePermissionShown = true
-                                    Task {
-                                        let granted = await container.notificationService.requestAuthorization()
-                                        if granted {
-                                            container.notificationService.scheduleWeeklySummary(
-                                                weekday: 1,
-                                                hour: 19,
-                                                minute: 0,
-                                                sessionCount: viewModel.weeklySummary?.sessionCount ?? 0,
-                                                streak: viewModel.currentStreak,
-                                                prCount: 0,
-                                                volumeDelta: viewModel.weeklySummary?.volumeDelta ?? 0
-                                            )
-                                            UserDefaults.standard.set(true, forKey: "notificationsEnabled")
-                                            UserDefaults.standard.set(1, forKey: "notificationDay")
-                                            UserDefaults.standard.set("19:00", forKey: "notificationTime")
-                                        }
-                                    }
-                                },
-                                onDismiss: {
-                                    prePermissionShown = true
-                                }
-                            )
-                            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                        }
-
-                        Spacer().frame(height: Spacing.lg)
-                    } else if !viewModel.isLoading {
-                        Text("dashboard.weeklySummary.firstWeekPrompt")
-                            .font(.Tokens.label)
-                            .foregroundStyle(ColorTokens.text2)
-                            .cardStyle(verticalPadding: Spacing.sm)
-                        Spacer().frame(height: Spacing.lg)
-                    }
-
-                    // Fatigue attention signal (D-FAT, COLD-07)
-                    if viewModel.isColdStartActive {
-                        // D-16: Show "Building baseline..." during cold-start
-                        Text("dashboard.coldStart.buildingBaseline")
-                            .font(.Tokens.label)
-                            .foregroundStyle(ColorTokens.text2)
-                            .cardStyle(verticalPadding: Spacing.sm)
-                        Spacer().frame(height: Spacing.lg)
-                    } else if let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
-                              zone != .low {
-                        FatigueAttentionBanner(fatigueIndex: fi, zone: zone)
-                        Spacer().frame(height: Spacing.lg)
-                    }
-
-                    TrainingLoadSection(viewModel: viewModel)
-
-                    Spacer().frame(height: Spacing.lg)
-
-                    RecentSessionsSection(sessions: Array(recentSessions.prefix(5)))
-
-                    Spacer().frame(height: Spacing.lg)
-
-                    // On-demand niggle log affordance (D-07) — no nag, no reminder.
-                    Button {
-                        showNiggleLog = true
-                    } label: {
-                        HStack(spacing: Spacing.xs) {
-                            Image(systemName: "bandage")
-                                .font(.Tokens.label)
-                                .foregroundStyle(ColorTokens.text2)
-                            Text("dashboard.niggle.logAction")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
-                            Spacer()
-                            Image(systemName: "chevron.right")
-                                .font(.Tokens.micro)
-                                .foregroundStyle(ColorTokens.text3)
-                        }
-                        .cardStyle(verticalPadding: Spacing.sm)
-                    }
-                    .buttonStyle(.plain)
-                    .padding(.horizontal, Spacing.sm)
                 }
             }
+            .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
             .navigationTitle("dashboard.nav.title")
             .navigationBarTitleDisplayMode(.inline)
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .withContextSwitcher()
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("dashboard.action.logWorkout") {
@@ -249,9 +223,6 @@ struct DashboardView: View {
             .sheet(isPresented: $showTrainingProfile) {
                 TrainingProfileSheet()
             }
-            .sheet(isPresented: $showNiggleLog) {
-                NiggleLogSheet()
-            }
             .navigationDestination(for: TrendDestination.self) { dest in
                 switch dest {
                 case .hrv:   HRVDetailView(data: viewModel.hrv28Days)
@@ -261,6 +232,7 @@ struct DashboardView: View {
             .task {
                 await loadData()
             }
+            .onAppear { Haptics.prepare() }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     Task { await loadData() }
@@ -275,9 +247,13 @@ struct DashboardView: View {
             athlete: athlete,
             healthKitService: container.healthKitService,
             modelContext: modelContext,
-            syncService: container.syncService,
-            cycleTrackingService: container.cycleTrackingService
+            syncService: container.syncService
         )
+        // ACT-01 — explicit PRODUCTION opt-in: activate the verdict-feeding dashboard surface so the
+        // live PRS readiness/strain pipeline runs (no longer tests-only). Synchronous, AFTER the async
+        // load returns, so VerdictSurfaceActivation.withEnabled(true) fully wraps the sync build with
+        // no await straddle. Cold-start/low-confidence still defers (builder returns nil).
+        viewModel.activateVerdictSurface()
         // Refresh notification content with current data (NOTF-01 staleness prevention)
         viewModel.refreshNotificationContent(
             notificationService: container.notificationService,
@@ -286,11 +262,58 @@ struct DashboardView: View {
     }
 }
 
+// MARK: - Primary Action CTA
+
+/// Recommendation-aware primary-action button shown directly under the hero readiness score.
+/// Label adapts to the existing AutoregulationEngine recommendation (no new engine/VM logic);
+/// the action ALWAYS presents ActiveWorkoutSheet — logging is never blocked regardless of label.
+/// DESIGN.md (Tuwa v2): accent is now the "live / actionable" semantic, so the primary CTA wears
+/// an accent outline (border, not a filled accent button) over the dominant text1 fill. 0pt
+/// corners, no shadow; tactile press via .pressable.
+struct PrimaryActionCTA: View {
+    let recommendation: AutoregulationEngine.TrainingRecommendation?
+    let onTap: () -> Void
+
+    private var labelKey: String.LocalizationValue {
+        switch recommendation?.sessionType {
+        case .rest:
+            return "dashboard.cta.logRestDay"
+        case .activeRecovery:
+            return "dashboard.cta.logLightSession"
+        case .power, .strength, .hypertrophy, .conditioning:
+            return "dashboard.cta.startSession"
+        case nil:
+            return "dashboard.cta.logWorkout"
+        }
+    }
+
+    var body: some View {
+        Button {
+            onTap()
+        } label: {
+            Text(String(localized: labelKey))
+                .font(.Tokens.bodyMedium)
+                .foregroundStyle(ColorTokens.background)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.sm)
+                .background(ColorTokens.text1)
+                .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 1))
+        }
+        .buttonStyle(.pressable)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.top, Spacing.lg)
+        .accessibilityLabel(String(localized: labelKey))
+    }
+}
+
 // MARK: - Hero Readiness Card
 
 struct HeroReadinessCard: View {
     let viewModel: DashboardViewModel
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Drives the signature hero count-up: animates 0 → recoveryScore on appear via Motion.scoreCountUp.
+    @State private var displayedScore: Double = 0
 
     private var dateLabel: String {
         let f = DateFormatter()
@@ -306,12 +329,25 @@ struct HeroReadinessCard: View {
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
+                .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: viewModel.hasRealData)
 
             if viewModel.hasRealData {
-                Text("\(Int(viewModel.recoveryScore))")
+                Text("\(Int(displayedScore))")
                     .font(.Tokens.heroScore)
                     .monospacedDigit()
+                    .contentTransition(.numericText(value: displayedScore))
                     .foregroundStyle(ColorTokens.accent)
+                    .transition(.opacity)
+                    .onAppear {
+                        withAnimation(Motion.resolved(Motion.scoreCountUp, reduceMotion: reduceMotion)) {
+                            displayedScore = viewModel.recoveryScore
+                        }
+                    }
+                    .onChange(of: viewModel.recoveryScore) { _, newValue in
+                        withAnimation(Motion.resolved(Motion.scoreCountUp, reduceMotion: reduceMotion)) {
+                            displayedScore = newValue
+                        }
+                    }
             }
 
             // Periodization phase label (D-01, D-02)
@@ -351,13 +387,15 @@ struct HeroReadinessCard: View {
                     .foregroundStyle(ColorTokens.text1)
             }
         }
-        .cardStyle()
+        // The hero readiness score is THE emphasis surface on the dashboard: raised surfaceEl2
+        // plane + dividerStrong border + 2pt accent top rule.
+        .emphasisCardStyle()
     }
 
     @ViewBuilder
     private func factorRow(_ factor: ReasoningEngine.Factor) -> some View {
         let content = HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(factor.label)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
@@ -375,7 +413,7 @@ struct HeroReadinessCard: View {
 
         if let dest = trendDestination(for: factor) {
             NavigationLink(value: dest) { content }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable(scale: 1, opacity: 0.6))
         } else {
             content
         }
@@ -474,11 +512,7 @@ struct MetricsStrip: View {
         }
         .frame(maxWidth: .infinity)
         .background(ColorTokens.surface)
-        .overlay(alignment: .bottom) {
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
-        }
+        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 
     private func sleepString(_ minutes: Double) -> String {
@@ -493,12 +527,12 @@ struct MetricStripCell: View {
     var staleDaysAgo: Int? = nil
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(label)
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
-            HStack(alignment: .lastTextBaseline, spacing: 2) {
+            HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                 Text(value)
                     .font(.Tokens.sectionHead)
                     .monospacedDigit()
@@ -525,7 +559,7 @@ struct TrainingLoadSection: View {
     let viewModel: DashboardViewModel
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Text("dashboard.section.trainingLoad")
                     .font(.Tokens.sectionHead)
@@ -543,15 +577,17 @@ struct TrainingLoadSection: View {
                         .fill(ColorTokens.divider)
                         .frame(height: 1)
                         .overlay(alignment: .leading) {
+                            // v2: progress / readiness-bar FILLS carry the accent (live magnitude).
+                            // Zone classification is still communicated via the ZoneBadge text above.
                             Rectangle()
-                                .fill(ColorTokens.acwrZoneColor(viewModel.acwrZone))
+                                .fill(ColorTokens.accent)
                                 .frame(width: geo.size.width * min(viewModel.acwr / 2.0, 1.0), height: 1)
                         }
                 }
                 .frame(height: 1)
             }
 
-            HStack(spacing: 24) {
+            HStack(spacing: Spacing.md) {
                 LoadStatCell(
                     label: "ACWR",
                     value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%.2f", viewModel.acwr),
@@ -574,9 +610,8 @@ struct TrainingLoadSection: View {
                 )
             }
         }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.md)
-        .background(ColorTokens.background)
+        // v2: the load section is a distinct card plane (surfaceEl + 0.5pt enclosing border).
+        .cardStyle()
     }
 }
 
@@ -586,13 +621,13 @@ struct LoadStatCell: View {
     var isEstimated: Bool = false
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(label)
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
             Text(value)
-                .font(.Tokens.label)
+                .font(.Tokens.sectionHead)
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text1)
             if isEstimated {
@@ -626,13 +661,13 @@ struct RecentSessionsSection: View {
                 Text("dashboard.empty.noSessions")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
             } else {
                 ForEach(sessions, id: \.id) { session in
                     VStack(spacing: 0) {
                         HStack {
-                            VStack(alignment: .leading, spacing: 4) {
+                            VStack(alignment: .leading, spacing: Spacing.xs) {
                                 Text(session.sessionName ?? session.sportType.displayName)
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
@@ -648,8 +683,8 @@ struct RecentSessionsSection: View {
                                     .foregroundStyle(ColorTokens.text2)
                             }
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.sm)
 
                         Rectangle()
                             .fill(ColorTokens.divider)
@@ -658,7 +693,9 @@ struct RecentSessionsSection: View {
                 }
             }
         }
-        .background(ColorTokens.background)
+        // v2: enclose the recent-sessions list as a card plane; inner row hairlines are kept.
+        .background(ColorTokens.surfaceEl)
+        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }
 

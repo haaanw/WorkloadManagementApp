@@ -2,7 +2,6 @@ import SwiftUI
 import SwiftData
 
 struct ActiveWorkoutSheet: View {
-    var prescription: PrescribedWorkout?
     var template: WorkoutTemplate?
 
     @Environment(AppContainer.self) private var container
@@ -27,15 +26,14 @@ struct ActiveWorkoutSheet: View {
     @State private var showTemplateSavedToast = false
     @State private var templateSaveError = false
     @State private var sourceTemplate: WorkoutTemplate?
-    // Non-blocking post-workout niggle nudge (D-08). Never gates the save; sequenced
-    // AFTER the spike/PR early-return branches so it never collides with them.
-    @State private var showNiggleNudge = false
-    @State private var showNiggleLog = false
+    // Zero-done save guard (inverse data-loss fix): true when Finish is tapped but NO set is
+    // marked done while pending (ghost/suggested) sets exist — saving would log an empty
+    // session and silently drop the prefilled work. We confirm before discarding.
+    @State private var showZeroDoneGuard = false
 
     private var athlete: Athlete? { athletes.first }
 
-    init(prescription: PrescribedWorkout? = nil, template: WorkoutTemplate? = nil) {
-        self.prescription = prescription
+    init(template: WorkoutTemplate? = nil) {
         self.template = template
     }
 
@@ -51,6 +49,7 @@ struct ActiveWorkoutSheet: View {
                     VStack(spacing: 16) {
                         TextField(String(localized: "workout.field.sessionName.placeholder", defaultValue: "Session Name (optional)"), text: $sessionName)
                             .textFieldStyle(SharpTextFieldStyle())
+                            .accessibilityIdentifier("activeWorkout.sessionName")
 
                         RadialPicker(selection: $sportType, title: "picker.sportType.title")
                             .onChange(of: sportType) { _, newSport in
@@ -87,7 +86,7 @@ struct ActiveWorkoutSheet: View {
 
                     // Exercise entries
                     ForEach($entries) { $entry in
-                        ExerciseEntryCard(entry: $entry, sportType: sportType)
+                        ExerciseEntryCard(entry: $entry, sportType: sportType, weightUnit: athlete?.weightUnit ?? .kg)
                         Rectangle()
                             .fill(ColorTokens.divider)
                             .frame(height: 0.5)
@@ -106,7 +105,27 @@ struct ActiveWorkoutSheet: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                     }
+                    .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                     .background(ColorTokens.background)
+
+                    // Duplicate the most-recently-added exercise as a fresh GHOST-scaffolded
+                    // entry (§E.2): same name/category/muscle, set count carried, every value
+                    // ghosted (isDone=false) so building a multi-exercise session is fast
+                    // without re-picking — and nothing is logged until the user confirms.
+                    if entries.last != nil {
+                        Rectangle()
+                            .fill(ColorTokens.divider)
+                            .frame(height: 0.5)
+                        Button(action: duplicateLastExercise) {
+                            Label("action.duplicateExercise", systemImage: "plus.square.on.square")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text2)
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 16)
+                        }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                        .background(ColorTokens.background)
+                    }
                 }
             }
             .background(ColorTokens.background)
@@ -156,27 +175,31 @@ struct ActiveWorkoutSheet: View {
                     }
                 )
             }
-            .overlay {
-                if showPRCelebration {
-                    PRCelebrationOverlay(prs: newPRs) {
-                        showPRCelebration = false
-                        if showSpikeAlert { return }
-                        finishOrNudge()
-                    }
-                }
-            }
+            // Inline, non-blocking post-save banners (A.5). Both can show together when
+            // a session sets a PR AND spikes load. The session is already committed before
+            // either appears; tapping the last banner closes the workout sheet.
             .overlay(alignment: .bottom) {
-                if showSpikeAlert, !showPRCelebration, let spikeAlert {
-                    SpikeAlertBanner(alert: spikeAlert) {
-                        showSpikeAlert = false
-                        finishOrNudge()
+                VStack(spacing: 8) {
+                    if showPRCelebration {
+                        PRBanner(prs: newPRs) {
+                            showPRCelebration = false
+                            advancePostSave()
+                        }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
-                    .transition(.move(edge: .bottom).combined(with: .opacity))
-                    .padding(.bottom, 16)
-                    .padding(.horizontal, 16)
+                    if showSpikeAlert, let spikeAlert {
+                        SpikeAlertBanner(alert: spikeAlert) {
+                            showSpikeAlert = false
+                            advancePostSave()
+                        }
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                    }
                 }
+                .padding(.bottom, 16)
+                .padding(.horizontal, 16)
             }
-            .animation(.easeOut(duration: 0.25), value: showSpikeAlert)
+            .animation(Motion.entrance, value: showSpikeAlert)
+            .animation(Motion.entrance, value: showPRCelebration)
             .overlay(alignment: .bottom) {
                 if showTemplateSavedToast {
                     ToastBanner(
@@ -188,25 +211,27 @@ struct ActiveWorkoutSheet: View {
                     .padding(.horizontal, 16)
                 }
             }
-            .animation(.easeOut(duration: 0.25), value: showTemplateSavedToast)
-            // Non-blocking, skippable post-workout niggle nudge (D-08). The save is already
-            // committed; "Skip" is one tap and simply closes the workout sheet, "Log a niggle"
-            // opens the separate NiggleLogSheet. Never gates or rolls back the save.
+            .animation(Motion.entrance, value: showTemplateSavedToast)
+            // Zero-done save guard (inverse data-loss fix): Finish was tapped with NO set marked
+            // done while ghost/suggested sets are still pending. Saving now would log an empty
+            // session and drop the prefilled work, so we confirm. Cancel keeps the user in the
+            // sheet to mark sets done; Discard saves the (empty) session and exits.
             .confirmationDialog(
-                "Anything bother you?",
-                isPresented: $showNiggleNudge,
+                String(localized: "workout.save.noDone.title", defaultValue: "No sets marked done"),
+                isPresented: $showZeroDoneGuard,
                 titleVisibility: .visible
             ) {
-                Button("action.logNiggle") { showNiggleLog = true }
-                Button("action.skip", role: .cancel) { dismiss() }
+                Button(String(localized: "workout.save.noDone.discard", defaultValue: "Discard session"), role: .destructive) {
+                    persistSession()
+                }
+                Button(String(localized: "action.cancel", defaultValue: "Cancel"), role: .cancel) {}
             } message: {
-                Text("workout.soreness.optionalNote")
-            }
-            .sheet(isPresented: $showNiggleLog, onDismiss: { dismiss() }) {
-                NiggleLogSheet()
+                Text(String(localized: "workout.save.noDone.message", defaultValue: "Nothing will be logged. Mark sets done to record them, or discard this session?"))
             }
             .onAppear {
-                loadPrescription()
+                // Warm the haptic generators: this is the highest-interaction screen (per-set
+                // done taps, weight/rep commits) so latency on the first tap matters.
+                Haptics.prepare()
                 if template != nil && entries.isEmpty {
                     loadFromTemplate()
                 }
@@ -242,18 +267,39 @@ struct ActiveWorkoutSheet: View {
             return
         }
 
+        // GHOST, not concrete (inverse data-loss fix): suggested values are PROVISIONAL —
+        // they render ghosted and only become concrete (and isDone) when the user commits
+        // (tap the weight tile / ± / keypad / done toggle). Leaving reps/weightKg = nil means
+        // an untouched suggested set is not silently logged as performed.
         draft.sets = suggestion.suggestedSets.map { s in
             SetDraft(
-                reps: s.reps,
-                weightKg: s.weightKg,
-                durationSeconds: s.durationSeconds,
-                distanceMeters: s.distanceMeters,
-                rpe: s.rpe,
+                targetReps: s.reps,
+                targetWeightKg: s.weightKg,
+                targetRPE: s.rpe,
+                targetDistanceMeters: s.distanceMeters,
+                targetDurationSeconds: s.durationSeconds,
                 isFromHistory: true
             )
         }
         draft.suggestionRationale = suggestion.rationale
         draft.progressionType = suggestion.progressionType
+        stampLastSession(&draft, history: history)
+    }
+
+    /// Stamp the last-session NON-WARMUP fallback onto every set of a draft (Phase F, §3.3 #3).
+    /// Resolves the single most-recent non-warmup candidate once from the already-fetched history
+    /// and stashes it on the transient `SetDraft.lastSession*` fields. This is the precedence-3
+    /// source: it does NOT overwrite template/in-session/progression values — `SetSuggestion`
+    /// only falls through to it when nothing earlier in the ladder supplied a value. Stamping
+    /// here (one read at add/open time) keeps it off the per-render path.
+    private func stampLastSession(_ draft: inout ExerciseEntryDraft, history: [ExerciseHistoryRecord]) {
+        guard let candidate = SetSuggestion.lastSessionCandidate(from: history) else { return }
+        for i in draft.sets.indices {
+            draft.sets[i].lastSessionWeightKg = candidate.weightKg
+            draft.sets[i].lastSessionReps = candidate.reps
+            draft.sets[i].lastSessionDistanceMeters = candidate.distanceMeters
+            draft.sets[i].lastSessionDurationSeconds = candidate.durationSeconds
+        }
     }
 
     /// Build training context from the latest recovery snapshot and workload data
@@ -326,16 +372,69 @@ struct ActiveWorkoutSheet: View {
     /// Raw history fallback when ProgressionEngine has no suggestions
     private func fallbackFromHistory(_ draft: inout ExerciseEntryDraft, history: [ExerciseHistoryRecord]) {
         guard let last = history.first else { return }
-        draft.sets = last.sets.map { set in
+        // GHOST, not concrete (inverse data-loss fix): last session's numbers render as
+        // provisional suggestions; the user commits each set to log it.
+        // Exclude warmup sets from the scaffold so the prefilled ghosts are working sets only
+        // (warmups must not poison the suggested center — proposal §3.3 #3 / Phase F). If the
+        // last session was ALL warmups, fall back to its sets so the grid isn't empty.
+        let working = last.sets.filter { !$0.isWarmup }
+        let source = working.isEmpty ? last.sets : working
+        draft.sets = source.map { set in
             SetDraft(
-                reps: set.reps,
-                weightKg: set.weightKg,
-                durationSeconds: set.durationSeconds,
-                distanceMeters: set.distanceMeters,
-                rpe: set.rpe,
+                targetReps: set.reps,
+                targetWeightKg: set.weightKg,
+                targetRPE: set.rpe,
+                targetDistanceMeters: set.distanceMeters,
+                targetDurationSeconds: set.durationSeconds,
                 isFromHistory: true
             )
         }
+        stampLastSession(&draft, history: history)
+    }
+
+    /// Duplicate the most-recently-added exercise in THIS session as a new GHOST-scaffolded
+    /// entry (§E.2). Reuses the existing add-exercise + ghost-prefill path: carries the same
+    /// name/category/muscle, and rebuilds the set scaffold with every value as a ghost target
+    /// (isDone=false). When no in-session source values exist it falls back to history prefill
+    /// so the duplicate is never an empty grid. Ghosts only — never concrete — so the pipeline
+    /// is not polluted until the user explicitly commits.
+    private func duplicateLastExercise() {
+        guard let source = entries.last else { return }
+
+        var draft = ExerciseEntryDraft(
+            exerciseName: source.exerciseName,
+            exerciseCategory: source.exerciseCategory,
+            muscleGroup: source.muscleGroup
+        )
+        draft.groupName = source.groupName
+
+        // Rebuild the source's sets as ghosts: prefer the source set's committed value, fall
+        // back to its own ghost target. Never copy isDone — a duplicate starts uncommitted.
+        let ghostSets: [SetDraft] = source.sets.map { s in
+            SetDraft(
+                targetReps: s.reps ?? s.targetReps,
+                targetWeightKg: s.weightKg ?? s.targetWeightKg,
+                targetRPE: s.rpe ?? s.targetRPE,
+                targetDistanceMeters: s.distanceMeters ?? s.targetDistanceMeters,
+                targetDurationSeconds: s.durationSeconds ?? s.targetDurationSeconds,
+                isFromHistory: true
+            )
+        }
+        draft.sets = ghostSets.isEmpty ? [SetDraft()] : ghostSets
+
+        // If the source carried no usable values at all, fall back to the same history
+        // prefill the picker uses, keeping behavior consistent with adding via the picker.
+        let allEmpty = ghostSets.allSatisfy { $0.targetReps == nil && $0.targetWeightKg == nil
+            && $0.targetDistanceMeters == nil && $0.targetDurationSeconds == nil }
+        if ghostSets.isEmpty || allEmpty {
+            if container.subscriptionService.isPro {
+                prefillFromHistory(&draft)
+            } else {
+                fallbackFromHistoryPublic(&draft)
+            }
+        }
+
+        entries.append(draft)
     }
 
     private func defaultSessionType(for sport: SportType) -> SessionType {
@@ -344,40 +443,6 @@ struct ActiveWorkoutSheet: View {
         case .running, .cycling, .swimming: return .cardio
         case .teamSport: return .skill
         case .custom: return sessionType
-        }
-    }
-
-    // MARK: - Prescription Loading
-
-    private func loadPrescription() {
-        guard let rx = prescription else { return }
-        sessionName = rx.templateName
-        sportType = rx.sportType
-        sessionType = rx.sessionType
-
-        entries = rx.sortedGroups.flatMap { group in
-            group.sortedExercises.map { exercise in
-                var draft = ExerciseEntryDraft(
-                    exerciseName: exercise.exerciseName,
-                    exerciseCategory: exercise.exerciseCategory,
-                    muscleGroup: exercise.muscleGroup
-                )
-                draft.groupName = group.groupName
-                draft.sets = exercise.sortedSets.map { set in
-                    SetDraft(
-                        reps: set.targetReps,
-                        weightKg: set.targetWeightKg,
-                        rpe: set.targetRPE,
-                        rir: set.targetRIR,
-                        isWarmup: set.isWarmup,
-                        targetReps: set.targetReps,
-                        targetWeightKg: set.targetWeightKg,
-                        targetRPE: set.targetRPE
-                    )
-                }
-                if draft.sets.isEmpty { draft.sets = [SetDraft()] }
-                return draft
-            }
         }
     }
 
@@ -458,6 +523,9 @@ struct ActiveWorkoutSheet: View {
                 }
 
                 if draft.sets.isEmpty { draft.sets = [SetDraft()] }
+                // Stash last-session non-warmup fallback (precedence 3) so a templated set with
+                // no per-set target still centers on the most-recent working set (Phase F).
+                stampLastSession(&draft, history: history)
                 return draft
             }
         }
@@ -465,7 +533,37 @@ struct ActiveWorkoutSheet: View {
 
     // MARK: - Save
 
+    /// Total sets the user has actually committed across all exercises.
+    private var doneSetCount: Int {
+        entries.reduce(0) { $0 + $1.sets.filter { $0.isDone }.count }
+    }
+
+    /// Pending = a set that displays a ghost/suggested value (template / prefill / carry)
+    /// but has NOT been committed. These are the sets at risk of silent loss on a verbatim
+    /// "perform exactly as shown, tap Finish" flow.
+    private var pendingSetCount: Int {
+        entries.reduce(0) { acc, entry in
+            acc + entry.sets.filter { s in
+                !s.isDone && (s.targetReps != nil || s.targetWeightKg != nil
+                    || s.targetDistanceMeters != nil || s.targetDurationSeconds != nil)
+            }.count
+        }
+    }
+
     private func saveSession() {
+        // Warm the haptic generators ahead of the imminent save-commit feedback.
+        Haptics.prepare()
+        // Zero-done guard (inverse data-loss fix): if nothing is marked done but ghost/suggested
+        // sets are pending, do NOT silently save an empty session — ask the user first. If at
+        // least one set is done, partial saves proceed normally.
+        if doneSetCount == 0 && pendingSetCount > 0 {
+            showZeroDoneGuard = true
+            return
+        }
+        persistSession()
+    }
+
+    private func persistSession() {
         let session = WorkoutSession(
             sessionDate: startTime,
             sessionName: sessionName.isEmpty ? nil : sessionName,
@@ -475,15 +573,23 @@ struct ActiveWorkoutSheet: View {
             sessionType: sessionType
         )
 
-        for (index, draft) in entries.enumerated() {
+        var entryOrder = 0
+        for draft in entries {
+            // Persist ONLY sets the user actually performed (proposal §13, Option A): untouched
+            // prefilled / ghost / carried template sets default isDone == false and must
+            // not pollute PR / volume / history / progression. A done warmup still saves as warmup.
+            let doneSets = draft.sets.filter { $0.isDone }
+            guard !doneSets.isEmpty else { continue }
+
             let entry = ExerciseEntry(
                 exerciseName: draft.exerciseName,
                 exerciseCategory: draft.exerciseCategory,
                 muscleGroup: draft.muscleGroup,
-                orderIndex: index
+                orderIndex: entryOrder
             )
+            entryOrder += 1
 
-            for (setIdx, setDraft) in draft.sets.enumerated() {
+            for (setIdx, setDraft) in doneSets.enumerated() {
                 let setRecord = SetRecord(
                     setIndex: setIdx,
                     reps: setDraft.reps,
@@ -504,14 +610,6 @@ struct ActiveWorkoutSheet: View {
         session.sourceTemplateId = sourceTemplate?.id
         session.athlete = athlete
         modelContext.insert(session)
-
-        // Mark prescription completed if this was a prescribed workout
-        if let rx = prescription {
-            rx.markCompleted(sessionId: session.id)
-            Task {
-                await container.syncService.pushPrescribedWorkout(rx)
-            }
-        }
 
         do {
             try modelContext.save()
@@ -546,27 +644,44 @@ struct ActiveWorkoutSheet: View {
                 if !result.newPRs.isEmpty {
                     newPRs = result.newPRs
                     showPRCelebration = true
-                    return
                 }
 
-                if showSpikeAlert { return }
+                // Commit-only haptics (single, outcome-based — no stacking): a surfaced spike
+                // is the dominant signal → warning; a PR with no spike → success. The plain
+                // "saved" success for the no-banner case fires at finishAfterSave below.
+                if showSpikeAlert {
+                    Haptics.warning()
+                } else if showPRCelebration {
+                    Haptics.success()
+                }
+
+                // Inline banners fired — the save is ALREADY committed above. Let the
+                // bottom banner stack render and stop here; the sheet stays open but is
+                // NOT blocked (user can still dismiss). advancePostSave() runs when the
+                // last banner is tapped away.
+                if showPRCelebration || showSpikeAlert { return }
             } catch {
                 print("Workout pipeline error: \(error)")
             }
         }
 
-        // No PR/spike branch fired — the save is already committed above; present the
-        // optional, non-blocking niggle nudge instead of dismissing immediately (D-08).
-        finishOrNudge()
+        // No PR/spike branch fired; the save is already committed above. Fire the single
+        // "session saved" success haptic, then close the sheet.
+        Haptics.success()
+        finishAfterSave()
     }
 
-    /// Terminal exit for the post-save flow. The session is ALREADY saved by the time this
-    /// runs (D-08: the nudge never gates the save). If the optional niggle nudge has not yet
-    /// been offered this save, present it; otherwise dismiss. Routed from the success path and
-    /// from the PR/spike overlay dismissals so the nudge is sequenced strictly AFTER those
-    /// branches resolve and never collides with them.
-    private func finishOrNudge() {
-        showNiggleNudge = true
+    /// Bridge from banner dismissal to the terminal post-save flow. The session is ALREADY
+    /// committed by the time any banner shows. Only advance once BOTH inline banners are
+    /// dismissed so the PR/spike branches resolve before the sheet closes.
+    private func advancePostSave() {
+        guard !showPRCelebration, !showSpikeAlert else { return }
+        finishAfterSave()
+    }
+
+    /// Terminal exit for the post-save flow. The session is already saved by the time this runs.
+    private func finishAfterSave() {
+        dismiss()
     }
 
     // MARK: - Save as Template
@@ -630,57 +745,6 @@ struct ActiveWorkoutSheet: View {
     }
 }
 
-// MARK: - PR Celebration Overlay
-
-struct PRCelebrationOverlay: View {
-    let prs: [PersonalRecord]
-    let onDismiss: () -> Void
-
-    var body: some View {
-        ZStack {
-            ColorTokens.background.opacity(0.9)
-                .ignoresSafeArea()
-
-            VStack(spacing: 24) {
-                Text(String(format: String(localized: "workout.pr.title", defaultValue: "New PR%@!"), prs.count > 1 ? "s" : ""))
-                    .font(.Tokens.pageTitle)
-                    .foregroundStyle(ColorTokens.text1)
-
-                VStack(spacing: 0) {
-                    ForEach(prs, id: \.id) { pr in
-                        HStack {
-                            Text(pr.exerciseName)
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
-                            Spacer()
-                            Text("\(pr.recordType.displayName): \(String(format: "%.1f", pr.value))")
-                                .font(.Tokens.label)
-                                .monospacedDigit()
-                                .foregroundStyle(ColorTokens.text2)
-                        }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 12)
-
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
-                    }
-                }
-                .background(ColorTokens.surface)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
-
-                Button("action.done") { onDismiss() }
-                    .font(.Tokens.body)
-                    .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, 32)
-                    .padding(.vertical, 12)
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
-            }
-            .padding(32)
-        }
-    }
-}
-
 // MARK: - Draft Models (local state, not persisted)
 
 struct ExerciseEntryDraft: Identifiable {
@@ -704,12 +768,32 @@ struct SetDraft: Identifiable {
     var rpe: Double? = nil
     var rir: Int? = nil
     var isWarmup: Bool = false
-    // Prescription targets (for ghost text display)
+    // Template targets (for ghost text display)
     var targetReps: Int? = nil
     var targetWeightKg: Double? = nil
     var targetRPE: Double? = nil
+    // Cardio ghost targets (transient — NOT persisted on SetRecord). Mirror the weight/reps
+    // ghost model for .distanceDuration / .durationOnly so history / template / carry
+    // prefill renders distance & duration as provisional suggestions, not concrete-entered
+    // numbers. A keypad edit (or the done toggle) commits them to distanceMeters/durationSeconds.
+    var targetDistanceMeters: Double? = nil
+    var targetDurationSeconds: Int? = nil
+    // Last-session NON-WARMUP fallback (precedence 3, proposal §3.3 #3 / Phase F). Transient —
+    // NOT persisted on SetRecord. Stashed by the loaders at add/open time (one read, never a
+    // per-render fetch) so the WeightBlockPicker can center + the RepScrubber can ghost on the
+    // most-recent non-warmup actual when there is NO template/prescription ghost and no
+    // in-session previous set. Resolved via SetSuggestion.lastSessionCandidate.
+    var lastSessionWeightKg: Double? = nil
+    var lastSessionReps: Int? = nil
+    var lastSessionDistanceMeters: Double? = nil
+    var lastSessionDurationSeconds: Int? = nil
     // Exercise memory flag
     var isFromHistory: Bool = false
+    // Transient "performed" flag (proposal §13, Option A). NOT persisted on SetRecord — only
+    // sets with isDone == true are written by saveSession(). Prefilled / ghost / carried
+    // template sets start false; an explicit DONE toggle or a user edit to a measurement
+    // field flips it true. Defaults false so untouched prefilled rows never persist as performed.
+    var isDone: Bool = false
 }
 
 // MARK: - Exercise Entry Card
@@ -717,9 +801,45 @@ struct SetDraft: Identifiable {
 struct ExerciseEntryCard: View {
     @Binding var entry: ExerciseEntryDraft
     var sportType: SportType = .lifting
+    var weightUnit: WeightUnit = .kg
 
     private var inputMode: ExerciseInputMode {
         entry.exerciseCategory.inputMode
+    }
+
+    /// Append a new set that carries forward the previous set's values onto the GHOST-target
+    /// fields (targetWeightKg/targetReps/targetRPE and the cardio targetDistance/targetDuration)
+    /// so the new row renders them ghosted without marking them committed — a ± tap, keypad edit,
+    /// or done toggle commits them. This keeps carry-forward consistent with the ghost/commit
+    /// model across BOTH weight/reps and cardio, so a carried set is never silently logged as
+    /// performed until the user confirms it.
+    private func addCarriedSet() {
+        var draft = SetDraft()
+        if let last = entry.sets.last {
+            draft.targetWeightKg = last.weightKg ?? last.targetWeightKg
+            draft.targetReps = last.reps ?? last.targetReps
+            draft.targetRPE = last.rpe ?? last.targetRPE
+            draft.targetDistanceMeters = last.distanceMeters ?? last.targetDistanceMeters
+            draft.targetDurationSeconds = last.durationSeconds ?? last.targetDurationSeconds
+        }
+        entry.sets.append(draft)
+    }
+
+    /// Clone the previous set entirely as committed (real) values — the "Repeat last set" path.
+    private func repeatLastSet() {
+        guard let last = entry.sets.last else { return }
+        var clone = SetDraft()
+        clone.reps = last.reps ?? last.targetReps
+        clone.weightKg = last.weightKg ?? last.targetWeightKg
+        clone.durationSeconds = last.durationSeconds
+        clone.distanceMeters = last.distanceMeters
+        clone.rpe = last.rpe
+        clone.rir = last.rir
+        clone.isWarmup = last.isWarmup
+        // Explicit user action ("repeat this set, it counts") → the clone is performed.
+        // (addCarriedSet's passive ghost prefill leaves isDone == false on purpose.)
+        clone.isDone = true
+        entry.sets.append(clone)
     }
 
     var body: some View {
@@ -736,8 +856,8 @@ struct ExerciseEntryCard: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.sm)
 
             // Suggestion rationale
             if let rationale = entry.suggestionRationale {
@@ -759,16 +879,17 @@ struct ExerciseEntryCard: View {
                 .fill(ColorTokens.divider)
                 .frame(height: 0.5)
 
-            // Column headers based on input mode
+            // Column headers based on input mode. RPE is no longer a fixed column — it lives
+            // behind a per-row "+ RPE" chip (fast path = weight + reps only).
             switch inputMode {
             case .weightReps:
-                setHeaderRow(columns: [("SET", 32), ("WEIGHT", 0), ("REPS", 0), ("RPE", 48)])
+                setHeaderRow(columns: [("table.header.set", 32), ("table.header.weight", 0), ("table.header.reps", 0)])
             case .repsOnly:
-                setHeaderRow(columns: [("SET", 32), ("REPS", 0), ("RPE", 48)])
+                setHeaderRow(columns: [("table.header.set", 32), ("table.header.reps", 0)])
             case .distanceDuration:
-                setHeaderRow(columns: [("SET", 32), ("DIST (m)", 0), ("TIME (s)", 0), ("RPE", 48)])
+                setHeaderRow(columns: [("table.header.set", 32), ("table.header.dist", 0), ("table.header.time", 0)])
             case .durationOnly:
-                setHeaderRow(columns: [("SET", 32), ("TIME (min)", 0), ("RPE", 48)])
+                setHeaderRow(columns: [("table.header.set", 32), ("table.header.timeMin", 0)])
             }
 
             ForEach($entry.sets) { $set in
@@ -778,6 +899,9 @@ struct ExerciseEntryCard: View {
                         set: $set,
                         index: setIndex,
                         inputMode: inputMode,
+                        weightUnit: weightUnit,
+                        exerciseName: entry.exerciseName,
+                        category: entry.exerciseCategory,
                         suggestion: entry.progressionSuggestions.flatMap { suggestions in
                             setIndex < suggestions.count ? suggestions[setIndex] : nil
                         },
@@ -790,20 +914,51 @@ struct ExerciseEntryCard: View {
                     .frame(height: 0.5)
             }
 
-            Button {
-                entry.sets.append(SetDraft())
-            } label: {
-                Label("set.action.add", systemImage: "plus")
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text2)
+            // Repeat last set — clones the prior set entirely (committed values).
+            if !entry.sets.isEmpty {
+                Button(action: repeatLastSet) {
+                    HStack(spacing: Spacing.xs) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.Tokens.label)
+                        Text("set.action.repeatLast")
+                            .font(.Tokens.label)
+                    }
+                    .foregroundStyle(ColorTokens.text1)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.sm)
+                    .contentShape(Rectangle())
+                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                }
+                .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.xs)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
+
+            // Add set — dashed affordance carrying forward the previous set (ghosted).
+            Button(action: addCarriedSet) {
+                HStack(spacing: Spacing.xs) {
+                    Image(systemName: "plus")
+                        .font(.Tokens.label)
+                    Text("set.action.add")
+                        .font(.Tokens.label)
+                }
+                .foregroundStyle(ColorTokens.text2)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.sm)
+                .contentShape(Rectangle())
+                .overlay(
+                    Rectangle()
+                        .stroke(ColorTokens.divider, style: StrokeStyle(lineWidth: 0.5, dash: [4, 4]))
+                )
+            }
+            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
         }
-        .background(ColorTokens.surface)
+        .background(ColorTokens.surfaceEl)
     }
 
-    private func setHeaderRow(columns: [(String, CGFloat)]) -> some View {
+    private func setHeaderRow(columns: [(LocalizedStringKey, CGFloat)]) -> some View {
         HStack {
             ForEach(Array(columns.enumerated()), id: \.offset) { _, col in
                 if col.1 > 0 {
@@ -816,8 +971,8 @@ struct ExerciseEntryCard: View {
         .font(.Tokens.micro)
         .tracking(1.2)
         .foregroundStyle(ColorTokens.text3)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
     }
 }
 
@@ -827,23 +982,62 @@ struct SetEntryRow: View {
     @Binding var set: SetDraft
     let index: Int
     var inputMode: ExerciseInputMode = .weightReps
+    var weightUnit: WeightUnit = .kg
+    /// Exercise identity for the suggestion read (Phase F). Drives the category-neutral reps
+    /// fallback correctly (v1 hardcoded `.compound`) and is passed to `SetSuggestion` for
+    /// documentation symmetry. Not used to fetch — pure presentation.
+    var exerciseName: String = ""
+    var category: ExerciseCategory = .compound
     var suggestion: ProgressionEngine.SetSuggestion? = nil
     var progressionType: ProgressionEngine.ProgressionType? = nil
     var showSuggestion: Bool = false
 
+    /// Per-set RPE is collapsed behind a "+ RPE" chip; start expanded only if RPE already set.
+    @State private var showRPE = false
+
+    /// Shared inline-keypad focus for this row's weight + reps fields, so a weight keypad
+    /// commit advances to reps without dismissing/re-summoning the keyboard (§5.5).
+    @FocusState private var focusField: SetFocusField?
+
+    /// Local override controlling whether a completed (isDone) set shows its full editable
+    /// row or the compact one-line summary (§5.3). nil = follow the default (collapse when
+    /// done); true/false = the user's explicit tap to expand/collapse.
+    @State private var expandOverride: Bool? = nil
+
+    /// Whether the row is rendered collapsed: a done set collapses by default, but a user
+    /// tap can force it open (or re-collapse it). Never collapse a not-done set.
+    private var isCollapsed: Bool {
+        guard set.isDone else { return false }
+        return expandOverride == nil ? true : !(expandOverride!)
+    }
+
+    /// Weight ± step in the USER'S DISPLAY UNIT (not kg). Unit-aware: lb athletes nudge by
+    /// 5 lb, kg athletes by 2.5 kg. The stepper now operates entirely in display units via
+    /// `displayWeightBinding`, so the increment must also be a display-unit value.
+    private var weightIncrementDisplay: Double {
+        switch weightUnit {
+        case .kg: return 2.5
+        case .lbs: return 5
+        }
+    }
+
+    /// Bridges the stored-kg `set.weightKg` to the field's DISPLAY unit. Reads convert
+    /// kg → display unit; writes convert the typed display value back to kg for storage.
+    /// nil (empty field) is preserved in both directions so an empty set stays empty.
+    private var displayWeightBinding: Binding<Double?> {
+        Binding(
+            get: { set.weightKg.map { WeightFormatter.displayValue($0, unit: weightUnit) } },
+            set: { newDisplay in
+                set.weightKg = newDisplay.map { WeightFormatter.toKg($0, from: weightUnit) }
+            }
+        )
+    }
+
     private var weightPlaceholder: String {
-        if let t = set.targetWeightKg { return String(format: "%.0f", t) }
-        return "kg"
-    }
-
-    private var repsPlaceholder: String {
-        if let t = set.targetReps { return "\(t)" }
-        return "reps"
-    }
-
-    private var rpePlaceholder: String {
-        if let t = set.targetRPE { return String(format: "%.0f", t) }
-        return "RPE"
+        switch weightUnit {
+        case .kg: return "kg"
+        case .lbs: return "lb"
+        }
     }
 
     private var suggestionText: String? {
@@ -864,84 +1058,369 @@ struct SetEntryRow: View {
         }
     }
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            HStack {
+    /// Collapsed "+ RPE" chip → inline RPE stepper. Fast path never requires RPE.
+    @ViewBuilder private var rpeControl: some View {
+        if showRPE || set.rpe != nil {
+            SetStepperDouble(
+                value: $set.rpe,
+                increment: 1,
+                placeholder: "RPE",
+                ghostBaseline: set.targetRPE,
+                floor: 0,
+                fractionDigits: 0
+            )
+            .frame(width: 120)
+        } else {
+            Button {
+                showRPE = true
+            } label: {
+                Text("set.rpe.add")
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text2)
+                    .padding(.horizontal, Spacing.xs)
+                    .padding(.vertical, Spacing.xs)
+                    .contentShape(Rectangle())
+                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+            }
+            .buttonStyle(.pressable)
+        }
+    }
+
+    /// Per-set DONE toggle (proposal §13, Option A). A square `Rectangle` checkbox: empty when
+    /// not done, filled `text1` with a checkmark glyph when done. 0pt corners, 0.5pt hairline
+    /// `divider` border, NO accent. ≥44pt touch target at the trailing end of the row. Tapping
+    /// toggles `set.isDone`, controlling whether this set is persisted by saveSession().
+    @ViewBuilder private var doneToggle: some View {
+        Button {
+            set.isDone.toggle()
+            // Commit feedback only on the transition INTO done (the most-repeated commit).
+            if set.isDone { Haptics.tap() }
+        } label: {
+            ZStack {
+                Rectangle()
+                    .fill(set.isDone ? ColorTokens.text1 : Color.clear)
+                    .frame(width: 24, height: 24)
+                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                if set.isDone {
+                    Image(systemName: "checkmark")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.surface)
+                }
+            }
+            // Settle the fill/checkmark in instead of popping it.
+            .animation(Motion.state, value: set.isDone)
+            .frame(width: 44, height: 44)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel(set.isDone
+            ? String(localized: "set.action.done", defaultValue: "Set done")
+            : String(localized: "set.action.markDone", defaultValue: "Mark set done"))
+        .accessibilityAddTraits(set.isDone ? [.isButton, .isSelected] : .isButton)
+    }
+
+    /// Per-set WARMUP toggle (§E.4 clarity). A clearly labeled, bordered control — never
+    /// color-alone: the word "Warmup" plus a checkbox-style square communicate state. 0pt
+    /// corners, 0.5pt hairline `divider`, NO accent. Warmups are still excluded from the
+    /// suggestion source + PR by the existing logic; this only makes the flag visible/legible.
+    @ViewBuilder private var warmupToggle: some View {
+        Button {
+            set.isWarmup.toggle()
+        } label: {
+            HStack(spacing: Spacing.baselinePair) {
+                Rectangle()
+                    .fill(set.isWarmup ? ColorTokens.text2 : Color.clear)
+                    .frame(width: 12, height: 12)
+                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                Text("set.warmup.label")
+                    .font(.Tokens.smallLabel)
+                    .foregroundStyle(set.isWarmup ? ColorTokens.text1 : ColorTokens.text2)
+            }
+            .padding(.horizontal, Spacing.xs)
+            .padding(.vertical, Spacing.baselinePair)
+            .contentShape(Rectangle())
+            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel(String(localized: "set.warmup.label", defaultValue: "Warmup"))
+        .accessibilityValue(set.isWarmup
+            ? String(localized: "set.warmup.on", defaultValue: "On")
+            : String(localized: "set.warmup.off", defaultValue: "Off"))
+        .accessibilityAddTraits(set.isWarmup ? [.isButton, .isSelected] : .isButton)
+    }
+
+    /// Compact one-line summary of a completed set (§5.3). Tapping re-expands the full
+    /// editable row (the set stays isDone). `text2`, monospacedDigit, 0pt/hairline, no accent.
+    @ViewBuilder private var collapsedSummary: some View {
+        Button {
+            expandOverride = true
+        } label: {
+            HStack(spacing: Spacing.xs) {
                 Text("\(index + 1)")
-                    .frame(width: 32)
+                    .frame(width: 32, alignment: .leading)
                     .font(.Tokens.label)
                     .foregroundStyle(set.isWarmup ? ColorTokens.zoneCaution : ColorTokens.text2)
+                Text(summaryText)
+                    .font(.Tokens.body)
+                    .monospacedDigit()
+                    .foregroundStyle(ColorTokens.text2)
+                if set.isWarmup {
+                    Text("set.warmup.label")
+                        .font(.Tokens.smallLabel)
+                        .foregroundStyle(ColorTokens.text3)
+                }
+                Spacer()
+                Image(systemName: "checkmark")
+                    .font(.Tokens.smallLabel)
+                    .foregroundStyle(ColorTokens.text3)
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, Spacing.xs)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+        .accessibilityElement(children: .combine)
+        .accessibilityHint(String(localized: "set.collapsed.expandHint", defaultValue: "Tap to edit this set"))
+    }
 
+    /// One-line summary string for a completed set, e.g. "60kg × 5" / "12 reps" / "5km".
+    /// Localized via composed format strings; numerals stay monospacedDigit at the call site.
+    private var summaryText: String {
+        switch inputMode {
+        case .weightReps:
+            let reps = set.reps ?? set.targetReps ?? 0
+            if let kg = set.weightKg {
+                let display = WeightFormatter.displayValue(kg, unit: weightUnit)
+                let unit = weightUnit == .kg
+                    ? String(localized: "unit.kg", defaultValue: "kg")
+                    : String(localized: "unit.lb", defaultValue: "lb")
+                let w = display == display.rounded() ? String(format: "%.0f", display) : String(format: "%.1f", display)
+                return String(format: String(localized: "set.summary.weightReps", defaultValue: "%@%@ × %d"), w, unit, reps)
+            }
+            return String(format: String(localized: "set.summary.repsOnly", defaultValue: "%d reps"), reps)
+        case .repsOnly:
+            return String(format: String(localized: "set.summary.repsOnly", defaultValue: "%d reps"), set.reps ?? 0)
+        case .distanceDuration:
+            let dist = set.distanceMeters ?? 0
+            let dur = set.durationSeconds ?? 0
+            return String(format: String(localized: "set.summary.distDur", defaultValue: "%dm · %ds"), Int(dist), dur)
+        case .durationOnly:
+            return String(format: String(localized: "set.summary.dur", defaultValue: "%ds"), set.durationSeconds ?? 0)
+        }
+    }
+
+    /// Suggested center weight (KG) for the WeightBlockPicker when this set has no committed
+    /// weight yet. Resolved from already-available draft data via the pure `SetSuggestion`
+    /// helper: ghost target (template / last-session prefill) → in-memory progression
+    /// suggestion (Pro). No fetch, no engine call. nil → cold-start "—".
+    private var suggestedCenterKg: Double? {
+        let result = SetSuggestion.suggest(
+            inputMode: inputMode,
+            exerciseName: exerciseName,
+            category: category,
+            templateTarget: set.targetWeightKg.map { SetSuggestion.Candidate(weightKg: $0) },
+            inSessionPrevSet: nil,
+            lastSessionSet: lastSessionCandidate,
+            isPro: suggestion != nil,
+            progressionSuggestion: suggestion?.weightKg.map { SetSuggestion.Candidate(weightKg: $0) }
+        )
+        return result.centerWeightKg
+    }
+
+    /// Precedence-3 candidate built from the loader-stamped last-session NON-WARMUP fields
+    /// (Phase F, §3.3 #3). nil when there's no non-warmup history → truly-first-ever stays "—".
+    private var lastSessionCandidate: SetSuggestion.Candidate? {
+        let candidate = SetSuggestion.Candidate(
+            weightKg: set.lastSessionWeightKg,
+            reps: set.lastSessionReps,
+            distanceMeters: set.lastSessionDistanceMeters,
+            durationSeconds: set.lastSessionDurationSeconds
+        )
+        return candidate.isEmpty ? nil : candidate
+    }
+
+    /// Suggested reps for the RepScrubber ghost baseline when this set has no committed reps.
+    /// Same pure-presentation read as `suggestedCenterKg`: ghost target (template / last-session
+    /// prefill) → in-memory progression suggestion (Pro) → category neutral default. No fetch,
+    /// no engine call. The scrubber renders this in `text3` until the user commits.
+    private var suggestedReps: Int? {
+        let result = SetSuggestion.suggest(
+            inputMode: inputMode,
+            exerciseName: exerciseName,
+            category: category,
+            templateTarget: set.targetReps.map { SetSuggestion.Candidate(reps: $0) },
+            inSessionPrevSet: nil,
+            lastSessionSet: lastSessionCandidate,
+            isPro: suggestion != nil,
+            progressionSuggestion: suggestion?.reps.map { SetSuggestion.Candidate(reps: $0) }
+        )
+        return result.reps
+    }
+
+    /// Cardio measurement field with ghosted carried/target baseline (Double — distance).
+    /// Mirrors SetStepper's ghost model: while `value == nil` and a ghost exists, the ghost
+    /// renders in `text3` behind the empty field; a keypad edit commits it to `value` (which
+    /// flips `isDone` via the row's .onChange). Untouched ghosts are never logged as performed.
+    @ViewBuilder
+    private func ghostedField(value: Binding<Double?>, ghost: Double?, placeholder: String, decimal: Bool) -> some View {
+        let isGhost = value.wrappedValue == nil && ghost != nil
+        ZStack {
+            if isGhost, let g = ghost {
+                Text(String(format: "%.0f", g))
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text3)
+                    .monospacedDigit()
+                    .allowsHitTesting(false)
+            }
+            TextField(isGhost ? "" : placeholder, value: value, format: .number)
+                .keyboardType(.decimalPad)
+                .textFieldStyle(SharpTextFieldStyle())
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    /// Cardio measurement field with ghosted carried/target baseline (Int — duration).
+    @ViewBuilder
+    private func ghostedField(value: Binding<Int?>, ghost: Int?, placeholder: String) -> some View {
+        let isGhost = value.wrappedValue == nil && ghost != nil
+        ZStack {
+            if isGhost, let g = ghost {
+                Text("\(g)")
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text3)
+                    .monospacedDigit()
+                    .allowsHitTesting(false)
+            }
+            TextField(isGhost ? "" : placeholder, value: value, format: .number)
+                .keyboardType(.numberPad)
+                .textFieldStyle(SharpTextFieldStyle())
+        }
+        .frame(maxWidth: .infinity)
+    }
+
+    /// The set-number + measurement controls for the .weightReps row, laid out horizontally
+    /// (default) or stacked vertically (Dynamic Type fallback so 3 tiles + reps + RPE + done
+    /// never clip at AX sizes).
+    @ViewBuilder private var weightRepsControls: some View {
+        ViewThatFits(in: .horizontal) {
+            HStack(alignment: .top, spacing: Spacing.xs) {
+                weightRepsCore
+            }
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                weightRepsCore
+            }
+        }
+    }
+
+    @ViewBuilder private var weightRepsCore: some View {
+        WeightBlockPicker(
+            weightKg: $set.weightKg,
+            unit: weightUnit,
+            suggestedCenterKg: suggestedCenterKg,
+            onCommit: { set.isDone = true },
+            focus: $focusField,
+            rowId: set.id,
+            advanceTo: .reps(set.id)
+        )
+        RepScrubber(
+            reps: $set.reps,
+            suggestedReps: suggestedReps,
+            onCommit: { set.isDone = true },
+            focus: $focusField,
+            rowId: set.id
+        )
+        rpeControl
+        doneToggle
+    }
+
+    var body: some View {
+        if isCollapsed {
+            collapsedSummary
+        } else {
+            expandedRow
+        }
+    }
+
+    @ViewBuilder private var expandedRow: some View {
+        VStack(alignment: .leading, spacing: 0) {
+            Group {
                 switch inputMode {
                 case .weightReps:
-                    TextField(weightPlaceholder, value: $set.weightKg, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(maxWidth: .infinity)
+                    HStack(alignment: .top, spacing: Spacing.xs) {
+                        Text("\(index + 1)")
+                            .frame(width: 32)
+                            .font(.Tokens.label)
+                            .foregroundStyle(set.isWarmup ? ColorTokens.zoneCaution : ColorTokens.text2)
+                            .padding(.top, Spacing.xs)
+                        weightRepsControls
+                    }
 
-                    TextField(repsPlaceholder, value: $set.reps, format: .number)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(maxWidth: .infinity)
+                default:
+                    HStack(spacing: Spacing.xs) {
+                        Text("\(index + 1)")
+                            .frame(width: 32)
+                            .font(.Tokens.label)
+                            .foregroundStyle(set.isWarmup ? ColorTokens.zoneCaution : ColorTokens.text2)
 
-                    TextField(rpePlaceholder, value: $set.rpe, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(width: 48)
+                        switch inputMode {
+                        case .repsOnly:
+                            SetStepperInt(
+                                value: $set.reps,
+                                increment: 1,
+                                placeholder: "reps",
+                                ghostBaseline: set.targetReps
+                            )
 
-                case .repsOnly:
-                    TextField(repsPlaceholder, value: $set.reps, format: .number)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(maxWidth: .infinity)
+                        case .distanceDuration:
+                            ghostedField(value: $set.distanceMeters, ghost: set.targetDistanceMeters, placeholder: "m", decimal: true)
+                            ghostedField(value: $set.durationSeconds, ghost: set.targetDurationSeconds, placeholder: "sec")
 
-                    TextField(rpePlaceholder, value: $set.rpe, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(width: 48)
+                        case .durationOnly:
+                            ghostedField(value: $set.durationSeconds, ghost: set.targetDurationSeconds, placeholder: "min")
 
-                case .distanceDuration:
-                    TextField("m", value: $set.distanceMeters, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(maxWidth: .infinity)
+                        case .weightReps:
+                            EmptyView()
+                        }
 
-                    TextField("sec", value: $set.durationSeconds, format: .number)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(maxWidth: .infinity)
+                        rpeControl
 
-                    TextField(rpePlaceholder, value: $set.rpe, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(width: 48)
-
-                case .durationOnly:
-                    TextField("min", value: $set.durationSeconds, format: .number)
-                        .keyboardType(.numberPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(maxWidth: .infinity)
-
-                    TextField(rpePlaceholder, value: $set.rpe, format: .number)
-                        .keyboardType(.decimalPad)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .frame(width: 48)
+                        doneToggle
+                    }
                 }
             }
             .font(.Tokens.label)
             .padding(.horizontal, 16)
             .padding(.vertical, 8)
+            // Auto-mark performed when the user actually commits a measurement value. Prefill /
+            // ghost / carry writes happen before this row renders (in onAppear loaders /
+            // addCarriedSet), so their initial values do NOT trigger these onChange handlers —
+            // only subsequent in-row user edits do. nil → some transition = a real entry.
+            .onChange(of: set.weightKg) { _, newValue in if newValue != nil { set.isDone = true } }
+            .onChange(of: set.reps) { _, newValue in if newValue != nil { set.isDone = true } }
+            .onChange(of: set.durationSeconds) { _, newValue in if newValue != nil { set.isDone = true } }
+            .onChange(of: set.distanceMeters) { _, newValue in if newValue != nil { set.isDone = true } }
+
+            // Warmup toggle — visible, labeled, state-bearing (not color-alone). Aligned past
+            // the set-number column so it reads as a per-set attribute.
+            HStack(spacing: Spacing.xs) {
+                warmupToggle
+                Spacer()
+            }
+            .padding(.leading, 16 + 32 + Spacing.xs)
+            .padding(.trailing, 16)
+            .padding(.bottom, Spacing.xs)
 
             // Progression suggestion label (Pro users only)
             if let text = suggestionText {
-                HStack(spacing: 4) {
+                HStack(spacing: Spacing.xs) {
                     Image(systemName: suggestionIcon)
+                        .imageScale(.small)
                     Text(text)
                 }
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 48)
-                .padding(.bottom, 8)
+                .padding(.horizontal, Spacing.xl)
+                .padding(.bottom, Spacing.xs)
                 .accessibilityLabel(String(format: String(localized: "set.suggestion.accessibility", defaultValue: "Suggested: %@"), text))
             }
         }
@@ -966,7 +1445,7 @@ struct FillButtonBar: View {
                     .padding(.vertical, 8)
                     .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
 
             if isPro {
                 Button {
@@ -979,7 +1458,7 @@ struct FillButtonBar: View {
                         .padding(.vertical, 8)
                         .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
 
             Spacer()

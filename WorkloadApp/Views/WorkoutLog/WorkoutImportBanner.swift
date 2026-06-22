@@ -15,9 +15,9 @@ struct WorkoutImportBanner: View {
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.top, 12)
-                .padding(.bottom, 8)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.xs)
+                .padding(.bottom, Spacing.xs)
 
             ForEach(imports) { suggestion in
                 ImportSuggestionRow(
@@ -28,6 +28,9 @@ struct WorkoutImportBanner: View {
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
             }
         }
+        // Grouped region → a single bordered card plane (Tuwa v2 separation).
+        .background(ColorTokens.surfaceEl)
+        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }
 
@@ -38,13 +41,13 @@ private struct ImportSuggestionRow: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        HStack(spacing: 12) {
+        HStack(spacing: Spacing.xs) {
             Image(systemName: suggestion.sportType.systemImage)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
                 .frame(width: 32)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                 Text(suggestion.name)
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
@@ -63,27 +66,31 @@ private struct ImportSuggestionRow: View {
             Spacer()
 
             Button {
+                Haptics.tap()
                 onAccept()
             } label: {
+                // Primary CTA → accent outline (live / actionable), not a filled accent button.
                 Text("action.add")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, 12)
-                    .padding(.vertical, 6)
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
+                    .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5))
             }
+            .buttonStyle(.pressable)
 
             Button {
+                Haptics.tap()
                 onDismiss()
             } label: {
                 Image(systemName: "xmark")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
             }
+            .buttonStyle(.pressable)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 10)
-        .background(ColorTokens.surface)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
     }
 }
 

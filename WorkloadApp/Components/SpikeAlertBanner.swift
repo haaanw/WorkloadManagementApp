@@ -67,12 +67,14 @@ struct SpikeAlertBanner: View {
 
             Spacer()
         }
-        .background(ColorTokens.surface)
+        .background(ColorTokens.surfaceEl)
         .overlay(
             Rectangle()
                 .stroke(ColorTokens.divider, lineWidth: 0.5)
         )
         .contentShape(Rectangle())
-        .onTapGesture { onDismiss() }
+        .onTapGesture { Haptics.tap(); onDismiss() }
+        // A load spike / caution was surfaced → the sanctioned warning cue.
+        .onAppear { Haptics.warning() }
     }
 }

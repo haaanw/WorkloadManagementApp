@@ -22,10 +22,9 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "App failed to load -- tab bar not found")
     }
 
-    // MARK: - Athlete Mode Screenshots (1-4, 6)
+    // MARK: - Self-Coached Athlete Screenshots
 
     func test01_Dashboard() throws {
-        tapTab("tab.home")
         sleep(2)
         saveScreenshot("01_Dashboard")
     }
@@ -48,33 +47,22 @@ final class ScreenshotTests: XCTestCase {
         saveScreenshot("04_WorkoutLog")
     }
 
-    // MARK: - Coach Mode Screenshot (5)
+    func test05_ActiveWorkout() throws {
+        tapTab("tab.log")
+        let startButton = app.buttons["workoutLog.startWorkout"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Workout start button not found")
+        startButton.tap()
 
-    func test05_CoachRoster() throws {
-        // Coach roster requires relaunching in coach mode.
-        // Plan 01 added COACH_MODE launch argument handling to AppRouter:
-        //   - Sets container.setMode(.coach)
-        //   - Overrides subscription with isCoach: true
-        app.terminate()
-        app.launchArguments = ["SCREENSHOT_MODE", "COACH_MODE"]
-        app.launch()
-
-        let tabBar = app.tabBars.firstMatch
-        XCTAssertTrue(tabBar.waitForExistence(timeout: 10), "Coach mode failed to load")
-
-        // Coach mode shows the roster tab (queried by stable accessibility id)
-        let rosterTab = app.tabBars.buttons["tab.roster"]
-        if rosterTab.waitForExistence(timeout: 5) {
-            rosterTab.tap()
+        let firstTemplate = app.buttons.matching(identifier: "templatePicker.template").firstMatch
+        if firstTemplate.waitForExistence(timeout: 5) {
+            firstTemplate.tap()
+        } else {
+            app.buttons["templatePicker.startBlank"].tap()
         }
-        sleep(2)
-        saveScreenshot("05_CoachRoster")
 
-        // Restore athlete mode for next test
-        app.terminate()
-        app.launchArguments = ["SCREENSHOT_MODE"]
-        app.launch()
-        XCTAssertTrue(app.tabBars.firstMatch.waitForExistence(timeout: 10))
+        XCTAssertTrue(app.textFields["activeWorkout.sessionName"].waitForExistence(timeout: 10), "Active workout sheet did not open")
+        sleep(2)
+        saveScreenshot("05_ActiveWorkout")
     }
 
     // MARK: - PDF Export Screenshot (6)
@@ -112,11 +100,30 @@ final class ScreenshotTests: XCTestCase {
     /// Waits for the button to exist first to avoid taps racing the app launch.
     private func tapTab(_ identifier: String) {
         let button = app.tabBars.buttons[identifier]
-        XCTAssertTrue(
-            button.waitForExistence(timeout: 10),
-            "Tab '\(identifier)' not found — check accessibilityIdentifier in AppRouter tab items"
-        )
-        button.tap()
+        if button.waitForExistence(timeout: 10) {
+            button.tap()
+            return
+        }
+
+        for label in fallbackTabLabels[identifier, default: []] {
+            let fallback = app.tabBars.buttons[label]
+            if fallback.waitForExistence(timeout: 3) {
+                fallback.tap()
+                return
+            }
+        }
+
+        XCTFail("Tab '\(identifier)' not found by identifier or visible label")
+    }
+
+    private var fallbackTabLabels: [String: [String]] {
+        [
+            "tab.home": ["Home", "首页"],
+            "tab.log": ["Log", "日志"],
+            "tab.recovery": ["Recovery", "恢复"],
+            "tab.load": ["Load", "负荷"],
+            "tab.profile": ["Profile", "档案"]
+        ]
     }
 
     private func saveScreenshot(_ name: String) {

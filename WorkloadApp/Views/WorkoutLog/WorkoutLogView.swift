@@ -7,23 +7,30 @@ struct WorkoutLogView: View {
     @Query private var athletes: [Athlete]
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showActiveWorkout = false
     @State private var showUpgrade = false
     @State private var selectedSessionType: SessionType? = nil
-    @State private var activePrescription: PrescribedWorkout?
     @State private var importSuggestions: [WorkoutImportSuggestion] = []
     @State private var importRPESheet: WorkoutImportSuggestion?
     @State private var showMyPrograms = false
     @State private var showTextImport = false
     @State private var selectedTemplateForPreview: WorkoutTemplate?
-    @State private var selectedTemplateForShare: WorkoutTemplate?
     @State private var showTemplateEditor = false
     @State private var editingTemplate: WorkoutTemplate?
     @State private var showTemplatePicker = false
     @State private var selectedTemplateForSession: WorkoutTemplate?
-    @State private var showShareImport = false
-    @State private var shareImportResult: SharedTemplateResponse?
     @State private var showLLMImport = false
+    @State private var showPlanToday = false
+    @State private var verdictVM: TodayVerdictViewModel?
+    // Phase 45 — held stably so the onDecisionRecorded closure logs into one instance (SC4 seam).
+    @State private var verdictRepository: VerdictEventRepository?
+    // Phase 45 — a past planned-day decision awaiting its no-guilt post-session outcome.
+    @State private var outcomeEvent: VerdictEvent?
+    // Phase 45 (METRIC-03) — the Sean-Ellis disappointment prompt + the revealed-WTP paywall hop.
+    @State private var showSeanEllis = false
+    @State private var showWTPUpgrade = false
+    @State private var seanEllisEventCount = 0
 
     private var visibleSessions: [WorkoutSession] {
         let base = container.subscriptionService.isPro
@@ -31,18 +38,6 @@ struct WorkoutLogView: View {
             : SubscriptionService.filterSessionsForFree(sessions)
         guard let type = selectedSessionType else { return base }
         return base.filter { $0.sessionType == type }
-    }
-
-    private var upcomingPrescriptions: [PrescribedWorkout] {
-        guard let athleteId = athletes.first?.id else { return [] }
-        let assigned = PrescriptionStatus.assigned.rawValue
-        guard let results = try? modelContext.fetch(
-            FetchDescriptor<PrescribedWorkout>(
-                predicate: #Predicate { $0.athleteId == athleteId && $0.statusRawValue == assigned },
-                sortBy: [SortDescriptor(\.scheduledDate)]
-            )
-        ) else { return [] }
-        return results
     }
 
     private var lockedWeeks: Int {
@@ -63,7 +58,22 @@ struct WorkoutLogView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        // Template carousel
+                        // Today's suggest-and-confirm verdict card — only when a today-plan exists.
+                        // No today-plan ⇒ vm.display == nil ⇒ nothing renders (screen byte-unchanged).
+                        if let vm = verdictVM, let display = vm.display, let athlete = athletes.first {
+                            SectionContainer {
+                                TodayVerdictCard(
+                                    display: display,
+                                    weightUnit: athlete.weightUnit,
+                                    onAccept: { vm.accept() },
+                                    onKeepPlan: { vm.keepPlan() },
+                                    onFeel: { vm.feelOverride($0) }
+                                )
+                                .padding(.horizontal, Spacing.sm)
+                            }
+                        }
+
+                        // Template carousel (My Templates section — header lives inside)
                         TemplateCarouselSection(
                             onEditTemplate: { template in
                                 editingTemplate = template
@@ -79,66 +89,30 @@ struct WorkoutLogView: View {
                             },
                             onPreviewTemplate: { template in
                                 selectedTemplateForPreview = template
-                            },
-                            onShareTemplate: { template in
-                                selectedTemplateForShare = template
                             }
                         )
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                         // HealthKit import suggestions
                         if !importSuggestions.isEmpty {
-                            WorkoutImportBanner(
-                                imports: importSuggestions,
-                                onAccept: { suggestion in
-                                    importRPESheet = suggestion
-                                },
-                                onDismiss: { suggestion in
-                                    WorkoutImportService.dismissSuggestion(suggestion)
-                                    withAnimation {
-                                        importSuggestions.removeAll { $0.id == suggestion.id }
-                                    }
-                                }
-                            )
-                            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                        }
-
-                        // Prescribed workouts
-                        if !upcomingPrescriptions.isEmpty {
-                            Text("workoutLog.section.prescribed")
-                                .font(.Tokens.micro)
-                                .tracking(1.2)
-                                .foregroundStyle(ColorTokens.text3)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 16)
-                                .padding(.top, 12)
-                                .padding(.bottom, 8)
-
-                            ForEach(upcomingPrescriptions, id: \.id) { rx in
-                                PrescribedWorkoutCard(
-                                    prescription: rx,
-                                    onStart: {
-                                        activePrescription = rx
-                                        showActiveWorkout = true
+                            SectionContainer {
+                                WorkoutImportBanner(
+                                    imports: importSuggestions,
+                                    onAccept: { suggestion in
+                                        importRPESheet = suggestion
                                     },
-                                    onSkip: {
-                                        rx.markSkipped()
-                                        try? modelContext.save()
-                                        Task {
-                                            await container.syncService.pushPrescribedWorkout(rx)
+                                    onDismiss: { suggestion in
+                                        WorkoutImportService.dismissSuggestion(suggestion)
+                                        withAnimation(Motion.exit) {
+                                            importSuggestions.removeAll { $0.id == suggestion.id }
                                         }
                                     }
                                 )
-                                .padding(.horizontal, 16)
-                                .padding(.bottom, 8)
                             }
-
-                            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                         }
 
                         // Session history
                         if visibleSessions.isEmpty && importSuggestions.isEmpty {
-                            VStack(spacing: 16) {
+                            VStack(spacing: Spacing.sm) {
                                 Text("workoutLog.empty.title")
                                     .font(.Tokens.sectionHead)
                                     .foregroundStyle(ColorTokens.text1)
@@ -146,34 +120,40 @@ struct WorkoutLogView: View {
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
                             }
-                            .padding(.vertical, 48)
+                            .padding(.vertical, Spacing.xl)
                             .frame(maxWidth: .infinity)
                         } else {
-                            ForEach(visibleSessions, id: \.id) { session in
-                                NavigationLink(value: session.id) {
-                                    SessionRow(session: session)
-                                }
-                                .buttonStyle(.plain)
+                            SectionContainer(header: "workoutLog.section.history") {
+                                VStack(spacing: 0) {
+                                    ForEach(visibleSessions, id: \.id) { session in
+                                        NavigationLink(value: session.id) {
+                                            SessionRow(session: session)
+                                        }
+                                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                                        .transition(.opacity)
 
-                                Rectangle()
-                                    .fill(ColorTokens.divider)
-                                    .frame(height: 0.5)
-                            }
+                                        RowSeparator()
+                                    }
 
-                            if lockedWeeks > 0 {
-                                HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
-                                    showUpgrade = true
+                                    if lockedWeeks > 0 {
+                                        HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
+                                            showUpgrade = true
+                                        }
+                                    }
                                 }
+                                .animation(Motion.resolved(Motion.entrance, reduceMotion: reduceMotion), value: visibleSessions.count)
                             }
                         }
+
+                        Spacer().frame(height: Spacing.lg)
                     }
                 }
+                .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
                 .background(ColorTokens.background)
             }
             .navigationTitle("workoutLog.nav.title")
             .toolbarBackground(ColorTokens.background, for: .navigationBar)
             .toolbarBackground(.visible, for: .navigationBar)
-            .withContextSwitcher()
             .navigationDestination(for: UUID.self) { sessionId in
                 if let session = sessions.first(where: { $0.id == sessionId }) {
                     SessionDetailView(session: session)
@@ -183,6 +163,11 @@ struct WorkoutLogView: View {
                 ToolbarItem(placement: .primaryAction) {
                     HStack(spacing: 16) {
                         Menu {
+                            Button {
+                                showPlanToday = true
+                            } label: {
+                                Label("planToday.menu.label", systemImage: "calendar.badge.plus")
+                            }
                             Button {
                                 showLLMImport = true
                             } label: {
@@ -202,11 +187,6 @@ struct WorkoutLogView: View {
                             } label: {
                                 Label("workoutLog.import.text", systemImage: "doc.plaintext")
                             }
-                            Button {
-                                showShareImport = true
-                            } label: {
-                                Label("workoutLog.import.shared", systemImage: "square.and.arrow.down")
-                            }
                         } label: {
                             Image(systemName: "ellipsis.circle")
                                 .foregroundStyle(ColorTokens.text2)
@@ -217,18 +197,17 @@ struct WorkoutLogView: View {
                             Image(systemName: "plus")
                                 .foregroundStyle(ColorTokens.text1)
                         }
+                        .accessibilityIdentifier("workoutLog.startWorkout")
                     }
                 }
             }
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet(
-                    prescription: activePrescription,
                     template: selectedTemplateForSession
                 )
             }
             .onChange(of: showActiveWorkout) { _, isPresented in
                 if !isPresented {
-                    activePrescription = nil
                     selectedTemplateForSession = nil
                 }
             }
@@ -239,7 +218,6 @@ struct WorkoutLogView: View {
                         showActiveWorkout = true
                     },
                     onStartBlank: {
-                        activePrescription = nil
                         selectedTemplateForSession = nil
                         showActiveWorkout = true
                     },
@@ -279,22 +257,12 @@ struct WorkoutLogView: View {
                 )
                 .environment(container)
             }
-            .sheet(item: $selectedTemplateForShare) { template in
-                ShareCodeSheet(template: template)
-                    .environment(container)
-            }
             .sheet(isPresented: $showLLMImport) {
                 WorkoutImportSheet()
                     .environment(container)
             }
-            .sheet(isPresented: $showShareImport) {
-                ShareImportSheet(onLookupSuccess: { result in
-                    shareImportResult = result
-                })
-                .environment(container)
-            }
-            .sheet(item: $shareImportResult) { result in
-                ShareImportPreviewSheet(response: result)
+            .sheet(isPresented: $showPlanToday) {
+                PlanTodaySheet()
                     .environment(container)
             }
             .sheet(isPresented: $showTemplateEditor) {
@@ -309,7 +277,96 @@ struct WorkoutLogView: View {
             .task {
                 await loadImportSuggestions()
             }
+            .task(id: athletes.first?.id) {
+                // Construct the verdict VM once; refresh against the current athlete's today-plan.
+                // SC4 ordering guard: wire the production logger seam at construction so the verdict
+                // surface can NEVER be reached without a VerdictEvent being recorded per decision.
+                if verdictVM == nil {
+                    let vm = TodayVerdictViewModel(modelContext: modelContext)
+                    let repository = VerdictEventRepository(modelContext: modelContext)
+                    verdictRepository = repository
+                    let loggedAthlete = athletes.first
+                    vm.onDecisionRecorded = { [weak vm] decision in
+                        guard let vm else { return }
+                        let delta = (decision.adjustedTopSetKg ?? decision.plannedTopSetKg) - decision.plannedTopSetKg
+                        repository.log(
+                            decidedAt: decision.decidedAt,
+                            planDate: .now,                 // today's planned session; model applies start-of-day
+                            verdictKindRaw: vm.lastHeadlineVerdictRaw ?? "go",
+                            plannedTopSetKg: decision.plannedTopSetKg,
+                            adjustedTopSetKg: decision.adjustedTopSetKg,
+                            deltaKg: delta,
+                            differed: decision.hadAdjustment,
+                            actionRaw: verdictActionRaw(decision.action),
+                            regionRaw: vm.lastHeadlineRegionRaw ?? MuscleRegion.fullBody.rawValue,
+                            reasonLine: decision.reasonLine,
+                            confidenceNote: vm.display?.confidenceNote,
+                            athlete: loggedAthlete
+                        )
+                    }
+                    verdictVM = vm
+                }
+                if let athlete = athletes.first {
+                    verdictVM?.refresh(athlete: athlete)
+                }
+                refreshOutcomePrompt()
+                refreshSeanEllisPrompt()
+            }
+            .onChange(of: showPlanToday) { _, isPresented in
+                // After planning today's session, re-read so the verdict card appears.
+                if !isPresented, let athlete = athletes.first {
+                    verdictVM?.refresh(athlete: athlete)
+                    refreshOutcomePrompt()
+                }
+            }
+            .sheet(item: $outcomeEvent) { event in
+                VerdictOutcomeSheet(
+                    event: event,
+                    weightUnit: athletes.first?.weightUnit ?? .kg
+                ) { selection in
+                    verdictRepository?.recordOutcome(selection, for: event, at: .now)
+                    outcomeEvent = nil
+                }
+            }
+            .sheet(isPresented: $showSeanEllis) {
+                SeanEllisPromptSheet { answer in
+                    SeanEllisStore().recordAnswer(answer, atEventCount: seanEllisEventCount, on: .now)
+                    showSeanEllis = false
+                    // A "very disappointed" answer is the strongest stated signal — route it into the
+                    // existing RevenueCat paywall to capture the REVEALED intent (card-on-file).
+                    if answer == .very {
+                        showWTPUpgrade = true
+                    }
+                }
+            }
+            // WTP / card-on-file hop: REUSE the existing paywall (no new trigger case, no new paywall
+            // code). DEFERRED-EXTERNAL: RevenueCat dashboard trial→paid offering config (intro-trial
+            // product on athlete_pro) + real-charge testing are external/human (RevenueCatConfig is
+            // gitignored). The CODE path is live here.
+            .sheet(isPresented: $showWTPUpgrade) {
+                UpgradeSheet(trigger: .athletePro)
+                    .environment(container)
+            }
         }
+    }
+
+    /// Gate the Sean-Ellis prompt: after N logged verdict sessions, ask once per eligibility bracket.
+    /// The store is local-only + deterministic; `.now` only stamps the recorded answer, never the gate.
+    private func refreshSeanEllisPrompt() {
+        let count = verdictRepository?.fetchAll(athlete: athletes.first).count ?? 0
+        seanEllisEventCount = count
+        if SeanEllisStore().shouldPrompt(verdictEventCount: count) {
+            showSeanEllis = true
+        }
+    }
+
+    /// Surface the most recent PAST planned-day decision that still has no recorded outcome (never
+    /// mid-session — `before` is start-of-day today, so today's decisions don't trigger the prompt).
+    private func refreshOutcomePrompt() {
+        outcomeEvent = verdictRepository?.mostRecentAwaitingOutcome(
+            athlete: athletes.first,
+            before: Calendar.current.startOfDay(for: .now)
+        )
     }
 
     private func loadImportSuggestions() async {
@@ -343,9 +400,21 @@ struct WorkoutLogView: View {
             print("Import pipeline error: \(error)")
         }
 
-        withAnimation {
+        withAnimation(Motion.exit) {
             importSuggestions.removeAll { $0.id == suggestion.id }
         }
+    }
+}
+
+// MARK: - Phase 45 verdict-event action mapping
+
+/// Map a `VerdictDecision.action` to the composite `VerdictEvent.actionRaw` token.
+private func verdictActionRaw(_ action: VerdictAction) -> String {
+    switch action {
+    case .accepted: return "accepted"
+    case .keptPlan: return "keptPlan"
+    case .feel(.feelingStrong): return "feelStrong"
+    case .feel(.feelingRough): return "feelRough"
     }
 }
 
@@ -365,7 +434,7 @@ struct ImportRPESheet: View {
                     Text(suggestion.name)
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
-                    HStack(spacing: 12) {
+                    HStack(spacing: Spacing.xs) {
                         Text(suggestion.date.relativeString(locale: locale))
                         Text(Date.durationString(seconds: suggestion.durationSeconds, locale: locale))
                         if let dist = suggestion.distanceMeters {
@@ -425,11 +494,11 @@ struct SessionRow: View {
 
     var body: some View {
         HStack {
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Text(session.sessionName ?? session.sportType.displayName)
-                    .font(.Tokens.body)
+                    .font(.Tokens.bodyMedium)
                     .foregroundStyle(ColorTokens.text1)
-                HStack(spacing: 12) {
+                HStack(spacing: Spacing.xs) {
                     Text(Date.durationString(seconds: session.durationSeconds, locale: locale))
                     if session.totalVolume > 0 {
                         Text(String(format: "%.0f kg", session.totalVolume))
@@ -438,17 +507,17 @@ struct SessionRow: View {
                         Text(String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)))
                     }
                 }
-                .font(.Tokens.label)
+                .font(.Tokens.smallLabel)
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text2)
             }
             Spacer()
             Text(session.sessionDate.relativeString(locale: locale))
-                .font(.Tokens.label)
+                .font(.Tokens.smallLabel)
                 .foregroundStyle(ColorTokens.text3)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
         .background(ColorTokens.background)
     }
 }
@@ -483,20 +552,25 @@ private struct SessionFilterChip: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            // Selection-change feedback only (not a re-tap of the already-active segment).
+            if !isSelected { Haptics.select() }
+            action()
+        } label: {
             label
                 .font(isSelected ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
-                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 8)
+                .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
                 .overlay(alignment: .leading) {
                     if isSelected {
+                        // v2: the active segment carries a 2pt accent edge (accent = active).
                         Rectangle()
-                            .fill(ColorTokens.text1)
-                            .frame(width: 1)
+                            .fill(ColorTokens.accent)
+                            .frame(width: 2)
                     }
                 }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }

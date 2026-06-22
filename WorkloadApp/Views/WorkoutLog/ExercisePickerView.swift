@@ -71,12 +71,14 @@ struct ExercisePickerView: View {
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
                         Button {
+                            Haptics.tap()
                             tryAddCustom()
                         } label: {
                             Label(String(format: String(localized: "action.addCustomExercise", defaultValue: "Add \"%@\" as custom exercise"), searchText), systemImage: "plus")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                         }
+                        .buttonStyle(.pressable)
                     }
                     .frame(maxWidth: .infinity, maxHeight: .infinity)
                     .background(ColorTokens.background)
@@ -84,11 +86,12 @@ struct ExercisePickerView: View {
                     List {
                         ForEach(filteredExercises, id: \.name) { exercise in
                             Button {
+                                Haptics.select()
                                 onSelect(exercise.name, exercise.category, exercise.muscleGroup)
                                 dismiss()
                             } label: {
                                 HStack {
-                                    VStack(alignment: .leading, spacing: 4) {
+                                    VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                                         Text(exercise.name)
                                             .font(.Tokens.body)
                                             .foregroundStyle(ColorTokens.text1)
@@ -109,7 +112,7 @@ struct ExercisePickerView: View {
                                     Spacer()
                                 }
                             }
-                            .foregroundStyle(.primary)
+                            .foregroundStyle(ColorTokens.text1)
                             .swipeActions(edge: .trailing) {
                                 if exercise.isCustom {
                                     Button(role: .destructive) {
@@ -224,7 +227,7 @@ struct AddCustomExerciseSheet: View {
                     .padding(.vertical, 8)
                     .contentShape(Rectangle())
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
 
                 Rectangle()
                     .fill(ColorTokens.divider)
@@ -328,9 +331,9 @@ struct MuscleGroupSelector: View {
 
     @ViewBuilder
     private func row(title: String, isSelected: Bool, isSuggested: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button(action: { Haptics.select(); action() }) {
             HStack(spacing: 8) {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                     Text(title)
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
@@ -342,15 +345,16 @@ struct MuscleGroupSelector: View {
                 }
                 Spacer()
                 if isSelected {
+                    // Current selection in the picker → accent (live / you-are-here).
                     Image(systemName: "checkmark")
                         .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
+                        .foregroundStyle(ColorTokens.accent)
                 }
             }
             .padding(.vertical, 8)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }
 
@@ -362,17 +366,19 @@ struct FilterChip: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button(action: { Haptics.select(); action() }) {
             Text(label)
                 .font(.Tokens.label)
-                .padding(.horizontal, 12)
-                .padding(.vertical, 6)
-                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
-                .background(isSelected ? ColorTokens.surface : ColorTokens.background)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
+                // Active segment carries the accent (live / you-are-here); idle stays neutral.
+                .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
+                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background)
                 .overlay(
-                    Rectangle().stroke(isSelected ? ColorTokens.text3 : ColorTokens.divider, lineWidth: 0.5)
+                    Rectangle().stroke(isSelected ? ColorTokens.accent : ColorTokens.divider, lineWidth: 0.5)
                 )
         }
+        .buttonStyle(.pressable)
     }
 }
 

@@ -161,6 +161,64 @@ struct ShadowPredictor {
         }
     }
 
+    // MARK: - Cross-modal prediction (Phase 41, ACT-02 — shadow only, DARK)
+
+    /// Cross-modal next-day prediction for an outcome (the shadow arm representing the
+    /// `CrossModalFatigueEngine` channel).
+    ///
+    /// The FULL engine (`CrossModalFatigueEngine`) is region-resolved and consumes raw
+    /// `[WorkoutSession]` to express *directional* carry — yesterday's run loads today's legs but
+    /// spares the bench. The shadow-harness arm contract, however, only hands an arm the per-outcome
+    /// history `series` (no raw sessions, no region). So within that contract this arm represents the
+    /// cross-modal HYPOTHESIS deterministically and leak-free: when the athlete's own recent trajectory
+    /// shows ELEVATED above-normal load (proxied by a recency-weighted rise in the historical series),
+    /// the next-day value is nudged in the cross-modal-fatigue direction (down for capacity-like
+    /// outcomes, UP for pain — fatigue carry makes soreness worse), through a CONCAVE, saturating,
+    /// bounded modifier so two stacked stressors never double-penalize (mirrors the engine's
+    /// anti-linear-stacking `maxPenalty · (1 − e^(−k·E))` core and the conservative `0.5×` posture of
+    /// the `prs` arm). It uses ONLY the supplied historical series — never the target day (no leak) —
+    /// and is a genuinely DIFFERENT predictor from `baseline` and `prs` (it dampens toward the recent
+    /// MEAN under elevation rather than extrapolating the trend), so the Phase-43-gating shadow
+    /// comparison is meaningful.
+    ///
+    /// This is shadow-only: it logs DARK and its verdict influence is SEPARATELY fenced by
+    /// `CrossModalShadowGate.crossModalDrivesVerdict` (default OFF). It NEVER drives a user-facing number.
+    static func crossModalPrediction(series: [Double], outcome: ShadowPredictor.Outcome) -> Double {
+        let base = baselinePrediction(series: series)
+        guard outcome != .niggleSeverity else { return base } // no arm predicts niggleSeverity in v1 (P25 D-04)
+        guard series.count >= 3,
+              let slope = RecoveryScoreEngine.computeSlope(values: series) else {
+            return base
+        }
+        // Recency-weighted "above-normal elevation" proxy E ≥ 0: a recent RISE in load proxies
+        // accumulated cross-modal carry. We read it from the series' own trend magnitude relative to
+        // its spread, deadbanded so steady-state athletes (flat series) get E ≈ 0 ⇒ no nudge (only
+        // ABOVE-personal-normal carry counts — the engine's personal-baseline moat). Leak-free: uses
+        // only the historical `series`.
+        let mean = series.reduce(0, +) / Double(series.count)
+        let spread = series.map { abs($0 - mean) }.reduce(0, +) / Double(series.count)
+        let denom = max(spread, 1.0) // avoid divide-by-zero / over-amplifying tiny-spread series
+        let rawElevation = max(0.0, slope) / denom
+        let E = max(0.0, rawElevation - crossModalElevationDeadband)
+        // Concave, saturating, bounded carry penalty (anti-linear-stacking): maxNudge · (1 − e^(−k·E)).
+        let carry = crossModalMaxNudge * (1.0 - exp(-crossModalK * E))
+        // Direction: fatigue carry DEPRESSES capacity-like outcomes and RAISES reported pain.
+        switch outcome {
+        case .pain:           return base + carry  // more carry ⇒ more next-day soreness
+        case .niggleSeverity: return base          // unreachable (guarded above); defensive
+        default:              return base - carry  // recovery / wellness / completion: depressed
+        }
+    }
+
+    /// Saturating-rate of the cross-modal arm's concave carry modifier (mirrors the engine's `k`).
+    private static let crossModalK: Double = 2.0
+    /// Bounded magnitude of the cross-modal arm's next-day nudge in the outcome's own units
+    /// (conservative — matches the engine's deliberately small `maxPenalty` posture).
+    private static let crossModalMaxNudge: Double = 2.0
+    /// Above-personal-normal deadband: only a series whose recency-weighted elevation clears this gets
+    /// any nudge (steady-state athletes ⇒ E ≈ 0 ⇒ no penalty — the personal-baseline moat).
+    private static let crossModalElevationDeadband: Double = 0.10
+
     // MARK: - Error metric
 
     /// Absolute prediction error for a single resolved outcome.
@@ -190,12 +248,17 @@ struct ExperimentalArm {
 
 extension ShadowPredictor {
 
-    /// The experimental arms registered this phase, in stable order. EXACTLY two:
+    /// The experimental arms registered, in stable order. EXACTLY four:
     /// - `"baseline"` — persistence/trend extrapolation, ignores cycle context.
     /// - `"cycleAware"` — baseline + fixed literature-derived phase offset (collapses to baseline
     ///   when the phase is `.unknown`).
-    /// Both delegate to the existing static methods so their numbers are byte-identical to the
-    /// pre-Phase-24 hard-coded columns (D-13 regression guard). No model/PRS arm is added here.
+    /// - `"prs"` — PRS-v1 readiness-trend predicting arm (Phase 28, shadow-only).
+    /// - `"crossModal"` — the DARK cross-modal fatigue-carry arm (Phase 41, ACT-02): represents the
+    ///   `CrossModalFatigueEngine` channel inside the harness contract. Runs UNCONDITIONALLY (shadow
+    ///   only) and is fenced from any verdict by `CrossModalShadowGate.crossModalDrivesVerdict`.
+    /// `baseline`/`cycleAware`/`prs` delegate to their existing static methods so their numbers stay
+    /// byte-identical to the pre-Phase-24 hard-coded columns (D-13 regression guard); appending the
+    /// fourth arm does NOT perturb the first three.
     static func registeredArms() -> [ExperimentalArm] {
         let baseline = ExperimentalArm(
             id: "baseline",
@@ -227,6 +290,22 @@ extension ShadowPredictor {
                 return ShadowPredictor.prsPrediction(series: series, outcome: outcome)
             }
         )
-        return [baseline, cycleAware, prs]
+        // Phase 41, ACT-02: the DARK cross-modal fatigue-carry arm. The full region-resolved
+        // CrossModalFatigueEngine is the channel this arm represents; within the harness contract it
+        // logs a deterministic, leak-free, cross-modal-flavoured prediction. Runs UNCONDITIONALLY
+        // (shadow-only) — independent of EVERY activation flag (PRSActivation / PRSMasterActivation /
+        // VerdictSurfaceActivation) AND of CrossModalShadowGate. Its VERDICT influence is separately
+        // gated by CrossModalShadowGate.crossModalDrivesVerdict (default OFF), flipped ONLY by an
+        // explicit human shadow-validation pass — never by this registration or any code merge.
+        let crossModal = ExperimentalArm(
+            id: "crossModal",
+            engineDerivedOutcomes: engineDerivedOutcomes,
+            predict: { outcome, series, _ in
+                // P25 D-04: no arm predicts .niggleSeverity in v1.
+                guard outcome != .niggleSeverity else { return nil }
+                return ShadowPredictor.crossModalPrediction(series: series, outcome: outcome)
+            }
+        )
+        return [baseline, cycleAware, prs, crossModal]
     }
 }

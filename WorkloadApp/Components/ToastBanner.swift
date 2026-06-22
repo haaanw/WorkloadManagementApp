@@ -17,7 +17,7 @@ struct ToastBanner: View {
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 16)
-        .background(ColorTokens.surface)
+        .background(ColorTokens.surfaceEl2)
         .overlay(
             Rectangle()
                 .stroke(isError ? ColorTokens.zoneDanger : ColorTokens.divider, lineWidth: 0.5)
@@ -27,7 +27,7 @@ struct ToastBanner: View {
         .task {
             let delay: Duration = isError ? .seconds(3) : .seconds(2)
             try? await Task.sleep(for: delay)
-            withAnimation(.easeIn(duration: 0.15)) {
+            withAnimation(Motion.exit) {
                 isPresented = false
             }
         }

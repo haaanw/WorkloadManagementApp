@@ -330,8 +330,8 @@ struct GroupEditorCard: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
 
             Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -346,8 +346,8 @@ struct GroupEditorCard: View {
                 Label("action.addExercise", systemImage: "plus")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
             }
         }
         .background(ColorTokens.surface)
@@ -483,8 +483,8 @@ struct TargetSetRow: View {
             }
         }
         .font(.Tokens.label)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
     }
 }
 

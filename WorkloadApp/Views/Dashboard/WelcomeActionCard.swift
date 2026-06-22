@@ -12,51 +12,44 @@ struct WelcomeActionCard: View {
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
+                .padding(.bottom, Spacing.xs)
 
             Text("welcome.card.title")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
-                .padding(.horizontal, 16)
 
             Text("welcome.card.body")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-                .padding(.bottom, 16)
+                .padding(.top, Spacing.xs)
+                .padding(.bottom, Spacing.sm)
 
-            HStack(spacing: 8) {
+            HStack(spacing: Spacing.xs) {
                 Button(action: onLogWorkout) {
                     Text("dashboard.action.logWorkout")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, Spacing.xs)
                         .overlay(
                             Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                         )
                 }
+                .buttonStyle(.pressable)
 
                 Button(action: onWellnessCheckIn) {
                     Text("welcome.card.action.checkIn")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
-                        .padding(.vertical, 8)
+                        .padding(.vertical, Spacing.xs)
                         .overlay(
                             Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
                         )
                 }
+                .buttonStyle(.pressable)
             }
-            .padding(.horizontal, 16)
-            .padding(.bottom, 16)
         }
-        .background(ColorTokens.surface)
-        .overlay(
-            Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
-        )
+        .cardStyle()
     }
 }

@@ -11,7 +11,6 @@ struct TemplateCarouselSection: View {
     var onStartFromTemplate: (WorkoutTemplate) -> Void
     var onCreateTemplate: () -> Void
     var onPreviewTemplate: ((WorkoutTemplate) -> Void)? = nil
-    var onShareTemplate: ((WorkoutTemplate) -> Void)? = nil
 
     @State private var centeredId: UUID?
     @State private var showDeleteConfirmation = false
@@ -65,47 +64,39 @@ struct TemplateCarouselSection: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Text("empty.noTemplates.title")
-                .font(.Tokens.sectionHead)
-                .foregroundStyle(ColorTokens.text1)
-
-            Text("empty.noTemplates.description")
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text2)
-                .multilineTextAlignment(.center)
-
-            Button {
-                onCreateTemplate()
-            } label: {
-                Text("action.createTemplate")
-                    .font(.Tokens.label)
+        SectionContainer {
+            VStack(spacing: Spacing.sm) {
+                Text("empty.noTemplates.title")
+                    .font(.Tokens.sectionHead)
                     .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 8)
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+
+                Text("empty.noTemplates.description")
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text2)
+                    .multilineTextAlignment(.center)
+
+                Button {
+                    onCreateTemplate()
+                } label: {
+                    Text("action.createTemplate")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text1)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, Spacing.xs)
+                        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                }
+                .buttonStyle(.pressable)
             }
-            .buttonStyle(.plain)
+            .frame(maxWidth: .infinity)
+            .cardStyle()
+            .padding(.horizontal, Spacing.sm)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
-        .frame(maxWidth: .infinity)
-        .background(ColorTokens.background)
     }
 
     // MARK: - Carousel
 
     private var carouselContent: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            Text("section.myTemplates")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .textCase(.uppercase)
-                .foregroundStyle(ColorTokens.text3)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
-
+        SectionContainer(header: "section.myTemplates") {
             ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 16) {
                     ForEach(templates, id: \.id) { template in
@@ -162,14 +153,14 @@ struct TemplateCarouselSection: View {
                     Spacer()
                     Button {
                         archiveTemplate(template)
-                        withAnimation(.easeOut(duration: 0.25)) {
+                        withAnimation(Motion.screen) {
                             swipeOffset = 0
                             swipedTemplateId = nil
                         }
                     } label: {
-                        VStack(spacing: 4) {
+                        VStack(spacing: Spacing.xs) {
                             Image(systemName: "archivebox")
-                                .font(.system(size: 17))
+                                .imageScale(.medium)
                             Text("action.archive")
                                 .font(.Tokens.micro)
                         }
@@ -177,20 +168,20 @@ struct TemplateCarouselSection: View {
                         .frame(width: 72, height: 160)
                         .background(ColorTokens.surface)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .accessibilityLabel("a11y.archiveTemplate")
 
                     Button {
                         templateToDelete = template
                         showDeleteConfirmation = true
-                        withAnimation(.easeOut(duration: 0.25)) {
+                        withAnimation(Motion.screen) {
                             swipeOffset = 0
                             swipedTemplateId = nil
                         }
                     } label: {
-                        VStack(spacing: 4) {
+                        VStack(spacing: Spacing.xs) {
                             Image(systemName: "trash")
-                                .font(.system(size: 17))
+                                .imageScale(.medium)
                             Text("action.delete")
                                 .font(.Tokens.micro)
                         }
@@ -198,7 +189,7 @@ struct TemplateCarouselSection: View {
                         .frame(width: 72, height: 160)
                         .background(ColorTokens.surface)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                     .accessibilityLabel("a11y.deleteTemplate")
                 }
             }
@@ -207,7 +198,7 @@ struct TemplateCarouselSection: View {
             VStack(alignment: .leading, spacing: 0) {
                 // Top row
                 HStack(alignment: .top) {
-                    VStack(alignment: .leading, spacing: 4) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text(template.templateName)
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
@@ -223,7 +214,7 @@ struct TemplateCarouselSection: View {
                     }
                     Spacer()
                     Image(systemName: template.isFavorite ? "star.fill" : "star")
-                        .font(.system(size: 15))
+                        .imageScale(.small)
                         .foregroundStyle(template.isFavorite ? ColorTokens.zoneCaution : ColorTokens.text3)
                 }
 
@@ -242,10 +233,20 @@ struct TemplateCarouselSection: View {
                     }
                 }
             }
-            .padding(16)
+            .padding(Spacing.sm)
             .frame(height: 160)
-            .background(ColorTokens.surface)
-            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+            // v2: the centered (active) card lifts to the emphasis plane with the stronger
+            // border and a 2pt accent top rule — the sanctioned active-surface treatment.
+            .background(isCentered ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl)
+            .overlay(Rectangle().stroke(isCentered ? ColorTokens.dividerStrong : ColorTokens.divider, lineWidth: 0.5))
+            .overlay(alignment: .top) {
+                if isCentered {
+                    Rectangle()
+                        .fill(ColorTokens.accent)
+                        .frame(height: 2)
+                        .accessibilityHidden(true)
+                }
+            }
             .overlay(alignment: .topTrailing) {
                 if container.subscriptionService.isPro,
                    let suggestion = suggestionResult,
@@ -255,8 +256,8 @@ struct TemplateCarouselSection: View {
                         .tracking(1.2)
                         .textCase(.uppercase)
                         .foregroundStyle(ColorTokens.text2)
-                        .padding(.horizontal, 4)
-                        .padding(.vertical, 2)
+                        .padding(.horizontal, Spacing.xs)
+                        .padding(.vertical, 4)
                         .overlay(
                             Rectangle().stroke(
                                 suggestion.isRecoveryAdjusted ? ColorTokens.zoneCaution : ColorTokens.zoneOptimal,
@@ -276,7 +277,7 @@ struct TemplateCarouselSection: View {
                             swipedTemplateId = template.id
                         }
                         .onEnded { value in
-                            withAnimation(.easeOut(duration: 0.25)) {
+                            withAnimation(Motion.screen) {
                                 if swipeOffset < -72 {
                                     swipeOffset = -144
                                 } else {
@@ -289,16 +290,20 @@ struct TemplateCarouselSection: View {
             )
             .onTapGesture {
                 if swipedTemplateId == template.id && swipeOffset < 0 {
-                    withAnimation(.easeOut(duration: 0.25)) {
+                    withAnimation(Motion.screen) {
                         swipeOffset = 0
                         swipedTemplateId = nil
                     }
                     return
                 }
                 if isCentered {
+                    // Launching a session from the active card — a meaningful commit.
+                    Haptics.tap()
                     onStartFromTemplate(template)
                 } else {
-                    withAnimation(.easeOut(duration: 0.25)) {
+                    // Re-centering the carousel = a selection change.
+                    Haptics.select()
+                    withAnimation(Motion.screen) {
                         centeredId = template.id
                     }
                 }
@@ -314,11 +319,6 @@ struct TemplateCarouselSection: View {
                 }
                 Button { duplicateTemplate(template) } label: {
                     Label("action.duplicateTemplate", systemImage: "doc.on.doc")
-                }
-                if let onShareTemplate {
-                    Button { onShareTemplate(template) } label: {
-                        Label("action.shareTemplate", systemImage: "square.and.arrow.up")
-                    }
                 }
                 Button { toggleFavorite(template) } label: {
                     Label(template.isFavorite ? "action.unfavorite" : "action.favorite",
@@ -341,9 +341,9 @@ struct TemplateCarouselSection: View {
     // MARK: - New Template Card
 
     private var newTemplateCard: some View {
-        VStack(spacing: 8) {
+        VStack(spacing: Spacing.xs) {
             Image(systemName: "plus")
-                .font(.system(size: 24))
+                .imageScale(.large)
                 .foregroundStyle(ColorTokens.text2)
             Text("action.createTemplate")
                 .font(.Tokens.label)
@@ -366,7 +366,7 @@ struct TemplateCarouselSection: View {
 
     private func weekdayInitials(scheduledDays: [Int]) -> some View {
         let days = ["M", "T", "W", "T", "F", "S", "S"]
-        return HStack(spacing: 4) {
+        return HStack(spacing: Spacing.xs) {
             ForEach(Array(days.enumerated()), id: \.offset) { index, initial in
                 let isoDay = index + 1  // 1=Mon...7=Sun
                 Text(initial)

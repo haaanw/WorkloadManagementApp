@@ -12,7 +12,8 @@ struct WeeklySummaryCard: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header row (tappable to collapse)
             Button {
-                withAnimation(.easeOut(duration: 0.25)) {
+                Haptics.tap()
+                withAnimation(Motion.screen) {
                     isExpanded.toggle()
                     storedExpanded = isExpanded
                 }
@@ -24,22 +25,22 @@ struct WeeklySummaryCard: View {
                         .foregroundStyle(ColorTokens.text3)
                     Spacer()
                     Image(systemName: "chevron.down")
-                        .font(.system(size: 12))
+                        .font(.Tokens.micro)
                         .foregroundStyle(ColorTokens.text3)
                         .rotationEffect(.degrees(isExpanded ? 0 : -180))
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.sm)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 
             if isExpanded {
-                VStack(spacing: 16) {
+                VStack(spacing: Spacing.sm) {
                     // Streak row (STRK-01, STRK-02, D-01, D-02)
                     if streak > 0 {
-                        HStack(spacing: 8) {
+                        HStack(spacing: Spacing.xs) {
                             Image(systemName: "flame.fill")
-                                .font(.system(size: 13))
+                                .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                                 .accessibilityHidden(true)
                             Text("\(streak)")
@@ -50,21 +51,21 @@ struct WeeklySummaryCard: View {
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
                         }
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, Spacing.sm)
                         .accessibilityLabel("\(streak) week training streak")
                     }
 
                     // Row 1: Sessions + Volume (2-column)
-                    HStack(spacing: 16) {
+                    HStack(spacing: Spacing.sm) {
                         metricCell(title: String(localized: "weekly.summary.metric.sessions", defaultValue: "SESSIONS"), value: "\(summary.sessionCount)", delta: summary.sessionCountDelta)
                         metricCell(title: String(localized: "weekly.summary.metric.volume", defaultValue: "VOLUME"), value: String(format: "%.0f", summary.totalVolume), delta: summary.volumeDelta)
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, Spacing.sm)
 
                     // Row 2: Avg Recovery + Load Trend (2-column)
-                    HStack(spacing: 16) {
+                    HStack(spacing: Spacing.sm) {
                         metricCell(title: String(localized: "weekly.summary.metric.avgRecovery", defaultValue: "AVG RECOVERY"), value: String(format: "%.0f", summary.avgRecoveryScore), delta: summary.recoveryDelta)
-                        VStack(alignment: .leading, spacing: 4) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text("weekly.summary.metric.loadTrend")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
@@ -79,25 +80,24 @@ struct WeeklySummaryCard: View {
 
                     // Row 3: ACWR Zone Distribution
                     if !summary.acwrZoneDistribution.isEmpty {
-                        VStack(alignment: .leading, spacing: 8) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text("weekly.summary.metric.zoneDistribution")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
                                 .foregroundStyle(ColorTokens.text3)
-                            HStack(spacing: 8) {
+                            HStack(spacing: Spacing.xs) {
                                 ForEach(sortedZones, id: \.self) { zone in
                                     WeeklyZoneBadge(zone: zone, count: summary.acwrZoneDistribution[zone, default: 0])
                                 }
                             }
                         }
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, Spacing.sm)
                     }
                 }
-                .padding(.bottom, 16)
+                .padding(.bottom, Spacing.sm)
             }
         }
-        .background(ColorTokens.surface)
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        .cardStyle(horizontalPadding: 0, verticalPadding: 0)
         .onAppear { isExpanded = storedExpanded }
     }
 
@@ -108,12 +108,12 @@ struct WeeklySummaryCard: View {
     }
 
     private func metricCell(title: String, value: String, delta: Double) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(title)
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
-            HStack(spacing: 8) {
+            HStack(spacing: Spacing.xs) {
                 Text(value)
                     .font(.Tokens.sectionHead)
                     .monospacedDigit()
@@ -133,7 +133,7 @@ private struct WeeklyZoneBadge: View {
     let count: Int
 
     var body: some View {
-        HStack(spacing: 4) {
+        HStack(spacing: Spacing.xs) {
             Text(zone.displayName)
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
@@ -142,8 +142,8 @@ private struct WeeklyZoneBadge: View {
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text1)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
+        .padding(.horizontal, Spacing.xs)
+        .padding(.vertical, Spacing.xs)
         .background(ColorTokens.background)
         .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
     }

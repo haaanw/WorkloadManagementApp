@@ -33,6 +33,7 @@ struct TemplatePickerSheet: View {
 
                     // Start blank workout button (always visible)
                     Button {
+                        Haptics.tap()
                         dismiss()
                         onStartBlank()
                     } label: {
@@ -42,7 +43,8 @@ struct TemplatePickerSheet: View {
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 16)
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
+                    .accessibilityIdentifier("templatePicker.startBlank")
                     .padding(.horizontal, 16)
                     .padding(.top, 16)
                 }
@@ -72,6 +74,7 @@ struct TemplatePickerSheet: View {
                 .foregroundStyle(ColorTokens.text2)
                 .multilineTextAlignment(.center)
             Button {
+                Haptics.tap()
                 dismiss()
                 onCreateTemplate()
             } label: {
@@ -82,7 +85,7 @@ struct TemplatePickerSheet: View {
                     .padding(.vertical, 8)
                     .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.pressable)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 24)
@@ -95,6 +98,7 @@ struct TemplatePickerSheet: View {
         LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
             ForEach(templates, id: \.id) { template in
                 templateCard(template)
+                    .accessibilityIdentifier("templatePicker.template")
             }
         }
         .padding(.horizontal, 16)
@@ -110,12 +114,13 @@ struct TemplatePickerSheet: View {
         }
 
         return Button {
+            Haptics.select()
             dismiss()
             onSelectTemplate(template)
         } label: {
             VStack(alignment: .leading, spacing: 8) {
                 Image(systemName: template.sportType.systemImage)
-                    .font(.system(size: 15))
+                    .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
 
                 Text(template.templateName)
@@ -139,7 +144,7 @@ struct TemplatePickerSheet: View {
             .background(ColorTokens.surface)
             .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .accessibilityLabel("\(template.templateName), \(exercises.count) exercises\(lastUsedText.map { ", last used \($0)" } ?? "")")
     }
 }

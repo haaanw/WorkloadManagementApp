@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1"/>
+<title>Phase 38 — Fast Set Entry sketch</title>
+<style>
+  /* Tuwa tokens (exact from ColorTokens.swift). 0pt corners, hairline borders, 8pt grid, no shadows. */
+  :root{
+    --bg:#0B0B0A; --surface:#161615; --surfaceEl:#1F1F1D; --divider:#232321;
+    --t1:#C2BEB7; --t2:#7C7972; --t3:#3A3835; --danger:#7E5C5C; --optimal:#607869;
+  }
+  .light{
+    --bg:#F4F1ED; --surface:#EDEAE6; --surfaceEl:#E4E0DB; --divider:#CFCBC5;
+    --t1:#1C1915; --t2:#696560; --t3:#AFABA5; --danger:#6E3A3A; --optimal:#3E5C49;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;border-radius:0!important;font-family:"General Sans","Inter",system-ui,sans-serif;font-weight:400}
+  body{background:#000;color:#888;padding:24px;display:flex;flex-wrap:wrap;gap:24px;align-items:flex-start}
+  .col{display:flex;flex-direction:column;gap:8px}
+  .caption{color:#777;font-size:12px;letter-spacing:.06em;text-transform:uppercase;padding-left:4px}
+  .phone{width:380px;background:var(--bg);color:var(--t1);border:0.5px solid var(--divider);padding:16px;display:flex;flex-direction:column;gap:24px}
+  /* card */
+  .card{background:var(--surfaceEl);border:0.5px solid var(--divider);padding:16px;display:flex;flex-direction:column;gap:16px}
+  .ex-title{font-size:17px;font-weight:500;color:var(--t1)}
+  .ex-sub{font-size:13px;color:var(--t2);margin-top:2px}
+  .hdr{display:grid;grid-template-columns:28px 1fr 1fr 44px;gap:8px;font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--t2);align-items:center}
+  .row{display:grid;grid-template-columns:28px 1fr 1fr 44px;gap:8px;align-items:center;padding:8px 0;border-top:0.5px solid var(--divider)}
+  .setno{font-size:15px;color:var(--t2)}
+  /* stepper */
+  .step{display:flex;align-items:center;border:0.5px solid var(--divider);height:40px}
+  .step button{flex:0 0 36px;height:100%;background:var(--surface);color:var(--t1);border:none;border-right:0.5px solid var(--divider);font-size:18px;font-weight:500}
+  .step button:last-child{border-right:none;border-left:0.5px solid var(--divider)}
+  .step .val{flex:1;text-align:center;font-size:16px;font-weight:500;color:var(--t1)}
+  .step .unit{font-size:11px;color:var(--t2);margin-left:2px}
+  .rpe-cell{display:flex;justify-content:flex-end}
+  .rpe-chip{font-size:12px;color:var(--t2);border:0.5px solid var(--divider);padding:6px 8px}
+  .rpe-on{color:var(--t1)}
+  /* carried-forward ghost */
+  .ghost .val{color:var(--t2)}
+  .ghost{opacity:.78}
+  /* buttons */
+  .repeat{display:flex;align-items:center;justify-content:center;gap:8px;height:44px;border:0.5px solid var(--divider);background:var(--surface);color:var(--t1);font-size:15px;font-weight:500}
+  .addset{height:40px;border:0.5px dashed var(--divider);background:transparent;color:var(--t2);font-size:14px}
+  .rpe-expand{display:grid;grid-template-columns:28px 1fr 44px;gap:8px;align-items:center;padding:8px 0;border-top:0.5px solid var(--divider)}
+  .rpe-slider{height:8px;background:var(--surface);border:0.5px solid var(--divider);position:relative}
+  .rpe-slider i{position:absolute;left:62%;top:-6px;width:2px;height:20px;background:var(--t1)}
+  /* inline banner (was full-screen modal) */
+  .banner{background:var(--surface);border:0.5px solid var(--divider);border-left:3px solid var(--optimal);padding:12px 16px;display:flex;justify-content:space-between;align-items:center}
+  .banner.spike{border-left-color:var(--danger)}
+  .banner .bt{font-size:14px;font-weight:500;color:var(--t1)}
+  .banner .bs{font-size:12px;color:var(--t2);margin-top:2px}
+  .banner .x{font-size:13px;color:var(--t2);border:0.5px solid var(--divider);padding:6px 10px}
+  /* finish bar */
+  .finish{display:flex;gap:8px;margin-top:8px}
+  .finish .primary{flex:1;height:48px;background:var(--t1);color:var(--bg);font-size:16px;font-weight:500;border:none;display:flex;align-items:center;justify-content:center}
+  .finish .ghostbtn{flex:0 0 96px;height:48px;background:transparent;color:var(--t1);border:0.5px solid var(--divider);font-size:15px}
+  .note{font-size:12px;color:var(--t2);padding:0 4px}
+  h1{color:#bbb;font-size:14px;font-weight:500;width:100%;margin-top:8px}
+</style>
+</head>
+<body>
+
+<h1>Phase 38 — Fast set entry · Variant A = Stepper-primary · Variant B = Repeat-first (tap-to-reveal) · dark + light</h1>
+
+<!-- ============ VARIANT A — STEPPER PRIMARY ============ -->
+<div class="col">
+  <div class="caption">Variant A · Stepper-primary · dark</div>
+  <div class="phone">
+    <div class="card">
+      <div>
+        <div class="ex-title">Barbell Bench Press</div>
+        <div class="ex-sub">Chest · last: 80kg × 8</div>
+      </div>
+      <div class="hdr"><span>SET</span><span>WEIGHT</span><span>REPS</span><span style="text-align:right">RPE</span></div>
+
+      <!-- logged set -->
+      <div class="row">
+        <span class="setno">1</span>
+        <div class="step"><button>−</button><span class="val">80<span class="unit">kg</span></span><button>+</button></div>
+        <div class="step"><button>−</button><span class="val">8</span><button>+</button></div>
+        <div class="rpe-cell"><span class="rpe-chip rpe-on">7</span></div>
+      </div>
+
+      <!-- carried-forward (pre-filled, ghosted until touched) -->
+      <div class="row ghost">
+        <span class="setno">2</span>
+        <div class="step"><button>−</button><span class="val">80<span class="unit">kg</span></span><button>+</button></div>
+        <div class="step"><button>−</button><span class="val">8</span><button>+</button></div>
+        <div class="rpe-cell"><span class="rpe-chip">+ RPE</span></div>
+      </div>
+
+      <button class="repeat">↻&nbsp; Repeat last set</button>
+      <button class="addset">+ Add set</button>
+    </div>
+
+    <!-- inline PR banner (was full-screen) -->
+    <div class="banner"><div><div class="bt">New PR — 82.5kg × 8</div><div class="bs">Beats your previous 80kg × 8</div></div><span class="x">Dismiss</span></div>
+
+    <div class="finish">
+      <button class="primary">Finish workout</button>
+      <button class="ghostbtn">Cancel</button>
+    </div>
+    <div class="note">Tap a number → keypad for big jumps. Steppers: weight ±2.5, reps ±1.</div>
+  </div>
+</div>
+
+<div class="col">
+  <div class="caption">Variant A · light</div>
+  <div class="phone light">
+    <div class="card">
+      <div><div class="ex-title">Barbell Bench Press</div><div class="ex-sub">Chest · last: 80kg × 8</div></div>
+      <div class="hdr"><span>SET</span><span>WEIGHT</span><span>REPS</span><span style="text-align:right">RPE</span></div>
+      <div class="row">
+        <span class="setno">1</span>
+        <div class="step"><button>−</button><span class="val">80<span class="unit">kg</span></span><button>+</button></div>
+        <div class="step"><button>−</button><span class="val">8</span><button>+</button></div>
+        <div class="rpe-cell"><span class="rpe-chip rpe-on">7</span></div>
+      </div>
+      <!-- expanded RPE example -->
+      <div class="row ghost">
+        <span class="setno">2</span>
+        <div class="step"><button>−</button><span class="val">80<span class="unit">kg</span></span><button>+</button></div>
+        <div class="step"><button>−</button><span class="val">8</span><button>+</button></div>
+        <div class="rpe-cell"><span class="rpe-chip rpe-on">8</span></div>
+      </div>
+      <div class="rpe-expand"><span></span><div class="rpe-slider"><i></i></div><span style="font-size:13px;color:var(--t2);text-align:right">8</span></div>
+      <button class="repeat">↻&nbsp; Repeat last set</button>
+      <button class="addset">+ Add set</button>
+    </div>
+    <div class="banner spike"><div><div class="bt">Load spike — +38% this week</div><div class="bs">Consider easing the next session</div></div><span class="x">Got it</span></div>
+    <div class="finish"><button class="primary">Finish workout</button><button class="ghostbtn">Cancel</button></div>
+    <div class="note">RPE row expands inline when the chip is tapped (set 2 shown open).</div>
+  </div>
+</div>
+
+<!-- ============ VARIANT B — REPEAT-FIRST / TAP-TO-REVEAL ============ -->
+<div class="col">
+  <div class="caption">Variant B · Repeat-first · dark</div>
+  <div class="phone">
+    <div class="card">
+      <div><div class="ex-title">Barbell Bench Press</div><div class="ex-sub">Chest · last: 80kg × 8</div></div>
+      <div class="hdr"><span>SET</span><span>WEIGHT</span><span>REPS</span><span style="text-align:right">RPE</span></div>
+
+      <!-- resting rows = compact display (no steppers until tapped) -->
+      <div class="row" style="grid-template-columns:28px 1fr 1fr 44px">
+        <span class="setno">1</span>
+        <span style="font-size:16px;font-weight:500">80<span class="unit" style="font-size:11px;color:var(--t2)"> kg</span></span>
+        <span style="font-size:16px;font-weight:500">8</span>
+        <div class="rpe-cell"><span class="rpe-chip rpe-on">7</span></div>
+      </div>
+
+      <!-- active row (tapped) = steppers revealed -->
+      <div class="row" style="background:var(--surface);margin:0 -16px;padding:8px 16px">
+        <span class="setno">2</span>
+        <div class="step"><button>−</button><span class="val">80<span class="unit">kg</span></span><button>+</button></div>
+        <div class="step"><button>−</button><span class="val">8</span><button>+</button></div>
+        <div class="rpe-cell"><span class="rpe-chip">+ RPE</span></div>
+      </div>
+
+      <button class="repeat">↻&nbsp; Repeat last set &nbsp;→&nbsp; 80kg × 8</button>
+    </div>
+
+    <div class="banner"><div><div class="bt">New PR — 82.5kg × 8</div><div class="bs">Beats your previous 80kg × 8</div></div><span class="x">Dismiss</span></div>
+    <div class="finish"><button class="primary">Finish workout</button><button class="ghostbtn">Cancel</button></div>
+    <div class="note">Resting rows are clean read-only display. Tap a row → it activates and reveals steppers. "Repeat" is the dominant affordance.</div>
+  </div>
+</div>
+
+<div class="col">
+  <div class="caption">Variant B · light</div>
+  <div class="phone light">
+    <div class="card">
+      <div><div class="ex-title">Barbell Bench Press</div><div class="ex-sub">Chest · last: 80kg × 8</div></div>
+      <div class="hdr"><span>SET</span><span>WEIGHT</span><span>REPS</span><span style="text-align:right">RPE</span></div>
+      <div class="row" style="grid-template-columns:28px 1fr 1fr 44px">
+        <span class="setno">1</span>
+        <span style="font-size:16px;font-weight:500">80<span style="font-size:11px;color:var(--t2)"> kg</span></span>
+        <span style="font-size:16px;font-weight:500">8</span>
+        <div class="rpe-cell"><span class="rpe-chip rpe-on">7</span></div>
+      </div>
+      <div class="row" style="grid-template-columns:28px 1fr 1fr 44px">
+        <span class="setno">2</span>
+        <span style="font-size:16px;font-weight:500">80<span style="font-size:11px;color:var(--t2)"> kg</span></span>
+        <span style="font-size:16px;font-weight:500">8</span>
+        <div class="rpe-cell"><span class="rpe-chip">+ RPE</span></div>
+      </div>
+      <button class="repeat">↻&nbsp; Repeat last set &nbsp;→&nbsp; 80kg × 8</button>
+    </div>
+    <div class="finish"><button class="primary">Finish workout</button><button class="ghostbtn">Cancel</button></div>
+    <div class="note">Lowest visual noise at rest; steppers appear only on the active row. Fewest taps for "same as last".</div>
+  </div>
+</div>
+
+</body>
+</html>

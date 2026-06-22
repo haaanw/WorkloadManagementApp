@@ -3,9 +3,13 @@ import SwiftData
 
 /// Persistence for the **local-only** shadow-mode prediction log (Phase 20, D-01/D-13; Phase 24).
 ///
-/// `CyclePredictionLog` is a local-only model (mirrors `MenstrualCycleSnapshot` /
-/// `CycleSnapshotRepository`). This repository reads/writes it on-device only — it never
-/// encodes, uploads, or syncs shadow/cycle data (no `import Supabase`, no encoder, no push/pull).
+/// `CyclePredictionLog` is a local-only model (mirrors `MenstrualCycleSnapshot`). This repository
+/// reads/writes it on-device only — it never encodes, uploads, or syncs shadow/cycle data
+/// (no `import Supabase`, no encoder, no push/pull).
+///
+/// v1.5 self-coached reset note: the live cycle-tracking service and its snapshot repository were
+/// removed from the visible product, but this local-only log + its `@Model` are migration-sensitive
+/// and intentionally KEPT for a later migration-aware cleanup pass.
 ///
 /// ## Phase 24 date contract
 /// Rows are keyed for upsert on `predictionDate` (the day the prediction is *made*); resolvability

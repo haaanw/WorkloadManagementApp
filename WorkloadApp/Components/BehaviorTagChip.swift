@@ -7,18 +7,21 @@ struct BehaviorTagChip: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            Haptics.select()
+            action()
+        } label: {
             Text(label)
                 .font(.Tokens.label)
-                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
+                .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 8)
-                .background(isSelected ? ColorTokens.surface : ColorTokens.background)
+                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background)
                 .overlay(
                     Rectangle()
-                        .stroke(isSelected ? ColorTokens.text2 : ColorTokens.divider, lineWidth: 0.5)
+                        .stroke(isSelected ? ColorTokens.accent : ColorTokens.divider, lineWidth: 0.5)
                 )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }

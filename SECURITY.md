@@ -1,6 +1,6 @@
 # Security Audit Report
 
-**Project:** Tonus (WorkloadApp)
+**Project:** Tuwa (Tonus repo / WorkloadApp target)
 **Phase:** 07 — App Store Metadata
 **ASVS Level:** 1
 **Audit Date:** 2026-04-26
@@ -37,8 +37,8 @@ All mitigations are implemented and all accepted risks are documented below. Pha
 
 ### T-07-05 — Account Linking (Spoofing)
 **Component:** Supabase account auto-linking
-**Risk:** Supabase auto-links accounts sharing the same verified email address. An attacker who controls a social identity provider account sharing an email with an existing Tonus user could gain access to that account.
-**Rationale for acceptance:** Email verification is required by Supabase before linking. The risk is low because: (1) the attacker must control a verified social provider account for the target email, (2) social provider email verification is a prerequisite enforced by Apple/Google, not by Tonus. This is standard industry practice for social login.
+**Risk:** Supabase auto-links accounts sharing the same verified email address. An attacker who controls a social identity provider account sharing an email with an existing Tuwa user could gain access to that account.
+**Rationale for acceptance:** Email verification is required by Supabase before linking. The risk is low because: (1) the attacker must control a verified social provider account for the target email, (2) social provider email verification is a prerequisite enforced by Apple/Google, not by Tuwa. This is standard industry practice for social login.
 **Owner:** Supabase Auth (transfer of responsibility to provider)
 **Review trigger:** If Supabase changes its auto-link behavior or a linking bypass is disclosed.
 

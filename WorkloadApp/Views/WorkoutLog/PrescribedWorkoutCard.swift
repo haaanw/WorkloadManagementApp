@@ -68,23 +68,25 @@ struct PrescribedWorkoutCard: View {
 
             // Action buttons
             HStack(spacing: 0) {
-                Button { onStart() } label: {
+                Button { Haptics.impact(); onStart() } label: {
                     Text("action.start")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                 }
+                .buttonStyle(.pressable)
 
                 Rectangle().fill(ColorTokens.divider).frame(width: 0.5, height: 44)
 
-                Button { onSkip() } label: {
+                Button { Haptics.tap(); onSkip() } label: {
                     Text("action.skip")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text3)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 12)
                 }
+                .buttonStyle(.pressable)
             }
         }
         .background(ColorTokens.surface)

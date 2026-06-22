@@ -115,12 +115,6 @@ final class HealthKitService {
             HKQuantityType(.vo2Max),
             HKQuantityType(.bodyTemperature),
             HKCategoryType(.sleepAnalysis),
-            HKCategoryType(.menstrualFlow),
-            HKCategoryType(.contraceptive),
-            HKCategoryType(.pregnancy),
-            HKCategoryType(.lactation),
-            HKCategoryType(.irregularMenstrualCycles),
-            HKCategoryType(.ovulationTestResult),
         ]
         // Apple sleeping wrist temperature (iOS 17+)
         if let wristTemp = HKQuantityType.quantityType(forIdentifier: .appleSleepingWristTemperature) {

@@ -42,7 +42,7 @@ struct HRVTrendChart: View {
                         }
                 }
             }
-            .frame(height: 180)
+            .frame(height: 184)
             .chartYAxisLabel("ms")
             .id(locale)
         }

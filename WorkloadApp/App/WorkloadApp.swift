@@ -78,6 +78,7 @@ struct WorkloadApp: App {
                 CyclePredictionLog.self,
                 ShadowArmPrediction.self,
                 SorenessLog.self,
+                VerdictEvent.self,
                 BaselineState.self,
                 WellnessCheckIn.self,
                 PersonalRecord.self,

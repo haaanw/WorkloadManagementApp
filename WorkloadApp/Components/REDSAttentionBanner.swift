@@ -27,7 +27,7 @@ struct REDSAttentionBanner: View {
 
                     Button(action: onDismiss) {
                         Image(systemName: "xmark")
-                            .font(.system(size: 13))
+                            .font(.Tokens.smallLabel)
                             .foregroundStyle(ColorTokens.text2)
                     }
                     .accessibilityLabel(Text("cycle.reds.dismiss.a11y"))

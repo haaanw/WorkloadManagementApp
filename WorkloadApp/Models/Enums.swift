@@ -530,11 +530,6 @@ enum RelationshipStatus: String, Codable {
     case accepted
 }
 
-enum AppMode: String {
-    case athlete
-    case coach
-}
-
 enum PrescriptionStatus: String, Codable {
     case assigned
     case completed

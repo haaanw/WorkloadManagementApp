@@ -37,7 +37,9 @@ struct SleepDetailView: View {
                     Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                     statCell(label: String(localized: "detail.label.sevenDayAvg", defaultValue: "7-DAY AVG"), value: sevenDayAvgMinutes.map { sleepString($0) } ?? "—")
                 }
-                .background(ColorTokens.surface)
+                // v2: the lifted stats band sits on the elevated plane (widened ladder), bounded
+                // top/bottom by the full-width section hairlines.
+                .background(ColorTokens.surfaceEl)
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -75,7 +77,7 @@ struct SleepDetailView: View {
     }
 
     private func statCell(label: String, value: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(label)
                 .font(.Tokens.micro)
                 .tracking(1.2)
@@ -86,7 +88,7 @@ struct SleepDetailView: View {
                 .foregroundStyle(ColorTokens.text1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
     }
 }

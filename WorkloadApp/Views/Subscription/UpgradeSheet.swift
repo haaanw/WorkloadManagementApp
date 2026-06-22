@@ -30,10 +30,9 @@ struct UpgradeSheet: View {
 
     init(trigger: UpgradeTrigger) {
         self.trigger = trigger
-        switch trigger {
-        case .coach: _selectedTier = State(initialValue: .coach)
-        default: _selectedTier = State(initialValue: .athletePro)
-        }
+        // v1.5 is single-tier: always the self-coached Tuwa Pro offer, even when opened
+        // from a legacy coach trigger.
+        _selectedTier = State(initialValue: .athletePro)
     }
 
     private var annualPackage: Package? {
@@ -57,22 +56,12 @@ struct UpgradeSheet: View {
             // Drag handle
             Rectangle()
                 .fill(ColorTokens.text3.opacity(0.3))
-                .frame(width: 36, height: 4)
-                .padding(.top, 12)
-                .padding(.bottom, 24)
+                .frame(width: Spacing.lg, height: Spacing.baselinePair)
+                .padding(.top, Spacing.xs)
+                .padding(.bottom, Spacing.md)
 
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
-
-                    // MARK: Tier selector
-                    HStack(spacing: 0) {
-                        tierTab(.athletePro, label: "ATHLETE PRO")
-                        Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
-                        tierTab(.coach, label: "COACH")
-                    }
-                    .frame(height: 48)
-
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                     // MARK: Tier description
                     VStack(alignment: .leading, spacing: 16) {
@@ -85,14 +74,13 @@ struct UpgradeSheet: View {
                             .foregroundStyle(ColorTokens.text2)
 
                         // Feature list
-                        VStack(alignment: .leading, spacing: 12) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             ForEach(selectedTier.features, id: \.self) { feature in
-                                HStack(alignment: .top, spacing: 10) {
+                                HStack(alignment: .top, spacing: Spacing.xs) {
                                     Image(systemName: "checkmark")
                                         .font(.Tokens.micro)
                                         .foregroundStyle(ColorTokens.text2)
                                         .frame(width: 16)
-                                        .padding(.top, 2)
                                     Text(feature)
                                         .font(.Tokens.body)
                                         .foregroundStyle(ColorTokens.text1)
@@ -104,6 +92,11 @@ struct UpgradeSheet: View {
                     .padding(.vertical, 24)
 
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+
+                    // MARK: Plan section header
+                    SectionHeader(title: "upgrade.section.choosePlan")
+                        .padding(.top, Spacing.md)
+                        .padding(.bottom, Spacing.sm)
 
                     // MARK: Plan toggle
                     HStack(spacing: 0) {
@@ -143,7 +136,7 @@ struct UpgradeSheet: View {
                         if let errorMessage {
                             Text(errorMessage)
                                 .font(.Tokens.label)
-                                .foregroundStyle(.red)
+                                .foregroundStyle(ColorTokens.zoneDanger)
                                 .multilineTextAlignment(.center)
                         }
 
@@ -166,7 +159,7 @@ struct UpgradeSheet: View {
                                     .frame(maxWidth: .infinity, minHeight: 48)
                                     .background(ColorTokens.text1)
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         } else {
                             Button {
                                 guard let pkg = activePackage else { return }
@@ -182,10 +175,11 @@ struct UpgradeSheet: View {
                                         .foregroundStyle(ColorTokens.background)
                                         .frame(maxWidth: .infinity, minHeight: 48)
                                         .background(ColorTokens.text1)
+                                        .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 1))
                                 }
                             }
                             .disabled(isPurchasing || activePackage == nil)
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         }
                     }
                     .padding(.horizontal, 24)
@@ -214,29 +208,6 @@ struct UpgradeSheet: View {
         }
         .background(ColorTokens.background)
         .task { await loadOffering() }
-        .onChange(of: selectedTier) { _, _ in
-            Task { await loadOffering() }
-        }
-    }
-
-    // MARK: - Tier Tab
-
-    @ViewBuilder
-    private func tierTab(_ tier: SubscriptionTier, label: String) -> some View {
-        let isSelected = selectedTier == tier
-        Button { selectedTier = tier } label: {
-            Text(label)
-                .font(.Tokens.micro)
-                .tracking(1.0)
-                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text3)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .overlay(alignment: .bottom) {
-                    if isSelected {
-                        Rectangle().fill(ColorTokens.text1).frame(height: 1)
-                    }
-                }
-        }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Plan Button
@@ -244,9 +215,12 @@ struct UpgradeSheet: View {
     @ViewBuilder
     private func planButton(_ plan: PlanOption, title: String, price: String, badge: String?) -> some View {
         let isSelected = selectedPlan == plan
-        Button { selectedPlan = plan } label: {
+        Button {
+            Haptics.select()
+            selectedPlan = plan
+        } label: {
             VStack(spacing: 2) {
-                HStack(spacing: 6) {
+                HStack(spacing: Spacing.xs) {
                     Text(title)
                         .font(.Tokens.micro)
                         .tracking(1)
@@ -255,24 +229,25 @@ struct UpgradeSheet: View {
                         Text(badge)
                             .font(.Tokens.micro)
                             .tracking(0.8)
-                            .foregroundStyle(ColorTokens.text3)
-                            .padding(.horizontal, 4)
-                            .padding(.vertical, 2)
+                            .foregroundStyle(ColorTokens.text2)
+                            .padding(.horizontal, Spacing.baselinePair)
+                            .padding(.vertical, Spacing.baselinePair)
                             .overlay { Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5) }
                     }
                 }
                 Text(price)
-                    .font(isSelected ? .Tokens.bodyMedium : .Tokens.body)
-                    .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
+                    .font(.Tokens.sectionHead)
+                    .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .background(isSelected ? ColorTokens.accentSubtle : Color.clear)
             .overlay(alignment: .bottom) {
                 if isSelected {
-                    Rectangle().fill(ColorTokens.text1).frame(height: 1)
+                    Rectangle().fill(ColorTokens.accent).frame(height: 2)
                 }
             }
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
     }
 
     // MARK: - Actions
@@ -297,6 +272,7 @@ struct UpgradeSheet: View {
         errorMessage = nil
         do {
             try await container.subscriptionService.purchase(package: package)
+            Haptics.success()
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -309,6 +285,7 @@ struct UpgradeSheet: View {
         errorMessage = nil
         do {
             try await container.subscriptionService.restorePurchases()
+            Haptics.success()
             dismiss()
         } catch {
             errorMessage = error.localizedDescription
@@ -321,77 +298,36 @@ struct UpgradeSheet: View {
 
 enum SubscriptionTier: String, CaseIterable {
     case athletePro
-    case coach
 
     var headline: String {
-        switch self {
-        case .athletePro: return String(localized: "upgrade.tier.athletePro.headline", defaultValue: "Train smarter, not harder")
-        case .coach: return String(localized: "upgrade.tier.coach.headline", defaultValue: "Your athletes, one dashboard")
-        }
+        String(localized: "upgrade.tier.athletePro.headline", defaultValue: "Coach yourself with confidence")
     }
 
     var subtitle: String {
-        switch self {
-        case .athletePro:
-            return String(localized: "upgrade.tier.athletePro.subtitle", defaultValue: "Unlock the full power of Tuwa to push your training forward with data-driven precision.")
-        case .coach:
-            return String(localized: "upgrade.tier.coach.subtitle", defaultValue: "Manage your roster, prescribe workouts, and monitor every athlete's load and recovery in real time.")
-        }
+        String(localized: "upgrade.tier.athletePro.subtitle", defaultValue: "Unlock the full power of Tuwa to adapt your strength training to how your body is recovering.")
     }
 
     var features: [String] {
-        switch self {
-        case .athletePro:
-            return [
-                String(localized: "upgrade.feat.pro.history", defaultValue: "Full training history (free tier: 7 days only)"),
-                String(localized: "upgrade.feat.pro.overload", defaultValue: "Smart progressive overload suggestions"),
-                String(localized: "upgrade.feat.pro.targets", defaultValue: "Recovery-aware volume and intensity targets"),
-                String(localized: "upgrade.feat.pro.detraining", defaultValue: "Detraining detection after breaks"),
-                String(localized: "upgrade.feat.pro.acwr", defaultValue: "Advanced ACWR and workload charts"),
-                String(localized: "upgrade.feat.pro.customExercises", defaultValue: "Unlimited custom exercises"),
-                String(localized: "upgrade.feat.pro.import", defaultValue: "Workout program import"),
-                String(localized: "upgrade.feat.pro.pr", defaultValue: "Personal record tracking across all time"),
-            ]
-        case .coach:
-            return [
-                String(localized: "upgrade.feat.coach.everything", defaultValue: "Everything in Athlete Pro"),
-                String(localized: "upgrade.feat.coach.dashboard", defaultValue: "Coach dashboard with full athlete roster"),
-                String(localized: "upgrade.feat.coach.realtime", defaultValue: "Real-time recovery scores and ACWR for each athlete"),
-                String(localized: "upgrade.feat.coach.prescribe", defaultValue: "Prescribe workouts with target weight, reps, and RPE"),
-                String(localized: "upgrade.feat.coach.templates", defaultValue: "Workout template builder with exercise groups"),
-                String(localized: "upgrade.feat.coach.logForAthlete", defaultValue: "Log workouts on behalf of any athlete"),
-                String(localized: "upgrade.feat.coach.coachOnly", defaultValue: "Coach-only mode (hide athlete tabs entirely)"),
-                String(localized: "upgrade.feat.coach.link", defaultValue: "Link athletes via invite code or email"),
-            ]
-        }
+        [
+            String(localized: "upgrade.feat.pro.history", defaultValue: "Full training history (free tier: 7 days only)"),
+            String(localized: "upgrade.feat.pro.overload", defaultValue: "Smart progressive overload suggestions"),
+            String(localized: "upgrade.feat.pro.targets", defaultValue: "Recovery-aware volume and intensity targets"),
+            String(localized: "upgrade.feat.pro.detraining", defaultValue: "Detraining detection after breaks"),
+            String(localized: "upgrade.feat.pro.acwr", defaultValue: "Advanced training-load and workload charts"),
+            String(localized: "upgrade.feat.pro.customExercises", defaultValue: "Unlimited custom exercises"),
+            String(localized: "upgrade.feat.pro.import", defaultValue: "Workout program import"),
+            String(localized: "upgrade.feat.pro.pr", defaultValue: "Personal record tracking across all time"),
+        ]
     }
 
-    var fallbackAnnualPrice: String {
-        switch self {
-        case .athletePro: return "$59.99/yr"
-        case .coach: return "$89.99/yr"
-        }
-    }
+    var fallbackAnnualPrice: String { "$59.99/yr" }
 
-    var fallbackMonthlyPrice: String {
-        switch self {
-        case .athletePro: return "$6.99/mo"
-        case .coach: return "$9.99/mo"
-        }
-    }
+    var fallbackMonthlyPrice: String { "$6.99/mo" }
 
-    var monthlyEquivalent: String {
-        switch self {
-        case .athletePro: return "$5.00"
-        case .coach: return "$7.42"
-        }
-    }
+    var monthlyEquivalent: String { "$5.00" }
 
     var annualSavingsBadge: String {
-        switch self {
-        case .athletePro: return String(localized: "upgrade.savings.pro", defaultValue: "SAVE 29%")
-        case .coach: return String(localized: "upgrade.savings.coach", defaultValue: "SAVE 25%")
-        }
+        String(localized: "upgrade.savings.pro", defaultValue: "SAVE 29%")
     }
 }
 
@@ -404,7 +340,7 @@ struct HistoryTeaserBanner: View {
     var body: some View {
         Button(action: onTap) {
             HStack {
-                VStack(alignment: .leading, spacing: 4) {
+                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                     Text(String(format: NSLocalizedString("upgrade.label.lockedWeeks", comment: ""), lockedWeeks))
                         .font(.Tokens.bodyMedium)
                         .foregroundStyle(ColorTokens.text1)
@@ -416,13 +352,8 @@ struct HistoryTeaserBanner: View {
                 Image(systemName: "lock.fill")
                     .foregroundStyle(ColorTokens.text3)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
-            .background(ColorTokens.surface)
-            .overlay(alignment: .top) {
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-            }
+            .cardStyle(verticalPadding: Spacing.sm)
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
     }
 }
