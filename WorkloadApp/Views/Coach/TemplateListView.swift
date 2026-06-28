@@ -76,7 +76,7 @@ struct TemplateListView: View {
     }
 
     private func templateRow(_ template: WorkoutTemplate) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             HStack {
                 Text(template.templateName)
                     .font(.Tokens.sectionHead)
@@ -93,8 +93,8 @@ struct TemplateListView: View {
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 12)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(ColorTokens.surface)
     }

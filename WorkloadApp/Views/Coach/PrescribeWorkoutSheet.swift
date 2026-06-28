@@ -48,14 +48,14 @@ struct PrescribeWorkoutSheet: View {
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text3)
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
                             .background(ColorTokens.surface)
                             .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
 
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -80,8 +80,8 @@ struct PrescribeWorkoutSheet: View {
                         .datePickerStyle(.graphical)
                         .labelsHidden()
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
 
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -98,8 +98,8 @@ struct PrescribeWorkoutSheet: View {
                             .textFieldStyle(.roundedBorder)
                             .lineLimit(2...4)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
                 }
             }
             .background(ColorTokens.background)
@@ -133,9 +133,9 @@ struct PrescribeWorkoutSheet: View {
                     .font(.Tokens.micro)
                     .tracking(1.2)
                     .foregroundStyle(ColorTokens.text3)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 12)
-                    .padding(.bottom, 4)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.sm)
+                    .padding(.bottom, Spacing.baselinePair)
 
                 ForEach(group.sortedExercises, id: \.id) { exercise in
                     HStack {
@@ -147,8 +147,8 @@ struct PrescribeWorkoutSheet: View {
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 4)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.baselinePair)
                 }
             }
             .padding(.bottom, 8)
@@ -165,7 +165,7 @@ struct PrescribeWorkoutSheet: View {
                             showTemplatePicker = false
                         } label: {
                             HStack {
-                                VStack(alignment: .leading, spacing: 2) {
+                                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                                     Text(template.templateName)
                                         .font(.Tokens.body)
                                         .foregroundStyle(ColorTokens.text1)
@@ -181,8 +181,8 @@ struct PrescribeWorkoutSheet: View {
                                         .foregroundStyle(ColorTokens.text1)
                                 }
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 12)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
                         }
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                     }

@@ -12,18 +12,30 @@ struct AppRouter: View {
     var body: some View {
         Group {
             if isCheckingSession {
-                ProgressView("Loading...")
+                UIKitLoadingController(
+                    title: "Preparing Tuwa",
+                    message: "Checking your account, local data, and training context."
+                )
             } else if !container.isAuthenticated {
-                LoginView()
+                UIKitAuthFlowController(
+                    container: container,
+                    modelContext: modelContext,
+                    locale: container.localeManager.activeLocale
+                )
             } else if needsOnboarding {
-                OnboardingView(onComplete: { needsOnboarding = false })
+                UIKitOnboardingFlowController(
+                    container: container,
+                    modelContext: modelContext,
+                    locale: container.localeManager.activeLocale,
+                    onComplete: { needsOnboarding = false }
+                )
             } else {
-                MainTabView()
+                AppShell()
             }
         }
         .environment(container)
         .environment(\.locale, container.localeManager.activeLocale)
-        .animation(.linear(duration: 0.15), value: container.localeManager.activeLocale)
+        .animation(Motion.state, value: container.localeManager.activeLocale)
         .onOpenURL { url in
             // Google Sign-In callback
             if GIDSignIn.sharedInstance.handle(url) { return }
@@ -53,38 +65,59 @@ struct AppRouter: View {
         }
         .task {
             #if DEBUG
+            let args = ProcessInfo.processInfo.arguments
+
+            if args.contains("SCREENSHOT_LOADING_MODE") {
+                applyScreenshotLocaleOverride(arguments: args)
+                container.setMode(.athlete)
+                container.setAuthenticated(false)
+                needsOnboarding = false
+                return
+            }
+
+            if args.contains("SCREENSHOT_AUTH_MODE") {
+                applyScreenshotLocaleOverride(arguments: args)
+                container.setMode(.athlete)
+                container.setAuthenticated(false)
+                needsOnboarding = false
+                isCheckingSession = false
+                return
+            }
+
+            if args.contains("SCREENSHOT_ONBOARDING_MODE") {
+                applyScreenshotLocaleOverride(arguments: args)
+                container.setMode(.athlete)
+                let athlete = resetScreenshotData(isCoachScreenshot: false)
+                athlete.trainingFrequency = nil
+                athlete.experienceLevel = nil
+                try? modelContext.save()
+                container.setAuthenticated(true)
+                needsOnboarding = true
+                isCheckingSession = false
+                return
+            }
+
             // Screenshot mode: bypass auth, seed mock data, show app immediately
             if ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE") {
                 // SCREENSHOT_MODE locale override: belt-and-braces with Bundle resolution.
                 // Honors `-AppleLanguages (zh-Hans)` launch arg for zh-Hans screenshot runs.
-                let args = ProcessInfo.processInfo.arguments
-                if let idx = args.firstIndex(of: "-AppleLanguages"),
-                   idx + 1 < args.count,
-                   args[idx + 1].contains("zh-Hans") {
-                    container.localeManager.setLocale(Locale(identifier: "zh-Hans"))
-                }
+                applyScreenshotLocaleOverride(arguments: args)
+                let isCoachScreenshot = args.contains("SCREENSHOT_COACH_MODE")
+                let isCoachPaywallScreenshot = args.contains("SCREENSHOT_COACH_PAYWALL_MODE")
+                let isCoachAccountScreenshot = isCoachScreenshot || isCoachPaywallScreenshot
 
-                let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
-                if athletes.isEmpty {
-                    let athlete = Athlete(displayName: "Alex", sportType: .lifting)
-                    // Mark onboarding complete so the post-auth re-evaluation below keeps
-                    // needsOnboarding = false and the app lands directly on the tab bar.
-                    athlete.trainingFrequency = .threeToFour
-                    athlete.experienceLevel = .intermediate
-                    modelContext.insert(athlete)
-                    try? modelContext.save()
-                    MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
-                } else if let athlete = athletes.first {
-                    if athlete.trainingFrequency == nil { athlete.trainingFrequency = .threeToFour }
-                    if athlete.experienceLevel == nil { athlete.experienceLevel = .intermediate }
-                    try? modelContext.save()
-                    MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
-                }
+                let athlete = resetScreenshotData(
+                    isCoachScreenshot: isCoachAccountScreenshot
+                )
+                try? modelContext.save()
+                MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
+                prepareCoachScreenshotRosterIfNeeded(coach: athlete)
+                container.setMode(isCoachScreenshot ? .coach : .athlete)
                 container.setAuthenticated(true)
                 needsOnboarding = false
                 container.subscriptionService.overrideForScreenshots(
-                    isPro: true,
-                    isCoach: false
+                    isPro: !isCoachPaywallScreenshot,
+                    isCoach: isCoachScreenshot
                 )
                 isCheckingSession = false
                 return
@@ -152,64 +185,75 @@ struct AppRouter: View {
             isCheckingSession = false
         }
     }
-}
 
-struct MainTabView: View {
-    @Environment(AppContainer.self) private var container
-    @Environment(\.modelContext) private var modelContext
-    @Environment(\.scenePhase) private var scenePhase
-    @Query private var athletes: [Athlete]
-    private let syncStore = SyncTimestampStore.shared  // Required for @Observable tracking
-
-    private var athlete: Athlete? { athletes.first }
-
-    var body: some View {
-        TabView {
-            DashboardView()
-                .tabItem {
-                    Label("tab.home", systemImage: "house.fill")
-                        .accessibilityIdentifier("tab.home")
-                }
-            WorkoutLogView()
-                .tabItem {
-                    Label("tab.log", systemImage: "list.bullet.clipboard.fill")
-                        .accessibilityIdentifier("tab.log")
-                }
-            RecoveryView()
-                .tabItem {
-                    Label("tab.recovery", systemImage: "heart.fill")
-                        .accessibilityIdentifier("tab.recovery")
-                }
-            WorkloadView()
-                .tabItem {
-                    Label("tab.load", systemImage: "chart.line.uptrend.xyaxis")
-                        .accessibilityIdentifier("tab.load")
-                }
-            ProfileView()
-                .tabItem {
-                    Label("tab.profile", systemImage: "person.fill")
-                        .accessibilityIdentifier("tab.profile")
-                }
-                .overlay(alignment: .topTrailing) {
-                    if syncStore.hasAnyFailure {
-                        Circle()
-                            .fill(ColorTokens.zoneCaution)
-                            .frame(width: 8, height: 8)
-                            .offset(x: 8, y: -8)
-                            .transition(.opacity.animation(.linear(duration: 0.15)))
-                            .accessibilityLabel("Sync issues detected")
-                            .accessibilityAddTraits(.updatesFrequently)
-                    }
-                }
+    #if DEBUG
+    private func applyScreenshotLocaleOverride(arguments: [String]) {
+        if let idx = arguments.firstIndex(of: "-AppleLanguages"),
+           idx + 1 < arguments.count,
+           arguments[idx + 1].contains("zh-Hans") {
+            container.localeManager.setLocale(Locale(identifier: "zh-Hans"))
+            return
         }
-        .onChange(of: scenePhase) { _, newPhase in
-            guard newPhase == .active else { return }
-            Task {
-                await container.subscriptionService.refreshEntitlementAsync()
-                guard container.syncService.shouldForegroundSync else { return }
-                await container.syncService.pushAll(context: modelContext)
-                await container.syncService.pullAll(context: modelContext)
-            }
+        container.localeManager.setLocale(Locale(identifier: "en"))
+    }
+
+    private func resetScreenshotData(isCoachScreenshot: Bool) -> Athlete {
+        deleteAllScreenshotRows()
+        let athlete = Athlete(
+            displayName: isCoachScreenshot ? "Coach Alex" : "Alex",
+            sportType: .lifting
+        )
+        configureScreenshotAthlete(athlete, isCoachScreenshot: isCoachScreenshot)
+        modelContext.insert(athlete)
+        return athlete
+    }
+
+    private func deleteAllScreenshotRows() {
+        try? deleteAll(Athlete.self)
+        try? deleteAll(CoachAthleteRelationship.self)
+        try? deleteAll(WorkoutTemplate.self)
+        try? deleteAll(PrescribedWorkout.self)
+        try? deleteAll(TrainingProfile.self)
+        try? deleteAll(VerdictEvent.self)
+        try? modelContext.save()
+    }
+
+    private func deleteAll<T: PersistentModel>(_ modelType: T.Type) throws {
+        let rows = try modelContext.fetch(FetchDescriptor<T>())
+        for row in rows {
+            modelContext.delete(row)
         }
     }
+
+    private func configureScreenshotAthlete(_ athlete: Athlete, isCoachScreenshot: Bool) {
+        athlete.isCoach = isCoachScreenshot
+        athlete.isCoachOnly = false
+        athlete.displayName = isCoachScreenshot ? "Coach Alex" : "Alex"
+        athlete.trainingFrequency = athlete.trainingFrequency ?? .threeToFour
+        athlete.experienceLevel = athlete.experienceLevel ?? .intermediate
+    }
+
+    private func prepareCoachScreenshotRosterIfNeeded(coach: Athlete) {
+        guard coach.isCoach else { return }
+
+        let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
+        let client = athletes.first { $0.displayName == "Jordan Lee" && $0.id != coach.id } ?? {
+            let client = Athlete(displayName: "Jordan Lee", sportType: .running)
+            client.trainingFrequency = .fiveToSix
+            client.experienceLevel = .advanced
+            modelContext.insert(client)
+            return client
+        }()
+
+        let relationships = (try? modelContext.fetch(FetchDescriptor<CoachAthleteRelationship>())) ?? []
+        if relationships.contains(where: { $0.coachId == coach.id && $0.athleteId == client.id }) == false {
+            modelContext.insert(CoachAthleteRelationship(
+                coachId: coach.id,
+                athleteId: client.id,
+                status: .accepted
+            ))
+        }
+        try? modelContext.save()
+    }
+    #endif
 }

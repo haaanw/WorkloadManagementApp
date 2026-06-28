@@ -102,6 +102,33 @@ final class VerdictEventModelTests: XCTestCase {
         XCTAssertEqual(event.planDate, cal.startOfDay(for: intraday))
     }
 
+    func test_verdictEvent_structuredFields_defaultNil_andRoundTrip() throws {
+        // Legacy-compatible construction leaves the new optional fields nil.
+        let legacy = VerdictEvent(
+            verdictKindRaw: "go", plannedTopSetKg: 100,
+            actionRaw: "keptPlan", regionRaw: MuscleRegion.legs.rawValue, reasonLine: "r"
+        )
+        XCTAssertNil(legacy.prescriptionId)
+        XCTAssertNil(legacy.suggestedBackoffSetCut)
+        XCTAssertNil(legacy.suggestedRPECap)
+
+        // Round-trip with the structured non-weight context set.
+        let pid = UUID()
+        let event = VerdictEvent(
+            verdictKindRaw: "modify", plannedTopSetKg: 100,
+            actionRaw: "accepted", regionRaw: MuscleRegion.legs.rawValue, reasonLine: "r",
+            prescriptionId: pid, suggestedBackoffSetCut: 2, suggestedRPECap: 7
+        )
+        context.insert(event)
+        try context.save()
+        let fetched = try XCTUnwrap(
+            (try context.fetch(FetchDescriptor<VerdictEvent>())).first { $0.id == event.id }
+        )
+        XCTAssertEqual(fetched.prescriptionId, pid)
+        XCTAssertEqual(fetched.suggestedBackoffSetCut, 2)
+        XCTAssertEqual(fetched.suggestedRPECap, 7)
+    }
+
     // MARK: - Composite-only source-grep guard (no raw biometric field names)
 
     private func source(of relativePath: String) throws -> String {

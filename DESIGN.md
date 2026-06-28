@@ -1,6 +1,6 @@
-# Design System — WorkloadApp
+# Design System — Tuwa
 
-Created by /design-consultation · 2026-03-21 · Color temperature + contrast revision 2026-06-15 · **Tuwa v2 (bolder palette + accent-as-live-state + more motion life) 2026-06-17**
+Created by /design-consultation · 2026-03-21 · Color temperature + contrast revision 2026-06-15 · **Tuwa v2 (light-only, bolder palette + accent-as-live-state + more motion life) 2026-06-17**
 
 ## Product Context
 
@@ -13,7 +13,7 @@ Created by /design-consultation · 2026-03-21 · Color temperature + contrast re
 
 - **Direction:** International Style Minimalism — the visual language of a precision scientific instrument. Mies van der Rohe's principle: "Less is more." Structure is the aesthetic. Every element earns its place or it does not exist.
 - **Decoration level:** None. No gradients, no shadows, no rounded corners, no ornamental elements. Hierarchy is achieved through proportion, spacing, and type weight alone.
-- **Mood:** Quiet confidence. WorkloadApp is not aggressive or energetic (cf. Whoop's red, Strava's orange). It is calm, authoritative, and precise — like a high-end chronograph, not a scoreboard.
+- **Mood:** Quiet confidence. Tuwa is not aggressive or energetic (cf. Whoop's red, Strava's orange). It is calm, authoritative, and precise — like a high-end chronograph, not a scoreboard.
 - **Design references:** Barcelona Pavilion (Mies van der Rohe, 1929), Seagram Building (Mies, 1958), Braun product design (Dieter Rams), Apple Health app (restrained data presentation).
 
 ## Typography
@@ -51,28 +51,9 @@ Source: https://www.fontshare.com/fonts/general-sans (ITF FFL license)
 
 ## Color
 
-### Dark Mode (Primary) — Tuwa v2 (revised 2026-06-17)
+### Light Mode — Tuwa v2 (revised 2026-06-27)
 
-| Token            | Hex       | Usage                                              |
-|------------------|-----------|----------------------------------------------------|
-| `--bg`           | `#090B0D` | App background — graphite near-black, cool cast (blue ≥ red) |
-| `--surface`      | `#15191D` | Inline strips — cool neutral, perceptibly lifted from background |
-| `--surface-el`   | `#1F262C` | Card plane — standard cool-neutral fill for grouped/elevated cards |
-| `--surface-el-2` | `#28323A` | **Emphasis plane** — the most important / active surface (hero, selected card). The 4th step. |
-| `--divider`      | `#3D464D` | Hairline rules — lifted to a genuinely visible cool cut |
-| `--divider-strong`| `#525E66`| Stronger hairline for emphasis cards / high-priority cuts (≥2.5:1 over fill) |
-| `--text-1`       | `#ECEEF0` | Primary text — crisp cool off-white, off pure white |
-| `--text-2`       | `#A2AAB0` | Secondary text — cool mid-grey, ≥4.5:1 on cards   |
-| `--text-3`       | `#747C82` | Tertiary / micro labels — cool grey, ≥3:1 on cards |
-| `--accent`       | `#7FB3CC` | Cool stone-blue — the "live / actionable" semantic (see Accent Color Rule); brighter/bolder than v1 |
-| `--zone-optimal` | `#6E8A78` | Muted cool sage — ACWR optimal zone              |
-| `--zone-caution` | `#86825E` | Cooled khaki — ACWR caution zone (label-led, never a fill) |
-| `--zone-danger`  | `#9A6F6F` | Muted oxblood — ACWR high-risk zone              |
-| `--zone-low`     | `#6C7886` | Muted cool slate — undertraining zone            |
-
-### Light Mode — Tuwa v2 (revised 2026-06-17)
-
-Ladder is inverted vs v1: the **page is the darker plane, cards are lighter**, so cards lift off the page (v1 had bg lightest, which flattened separation). All cool (blue ≥ red).
+Tuwa is intentionally light-only. The app forces light appearance at the scene and UIKit-controller layers; this is a product choice, not a fallback. The ladder is inverted vs v1: the **page is the darker plane, cards are lighter**, so cards lift off the page. All chrome stays cool (blue ≥ red) and avoids warm cream fitness branding.
 
 | Token            | Hex       | Usage                                              |
 |------------------|-----------|----------------------------------------------------|
@@ -93,47 +74,47 @@ Ladder is inverted vs v1: the **page is the darker plane, cards are lighter**, s
 
 ### SwiftUI Color Tokens
 
-**Implementation note (corrected 2026-06-17):** the tokens are NOT named color sets in `Assets.xcassets` (the catalog holds only `AccentColor` / `AppIcon` / `LaunchBackground`). They are hardcoded adaptive hex literals in `ColorTokens.swift` via a `UIColor.adaptive(dark:light:)` helper. Retune the palette by editing those literals — there is no catalog to touch. Values (dark / light):
+**Implementation note (corrected 2026-06-27):** the tokens are NOT named color sets in `Assets.xcassets` (the catalog holds only `AccentColor` / `AppIcon` / `LaunchBackground`). They are hardcoded light-only hex literals in `ColorTokens.swift`. Retune the palette by editing those literals — there is no catalog to touch. Values:
 
 ```swift
 enum ColorTokens {
     // Backgrounds — 4-plane elevation ladder
-    static let background    = .adaptive(dark: 0x090B0D, light: 0xECEEF1)
-    static let surface       = .adaptive(dark: 0x15191D, light: 0xF0F2F5)
-    static let surfaceEl      = .adaptive(dark: 0x1F262C, light: 0xF8FAFC)
-    static let surfaceEl2     = .adaptive(dark: 0x28323A, light: 0xFCFDFE)  // emphasis plane
-    static let divider        = .adaptive(dark: 0x3D464D, light: 0xC0C5CB)
-    static let dividerStrong  = .adaptive(dark: 0x525E66, light: 0xA4ABB2)
+    static let background    = .light(0xECEEF1)
+    static let surface       = .light(0xF0F2F5)
+    static let surfaceEl      = .light(0xF8FAFC)
+    static let surfaceEl2     = .light(0xFCFDFE)  // emphasis plane
+    static let divider        = .light(0xC0C5CB)
+    static let dividerStrong  = .light(0xA4ABB2)
 
     // Text
-    static let text1          = .adaptive(dark: 0xECEEF0, light: 0x14171A)
-    static let text2          = .adaptive(dark: 0xA2AAB0, light: 0x565D63)
-    static let text3          = .adaptive(dark: 0x747C82, light: 0x767D84)
+    static let text1          = .light(0x14171A)
+    static let text2          = .light(0x565D63)
+    static let text3          = .light(0x767D84)
 
     // Accent — the "live / actionable" semantic (see Accent Color Rule)
-    static let accent         = .adaptive(dark: 0x7FB3CC, light: 0x2E6B86)
+    static let accent         = .light(0x2E6B86)
     static let accentSubtle   = accent.opacity(0.16)  // active-cell / progress fills
 
     // Zones (label-led, supplementary) + cool-only chart series
-    static let zoneOptimal    = .adaptive(dark: 0x6E8A78, light: 0x35513F)
-    static let zoneCaution    = .adaptive(dark: 0x86825E, light: 0x57532A)
-    static let zoneDanger     = .adaptive(dark: 0x9A6F6F, light: 0x6B3A3A)
-    static let zoneLow        = .adaptive(dark: 0x6C7886, light: 0x384A5C)
+    static let zoneOptimal    = .light(0x35513F)
+    static let zoneCaution    = .light(0x57532A)
+    static let zoneDanger     = .light(0x6B3A3A)
+    static let zoneLow        = .light(0x384A5C)
 }
 ```
 
-### Elevation Ladder (revised 2026-06-17 — Tuwa v2, now 4 planes)
+### Elevation Ladder (revised 2026-06-27 — Tuwa v2 light-only, now 4 planes)
 
 Four background planes, used deliberately to create depth without shadows or rounding:
 
-| Plane          | Token        | Dark      | Light     | Usage                                                            |
-|----------------|--------------|-----------|-----------|------------------------------------------------------------------|
-| Page           | `background` | `#090B0D` | `#ECEEF1` | The scroll canvas behind everything                              |
-| Inline strip   | `surface`    | `#15191D` | `#F0F2F5` | Flat inline regions that sit *on* the page (metrics strip, flat row lists) |
-| Card           | `surfaceEl`  | `#1F262C` | `#F8FAFC` | **Default fill for any grouped/elevated card** (`cardStyle`)     |
-| Emphasis       | `surfaceEl2` | `#28323A` | `#FCFDFE` | **The most important / active surface** — hero, selected card (`emphasisCardStyle`, + `dividerStrong` border + 2pt accent top rule) |
+| Plane          | Token        | Light     | Usage                                                            |
+|----------------|--------------|-----------|------------------------------------------------------------------|
+| Page           | `background` | `#ECEEF1` | The scroll canvas behind everything                              |
+| Inline strip   | `surface`    | `#F0F2F5` | Flat inline regions that sit *on* the page (metrics strip, flat row lists) |
+| Card           | `surfaceEl`  | `#F8FAFC` | **Default fill for any grouped/elevated card** (`cardStyle`)     |
+| Emphasis       | `surfaceEl2` | `#FCFDFE` | **The most important / active surface** — hero, selected card (`emphasisCardStyle`, + `dividerStrong` border + 2pt accent top rule) |
 
-**Revision rationale:** The 2026-05-30 "widening" failed — the encoded dark ladder still sat at `surfaceEl:surface = 1.082:1` (ΔL* ~3.9, below the perceptible-contrast floor), so cards were indistinguishable from the page and the hairline border carried 100% of the separation. v2 (a) genuinely widens the dark steps to a perceptible ΔL* (~8–10), (b) lifts `divider` so the hairline actually reads, (c) adds a 4th **emphasis** plane (`surfaceEl2`) for the single most important surface on a screen, and (d) inverts the light ladder so cards (lighter) lift off the page (darker). Every grouped region must carry a **full** 0.5pt outer border — partial/absent borders were a major blend source. Elevation is still plane + hairline only — never shadow or rounding.
+**Revision rationale:** v2 commits to the light ladder because the app is used in bright gyms, tracks, and between-session contexts where speed of reading matters more than ambient immersion. Cards lift through plane contrast and a full 0.5pt outer border. Elevation is still plane + hairline only — never shadow or rounding.
 
 ### Separator Grammar (revised 2026-05-30)
 
@@ -157,7 +138,7 @@ The single reusable card container (`cardStyle` modifier, `Components/CardStyle.
 
 ### Accent Color Rule (relaxed to a semantic 2026-06-17 — Tuwa v2)
 
-**The accent is a single cool stone-blue (`#7FB3CC` dark / `#2E6B86` light) — still ONE hue — now used as the "live / actionable / you-are-here" semantic, in a defined, restrained set:**
+**The accent is a single cool stone-blue (`#2E6B86`) — still ONE hue — used as the "live / actionable / you-are-here" semantic, in a defined, restrained set:**
 
 1. The hero readiness score number (as before — the primary instance).
 2. Progress / strike-zone / verdict-bar **fills** (the actionable number made visual).
@@ -166,6 +147,10 @@ The single reusable card container (`cardStyle` modifier, `Components/CardStyle.
 5. The 2pt accent **top rule** on the emphasis card (`emphasisCardStyle`).
 
 Nowhere else — never on ordinary icons, body labels, or decoration. It must read as considered and intentional, never sprayed. This relaxes v1's "hero number only" rule: the accent now earns its place by always meaning *this is live / this is what you act on*. Zone meaning (optimal/caution/danger) is still carried by text label + zone color — **never** by the accent.
+
+### App Icon Color Rule
+
+The App Store / launcher icon uses the same light-only Tuwa palette instead of the old cream multicolor direction. The icon field is `--bg` (`#ECEEF1`), grid lines are `--divider`, and the figure is remapped into `--accent`, `--text-1`, `--divider-strong`, and the muted zone tokens. The original icon artwork is preserved as `AppIcon-1024-original.png`; the active submitted asset is `AppIcon-1024.png`.
 
 ### Zone Color Rule
 
@@ -179,7 +164,8 @@ The neutral ramp is **cool true-neutral** — every chrome token has blue channe
 
 - **Base unit:** 8pt
 - **Density:** Comfortable — generous internal padding, deliberate vertical rhythm
-- **All spacing values must be multiples of 8pt.** No 10pt, no 12pt, no 6pt gaps.
+- **Structural spacing values must be multiples of 8pt.** No 10pt, no 12pt, no 6pt structural gaps.
+- **Typographic micro-gap:** `baselinePair` is a sanctioned 4pt gap only between a micro/caption label and the value it labels. Use nowhere else.
 
 | Token | Value | Usage                                      |
 |-------|-------|--------------------------------------------|
@@ -240,7 +226,7 @@ The neutral ramp is **cool true-neutral** — every chrome token has blue channe
 4. **Accent color = the "live / actionable" semantic** (see Accent Color Rule): hero score, progress/strike-zone fills, active/selected state, primary-CTA outline, emphasis-card top rule. Never on ordinary icons, labels, or decoration — that's a design error.
 5. **Zone state is always communicated through a text label + optional colored border.** Never rely on color alone.
 6. **All spacing uses the design token scale.** No magic numbers. 16pt padding, 24pt padding, 8pt gaps — always multiples of 8.
-7. **Support both color schemes.** All color references use semantic tokens from `ColorTokens`. Never use literal hex values in view code. Use `@Environment(\.colorScheme)` only for conditional logic that can't be expressed in the token system.
+7. **Light-only appearance.** All color references use semantic tokens from `ColorTokens`. Never use literal hex values in view code. The app intentionally forces light appearance; do not add dark-mode-specific branches.
 8. **Typography uses `Font.Tokens.*`** for all text (backed by General Sans Variable). Do not use `.system()` or `.headline` / `.body` semantic styles — these override the design system.
 
 ## Decisions Log
@@ -253,11 +239,11 @@ The neutral ramp is **cool true-neutral** — every chrome token has blue channe
 | 2026-03-21 | 0pt border radius everywhere                     | Square corners reinforce the structural, instrument-like aesthetic                  |
 | 2026-03-21 | Zone colors desaturated to near-gray             | States communicated through labels, color is supplementary — calm > alarm           |
 | 2026-03-21 | Accent appears on readiness score only           | The one precious material in the design — used once, completely                     |
-| 2026-03-21 | Secondary text adjusted to #7C7972 (dark mode)   | Meets WCAG AA 4.5:1 contrast — aesthetic preserved, accessibility not compromised   |
-| 2026-03-21 | Dark-first, light mode supported via token system| iOS convention + outdoor readability; same design system, two material expressions  |
+| 2026-03-21 | Early dark-first direction explored              | Superseded by the 2026-06-27 light-only decision.                                   |
 | 2026-05-10 | Migrated from DM Sans to Alpino (superseded 2026-05-11 -> General Sans) | Geometric sans with sharper terminals -- aligns with International Style direction  |
 | 2026-05-11 | Migrated from Alpino to General Sans             | Rationalist neo-grotesque — better lining figures for data-heavy UI, superior small-size readability |
-| 2026-05-30 | Widened dark elevation ladder; formalized `surfaceEl` as card plane | Original `surface` (#131312) was ~3% above `background` — cards blended into the page ("can't tell where to click"). Raised `surface`→#161615, `surfaceEl`→#1F1F1D; cards now use `surfaceEl`. Light mode unchanged. |
+| 2026-05-30 | Formalized `surfaceEl` as card plane             | Established the plane + hairline grammar that now carries the light-only material system. |
 | 2026-05-30 | Two-tier separator grammar + `cardStyle`/`SectionHeader`/`SectionContainer` primitives | Section breaks (32pt gap + 19pt Medium header) vs row hairlines (inset 0.5pt). Restores hierarchy lost when section headers drifted to 12pt micro-caps and section gaps to 8pt spacers. |
 | 2026-06-15 | Recooled palette to cool true-neutral + raised contrast (Philo austere direction) | Old ramp was uniformly warm (travertine accent, #C2BEB7 haze text); flagged too-warm + low-contrast. Neutralized all chrome (blue≥red), lifted text1 to #E8EAEC/13.9:1, retired travertine accent for cool putty #A6C2D0/#3C5A66, made dividers a visible cut, fixed unreadable text-3 micro-caps (1.4→3.5:1). Structure unchanged. |
-| 2026-06-17 | **Tuwa v2** — bolder departure + more motion life | Audit found the 2026-06-15 recool never fully landed: light chrome still warm (red>blue), warm zone ramp flooded live UI (chartATL alias, error toasts, toggle tint), the dark elevation ladder was imperceptible (ΔL* ~3.9), grouped regions lacked outer borders, AND the whole interaction layer was unfinished (no MotionTokens, zero ButtonStyle/press feedback, haptics only in scrubbers, the v1-mandated hero count-up never built). v2: cooler+brighter accent (#7FB3CC/#2E6B86), neutralized + inverted light ladder, widened dark ladder to a perceptible gap, added 4th `surfaceEl2` emphasis plane + `dividerStrong`, full outer borders on all grouped regions, cool-only chart series. Relaxed two v1 rules with user approval: accent → "live/actionable" semantic (small defined set, not hero-only); motion → gentle springs permitted, added `Motion` tokens + `PressableButtonStyle` + `Haptics` + built the hero count-up. |
+| 2026-06-17 | **Tuwa v2** — bolder departure + more motion life | Audit found the 2026-06-15 recool never fully landed: light chrome still warm (red>blue), warm zone ramp flooded live UI, grouped regions lacked outer borders, and the interaction layer was unfinished. v2: cooler+brighter accent, inverted light ladder, 4th `surfaceEl2` emphasis plane + `dividerStrong`, full outer borders, cool-only chart series, live/actionable accent semantics, `Motion` tokens, `PressableButtonStyle`, `Haptics`, and hero count-up. |
+| 2026-06-27 | Light-only direction confirmed                   | Dark mode was deliberately abandoned. Tuwa now treats light appearance as the only supported material expression and optimizes contrast, accent semantics, and screenshot polish there. |

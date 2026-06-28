@@ -231,8 +231,8 @@ struct GroupEditorCard: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.sm)
 
             Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -247,8 +247,8 @@ struct GroupEditorCard: View {
                 Label("action.addExercise", systemImage: "plus")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 10)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
             }
         }
         .background(ColorTokens.surface)
@@ -273,8 +273,8 @@ struct TemplateExerciseCard: View {
                         .foregroundStyle(ColorTokens.text3)
                 }
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
 
             // Set headers
             HStack {
@@ -290,8 +290,8 @@ struct TemplateExerciseCard: View {
             .font(.Tokens.micro)
             .tracking(1.2)
             .foregroundStyle(ColorTokens.text3)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 4)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.baselinePair)
 
             ForEach($exercise.sets) { $set in
                 let idx = exercise.sets.firstIndex(where: { $0.id == set.id }) ?? 0
@@ -306,8 +306,8 @@ struct TemplateExerciseCard: View {
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text3)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
         }
     }
 }
@@ -341,8 +341,8 @@ struct TargetSetRow: View {
                 .frame(width: 48)
         }
         .font(.Tokens.label)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 6)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
     }
 }
 

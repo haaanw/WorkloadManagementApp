@@ -7,7 +7,7 @@ import SwiftUI
 /// emitted via `onAnswer`; the host records it locally (`SeanEllisStore`) and, on "very", routes into
 /// the existing RevenueCat paywall (the revealed WTP / card-on-file hop).
 ///
-/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid, light+dark
+/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid, light-only
 /// via `ColorTokens`. The reserved hero accent is FORBIDDEN here. Calm, neutral copy — no guilt, no
 /// upsell language in the question itself. The three choices use ONE shared builder so they are
 /// provably equal weight (mirror TodayVerdictCard.decisionButton).

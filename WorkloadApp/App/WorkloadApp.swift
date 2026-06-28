@@ -102,6 +102,7 @@ struct WorkloadApp: App {
     var body: some Scene {
         WindowGroup {
             AppRouter()
+                .preferredColorScheme(.light)
         }
         .modelContainer(container)
     }

@@ -4,6 +4,20 @@ import XCTest
 @MainActor
 final class SubscriptionGatingTests: XCTestCase {
 
+    // MARK: - Tiers
+
+    func test_upgradeTriggerDefaultTier_routesCoachToCoachTier() {
+        XCTAssertEqual(UpgradeTrigger.coach.defaultTier, .coach)
+        XCTAssertEqual(UpgradeTrigger.athletePro.defaultTier, .athletePro)
+        XCTAssertEqual(UpgradeTrigger.history(lockedWeeks: 2).defaultTier, .athletePro)
+        XCTAssertEqual(UpgradeTrigger.export.defaultTier, .athletePro)
+    }
+
+    func test_subscriptionTierOfferingIdentifiers_matchRevenueCatOfferings() {
+        XCTAssertEqual(SubscriptionTier.athletePro.offeringIdentifier, "athlete_pro")
+        XCTAssertEqual(SubscriptionTier.coach.offeringIdentifier, "coach")
+    }
+
     // MARK: - filterSessionsForFree
 
     func test_filterSessionsForFree_keepsSessionsWithin7Days() {

@@ -10,17 +10,20 @@ enum MockDataSeeder {
     static func seed(modelContext: ModelContext, athlete: Athlete) {
         let calendar = Calendar.current
 
-        // Skip re-seeding only if today's snapshot already exists — otherwise
-        // wipe stale data left over from prior simulator boots and start fresh.
+        // Screenshot mode needs deterministic data on every launch because UI
+        // tests create sessions and templates while exercising the flows.
         let allSnapshots = (try? modelContext.fetch(FetchDescriptor<RecoverySnapshot>())) ?? []
-        let todaySnapshot = allSnapshots.first { calendar.isDateInToday($0.date) }
-        if todaySnapshot != nil {
-            return
-        }
-        // Wipe stale data from prior runs so dates stay anchored to current "today".
         for snapshot in allSnapshots { modelContext.delete(snapshot) }
         let staleSessions = (try? modelContext.fetch(FetchDescriptor<WorkoutSession>())) ?? []
         for session in staleSessions { modelContext.delete(session) }
+        let staleTemplates = (try? modelContext.fetch(FetchDescriptor<WorkoutTemplate>())) ?? []
+        for template in staleTemplates where template.athleteId == athlete.id || template.coachId == athlete.id {
+            modelContext.delete(template)
+        }
+        let stalePrescriptions = (try? modelContext.fetch(FetchDescriptor<PrescribedWorkout>())) ?? []
+        for prescription in stalePrescriptions where prescription.athleteId == athlete.id || prescription.coachId == athlete.id {
+            modelContext.delete(prescription)
+        }
         let staleWorkloads = (try? modelContext.fetch(FetchDescriptor<WorkloadSnapshot>())) ?? []
         for snap in staleWorkloads { modelContext.delete(snap) }
         let stalePRs = (try? modelContext.fetch(FetchDescriptor<PersonalRecord>())) ?? []
@@ -104,7 +107,131 @@ enum MockDataSeeder {
         wellness.athlete = athlete
         modelContext.insert(wellness)
 
+        ensureScreenshotTemplates(modelContext: modelContext, athlete: athlete)
+        ensureScreenshotResolvedPlan(modelContext: modelContext, athlete: athlete)
+
         try? modelContext.save()
+    }
+
+    private static func ensureScreenshotTemplates(modelContext: ModelContext, athlete: Athlete) {
+        let existingTemplates = (try? modelContext.fetch(FetchDescriptor<WorkoutTemplate>())) ?? []
+        let existingNames = Set(existingTemplates
+            .filter { !$0.isArchived && ($0.athleteId == athlete.id || $0.coachId == athlete.id) }
+            .map(\.templateName))
+
+        if !existingNames.contains("RIR Strength") {
+            let template = WorkoutTemplate(
+                coachId: athlete.id,
+                templateName: "RIR Strength",
+                sportType: .lifting,
+                sessionType: .strength
+            )
+            template.isAthleteOwned = true
+            template.athleteId = athlete.id
+
+            let group = ExerciseGroup(groupName: "Main", orderIndex: 0)
+            let bench = TemplateExercise(
+                exerciseName: "Barbell Bench Press",
+                exerciseCategory: .compound,
+                muscleGroup: .chest,
+                orderIndex: 0
+            )
+            bench.sets = [
+                TemplateSet(setIndex: 0, targetReps: 5, targetWeightKg: 70, targetRIR: 2),
+                TemplateSet(setIndex: 1, targetReps: 5, targetWeightKg: 72.5, targetRIR: 1)
+            ]
+            group.exercises = [bench]
+            template.groups = [group]
+            modelContext.insert(template)
+        }
+
+        if !existingNames.contains("Tempo Run") {
+            let template = WorkoutTemplate(
+                coachId: athlete.id,
+                templateName: "Tempo Run",
+                sportType: .running,
+                sessionType: .cardio
+            )
+            template.isAthleteOwned = true
+            template.athleteId = athlete.id
+
+            let group = ExerciseGroup(groupName: "Main", orderIndex: 0)
+            let run = TemplateExercise(
+                exerciseName: "Tempo Run",
+                exerciseCategory: .cardio,
+                muscleGroup: .fullBody,
+                orderIndex: 0
+            )
+            run.sets = [
+                TemplateSet(setIndex: 0, targetDurationSeconds: 25 * 60, targetDistanceMeters: 5000, targetRPE: 7)
+            ]
+            group.exercises = [run]
+            template.groups = [group]
+            modelContext.insert(template)
+        }
+
+        if !existingNames.contains("Bodyweight Circuit") {
+            let template = WorkoutTemplate(
+                coachId: athlete.id,
+                templateName: "Bodyweight Circuit",
+                sportType: .custom,
+                sessionType: .skill
+            )
+            template.isAthleteOwned = true
+            template.athleteId = athlete.id
+
+            let group = ExerciseGroup(groupName: "Main", orderIndex: 0)
+            let pushUp = TemplateExercise(
+                exerciseName: "Push Up",
+                exerciseCategory: .bodyweight,
+                muscleGroup: .chest,
+                orderIndex: 0
+            )
+            pushUp.sets = [
+                TemplateSet(setIndex: 0, targetReps: 20, targetRPE: 7),
+                TemplateSet(setIndex: 1, targetReps: 15, targetRPE: 8)
+            ]
+            group.exercises = [pushUp]
+            template.groups = [group]
+            modelContext.insert(template)
+        }
+    }
+
+    private static func ensureScreenshotResolvedPlan(modelContext: ModelContext, athlete: Athlete) {
+        let existingPlans = (try? modelContext.fetch(FetchDescriptor<PrescribedWorkout>())) ?? []
+        for plan in existingPlans where plan.templateName == "Adjusted Squat" {
+            modelContext.delete(plan)
+        }
+
+        let prescription = PrescribedWorkout(
+            coachId: athlete.id,
+            athleteId: athlete.id,
+            templateId: nil,
+            scheduledDate: .now,
+            templateName: "Adjusted Squat",
+            sportType: .lifting,
+            sessionType: .strength
+        )
+
+        let group = ExerciseGroup(groupName: "Main", orderIndex: 0)
+        let squat = TemplateExercise(
+            exerciseName: "Barbell Back Squat",
+            exerciseCategory: .compound,
+            muscleGroup: .legs,
+            orderIndex: 0
+        )
+
+        let warmup = TemplateSet(setIndex: 0, targetReps: 5, targetWeightKg: 60, targetRPE: 5, isWarmup: true)
+        let working = TemplateSet(setIndex: 1, targetReps: 5, targetWeightKg: 140, targetRPE: 8, isWarmup: false)
+        working.adjustedTargetWeightKg = 130
+        working.adjustedTargetRPE = 7
+        working.verdictReason = "Readiness is lower than baseline, so intensity was trimmed."
+        VerdictDecisionApplier.applyAccept(to: working, appliedAt: .now)
+
+        squat.sets = [warmup, working]
+        group.exercises = [squat]
+        prescription.groups = [group]
+        modelContext.insert(prescription)
     }
 
     // MARK: - Session Factories

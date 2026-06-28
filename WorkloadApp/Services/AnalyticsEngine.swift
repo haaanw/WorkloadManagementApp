@@ -78,3 +78,85 @@ struct AnalyticsEngine {
         )
     }
 }
+
+enum UXAnalyticsEvent: String, Codable, CaseIterable {
+    case athleteTabViewed = "athlete_tab_viewed"
+    case primaryActionTapped = "primary_action_tapped"
+    case todayRecommendationOpened = "today_recommendation_opened"
+    case todayPlanDecisionMade = "today_plan_decision_made"
+    case workoutStarted = "workout_started"
+    case workoutResumed = "workout_resumed"
+    case workoutFinished = "workout_finished"
+    case programStarted = "program_started"
+    case workoutImportStarted = "workout_import_started"
+    case insightsSectionViewed = "insights_section_viewed"
+    case insightDetailOpened = "insight_detail_opened"
+    case permissionCTATapped = "permission_cta_tapped"
+    case profileDestinationOpened = "profile_destination_opened"
+    case coachContextSwitched = "coach_context_switched"
+    case uiErrorPresented = "ui_error_presented"
+}
+
+struct UXAnalyticsRecord: Codable, Equatable {
+    let name: UXAnalyticsEvent
+    let timestamp: Date
+    let properties: [String: String]
+}
+
+/// Local UX-funnel instrumentation for UI validation.
+/// Stores high-level interaction events only; raw HealthKit or biometric values are rejected.
+final class UXAnalyticsService {
+    private let storageKey = "uxAnalytics.records"
+    private let maxRecords = 200
+    private let encoder = JSONEncoder()
+    private let decoder = JSONDecoder()
+
+    func track(_ event: UXAnalyticsEvent, properties: [String: String] = [:]) {
+        let record = UXAnalyticsRecord(
+            name: event,
+            timestamp: Date(),
+            properties: sanitized(properties)
+        )
+        var records = recentRecords()
+        records.append(record)
+        if records.count > maxRecords {
+            records.removeFirst(records.count - maxRecords)
+        }
+        if let data = try? encoder.encode(records) {
+            UserDefaults.standard.set(data, forKey: storageKey)
+        }
+    }
+
+    func recentRecords() -> [UXAnalyticsRecord] {
+        guard let data = UserDefaults.standard.data(forKey: storageKey),
+              let records = try? decoder.decode([UXAnalyticsRecord].self, from: data) else {
+            return []
+        }
+        return records
+    }
+
+    func clear() {
+        UserDefaults.standard.removeObject(forKey: storageKey)
+    }
+
+    private func sanitized(_ properties: [String: String]) -> [String: String] {
+        properties.filter { key, _ in
+            let normalized = key.lowercased()
+            return forbiddenPropertyFragments.contains { normalized.contains($0) } == false
+        }
+    }
+
+    private var forbiddenPropertyFragments: [String] {
+        [
+            "raw",
+            "healthkit",
+            "hrv",
+            "rhr",
+            "heart",
+            "sleep",
+            "temperature",
+            "vo2",
+            "biometric"
+        ]
+    }
+}

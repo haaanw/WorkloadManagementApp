@@ -8,6 +8,15 @@ enum UpgradeTrigger {
     case coach
     case athletePro
     case export
+
+    var defaultTier: SubscriptionTier {
+        switch self {
+        case .coach:
+            return .coach
+        case .history, .athletePro, .export:
+            return .athletePro
+        }
+    }
 }
 
 // MARK: - UpgradeSheet
@@ -30,9 +39,7 @@ struct UpgradeSheet: View {
 
     init(trigger: UpgradeTrigger) {
         self.trigger = trigger
-        // v1.5 is single-tier: always the self-coached Tuwa Pro offer, even when opened
-        // from a legacy coach trigger.
-        _selectedTier = State(initialValue: .athletePro)
+        _selectedTier = State(initialValue: trigger.defaultTier)
     }
 
     private var annualPackage: Package? {
@@ -298,36 +305,124 @@ struct UpgradeSheet: View {
 
 enum SubscriptionTier: String, CaseIterable {
     case athletePro
+    case coach
+
+    var offeringIdentifier: String {
+        switch self {
+        case .athletePro:
+            return "athlete_pro"
+        case .coach:
+            return "coach"
+        }
+    }
 
     var headline: String {
-        String(localized: "upgrade.tier.athletePro.headline", defaultValue: "Coach yourself with confidence")
+        String(localized: headlineKey)
+    }
+
+    func headline(locale: Locale) -> String {
+        UIKitStrings.localized(headlineKey, locale: locale)
+    }
+
+    private var headlineKey: String.LocalizationValue {
+        switch self {
+        case .athletePro:
+            return "upgrade.tier.athletePro.headline"
+        case .coach:
+            return "upgrade.tier.coach.headline"
+        }
     }
 
     var subtitle: String {
-        String(localized: "upgrade.tier.athletePro.subtitle", defaultValue: "Unlock the full power of Tuwa to adapt your strength training to how your body is recovering.")
+        String(localized: subtitleKey)
+    }
+
+    func subtitle(locale: Locale) -> String {
+        UIKitStrings.localized(subtitleKey, locale: locale)
+    }
+
+    private var subtitleKey: String.LocalizationValue {
+        switch self {
+        case .athletePro:
+            return "upgrade.tier.athletePro.subtitle"
+        case .coach:
+            return "upgrade.tier.coach.subtitle"
+        }
     }
 
     var features: [String] {
-        [
-            String(localized: "upgrade.feat.pro.history", defaultValue: "Full training history (free tier: 7 days only)"),
-            String(localized: "upgrade.feat.pro.overload", defaultValue: "Smart progressive overload suggestions"),
-            String(localized: "upgrade.feat.pro.targets", defaultValue: "Recovery-aware volume and intensity targets"),
-            String(localized: "upgrade.feat.pro.detraining", defaultValue: "Detraining detection after breaks"),
-            String(localized: "upgrade.feat.pro.acwr", defaultValue: "Advanced training-load and workload charts"),
-            String(localized: "upgrade.feat.pro.customExercises", defaultValue: "Unlimited custom exercises"),
-            String(localized: "upgrade.feat.pro.import", defaultValue: "Workout program import"),
-            String(localized: "upgrade.feat.pro.pr", defaultValue: "Personal record tracking across all time"),
-        ]
+        featureKeys.map { String(localized: $0) }
     }
 
-    var fallbackAnnualPrice: String { "$59.99/yr" }
+    func features(locale: Locale) -> [String] {
+        featureKeys.map { UIKitStrings.localized($0, locale: locale) }
+    }
 
-    var fallbackMonthlyPrice: String { "$6.99/mo" }
+    private var featureKeys: [String.LocalizationValue] {
+        switch self {
+        case .athletePro:
+            return [
+                "upgrade.feat.pro.history",
+                "upgrade.feat.pro.overload",
+                "upgrade.feat.pro.targets",
+                "upgrade.feat.pro.detraining",
+                "upgrade.feat.pro.acwr",
+                "upgrade.feat.pro.customExercises",
+                "upgrade.feat.pro.import",
+                "upgrade.feat.pro.pr"
+            ]
+        case .coach:
+            return [
+                "upgrade.feat.coach.roster",
+                "upgrade.feat.coach.plans",
+                "upgrade.feat.coach.reports",
+                "upgrade.feat.coach.pro"
+            ]
+        }
+    }
 
-    var monthlyEquivalent: String { "$5.00" }
+    var fallbackAnnualPrice: String {
+        switch self {
+        case .athletePro:
+            return "$59.99/yr"
+        case .coach:
+            return "$149.99/yr"
+        }
+    }
+
+    var fallbackMonthlyPrice: String {
+        switch self {
+        case .athletePro:
+            return "$6.99/mo"
+        case .coach:
+            return "$14.99/mo"
+        }
+    }
+
+    var monthlyEquivalent: String {
+        switch self {
+        case .athletePro:
+            return "$5.00"
+        case .coach:
+            return "$12.50"
+        }
+    }
 
     var annualSavingsBadge: String {
-        String(localized: "upgrade.savings.pro", defaultValue: "SAVE 29%")
+        String(localized: annualSavingsBadgeKey)
+    }
+
+    func annualSavingsBadge(locale: Locale) -> String {
+        UIKitStrings.localized(annualSavingsBadgeKey, locale: locale)
+    }
+
+    private var annualSavingsBadgeKey: String.LocalizationValue {
+        switch self {
+        case .athletePro:
+            return "upgrade.savings.pro"
+        case .coach:
+            return "upgrade.savings.coach"
+        }
     }
 }
 

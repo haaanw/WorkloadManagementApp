@@ -9,7 +9,7 @@ import UIKit
 /// Hard constraints (enforced here so call sites can't drift):
 /// - 0pt corners — Rectangle only, never RoundedRectangle.
 /// - No shadows — elevation is plane (surfaceEl / surfaceEl2) + 0.5pt divider border only.
-/// - Spacing on the 8pt grid.
+/// - Structural spacing on the 8pt grid, with a single 4pt `baselinePair` typography gap.
 /// - Motion goes through the `Motion` tokens — never a bare `withAnimation { }` (which falls
 ///   back to SwiftUI's default spring) and never a hand-typed duration literal.
 
@@ -35,6 +35,17 @@ enum Spacing {
     static let xl: CGFloat = 48
 }
 
+// MARK: - Geometry roles
+
+enum GeometryTokens {
+    /// Structural data plates stay square under the current DESIGN.md contract.
+    static let structural: CGFloat = 0
+    /// Controls stay square until the design system explicitly approves nonzero radius.
+    static let control: CGFloat = 0
+    /// Hero surfaces stay square until the design system explicitly approves nonzero radius.
+    static let hero: CGFloat = 0
+}
+
 // MARK: - Motion scale (DESIGN.md Motion — "more life" revision 2026-06-17)
 
 /// The single motion language. Tuwa v2 relaxes the old no-spring rule: gentle springs are
@@ -54,9 +65,154 @@ enum Motion {
     /// Hero readiness score count-up — the one sanctioned moment of personality.
     static let scoreCountUp = Animation.easeOut(duration: 0.40)
 
+    // UI rebuild v3 aliases.
+    static let press = state
+    static let selection = state
+    static let contentChange = entrance
+    static let navigation = screen
+    static let presentation = entrance
+    static let dismissal = exit
+    static let metricUpdate = scoreCountUp
+
     /// reduceMotion-aware resolver: returns nil (no animation) when reduced motion is requested.
     static func resolved(_ animation: Animation, reduceMotion: Bool) -> Animation? {
         reduceMotion ? nil : animation
+    }
+}
+
+// MARK: - Data plate
+
+struct DataPlateStyle: ViewModifier {
+    var horizontalPadding: CGFloat = Spacing.sm
+    var verticalPadding: CGFloat = Spacing.sm
+
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
+            .background(ColorTokens.plate)
+            .overlay(Rectangle().stroke(ColorTokens.hairline, lineWidth: 0.5))
+    }
+}
+
+extension View {
+    func dataPlate(
+        horizontalPadding: CGFloat = Spacing.sm,
+        verticalPadding: CGFloat = Spacing.sm
+    ) -> some View {
+        modifier(DataPlateStyle(horizontalPadding: horizontalPadding, verticalPadding: verticalPadding))
+    }
+}
+
+// MARK: - Surfaces
+
+struct InstrumentHero<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        content
+            .emphasisCardStyle()
+    }
+}
+
+struct MetricRail<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            content
+        }
+        .frame(maxWidth: .infinity)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
+        .background(ColorTokens.recessed)
+        .overlay(Rectangle().stroke(ColorTokens.hairline, lineWidth: 0.5))
+    }
+}
+
+struct StatusRail: View {
+    let title: String
+    var detail: String?
+    var statusColor: Color = ColorTokens.statusNeutral
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
+            Rectangle()
+                .fill(statusColor)
+                .frame(width: 2)
+                .accessibilityHidden(true)
+            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+                Text(title)
+                    .font(.Tokens.labelMedium)
+                    .foregroundStyle(ColorTokens.textPrimary)
+                if let detail {
+                    Text(detail)
+                        .font(.Tokens.smallLabel)
+                        .foregroundStyle(ColorTokens.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: 0)
+        }
+        .dataPlate()
+    }
+}
+
+struct ControlTray<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            content
+        }
+        .dataPlate(verticalPadding: Spacing.md)
+    }
+}
+
+struct DisclosureRow: View {
+    let title: String
+    var subtitle: String?
+    var trailingText: String?
+
+    var body: some View {
+        HStack(spacing: Spacing.sm) {
+            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+                Text(title)
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.textPrimary)
+                if let subtitle {
+                    Text(subtitle)
+                        .font(.Tokens.smallLabel)
+                        .foregroundStyle(ColorTokens.textSecondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            Spacer(minLength: Spacing.sm)
+            if let trailingText {
+                Text(trailingText)
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.textSecondary)
+            }
+            Image(systemName: "chevron.right")
+                .font(.Tokens.smallLabel)
+                .foregroundStyle(ColorTokens.textTertiary)
+                .accessibilityHidden(true)
+        }
+        .frame(minHeight: 44)
+        .contentShape(Rectangle())
     }
 }
 
@@ -95,8 +251,7 @@ extension View {
 
 /// The emphasis card: the most important / active surface on a screen (hero readiness, a
 /// selected card). Uses the raised `surfaceEl2` plane + the stronger `dividerStrong` border +
-/// a 2pt accent top rule. This is one of the sanctioned places the accent appears beyond the
-/// hero number (accent = "live / actionable"). 0pt corners, no shadow — same as `CardStyle`.
+/// a 2pt accent top rule. 0pt corners, no shadow — same as `CardStyle`.
 struct EmphasisCardStyle: ViewModifier {
     var horizontalPadding: CGFloat = Spacing.sm
     var verticalPadding: CGFloat = Spacing.md
@@ -211,7 +366,7 @@ struct DesignToggleStyle: ToggleStyle {
             }
         }
         .buttonStyle(.plain)
-        .animation(.linear(duration: 0.15), value: configuration.isOn)
+        .animation(Motion.state, value: configuration.isOn)
         .accessibilityAddTraits(configuration.isOn ? [.isButton, .isSelected] : .isButton)
     }
 }
@@ -219,6 +374,317 @@ struct DesignToggleStyle: ToggleStyle {
 extension ToggleStyle where Self == DesignToggleStyle {
     /// Neutral design-system toggle (no Apple green). Use everywhere instead of the default.
     static var design: DesignToggleStyle { DesignToggleStyle() }
+}
+
+// MARK: - Controls
+
+struct PrimaryActionButton: View {
+    let title: LocalizedStringKey
+    var isLoading: Bool = false
+    var isDisabled: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
+            HStack(spacing: Spacing.xs) {
+                if isLoading {
+                    ProgressView()
+                        .tint(ColorTokens.textPrimary)
+                }
+                Text(title)
+                    .font(.Tokens.bodyMedium)
+            }
+            .foregroundStyle(ColorTokens.textPrimary)
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.horizontal, Spacing.sm)
+            .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 1))
+            .background(ColorTokens.control)
+        }
+        .buttonStyle(.pressable)
+        .disabled(isDisabled || isLoading)
+        .opacity(isDisabled ? 0.5 : 1)
+    }
+}
+
+struct SecondaryActionButton: View {
+    let title: LocalizedStringKey
+    var isDisabled: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
+            Text(title)
+                .font(.Tokens.body)
+                .foregroundStyle(ColorTokens.textPrimary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.horizontal, Spacing.sm)
+                .overlay(Rectangle().stroke(ColorTokens.hairline, lineWidth: 0.5))
+                .background(ColorTokens.control)
+        }
+        .buttonStyle(.pressable)
+        .disabled(isDisabled)
+        .opacity(isDisabled ? 0.5 : 1)
+    }
+}
+
+struct QuietActionButton: View {
+    let title: LocalizedStringKey
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
+            Text(title)
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.textSecondary)
+                .frame(minHeight: 44)
+                .padding(.horizontal, Spacing.sm)
+        }
+        .buttonStyle(.pressable)
+    }
+}
+
+struct IconButton: View {
+    let systemImage: String
+    let accessibilityLabel: LocalizedStringKey
+    var isSelected: Bool = false
+    let action: () -> Void
+
+    var body: some View {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
+            Image(systemName: systemImage)
+                .font(.Tokens.body)
+                .foregroundStyle(isSelected ? ColorTokens.textPrimary : ColorTokens.textSecondary)
+                .frame(width: 44, height: 44)
+                .background(isSelected ? ColorTokens.active : ColorTokens.control)
+                .overlay(Rectangle().stroke(isSelected ? ColorTokens.hairlineStrong : ColorTokens.hairline, lineWidth: 0.5))
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
+    }
+}
+
+struct InstrumentSegmentedControl<Option: Hashable>: View {
+    let options: [Option]
+    @Binding var selection: Option
+    let title: KeyPath<Option, String>
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(options.enumerated()), id: \.element) { index, option in
+                segment(option)
+                if index < options.count - 1 {
+                    Rectangle()
+                        .fill(ColorTokens.hairline)
+                        .frame(width: 0.5)
+                }
+            }
+        }
+        .frame(minHeight: 44)
+        .background(ColorTokens.control)
+        .overlay(Rectangle().stroke(ColorTokens.hairline, lineWidth: 0.5))
+    }
+
+    private func segment(_ option: Option) -> some View {
+        let selected = option == selection
+        return Button {
+            if !selected { Haptics.select() }
+            selection = option
+        } label: {
+            Text(option[keyPath: title])
+                .font(selected ? .Tokens.labelMedium : .Tokens.label)
+                .foregroundStyle(selected ? ColorTokens.textPrimary : ColorTokens.textSecondary)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .background(selected ? ColorTokens.active : Color.clear)
+                .overlay(alignment: .top) {
+                    if selected {
+                        Rectangle()
+                            .fill(ColorTokens.hairlineStrong)
+                            .frame(height: 2)
+                    }
+                }
+        }
+        .buttonStyle(.pressable(scale: 1, opacity: 0.7))
+        .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
+    }
+}
+
+struct InstrumentToggle: View {
+    let title: LocalizedStringKey
+    @Binding var isOn: Bool
+
+    var body: some View {
+        Toggle(title, isOn: $isOn)
+            .font(.Tokens.body)
+            .foregroundStyle(ColorTokens.textPrimary)
+            .toggleStyle(.design)
+            .frame(minHeight: 44)
+    }
+}
+
+struct InstrumentTextField: View {
+    let label: LocalizedStringKey
+    @Binding var text: String
+    var isError: Bool = false
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+            Text(label)
+                .font(.Tokens.smallLabel)
+                .foregroundStyle(ColorTokens.textSecondary)
+            TextField(label, text: $text)
+                .font(.Tokens.body)
+                .foregroundStyle(ColorTokens.textPrimary)
+                .padding(.horizontal, Spacing.sm)
+                .frame(minHeight: 44)
+                .background(ColorTokens.control)
+                .overlay(Rectangle().stroke(isError ? ColorTokens.statusCritical : ColorTokens.hairline, lineWidth: 0.5))
+        }
+    }
+}
+
+struct StatusBadge: View {
+    let label: String
+    var color: Color = ColorTokens.statusNeutral
+
+    var body: some View {
+        Text(label)
+            .font(.Tokens.micro)
+            .tracking(1.2)
+            .foregroundStyle(color)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .overlay(Rectangle().stroke(color, lineWidth: 0.5))
+    }
+}
+
+struct SheetScaffold<Content: View, Footer: View>: View {
+    let title: LocalizedStringKey
+    @ViewBuilder var content: Content
+    @ViewBuilder var footer: Footer
+
+    init(
+        title: LocalizedStringKey,
+        @ViewBuilder content: () -> Content,
+        @ViewBuilder footer: () -> Footer
+    ) {
+        self.title = title
+        self.content = content()
+        self.footer = footer()
+    }
+
+    var body: some View {
+        NavigationStack {
+            VStack(spacing: 0) {
+                ScrollView {
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        content
+                    }
+                    .padding(Spacing.sm)
+                }
+                BottomActionDock {
+                    footer
+                }
+            }
+            .background(ColorTokens.background)
+            .navigationTitle(title)
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(ColorTokens.background, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
+        }
+    }
+}
+
+struct BottomActionDock<Content: View>: View {
+    @ViewBuilder var content: Content
+
+    init(@ViewBuilder content: () -> Content) {
+        self.content = content()
+    }
+
+    var body: some View {
+        VStack(spacing: 0) {
+            Rectangle()
+                .fill(ColorTokens.hairline)
+                .frame(height: 0.5)
+            content
+                .padding(Spacing.sm)
+                .background(ColorTokens.background)
+        }
+    }
+}
+
+struct LoadingStateView: View {
+    let title: LocalizedStringKey
+
+    var body: some View {
+        VStack(spacing: Spacing.sm) {
+            ProgressView()
+            Text(title)
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.textSecondary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .background(ColorTokens.background)
+    }
+}
+
+struct EmptyStateView: View {
+    let title: LocalizedStringKey
+    let message: LocalizedStringKey
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            Text(title)
+                .font(.Tokens.sectionHead)
+                .foregroundStyle(ColorTokens.textPrimary)
+            Text(message)
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.textSecondary)
+        }
+        .dataPlate()
+    }
+}
+
+struct ErrorStateView: View {
+    let title: LocalizedStringKey
+    let message: String
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            Text(title)
+                .font(.Tokens.sectionHead)
+                .foregroundStyle(ColorTokens.statusCritical)
+            Text(message)
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.textSecondary)
+        }
+        .dataPlate()
+    }
+}
+
+struct StaleDataView: View {
+    let message: String
+
+    var body: some View {
+        StatusRail(
+            title: "Data needs refresh",
+            detail: message,
+            statusColor: ColorTokens.statusAttention
+        )
+    }
 }
 
 // MARK: - Menu picker chevron
@@ -240,6 +706,8 @@ struct MenuChevron: View {
 /// respects the instrument aesthetic while making controls feel alive. Replace
 /// `.buttonStyle(.plain)` with `.buttonStyle(.pressable)` on interactive rows / cards / CTAs.
 struct PressableButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var pressedScale: CGFloat = 0.97
     var pressedOpacity: Double = 0.7
 
@@ -247,7 +715,7 @@ struct PressableButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? pressedScale : 1)
             .opacity(configuration.isPressed ? pressedOpacity : 1)
-            .animation(Motion.state, value: configuration.isPressed)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: configuration.isPressed)
     }
 }
 

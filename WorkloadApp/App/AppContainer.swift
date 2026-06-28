@@ -14,10 +14,21 @@ final class AppContainer {
     let syncService: SyncService
     let notificationService: NotificationService
     let localeManager: LocaleManager
+    let uxAnalyticsService: UXAnalyticsService
 
     private(set) var isAuthenticated = false
+    private(set) var currentMode: AppContext
+
+    private static let appContextKey = "appContext"
 
     init() {
+        if let rawContext = UserDefaults.standard.string(forKey: Self.appContextKey),
+           let storedContext = AppContext(rawValue: rawContext) {
+            self.currentMode = storedContext
+        } else {
+            self.currentMode = .athlete
+        }
+
         self.subscriptionService = SubscriptionService()
 
         let encoder = JSONEncoder()
@@ -43,6 +54,7 @@ final class AppContainer {
         self.syncService = SyncService(client: client)
         self.notificationService = NotificationService()
         self.localeManager = LocaleManager()
+        self.uxAnalyticsService = UXAnalyticsService()
 
         // Phase 23 P2: Cancel any legacy weekly-summary pending requests so the next
         // schedule call reissues with deliver-time localization. Idempotent: stamps
@@ -52,17 +64,13 @@ final class AppContainer {
         // Subscribe to session-loss events only.
         // Sign-in/sign-up transitions set isAuthenticated manually (after sync completes).
         Task {
-            do {
-                for await (event, _) in client.auth.authStateChanges {
-                    switch event {
-                    case .signedOut, .passwordRecovery:
-                        self.isAuthenticated = false
-                    default:
-                        break
-                    }
+            for await (event, _) in client.auth.authStateChanges {
+                switch event {
+                case .signedOut, .passwordRecovery:
+                    self.isAuthenticated = false
+                default:
+                    break
                 }
-            } catch {
-                print("Auth state listener error: \(error)")
             }
         }
     }
@@ -70,6 +78,12 @@ final class AppContainer {
     /// Called by LoginView and SignUpView after auth + sync complete.
     func setAuthenticated(_ value: Bool) {
         isAuthenticated = value
+    }
+
+    func setMode(_ mode: AppContext) {
+        currentMode = mode
+        UserDefaults.standard.set(mode.rawValue, forKey: Self.appContextKey)
+        uxAnalyticsService.track(.coachContextSwitched, properties: ["context": mode.rawValue])
     }
 
     /// Sign out: clear Supabase session + wipe local SwiftData via cascade delete.

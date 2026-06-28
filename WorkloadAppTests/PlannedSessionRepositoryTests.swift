@@ -173,4 +173,55 @@ final class PlannedSessionRepositoryTests: XCTestCase {
         XCTAssertNil(templateSet.verdictAppliedAt)
         XCTAssertFalse(templateSet.athleteOverrode)
     }
+
+    // MARK: - Test 5: markCompleted links the saved session and is queryable (verdict → workout loop)
+
+    func test_markCompleted_setsStatusAndLinksSession() throws {
+        let athleteId = UUID()
+        let prescription = repo.planManualLift(athleteId: athleteId, liftName: "Back Squat",
+                                               targetWeightKg: 100, targetReps: 5)
+        XCTAssertEqual(prescription.status, .assigned)
+        XCTAssertNil(prescription.completedSessionId)
+
+        let sessionId = UUID()
+        repo.markCompleted(prescriptionId: prescription.id, completedSessionId: sessionId)
+
+        XCTAssertEqual(prescription.status, .completed)
+        XCTAssertEqual(prescription.completedSessionId, sessionId)
+
+        // Queryable linkage: re-fetch by id and confirm the session link survives a round-trip.
+        let all = (try? context.fetch(FetchDescriptor<PrescribedWorkout>())) ?? []
+        let reloaded = try XCTUnwrap(all.first { $0.id == prescription.id })
+        XCTAssertEqual(reloaded.completedSessionId, sessionId)
+    }
+
+    func test_fetchTodaysPlannedSession_excludesCompleted() throws {
+        let athleteId = UUID()
+        let prescription = repo.planManualLift(athleteId: athleteId, liftName: "Back Squat",
+                                               targetWeightKg: 100, targetReps: 5)
+        XCTAssertNotNil(repo.fetchTodaysPlannedSession(athleteId: athleteId))
+
+        repo.markCompleted(prescriptionId: prescription.id, completedSessionId: UUID())
+        XCTAssertNil(repo.fetchTodaysPlannedSession(athleteId: athleteId),
+                     "A completed prescription must not be re-served as today's plan (no re-decide / double-complete).")
+    }
+
+    func test_markCompleted_returnsTrueOnSuccess_falseOnUnknown() throws {
+        let athleteId = UUID()
+        let prescription = repo.planManualLift(athleteId: athleteId, liftName: "Squat",
+                                               targetWeightKg: 100, targetReps: 5)
+        XCTAssertTrue(repo.markCompleted(prescriptionId: prescription.id, completedSessionId: UUID()),
+                      "Found + persisted ⇒ success (not silently swallowed).")
+        XCTAssertFalse(repo.markCompleted(prescriptionId: UUID(), completedSessionId: UUID()),
+                       "Unknown id ⇒ explicit failure.")
+    }
+
+    func test_markCompleted_unknownPrescription_isNoOp() throws {
+        let athleteId = UUID()
+        let prescription = repo.planManualLift(athleteId: athleteId, liftName: "Bench",
+                                               targetWeightKg: 80, targetReps: 5)
+        repo.markCompleted(prescriptionId: UUID(), completedSessionId: UUID())  // wrong id
+        XCTAssertEqual(prescription.status, .assigned)
+        XCTAssertNil(prescription.completedSessionId)
+    }
 }

@@ -131,13 +131,13 @@ private struct ClientCard: View {
 
     var body: some View {
         HStack(spacing: 0) {
-            // 3pt colored left border — supplementary zone indicator.
+            // Hairline colored left border — supplementary zone indicator.
             // Zone identity is always communicated via text labels below.
             Rectangle()
                 .fill(recoveryBorderColor)
-                .frame(width: 3)
+                .frame(width: 1)
 
-            VStack(alignment: .leading, spacing: 4) {
+            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                 HStack {
                     Text(athlete.displayName)
                         .font(.Tokens.body)
@@ -158,8 +158,8 @@ private struct ClientCard: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
             }
-            .padding(.horizontal, 12)
-            .padding(.vertical, 12)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.sm)
         }
     }
 

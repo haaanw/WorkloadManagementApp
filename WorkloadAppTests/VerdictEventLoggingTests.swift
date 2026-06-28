@@ -69,6 +69,8 @@ final class VerdictEventLoggingTests: XCTestCase {
                 regionRaw: model.lastHeadlineRegionRaw ?? MuscleRegion.fullBody.rawValue,
                 reasonLine: decision.reasonLine,
                 confidenceNote: model.display?.confidenceNote,
+                suggestedBackoffSetCut: decision.suggestedBackoffSetCut,
+                suggestedRPECap: decision.suggestedRPECap,
                 athlete: loggedAthlete
             )
         }
@@ -130,7 +132,9 @@ final class VerdictEventLoggingTests: XCTestCase {
             adjustedTopSetKg: 95,
             hadAdjustment: true,
             reasonLine: "Backed off a touch.",
-            decidedAt: .now
+            decidedAt: .now,
+            suggestedBackoffSetCut: nil,
+            suggestedRPECap: nil
         )
         vm.onDecisionRecorded?(decision)
         let all = eventRepo.fetchAll(athlete: athlete)
@@ -138,6 +142,31 @@ final class VerdictEventLoggingTests: XCTestCase {
         XCTAssertTrue(all.first?.differed ?? false, "hadAdjustment ⇒ differed")
         XCTAssertEqual(all.first?.deltaKg ?? 0, -5, accuracy: 0.0001, "delta = adjusted − planned")
         XCTAssertEqual(all.first?.adjustedTopSetKg, 95)
+    }
+
+    func test_volumeOnlyDecision_differedTrue_zeroDelta_structuredContext() {
+        let decision = VerdictDecision(
+            action: .accepted, plannedTopSetKg: 100, adjustedTopSetKg: 100,
+            hadAdjustment: true, reasonLine: "Trim a back-off set.", decidedAt: .now,
+            suggestedBackoffSetCut: 1, suggestedRPECap: nil
+        )
+        vm.onDecisionRecorded?(decision)
+        let e = eventRepo.fetchAll(athlete: athlete).first
+        XCTAssertTrue(e?.differed ?? false, "volume-only still differs")
+        XCTAssertEqual(e?.deltaKg ?? -1, 0, accuracy: 1e-9)
+        XCTAssertEqual(e?.suggestedBackoffSetCut, 1)
+    }
+
+    func test_rpeOnlyDecision_differedTrue_structuredContext() {
+        let decision = VerdictDecision(
+            action: .accepted, plannedTopSetKg: 100, adjustedTopSetKg: 100,
+            hadAdjustment: true, reasonLine: "Cap the effort.", decidedAt: .now,
+            suggestedBackoffSetCut: nil, suggestedRPECap: 7
+        )
+        vm.onDecisionRecorded?(decision)
+        let e = eventRepo.fetchAll(athlete: athlete).first
+        XCTAssertTrue(e?.differed ?? false, "RPE-only still differs")
+        XCTAssertEqual(e?.suggestedRPECap, 7)
     }
 
     // MARK: - SC4 structural guard: the production surface wires the logger

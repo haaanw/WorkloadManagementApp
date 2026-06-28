@@ -136,7 +136,7 @@ final class TodayVerdictService {
         prescribedWorkout: PrescribedWorkout,
         decisionInput: ReasoningEngine.DecisionInput?,
         crossModalResult: CrossModalFatigueEngine.CrossModalResult?,
-        plateStepKg: Double = TodayVerdictEngine.Constants.plateStepKg
+        plateStepKg: Double = 2.5
     ) -> [TodayVerdictEngine.VerdictResult] {
         var results: [TodayVerdictEngine.VerdictResult] = []
 
@@ -147,12 +147,31 @@ final class TodayVerdictService {
             guard let top = working.max(by: { ($0.targetWeightKg ?? 0) < ($1.targetWeightKg ?? 0) }),
                   let plannedKg = top.targetWeightKg else { continue }
 
+            // DECIDED sets are FROZEN: once the athlete has accepted or kept this top set, a later
+            // refresh must NOT recompute/overwrite its suggestion — that would silently change an
+            // accepted number out from under them. Leave the slots untouched and report a result that
+            // reflects the frozen state (keeps `results` index-aligned for the headline capture).
+            if top.verdictAppliedAt != nil || top.athleteOverrode {
+                let frozenVerdict: TodayVerdictEngine.Verdict =
+                    VerdictDecisionApplier.hasSuggestion(top) ? .modify : .go
+                results.append(
+                    TodayVerdictEngine.VerdictResult(
+                        verdict: frozenVerdict,
+                        adjustedTopSetKg: top.adjustedTargetWeightKg ?? plannedKg,
+                        volumeCutSets: top.adjustedBackoffSetCut,
+                        loadFactor: 1.0
+                    )
+                )
+                continue
+            }
+
             let region = exercise.muscleGroup?.region ?? .fullBody
 
             // --- Cold-start defer: suggestion EQUAL to the plan, no trim, no RPE cap. ---------------
             guard let decisionInput else {
                 top.adjustedTargetWeightKg = plannedKg
                 top.adjustedTargetRPE = nil           // a defer caps nothing (locked)
+                top.adjustedBackoffSetCut = nil       // a defer cuts no volume (clears any stale cut)
                 top.verdictReason = VerdictReasonBuilder.build(
                     decisionInput: nil,
                     crossModalResult: crossModalResult,
@@ -191,6 +210,10 @@ final class TodayVerdictService {
 
             // --- WRITE the suggestion (never verdictAppliedAt / athleteOverrode). --------------------
             top.adjustedTargetWeightKg = result.adjustedTopSetKg
+            // Persist the STRUCTURED back-off cut as the execution source of truth (the reason-text
+            // clause below stays only for human explanation). nil here explicitly clears any stale cut
+            // from a prior re-evaluation.
+            top.adjustedBackoffSetCut = result.volumeCutSets
 
             // NIL-RPE RULE (WARNING-3): only cap when a planned RPE existed; never emit a bare cap.
             if let plannedRPE = top.targetRPE {

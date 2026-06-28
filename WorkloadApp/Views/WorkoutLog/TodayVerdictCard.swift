@@ -3,8 +3,9 @@ import SwiftUI
 /// Phase 44 Plan 02 — the **suggest-and-confirm verdict card**. The nocebo-safe, autonomy-respecting
 /// surface the whole v2.0 validation hinges on.
 ///
-/// Presentational ONLY: it takes a `TodayVerdictDisplay` + the athlete's `weightUnit` + three
-/// callbacks (`onAccept` / `onKeepPlan` / `onFeel`). All data logic lives in `TodayVerdictViewModel`.
+/// Presentational ONLY: it takes a `TodayVerdictDisplay` + the athlete's `weightUnit` + a
+/// `canStartWorkout` gate + four callbacks (`onAccept` / `onKeepPlan` / `onFeel` / `onStartWorkout`).
+/// All data logic lives in `TodayVerdictViewModel`.
 ///
 /// Anti-nocebo / autonomy invariants (DESIGN-fenced by `TodayVerdictCardGuardTests`):
 ///  - Leads with the ACTION on the plan + one-line reason — never a bare readiness number (SC4).
@@ -15,7 +16,7 @@ import SwiftUI
 ///  - Keep-my-plan is one tap, no confirmation nag, no guilt copy (SC3).
 ///  - Confidence is shown quietly and separately when present (SC4).
 ///
-/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid, light+dark
+/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid, light-only
 /// via `ColorTokens`. Tuwa v2: this is the screen's primary decision surface, so it sits on the
 /// emphasis plane (`.emphasisCardStyle()` — `surfaceEl2` + `dividerStrong` + 2pt accent top rule).
 /// The accent (now the "live / actionable" semantic) is allowed ONLY on the strike-zone FILL and the
@@ -25,9 +26,17 @@ struct TodayVerdictCard: View {
 
     let display: TodayVerdictDisplay
     let weightUnit: WeightUnit
+    /// Whether a resolved workout can actually be produced (the ViewModel's `canStartResolvedWorkout`,
+    /// derived from the persisted decision state). The Start CTA renders ONLY when this is true, so it
+    /// can never appear and then no-op. Defaults true so existing callers/tests are unaffected.
+    var canStartWorkout: Bool = true
     var onAccept: () -> Void
     var onKeepPlan: () -> Void
     var onFeel: (FeelOverride) -> Void
+    /// Start the resolved workout once a decision has been made. nil ⇒ no start affordance (e.g. tests
+    /// or surfaces that don't own a launch path). Never fires while the decision is still pending —
+    /// Accept itself never auto-launches.
+    var onStartWorkout: (() -> Void)? = nil
 
     @Environment(\.locale) private var locale
 
@@ -148,10 +157,17 @@ struct TodayVerdictCard: View {
     @ViewBuilder
     private var decisionArea: some View {
         if display.appliedState != .pending {
-            // Quiet confirmed line — no nag to re-decide.
-            Text(confirmedLine)
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text2)
+            // Quiet confirmed line — no nag to re-decide — then the start affordance: the verdict's
+            // resolved numbers become the workout the athlete starts (closing the loop).
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text(confirmedLine)
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text2)
+                // Start CTA only when a resolved plan can actually be produced (no render-then-no-op).
+                if canStartWorkout, let onStartWorkout {
+                    decisionButton(startLabel, action: onStartWorkout)
+                }
+            }
         } else if display.kind == .asPlanned {
             // Nothing to accept/decline — a single friction-free acknowledge.
             decisionButton(
@@ -245,6 +261,21 @@ struct TodayVerdictCard: View {
         case .accepted: return String(localized: "verdictCard.state.accepted", defaultValue: "Using the adjustment")
         case .keptPlan: return String(localized: "verdictCard.state.kept", defaultValue: "Training your plan")
         case .pending: return ""
+        }
+    }
+
+    /// The start CTA label — reflects WHAT will be started: the accepted adjustment, the kept plan
+    /// (after declining a real suggestion), or simply the workout (when there was nothing to adjust).
+    private var startLabel: String {
+        switch display.appliedState {
+        case .accepted:
+            return String(localized: "verdictCard.start.adjusted", defaultValue: "Start adjusted workout")
+        case .keptPlan:
+            return display.kind == .adjusted
+                ? String(localized: "verdictCard.start.plan", defaultValue: "Start my plan")
+                : String(localized: "verdictCard.start.workout", defaultValue: "Start workout")
+        case .pending:
+            return ""
         }
     }
 

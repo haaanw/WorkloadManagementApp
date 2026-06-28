@@ -24,11 +24,23 @@ extension Font {
         /// 64pt — Readiness score. Accent color only. Apply .monospacedDigit() at the call site.
         static let heroScore   = cascaded(size: 64, weight: .regular)
 
+        /// 64pt — Large numeric instrument values. Apply .monospacedDigit() at the call site.
+        static let displayMetric = heroScore
+
+        /// 32pt — Dominant action or verdict copy.
+        static let displayAction = cascaded(size: 32, weight: .regular)
+
         /// 32pt — Page title
         static let pageTitle   = cascaded(size: 32, weight: .regular)
 
+        /// 32pt — Screen title
+        static let screenTitle = pageTitle
+
         /// 19pt Medium — Section header
         static let sectionHead = cascaded(size: 19, weight: .medium)
+
+        /// 19pt Medium — Section title
+        static let sectionTitle = sectionHead
 
         /// 17pt — Body copy, metric values
         static let body        = cascaded(size: 17, weight: .regular)
@@ -44,6 +56,9 @@ extension Font {
 
         /// 13pt — Component labels, banner text
         static let smallLabel  = cascaded(size: 13, weight: .regular)
+
+        /// 13pt — Caption text
+        static let caption     = smallLabel
 
         /// 13pt Medium — Component emphasis
         static let smallLabelMedium = cascaded(size: 13, weight: .medium)

@@ -225,10 +225,10 @@ struct WorkloadView: View {
         switch format {
         case .sessionSummary:
             csvString = CSVExportEngine.sessionSummaryCSV(sessions: scopedSessions)
-            filename = "tonus_sessions_\(dateString).csv"
+            filename = "tuwa_sessions_\(dateString).csv"
         case .detailedSets:
             csvString = CSVExportEngine.detailedSetsCSV(sessions: scopedSessions)
-            filename = "tonus_sets_\(dateString).csv"
+            filename = "tuwa_sets_\(dateString).csv"
         }
 
         let tempURL = FileManager.default.temporaryDirectory.appendingPathComponent(filename)

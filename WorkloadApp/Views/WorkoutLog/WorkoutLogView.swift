@@ -22,6 +22,10 @@ struct WorkoutLogView: View {
     @State private var selectedTemplateForSession: WorkoutTemplate?
     @State private var showLLMImport = false
     @State private var showPlanToday = false
+    // The verdict's resolved workout, captured on the card's start action and launched as a
+    // dedicated ActiveWorkoutSheet path (verdict → workout). Cleared when that sheet closes.
+    @State private var resolvedPlanForSession: ResolvedSessionPlan?
+    @State private var showResolvedWorkout = false
     @State private var verdictVM: TodayVerdictViewModel?
     // Phase 45 — held stably so the onDecisionRecorded closure logs into one instance (SC4 seam).
     @State private var verdictRepository: VerdictEventRepository?
@@ -65,9 +69,21 @@ struct WorkoutLogView: View {
                                 TodayVerdictCard(
                                     display: display,
                                     weightUnit: athlete.weightUnit,
+                                    canStartWorkout: vm.canStartResolvedWorkout,
                                     onAccept: { vm.accept() },
                                     onKeepPlan: { vm.keepPlan() },
-                                    onFeel: { vm.feelOverride($0) }
+                                    onFeel: { vm.feelOverride($0) },
+                                    onStartWorkout: {
+                                        // Derived from the persisted decision state — the Start CTA only
+                                        // renders when canStartWorkout is true, so a resolved plan is
+                                        // available here. Assert the invariant in DEBUG; never no-op.
+                                        guard let plan = vm.resolvedPlanForWorkout else {
+                                            assertionFailure("Start tapped without a resolvable plan — canStartWorkout/resolvedPlanForWorkout drifted")
+                                            return
+                                        }
+                                        resolvedPlanForSession = plan
+                                        showResolvedWorkout = true
+                                    }
                                 )
                                 .padding(.horizontal, Spacing.sm)
                             }
@@ -211,6 +227,21 @@ struct WorkoutLogView: View {
                     selectedTemplateForSession = nil
                 }
             }
+            .sheet(isPresented: $showResolvedWorkout) {
+                if let plan = resolvedPlanForSession {
+                    ActiveWorkoutSheet(resolvedPlan: plan)
+                }
+            }
+            .onChange(of: showResolvedWorkout) { _, isPresented in
+                if !isPresented {
+                    resolvedPlanForSession = nil
+                    // The verdict's prescription may now be completed — refresh the card + prompts.
+                    if let athlete = athletes.first {
+                        verdictVM?.refresh(athlete: athlete)
+                        refreshOutcomePrompt()
+                    }
+                }
+            }
             .sheet(isPresented: $showTemplatePicker) {
                 TemplatePickerSheet(
                     onSelectTemplate: { template in
@@ -301,6 +332,9 @@ struct WorkoutLogView: View {
                             regionRaw: vm.lastHeadlineRegionRaw ?? MuscleRegion.fullBody.rawValue,
                             reasonLine: decision.reasonLine,
                             confidenceNote: vm.display?.confidenceNote,
+                            prescriptionId: vm.currentPrescriptionId,
+                            suggestedBackoffSetCut: decision.suggestedBackoffSetCut,
+                            suggestedRPECap: decision.suggestedRPECap,
                             athlete: loggedAthlete
                         )
                     }

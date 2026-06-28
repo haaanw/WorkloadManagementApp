@@ -35,6 +35,9 @@ final class VerdictEventRepository {
         regionRaw: String,
         reasonLine: String,
         confidenceNote: String?,
+        prescriptionId: UUID? = nil,
+        suggestedBackoffSetCut: Int? = nil,
+        suggestedRPECap: Double? = nil,
         athlete: Athlete?
     ) -> VerdictEvent {
         let event = VerdictEvent(
@@ -49,6 +52,9 @@ final class VerdictEventRepository {
             regionRaw: regionRaw,
             reasonLine: reasonLine,
             confidenceNote: confidenceNote,
+            prescriptionId: prescriptionId,
+            suggestedBackoffSetCut: suggestedBackoffSetCut,
+            suggestedRPECap: suggestedRPECap,
             athlete: athlete
         )
         modelContext.insert(event)

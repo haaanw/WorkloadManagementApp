@@ -33,9 +33,33 @@ struct VerdictDecision: Equatable {
     let action: VerdictAction
     let plannedTopSetKg: Double
     let adjustedTopSetKg: Double?
+    /// True when the suggestion differed in ANY dimension (weight, RPE cap, or back-off volume) — not
+    /// kg-only. Drives `VerdictEvent.differed` so volume-/RPE-only changes are honestly logged.
     let hadAdjustment: Bool
     let reasonLine: String
     let decidedAt: Date
+    /// Structured non-weight context (additive; nil when not applicable) so a volume-/RPE-only
+    /// adjustment is distinguishable in analytics without any raw biometric data.
+    let suggestedBackoffSetCut: Int?
+    let suggestedRPECap: Double?
+}
+
+// MARK: - PersistedVerdictDecisionState (the AUTHORITATIVE start-readiness source of truth)
+
+/// The decision state reconstructed PURELY from the frozen prescription's persisted set markers
+/// (`verdictAppliedAt` / `athleteOverrode`) — NOT from any transient session flag. This is what makes
+/// an accepted/kept verdict survive a refresh, a tab revisit, or an app relaunch: a brand-new
+/// `TodayVerdictViewModel` over the same store derives the identical state.
+enum PersistedVerdictDecisionState: Equatable {
+    /// No decision markers anywhere — the athlete has not decided. The only non-start-ready state.
+    case pending
+    /// At least one top set accepted its suggestion; none declined.
+    case accepted
+    /// At least one top set declined (keep-plan); none accepted.
+    case keptPlan
+    /// A legitimate mix (e.g. feeling-rough accepted a trim on one exercise, kept another) — an
+    /// explicit completed decision, start-ready, never pending.
+    case mixed
 }
 
 // MARK: - TodayVerdictDisplay (the pure value the card renders)
@@ -92,5 +116,62 @@ enum VerdictDecisionApplier {
             return topSet.adjustedTargetWeightKg ?? topSet.targetWeightKg
         }
         return topSet.targetWeightKg
+    }
+
+    /// The RPE the athlete trains, resolved at read time with the SAME accept/keep semantics as
+    /// `effectiveTargetKg`: the accepted adjusted RPE cap ONLY once accepted, otherwise the authored
+    /// planned RPE. Because the service only ever writes `adjustedTargetRPE` when a planned RPE existed
+    /// (the NIL-RPE rule), an accepted set with no authored RPE resolves to nil — a bare RPE cap is
+    /// never fabricated. Keep-plan / pending always resolve to the authored `targetRPE`.
+    static func effectiveTargetRPE(_ topSet: TemplateSet) -> Double? {
+        if topSet.verdictAppliedAt != nil {
+            return topSet.adjustedTargetRPE ?? topSet.targetRPE
+        }
+        return topSet.targetRPE
+    }
+
+    /// The number of back-off sets to omit, resolved at read time: the structured cut ONLY once
+    /// accepted, otherwise nil. Mirrors the weight/RPE accept semantics.
+    static func effectiveBackoffSetCut(_ topSet: TemplateSet) -> Int? {
+        guard topSet.verdictAppliedAt != nil, let cut = topSet.adjustedBackoffSetCut, cut > 0 else { return nil }
+        return cut
+    }
+
+    /// The ONE canonical "is there a real suggestion?" predicate — semantic, NOT kilogram-only. True
+    /// when the verdict differs from the authored plan in ANY executable dimension: a meaningfully
+    /// lower weight, a meaningfully lower RPE cap, or a positive back-off-set cut. Used everywhere
+    /// (display kind, feel-rough acceptance, decision `hadAdjustment`, event `differed`) so a
+    /// volume-only or RPE-only recommendation is never misread as "as planned."
+    static func hasSuggestion(_ topSet: TemplateSet) -> Bool {
+        if let planned = topSet.targetWeightKg,
+           let adjusted = topSet.adjustedTargetWeightKg,
+           adjusted < planned - 0.001 {
+            return true
+        }
+        if let plannedRPE = topSet.targetRPE,
+           let adjustedRPE = topSet.adjustedTargetRPE,
+           adjustedRPE < plannedRPE - 0.001 {
+            return true
+        }
+        if let cut = topSet.adjustedBackoffSetCut, cut > 0 {
+            return true
+        }
+        return false
+    }
+
+    /// Reconstruct the decision state from the persisted per-exercise top-set markers — the
+    /// AUTHORITATIVE start-readiness source (survives refresh/relaunch). `accepted` ⇒ some top set
+    /// has `verdictAppliedAt`; `keptPlan` ⇒ some top set `athleteOverrode`; both ⇒ `mixed`; neither ⇒
+    /// `pending`. Only `pending` is non-start-ready.
+    static func persistedDecisionState(forTopSets topSets: [TemplateSet]) -> PersistedVerdictDecisionState {
+        guard !topSets.isEmpty else { return .pending }
+        let anyAccepted = topSets.contains { $0.verdictAppliedAt != nil }
+        let anyKept = topSets.contains { $0.athleteOverrode }
+        switch (anyAccepted, anyKept) {
+        case (false, false): return .pending
+        case (true, false):  return .accepted
+        case (false, true):  return .keptPlan
+        case (true, true):   return .mixed
+        }
     }
 }

@@ -12,6 +12,9 @@
 		0B040200000000000000000A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B040100000000000000000A /* OnboardingView.swift */; };
 		1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000A2 /* FinishWorkoutSheet.swift */; };
 		1101010100000000000000B1 /* ToastBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000B2 /* ToastBanner.swift */; };
+		A50100020000000000000001 /* AppShellContracts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50100010000000000000001 /* AppShellContracts.swift */; };
+		A50200020000000000000001 /* AppShellUIKitPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50200010000000000000001 /* AppShellUIKitPrimitives.swift */; };
+		A50000020000000000000001 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000010000000000000001 /* AppShell.swift */; };
 		CD0501010000000000000001 /* CardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0501010000000000000002 /* CardStyle.swift */; };
 		CD0601010000000000000001 /* SetStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0601010000000000000002 /* SetStepper.swift */; };
 		CD0701010000000000000001 /* PRBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0701010000000000000002 /* PRBanner.swift */; };
@@ -169,6 +172,7 @@
 		AC4302020000000000000001 /* VerdictReasonBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4302010000000000000001 /* VerdictReasonBuilder.swift */; };
 		AC4303020000000000000001 /* TodayVerdictService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4303010000000000000001 /* TodayVerdictService.swift */; };
 		AA4401020000000000000001 /* VerdictDecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4401010000000000000001 /* VerdictDecision.swift */; };
+		AAFE00020000000000000001 /* ResolvedSessionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFE00010000000000000001 /* ResolvedSessionPlan.swift */; };
 		AE4503020000000000000001 /* GreenLightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4503010000000000000001 /* GreenLightEngine.swift */; };
 		EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2702010000000000000001 /* LoadDistributionEngine.swift */; };
 		EE2703020000000000000001 /* StrainRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2703010000000000000001 /* StrainRiskEngine.swift */; };
@@ -231,6 +235,9 @@
 		62324B4E2F66C5F600A9C2BE /* workload management.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "workload management.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		62324BE02F66CB0E00A9C2BE /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		62324BE12F66CB0E00A9C2BE /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
+		A50100010000000000000001 /* AppShellContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellContracts.swift; sourceTree = "<group>"; };
+		A50200010000000000000001 /* AppShellUIKitPrimitives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellUIKitPrimitives.swift; sourceTree = "<group>"; };
+		A50000010000000000000001 /* AppShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShell.swift; sourceTree = "<group>"; };
 		62324BE22F66CB0E00A9C2BE /* WorkloadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadApp.swift; sourceTree = "<group>"; };
 		62324BE42F66CB0E00A9C2BE /* HRVTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVTrendChart.swift; sourceTree = "<group>"; };
 		62324BE52F66CB0E00A9C2BE /* MetricTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricTile.swift; sourceTree = "<group>"; };
@@ -364,6 +371,7 @@
 		AC4302010000000000000001 /* VerdictReasonBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictReasonBuilder.swift; sourceTree = "<group>"; };
 		AC4303010000000000000001 /* TodayVerdictService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayVerdictService.swift; sourceTree = "<group>"; };
 		AA4401010000000000000001 /* VerdictDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictDecision.swift; sourceTree = "<group>"; };
+		AAFE00010000000000000001 /* ResolvedSessionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolvedSessionPlan.swift; sourceTree = "<group>"; };
 		AE4503010000000000000001 /* GreenLightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreenLightEngine.swift; sourceTree = "<group>"; };
 		EE2702010000000000000001 /* LoadDistributionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadDistributionEngine.swift; sourceTree = "<group>"; };
 		EE2703010000000000000001 /* StrainRiskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainRiskEngine.swift; sourceTree = "<group>"; };
@@ -445,6 +453,9 @@
 			children = (
 				62324BE02F66CB0E00A9C2BE /* AppContainer.swift */,
 				62324BE12F66CB0E00A9C2BE /* AppRouter.swift */,
+				A50100010000000000000001 /* AppShellContracts.swift */,
+				A50200010000000000000001 /* AppShellUIKitPrimitives.swift */,
+				A50000010000000000000001 /* AppShell.swift */,
 				62324BE22F66CB0E00A9C2BE /* WorkloadApp.swift */,
 			);
 			path = App;
@@ -590,6 +601,7 @@
 				AC4302010000000000000001 /* VerdictReasonBuilder.swift */,
 				AC4303010000000000000001 /* TodayVerdictService.swift */,
 				AA4401010000000000000001 /* VerdictDecision.swift */,
+				AAFE00010000000000000001 /* ResolvedSessionPlan.swift */,
 				AE4503010000000000000001 /* GreenLightEngine.swift */,
 				AE4506010000000000000001 /* SeanEllisStore.swift */,
 				EE2702010000000000000001 /* LoadDistributionEngine.swift */,
@@ -1000,6 +1012,9 @@
 				DD1303010000000000000001 /* SharpTextFieldStyle.swift in Sources */,
 				1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */,
 				1101010100000000000000B1 /* ToastBanner.swift in Sources */,
+				A50100020000000000000001 /* AppShellContracts.swift in Sources */,
+				A50200020000000000000001 /* AppShellUIKitPrimitives.swift in Sources */,
+				A50000020000000000000001 /* AppShell.swift in Sources */,
 				CD0501010000000000000001 /* CardStyle.swift in Sources */,
 				CD0601010000000000000001 /* SetStepper.swift in Sources */,
 			CD0701010000000000000001 /* PRBanner.swift in Sources */,
@@ -1100,6 +1115,7 @@
 				AC4302020000000000000001 /* VerdictReasonBuilder.swift in Sources */,
 				AC4303020000000000000001 /* TodayVerdictService.swift in Sources */,
 				AA4401020000000000000001 /* VerdictDecision.swift in Sources */,
+				AAFE00020000000000000001 /* ResolvedSessionPlan.swift in Sources */,
 				AE4503020000000000000001 /* GreenLightEngine.swift in Sources */,
 				AE4506020000000000000001 /* SeanEllisStore.swift in Sources */,
 				AE4507020000000000000001 /* SeanEllisPromptSheet.swift in Sources */,

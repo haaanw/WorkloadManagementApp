@@ -158,7 +158,7 @@ struct PDFGenerationSheet: View {
 
                 let dateString = Date.now.formatted(.dateTime.year().month().day())
                 let tempURL = FileManager.default.temporaryDirectory
-                    .appendingPathComponent("tonus_report_\(dateString).pdf")
+                    .appendingPathComponent("tuwa_report_\(dateString).pdf")
                 try pdfData.write(to: tempURL)
 
                 exportFileURL = tempURL

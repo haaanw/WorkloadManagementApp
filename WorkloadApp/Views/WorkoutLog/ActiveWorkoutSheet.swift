@@ -3,6 +3,9 @@ import SwiftData
 
 struct ActiveWorkoutSheet: View {
     var template: WorkoutTemplate?
+    /// The verdict-resolved plan to launch. Mutually exclusive with `template` (see the two inits):
+    /// a sheet is EITHER a template/blank session OR a resolved-prescription session — never both.
+    var resolvedPlan: ResolvedSessionPlan?
 
     @Environment(AppContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
@@ -26,15 +29,30 @@ struct ActiveWorkoutSheet: View {
     @State private var showTemplateSavedToast = false
     @State private var templateSaveError = false
     @State private var sourceTemplate: WorkoutTemplate?
-    // Zero-done save guard (inverse data-loss fix): true when Finish is tapped but NO set is
-    // marked done while pending (ghost/suggested) sets exist — saving would log an empty
-    // session and silently drop the prefilled work. We confirm before discarding.
+    // The frozen prescription this resolved session fulfills (nil for template/blank sessions). Set on
+    // load; used after a successful save to mark the prescription completed + link the session id.
+    @State private var resolvedPrescriptionID: UUID?
+    // Held (NOT a method local) to honor the @MainActor deinit-safety invariant: a @MainActor
+    // repository deallocated mid-synchronous-method trips the iOS-26.1-sim back-deploy deinit SIGABRT.
+    // Lazily created on the resolved-plan load path; used to mark the prescription completed on save.
+    @State private var plannedSessionRepository: PlannedSessionRepository?
+    // Zero-done save guard: true when Finish is tapped but NO set is marked done. Saving would
+    // log an empty session, so Cancel keeps editing and Discard exits without persistence.
     @State private var showZeroDoneGuard = false
 
     private var athlete: Athlete? { athletes.first }
 
+    /// Template / blank session path (unchanged). Never carries a resolved plan.
     init(template: WorkoutTemplate? = nil) {
         self.template = template
+        self.resolvedPlan = nil
+    }
+
+    /// Verdict-resolved session path: launch the exact numbers an accepted/kept verdict produced.
+    /// Mutually exclusive with the template path — `template` is forced nil so the two cannot combine.
+    init(resolvedPlan: ResolvedSessionPlan) {
+        self.template = nil
+        self.resolvedPlan = resolvedPlan
     }
 
     var elapsed: TimeInterval {
@@ -212,17 +230,16 @@ struct ActiveWorkoutSheet: View {
                 }
             }
             .animation(Motion.entrance, value: showTemplateSavedToast)
-            // Zero-done save guard (inverse data-loss fix): Finish was tapped with NO set marked
-            // done while ghost/suggested sets are still pending. Saving now would log an empty
-            // session and drop the prefilled work, so we confirm. Cancel keeps the user in the
-            // sheet to mark sets done; Discard saves the (empty) session and exits.
+            // Zero-done save guard: Finish was tapped with NO set marked done. Saving now would
+            // log an empty session, so Cancel keeps the user in the sheet and Discard exits
+            // without persistence.
             .confirmationDialog(
                 String(localized: "workout.save.noDone.title", defaultValue: "No sets marked done"),
                 isPresented: $showZeroDoneGuard,
                 titleVisibility: .visible
             ) {
                 Button(String(localized: "workout.save.noDone.discard", defaultValue: "Discard session"), role: .destructive) {
-                    persistSession()
+                    dismiss()
                 }
                 Button(String(localized: "action.cancel", defaultValue: "Cancel"), role: .cancel) {}
             } message: {
@@ -234,6 +251,8 @@ struct ActiveWorkoutSheet: View {
                 Haptics.prepare()
                 if template != nil && entries.isEmpty {
                     loadFromTemplate()
+                } else if let resolvedPlan, entries.isEmpty {
+                    loadFromResolvedPlan(resolvedPlan)
                 }
             }
         }
@@ -480,6 +499,7 @@ struct ActiveWorkoutSheet: View {
                             targetReps: historySet?.reps ?? templateSet.targetReps,
                             targetWeightKg: historySet?.weightKg ?? templateSet.targetWeightKg,
                             targetRPE: historySet?.rpe ?? templateSet.targetRPE,
+                            targetRIR: templateSet.targetRIR,   // history records carry no RIR; use the authored target
                             isFromHistory: true
                         )
                     }
@@ -517,6 +537,7 @@ struct ActiveWorkoutSheet: View {
                             targetReps: templateSet.targetReps,
                             targetWeightKg: templateSet.targetWeightKg,
                             targetRPE: templateSet.targetRPE,
+                            targetRIR: templateSet.targetRIR,
                             isFromHistory: false
                         )
                     }
@@ -531,6 +552,52 @@ struct ActiveWorkoutSheet: View {
         }
     }
 
+    // MARK: - Resolved-Plan Loading (verdict → workout)
+
+    /// Populate drafts DIRECTLY from a verdict-resolved plan. Deliberately bypasses everything the
+    /// template path overlays: NO `ProgressionEngine`, NO history fetch, NO template-target fallback —
+    /// the resolved numbers ARE the targets. `sourceTemplate` stays nil so the FillButtonBar is hidden
+    /// and usage stats aren't bumped. Sets render as ghosts (isDone=false) so the zero-done guard still
+    /// protects the prefilled work; reps/RPE/distance/duration and warm-up status are preserved.
+    private func loadFromResolvedPlan(_ plan: ResolvedSessionPlan) {
+        sessionName = plan.sessionName
+        sportType = plan.sportType
+        sessionType = plan.sessionType
+        resolvedPrescriptionID = plan.prescriptionID
+        // Own the repository for the sheet's lifetime (deinit-safety invariant — see property note).
+        if plannedSessionRepository == nil {
+            plannedSessionRepository = PlannedSessionRepository(modelContext: modelContext)
+        }
+
+        entries = plan.exercises.map { exercise in
+            var draft = ExerciseEntryDraft(
+                exerciseName: exercise.exerciseName,
+                exerciseCategory: exercise.exerciseCategory,
+                muscleGroup: exercise.muscleGroup
+            )
+            draft.groupName = exercise.groupName
+            draft.sets = exercise.sets.map { set in
+                var setDraft = SetDraft(
+                    targetReps: set.reps,
+                    targetWeightKg: set.weightKg,
+                    targetRPE: set.rpe,
+                    targetDistanceMeters: set.distanceMeters,
+                    targetDurationSeconds: set.durationSeconds,
+                    isFromHistory: false
+                )
+                setDraft.isWarmup = set.isWarmup
+                setDraft.targetRIR = set.rir   // planned RIR as a GHOST target (never an achieved value)
+                setDraft.plannedWeightKg = set.plannedWeightKg
+                setDraft.plannedRPE = set.plannedRPE
+                setDraft.isSuggestedAdjustment = set.isSuggestedAdjustment
+                setDraft.verdictReason = set.verdictReason
+                return setDraft
+            }
+            if draft.sets.isEmpty { draft.sets = [SetDraft()] }
+            return draft
+        }
+    }
+
     // MARK: - Save
 
     /// Total sets the user has actually committed across all exercises.
@@ -538,25 +605,12 @@ struct ActiveWorkoutSheet: View {
         entries.reduce(0) { $0 + $1.sets.filter { $0.isDone }.count }
     }
 
-    /// Pending = a set that displays a ghost/suggested value (template / prefill / carry)
-    /// but has NOT been committed. These are the sets at risk of silent loss on a verbatim
-    /// "perform exactly as shown, tap Finish" flow.
-    private var pendingSetCount: Int {
-        entries.reduce(0) { acc, entry in
-            acc + entry.sets.filter { s in
-                !s.isDone && (s.targetReps != nil || s.targetWeightKg != nil
-                    || s.targetDistanceMeters != nil || s.targetDurationSeconds != nil)
-            }.count
-        }
-    }
-
     private func saveSession() {
         // Warm the haptic generators ahead of the imminent save-commit feedback.
         Haptics.prepare()
-        // Zero-done guard (inverse data-loss fix): if nothing is marked done but ghost/suggested
-        // sets are pending, do NOT silently save an empty session — ask the user first. If at
-        // least one set is done, partial saves proceed normally.
-        if doneSetCount == 0 && pendingSetCount > 0 {
+        // Zero-done guard: do NOT silently save an empty session. If at least one set is done,
+        // partial saves proceed normally.
+        if doneSetCount == 0 {
             showZeroDoneGuard = true
             return
         }
@@ -617,6 +671,23 @@ struct ActiveWorkoutSheet: View {
             print("Failed to save session: \(error)")
             dismiss()
             return
+        }
+
+        // Verdict → workout linkage (only reached AFTER a successful save): this session fulfills the
+        // resolved prescription, so mark it completed and link the saved session id. Closes the loop
+        // (prescription.completedSessionId) and makes verdict→prescription→session queryable. Never
+        // runs for template/blank sessions (resolvedPrescriptionID stays nil) and never on save failure.
+        if let prescriptionID = resolvedPrescriptionID {
+            // Use the held repository (deinit-safety); fall back to a fresh one only if the load path
+            // never ran (shouldn't happen on the resolved path that sets resolvedPrescriptionID).
+            let repo = plannedSessionRepository ?? PlannedSessionRepository(modelContext: modelContext)
+            let linked = repo.markCompleted(prescriptionId: prescriptionID, completedSessionId: session.id)
+            if !linked {
+                // The session IS saved; only the prescription link failed. Do NOT delete the session —
+                // leave the prescription assigned so it stays recoverable (relink by id later). Surface
+                // the failure rather than swallowing it.
+                print("Verdict linkage failed: session \(session.id) saved but prescription \(prescriptionID) not marked completed.")
+            }
         }
 
         // Update template usage stats
@@ -743,57 +814,6 @@ struct ActiveWorkoutSheet: View {
             templateSaveError = true
         }
     }
-}
-
-// MARK: - Draft Models (local state, not persisted)
-
-struct ExerciseEntryDraft: Identifiable {
-    let id = UUID()
-    var exerciseName: String
-    var exerciseCategory: ExerciseCategory
-    var muscleGroup: MuscleGroup?
-    var groupName: String?
-    var sets: [SetDraft] = [SetDraft()]
-    var suggestionRationale: String?
-    var progressionType: ProgressionEngine.ProgressionType?
-    var progressionSuggestions: [ProgressionEngine.SetSuggestion]?
-}
-
-struct SetDraft: Identifiable {
-    let id = UUID()
-    var reps: Int? = nil
-    var weightKg: Double? = nil
-    var durationSeconds: Int? = nil
-    var distanceMeters: Double? = nil
-    var rpe: Double? = nil
-    var rir: Int? = nil
-    var isWarmup: Bool = false
-    // Template targets (for ghost text display)
-    var targetReps: Int? = nil
-    var targetWeightKg: Double? = nil
-    var targetRPE: Double? = nil
-    // Cardio ghost targets (transient — NOT persisted on SetRecord). Mirror the weight/reps
-    // ghost model for .distanceDuration / .durationOnly so history / template / carry
-    // prefill renders distance & duration as provisional suggestions, not concrete-entered
-    // numbers. A keypad edit (or the done toggle) commits them to distanceMeters/durationSeconds.
-    var targetDistanceMeters: Double? = nil
-    var targetDurationSeconds: Int? = nil
-    // Last-session NON-WARMUP fallback (precedence 3, proposal §3.3 #3 / Phase F). Transient —
-    // NOT persisted on SetRecord. Stashed by the loaders at add/open time (one read, never a
-    // per-render fetch) so the WeightBlockPicker can center + the RepScrubber can ghost on the
-    // most-recent non-warmup actual when there is NO template/prescription ghost and no
-    // in-session previous set. Resolved via SetSuggestion.lastSessionCandidate.
-    var lastSessionWeightKg: Double? = nil
-    var lastSessionReps: Int? = nil
-    var lastSessionDistanceMeters: Double? = nil
-    var lastSessionDurationSeconds: Int? = nil
-    // Exercise memory flag
-    var isFromHistory: Bool = false
-    // Transient "performed" flag (proposal §13, Option A). NOT persisted on SetRecord — only
-    // sets with isDone == true are written by saveSession(). Prefilled / ghost / carried
-    // template sets start false; an explicit DONE toggle or a user edit to a measurement
-    // field flips it true. Defaults false so untouched prefilled rows never persist as performed.
-    var isDone: Bool = false
 }
 
 // MARK: - Exercise Entry Card
@@ -1086,6 +1106,31 @@ struct SetEntryRow: View {
         }
     }
 
+    /// The effort control for the row — RPE-FIRST, deterministic precedence: a set whose authored
+    /// effort target is RIR (planned RIR present, NO planned RPE) shows the RIR stepper; every other
+    /// set keeps the existing RPE control unchanged. Never two competing primary controls.
+    @ViewBuilder private var effortControl: some View {
+        if set.targetRIR != nil && set.targetRPE == nil {
+            rirControl
+        } else {
+            rpeControl
+        }
+    }
+
+    /// Inline RIR stepper for RIR-authored sets. Ghosts the planned `targetRIR` (in `text3`) until the
+    /// athlete commits a value via ± / keypad — so a prescribed RIR is shown as a TARGET and never
+    /// auto-recorded as achieved. A committed value lands in `set.rir`, which saves to `SetRecord.rir`.
+    @ViewBuilder private var rirControl: some View {
+        SetStepperInt(
+            value: $set.rir,
+            increment: 1,
+            placeholder: "RIR",
+            ghostBaseline: set.targetRIR,
+            floor: 0
+        )
+        .frame(width: 120)
+    }
+
     /// Per-set DONE toggle (proposal §13, Option A). A square `Rectangle` checkbox: empty when
     /// not done, filled `text1` with a checkmark glyph when done. 0pt corners, 0.5pt hairline
     /// `divider` border, NO accent. ≥44pt touch target at the trailing end of the row. Tapping
@@ -1329,7 +1374,7 @@ struct SetEntryRow: View {
             focus: $focusField,
             rowId: set.id
         )
-        rpeControl
+        effortControl
         doneToggle
     }
 
@@ -1382,7 +1427,7 @@ struct SetEntryRow: View {
                             EmptyView()
                         }
 
-                        rpeControl
+                        effortControl
 
                         doneToggle
                     }
@@ -1481,6 +1526,9 @@ struct FillButtonBar: View {
                 if entries[i].sets[j].rpe == nil, let target = entries[i].sets[j].targetRPE {
                     entries[i].sets[j].rpe = target
                 }
+                if entries[i].sets[j].rir == nil, let target = entries[i].sets[j].targetRIR {
+                    entries[i].sets[j].rir = target
+                }
             }
         }
     }
@@ -1513,6 +1561,9 @@ struct FillButtonBar: View {
                     }
                     if entries[i].sets[j].rpe == nil, let target = entries[i].sets[j].targetRPE {
                         entries[i].sets[j].rpe = target
+                    }
+                    if entries[i].sets[j].rir == nil, let target = entries[i].sets[j].targetRIR {
+                        entries[i].sets[j].rir = target
                     }
                 }
             }

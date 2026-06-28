@@ -43,7 +43,7 @@ final class PRSShadowArmTests: XCTestCase {
 
     func test_registeredArms_includesPRS_asThirdArm() {
         let ids = ShadowPredictor.registeredArms().map(\.id)
-        XCTAssertEqual(ids, ["baseline", "cycleAware", "prs"])
+        XCTAssertEqual(ids, ["baseline", "cycleAware", "prs", "crossModal"])
     }
 
     func test_prsArm_runsRegardlessOfActivationFlag() {

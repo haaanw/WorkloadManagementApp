@@ -3,8 +3,6 @@ import AuthenticationServices
 
 /// Shared Apple + Google sign-in buttons used on LoginView and SignUpView.
 struct SocialLoginButtons: View {
-    @Environment(\.colorScheme) private var colorScheme
-
     enum Mode { case signIn, signUp }
     let mode: Mode
     let isLoading: Bool
@@ -45,7 +43,7 @@ struct SocialLoginButtons: View {
                         break
                     }
                 }
-                .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+                .signInWithAppleButtonStyle(.black)
                 .frame(height: 48)
                 .clipShape(Rectangle()) // 0pt corners per DESIGN.md
 

@@ -181,6 +181,7 @@ final class TemplateSet {
     var verdictReason: String? = nil             // one-line plain-language why
     var verdictAppliedAt: Date? = nil            // when the verdict was computed
     var athleteOverrode: Bool = false            // true once the athlete confirms/edits — the accept/decline marker
+    var adjustedBackoffSetCut: Int? = nil        // verdict's STRUCTURED volume cut: # back-off sets to drop if accepted; nil = no cut
 
     init(
         id: UUID = UUID(),

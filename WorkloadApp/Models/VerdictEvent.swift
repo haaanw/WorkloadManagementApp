@@ -62,6 +62,17 @@ final class VerdictEvent {
     /// Optional honest-confidence band text.
     var confidenceNote: String?
 
+    /// The frozen `PrescribedWorkout.id` this decision belongs to; nil for legacy rows. A plain UUID
+    /// (NOT a raw signal) that makes the loop queryable: verdict → prescription → (via the
+    /// prescription's `completedSessionId`) → the completed `WorkoutSession`. Local-only like the rest.
+    var prescriptionId: UUID?
+
+    /// Structured non-weight adjustment context (composite-only, nil for legacy rows / not-applicable).
+    /// Lets a volume-only or RPE-only suggestion be distinguished in analytics — `differed` is true even
+    /// when `deltaKg == 0`. NEVER raw biometrics: just a set count and a target RPE cap.
+    var suggestedBackoffSetCut: Int?
+    var suggestedRPECap: Double?
+
     /// Post-session self-report: "right" / "wrong" / "unsure"; nil until reported.
     var outcomeRaw: String?
 
@@ -86,6 +97,9 @@ final class VerdictEvent {
         regionRaw: String,
         reasonLine: String,
         confidenceNote: String? = nil,
+        prescriptionId: UUID? = nil,
+        suggestedBackoffSetCut: Int? = nil,
+        suggestedRPECap: Double? = nil,
         outcomeRaw: String? = nil,
         outcomeRecordedAt: Date? = nil,
         athlete: Athlete? = nil
@@ -102,6 +116,9 @@ final class VerdictEvent {
         self.regionRaw = regionRaw
         self.reasonLine = reasonLine
         self.confidenceNote = confidenceNote
+        self.prescriptionId = prescriptionId
+        self.suggestedBackoffSetCut = suggestedBackoffSetCut
+        self.suggestedRPECap = suggestedRPECap
         self.outcomeRaw = outcomeRaw
         self.outcomeRecordedAt = outcomeRecordedAt
         self.updatedAt = .now

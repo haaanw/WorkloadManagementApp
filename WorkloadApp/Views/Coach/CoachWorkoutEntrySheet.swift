@@ -155,7 +155,7 @@ struct CoachWorkoutEntrySheet: View {
                     .padding(.horizontal, 16)
                 }
             }
-            .animation(.easeOut(duration: 0.25), value: showSpikeAlert)
+            .animation(Motion.screen, value: showSpikeAlert)
         }
     }
 

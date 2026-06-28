@@ -127,7 +127,7 @@ struct ShareCodeSheet: View {
                             .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                     }
                     .buttonStyle(.plain)
-                    .animation(.linear(duration: 0.15), value: showCopied)
+                    .animation(Motion.state, value: showCopied)
 
                     // Share Link button via ShareLink
                     let shareURL = URL(string: "https://tuwa.app/t/\(code)")!

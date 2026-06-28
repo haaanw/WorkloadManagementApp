@@ -16,6 +16,10 @@ final class SubscriptionService {
     /// Whether RevenueCat was configured successfully. When false, all SDK calls are skipped.
     private var isConfigured = false
 
+    #if DEBUG
+    private var screenshotOverride: (isPro: Bool, isCoach: Bool)?
+    #endif
+
     init() {
         Purchases.logLevel = .error
         // Purchases.configure can crash with an assertion if the API key is empty
@@ -64,6 +68,13 @@ final class SubscriptionService {
     }
 
     private func apply(_ info: CustomerInfo) {
+        #if DEBUG
+        if let screenshotOverride {
+            isPro = screenshotOverride.isPro
+            isCoach = screenshotOverride.isCoach
+            return
+        }
+        #endif
         isCoach = info.entitlements["coach"]?.isActive == true
         // Athlete Pro OR Coach both unlock pro training features.
         isPro = isCoach || info.entitlements["athlete_pro"]?.isActive == true
@@ -71,14 +82,19 @@ final class SubscriptionService {
 
     // MARK: - Offerings
 
-    /// Returns the self-coached Tuwa Pro offering (v1.5 is single-tier).
-    /// RevenueCat offering identifier: "athlete_pro". A legacy `coach` entitlement is still
-    /// recognized as Pro access in `refreshEntitlement`, but the coach OFFERING is no longer fetched.
-    /// Falls back to the default current offering if the named one isn't found.
+    /// Returns the RevenueCat offering for the selected subscription tier.
+    /// Athlete Pro can fall back to the dashboard's current offering for older configurations.
+    /// Coach must match the coach offering explicitly so coach-only gates never sell athlete access.
     func fetchOffering(for tier: SubscriptionTier) async throws -> Offering? {
         guard isConfigured else { return nil }
         let offerings = try await Purchases.shared.offerings()
-        return offerings.offering(identifier: "athlete_pro") ?? offerings.current
+        if let offering = offerings.offering(identifier: tier.offeringIdentifier) {
+            return offering
+        }
+        if tier == .athletePro {
+            return offerings.current
+        }
+        return offerings.current?.identifier == tier.offeringIdentifier ? offerings.current : nil
     }
 
     // MARK: - Purchase
@@ -131,6 +147,7 @@ final class SubscriptionService {
     /// Force subscription state for screenshot capture.
     /// Call ONLY from SCREENSHOT_MODE bootstrap in AppRouter.
     func overrideForScreenshots(isPro override: Bool, isCoach coachOverride: Bool) {
+        screenshotOverride = (override, coachOverride)
         self.isPro = override
         self.isCoach = coachOverride
     }

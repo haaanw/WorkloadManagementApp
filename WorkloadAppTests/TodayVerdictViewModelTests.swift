@@ -16,6 +16,9 @@ final class TodayVerdictViewModelTests: XCTestCase {
     private var context: ModelContext!
     private var athlete: Athlete!
     private var viewModel: TodayVerdictViewModel!
+    /// A SECOND ViewModel for reconstruction tests — held (not a method local) so it isn't deallocated
+    /// mid-synchronous-test, which would trip the iOS-26.1-sim @MainActor deinit SIGABRT.
+    private var viewModel2: TodayVerdictViewModel!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -41,6 +44,7 @@ final class TodayVerdictViewModelTests: XCTestCase {
 
     override func tearDown() {
         viewModel = nil
+        viewModel2 = nil
         athlete = nil
         context = nil
         container = nil
@@ -220,5 +224,181 @@ final class TodayVerdictViewModelTests: XCTestCase {
             XCTAssertFalse(top.athleteOverrode)
         }
         XCTAssertEqual(viewModel.lastDecision?.action, .feel(.feelingRough))
+    }
+
+    // MARK: - resolvedPlanForWorkout seam (verdict → workout)
+
+    /// Sorted non-warm-up resolved weights currently exposed by the start-ready seam.
+    private func resolvedWorkingWeights() -> [Double] {
+        (viewModel.resolvedPlanForWorkout?.exercises.flatMap { $0.sets } ?? [])
+            .filter { !$0.isWarmup }
+            .compactMap { $0.weightKg }
+            .sorted()
+    }
+
+    func test_resolvedPlan_unavailableBeforeDecision() {
+        seedPopulatedHistory()
+        seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        // No explicit decision yet → nothing to start.
+        XCTAssertEqual(viewModel.decisionState, .pending)
+        XCTAssertNil(viewModel.resolvedPlanForWorkout)
+    }
+
+    func test_resolvedPlan_accept_resolvesAdjusted() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        // Force a real adjustment on each top set: 140→130, 80→70.
+        for top in topSets(of: plan) {
+            top.adjustedTargetWeightKg = (top.targetWeightKg ?? 0) - 10
+        }
+        viewModel.accept()
+
+        XCTAssertNotEqual(viewModel.decisionState, .pending)
+        // Top sets resolve adjusted (130, 70); the non-top back-off (120) stays authored.
+        XCTAssertEqual(resolvedWorkingWeights(), [70, 120, 130])
+        XCTAssertEqual(viewModel.resolvedPlanForWorkout?.prescriptionID, plan.id)
+    }
+
+    func test_resolvedPlan_keep_resolvesAuthored() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        for top in topSets(of: plan) {
+            top.adjustedTargetWeightKg = (top.targetWeightKg ?? 0) - 10
+        }
+        viewModel.keepPlan()
+        // Declining keeps the authored frozen-prescription weights despite the suggestion.
+        XCTAssertEqual(resolvedWorkingWeights(), [80, 120, 140])
+    }
+
+    func test_resolvedPlan_feelStrong_resolvesAuthored() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        for top in topSets(of: plan) {
+            top.adjustedTargetWeightKg = (top.targetWeightKg ?? 0) - 10
+        }
+        viewModel.feelOverride(.feelingStrong)
+        XCTAssertEqual(resolvedWorkingWeights(), [80, 120, 140])
+    }
+
+    func test_resolvedPlan_feelRough_resolvesAdjustedWhereExists() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        for top in topSets(of: plan) {
+            top.adjustedTargetWeightKg = (top.targetWeightKg ?? 0) - 10
+        }
+        viewModel.feelOverride(.feelingRough)
+        // Conservative: top sets that HAD an adjustment resolve adjusted; back-off stays authored.
+        XCTAssertEqual(resolvedWorkingWeights(), [70, 120, 130])
+    }
+
+    func test_feelRough_headlineUnadjusted_stillExposesStartReadyPlan() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        // Adjust ONLY the lighter, non-headline exercise (Bench 80 → 70); the headline (Back Squat 140)
+        // stays unadjusted, so feeling-rough leaves the headline slot untouched.
+        let benchTop = plan.allExercises.first { $0.exerciseName == "Bench Press" }!
+            .sortedSets.first { !$0.isWarmup }!
+        benchTop.adjustedTargetWeightKg = 70
+
+        viewModel.feelOverride(.feelingRough)
+
+        // A real decision was made even though the headline slot wasn't written — must NOT read as
+        // pending (that would hide the start button despite decisionMade == true).
+        XCTAssertNotEqual(viewModel.decisionState, .pending)
+        XCTAssertNotEqual(viewModel.display?.appliedState, .pending)
+        XCTAssertNotNil(viewModel.resolvedPlanForWorkout)
+        // Bench resolves the accepted trim (70); the unadjusted headline trains as planned (140).
+        let weights = (viewModel.resolvedPlanForWorkout?.exercises.flatMap { $0.sets } ?? [])
+            .filter { !$0.isWarmup }.compactMap { $0.weightKg }.sorted()
+        XCTAssertEqual(weights, [70, 120, 140])
+    }
+
+    // MARK: - Persisted decision reconstruction (survives a brand-new ViewModel / refresh / relaunch)
+
+    private func sortedWorkingWeights(_ vm: TodayVerdictViewModel) -> [Double] {
+        (vm.resolvedPlanForWorkout?.exercises.flatMap { $0.sets } ?? [])
+            .filter { !$0.isWarmup }.compactMap { $0.weightKg }.sorted()
+    }
+
+    func test_newViewModel_reconstructsAcceptedStartReady_afterRefresh() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        for top in topSets(of: plan) { top.adjustedTargetWeightKg = (top.targetWeightKg ?? 0) - 10 }
+        viewModel.accept()
+
+        // A BRAND-NEW ViewModel over the SAME store reconstructs the decision from persisted markers
+        // (the accept survives — no transient flag). The Start affordance is available again.
+        viewModel2 = TodayVerdictViewModel(modelContext: context)
+        viewModel2.refresh(athlete: athlete)
+        XCTAssertNotEqual(viewModel2.decisionState, .pending)
+        XCTAssertTrue(viewModel2.canStartResolvedWorkout)
+        // The accepted adjustment is FROZEN — a recomputing refresh must not change it.
+        XCTAssertEqual(sortedWorkingWeights(viewModel2), [70, 120, 130])
+    }
+
+    func test_newViewModel_reconstructsKeptStartReady_afterRefresh() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        for top in topSets(of: plan) { top.adjustedTargetWeightKg = (top.targetWeightKg ?? 0) - 10 }
+        viewModel.keepPlan()
+
+        viewModel2 = TodayVerdictViewModel(modelContext: context)
+        viewModel2.refresh(athlete: athlete)
+        XCTAssertEqual(viewModel2.decisionState, .keptPlan)
+        XCTAssertTrue(viewModel2.canStartResolvedWorkout)
+        // Keep resolves the AUTHORED targets (verdictAppliedAt nil ⇒ stable across a recomputing refresh).
+        XCTAssertEqual(sortedWorkingWeights(viewModel2), [80, 120, 140])
+    }
+
+    func test_pendingPlan_isNotStartable() {
+        seedPopulatedHistory()
+        seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        XCTAssertEqual(viewModel.decisionState, .pending)
+        XCTAssertFalse(viewModel.canStartResolvedWorkout)
+        XCTAssertNil(viewModel.resolvedPlanForWorkout)
+    }
+
+    func test_refresh_doesNotEmitDuplicateDecision() {
+        seedPopulatedHistory()
+        seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        var fireCount = 0
+        viewModel.onDecisionRecorded = { _ in fireCount += 1 }
+        viewModel.accept()
+        XCTAssertEqual(fireCount, 1)
+        // A tab revisit / relaunch refresh must NOT re-emit (no duplicate VerdictEvent).
+        viewModel.refresh(athlete: athlete)
+        XCTAssertEqual(fireCount, 1)
+    }
+
+    func test_volumeOnlyAdjustment_isDecidedAndLoggedAsDiffered() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        // Force a volume-ONLY suggestion on the headline: weight unchanged + a back-off cut.
+        let headline = topSets(of: plan).max { ($0.targetWeightKg ?? 0) < ($1.targetWeightKg ?? 0) }!
+        headline.adjustedTargetWeightKg = headline.targetWeightKg
+        headline.adjustedBackoffSetCut = 1
+        viewModel.accept()
+        XCTAssertEqual(viewModel.display?.kind, .adjusted)          // volume-only ≠ "as planned"
+        XCTAssertEqual(viewModel.lastDecision?.hadAdjustment, true) // differed despite zero kg delta
+        XCTAssertEqual(viewModel.lastDecision?.suggestedBackoffSetCut, 1)
+        XCTAssertTrue(viewModel.canStartResolvedWorkout)
+    }
+
+    func test_currentPrescriptionId_matchesTodayPlan() {
+        seedPopulatedHistory()
+        let plan = seedTodayPlan()
+        viewModel.refresh(athlete: athlete)
+        XCTAssertEqual(viewModel.currentPrescriptionId, plan.id)
     }
 }

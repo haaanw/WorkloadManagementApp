@@ -330,4 +330,46 @@ final class TodayVerdictServiceTests: XCTestCase {
             XCTAssertFalse(source.contains("injury risk"), "\(rel) contains 'injury risk'")
         }
     }
+
+    // MARK: - Structured volume cut (executable, not just reason text)
+
+    /// volumeModifier 0.90 ∈ [0.85, 0.95) ⇒ VOLUME-CUT-PREFERRED (keep the top-set load, cut a
+    /// back-off set). intensityCap 8 == the plan's RPE 8 ⇒ no RPE change.
+    private func volumeCutDecisionInput() -> ReasoningEngine.DecisionInput {
+        let readiness = ReadinessFusionEngine.compute(.init(hrvZ: -0.8, rhrZ: -0.3, sleepZ: -0.4, confidence: 0.7))
+        let strain = StrainRiskEngine.StrainRiskResult(
+            score: 0.4, zone: StrainRiskEngine.zone(for: 0.4),
+            factors: [.init(label: "Per-muscle strength-load elevation", contribution: 0.1)],
+            confidence: 0.6
+        )
+        let rec = AutoregulationEngine.TrainingRecommendation(
+            intensityCap: 8, volumeModifier: 0.90, sessionType: .conditioning,
+            warnings: [], headline: "Trim Volume", detail: "..."
+        )
+        return ReasoningEngine.DecisionInput(readiness: readiness, strainRisk: strain, recommendation: rec)
+    }
+
+    func test_evaluateAndWrite_volumeCut_writesStructuredCut_noWeightTrim() {
+        let workout = makePrescription()
+        _ = service.evaluateAndWrite(prescribedWorkout: workout, decisionInput: volumeCutDecisionInput(), crossModalResult: nil)
+        let top = topSet(of: workout)
+        XCTAssertEqual(top.adjustedBackoffSetCut, 2, "volumeModifier 0.90 ⇒ 2 back-off sets")
+        XCTAssertEqual(top.adjustedTargetWeightKg ?? 0, 100, accuracy: 1e-9, "volume-cut-preferred keeps the top load")
+    }
+
+    func test_evaluateAndWrite_nonVolumeReeval_clearsStaleCut() {
+        let workout = makePrescription()
+        _ = service.evaluateAndWrite(prescribedWorkout: workout, decisionInput: volumeCutDecisionInput(), crossModalResult: nil)
+        XCTAssertNotNil(topSet(of: workout).adjustedBackoffSetCut)
+        // A clearly-down (load-trim) re-eval has no volume cut → the stale cut must be cleared.
+        _ = service.evaluateAndWrite(prescribedWorkout: workout, decisionInput: modifyDecisionInput(), crossModalResult: nil)
+        XCTAssertNil(topSet(of: workout).adjustedBackoffSetCut)
+    }
+
+    func test_evaluateAndWrite_coldStartDefer_clearsCut() {
+        let workout = makePrescription()
+        _ = service.evaluateAndWrite(prescribedWorkout: workout, decisionInput: volumeCutDecisionInput(), crossModalResult: nil)
+        _ = service.evaluateAndWrite(prescribedWorkout: workout, decisionInput: nil, crossModalResult: nil)
+        XCTAssertNil(topSet(of: workout).adjustedBackoffSetCut, "cold-start defer cuts no volume")
+    }
 }

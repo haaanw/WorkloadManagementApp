@@ -100,9 +100,31 @@ final class PlannedSessionRepository {
         let all = (try? modelContext.fetch(descriptor)) ?? []
         return all.first { prescription in
             prescription.athleteId == athleteId
-                && prescription.status != .skipped
+                && prescription.status == .assigned   // not skipped, and NOT already completed
                 && prescription.scheduledDate >= startOfDay
                 && prescription.scheduledDate < endOfDay
+        }
+    }
+
+    /// Mark the prescription with `prescriptionId` completed and link the saved session, then save.
+    /// A focused repository method (keeps the broad fetch out of the view) — fetch-all + Swift filter
+    /// to stay consistent with `fetchTodaysPlannedSession` and avoid any `#Predicate` trap.
+    ///
+    /// Returns `true` only when the prescription was found AND the link persisted. Returns `false`
+    /// (never silently swallowed via `try?`) when the prescription is unknown or the save throws — the
+    /// caller decides recovery. Doubles as the relink-by-id repair entry point.
+    @discardableResult
+    func markCompleted(prescriptionId: UUID, completedSessionId: UUID) -> Bool {
+        let descriptor = FetchDescriptor<PrescribedWorkout>()
+        let all = (try? modelContext.fetch(descriptor)) ?? []
+        guard let prescription = all.first(where: { $0.id == prescriptionId }) else { return false }
+        prescription.markCompleted(sessionId: completedSessionId)
+        do {
+            try modelContext.save()
+            return true
+        } catch {
+            print("PlannedSessionRepository.markCompleted save failed for \(prescriptionId): \(error)")
+            return false
         }
     }
 }

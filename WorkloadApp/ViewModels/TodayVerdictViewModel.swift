@@ -61,6 +61,34 @@ final class TodayVerdictViewModel {
     /// True when the last `refresh` deferred (cold-start / honest-confidence) — drives `.deferred`.
     private var deferredToPlan: Bool = false
 
+    // MARK: - Start-ready plan seam (verdict → workout)
+
+    /// The persisted decision state — reconstructed PURELY from the frozen prescription's set markers,
+    /// so it survives `refresh`, a tab revisit, or an app relaunch (a brand-new ViewModel over the same
+    /// store derives the identical state). This is the AUTHORITATIVE start-readiness source — there is
+    /// no transient gating flag.
+    var decisionState: PersistedVerdictDecisionState {
+        guard let plan else { return .pending }
+        return VerdictDecisionApplier.persistedDecisionState(forTopSets: perExerciseTopSets(in: plan))
+    }
+
+    /// The exact, immutable workout to start — resolved through `VerdictDecisionApplier`:
+    ///   - while the persisted state is `.pending` ⇒ nil (nothing to start yet);
+    ///   - accepted / mixed ⇒ the adjusted resolved plan (with any accepted volume cut applied);
+    ///   - kept ⇒ the authored resolved plan.
+    /// Pure read — never mutates the prescription or the source template.
+    var resolvedPlanForWorkout: ResolvedSessionPlan? {
+        guard let plan, decisionState != .pending else { return nil }
+        return ResolvedSessionPlan.resolve(from: plan)
+    }
+
+    /// Whether the Start CTA may render: true exactly when a resolved plan can be produced. The card
+    /// reads THIS, so the Start button can never appear and then no-op.
+    var canStartResolvedWorkout: Bool { resolvedPlanForWorkout != nil }
+
+    /// The frozen prescription's stable id for the current plan (verdict → prescription link key).
+    var currentPrescriptionId: UUID? { plan?.id }
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.verdictService = TodayVerdictService(modelContext: modelContext)
@@ -212,8 +240,10 @@ final class TodayVerdictViewModel {
     /// FEEL-OVERRIDE (SC2, first-class logged input). Maps the athlete's feel onto a slot outcome,
     /// then emits a `.feel` decision:
     ///   - `.feelingStrong` ⇒ dismiss the suggestion = keep-plan on each top set (feels good → keep).
-    ///   - `.feelingRough`  ⇒ conservative = accept on each top set that HAS an adjustment; sets with
-    ///     no adjustment are left as-is (NEVER fabricate a trim the engine did not produce).
+    ///   - `.feelingRough`  ⇒ conservative = accept each top set that HAS a suggestion; a top set with
+    ///     NO suggestion is recorded as keep-plan (NEVER fabricate a trim). Every top set therefore
+    ///     gets a marker, so a feel decision is always reconstructible as decided (mixed when some
+    ///     exercises had a suggestion and others didn't), never left looking pending.
     func feelOverride(_ feel: FeelOverride) {
         guard let plan else { return }
         let decidedAt = Date.now
@@ -224,8 +254,10 @@ final class TodayVerdictViewModel {
             }
         case .feelingRough:
             for top in perExerciseTopSets(in: plan) {
-                if hasAdjustment(top) {
+                if VerdictDecisionApplier.hasSuggestion(top) {
                     VerdictDecisionApplier.applyAccept(to: top, appliedAt: decidedAt)
+                } else {
+                    VerdictDecisionApplier.applyKeepPlan(to: top)
                 }
             }
         }
@@ -244,13 +276,23 @@ final class TodayVerdictViewModel {
         guard let plan, let headline = sessionHeadline(in: plan) else { return }
         let planned = headline.targetWeightKg ?? 0
         let adjusted = headline.adjustedTargetWeightKg
+        // Structured non-weight context: an RPE cap strictly below the authored RPE, and a positive
+        // back-off cut. These make a volume-/RPE-only adjustment honest in analytics (differed == true).
+        let rpeCap: Double? = {
+            guard let plannedRPE = headline.targetRPE, let adjRPE = headline.adjustedTargetRPE,
+                  adjRPE < plannedRPE - 0.001 else { return nil }
+            return adjRPE
+        }()
+        let backoffCut: Int? = (headline.adjustedBackoffSetCut ?? 0) > 0 ? headline.adjustedBackoffSetCut : nil
         let decision = VerdictDecision(
             action: action,
             plannedTopSetKg: planned,
             adjustedTopSetKg: adjusted,
-            hadAdjustment: hasAdjustment(headline),
+            hadAdjustment: VerdictDecisionApplier.hasSuggestion(headline),
             reasonLine: headline.verdictReason ?? "",
-            decidedAt: decidedAt
+            decidedAt: decidedAt,
+            suggestedBackoffSetCut: backoffCut,
+            suggestedRPECap: rpeCap
         )
         lastDecision = decision
         onDecisionRecorded?(decision)
@@ -265,17 +307,23 @@ final class TodayVerdictViewModel {
         }
         let plannedTopSetKg = headline.targetWeightKg ?? 0
         let adjustedTopSetKg = headline.adjustedTargetWeightKg ?? plannedTopSetKg
-        let adjusted = hasAdjustment(headline)
+        // Semantic: weight-, RPE-, OR volume-only suggestion all count as an adjustment.
+        let adjusted = VerdictDecisionApplier.hasSuggestion(headline)
         let kind: TodayVerdictDisplay.Kind = deferredToPlan
             ? .deferred
             : (adjusted ? .adjusted : .asPlanned)
         let confidenceNote: String? = (kind == .deferred)
             ? String(localized: "verdictCard.confidence.learning", defaultValue: "Still learning your baseline")
             : nil
+        // Applied state derives from the SAME persisted source as start-readiness (never a transient
+        // flag): a decision recorded anywhere — even one that left the headline slot untouched (mixed
+        // feel-rough) — reads as decided, surfacing the start affordance.
         let appliedState: TodayVerdictDisplay.AppliedState = {
-            if headline.verdictAppliedAt != nil { return .accepted }
-            if headline.athleteOverrode { return .keptPlan }
-            return .pending
+            switch decisionState {
+            case .pending:  return .pending
+            case .keptPlan: return .keptPlan
+            case .accepted, .mixed: return .accepted
+            }
         }()
 
         display = TodayVerdictDisplay(
@@ -321,12 +369,8 @@ final class TodayVerdictViewModel {
         return best?.name
     }
 
-    /// A real adjustment = the engine wrote an adjusted weight strictly below the authored plan.
-    private func hasAdjustment(_ set: TemplateSet) -> Bool {
-        guard let planned = set.targetWeightKg else { return false }
-        let adjusted = set.adjustedTargetWeightKg ?? planned
-        return adjusted < planned - 0.001
-    }
+    // Adjustment detection now lives in the canonical `VerdictDecisionApplier.hasSuggestion` (semantic:
+    // weight OR RPE OR volume) — the kg-only local predicate was removed so there is one source of truth.
 
     // MARK: - Input assembly helpers (mirror DashboardViewModel)
 

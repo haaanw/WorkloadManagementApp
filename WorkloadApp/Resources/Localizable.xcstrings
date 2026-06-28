@@ -121,6 +121,24 @@
     "••••••••" : {
 
     },
+    "1-2 days/week" : {
+
+    },
+    "1-3 years consistent training" : {
+
+    },
+    "3-4 days/week" : {
+
+    },
+    "3+ years, understands periodization" : {
+
+    },
+    "5-6 days/week" : {
+
+    },
+    "7+ days/week" : {
+
+    },
     "a11y.archiveTemplate" : {
       "localizations" : {
         "en" : {
@@ -184,6 +202,26 @@
           }
         }
       }
+    },
+    "accessibility.selected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已选择"
+          }
+        }
+      }
+    },
+    "Account and security" : {
+
     },
     "action.add" : {
       "extractionState" : "manual",
@@ -317,6 +355,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "分配"
+          }
+        }
+      }
+    },
+    "action.back" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Back"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "返回"
           }
         }
       }
@@ -1017,6 +1072,9 @@
         }
       }
     },
+    "Advanced" : {
+
+    },
     "alert.error.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1033,6 +1091,9 @@
           }
         }
       }
+    },
+    "Already have an account? Sign In" : {
+
     },
     "Anything bother you?" : {
       "extractionState" : "manual",
@@ -1051,8 +1112,34 @@
         }
       }
     },
+    "Apple Health" : {
+
+    },
+    "Apple sign-in loading" : {
+
+    },
+    "Athlete Pro" : {
+
+    },
     "ATL" : {
 
+    },
+    "auth.action.alreadyHaveAccount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Already have an account? Sign In"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已有账号？登录"
+          }
+        }
+      }
     },
     "auth.action.createAccountLink" : {
       "extractionState" : "manual",
@@ -1088,6 +1175,23 @@
         }
       }
     },
+    "auth.action.working" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Working..."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "处理中..."
+          }
+        }
+      }
+    },
     "auth.brand.tagline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1111,13 +1215,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WORKLOAD"
+            "value" : "Tuwa"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "WORKLOAD"
+            "value" : "Tuwa"
           }
         }
       }
@@ -1428,7 +1532,13 @@
         }
       }
     },
+    "Back" : {
+
+    },
     "Baseline" : {
+
+    },
+    "Beginner" : {
 
     },
     "behavior.impact.suffix" : {
@@ -1618,7 +1728,16 @@
         }
       }
     },
+    "Cancel" : {
+
+    },
     "Category" : {
+
+    },
+    "Coach" : {
+
+    },
+    "Coach mode" : {
 
     },
     "common.error" : {
@@ -1651,6 +1770,16 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "未知"
+          }
+        }
+      }
+    },
+    "Configured for %@ at %@ experience." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Configured for %1$@ at %2$@ experience."
           }
         }
       }
@@ -1689,7 +1818,16 @@
         }
       }
     },
+    "Could not save session" : {
+
+    },
+    "CrossFit" : {
+
+    },
     "CTL" : {
+
+    },
+    "Custom" : {
 
     },
     "cyclePhase.context.follicular" : {
@@ -1827,6 +1965,9 @@
           }
         }
       }
+    },
+    "Cycling" : {
+
     },
     "dashboard.action.connectHealth" : {
       "extractionState" : "manual",
@@ -2206,6 +2347,9 @@
     "Decreased %lld percent week over week" : {
 
     },
+    "Delete account" : {
+
+    },
     "delta.aboveBaseline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2342,6 +2486,12 @@
         }
       }
     },
+    "Discard Changes" : {
+
+    },
+    "Discard session" : {
+
+    },
     "duration.hoursMinutes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2462,6 +2612,18 @@
       }
     },
     "English" : {
+
+    },
+    "Enter a valid email address." : {
+
+    },
+    "Enter your name." : {
+
+    },
+    "Enter your password." : {
+
+    },
+    "Error" : {
 
     },
     "error.import.invalidImage" : {
@@ -2888,6 +3050,12 @@
           }
         }
       }
+    },
+    "Existing subscribers can restore purchases here." : {
+
+    },
+    "Experience" : {
+
     },
     "experience.advanced" : {
       "extractionState" : "manual",
@@ -3450,6 +3618,12 @@
         }
       }
     },
+    "Fix the highlighted fields and try again." : {
+
+    },
+    "Focused" : {
+
+    },
     "frequency.fiveToSix" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3517,6 +3691,12 @@
           }
         }
       }
+    },
+    "Generate a code a coach can use to link with you" : {
+
+    },
+    "Google sign-in loading" : {
+
     },
     "hours" : {
 
@@ -3662,6 +3842,9 @@
           }
         }
       }
+    },
+    "Idle" : {
+
     },
     "import.analyzing" : {
       "extractionState" : "manual",
@@ -3833,6 +4016,9 @@
         }
       }
     },
+    "Includes Athlete Pro plus roster, planning, and reports." : {
+
+    },
     "Increased %lld percent week over week" : {
 
     },
@@ -3853,7 +4039,73 @@
         }
       }
     },
+    "insights.section.load" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负荷"
+          }
+        }
+      }
+    },
+    "insights.section.overview" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Overview"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "概览"
+          }
+        }
+      }
+    },
+    "insights.section.recovery" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recovery"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复"
+          }
+        }
+      }
+    },
+    "Intermediate" : {
+
+    },
+    "Invalid" : {
+
+    },
+    "Invite coach" : {
+
+    },
+    "Keep Editing" : {
+
+    },
     "kg" : {
+
+    },
+    "Language" : {
 
     },
     "language.picker.footer" : {
@@ -3889,6 +4141,12 @@
           }
         }
       }
+    },
+    "Leave this device without deleting data" : {
+
+    },
+    "Lifting" : {
+
     },
     "link.privacy" : {
       "extractionState" : "manual",
@@ -3927,7 +4185,10 @@
     "Load" : {
 
     },
-    "Loading..." : {
+    "Loading" : {
+
+    },
+    "Loading subscription options" : {
 
     },
     "loadSource.combined" : {
@@ -3980,6 +4241,9 @@
           }
         }
       }
+    },
+    "Managed by Supabase Auth and stored securely on this device" : {
+
     },
     "measurement.activation.context" : {
       "extractionState" : "manual",
@@ -5554,6 +5818,9 @@
         }
       }
     },
+    "New to structured training" : {
+
+    },
     "niggleType.pain" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -5586,6 +5853,21 @@
           }
         }
       }
+    },
+    "No internet connection. Check your connection and try again." : {
+
+    },
+    "No sets marked done" : {
+
+    },
+    "No trial is assumed until the App Store confirms it." : {
+
+    },
+    "Not set" : {
+
+    },
+    "Nothing will be logged. Mark sets done to record them, or discard this session?" : {
+
     },
     "notif.weekly.body.template" : {
       "extractionState" : "manual",
@@ -5705,6 +5987,12 @@
           }
         }
       }
+    },
+    "Offline" : {
+
+    },
+    "OK" : {
+
     },
     "onboarding.continue.toSetup" : {
       "extractionState" : "manual",
@@ -5876,6 +6164,23 @@
         }
       }
     },
+    "onboarding.healthkit.permissionsNote" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You can change Health permissions later in Profile."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "之后可在「档案」中更改健康权限。"
+          }
+        }
+      }
+    },
     "onboarding.healthkit.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5944,6 +6249,159 @@
         }
       }
     },
+    "onboarding.ready.action" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start using Tuwa"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始使用 Tuwa"
+          }
+        }
+      }
+    },
+    "onboarding.ready.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your profile is configured. Tuwa will tune recommendations as you train."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的档案已设置。Tuwa 会随着训练逐步校准建议。"
+          }
+        }
+      }
+    },
+    "onboarding.ready.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You're ready"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备好了"
+          }
+        }
+      }
+    },
+    "onboarding.section.experience" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Experience"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "经验"
+          }
+        }
+      }
+    },
+    "onboarding.section.frequency" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training frequency"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练频率"
+          }
+        }
+      }
+    },
+    "onboarding.section.health" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Health"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 健康"
+          }
+        }
+      }
+    },
+    "onboarding.section.language" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
+          }
+        }
+      }
+    },
+    "onboarding.section.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Ready"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备完成"
+          }
+        }
+      }
+    },
+    "onboarding.selected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Selected"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已选择"
+          }
+        }
+      }
+    },
     "onboarding.skipForNow" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5957,6 +6415,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暂时跳过"
+          }
+        }
+      }
+    },
+    "onboarding.stepProgress" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Setup %d / 5"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "设置 %d / 5"
+          }
+        }
+      }
+    },
+    "onboarding.summary.healthNotConnected" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skipped for now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "暂时跳过"
+          }
+        }
+      }
+    },
+    "onboarding.summary.notSet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not set"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未设置"
           }
         }
       }
@@ -5977,6 +6486,9 @@
           }
         }
       }
+    },
+    "Open" : {
+
     },
     "Optional — note a sore spot to track how your body handles load." : {
       "extractionState" : "manual",
@@ -6011,6 +6523,9 @@
           }
         }
       }
+    },
+    "Permanent action. This cannot be undone." : {
+
     },
     "picker.sessionType.title" : {
       "extractionState" : "manual",
@@ -6386,6 +6901,9 @@
         }
       }
     },
+    "Price" : {
+
+    },
     "profile.action.deleteAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6488,6 +7006,108 @@
         }
       }
     },
+    "profile.connection.health.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Permissions and connected data state"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "权限与连接数据状态"
+          }
+        }
+      }
+    },
+    "profile.connection.health.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Health"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple 健康"
+          }
+        }
+      }
+    },
+    "profile.context.athlete" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Athlete context"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运动员模式"
+          }
+        }
+      }
+    },
+    "profile.context.coachMode.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roster, plans, reports, and coach profile"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "队员、计划、报告和教练档案"
+          }
+        }
+      }
+    },
+    "profile.context.coachMode.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach mode"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "教练模式"
+          }
+        }
+      }
+    },
+    "profile.context.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开"
+          }
+        }
+      }
+    },
     "profile.delete.confirmBody" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6518,6 +7138,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "删除账户失败：%@"
+          }
+        }
+      }
+    },
+    "profile.destination.fullSettings.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Identity, units, notification timing, and measurement tools"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "身份、单位、通知时间和测量工具"
+          }
+        }
+      }
+    },
+    "profile.destination.fullSettings.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Full profile settings"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "完整档案设置"
+          }
+        }
+      }
+    },
+    "profile.destination.language" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Language"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语言"
+          }
+        }
+      }
+    },
+    "profile.destination.subscription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "订阅"
+          }
+        }
+      }
+    },
+    "profile.destination.trainingProfile.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Frequency, duration, effort, and baseline"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "频率、时长、强度和基线"
+          }
+        }
+      }
+    },
+    "profile.destination.trainingProfile.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training profile"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练档案"
           }
         }
       }
@@ -7015,6 +7737,40 @@
         }
       }
     },
+    "profile.section.connections" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Connections"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "连接"
+          }
+        }
+      }
+    },
+    "profile.section.context" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Context"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "模式"
+          }
+        }
+      }
+    },
     "profile.section.dataSync" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7100,6 +7856,40 @@
         }
       }
     },
+    "profile.section.product" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Product"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "产品"
+          }
+        }
+      }
+    },
+    "profile.section.training" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练"
+          }
+        }
+      }
+    },
     "profile.section.trainingProfile" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7130,6 +7920,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "退出登录"
+          }
+        }
+      }
+    },
+    "profile.subscription.athletePro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Athlete Pro"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运动员 Pro"
+          }
+        }
+      }
+    },
+    "profile.subscription.coach" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "教练"
+          }
+        }
+      }
+    },
+    "profile.subscription.free" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Free"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "免费版"
           }
         }
       }
@@ -7920,6 +8761,9 @@
         }
       }
     },
+    "Purchase loading" : {
+
+    },
     "radialPicker.hint" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -7930,6 +8774,9 @@
           }
         }
       }
+    },
+    "Raw Health data stays on device. Tuwa uses recovery summaries to tune recommendations." : {
+
     },
     "readinessZone.high" : {
       "extractionState" : "extracted_with_value",
@@ -7963,6 +8810,9 @@
           }
         }
       }
+    },
+    "Ready" : {
+
     },
     "reason.caution" : {
       "extractionState" : "manual",
@@ -8807,6 +9657,9 @@
         }
       }
     },
+    "Recoverable failure" : {
+
+    },
     "Recovery" : {
 
     },
@@ -9201,6 +10054,12 @@
         }
       }
     },
+    "Renewal" : {
+
+    },
+    "Renews automatically. Cancel anytime in App Store subscriptions." : {
+
+    },
     "reps" : {
 
     },
@@ -9247,6 +10106,18 @@
           }
         }
       }
+    },
+    "Restore" : {
+
+    },
+    "Restoring purchases" : {
+
+    },
+    "Roster, plans, reports, and coach profile" : {
+
+    },
+    "Running" : {
+
     },
     "seanEllis.not" : {
       "extractionState" : "manual",
@@ -9349,6 +10220,24 @@
           }
         }
       }
+    },
+    "Security" : {
+
+    },
+    "Security and destructive account actions live here, away from day-to-day preferences." : {
+
+    },
+    "Selected" : {
+
+    },
+    "Selected tier" : {
+
+    },
+    "Server error" : {
+
+    },
+    "Session" : {
+
     },
     "sessionType.cardio" : {
       "extractionState" : "manual",
@@ -9707,6 +10596,21 @@
         }
       }
     },
+    "Setup %d / 5" : {
+
+    },
+    "Shown before billing." : {
+
+    },
+    "Sign out or permanently delete account" : {
+
+    },
+    "Signed in" : {
+
+    },
+    "Signing in" : {
+
+    },
     "Skip" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -9723,6 +10627,9 @@
           }
         }
       }
+    },
+    "Skipped for now" : {
+
     },
     "sleep.chart.annotation" : {
       "extractionState" : "manual",
@@ -10132,6 +11039,9 @@
         }
       }
     },
+    "Start using Tuwa" : {
+
+    },
     "strainRiskZone.elevated" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -10176,7 +11086,13 @@
         }
       }
     },
-    "Sync issues detected" : {
+    "Subscription options unavailable" : {
+
+    },
+    "Swimming" : {
+
+    },
+    "Sync status" : {
 
     },
     "sync.status.failed" : {
@@ -10192,6 +11108,159 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "失败 %@"
+          }
+        }
+      }
+    },
+    "sync.status.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sync status"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同步状态"
+          }
+        }
+      }
+    },
+    "tab.athlete.insights" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Insights"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "洞察"
+          }
+        }
+      }
+    },
+    "tab.athlete.profile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "档案"
+          }
+        }
+      }
+    },
+    "tab.athlete.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日"
+          }
+        }
+      }
+    },
+    "tab.athlete.train" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Train"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练"
+          }
+        }
+      }
+    },
+    "tab.coach.plans" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Plans"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "计划"
+          }
+        }
+      }
+    },
+    "tab.coach.profile" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Profile"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "档案"
+          }
+        }
+      }
+    },
+    "tab.coach.reports" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reports"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "报告"
+          }
+        }
+      }
+    },
+    "tab.coach.roster" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roster"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "队员"
           }
         }
       }
@@ -10486,6 +11555,9 @@
       }
     },
     "Target" : {
+
+    },
+    "Team Sport" : {
 
     },
     "template.empty.subtitle" : {
@@ -11015,6 +12087,12 @@
         }
       }
     },
+    "Tier" : {
+
+    },
+    "Training frequency" : {
+
+    },
     "trainingPhase.building" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11151,6 +12229,9 @@
         }
       }
     },
+    "Trial" : {
+
+    },
     "TSB" : {
 
     },
@@ -11187,6 +12268,12 @@
           }
         }
       }
+    },
+    "Unlocks athlete history, training decisions, exports, and PRs." : {
+
+    },
+    "Unsaved workout" : {
+
     },
     "upgrade.button.restorePurchases" : {
       "extractionState" : "manual",
@@ -11250,6 +12337,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "订阅不可用——检查连接并重试"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.plans" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Assign plans and prescribed training sessions"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "分配计划和指定训练课"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.pro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Athlete Pro tools included for your own training"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含你个人训练所需的运动员 Pro 工具"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.reports" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roster-level reports and coach exports"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "队员层级报告和教练导出"
+          }
+        }
+      }
+    },
+    "upgrade.feat.coach.roster" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach roster and athlete context switching"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "教练队员列表和运动员模式切换"
           }
         }
       }
@@ -11468,6 +12623,23 @@
         }
       }
     },
+    "upgrade.nav.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Upgrade"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "升级"
+          }
+        }
+      }
+    },
     "upgrade.plan.annual" : {
       "localizations" : {
         "en" : {
@@ -11496,6 +12668,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "月付"
+          }
+        }
+      }
+    },
+    "upgrade.savings.coach" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "SAVE 17%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "省 17%"
           }
         }
       }
@@ -11532,6 +12721,40 @@
         }
       }
     },
+    "upgrade.section.includes" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Includes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "包含"
+          }
+        }
+      }
+    },
+    "upgrade.section.subscription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Subscription"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "订阅"
+          }
+        }
+      }
+    },
     "upgrade.tier.athletePro.headline" : {
       "localizations" : {
         "en" : {
@@ -11563,6 +12786,128 @@
           }
         }
       }
+    },
+    "upgrade.tier.coach.headline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach athletes with clarity"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清晰地执教运动员"
+          }
+        }
+      }
+    },
+    "upgrade.tier.coach.subtitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Manage roster context, assigned plans, and coach reports from the dedicated coach shell."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在独立教练界面管理队员、分配计划和教练报告。"
+          }
+        }
+      }
+    },
+    "upgrade.trigger.athletePro" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Athlete Pro"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运动员 Pro"
+          }
+        }
+      }
+    },
+    "upgrade.trigger.coach" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coach tools"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "教练工具"
+          }
+        }
+      }
+    },
+    "upgrade.trigger.export" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Export"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导出"
+          }
+        }
+      }
+    },
+    "upgrade.trigger.history" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "History"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "历史记录"
+          }
+        }
+      }
+    },
+    "upgrade.trigger.historyWeeks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld weeks locked"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 周已锁定"
+          }
+        }
+      }
+    },
+    "Use at least 8 characters." : {
+
     },
     "verdict.reason.backoffCut" : {
       "extractionState" : "extracted_with_value",
@@ -11785,6 +13130,57 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "↓ from %@"
+          }
+        }
+      }
+    },
+    "verdictCard.start.adjusted" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start adjusted workout"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始调整后的训练"
+          }
+        }
+      }
+    },
+    "verdictCard.start.plan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start my plan"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始我的计划"
+          }
+        }
+      }
+    },
+    "verdictCard.start.workout" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start workout"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始训练"
           }
         }
       }
@@ -12485,6 +13881,12 @@
         }
       }
     },
+    "Working" : {
+
+    },
+    "Working..." : {
+
+    },
     "workload.chart.insufficientData" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12893,6 +14295,40 @@
         }
       }
     },
+    "workout.unsaved.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your changes have not been saved. Keep editing or discard this workout."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的更改尚未保存。继续编辑或放弃本次训练。"
+          }
+        }
+      }
+    },
+    "workout.unsaved.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unsaved workout"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练尚未保存"
+          }
+        }
+      }
+    },
     "workoutLog.empty.body" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13131,7 +14567,19 @@
         }
       }
     },
+    "You can change Health permissions later in Profile." : {
+
+    },
+    "You're ready" : {
+
+    },
     "you@example.com" : {
+
+    },
+    "Your changes have not been saved. Keep editing or discard this workout." : {
+
+    },
+    "Your profile is configured. Tuwa will tune recommendations as you train." : {
 
     },
     "zone.caution" : {
