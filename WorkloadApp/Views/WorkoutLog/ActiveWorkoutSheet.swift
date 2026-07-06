@@ -15,6 +15,9 @@ struct ActiveWorkoutSheet: View {
     @State private var sessionName = ""
     @State private var sportType: SportType = .lifting
     @State private var sessionType: SessionType = .strength
+    // v2.1 beachhead: match tier for `.match`-type sessions (pickup → scrimmage → match).
+    // nil = untouched picker, treated as pickup by the carry model (safe default).
+    @State private var matchTier: MatchTier? = nil
     @State private var entries: [ExerciseEntryDraft] = []
     @State private var sessionRPE: Double = 5
     @State private var startTime = Date.now
@@ -75,6 +78,16 @@ struct ActiveWorkoutSheet: View {
                             }
 
                         RadialPicker(selection: $sessionType, title: "picker.sessionType.title")
+                            .onChange(of: sessionType) { _, newType in
+                                // Tier only applies to match-type sessions; clear it otherwise
+                                // so switching away never leaves a stale tier on the session.
+                                if newType != .match { matchTier = nil }
+                            }
+
+                        // Compact match-tier picker (v2.1 beachhead) — only for match sessions.
+                        if sessionType == .match {
+                            MatchTierPicker(selection: $matchTier)
+                        }
 
                         TimelineView(.periodic(from: startTime, by: 1)) { _ in
                             Text(Date.durationString(seconds: Int(elapsed), locale: locale))
@@ -661,6 +674,9 @@ struct ActiveWorkoutSheet: View {
         }
 
         session.recalculateDerivedFields()
+        // Match tier (v2.1 beachhead): recorded only for match-type sessions. nil (untouched
+        // picker) stays nil — the carry model treats nil as pickup, so nothing is fabricated.
+        session.matchTier = sessionType == .match ? matchTier : nil
         session.sourceTemplateId = sourceTemplate?.id
         session.athlete = athlete
         modelContext.insert(session)
@@ -813,6 +829,57 @@ struct ActiveWorkoutSheet: View {
             showTemplateSavedToast = true
             templateSaveError = true
         }
+    }
+}
+
+// MARK: - Match Tier Picker (v2.1 beachhead)
+
+/// Compact match-tier picker shown only when the session type is `.match`:
+/// Pickup / Scrimmage / Match (CONTEXT.md "Match tier"). nil selection renders Pickup as
+/// the effective choice — the carry model treats nil as pickup, so the display is honest.
+/// DESIGN.md compliant: `Rectangle` only, 0.5pt hairline borders, `Font.Tokens` /
+/// `ColorTokens`, 8pt spacing, NO accent — selection is carried by fill + label, never
+/// color alone.
+struct MatchTierPicker: View {
+    @Binding var selection: MatchTier?
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            Text(String(localized: "matchTier.picker.title", defaultValue: "Match tier"))
+                .font(.Tokens.micro)
+                .tracking(1.2)
+                .textCase(.uppercase)
+                .foregroundStyle(ColorTokens.text3)
+
+            HStack(spacing: Spacing.xs) {
+                ForEach(MatchTier.allCases) { tier in
+                    tierButton(tier)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .animation(Motion.state, value: selection)
+    }
+
+    @ViewBuilder private func tierButton(_ tier: MatchTier) -> some View {
+        // nil = untouched → pickup is the effective (and displayed) selection.
+        let isSelected = (selection ?? .pickup) == tier
+        Button {
+            selection = tier
+            Haptics.select()
+        } label: {
+            Text(tier.displayName)
+                .font(.Tokens.label)
+                .foregroundStyle(isSelected ? ColorTokens.surface : ColorTokens.text2)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, Spacing.xs)
+                .background(Rectangle().fill(isSelected ? ColorTokens.text1 : Color.clear))
+                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel(tier.displayName)
+        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }
 

@@ -35,6 +35,67 @@ final class SessionTypeTests: XCTestCase {
     }
 }
 
+final class MatchTierTests: XCTestCase {
+
+    func test_matchTier_rawValues_areSerializationContract() {
+        XCTAssertEqual(MatchTier.pickup.rawValue,    "pickup")
+        XCTAssertEqual(MatchTier.scrimmage.rawValue, "scrimmage")
+        XCTAssertEqual(MatchTier.match.rawValue,     "match")
+    }
+
+    func test_matchTier_allCases_ladderOrder() {
+        // The seriousness ladder: pickup → scrimmage → match (CONTEXT.md "Match tier").
+        XCTAssertEqual(MatchTier.allCases, [.pickup, .scrimmage, .match])
+    }
+
+    func test_matchTier_displayNames() {
+        XCTAssertEqual(MatchTier.pickup.displayName,    "Pickup")
+        XCTAssertEqual(MatchTier.scrimmage.displayName, "Scrimmage")
+        XCTAssertEqual(MatchTier.match.displayName,     "Match")
+    }
+
+    func test_matchTier_identifiable_idIsRawValue() {
+        for tier in MatchTier.allCases {
+            XCTAssertEqual(tier.id, tier.rawValue)
+        }
+    }
+
+    func test_workoutSession_defaultMatchTier_isNil() {
+        // Additive nullable field: every pre-v2.1 row and fresh session decodes to nil
+        // (treated as pickup by the carry model) — no SwiftData migration.
+        let session = WorkoutSession()
+        XCTAssertNil(session.matchTierRaw)
+        XCTAssertNil(session.matchTier)
+    }
+
+    func test_workoutSession_matchTier_roundtripsThroughRaw() {
+        let session = WorkoutSession()
+        session.matchTier = .scrimmage
+        XCTAssertEqual(session.matchTierRaw, "scrimmage")
+        XCTAssertEqual(session.matchTier, .scrimmage)
+        session.matchTier = nil
+        XCTAssertNil(session.matchTierRaw)
+    }
+
+    func test_workoutSession_unknownRawTier_decodesToNil() {
+        // Forward-compat: an unrecognized stored raw value degrades to nil (pickup), never traps.
+        let session = WorkoutSession()
+        session.matchTierRaw = "playoff-final"
+        XCTAssertNil(session.matchTier)
+    }
+
+    func test_syncRow_neverCarriesMatchTier() throws {
+        // Sync fence: matchTier is local-only by design (no Supabase schema change). The
+        // explicit-field WorkoutSessionRow must not pick it up, even when set.
+        let session = WorkoutSession()
+        session.sessionType = .match
+        session.matchTier = .match
+        let row = SyncService.WorkoutSessionRow(from: session, athleteId: UUID())
+        let json = String(decoding: try JSONEncoder().encode(row), as: UTF8.self)
+        XCTAssertFalse(json.contains("matchTier"))
+    }
+}
+
 final class WorkoutSessionRowTests: XCTestCase {
 
     func test_row_mapsSessionType() {

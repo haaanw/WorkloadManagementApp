@@ -574,6 +574,31 @@ enum SessionType: String, Codable, CaseIterable, Identifiable {
     }
 }
 
+/// Seriousness ladder for a team-sport game session (v2.1 basketball beachhead):
+/// pickup → scrimmage → match (see CONTEXT.md "Match tier").
+///
+/// Tier decides *protection* (match proximity), NOT fatigue accounting — all three tiers
+/// produce carry; the tier only scales the carry multiplier (`.match` / `.scrimmage` ≈ ×1.3
+/// for the eccentric density + CNS cost of competitive play that sRPE misses; `.pickup` ×1.0).
+/// The `rawValue`s are a **permanent serialization contract** — persisted into
+/// `WorkoutSession.matchTierRaw` (nullable, never synced) and must never be renamed.
+/// nil tier ⇒ treated as pickup everywhere.
+enum MatchTier: String, Codable, CaseIterable, Identifiable {
+    case pickup
+    case scrimmage
+    case match
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .pickup: String(localized: "matchTier.pickup", defaultValue: "Pickup")
+        case .scrimmage: String(localized: "matchTier.scrimmage", defaultValue: "Scrimmage")
+        case .match: String(localized: "matchTier.match", defaultValue: "Match")
+        }
+    }
+}
+
 // MARK: - RadialSelectable conformances (Phase 21)
 
 extension SportType: RadialSelectable {

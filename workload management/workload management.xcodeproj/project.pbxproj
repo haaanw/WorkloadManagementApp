@@ -24,6 +24,7 @@
 		FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1602010000000000000002 /* WorkoutImportSheet.swift */; };
 		1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000E2 /* TemplatePickerSheet.swift */; };
 		EE4203020000000000000001 /* PlanTodaySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE4203010000000000000001 /* PlanTodaySheet.swift */; };
+		CB4701020000000000000001 /* NextMatchSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = CB4701010000000000000001 /* NextMatchSection.swift */; };
 		AA4403020000000000000001 /* TodayVerdictCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4403010000000000000001 /* TodayVerdictCard.swift */; };
 		AE4501020000000000000001 /* VerdictEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4501010000000000000001 /* VerdictEvent.swift */; };
 		EE4204020000000000000001 /* ManualLiftEntrySheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE4204010000000000000001 /* ManualLiftEntrySheet.swift */; };
@@ -217,6 +218,7 @@
 		FF1602010000000000000002 /* WorkoutImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportSheet.swift; sourceTree = "<group>"; };
 		1101010100000000000000E2 /* TemplatePickerSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplatePickerSheet.swift; sourceTree = "<group>"; };
 		EE4203010000000000000001 /* PlanTodaySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PlanTodaySheet.swift; sourceTree = "<group>"; };
+		CB4701010000000000000001 /* NextMatchSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NextMatchSection.swift; sourceTree = "<group>"; };
 		AA4403010000000000000001 /* TodayVerdictCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayVerdictCard.swift; sourceTree = "<group>"; };
 		AE4501010000000000000001 /* VerdictEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictEvent.swift; sourceTree = "<group>"; };
 		EE4204010000000000000001 /* ManualLiftEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualLiftEntrySheet.swift; sourceTree = "<group>"; };
@@ -735,6 +737,7 @@
 				FF1602010000000000000002 /* WorkoutImportSheet.swift */,
 				1101010100000000000000E2 /* TemplatePickerSheet.swift */,
 				EE4203010000000000000001 /* PlanTodaySheet.swift */,
+				CB4701010000000000000001 /* NextMatchSection.swift */,
 				AA4403010000000000000001 /* TodayVerdictCard.swift */,
 				AE4504010000000000000001 /* VerdictOutcomeSheet.swift */,
 				EE4204010000000000000001 /* ManualLiftEntrySheet.swift */,
@@ -1022,6 +1025,7 @@
 				1101010100000000000000D1 /* TemplatePreviewSheet.swift in Sources */,
 				1101010100000000000000E1 /* TemplatePickerSheet.swift in Sources */,
 				EE4203020000000000000001 /* PlanTodaySheet.swift in Sources */,
+				CB4701020000000000000001 /* NextMatchSection.swift in Sources */,
 				AA4403020000000000000001 /* TodayVerdictCard.swift in Sources */,
 				AE4504020000000000000001 /* VerdictOutcomeSheet.swift in Sources */,
 				EE4204020000000000000001 /* ManualLiftEntrySheet.swift in Sources */,
@@ -1298,7 +1302,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "workload management/workload management.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 9XTU7KMJ4J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1306,6 +1310,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Tuwa;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa does not write workout or health data to Apple Health. Health data is only read with your permission to calculate recovery and training insights.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -1334,7 +1339,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "workload management/workload management.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 13;
+				CURRENT_PROJECT_VERSION = 14;
 				DEVELOPMENT_TEAM = 9XTU7KMJ4J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1342,6 +1347,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Tuwa;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa does not write workout or health data to Apple Health. Health data is only read with your permission to calculate recovery and training insights.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

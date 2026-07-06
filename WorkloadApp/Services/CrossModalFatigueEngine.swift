@@ -90,9 +90,14 @@ struct CrossModalFatigueEngine {
                 return [.legs: 0.7]
             case .swimming:
                 return [.back: 0.6, .shoulders: 0.6]
-            case .crossfit, .teamSport:
+            case .crossfit:
                 // Mixed modality — distributed default profile (legs-dominant, upper present).
                 return [.legs: 0.6, .back: 0.4, .shoulders: 0.3, .core: 0.3]
+            case .teamSport:
+                // Basketball-shaped HEURISTIC priors for the v2.1 beachhead (jump/land
+                // eccentric-dominant; see docs/adr/0001). Promote to a dedicated .basketball
+                // SportType when a second team sport appears.
+                return [.legs: 0.9, .core: 0.3, .back: 0.1, .shoulders: 0.1]
             case .custom:
                 // Unknown modality — light fullBody-distributed prior.
                 return [.fullBody: 0.5]
@@ -111,6 +116,13 @@ struct CrossModalFatigueEngine {
         static func tau(for region: MuscleRegion) -> Double {
             region == .legs ? tauLegs : tauUpper
         }
+
+        /// Match-tier carry multiplier (v2.1 beachhead): `.match` and `.scrimmage` sessions
+        /// carry ~×1.3 the sRPE-implied load — the eccentric density + CNS cost of competitive
+        /// play that sRPE misses. `.pickup` (and nil tier — the pre-v2.1 default) stays ×1.0.
+        /// Tier scales ONLY this carry multiplier; protection is a separate concern (CONTEXT.md
+        /// "Match tier"). HEURISTIC prior; calibrate in shadow.
+        static let matchCarryMultiplier: Double = 1.3
 
         /// Saturation rate of the concave anchor+modifier. Larger ⇒ the first unit of carry-over
         /// costs more and additional carry-over saturates faster. HEURISTIC.
@@ -132,6 +144,21 @@ struct CrossModalFatigueEngine {
         /// per-region baseline. Acute = [0, acuteWindowDays); chronic-exclusive = [acute, chronic).
         static let acuteWindowDays: Int = StrengthLoadEngine.Constants.acuteWindowDays    // 7
         static let chronicWindowDays: Int = StrengthLoadEngine.Constants.chronicWindowDays // 28
+    }
+
+    // MARK: - Match-tier carry multiplier (v2.1 beachhead)
+
+    /// Tier-aware multiplier on a session's sRPE carry contribution: `.match` / `.scrimmage` ⇒
+    /// `matchCarryMultiplier` (~×1.3); `.pickup` or no tier ⇒ ×1.0 (nil is treated as pickup —
+    /// every pre-v2.1 row decodes to nil, so history is unchanged). Applied identically to the
+    /// decayed acute carry AND the raw baseline windows so a habitual weekly-match athlete still
+    /// normalizes to elevation ≈ 0 (the multiplier corrects the sRPE load itself, not one side
+    /// of the acute/chronic comparison). Pure function of the session's stored tier.
+    static func carryMultiplier(for tier: MatchTier?) -> Double {
+        switch tier {
+        case .match, .scrimmage: return Constants.matchCarryMultiplier
+        case .pickup, nil: return 1.0
+        }
     }
 
     // MARK: - Step 4: anchor + diminishing modifier (anti-linear-stacking core)
@@ -179,6 +206,7 @@ struct CrossModalFatigueEngine {
                   diff >= 0, diff < windowDays else { continue }
             guard let rpe = session.sessionRPE else { continue } // no RPE ⇒ no fabricated load
             let srpe = WorkloadCalculator.srpeLoad(durationSeconds: session.durationSeconds, sessionRPE: rpe)
+                * carryMultiplier(for: session.matchTier)
             guard srpe > 0 else { continue }
 
             for (region, beta) in Constants.betaMap(for: session.sportType) where beta > 0 {
@@ -218,6 +246,7 @@ struct CrossModalFatigueEngine {
                   diff >= lowerDayInclusive, diff < upperDayExclusive else { continue }
             guard let rpe = session.sessionRPE else { continue }
             let srpe = WorkloadCalculator.srpeLoad(durationSeconds: session.durationSeconds, sessionRPE: rpe)
+                * carryMultiplier(for: session.matchTier)
             guard srpe > 0 else { continue }
             for (region, beta) in Constants.betaMap(for: session.sportType) where beta > 0 {
                 load[region, default: 0] += srpe * beta

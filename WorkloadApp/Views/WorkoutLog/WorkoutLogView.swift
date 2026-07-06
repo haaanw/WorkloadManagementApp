@@ -89,6 +89,11 @@ struct WorkoutLogView: View {
                             }
                         }
 
+                        // Next match — the one schedule-shaped plan object (ADR-0002). Always
+                        // renders; empty state ("no scheduled match") is a normal, calm state.
+                        // Stage 2 wires the date into the verdict; here it is set/clear only.
+                        NextMatchSection()
+
                         // Template carousel (My Templates section — header lives inside)
                         TemplateCarouselSection(
                             onEditTemplate: { template in

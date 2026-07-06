@@ -119,6 +119,102 @@ final class CrossModalFatigueEngineTests: XCTestCase {
         XCTAssertLessThan(cycleLegs, runLegs)
     }
 
+    // MARK: - v2.1 beachhead: basketball-shaped teamSport β + crossfit unchanged
+
+    func test_betaMap_teamSport_isBasketballShaped() {
+        // v2.1 beachhead: .teamSport split from .crossfit into a basketball-shaped profile
+        // (jump/land eccentric-dominant — legs 0.9, core 0.3, upper 0.1).
+        let beta = CrossModalFatigueEngine.Constants.betaMap(for: .teamSport)
+        XCTAssertEqual(beta[.legs], 0.9)
+        XCTAssertEqual(beta[.core], 0.3)
+        XCTAssertEqual(beta[.back], 0.1)
+        XCTAssertEqual(beta[.shoulders], 0.1)
+        XCTAssertEqual(beta.count, 4)
+        XCTAssertNil(beta[.chest])   // basketball spares chest — no fabricated carry
+    }
+
+    func test_betaMap_crossfit_keepsMixedProfile() {
+        // Splitting .teamSport must NOT disturb the .crossfit mixed-modality profile.
+        let beta = CrossModalFatigueEngine.Constants.betaMap(for: .crossfit)
+        XCTAssertEqual(beta[.legs], 0.6)
+        XCTAssertEqual(beta[.back], 0.4)
+        XCTAssertEqual(beta[.shoulders], 0.3)
+        XCTAssertEqual(beta[.core], 0.3)
+        XCTAssertEqual(beta.count, 4)
+    }
+
+    func test_teamSportGame_legsDominant_chestZero() {
+        // A basketball game yesterday loads legs hard, core lightly, chest not at all.
+        let result = CrossModalFatigueEngine.compute(
+            sessions: [enduranceSession(date: daysAgo(1), sport: .teamSport)],
+            systemicReadiness: 100, asOf: asOf, calendar: calendar
+        )
+        let legs = result.perRegionCarry[.legs] ?? 0
+        let core = result.perRegionCarry[.core] ?? 0
+        let chest = result.perRegionCarry[.chest] ?? 0
+        XCTAssertGreaterThan(legs, 0)
+        XCTAssertGreaterThan(legs, core)
+        XCTAssertLessThanOrEqual(chest, 1e-9)
+    }
+
+    // MARK: - v2.1 beachhead: match-tier carry multiplier
+
+    func test_carryMultiplier_tierMapping() {
+        XCTAssertEqual(CrossModalFatigueEngine.carryMultiplier(for: nil), 1.0, accuracy: 1e-12)
+        XCTAssertEqual(CrossModalFatigueEngine.carryMultiplier(for: .pickup), 1.0, accuracy: 1e-12)
+        XCTAssertEqual(
+            CrossModalFatigueEngine.carryMultiplier(for: .scrimmage),
+            CrossModalFatigueEngine.Constants.matchCarryMultiplier,
+            accuracy: 1e-12
+        )
+        XCTAssertEqual(
+            CrossModalFatigueEngine.carryMultiplier(for: .match),
+            CrossModalFatigueEngine.Constants.matchCarryMultiplier,
+            accuracy: 1e-12
+        )
+    }
+
+    /// Same sRPE, three tiers → carry ratios: scrimmage/pickup == match/pickup == ×1.3;
+    /// match == scrimmage; nil tier behaves exactly like pickup.
+    func test_matchTier_carryRatios_sameSRPE() {
+        func legCarry(tier: MatchTier?) -> Double {
+            let session = enduranceSession(date: daysAgo(1), sport: .teamSport, rpe: 8)
+            session.matchTier = tier
+            return CrossModalFatigueEngine.compute(
+                sessions: [session], systemicReadiness: 100, asOf: asOf, calendar: calendar
+            ).perRegionCarry[.legs] ?? 0
+        }
+
+        let pickup = legCarry(tier: .pickup)
+        let scrimmage = legCarry(tier: .scrimmage)
+        let match = legCarry(tier: .match)
+        let untiered = legCarry(tier: nil)
+
+        XCTAssertGreaterThan(pickup, 0)
+        let multiplier = CrossModalFatigueEngine.Constants.matchCarryMultiplier
+        XCTAssertEqual(scrimmage / pickup, multiplier, accuracy: 1e-9)
+        XCTAssertEqual(match / pickup, multiplier, accuracy: 1e-9)
+        XCTAssertEqual(match, scrimmage, accuracy: 1e-9)
+        XCTAssertEqual(untiered, pickup, accuracy: 1e-9)
+    }
+
+    /// The multiplier corrects the session's sRPE load on BOTH the acute-carry side and the
+    /// raw baseline windows: an athlete whose EVERY session is a match at steady volume still
+    /// normalizes to elevation ≈ 0 (personal-normal moat is tier-consistent).
+    func test_matchTier_steadyStateWeeklyMatch_noElevation() {
+        var sessions: [WorkoutSession] = []
+        for d in [1, 4, 8, 11, 14, 17, 20, 23] {
+            let s = enduranceSession(date: daysAgo(d), sport: .teamSport, rpe: 8)
+            s.matchTier = .match
+            sessions.append(s)
+        }
+        let result = CrossModalFatigueEngine.compute(
+            sessions: sessions, systemicReadiness: 100, asOf: asOf, calendar: calendar
+        )
+        XCTAssertLessThanOrEqual(result.perRegionElevation[.legs] ?? 0, 1e-9)
+        XCTAssertEqual(result.exerciseAdjustment(forRegion: .legs), 1.0, accuracy: 1e-9)
+    }
+
     // MARK: - Run-hits-squat-not-bench (headline ACT-02 behaviour)
 
     func test_runHitsSquatNotBench() {

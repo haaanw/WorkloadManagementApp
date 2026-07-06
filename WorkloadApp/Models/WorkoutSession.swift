@@ -15,6 +15,19 @@ final class WorkoutSession {
     var sourceTemplateId: UUID? = nil    // template this session was started from
     var isSynced: Bool
 
+    /// v2.1 beachhead: match-tier raw value (`MatchTier.rawValue`) for `.match`-type sessions.
+    /// ADDITIVE + NULLABLE by design: every pre-v2.1 row and non-match session decodes to nil,
+    /// which the carry model treats as pickup — so there is NO SwiftData migration and NO
+    /// Supabase schema change. Deliberately excluded from `SyncService.WorkoutSessionRow`
+    /// (the sync bridge enumerates fields explicitly) — this field never syncs.
+    var matchTierRaw: String? = nil
+
+    /// Typed accessor over `matchTierRaw`. nil = no tier recorded (treated as pickup).
+    var matchTier: MatchTier? {
+        get { matchTierRaw.flatMap(MatchTier.init(rawValue:)) }
+        set { matchTierRaw = newValue?.rawValue }
+    }
+
     // External load (the work done)
     var totalVolume: Double          // kg × reps for lifting; meters for cardio
     var externalLoad: Double         // Normalized external load value

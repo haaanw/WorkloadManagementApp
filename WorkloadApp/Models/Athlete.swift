@@ -24,6 +24,12 @@ final class Athlete {
     // Additive local-only RED-S exclusion flags (Phase 19 D-11a). NOT synced (Phase 18 CR-01).
     var hasPCOS: Bool?
     var isPerimenopausal: Bool?
+    // Additive local-only "next match" scheduled date (v2.1 Track 1 item 3, ADR-0002).
+    // ONE optional date — no recurrence, no forecasting. nil = no scheduled match, which is
+    // a NORMAL state (the athlete's schedule is mixed: league weeks and pickup-only weeks).
+    // Nullable ⇒ no SwiftData migration. NOT synced — SyncService.pushAthlete enumerates
+    // AthleteRow fields explicitly, so this stays on-device by construction.
+    var nextMatchDate: Date?
 
     @Relationship(deleteRule: .cascade, inverse: \WorkoutSession.athlete)
     var sessions: [WorkoutSession] = []
