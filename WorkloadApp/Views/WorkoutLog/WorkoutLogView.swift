@@ -31,6 +31,9 @@ struct WorkoutLogView: View {
     @State private var verdictRepository: VerdictEventRepository?
     // Phase 45 — a past planned-day decision awaiting its no-guilt post-session outcome.
     @State private var outcomeEvent: VerdictEvent?
+    // v2.1 dogfood (item 6) — YESTERDAY's differing-verdict decision, promptable strictly today
+    // (next calendar day only; missed ⇒ stays absent, no back-fill).
+    @State private var feltRightEvent: VerdictEvent?
     // Phase 45 (METRIC-03) — the Sean-Ellis disappointment prompt + the revealed-WTP paywall hop.
     @State private var showSeanEllis = false
     @State private var showWTPUpgrade = false
@@ -85,6 +88,25 @@ struct WorkoutLogView: View {
                                         showResolvedWorkout = true
                                     }
                                 )
+                                .padding(.horizontal, Spacing.sm)
+                            }
+                        }
+
+                        // v2.1 dogfood — the next-day "felt right?" capture. Renders ONLY on the
+                        // calendar day after a differing-verdict day (criterion 3: judged next-day,
+                        // logged same-day, never retro-rated). Sits under the verdict-card slot so
+                        // yesterday's judgment lives beside today's call.
+                        if let event = feltRightEvent, let athlete = athletes.first {
+                            SectionContainer {
+                                FeltRightPromptRow(
+                                    event: event,
+                                    weightUnit: athlete.weightUnit
+                                ) { answer in
+                                    verdictRepository?.recordFeltRight(answer, for: event, at: .now)
+                                    withAnimation(Motion.resolved(Motion.exit, reduceMotion: reduceMotion)) {
+                                        feltRightEvent = nil
+                                    }
+                                }
                                 .padding(.horizontal, Spacing.sm)
                             }
                         }
@@ -243,6 +265,7 @@ struct WorkoutLogView: View {
                     // The verdict's prescription may now be completed — refresh the card + prompts.
                     if let athlete = athletes.first {
                         verdictVM?.refresh(athlete: athlete)
+                        refreshFeltRightPrompt()
                         refreshOutcomePrompt()
                     }
                 }
@@ -348,6 +371,7 @@ struct WorkoutLogView: View {
                 if let athlete = athletes.first {
                     verdictVM?.refresh(athlete: athlete)
                 }
+                refreshFeltRightPrompt()
                 refreshOutcomePrompt()
                 refreshSeanEllisPrompt()
             }
@@ -355,6 +379,7 @@ struct WorkoutLogView: View {
                 // After planning today's session, re-read so the verdict card appears.
                 if !isPresented, let athlete = athletes.first {
                     verdictVM?.refresh(athlete: athlete)
+                    refreshFeltRightPrompt()
                     refreshOutcomePrompt()
                 }
             }
@@ -401,10 +426,26 @@ struct WorkoutLogView: View {
 
     /// Surface the most recent PAST planned-day decision that still has no recorded outcome (never
     /// mid-session — `before` is start-of-day today, so today's decisions don't trigger the prompt).
+    /// When the inline next-day "felt right?" row owns the same event, the modal stands down —
+    /// answering the row mirrors into the outcome field, so the athlete is never asked twice.
     private func refreshOutcomePrompt() {
-        outcomeEvent = verdictRepository?.mostRecentAwaitingOutcome(
+        let awaiting = verdictRepository?.mostRecentAwaitingOutcome(
             athlete: athletes.first,
             before: Calendar.current.startOfDay(for: .now)
+        )
+        outcomeEvent = (awaiting?.id == feltRightEvent?.id) ? nil : awaiting
+    }
+
+    /// v2.1 dogfood (item 6) — strict next-day eligibility via the pure engine: promptable ONLY on
+    /// the calendar day after a differing-verdict day; same-day and 2+-day-old events never surface
+    /// (a missed day records as absent — no back-fill UI). `.now`/`.current` are read once here at
+    /// the boundary; the engine stays injected.
+    private func refreshFeltRightPrompt() {
+        let events = verdictRepository?.fetchRecent(days: 3, athlete: athletes.first) ?? []
+        feltRightEvent = FeltRightPromptEngine.eligibleEvent(
+            events: events,
+            asOf: .now,
+            calendar: .current
         )
     }
 

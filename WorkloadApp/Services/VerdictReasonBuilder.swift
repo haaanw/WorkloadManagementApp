@@ -32,6 +32,16 @@ struct VerdictReasonBuilder {
         let deferredToPlan: Bool
     }
 
+    /// Match-proximity context (ADR-0002). Passed ONLY when the engine's proximity rule actually
+    /// engaged (a proximity-tightened MODIFY) — the reason line then LEADS with the match:
+    /// "Match Saturday — microdose: cap the top set, skip back-offs."
+    struct MatchContext: Equatable {
+        /// Calendar days to the match: 0 = today, 1 = tomorrow, 2 = the day named by `matchDate`.
+        let daysAway: Int
+        /// The scheduled match date (start-of-day normalized) — names the actual match day.
+        let matchDate: Date
+    }
+
     // MARK: - Tunables
 
     enum Constants {
@@ -50,11 +60,17 @@ struct VerdictReasonBuilder {
     ///   - crossModalResult: optional cross-modal carry — its cause is named only under the gate.
     ///   - plannedRegion: the planned lift's region (the cross-modal dominance anchor).
     ///   - deferToPlan: forces the cold-start defer path even when a `decisionInput` is present.
+    ///   - matchContext: match-proximity context — pass ONLY when the engine's proximity rule
+    ///     engaged; the match then LEADS the line. nil ⇒ behavior exactly unchanged.
+    ///   - locale/calendar: for naming the match day ("Saturday" / "周六") — injectable for tests.
     static func build(
         decisionInput: ReasoningEngine.DecisionInput?,
         crossModalResult: CrossModalFatigueEngine.CrossModalResult?,
         plannedRegion: MuscleRegion,
-        deferToPlan: Bool
+        deferToPlan: Bool,
+        matchContext: MatchContext? = nil,
+        locale: Locale = .current,
+        calendar: Calendar = .current
     ) -> AssembledReason {
         // --- Cold-start defer FIRST (locked honest-confidence guardrail). ---------------------------
         // Never trim on a guess: on cold-start return the defer copy, confidence reported as the
@@ -88,6 +104,14 @@ struct VerdictReasonBuilder {
             line = cause
         }
 
+        // --- Match proximity LEADS (ADR-0002). ------------------------------------------------------
+        // When the proximity rule engaged, the athlete's actual job is "arrive fresh for the match" —
+        // the match + the microdose shape ARE the reason, so they replace the physiology headline.
+        // Never a gate: this is still a suggestion with a reason (the verdict stays suggest-and-confirm).
+        if let matchContext {
+            line = microdoseLine(for: matchContext, locale: locale, calendar: calendar)
+        }
+
         // Single-line guarantee (collapse any stray newlines).
         line = singleLine(line)
 
@@ -95,6 +119,42 @@ struct VerdictReasonBuilder {
             reasonLine: line,
             confidence: input.readiness.confidence,   // reported separately, NOT folded in.
             deferredToPlan: false
+        )
+    }
+
+    // MARK: - Match microdose line (ADR-0002 / CONTEXT.md "Microdose")
+
+    /// "Match Saturday — microdose: cap the top set, skip back-offs." — the match phrase uses the
+    /// athlete's actual relative day (today / tomorrow) or the match day's weekday name.
+    private static func microdoseLine(
+        for context: MatchContext,
+        locale: Locale,
+        calendar: Calendar
+    ) -> String {
+        let dayPhrase: String
+        switch context.daysAway {
+        case 0:
+            dayPhrase = String(localized: "verdict.match.today", defaultValue: "Match today")
+        case 1:
+            dayPhrase = String(localized: "verdict.match.tomorrow", defaultValue: "Match tomorrow")
+        default:
+            let formatter = DateFormatter()
+            formatter.calendar = calendar
+            formatter.timeZone = calendar.timeZone
+            formatter.locale = locale
+            formatter.setLocalizedDateFormatFromTemplate("EEEE")
+            let dayName = formatter.string(from: context.matchDate)
+            dayPhrase = String(
+                format: String(localized: "verdict.match.onDay", defaultValue: "Match %@"),
+                dayName
+            )
+        }
+        return String(
+            format: String(
+                localized: "verdict.match.microdose",
+                defaultValue: "%@ — microdose: cap the top set, skip back-offs."
+            ),
+            dayPhrase
         )
     }
 

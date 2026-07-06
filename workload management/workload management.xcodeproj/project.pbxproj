@@ -32,6 +32,8 @@
 		AE4505020000000000000001 /* VerdictMeasurementView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4505010000000000000001 /* VerdictMeasurementView.swift */; };
 		AE4506020000000000000001 /* SeanEllisStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4506010000000000000001 /* SeanEllisStore.swift */; };
 		AE4507020000000000000001 /* SeanEllisPromptSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4507010000000000000001 /* SeanEllisPromptSheet.swift */; };
+		DF4601020000000000000001 /* FeltRightPromptEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF4601010000000000000001 /* FeltRightPromptEngine.swift */; };
+		DF4602020000000000000001 /* FeltRightPromptRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = DF4602010000000000000001 /* FeltRightPromptRow.swift */; };
 		18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */; };
 		2301010100000000000000A1 /* LocaleManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2301010100000000000000A2 /* LocaleManager.swift */; };
 		2301020100000000000000A1 /* LanguagePickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2301020100000000000000A2 /* LanguagePickerView.swift */; };
@@ -226,6 +228,8 @@
 		AE4505010000000000000001 /* VerdictMeasurementView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictMeasurementView.swift; sourceTree = "<group>"; };
 		AE4506010000000000000001 /* SeanEllisStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeanEllisStore.swift; sourceTree = "<group>"; };
 		AE4507010000000000000001 /* SeanEllisPromptSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SeanEllisPromptSheet.swift; sourceTree = "<group>"; };
+		DF4601010000000000000001 /* FeltRightPromptEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeltRightPromptEngine.swift; sourceTree = "<group>"; };
+		DF4602010000000000000001 /* FeltRightPromptRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeltRightPromptRow.swift; sourceTree = "<group>"; };
 		4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareSheet.swift; sourceTree = "<group>"; };
 		4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = CoachAthleteRelationship.swift; sourceTree = "<group>"; };
 		5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = SubscriptionService.swift; sourceTree = "<group>"; };
@@ -605,6 +609,7 @@
 				AA4401010000000000000001 /* VerdictDecision.swift */,
 				AAFE00010000000000000001 /* ResolvedSessionPlan.swift */,
 				AE4503010000000000000001 /* GreenLightEngine.swift */,
+				DF4601010000000000000001 /* FeltRightPromptEngine.swift */,
 				AE4506010000000000000001 /* SeanEllisStore.swift */,
 				EE2702010000000000000001 /* LoadDistributionEngine.swift */,
 				EE2703010000000000000001 /* StrainRiskEngine.swift */,
@@ -740,6 +745,7 @@
 				CB4701010000000000000001 /* NextMatchSection.swift */,
 				AA4403010000000000000001 /* TodayVerdictCard.swift */,
 				AE4504010000000000000001 /* VerdictOutcomeSheet.swift */,
+				DF4602010000000000000001 /* FeltRightPromptRow.swift */,
 				EE4204010000000000000001 /* ManualLiftEntrySheet.swift */,
 				62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */,
 				62324C1D2F66CB0E00A9C2BE /* SessionDetailView.swift */,
@@ -1028,6 +1034,7 @@
 				CB4701020000000000000001 /* NextMatchSection.swift in Sources */,
 				AA4403020000000000000001 /* TodayVerdictCard.swift in Sources */,
 				AE4504020000000000000001 /* VerdictOutcomeSheet.swift in Sources */,
+				DF4602020000000000000001 /* FeltRightPromptRow.swift in Sources */,
 				EE4204020000000000000001 /* ManualLiftEntrySheet.swift in Sources */,
 				FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */,
 				62324C322F66CB0E00A9C2BE /* WorkoutLogViewModel.swift in Sources */,
@@ -1121,6 +1128,7 @@
 				AA4401020000000000000001 /* VerdictDecision.swift in Sources */,
 				AAFE00020000000000000001 /* ResolvedSessionPlan.swift in Sources */,
 				AE4503020000000000000001 /* GreenLightEngine.swift in Sources */,
+				DF4601020000000000000001 /* FeltRightPromptEngine.swift in Sources */,
 				AE4506020000000000000001 /* SeanEllisStore.swift in Sources */,
 				AE4507020000000000000001 /* SeanEllisPromptSheet.swift in Sources */,
 				EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */,

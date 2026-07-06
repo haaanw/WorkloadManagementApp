@@ -25,6 +25,12 @@ import Foundation
 /// - **HOLD carries the number** (planned top set held, no progression) — never a nil / "don't train"
 ///   (the nocebo guard).
 ///
+/// ## Match proximity (ADR-0002 — one date, one rule, NO trajectory math)
+/// An optional `matchDaysAway` input (derived from `Athlete.nextMatchDate` via `matchDaysAway(...)`)
+/// tightens the verdict to the MICRODOSE shape when the next scheduled match is ≤2 calendar days
+/// away (see `Constants.matchProximityDays` for the exact day-boundary semantics). Proximity can
+/// only move GO → MODIFY — never HOLD (anti-nocebo). nil / expired / >2 days ⇒ EXACTLY unchanged.
+///
 /// ## Cross-modal stays gate-controlled (this ship = ZERO effect)
 /// Cross-modal is read THROUGH `CrossModalShadowGate.crossModalDrivesVerdict` (default FALSE). While
 /// the gate is off OR the `CrossModalResult` is nil, cross-modal multiplies by EXACTLY 1.0 —
@@ -59,11 +65,29 @@ struct TodayVerdictEngine {
 
     /// The verdict CORE output. `adjustedTopSetKg` is a plate-snapped kg weight; `volumeCutSets`
     /// is nil when no back-off cut applies; `loadFactor` is the applied multiplier in `[0.90, 1.00]`.
+    /// `matchProximity` is true exactly when the match-proximity rule (ADR-0002) engaged AND the
+    /// verdict is `.modify` — the microdose shape. It drives the "microdose" framing downstream;
+    /// it never changes the numbers by itself.
     struct VerdictResult: Equatable {
         let verdict: Verdict
         let adjustedTopSetKg: Double
         let volumeCutSets: Int?
         let loadFactor: Double
+        let matchProximity: Bool
+
+        init(
+            verdict: Verdict,
+            adjustedTopSetKg: Double,
+            volumeCutSets: Int?,
+            loadFactor: Double,
+            matchProximity: Bool = false
+        ) {
+            self.verdict = verdict
+            self.adjustedTopSetKg = adjustedTopSetKg
+            self.volumeCutSets = volumeCutSets
+            self.loadFactor = loadFactor
+            self.matchProximity = matchProximity
+        }
     }
 
     // MARK: - Tunable constants (the SINGLE home — mirrors CrossModalFatigueEngine.Constants)
@@ -76,12 +100,47 @@ struct TodayVerdictEngine {
         /// Loadable plate step (kg). The adjusted weight is always a multiple of this.
         static let plateStepKg: Double = 2.5
 
+        /// Match proximity window in CALENDAR DAYS (ADR-0002 — one date, one rule, no trajectory
+        /// math). "≤48h" is deliberately measured in start-of-day calendar days, mirroring the
+        /// Stage-1 `Athlete.nextMatchDate` start-of-day normalization: the rule engages on match
+        /// day itself (`daysAway == 0`) and the 2 calendar days before it (`1`, `2`) — e.g. a
+        /// Saturday match tightens Thursday, Friday, and Saturday. A match 3 calendar days out has
+        /// ZERO effect. Time-of-day never matters (both sides are start-of-day normalized).
+        static let matchProximityDays: Int = 2
+
         /// volumeModifier at/above this ⇒ no reduction (GO candidate).
         static let goVolumeThreshold: Double = 0.95
         /// volumeModifier in `[volumeCutFloor, goVolumeThreshold)` ⇒ volume-cut-preferred (keep top set).
         static let volumeCutFloor: Double = 0.85
         /// Number of back-off sets a full reduction (volumeModifier → volumeCutFloor) implies.
         static let backoffSetsAtFullCut: Double = 3.0
+    }
+
+    // MARK: - Match proximity (ADR-0002 — one date, one rule, NO trajectory math)
+
+    /// Calendar-day distance from `asOf` to the next scheduled match, or nil when there is no
+    /// effective match: `nextMatchDate == nil` OR the date is strictly before today (expired).
+    /// Mirrors the Stage-1 convention — an expired date is treated as ABSENT; the engine is pure
+    /// and never mutates the model (the UI clears expired dates on section appear). Both sides are
+    /// start-of-day normalized, so time-of-day never shifts the boundary.
+    static func matchDaysAway(
+        nextMatchDate: Date?,
+        asOf: Date,
+        calendar: Calendar
+    ) -> Int? {
+        guard let nextMatchDate else { return nil }
+        let today = calendar.startOfDay(for: asOf)
+        let match = calendar.startOfDay(for: nextMatchDate)
+        guard let days = calendar.dateComponents([.day], from: today, to: match).day,
+              days >= 0 else { return nil }   // strictly-before-today ⇒ absent (never mutate)
+        return days
+    }
+
+    /// The ONE proximity predicate: the next scheduled match is on today or within the next
+    /// `Constants.matchProximityDays` calendar days. nil (no match / expired) ⇒ never near.
+    static func isMatchNear(daysAway: Int?) -> Bool {
+        guard let daysAway else { return false }
+        return daysAway >= 0 && daysAway <= Constants.matchProximityDays
     }
 
     // MARK: - Evaluate
@@ -94,11 +153,17 @@ struct TodayVerdictEngine {
     ///   - crossModalResult: optional cross-modal carry — applied ONLY when the shadow gate is on
     ///     (zero effect at the shipped default).
     ///   - plateStepKg: loadable plate step in kg (default `Constants.plateStepKg`).
+    ///   - matchDaysAway: calendar days to the next scheduled match (from `matchDaysAway(...)`);
+    ///     nil ⇒ no match scheduled / expired ⇒ behavior EXACTLY unchanged.
+    ///   - plannedWorkingSetCount: the exercise's working-set count, so the microdose can cut ALL
+    ///     back-offs (`count − 1`); nil falls back to `Constants.backoffSetsAtFullCut`.
     static func evaluate(
         recommendation: AutoregulationEngine.TrainingRecommendation,
         plannedTopSet: PlannedTopSet,
         crossModalResult: CrossModalFatigueEngine.CrossModalResult?,
-        plateStepKg: Double = Constants.plateStepKg
+        plateStepKg: Double = Constants.plateStepKg,
+        matchDaysAway: Int? = nil,
+        plannedWorkingSetCount: Int? = nil
     ) -> VerdictResult {
         let planned = plannedTopSet.plannedTopSetKg
         let vol = recommendation.volumeModifier
@@ -150,6 +215,28 @@ struct TodayVerdictEngine {
             effectiveFactor = Swift.max(1.0 - Constants.maxLoadTrim, effectiveFactor)
         }
 
+        // --- Match-proximity TIGHTEN (ADR-0002: one date, one rule, no trajectory math). -----------
+        // When the next scheduled match is near (see `Constants.matchProximityDays`), the verdict
+        // tightens to the MICRODOSE shape (CONTEXT.md): keep the athlete's planned movements, cap
+        // the top set — the existing bound logic, preferring the STRONGER trim (at least the −5%
+        // default; more if the body already said more, still hard-capped at −10%) — and cut ALL
+        // back-off sets (~20-min session character). Anti-nocebo: proximity can only move
+        // GO → MODIFY (tighter numbers); it NEVER produces HOLD (the rest-like HOLD path above
+        // returns before this and is untouched by proximity).
+        let proximityActive = isMatchNear(daysAway: matchDaysAway)
+        if proximityActive {
+            // Cap the top set: prefer the stronger of (the recommendation's trim, the −5% default),
+            // re-clamped to the −10% ceiling.
+            effectiveFactor = Swift.min(effectiveFactor, 1.0 - Constants.defaultLoadTrim)
+            effectiveFactor = Swift.max(1.0 - Constants.maxLoadTrim, effectiveFactor)
+            // Cut ALL back-offs: count − 1 when the working-set count is known (nil when there are
+            // no back-offs to cut), else the full-cut convention.
+            let microCut = plannedWorkingSetCount.map { Swift.max($0 - 1, 0) }
+                ?? Int(Constants.backoffSetsAtFullCut)
+            let merged = Swift.max(volumeCutSets ?? 0, microCut)
+            volumeCutSets = merged > 0 ? merged : nil
+        }
+
         // --- Compute + plate-round the adjusted weight. --------------------------------------------
         let rawAdjusted = planned * effectiveFactor
         var adjusted = WeightFormatter.snapToIncrement(rawAdjusted, to: plateStepKg)
@@ -159,7 +246,9 @@ struct TodayVerdictEngine {
         }
 
         // --- Collapse to the verdict (research §3.1). ----------------------------------------------
-        // Sub-increment delta + no back-off cut ⇒ GO (no false-precision micro-change).
+        // Sub-increment delta + no back-off cut ⇒ GO (no false-precision micro-change). This also
+        // holds under match proximity: a microdose with no back-offs to cut and a sub-plate-step
+        // trim changes literally nothing — forcing MODIFY there would be false precision.
         if (planned - adjusted) < plateStepKg, volumeCutSets == nil {
             return VerdictResult(
                 verdict: .go,
@@ -173,7 +262,8 @@ struct TodayVerdictEngine {
             verdict: .modify,
             adjustedTopSetKg: adjusted,
             volumeCutSets: volumeCutSets,
-            loadFactor: effectiveFactor
+            loadFactor: effectiveFactor,
+            matchProximity: proximityActive
         )
     }
 }

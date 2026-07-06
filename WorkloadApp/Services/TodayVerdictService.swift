@@ -64,7 +64,8 @@ final class TodayVerdictService {
         acwr: Double,
         acwrZone: ACWRZone,
         asOf: Date = .now,
-        calendar: Calendar = .current
+        calendar: Calendar = .current,
+        nextMatchDate: Date? = nil
     ) -> [TodayVerdictEngine.VerdictResult]? {
         guard let plan = plannedSessionRepository
             .fetchTodaysPlannedSession(athleteId: athleteId) else { return nil }
@@ -91,7 +92,10 @@ final class TodayVerdictService {
                 prescribedWorkout: plan,
                 decisionInput: nil,
                 crossModalResult: nil,
-                plateStepKg: TodayVerdictEngine.Constants.plateStepKg
+                plateStepKg: TodayVerdictEngine.Constants.plateStepKg,
+                nextMatchDate: nextMatchDate,
+                asOf: asOf,
+                calendar: calendar
             )
         }
 
@@ -108,7 +112,10 @@ final class TodayVerdictService {
             prescribedWorkout: plan,
             decisionInput: decisionInput,
             crossModalResult: crossModal,
-            plateStepKg: TodayVerdictEngine.Constants.plateStepKg
+            plateStepKg: TodayVerdictEngine.Constants.plateStepKg,
+            nextMatchDate: nextMatchDate,
+            asOf: asOf,
+            calendar: calendar
         )
     }
 
@@ -131,14 +138,25 @@ final class TodayVerdictService {
     /// For each exercise in `prescribedWorkout`, select its top set, run the verdict engines, and
     /// write the SUGGESTION into the top set's slots. `decisionInput == nil` ⇒ cold-start defer
     /// (suggestion equals the plan; defer copy; no RPE cap). Returns the per-exercise verdict results.
+    /// `nextMatchDate` (ADR-0002) feeds the engine's match-proximity rule; nil / expired / far ⇒
+    /// behavior exactly unchanged. Cold-start still defers even near a match — never trim on a guess.
     @discardableResult
     func evaluateAndWrite(
         prescribedWorkout: PrescribedWorkout,
         decisionInput: ReasoningEngine.DecisionInput?,
         crossModalResult: CrossModalFatigueEngine.CrossModalResult?,
-        plateStepKg: Double = 2.5
+        plateStepKg: Double = 2.5,
+        nextMatchDate: Date? = nil,
+        asOf: Date = .now,
+        calendar: Calendar = .current
     ) -> [TodayVerdictEngine.VerdictResult] {
         var results: [TodayVerdictEngine.VerdictResult] = []
+
+        // Match proximity, computed ONCE (expired dates read as absent — the engine never mutates).
+        let matchDaysAway = TodayVerdictEngine.matchDaysAway(
+            nextMatchDate: nextMatchDate, asOf: asOf, calendar: calendar
+        )
+        let matchIsNear = TodayVerdictEngine.isMatchNear(daysAway: matchDaysAway)
 
         for exercise in prescribedWorkout.allExercises {
             // Select the TOP working set = the non-warmup TemplateSet with the max targetWeightKg.
@@ -159,7 +177,10 @@ final class TodayVerdictService {
                         verdict: frozenVerdict,
                         adjustedTopSetKg: top.adjustedTargetWeightKg ?? plannedKg,
                         volumeCutSets: top.adjustedBackoffSetCut,
-                        loadFactor: 1.0
+                        loadFactor: 1.0,
+                        // Keep the microdose framing stable across a post-decision refresh: a frozen
+                        // suggestion while the match is still near reads as proximity-shaped.
+                        matchProximity: matchIsNear && frozenVerdict == .modify
                     )
                 )
                 continue
@@ -199,13 +220,24 @@ final class TodayVerdictService {
                 recommendation: recommendation,
                 plannedTopSet: planned,
                 crossModalResult: crossModalResult,
-                plateStepKg: plateStepKg
+                plateStepKg: plateStepKg,
+                matchDaysAway: matchDaysAway,
+                plannedWorkingSetCount: working.count
             )
+            // Match context ONLY when the proximity rule actually engaged (the reason then LEADS
+            // with the match + microdose shape).
+            let matchContext: VerdictReasonBuilder.MatchContext? = {
+                guard result.matchProximity, let daysAway = matchDaysAway,
+                      let matchDate = nextMatchDate else { return nil }
+                return VerdictReasonBuilder.MatchContext(daysAway: daysAway, matchDate: matchDate)
+            }()
             let reason = VerdictReasonBuilder.build(
                 decisionInput: decisionInput,
                 crossModalResult: crossModalResult,
                 plannedRegion: region,
-                deferToPlan: false
+                deferToPlan: false,
+                matchContext: matchContext,
+                calendar: calendar
             )
 
             // --- WRITE the suggestion (never verdictAppliedAt / athleteOverrode). --------------------
@@ -222,8 +254,10 @@ final class TodayVerdictService {
                 top.adjustedTargetRPE = nil
             }
 
-            // Encode any back-off-set guidance as a trailing clause (suggestion only — never delete sets).
-            if let cutSets = result.volumeCutSets {
+            // Encode any back-off-set guidance as a trailing clause (suggestion only — never delete
+            // sets). Skipped for a proximity microdose — its copy already says "skip back-offs"
+            // (the structured `adjustedBackoffSetCut` above stays the execution source of truth).
+            if let cutSets = result.volumeCutSets, !result.matchProximity {
                 let clause = String(
                     localized: "verdict.reason.backoffCut",
                     defaultValue: " — consider dropping \(cutSets) back-off set\(cutSets == 1 ? "" : "s")"

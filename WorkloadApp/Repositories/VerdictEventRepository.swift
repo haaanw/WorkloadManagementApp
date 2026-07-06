@@ -70,6 +70,27 @@ final class VerdictEventRepository {
         try? modelContext.save()
     }
 
+    /// v2.1 dogfood (protocol criterion 3) — record the STRICT next-day "felt right?" self-report
+    /// ("right" / "wrong" / "unsure") onto an event. **Write-once**: a second call is a no-op and
+    /// returns `false` — the first answer is immutable (never retro-rated, never edited).
+    ///
+    /// When the Phase 45 `outcomeRaw` is still empty it is mirrored from this answer (same
+    /// vocabulary), so the green-light math keeps reading one field and the looser post-session
+    /// sheet never re-asks about an event the athlete already judged.
+    @discardableResult
+    func recordFeltRight(_ feltRightRaw: String, for event: VerdictEvent, at date: Date = .now) -> Bool {
+        guard event.feltRightRaw == nil else { return false }
+        event.feltRightRaw = feltRightRaw
+        event.feltRightRecordedAt = date
+        if event.outcomeRaw == nil {
+            event.outcomeRaw = feltRightRaw
+            event.outcomeRecordedAt = date
+        }
+        event.updatedAt = date
+        try? modelContext.save()
+        return true
+    }
+
     /// All events, newest-first by `decidedAt`. Athlete filtered in Swift (no relationship predicate).
     func fetchAll(athlete: Athlete?) -> [VerdictEvent] {
         let descriptor = FetchDescriptor<VerdictEvent>(

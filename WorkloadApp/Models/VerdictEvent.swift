@@ -79,6 +79,16 @@ final class VerdictEvent {
     /// When the outcome self-report was recorded; nil until reported.
     var outcomeRecordedAt: Date?
 
+    /// v2.1 dogfood (protocol criterion 3) — the STRICT next-calendar-day "felt right?" self-report:
+    /// "right" / "wrong" / "unsure"; nil until reported. Unlike `outcomeRaw` (which the looser
+    /// post-session sheet may fill days later), this field is only ever written on the day after
+    /// `planDate` and is write-once (never retro-rated, never edited). A missed day simply stays
+    /// nil — absence IS the record. Additive nullable — no migration.
+    var feltRightRaw: String?
+
+    /// When the next-day "felt right?" self-report was recorded; nil until reported / if missed.
+    var feltRightRecordedAt: Date?
+
     var updatedAt: Date
 
     /// Bare inverse to the owning athlete (mirrors `SorenessLog`). Deliberately NO array on `Athlete`.
@@ -102,6 +112,8 @@ final class VerdictEvent {
         suggestedRPECap: Double? = nil,
         outcomeRaw: String? = nil,
         outcomeRecordedAt: Date? = nil,
+        feltRightRaw: String? = nil,
+        feltRightRecordedAt: Date? = nil,
         athlete: Athlete? = nil
     ) {
         self.id = id
@@ -121,6 +133,8 @@ final class VerdictEvent {
         self.suggestedRPECap = suggestedRPECap
         self.outcomeRaw = outcomeRaw
         self.outcomeRecordedAt = outcomeRecordedAt
+        self.feltRightRaw = feltRightRaw
+        self.feltRightRecordedAt = feltRightRecordedAt
         self.updatedAt = .now
         self.athlete = athlete
     }

@@ -242,7 +242,12 @@ struct TodayVerdictCard: View {
 
     private var stateLabel: String {
         switch display.kind {
-        case .adjusted: return String(localized: "verdictCard.state.adjust", defaultValue: "Adjust")
+        case .adjusted:
+            // v2.1 (ADR-0002): a match-proximity adjustment reads as a MICRODOSE — still a
+            // suggestion with a reason (same equal-weight decision row), never a gate.
+            return display.isMicrodose
+                ? String(localized: "verdictCard.state.microdose", defaultValue: "Microdose")
+                : String(localized: "verdictCard.state.adjust", defaultValue: "Adjust")
         case .asPlanned: return String(localized: "verdictCard.state.steady", defaultValue: "Steady")
         case .deferred: return String(localized: "verdictCard.state.learning", defaultValue: "Learning")
         }

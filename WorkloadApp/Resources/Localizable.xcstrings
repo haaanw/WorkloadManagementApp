@@ -3584,6 +3584,91 @@
         }
       }
     },
+    "feltRight.header" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "YESTERDAY'S CALL"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "昨天的判断"
+          }
+        }
+      }
+    },
+    "feltRight.question" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Did it feel right?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感觉对吗？"
+          }
+        }
+      }
+    },
+    "feltRight.right" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Felt right"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感觉对"
+          }
+        }
+      }
+    },
+    "feltRight.unsure" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unsure"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说不准"
+          }
+        }
+      }
+    },
+    "feltRight.wrong" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Felt wrong"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "感觉不对"
+          }
+        }
+      }
+    },
     "field.templateName" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4360,6 +4445,108 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "验证前的内部信号——不是预测，只是看看这些判断的落点。"
+          }
+        }
+      }
+    },
+    "measurement.dogfood.differingDays" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Differing-verdict days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "判断有差异的天数"
+          }
+        }
+      }
+    },
+    "measurement.dogfood.feltRight.context" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d rated · %2$d missed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已评 %1$d · 错过 %2$d"
+          }
+        }
+      }
+    },
+    "measurement.dogfood.feltRight.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Followed verdicts felt right"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "采纳后感觉对"
+          }
+        }
+      }
+    },
+    "measurement.dogfood.followed.context" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d of %2$d days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%2$d 天中的 %1$d 天"
+          }
+        }
+      }
+    },
+    "measurement.dogfood.followed.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Differing verdicts followed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "差异判断被采纳"
+          }
+        }
+      }
+    },
+    "measurement.dogfood.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dogfood window"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自测窗口"
           }
         }
       }
@@ -13147,6 +13334,74 @@
     "Use at least 8 characters." : {
 
     },
+    "verdict.match.microdose" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — microdose: cap the top set, skip back-offs."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ — 微剂量：压低顶组重量，跳过后续组。"
+          }
+        }
+      }
+    },
+    "verdict.match.onDay" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@比赛"
+          }
+        }
+      }
+    },
+    "verdict.match.today" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match today"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天比赛"
+          }
+        }
+      }
+    },
+    "verdict.match.tomorrow" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match tomorrow"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "明天比赛"
+          }
+        }
+      }
+    },
     "verdict.reason.backoffCut" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -13369,6 +13624,12 @@
             "state" : "new",
             "value" : "↓ from %@"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "↓ 原计划 %@"
+          }
         }
       }
     },
@@ -13491,6 +13752,23 @@
         }
       }
     },
+    "verdictCard.state.microdose" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microdose"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "微剂量"
+          }
+        }
+      }
+    },
     "verdictCard.state.steady" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13533,6 +13811,12 @@
             "state" : "new",
             "value" : "Today's number sits inside today's training zone"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天的重量落在今日训练区间内"
+          }
         }
       }
     },
@@ -13544,6 +13828,12 @@
             "state" : "new",
             "value" : "IN TODAY'S ZONE"
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "处于今日区间"
+          }
         }
       }
     },
@@ -13554,6 +13844,12 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "RIGHT IN YOUR ZONE"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正处于你的区间"
           }
         }
       }

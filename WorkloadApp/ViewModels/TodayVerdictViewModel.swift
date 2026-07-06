@@ -45,6 +45,10 @@ final class TodayVerdictViewModel {
     /// from the last `refresh`, for the logged `VerdictEvent`. Non-visual.
     private(set) var lastHeadlineRegionRaw: String?
 
+    /// v2.1 (ADR-0002) — whether the headline exercise's verdict was match-proximity-tightened on
+    /// the last `refresh`. Drives the card's "microdose" framing (never the numbers).
+    private(set) var lastHeadlineMatchProximity: Bool = false
+
     // MARK: - Stored dependencies (created once in init — see deinit-safety note)
 
     private let modelContext: ModelContext
@@ -160,13 +164,15 @@ final class TodayVerdictViewModel {
             results = verdictService.evaluateAndWrite(
                 prescribedWorkout: plan,
                 decisionInput: decisionInput,
-                crossModalResult: nil
+                crossModalResult: nil,
+                nextMatchDate: athlete.nextMatchDate   // ADR-0002 match-proximity input (nil-safe)
             )
         } else {
             results = verdictService.evaluateAndWrite(
                 prescribedWorkout: plan,
                 decisionInput: nil,            // cold-start ⇒ honest defer (suggestion == plan)
-                crossModalResult: nil
+                crossModalResult: nil,
+                nextMatchDate: athlete.nextMatchDate   // zero effect on defer — never trim on a guess
             )
         }
 
@@ -193,16 +199,20 @@ final class TodayVerdictViewModel {
         guard let headlineIndex = producing.indices.max(by: { producing[$0].topKg < producing[$1].topKg }) else {
             lastHeadlineVerdictRaw = deferredToPlan ? "defer" : nil
             lastHeadlineRegionRaw = nil
+            lastHeadlineMatchProximity = false
             return
         }
         let headlineExercise = producing[headlineIndex].exercise
         lastHeadlineRegionRaw = (headlineExercise.muscleGroup?.region ?? .fullBody).rawValue
         if deferredToPlan {
             lastHeadlineVerdictRaw = "defer"
+            lastHeadlineMatchProximity = false
         } else if headlineIndex < results.count {
             lastHeadlineVerdictRaw = Self.verdictRaw(results[headlineIndex].verdict)
+            lastHeadlineMatchProximity = results[headlineIndex].matchProximity
         } else {
             lastHeadlineVerdictRaw = nil
+            lastHeadlineMatchProximity = false
         }
     }
 
@@ -334,7 +344,9 @@ final class TodayVerdictViewModel {
             reasonLine: headline.verdictReason ?? "",
             kind: kind,
             confidenceNote: confidenceNote,
-            appliedState: appliedState
+            appliedState: appliedState,
+            // Microdose framing ONLY on a real proximity-tightened adjustment (ADR-0002 / item 5).
+            isMicrodose: lastHeadlineMatchProximity && kind == .adjusted
         )
     }
 

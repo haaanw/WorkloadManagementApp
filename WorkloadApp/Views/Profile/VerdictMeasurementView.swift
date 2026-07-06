@@ -27,8 +27,17 @@ struct VerdictMeasurementView: View {
         return GreenLightEngine.compute(events: events, asOf: .now, calendar: .current)
     }
 
+    /// v2.1 dogfood — the pre-registered criteria 1–3 readout (differing days / followed % /
+    /// felt-right %) over the same event log. Same boundary rule: `.now`/`.current` read here once.
+    private var dogfood: FeltRightPromptEngine.DogfoodSummary {
+        let repository = VerdictEventRepository(modelContext: modelContext)
+        let events = repository.fetchAll(athlete: athletes.first)
+        return FeltRightPromptEngine.summary(events: events, asOf: .now, calendar: .current)
+    }
+
     var body: some View {
         let m = metrics
+        let d = dogfood
         ScrollView {
             VStack(spacing: 0) {
                 SectionHeader(title: "measurement.title")
@@ -82,6 +91,46 @@ struct VerdictMeasurementView: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.top, Spacing.sm)
+
+                // v2.1 — the pre-registered n=1 dogfood criteria (1–3). Same quiet grammar:
+                // flat rows, honest nil-states, no accent, no chart.
+                SectionHeader(title: "measurement.dogfood.title")
+                    .padding(.top, Spacing.lg)
+                    .padding(.bottom, Spacing.sm)
+
+                VStack(spacing: 0) {
+                    statRow(
+                        label: "measurement.dogfood.differingDays",
+                        value: Text(verbatim: "\(d.differingDays)").monospacedDigit(),
+                        context: nil
+                    )
+                    rowHairline()
+                    statRow(
+                        label: "measurement.dogfood.followed.label",
+                        value: percentText(d.followedRate),
+                        context: d.followedRate == nil
+                            ? nil
+                            : String(
+                                format: String(localized: "measurement.dogfood.followed.context",
+                                               defaultValue: "%1$d of %2$d days"),
+                                d.followedDays, d.differingDays
+                            )
+                    )
+                    rowHairline()
+                    statRow(
+                        label: "measurement.dogfood.feltRight.label",
+                        value: percentText(d.feltRightRate),
+                        context: (d.ratedDays + d.missedDays) == 0
+                            ? nil
+                            : String(
+                                format: String(localized: "measurement.dogfood.feltRight.context",
+                                               defaultValue: "%1$d rated · %2$d missed"),
+                                d.ratedDays, d.missedDays
+                            )
+                    )
+                }
+                .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+                .padding(.horizontal, Spacing.sm)
 
                 Spacer()
             }

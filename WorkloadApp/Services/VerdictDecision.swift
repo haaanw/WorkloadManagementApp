@@ -80,6 +80,9 @@ struct TodayVerdictDisplay: Equatable {
     let kind: Kind
     let confidenceNote: String?
     let appliedState: AppliedState
+    /// v2.1 (ADR-0002): the adjustment is a match-proximity MICRODOSE — the card swaps its modify
+    /// framing to "Microdose" (vocabulary only; the numbers/logic are already in the fields above).
+    var isMicrodose: Bool = false
 }
 
 // MARK: - VerdictDecisionApplier (slot mutations only — the autonomy invariant)
