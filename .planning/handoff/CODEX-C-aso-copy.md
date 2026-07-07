@@ -1,6 +1,6 @@
 # CODEX-C — App Store copy draft (Track 3, PREP-ONLY)
 
-**Parallel-safe with CODEX-A/B** — this session writes ONLY new markdown under `.planning/store/`. Do not touch app code, xcstrings, or anything else. No git mutations. NOTHING here gets published — it's drafted now, published only after the n=1 dogfood gate passes (see `.planning/notes/dogfood-protocol-n1.md`).
+**Parallel-safe with CODEX-A/B** — this session writes ONLY new markdown under `.planning/store/` (create the directory). Do not touch app code, xcstrings, or anything else. **RUN NO GIT COMMANDS AT ALL** — not status/diff/add/commit/reset; the orchestrator owns git. Just write the files and report their paths. NOTHING here gets published — it's drafted now, published only after the n=1 dogfood gate passes (see `.planning/notes/dogfood-protocol-n1.md`).
 
 ## Read first
 `CONTEXT.md` (canonical vocabulary — use it verbatim), `docs/adr/0001-basketball-beachhead.md`, `docs/adr/0002-match-proximity-not-forecast.md`, `.planning/notes/v21-basketball-beachhead-plan.md`, `.planning/notes/strike-zone-framing.md`.

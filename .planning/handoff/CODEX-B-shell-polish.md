@@ -3,7 +3,8 @@
 **Run ONLY after CODEX-A's work is committed** (same file: AppShell.swift). Baseline will be the post-A commit.
 
 ## Ground rules
-Same as CODEX-A: work in tree, no git mutations, edit only AppShell.swift / AppShellUIKitPrimitives.swift / Localizable.xcstrings (surgical) / new test files; never pbxproj; service layer read-only. Read `DESIGN.md` first (light-only, 0pt corners, no shadows, accent rules).
+**RUN NO GIT COMMANDS WHATSOEVER — not `status`, not `diff`, not `add`, not `commit`, not `reset`, nothing. The orchestrator owns 100% of git.** (A prior session ran `git reset` and destroyed an orchestrator commit — do not repeat this.) Just leave your edits in the working tree and report.
+Otherwise same as CODEX-A: edit only AppShell.swift / AppShellUIKitPrimitives.swift / Localizable.xcstrings (surgical) / new test files; never pbxproj; service layer read-only. Read `DESIGN.md` first (light-only, 0pt corners, no shadows, accent rules).
 
 ## Fixes (all verified by an on-sim visual audit, screenshots in /tmp/track2-audit/ if still present)
 
