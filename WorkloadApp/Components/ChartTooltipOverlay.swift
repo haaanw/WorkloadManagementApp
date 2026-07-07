@@ -38,7 +38,7 @@ struct TooltipBubble: View {
     let dateLabel: String
 
     var body: some View {
-        VStack(spacing: 2) {
+        VStack(spacing: Spacing.baselinePair) {
             Text(value)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)

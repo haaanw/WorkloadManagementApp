@@ -35,10 +35,15 @@ final class TodayVerdictService {
     /// bug (`swift_task_deinitOnExecutorMainActorBackDeploy` → SIGABRT) — owning it for the service's
     /// lifetime (which the caller/test holds as a stored prop) avoids it.
     private let plannedSessionRepository: PlannedSessionRepository
+    /// Read-side for the decision-time `VerdictEvent` record — frozen (decided) verdict rendering
+    /// sources its match-proximity flag from here, never from the live match date. Stored for the
+    /// same iOS 26.1-sim deinit-safety reason as `plannedSessionRepository`.
+    private let verdictEventRepository: VerdictEventRepository
 
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.plannedSessionRepository = PlannedSessionRepository(modelContext: modelContext)
+        self.verdictEventRepository = VerdictEventRepository(modelContext: modelContext)
     }
 
     // MARK: - Production wrapper (sources the live VERDICT-03 reason path)
@@ -156,7 +161,15 @@ final class TodayVerdictService {
         let matchDaysAway = TodayVerdictEngine.matchDaysAway(
             nextMatchDate: nextMatchDate, asOf: asOf, calendar: calendar
         )
-        let matchIsNear = TodayVerdictEngine.isMatchNear(daysAway: matchDaysAway)
+        // FROZEN-render proximity source of truth = the DECISION-TIME record: the flag persisted
+        // on the `VerdictEvent` logged with the decision (`matchProximityRaw`), never today's live
+        // match date. Adding a match AFTER a plain accepted MODIFY must not retro-label it as a
+        // microdose, and clearing the match must not strip microdose framing from a decision that
+        // was made under it. No event / pre-v2.1 nil honestly reads as false (mirrors
+        // `FeltRightPromptEngine`'s nil-is-not-proximity convention). Live (undecided) verdicts
+        // keep computing proximity from the live date via the engine below.
+        let decidedMatchProximity = verdictEventRepository
+            .mostRecentEvent(prescriptionId: prescribedWorkout.id)?.matchProximityRaw ?? false
 
         for exercise in prescribedWorkout.allExercises {
             // Select the TOP working set = the non-warmup TemplateSet with the max targetWeightKg.
@@ -178,9 +191,10 @@ final class TodayVerdictService {
                         adjustedTopSetKg: top.adjustedTargetWeightKg ?? plannedKg,
                         volumeCutSets: top.adjustedBackoffSetCut,
                         loadFactor: 1.0,
-                        // Keep the microdose framing stable across a post-decision refresh: a frozen
-                        // suggestion while the match is still near reads as proximity-shaped.
-                        matchProximity: matchIsNear && frozenVerdict == .modify
+                        // Microdose framing is FROZEN with the decision: read back the flag that was
+                        // persisted at decision time (see `decidedMatchProximity` above) — never the
+                        // current match date, which may have been added or cleared since.
+                        matchProximity: decidedMatchProximity && frozenVerdict == .modify
                     )
                 )
                 continue

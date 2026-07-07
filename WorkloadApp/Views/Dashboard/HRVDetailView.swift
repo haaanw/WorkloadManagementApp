@@ -94,7 +94,7 @@ struct HRVDetailView: View {
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
-            HStack(alignment: .lastTextBaseline, spacing: 2) {
+            HStack(alignment: .lastTextBaseline, spacing: Spacing.baselinePair) {
                 Text(value)
                     .font(.Tokens.label)
                     .monospacedDigit()

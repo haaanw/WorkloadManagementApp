@@ -94,7 +94,7 @@ struct TodayVerdictCard: View {
                     .padding(.top, Spacing.baselinePair)
                     Text(zoneCaption)
                         .font(.Tokens.micro)
-                        .tracking(1.4)
+                        .tracking(1.2)
                         .foregroundStyle(ColorTokens.text3)
                 }
             }

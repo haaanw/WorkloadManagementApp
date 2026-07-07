@@ -134,8 +134,7 @@ struct ShareImportPreviewSheet: View {
                                     .tint(ColorTokens.background)
                             } else {
                                 Text("action.importTemplate")
-                                    .font(.Tokens.body)
-                                    .fontWeight(.medium)
+                                    .font(.Tokens.bodyMedium)
                             }
                         }
                         .foregroundStyle(ColorTokens.background)

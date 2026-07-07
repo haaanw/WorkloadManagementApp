@@ -54,7 +54,7 @@ struct SyncStatusView: View {
                 .frame(width: 8, height: 8)
 
             // Center VStack: entity name + timestamp
-            VStack(alignment: .leading, spacing: 2) {
+            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                 Text(entity.displayName)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)

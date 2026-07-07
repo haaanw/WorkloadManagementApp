@@ -43,6 +43,16 @@ struct WeightFormatter {
         return (value / step).rounded() * step
     }
 
+    /// Snap a numeric value DOWN to a multiple of `step` (floor; pure, locale-free).
+    /// Used when the value is a hard upper bound (e.g. a trimmed/capped top-set weight):
+    /// nearest-snapping could round back UP past the bound, floor-snapping never can.
+    /// The tiny epsilon absorbs float error so a value mathematically ON a plate multiple
+    /// (e.g. 100 × 0.95 = 95.0) never drops a whole step.
+    static func floorToIncrement(_ value: Double, to step: Double) -> Double {
+        guard step > 0 else { return value }
+        return ((value / step) + 1e-9).rounded(.down) * step
+    }
+
     /// Display value without unit label (no locale needed; numeric only).
     static func displayValue(_ kg: Double, unit: WeightUnit) -> Double {
         switch unit {

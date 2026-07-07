@@ -201,6 +201,23 @@ final class TodayVerdictMatchProximityEngineTests: XCTestCase {
         XCTAssertEqual(result.volumeCutSets, 3)   // 4 working sets ⇒ cut all 3 back-offs
     }
 
+    func test_matchNear_capSnap_floorsDownward_neverAboveTheCap() {
+        // REGRESSION (verified adversarial example): planned 102.5, GO-as-written, match near ⇒
+        // proximity cap 102.5 × 0.95 = 97.375. Nearest-snap used to round back UP to 97.5 — ABOVE
+        // the −5% cap (the never-above-PLANNED guard only protected 102.5, not the capped value).
+        // Trims must floor to the plate step: 95.0.
+        let rec = recommendation(cap: 9.0, vol: 1.0, type: .strength)
+        let result = TodayVerdictEngine.evaluate(
+            recommendation: rec, plannedTopSet: plannedTopSet(kg: 102.5),
+            crossModalResult: nil, plateStepKg: plateStep,
+            matchDaysAway: 1, plannedWorkingSetCount: 3
+        )
+        XCTAssertEqual(result.verdict, .modify)
+        XCTAssertTrue(result.matchProximity)
+        XCTAssertEqual(result.adjustedTopSetKg, 95.0, accuracy: 1e-9)
+        XCTAssertLessThanOrEqual(result.adjustedTopSetKg, 102.5 * 0.95 + 1e-9, "snapped value must never exceed the proximity cap")
+    }
+
     // MARK: - Anti-nocebo (proximity NEVER produces HOLD)
 
     func test_matchNear_neverProducesHold_acrossRecommendations() {
@@ -341,6 +358,8 @@ final class TodayVerdictServiceMatchProximityTests: XCTestCase {
     private var container: ModelContainer!
     private var context: ModelContext!
     private var service: TodayVerdictService!
+    /// Stored (not a method local) for the same iOS 26.1-sim @MainActor deinit-safety reason.
+    private var eventRepo: VerdictEventRepository!
 
     override func setUpWithError() throws {
         try super.setUpWithError()
@@ -351,7 +370,8 @@ final class TodayVerdictServiceMatchProximityTests: XCTestCase {
             BaselineState.self,
             WellnessCheckIn.self, PersonalRecord.self, CoachAthleteRelationship.self,
             WorkoutTemplate.self, ExerciseGroup.self, TemplateExercise.self, TemplateSet.self,
-            PrescribedWorkout.self, CustomExercise.self, BehaviorTag.self, TrainingProfile.self
+            PrescribedWorkout.self, CustomExercise.self, BehaviorTag.self, TrainingProfile.self,
+            VerdictEvent.self
         ])
         container = try ModelContainer(
             for: schema,
@@ -359,9 +379,11 @@ final class TodayVerdictServiceMatchProximityTests: XCTestCase {
         )
         context = ModelContext(container)
         service = TodayVerdictService(modelContext: context)
+        eventRepo = VerdictEventRepository(modelContext: context)
     }
 
     override func tearDown() {
+        eventRepo = nil
         service = nil
         context = nil
         container = nil
@@ -494,6 +516,114 @@ final class TodayVerdictServiceMatchProximityTests: XCTestCase {
         XCTAssertEqual(top.adjustedTargetWeightKg ?? 0, 100, accuracy: 1e-9)  // suggestion == plan
         XCTAssertNil(top.adjustedBackoffSetCut)
         XCTAssertFalse((top.verdictReason ?? "").lowercased().contains("microdose"))
+    }
+
+    // MARK: - Frozen (decided) verdicts: proximity comes from the DECISION-TIME record
+
+    /// A clearly-down decision input warranting a plain (non-proximity) MODIFY load trim.
+    private func trimDecisionInput() -> ReasoningEngine.DecisionInput {
+        let readiness = ReadinessFusionEngine.compute(.init(hrvZ: -1.6, rhrZ: -0.6, sleepZ: -0.8, confidence: 0.7))
+        let strain = StrainRiskEngine.StrainRiskResult(
+            score: 0.6, zone: StrainRiskEngine.zone(for: 0.6),
+            factors: [.init(label: "Per-muscle strength-load elevation", contribution: 0.2)],
+            confidence: 0.6
+        )
+        let rec = AutoregulationEngine.TrainingRecommendation(
+            intensityCap: 7, volumeModifier: 0.6, sessionType: .conditioning,
+            warnings: [], headline: "Stay Controlled", detail: "..."
+        )
+        return ReasoningEngine.DecisionInput(readiness: readiness, strainRisk: strain, recommendation: rec)
+    }
+
+    /// Log the decision-time `VerdictEvent` the production seam records on accept (5dd47c4),
+    /// carrying the persisted proximity flag for `workout`'s prescription.
+    private func logDecision(for workout: PrescribedWorkout, matchProximity: Bool) {
+        let top = topSet(of: workout)
+        eventRepo.log(
+            decidedAt: asOf, planDate: asOf, verdictKindRaw: "modify",
+            plannedTopSetKg: top.targetWeightKg ?? 0,
+            adjustedTopSetKg: top.adjustedTargetWeightKg,
+            deltaKg: (top.adjustedTargetWeightKg ?? 0) - (top.targetWeightKg ?? 0),
+            differed: true, actionRaw: "accepted", regionRaw: MuscleRegion.legs.rawValue,
+            reasonLine: top.verdictReason ?? "r", confidenceNote: nil,
+            prescriptionId: workout.id,
+            matchProximity: matchProximity,
+            athlete: nil
+        )
+    }
+
+    func test_frozenAcceptedModify_matchAddedLater_staysPlain_neverRetroMicrodose() {
+        // Decide a PLAIN readiness MODIFY with no match on the calendar…
+        let workout = makePrescription()
+        let live = service.evaluateAndWrite(
+            prescribedWorkout: workout, decisionInput: trimDecisionInput(),
+            crossModalResult: nil, plateStepKg: 2.5,
+            nextMatchDate: nil, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(live[0].verdict, .modify)
+        XCTAssertFalse(live[0].matchProximity)
+        VerdictDecisionApplier.applyAccept(to: topSet(of: workout), appliedAt: asOf)
+        logDecision(for: workout, matchProximity: false)   // the decision-time record: NOT proximity
+
+        // …then schedule a match for tomorrow and refresh: the frozen verdict must render from
+        // the stored flag, never the now-near live date.
+        let frozen = service.evaluateAndWrite(
+            prescribedWorkout: workout, decisionInput: trimDecisionInput(),
+            crossModalResult: nil, plateStepKg: 2.5,
+            nextMatchDate: matchDate(daysFromNow: 1), asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(frozen[0].verdict, .modify, "frozen suggestion still reads MODIFY")
+        XCTAssertFalse(
+            frozen[0].matchProximity,
+            "a match added AFTER the decision must not retro-label an accepted plain MODIFY as a microdose"
+        )
+    }
+
+    func test_frozenAcceptedMicrodose_matchClearedLater_keepsMicrodoseFraming() {
+        // Decide a proximity MICRODOSE while the match is near…
+        let workout = makePrescription()
+        let live = service.evaluateAndWrite(
+            prescribedWorkout: workout, decisionInput: goDecisionInput(),
+            crossModalResult: nil, plateStepKg: 2.5,
+            nextMatchDate: matchDate(daysFromNow: 1), asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(live[0].verdict, .modify)
+        XCTAssertTrue(live[0].matchProximity)
+        VerdictDecisionApplier.applyAccept(to: topSet(of: workout), appliedAt: asOf)
+        logDecision(for: workout, matchProximity: true)    // the decision-time record: proximity
+
+        // …then the match is cleared (or expires) and the surface refreshes: the frozen decision
+        // was made UNDER proximity — its microdose framing must survive.
+        let frozen = service.evaluateAndWrite(
+            prescribedWorkout: workout, decisionInput: goDecisionInput(),
+            crossModalResult: nil, plateStepKg: 2.5,
+            nextMatchDate: nil, asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(frozen[0].verdict, .modify)
+        XCTAssertTrue(
+            frozen[0].matchProximity,
+            "clearing the match must not strip microdose framing from a decision made under it"
+        )
+    }
+
+    func test_frozenDecidedVerdict_noLoggedEvent_readsNotProximity_evenWithMatchNear() {
+        // Belt-and-braces honesty: with NO decision-time record (pre-v2.1 rows), a frozen verdict
+        // never fabricates microdose framing from the live date.
+        let workout = makePrescription()
+        _ = service.evaluateAndWrite(
+            prescribedWorkout: workout, decisionInput: trimDecisionInput(),
+            crossModalResult: nil, plateStepKg: 2.5,
+            nextMatchDate: nil, asOf: asOf, calendar: calendar
+        )
+        VerdictDecisionApplier.applyAccept(to: topSet(of: workout), appliedAt: asOf)
+
+        let frozen = service.evaluateAndWrite(
+            prescribedWorkout: workout, decisionInput: trimDecisionInput(),
+            crossModalResult: nil, plateStepKg: 2.5,
+            nextMatchDate: matchDate(daysFromNow: 0), asOf: asOf, calendar: calendar
+        )
+        XCTAssertEqual(frozen[0].verdict, .modify)
+        XCTAssertFalse(frozen[0].matchProximity, "nil / missing record honestly reads as not-proximity")
     }
 }
 

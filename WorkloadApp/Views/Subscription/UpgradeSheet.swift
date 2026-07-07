@@ -226,7 +226,7 @@ struct UpgradeSheet: View {
             Haptics.select()
             selectedPlan = plan
         } label: {
-            VStack(spacing: 2) {
+            VStack(spacing: Spacing.baselinePair) {
                 HStack(spacing: Spacing.xs) {
                     Text(title)
                         .font(.Tokens.micro)

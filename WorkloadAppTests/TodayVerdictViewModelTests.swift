@@ -29,7 +29,8 @@ final class TodayVerdictViewModelTests: XCTestCase {
             BaselineState.self,
             WellnessCheckIn.self, PersonalRecord.self, CoachAthleteRelationship.self,
             WorkoutTemplate.self, ExerciseGroup.self, TemplateExercise.self, TemplateSet.self,
-            PrescribedWorkout.self, CustomExercise.self, BehaviorTag.self, TrainingProfile.self
+            PrescribedWorkout.self, CustomExercise.self, BehaviorTag.self, TrainingProfile.self,
+            VerdictEvent.self
         ])
         container = try ModelContainer(
             for: schema,

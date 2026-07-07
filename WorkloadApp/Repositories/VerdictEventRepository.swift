@@ -75,12 +75,24 @@ final class VerdictEventRepository {
     /// v2.1 dogfood (protocol criterion 3) — record the STRICT next-day "felt right?" self-report
     /// ("right" / "wrong" / "unsure") onto an event. **Write-once**: a second call is a no-op and
     /// returns `false` — the first answer is immutable (never retro-rated, never edited).
+    /// **Day-eligible at record time**: the answer may only land on the single calendar day after
+    /// `planDate` (the same `FeltRightPromptEngine.isAnswerDay` rule that SELECTS the prompt) —
+    /// a stale row tapped after the app sat open past midnight is refused (no-op `false`, matching
+    /// the write-once idiom): a missed day stays absent, never back-filled.
     ///
     /// When the Phase 45 `outcomeRaw` is still empty it is mirrored from this answer (same
     /// vocabulary), so the green-light math keeps reading one field and the looser post-session
     /// sheet never re-asks about an event the athlete already judged.
     @discardableResult
-    func recordFeltRight(_ feltRightRaw: String, for event: VerdictEvent, at date: Date = .now) -> Bool {
+    func recordFeltRight(
+        _ feltRightRaw: String,
+        for event: VerdictEvent,
+        at date: Date = .now,
+        calendar: Calendar = .current
+    ) -> Bool {
+        guard FeltRightPromptEngine.isAnswerDay(planDate: event.planDate, asOf: date, calendar: calendar) else {
+            return false
+        }
         guard event.feltRightRaw == nil else { return false }
         event.feltRightRaw = feltRightRaw
         event.feltRightRecordedAt = date
@@ -119,6 +131,18 @@ final class VerdictEventRepository {
         guard let athlete else { return rows }
         let athleteId = athlete.id
         return rows.filter { $0.athlete?.id == athleteId }
+    }
+
+    /// The newest event logged for `prescriptionId` — the DECISION-TIME record for a frozen
+    /// prescription (its `matchProximityRaw` is the source of truth for decided-verdict rendering,
+    /// never the live match date). nil when nothing was logged. The plain-UUID value field is
+    /// filtered in Swift after the fetch, mirroring the athlete-filter convention above.
+    func mostRecentEvent(prescriptionId: UUID) -> VerdictEvent? {
+        let descriptor = FetchDescriptor<VerdictEvent>(
+            sortBy: [SortDescriptor(\.decidedAt, order: .reverse)]
+        )
+        let rows = (try? modelContext.fetch(descriptor)) ?? []
+        return rows.first { $0.prescriptionId == prescriptionId }
     }
 
     /// The newest un-resolved event (`outcomeRaw == nil`) whose `planDate` is strictly before

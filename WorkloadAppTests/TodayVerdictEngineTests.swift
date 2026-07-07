@@ -177,6 +177,56 @@ final class TodayVerdictEngineTests: XCTestCase {
         XCTAssertEqual(result.adjustedTopSetKg, 20, accuracy: 1e-9)
     }
 
+    func test_trimSnap_floorsToPlateStep_neverAboveTheCappedValue() {
+        // REGRESSION (floor-snap on trim): planned 102.5, mild clearly-down trim ≈ −5% ⇒ capped
+        // value ≈ 97.37. Nearest-snap used to round back UP to 97.5 — ABOVE the cap. Trims must
+        // floor to the plate step: 95.0 (the heaviest loadable weight not exceeding the cap).
+        let rec = recommendation(cap: 8.0, vol: 0.849, type: .strength)
+        let result = TodayVerdictEngine.evaluate(
+            recommendation: rec,
+            plannedTopSet: plannedTopSet(kg: 102.5, rpe: 8),
+            crossModalResult: nil,
+            plateStepKg: plateStep
+        )
+        XCTAssertEqual(result.verdict, .modify)
+        XCTAssertEqual(result.adjustedTopSetKg, 95.0, accuracy: 1e-9)
+        // The invariant itself: the plate-snapped number never exceeds the capped raw value.
+        XCTAssertLessThanOrEqual(result.adjustedTopSetKg, 102.5 * result.loadFactor + 1e-9)
+    }
+
+    func test_deepTrimSnap_neverAboveTheMinus10PercentCeilingValue() {
+        // REGRESSION (floor-snap at the −10% hard ceiling): planned 102.5, deepest cut ⇒
+        // effectiveFactor clamps to 0.90 ⇒ ceiling value 92.25. Nearest-snap used to give 92.5 —
+        // above the ceiling. Floor-snap gives 90.0.
+        let rec = recommendation(cap: 5.0, vol: 0.0, type: .conditioning)
+        let result = TodayVerdictEngine.evaluate(
+            recommendation: rec,
+            plannedTopSet: plannedTopSet(kg: 102.5, rpe: 8),
+            crossModalResult: nil,
+            plateStepKg: plateStep
+        )
+        XCTAssertEqual(result.verdict, .modify)
+        XCTAssertEqual(result.loadFactor, 0.90, accuracy: 1e-9)
+        XCTAssertEqual(result.adjustedTopSetKg, 90.0, accuracy: 1e-9)
+        XCTAssertLessThanOrEqual(result.adjustedTopSetKg, 102.5 * 0.90 + 1e-9)
+    }
+
+    func test_trimSnap_exactPlateMultiple_staysPut_noFloatCliff() {
+        // Floor-snap must not drop a whole plate step when the capped value lands EXACTLY on a
+        // multiple — the epsilon guard in `floorToIncrement`. The proximity cap produces the exact
+        // −5% factor: 100 × 0.95 = 95.0 must stay 95.0, never cliff down to 92.5.
+        let rec = recommendation(cap: 9.0, vol: 1.0, type: .strength)
+        let result = TodayVerdictEngine.evaluate(
+            recommendation: rec,
+            plannedTopSet: plannedTopSet(kg: 100, rpe: 8),
+            crossModalResult: nil,
+            plateStepKg: plateStep,
+            matchDaysAway: 1,
+            plannedWorkingSetCount: 3
+        )
+        XCTAssertEqual(result.adjustedTopSetKg, 95.0, accuracy: 1e-9)
+    }
+
     func test_volumeCutPreferred_overLoadCut_whenMildlyDown() {
         // volumeModifier in [0.85, 0.95), intensity near planned → keep top set, cut a back-off set.
         let rec = recommendation(cap: 8.0, vol: 0.90, type: .hypertrophy)

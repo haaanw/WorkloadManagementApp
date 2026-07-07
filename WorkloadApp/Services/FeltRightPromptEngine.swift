@@ -22,6 +22,18 @@ struct FeltRightPromptEngine {
 
     // MARK: - Next-day prompt eligibility
 
+    /// The one-day answer window predicate: true exactly when `asOf` falls on the single calendar
+    /// day after `planDate` (criterion 3 — judged next-day, never same-day, never back-filled).
+    /// The SHARED rule behind both prompt SELECTION (`eligibleEvent`) and the record-time guard
+    /// (`VerdictEventRepository.recordFeltRight`), so a stale row surfaced before midnight can
+    /// never record into a now-missed day.
+    static func isAnswerDay(planDate: Date, asOf: Date, calendar: Calendar) -> Bool {
+        guard let answerDay = calendar.date(
+            byAdding: .day, value: 1, to: calendar.startOfDay(for: planDate)
+        ) else { return false }
+        return calendar.startOfDay(for: asOf) == answerDay
+    }
+
     /// The single event (yesterday's representative differing-verdict decision) the "felt right?"
     /// prompt should ask about as of `asOf` — or `nil` when nothing is eligible today.
     static func eligibleEvent(
@@ -29,10 +41,8 @@ struct FeltRightPromptEngine {
         asOf: Date,
         calendar: Calendar
     ) -> VerdictEvent? {
-        let today = calendar.startOfDay(for: asOf)
-        guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else { return nil }
         let yesterdaysDiffered = events.filter {
-            $0.differed && calendar.startOfDay(for: $0.planDate) == yesterday
+            $0.differed && isAnswerDay(planDate: $0.planDate, asOf: asOf, calendar: calendar)
         }
         // Representative = the latest decision of that day (mirrors GreenLightEngine).
         guard let representative = yesterdaysDiffered.max(by: { $0.decidedAt < $1.decidedAt }) else {

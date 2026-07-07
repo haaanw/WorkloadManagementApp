@@ -255,9 +255,16 @@ final class FeltRightRepositoryTests: XCTestCase {
         super.tearDown()
     }
 
-    private func loggedEvent() -> VerdictEvent {
-        repo.log(
-            decidedAt: .now, planDate: .now, verdictKindRaw: "modify",
+    /// `planDate` defaults to YESTERDAY so a `.now` record lands inside the one-calendar-day
+    /// answer window (`recordFeltRight` now enforces the same next-day-only rule as the prompt
+    /// selection) — the write-once / mirroring tests below exercise their own contracts on an
+    /// eligible day.
+    private func loggedEvent(planDate: Date? = nil) -> VerdictEvent {
+        let cal = Calendar.current
+        let plan = planDate
+            ?? cal.date(byAdding: .day, value: -1, to: cal.startOfDay(for: .now))!
+        return repo.log(
+            decidedAt: .now, planDate: plan, verdictKindRaw: "modify",
             plannedTopSetKg: 100, adjustedTopSetKg: 95, deltaKg: -5, differed: true,
             actionRaw: "accepted", regionRaw: MuscleRegion.legs.rawValue,
             reasonLine: "Backed off a touch.", confidenceNote: nil, athlete: nil
@@ -294,5 +301,46 @@ final class FeltRightRepositoryTests: XCTestCase {
         XCTAssertEqual(event.feltRightRaw, "right")
         XCTAssertEqual(event.outcomeRaw, "unsure", "an already-recorded outcome is left untouched")
         XCTAssertEqual(event.outcomeRecordedAt, earlier)
+    }
+
+    // MARK: - Record-time day-eligibility guard (next calendar day ONLY)
+
+    func test_recordFeltRight_refusedWhenAnswerDayPassed_noBackfill() {
+        // Decided on day D; the view sat open past midnight and the stale row is tapped on day
+        // D+2 at 00:05 — the answer window is over. Refuse: no field written, no outcome mirror
+        // (a missed day stays absent — absence IS the record).
+        let cal = Calendar.current
+        let todayStart = cal.startOfDay(for: .now)
+        let planDate = cal.date(byAdding: .day, value: -2, to: todayStart)!
+        let event = loggedEvent(planDate: planDate)
+        let fiveMinPastMidnight = cal.date(byAdding: .minute, value: 5, to: todayStart)!
+        let recorded = repo.recordFeltRight("right", for: event, at: fiveMinPastMidnight)
+        XCTAssertFalse(recorded, "day+2 is a missed day — recording must be refused")
+        XCTAssertNil(event.feltRightRaw)
+        XCTAssertNil(event.feltRightRecordedAt)
+        XCTAssertNil(event.outcomeRaw, "the outcome mirror must not fire on a refused record")
+    }
+
+    func test_recordFeltRight_acceptedThroughTheEndOfTheAnswerDay() {
+        // Decided on day D; recorded on day D+1 at 23:59 — the last minute of the one-day window
+        // still lands. (Derived as tomorrowStart − 60s so DST-short days can't skew the fixture.)
+        let cal = Calendar.current
+        let todayStart = cal.startOfDay(for: .now)
+        let planDate = cal.date(byAdding: .day, value: -1, to: todayStart)!
+        let event = loggedEvent(planDate: planDate)
+        let tomorrowStart = cal.date(byAdding: .day, value: 1, to: todayStart)!
+        let lastMinute = cal.date(byAdding: .second, value: -60, to: tomorrowStart)!
+        let recorded = repo.recordFeltRight("right", for: event, at: lastMinute)
+        XCTAssertTrue(recorded, "day+1 at 23:59 is still inside the answer day")
+        XCTAssertEqual(event.feltRightRaw, "right")
+        XCTAssertEqual(event.feltRightRecordedAt, lastMinute)
+    }
+
+    func test_recordFeltRight_refusedSameDay_tooEarly() {
+        // Same rule, other edge: same-day is too early to judge (criterion 3 is judged next-day) —
+        // the record-time guard mirrors the prompt-selection eligibility exactly.
+        let event = loggedEvent(planDate: .now)
+        XCTAssertFalse(repo.recordFeltRight("right", for: event, at: .now))
+        XCTAssertNil(event.feltRightRaw)
     }
 }

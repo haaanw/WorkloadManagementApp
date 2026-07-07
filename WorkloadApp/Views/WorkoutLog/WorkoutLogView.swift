@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Combine
 
 struct WorkoutLogView: View {
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
@@ -386,6 +387,17 @@ struct WorkoutLogView: View {
                     refreshFeltRightPrompt()
                     refreshOutcomePrompt()
                 }
+            }
+            // Day change while mounted (mirrors NextMatchSection's NSCalendarDayChanged idiom):
+            // "today" moved, so re-derive everything day-scoped — the verdict card and the two
+            // prompts. In particular the felt-right row must HIDE at midnight (its event is now
+            // 2 days old ⇒ ineligible; the repository's record-time guard is the backstop).
+            .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+                if let athlete = athletes.first {
+                    verdictVM?.refresh(athlete: athlete)
+                }
+                refreshFeltRightPrompt()
+                refreshOutcomePrompt()
             }
             .sheet(item: $outcomeEvent) { event in
                 VerdictOutcomeSheet(

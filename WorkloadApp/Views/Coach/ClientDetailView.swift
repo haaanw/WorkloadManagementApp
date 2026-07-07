@@ -277,7 +277,7 @@ struct ClientDetailView: View {
             } else {
                 ForEach(upcomingPrescriptions, id: \.id) { rx in
                     HStack {
-                        VStack(alignment: .leading, spacing: 2) {
+                        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                             Text(rx.templateName)
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text1)
@@ -326,7 +326,7 @@ struct ClientDetailView: View {
                     .padding(.vertical, 16)
             } else {
                 ForEach(filteredSessions, id: \.id) { session in
-                    VStack(alignment: .leading, spacing: 2) {
+                    VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                         HStack {
                             Text(session.sessionDate.formatted(date: .abbreviated, time: .omitted))
                                 .font(.Tokens.label)

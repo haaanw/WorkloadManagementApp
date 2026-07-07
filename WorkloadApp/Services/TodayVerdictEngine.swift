@@ -18,9 +18,11 @@ import Foundation
 ///   `≥ (1 − maxLoadTrim)`.
 /// - **Volume-cut is PREFERRED over load-cut**: when the recommendation is only mildly down, the
 ///   top-set load is kept and a back-off set is cut instead (`volumeCutSets`).
-/// - The adjusted weight is rounded to a loadable plate step via `WeightFormatter.snapToIncrement`
-///   and is **never rounded UP past the planned weight** when trimming (the guardrail). The only
-///   number out is a plate-snapped kg weight — NEVER a fractional percent.
+/// - The adjusted weight is rounded to a loadable plate step — DOWNWARD when trimming
+///   (`WeightFormatter.floorToIncrement`), so the snapped number can never re-cross the proximity
+///   cap or the −10% ceiling; nearest otherwise — and is **never rounded UP past the planned
+///   weight** when trimming (the guardrail). The only number out is a plate-snapped kg weight —
+///   NEVER a fractional percent.
 /// - A sub-increment delta collapses to **GO** (no false-precision micro-change).
 /// - **HOLD carries the number** (planned top set held, no progression) — never a nil / "don't train"
 ///   (the nocebo guard).
@@ -238,9 +240,16 @@ struct TodayVerdictEngine {
         }
 
         // --- Compute + plate-round the adjusted weight. --------------------------------------------
+        // When trimming, `rawAdjusted` IS the bound (the proximity cap / interpolated trim /
+        // −10% ceiling already applied) — so snap DOWNWARD (floor to the plate step): the heaviest
+        // loadable weight that does not exceed the capped value. Nearest-snapping could round back
+        // UP past the cap (e.g. 102.5 × 0.95 = 97.375 → nearest 97.5, above the −5% cap).
         let rawAdjusted = planned * effectiveFactor
-        var adjusted = WeightFormatter.snapToIncrement(rawAdjusted, to: plateStepKg)
-        // NEVER round UP past the plan when trimming (research §2.3 guardrail).
+        var adjusted = effectiveFactor < 1.0
+            ? WeightFormatter.floorToIncrement(rawAdjusted, to: plateStepKg)
+            : WeightFormatter.snapToIncrement(rawAdjusted, to: plateStepKg)
+        // NEVER round UP past the plan when trimming (research §2.3 guardrail; floor-snapping
+        // already guarantees this — kept as a belt-and-braces invariant).
         if effectiveFactor < 1.0, adjusted > planned {
             adjusted = planned
         }
@@ -249,7 +258,11 @@ struct TodayVerdictEngine {
         // Sub-increment delta + no back-off cut ⇒ GO (no false-precision micro-change). This also
         // holds under match proximity: a microdose with no back-offs to cut and a sub-plate-step
         // trim changes literally nothing — forcing MODIFY there would be false precision.
-        if (planned - adjusted) < plateStepKg, volumeCutSets == nil {
+        // Measured on the RAW intended trim (`planned − rawAdjusted`), NOT the snapped value:
+        // floor-snapping inflates a sub-increment trim into a full plate step (20 × ~0.95 → 17.5,
+        // a −12.5% cut), so judging the snapped delta would fabricate a MODIFY — and an over-trim —
+        // out of a trim too small to load. A trim that can't be expressed on the bar is a GO.
+        if (planned - rawAdjusted) < plateStepKg, volumeCutSets == nil {
             return VerdictResult(
                 verdict: .go,
                 adjustedTopSetKg: planned,
