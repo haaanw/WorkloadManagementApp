@@ -3141,7 +3141,8 @@ private final class ProfileSettingsViewController: InstrumentScrollViewControlle
     @objc private func openMeasurement() {
         Haptics.tap()
         let controller = MeasurementViewController(
-            modelContext: modelContext
+            modelContext: modelContext,
+            locale: locale
         )
         present(InstrumentNavigationController(rootViewController: controller), animated: true)
     }
@@ -3229,9 +3230,11 @@ private final class ProfileSettingsViewController: InstrumentScrollViewControlle
 
 private final class MeasurementViewController: InstrumentScrollViewController {
     private let modelContext: ModelContext
+    private let locale: Locale
 
-    init(modelContext: ModelContext) {
+    init(modelContext: ModelContext, locale: Locale) {
         self.modelContext = modelContext
+        self.locale = locale
         super.init(nibName: nil, bundle: nil)
     }
 
@@ -3241,34 +3244,82 @@ private final class MeasurementViewController: InstrumentScrollViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        title = "Measurement"
+        title = localized("measurement.navTitle")
         navigationItem.leftBarButtonItem = UIBarButtonItem(title: "Done", style: .done, target: self, action: #selector(close))
     }
 
     override func rebuild() {
         clearContent()
         let metrics = loadMetrics()
-        addSection(title: "Validation Signals", content: dataPlate([
+        let dogfood = loadDogfoodSummary()
+        addSection(title: localized("measurement.title"), content: dataPlate([
             metricRow(
-                title: "Green-light rate",
+                title: localized("measurement.greenLight.label"),
                 value: percentText(metrics.greenLightRate),
-                detail: metrics.greenLightRate == nil ? nil : "on \(metrics.differingDays) differing-verdict days"
+                detail: metrics.greenLightRate == nil
+                    ? nil
+                    : String(format: localized("measurement.greenLight.context"), metrics.differingDays)
             ),
             divider(),
             metricRow(
-                title: "Activation rate",
+                title: localized("measurement.activation.label"),
                 value: percentText(metrics.activationRate),
-                detail: metrics.activationRate == nil ? nil : "across \(metrics.totalEvents) logged verdicts"
+                detail: metrics.activationRate == nil
+                    ? nil
+                    : String(format: localized("measurement.activation.context"), metrics.totalEvents)
             ),
             divider(),
-            metricRow(title: "Day-7 retention", value: retentionText(metrics.day7Retention), detail: nil),
+            metricRow(title: localized("measurement.retention.day7"), value: retentionText(metrics.day7Retention), detail: nil),
             divider(),
-            metricRow(title: "Day-30 retention", value: retentionText(metrics.day30Retention), detail: nil)
+            metricRow(title: localized("measurement.retention.day30"), value: retentionText(metrics.day30Retention), detail: nil)
         ], spacing: Spacing.sm))
 
         addSection(content: dataPlate([
-            UIKitDesign.label("These are internal validation signals. They stay quiet until enough behavior is logged.", font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary, lines: 0)
+            UIKitDesign.label(localized("measurement.caption"), font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary, lines: 0)
         ]))
+
+        addSection(title: localized("measurement.dogfood.title"), content: dataPlate([
+            metricRow(
+                title: localized("measurement.dogfood.differingDays"),
+                value: "\(dogfood.differingDays)",
+                detail: nil
+            ),
+            divider(),
+            metricRow(
+                title: localized("measurement.dogfood.followed.label"),
+                value: percentText(dogfood.followedRate),
+                detail: dogfood.followedRate == nil
+                    ? nil
+                    : String(
+                        format: localized("measurement.dogfood.followed.context"),
+                        dogfood.followedDays,
+                        dogfood.differingDays
+                    )
+            ),
+            divider(),
+            metricRow(
+                title: localized("measurement.dogfood.feltRight.label"),
+                value: percentText(dogfood.feltRightRate),
+                detail: (dogfood.ratedDays + dogfood.missedDays) == 0
+                    ? nil
+                    : String(
+                        format: localized("measurement.dogfood.feltRight.context"),
+                        dogfood.ratedDays,
+                        dogfood.missedDays
+                    )
+            ),
+            divider(),
+            metricRow(
+                title: localized("measurement.dogfood.proximity.label"),
+                value: "\(dogfood.proximityMicrodoseDays)",
+                detail: dogfood.proximityMicrodoseDays == 0
+                    ? nil
+                    : String(
+                        format: localized("measurement.dogfood.proximity.context"),
+                        dogfood.proximityMicrodoseFollowedDays
+                    )
+            )
+        ], spacing: Spacing.sm))
     }
 
     private func loadMetrics() -> GreenLightEngine.GreenLightMetrics {
@@ -3276,6 +3327,13 @@ private final class MeasurementViewController: InstrumentScrollViewController {
         let repository = VerdictEventRepository(modelContext: modelContext)
         let events = repository.fetchAll(athlete: athletes.first)
         return GreenLightEngine.compute(events: events, asOf: .now, calendar: .current)
+    }
+
+    private func loadDogfoodSummary() -> FeltRightPromptEngine.DogfoodSummary {
+        let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
+        let repository = VerdictEventRepository(modelContext: modelContext)
+        let events = repository.fetchAll(athlete: athletes.first)
+        return FeltRightPromptEngine.summary(events: events, asOf: .now, calendar: .current)
     }
 
     private func metricRow(title: String, value: String, detail: String?) -> UIView {
@@ -3300,16 +3358,20 @@ private final class MeasurementViewController: InstrumentScrollViewController {
     }
 
     private func percentText(_ rate: Double?) -> String {
-        guard let rate else { return "Learning" }
+        guard let rate else { return localized("measurement.learning") }
         return "\(Int((rate * 100).rounded()))%"
     }
 
     private func retentionText(_ retained: Bool?) -> String {
         switch retained {
-        case .some(true): "Retained"
-        case .some(false): "Lapsed"
-        case .none: "Too early"
+        case .some(true): localized("measurement.retained")
+        case .some(false): localized("measurement.lapsed")
+        case .none: localized("measurement.tooEarly")
         }
+    }
+
+    private func localized(_ key: String.LocalizationValue) -> String {
+        UIKitStrings.localized(key, locale: locale)
     }
 
     @objc private func close() {
@@ -4143,6 +4205,8 @@ private final class TrainHomeViewController: InstrumentScrollViewController {
     private let container: AppContainer
     private let modelContext: ModelContext
     private let locale: Locale
+    private var verdictVM: TodayVerdictViewModel?
+    private var verdictRepository: VerdictEventRepository?
 
     init(container: AppContainer, modelContext: ModelContext, locale: Locale) {
         self.container = container
@@ -4155,9 +4219,27 @@ private final class TrainHomeViewController: InstrumentScrollViewController {
         nil
     }
 
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(dayScopedStateChanged),
+            name: .NSCalendarDayChanged,
+            object: nil
+        )
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(dayScopedStateChanged),
+            name: UIApplication.didBecomeActiveNotification,
+            object: nil
+        )
+    }
+
     override func rebuild() {
         clearContent()
         let summary = loadSummary()
+        expirePastMatchDate(for: summary.athlete)
+        refreshVerdictIfNeeded(athlete: summary.athlete)
         let state = TrainHomeViewState.make(summary: summary, locale: locale)
         addHorizontalInsets(hero(
             kicker: "Train",
@@ -4168,6 +4250,19 @@ private final class TrainHomeViewController: InstrumentScrollViewController {
         let startButton = actionButton(title: state.primaryActionTitle, action: #selector(openTemplatePicker))
         startButton.accessibilityIdentifier = "workoutLog.startWorkout"
         addHorizontalInsets(startButton, top: Spacing.lg)
+
+        if let display = verdictVM?.display {
+            addSection(content: dataPlate([verdictCard(display: display, weightUnit: summary.athlete?.weightUnit ?? .kg)], spacing: Spacing.sm))
+        }
+
+        addSection(
+            title: localized("nextMatch.section.header"),
+            content: dataPlate([nextMatchRow(athlete: summary.athlete)], spacing: Spacing.sm)
+        )
+
+        if let event = feltRightEvent(athlete: summary.athlete) {
+            addSection(content: dataPlate([feltRightPromptRow(event: event, weightUnit: summary.athlete?.weightUnit ?? .kg)], spacing: Spacing.sm))
+        }
 
         addSection(title: "Today", content: dataPlate(todayRows(state: state), spacing: Spacing.sm))
 
@@ -4246,6 +4341,509 @@ private final class TrainHomeViewController: InstrumentScrollViewController {
             },
             prescriptions.filter { $0.athleteId == athleteId || $0.coachId == athleteId }
         )
+    }
+
+    private func refreshVerdictIfNeeded(athlete: Athlete?) {
+        guard let athlete else { return }
+        if verdictVM == nil {
+            let vm = TodayVerdictViewModel(modelContext: modelContext)
+            let repository = VerdictEventRepository(modelContext: modelContext)
+            verdictRepository = repository
+            vm.onDecisionRecorded = { [weak self, weak vm] decision in
+                guard let self, let vm else { return }
+                let delta = (decision.adjustedTopSetKg ?? decision.plannedTopSetKg) - decision.plannedTopSetKg
+                repository.log(
+                    decidedAt: decision.decidedAt,
+                    planDate: .now,
+                    verdictKindRaw: vm.lastHeadlineVerdictRaw ?? "go",
+                    plannedTopSetKg: decision.plannedTopSetKg,
+                    adjustedTopSetKg: decision.adjustedTopSetKg,
+                    deltaKg: delta,
+                    differed: decision.hadAdjustment,
+                    actionRaw: self.verdictActionRaw(decision.action),
+                    regionRaw: vm.lastHeadlineRegionRaw ?? MuscleRegion.fullBody.rawValue,
+                    reasonLine: decision.reasonLine,
+                    confidenceNote: vm.display?.confidenceNote,
+                    prescriptionId: vm.currentPrescriptionId,
+                    suggestedBackoffSetCut: decision.suggestedBackoffSetCut,
+                    suggestedRPECap: decision.suggestedRPECap,
+                    matchProximity: vm.lastHeadlineMatchProximity,
+                    athlete: self.currentAthlete()
+                )
+            }
+            verdictVM = vm
+        }
+        verdictVM?.refresh(athlete: athlete)
+    }
+
+    private func verdictCard(display: TodayVerdictDisplay, weightUnit: WeightUnit) -> UIView {
+        let container = UIView()
+        container.translatesAutoresizingMaskIntoConstraints = false
+        container.accessibilityIdentifier = "workoutLog.verdictCard"
+
+        if let stripColor = verdictStripColor(display.kind) {
+            let strip = UIView()
+            strip.backgroundColor = stripColor
+            strip.translatesAutoresizingMaskIntoConstraints = false
+            container.addSubview(strip)
+            NSLayoutConstraint.activate([
+                strip.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+                strip.topAnchor.constraint(equalTo: container.topAnchor),
+                strip.bottomAnchor.constraint(equalTo: container.bottomAnchor),
+                strip.widthAnchor.constraint(equalToConstant: 2)
+            ])
+        }
+
+        let stack = UIKitDesign.verticalStack(spacing: Spacing.sm)
+        stack.translatesAutoresizingMaskIntoConstraints = false
+        container.addSubview(stack)
+
+        stack.addArrangedSubview(UIKitDesign.microLabel(localized("verdictCard.title")))
+
+        let header = UIStackView()
+        header.axis = .horizontal
+        header.alignment = .firstBaseline
+        header.spacing = Spacing.sm
+        header.translatesAutoresizingMaskIntoConstraints = false
+        let exercise = UIKitDesign.label(display.headlineExerciseName, font: UIKitDesign.medium(17), color: UIKitDesign.textPrimary, lines: 0)
+        exercise.accessibilityIdentifier = "workoutLog.verdict.exercise"
+        header.addArrangedSubview(exercise)
+        let state = UIKitDesign.microLabel(verdictStateLabel(display))
+        state.accessibilityIdentifier = "workoutLog.verdict.state"
+        state.textAlignment = .right
+        state.setContentHuggingPriority(.required, for: .horizontal)
+        header.addArrangedSubview(state)
+        stack.addArrangedSubview(header)
+
+        let numberRow = UIStackView()
+        numberRow.axis = .horizontal
+        numberRow.alignment = .firstBaseline
+        numberRow.spacing = Spacing.xs
+        numberRow.translatesAutoresizingMaskIntoConstraints = false
+        let number = UIKitDesign.label(
+            WeightFormatter.display(display.adjustedTopSetKg, unit: weightUnit, locale: locale),
+            font: UIKitDesign.tabular(UIKitDesign.regular(32)),
+            color: UIKitDesign.textPrimary
+        )
+        number.accessibilityIdentifier = "workoutLog.verdict.adjustedTopSet"
+        numberRow.addArrangedSubview(number)
+        if display.hasAdjustment {
+            let planned = WeightFormatter.display(display.plannedTopSetKg, unit: weightUnit, locale: locale)
+            let format = localized("verdictCard.fromPlanned")
+            let plannedLabel = UIKitDesign.label(
+                String(format: format, planned),
+                font: UIKitDesign.tabular(UIKitDesign.regular(13)),
+                color: UIKitDesign.textTertiary
+            )
+            plannedLabel.accessibilityIdentifier = "workoutLog.verdict.fromPlanned"
+            numberRow.addArrangedSubview(plannedLabel)
+        }
+        stack.addArrangedSubview(numberRow)
+
+        if display.kind == .deferred {
+            let caption = UIKitDesign.label(verdictActionCaption(display.kind), font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary, lines: 0)
+            caption.accessibilityIdentifier = "workoutLog.verdict.actionCaption"
+            stack.addArrangedSubview(caption)
+        } else {
+            let bar = UIKitStrikeZoneBarView(
+                planned: display.plannedTopSetKg,
+                adjusted: display.adjustedTopSetKg,
+                hasAdjustment: display.hasAdjustment,
+                accessibilityLabel: localized("verdictCard.zone.a11y")
+            )
+            bar.accessibilityIdentifier = "workoutLog.verdict.strikeZone"
+            stack.addArrangedSubview(bar)
+            bar.heightAnchor.constraint(equalToConstant: 28).isActive = true
+            let zone = UIKitDesign.microLabel(verdictZoneCaption(display.kind))
+            zone.accessibilityIdentifier = "workoutLog.verdict.zone"
+            stack.addArrangedSubview(zone)
+        }
+
+        let reason = UIKitDesign.label(display.reasonLine, font: UIKitDesign.regular(15), color: UIKitDesign.textPrimary, lines: 0)
+        reason.accessibilityIdentifier = "workoutLog.verdict.reason"
+        stack.addArrangedSubview(reason)
+
+        if let note = display.confidenceNote {
+            let confidence = UIKitDesign.label(note, font: UIKitDesign.regular(13), color: UIKitDesign.textTertiary, lines: 0)
+            confidence.accessibilityIdentifier = "workoutLog.verdict.confidence"
+            stack.addArrangedSubview(confidence)
+        }
+
+        stack.addArrangedSubview(verdictDecisionArea(display: display))
+        stack.addArrangedSubview(verdictFeelRow())
+
+        NSLayoutConstraint.activate([
+            stack.leadingAnchor.constraint(equalTo: container.leadingAnchor),
+            stack.trailingAnchor.constraint(equalTo: container.trailingAnchor),
+            stack.topAnchor.constraint(equalTo: container.topAnchor),
+            stack.bottomAnchor.constraint(equalTo: container.bottomAnchor)
+        ])
+        return container
+    }
+
+    private func verdictDecisionArea(display: TodayVerdictDisplay) -> UIView {
+        switch display.appliedState {
+        case .accepted, .keptPlan:
+            let stack = UIKitDesign.verticalStack(spacing: Spacing.sm)
+            let confirmed = UIKitDesign.label(verdictConfirmedLine(display.appliedState), font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary, lines: 0)
+            confirmed.accessibilityIdentifier = "workoutLog.verdict.confirmed"
+            stack.addArrangedSubview(confirmed)
+            if verdictVM?.canStartResolvedWorkout == true {
+                stack.addArrangedSubview(verdictButton(
+                    title: verdictStartLabel(display),
+                    accessibilityIdentifier: "workoutLog.verdict.start"
+                ) { [weak self] in
+                    self?.startResolvedVerdictWorkout()
+                })
+            }
+            return stack
+        case .pending:
+            if display.kind == .asPlanned {
+                return verdictButton(
+                    title: localized("verdictCard.action.gotIt"),
+                    accessibilityIdentifier: "workoutLog.verdict.gotIt"
+                ) { [weak self] in
+                    self?.verdictVM?.keepPlan()
+                    self?.rebuild()
+                }
+            }
+            let stack = UIStackView()
+            stack.axis = .horizontal
+            stack.spacing = Spacing.xs
+            stack.distribution = .fillEqually
+            stack.translatesAutoresizingMaskIntoConstraints = false
+            stack.addArrangedSubview(verdictButton(
+                title: localized("verdictCard.action.accept"),
+                accessibilityIdentifier: "workoutLog.verdict.accept"
+            ) { [weak self] in
+                self?.verdictVM?.accept()
+                self?.rebuild()
+            })
+            stack.addArrangedSubview(verdictButton(
+                title: localized("verdictCard.action.keep"),
+                accessibilityIdentifier: "workoutLog.verdict.keepPlan"
+            ) { [weak self] in
+                self?.verdictVM?.keepPlan()
+                self?.rebuild()
+            })
+            return stack
+        }
+    }
+
+    private func verdictFeelRow() -> UIView {
+        let stack = UIKitDesign.verticalStack(spacing: Spacing.xs)
+        let prompt = UIKitDesign.label(localized("verdictCard.feel.prompt"), font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary, lines: 0)
+        prompt.accessibilityIdentifier = "workoutLog.verdict.feel.prompt"
+        stack.addArrangedSubview(prompt)
+        let buttons = UIStackView()
+        buttons.axis = .horizontal
+        buttons.spacing = Spacing.xs
+        buttons.distribution = .fillEqually
+        buttons.translatesAutoresizingMaskIntoConstraints = false
+        buttons.addArrangedSubview(verdictButton(
+            title: localized("verdictCard.feel.strong"),
+            accessibilityIdentifier: "workoutLog.verdict.feel.strong",
+            font: UIKitDesign.regular(13)
+        ) { [weak self] in
+            self?.verdictVM?.feelOverride(.feelingStrong)
+            self?.rebuild()
+        })
+        buttons.addArrangedSubview(verdictButton(
+            title: localized("verdictCard.feel.rough"),
+            accessibilityIdentifier: "workoutLog.verdict.feel.rough",
+            font: UIKitDesign.regular(13)
+        ) { [weak self] in
+            self?.verdictVM?.feelOverride(.feelingRough)
+            self?.rebuild()
+        })
+        stack.addArrangedSubview(buttons)
+        return stack
+    }
+
+    private func verdictButton(
+        title: String,
+        accessibilityIdentifier: String,
+        font: UIFont = UIKitDesign.medium(17),
+        action: @escaping () -> Void
+    ) -> UIButton {
+        let button = UIButton(type: .custom)
+        button.setTitle(title, for: .normal)
+        button.setTitleColor(UIKitDesign.textPrimary, for: .normal)
+        button.titleLabel?.font = font
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.backgroundColor = UIKitDesign.surface
+        button.layer.borderWidth = UIKitDesign.hairline
+        button.layer.borderColor = UIKitDesign.hairlineColor.cgColor
+        button.accessibilityIdentifier = accessibilityIdentifier
+        button.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+        button.addAction(UIAction { _ in
+            Haptics.tap()
+            action()
+        }, for: .touchUpInside)
+        return button
+    }
+
+    private func nextMatchRow(athlete: Athlete?) -> UIView {
+        if let date = athlete?.nextMatchDate,
+           let days = Self.displayDaysOut(nextMatchDate: date, asOf: .now, calendar: .current) {
+            let row = UIStackView()
+            row.axis = .horizontal
+            row.alignment = .center
+            row.spacing = Spacing.sm
+            row.translatesAutoresizingMaskIntoConstraints = false
+            row.accessibilityIdentifier = "workoutLog.nextMatch"
+
+            let textStack = UIKitDesign.verticalStack(spacing: Spacing.baselinePair)
+            textStack.addArrangedSubview(UIKitDesign.label(daysOutText(days), font: UIKitDesign.medium(17), color: UIKitDesign.textPrimary, lines: 0))
+            textStack.addArrangedSubview(UIKitDesign.label(shortDateText(date), font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary))
+            row.addArrangedSubview(textStack)
+
+            let change = quietInlineButton(title: localized("nextMatch.action.change"), accessibilityIdentifier: "workoutLog.nextMatch.change") { [weak self] in
+                self?.presentNextMatchPicker()
+            }
+            let clear = quietInlineButton(title: localized("nextMatch.action.clear"), color: UIKitDesign.textSecondary, accessibilityIdentifier: "workoutLog.nextMatch.clear") { [weak self] in
+                self?.clearMatchDate()
+            }
+            row.addArrangedSubview(change)
+            row.addArrangedSubview(clear)
+            row.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+            return row
+        }
+
+        let row = UIStackView()
+        row.axis = .horizontal
+        row.alignment = .center
+        row.spacing = Spacing.sm
+        row.translatesAutoresizingMaskIntoConstraints = false
+        row.accessibilityIdentifier = "workoutLog.nextMatch.empty"
+        row.addArrangedSubview(UIKitDesign.label(localized("nextMatch.empty.label"), font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary, lines: 0))
+        let button = quietInlineButton(title: localized("nextMatch.empty.set"), accessibilityIdentifier: "workoutLog.nextMatch.set") { [weak self] in
+            self?.presentNextMatchPicker()
+        }
+        row.addArrangedSubview(button)
+        row.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+        return row
+    }
+
+    private func feltRightPromptRow(event: VerdictEvent, weightUnit: WeightUnit) -> UIView {
+        let stack = UIKitDesign.verticalStack(spacing: Spacing.xs)
+        stack.accessibilityIdentifier = "workoutLog.feltRight"
+        stack.addArrangedSubview(UIKitDesign.microLabel(localized("feltRight.header")))
+
+        let number = UIKitDesign.label(feltRightNumberLine(event, weightUnit: weightUnit), font: UIKitDesign.tabular(UIKitDesign.regular(17)), color: UIKitDesign.textPrimary, lines: 0)
+        number.accessibilityIdentifier = "workoutLog.feltRight.number"
+        stack.addArrangedSubview(number)
+
+        if !event.reasonLine.isEmpty {
+            let reason = UIKitDesign.label(event.reasonLine, font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary, lines: 0)
+            reason.accessibilityIdentifier = "workoutLog.feltRight.reason"
+            stack.addArrangedSubview(reason)
+        }
+
+        let question = UIKitDesign.label(localized("feltRight.question"), font: UIKitDesign.regular(17), color: UIKitDesign.textPrimary, lines: 0)
+        question.accessibilityIdentifier = "workoutLog.feltRight.question"
+        stack.addArrangedSubview(question)
+
+        let buttons = UIStackView()
+        buttons.axis = .horizontal
+        buttons.spacing = Spacing.xs
+        buttons.distribution = .fillEqually
+        buttons.translatesAutoresizingMaskIntoConstraints = false
+        buttons.addArrangedSubview(feltRightButton(title: localized("feltRight.right"), answer: "right", event: event))
+        buttons.addArrangedSubview(feltRightButton(title: localized("feltRight.wrong"), answer: "wrong", event: event))
+        buttons.addArrangedSubview(feltRightButton(title: localized("feltRight.unsure"), answer: "unsure", event: event))
+        stack.addArrangedSubview(buttons)
+        return stack
+    }
+
+    private func feltRightButton(title: String, answer: String, event: VerdictEvent) -> UIButton {
+        let button = verdictButton(
+            title: title,
+            accessibilityIdentifier: "workoutLog.feltRight.\(answer)",
+            font: UIKitDesign.regular(13)
+        ) { [weak self, weak event] in
+            guard let self, let event else { return }
+            let recorded = self.verdictRepository?.recordFeltRight(answer, for: event, at: .now, calendar: .current) ?? false
+            if !recorded {
+                self.rebuild()
+                return
+            }
+            self.rebuild()
+        }
+        return button
+    }
+
+    private func quietInlineButton(
+        title: String,
+        color: UIColor = UIKitDesign.textPrimary,
+        accessibilityIdentifier: String,
+        action: @escaping () -> Void
+    ) -> UIButton {
+        let button = UIButton(type: .custom)
+        button.setTitle(title, for: .normal)
+        button.setTitleColor(color, for: .normal)
+        button.titleLabel?.font = UIKitDesign.regular(15)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.accessibilityIdentifier = accessibilityIdentifier
+        button.setContentHuggingPriority(.required, for: .horizontal)
+        button.addAction(UIAction { _ in
+            Haptics.tap()
+            action()
+        }, for: .touchUpInside)
+        return button
+    }
+
+    private func feltRightEvent(athlete: Athlete?) -> VerdictEvent? {
+        let repository = verdictRepository ?? VerdictEventRepository(modelContext: modelContext)
+        verdictRepository = repository
+        return FeltRightPromptEngine.eligibleEvent(
+            events: repository.fetchRecent(days: 3, athlete: athlete),
+            asOf: .now,
+            calendar: .current
+        )
+    }
+
+    private func feltRightNumberLine(_ event: VerdictEvent, weightUnit: WeightUnit) -> String {
+        let planned = WeightFormatter.display(event.plannedTopSetKg, unit: weightUnit, locale: locale)
+        guard let adjusted = event.adjustedTopSetKg else { return planned }
+        let adjustedText = WeightFormatter.display(adjusted, unit: weightUnit, locale: locale)
+        return "\(planned) -> \(adjustedText)"
+    }
+
+    private func startResolvedVerdictWorkout() {
+        guard let plan = verdictVM?.resolvedPlanForWorkout else { return }
+        presentResolvedWorkout(plan: plan)
+    }
+
+    private func currentAthlete() -> Athlete? {
+        ((try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []).first
+    }
+
+    private func presentNextMatchPicker() {
+        guard let athlete = currentAthlete() else { return }
+        let controller = NextMatchPickerViewController(
+            locale: locale,
+            initialDate: athlete.nextMatchDate
+        ) { [weak self, weak athlete] date in
+            guard let self, let athlete else { return }
+            athlete.nextMatchDate = Calendar.current.startOfDay(for: date)
+            try? self.modelContext.save()
+            self.rebuild()
+        }
+        present(InstrumentNavigationController(rootViewController: controller), animated: true)
+    }
+
+    private func clearMatchDate() {
+        guard let athlete = currentAthlete() else { return }
+        athlete.nextMatchDate = nil
+        try? modelContext.save()
+        rebuild()
+    }
+
+    private func expirePastMatchDate(for athlete: Athlete?) {
+        guard let athlete, let date = athlete.nextMatchDate else { return }
+        if Self.displayDaysOut(nextMatchDate: date, asOf: .now, calendar: .current) == nil {
+            athlete.nextMatchDate = nil
+            try? modelContext.save()
+        }
+    }
+
+    static func displayDaysOut(nextMatchDate: Date?, asOf: Date, calendar: Calendar) -> Int? {
+        guard let nextMatchDate else { return nil }
+        let days = calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: asOf),
+            to: calendar.startOfDay(for: nextMatchDate)
+        ).day ?? 0
+        return days < 0 ? nil : days
+    }
+
+    private func daysOutText(_ days: Int) -> String {
+        switch days {
+        case 0: return localized("nextMatch.daysOut.today")
+        case 1: return localized("nextMatch.daysOut.tomorrow")
+        default:
+            return String(format: localized("nextMatch.daysOut.inDays"), Int64(days))
+        }
+    }
+
+    private func shortDateText(_ date: Date) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = locale
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter.string(from: date)
+    }
+
+    private func verdictStateLabel(_ display: TodayVerdictDisplay) -> String {
+        switch display.kind {
+        case .adjusted:
+            return display.isMicrodose ? localized("verdictCard.state.microdose") : localized("verdictCard.state.adjust")
+        case .asPlanned:
+            return localized("verdictCard.state.steady")
+        case .deferred:
+            return localized("verdictCard.state.learning")
+        }
+    }
+
+    private func verdictActionCaption(_ kind: TodayVerdictDisplay.Kind) -> String {
+        switch kind {
+        case .adjusted: localized("verdictCard.action.adjusted")
+        case .asPlanned: localized("verdictCard.action.asPlanned")
+        case .deferred: localized("verdictCard.action.deferred")
+        }
+    }
+
+    private func verdictZoneCaption(_ kind: TodayVerdictDisplay.Kind) -> String {
+        switch kind {
+        case .adjusted: localized("verdictCard.zone.in")
+        case .asPlanned: localized("verdictCard.zone.right")
+        case .deferred: ""
+        }
+    }
+
+    private func verdictConfirmedLine(_ state: TodayVerdictDisplay.AppliedState) -> String {
+        switch state {
+        case .accepted: localized("verdictCard.state.accepted")
+        case .keptPlan: localized("verdictCard.state.kept")
+        case .pending: ""
+        }
+    }
+
+    private func verdictStartLabel(_ display: TodayVerdictDisplay) -> String {
+        switch display.appliedState {
+        case .accepted:
+            return localized("verdictCard.start.adjusted")
+        case .keptPlan:
+            return display.kind == .adjusted ? localized("verdictCard.start.plan") : localized("verdictCard.start.workout")
+        case .pending:
+            return ""
+        }
+    }
+
+    private func verdictStripColor(_ kind: TodayVerdictDisplay.Kind) -> UIColor? {
+        switch kind {
+        case .adjusted: return UIColor(ColorTokens.zoneCaution)
+        case .deferred: return UIColor(ColorTokens.zoneLow)
+        case .asPlanned: return nil
+        }
+    }
+
+    private func verdictActionRaw(_ action: VerdictAction) -> String {
+        switch action {
+        case .accepted: return "accepted"
+        case .keptPlan: return "keptPlan"
+        case .feel(.feelingStrong): return "feelStrong"
+        case .feel(.feelingRough): return "feelRough"
+        }
+    }
+
+    @objc private func dayScopedStateChanged() {
+        rebuild()
+    }
+
+    private func localized(_ key: String.LocalizationValue) -> String {
+        UIKitStrings.localized(key, locale: locale)
     }
 
     private func todayRows(state: TrainHomeViewState) -> [UIView] {
@@ -4449,6 +5047,132 @@ private final class TrainHomeViewController: InstrumentScrollViewController {
             newTemplatesAreAthleteOwned: true
         )
         present(InstrumentNavigationController(rootViewController: controller), animated: true)
+    }
+}
+
+private final class UIKitStrikeZoneBarView: UIView {
+    private let planned: Double
+    private let adjusted: Double
+    private let hasAdjustment: Bool
+
+    init(planned: Double, adjusted: Double, hasAdjustment: Bool, accessibilityLabel: String) {
+        self.planned = planned
+        self.adjusted = adjusted
+        self.hasAdjustment = hasAdjustment
+        super.init(frame: .zero)
+        backgroundColor = .clear
+        isAccessibilityElement = true
+        self.accessibilityLabel = accessibilityLabel
+        translatesAutoresizingMaskIntoConstraints = false
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func draw(_ rect: CGRect) {
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        let width = rect.width
+        let midY = rect.midY
+
+        let lo = min(planned, adjusted)
+        let hi = max(planned, adjusted)
+        let span = max(hi - lo, max(lo, 1) * 0.08)
+        let scaleMin = lo - span * 0.7
+        let scaleRange = max((hi + span * 0.7) - scaleMin, 0.0001)
+        let x: (Double) -> CGFloat = { value in
+            CGFloat((value - scaleMin) / scaleRange) * width
+        }
+
+        let zoneLo = adjusted - span * 0.45
+        let zoneHi = adjusted + span * 0.45
+        let zoneLeft = x(zoneLo)
+        let zoneRight = x(zoneHi)
+
+        context.setFillColor(UIKitDesign.hairlineColor.cgColor)
+        context.fill(CGRect(x: 0, y: midY - 0.5, width: width, height: 1))
+
+        context.setFillColor(UIKitDesign.hairlineStrong.cgColor)
+        context.fill(CGRect(x: zoneLeft, y: midY - 1.5, width: max(zoneRight - zoneLeft, 1), height: 3))
+        context.fill(CGRect(x: zoneLeft - 0.75, y: midY - 7, width: 1.5, height: 14))
+        context.fill(CGRect(x: zoneRight - 0.75, y: midY - 7, width: 1.5, height: 14))
+
+        if hasAdjustment {
+            context.setFillColor(UIKitDesign.textTertiary.cgColor)
+            context.fill(CGRect(x: x(planned) - 0.75, y: midY - 8, width: 1.5, height: 16))
+        }
+
+        context.setFillColor(UIKitDesign.textPrimary.cgColor)
+        context.fillEllipse(in: CGRect(x: x(adjusted) - 4, y: midY - 4, width: 8, height: 8))
+    }
+}
+
+private final class NextMatchPickerViewController: InstrumentScrollViewController {
+    private let locale: Locale
+    private let onSet: (Date) -> Void
+    private let datePicker = UIDatePicker()
+    private let actionDock = UIKitBottomActionDock(primaryTitle: "Set")
+
+    init(locale: Locale, initialDate: Date?, onSet: @escaping (Date) -> Void) {
+        self.locale = locale
+        self.onSet = onSet
+        super.init(nibName: nil, bundle: nil)
+        let today = Calendar.current.startOfDay(for: .now)
+        datePicker.date = max(initialDate.map { Calendar.current.startOfDay(for: $0) } ?? today, today)
+        datePicker.minimumDate = today
+    }
+
+    required init?(coder: NSCoder) {
+        nil
+    }
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        title = localized("nextMatch.picker.navTitle")
+        navigationItem.leftBarButtonItem = UIBarButtonItem(
+            title: localized("action.cancel", defaultValue: "Cancel"),
+            style: .plain,
+            target: self,
+            action: #selector(cancel)
+        )
+        navigationItem.leftBarButtonItem?.accessibilityIdentifier = "nextMatch.picker.cancel"
+        actionDock.primaryButton.addTarget(self, action: #selector(confirm), for: .touchUpInside)
+        installBottomActionDock(actionDock)
+    }
+
+    override func rebuild() {
+        clearContent()
+        actionDock.updatePrimary(
+            title: localized("nextMatch.picker.confirm"),
+            accessibilityIdentifier: "nextMatch.picker.confirm",
+            accessibilityValue: nil
+        )
+
+        datePicker.datePickerMode = .date
+        datePicker.preferredDatePickerStyle = .inline
+        datePicker.locale = locale
+        datePicker.translatesAutoresizingMaskIntoConstraints = false
+        datePicker.accessibilityIdentifier = "nextMatch.picker.date"
+        addSection(content: dataPlate([datePicker], spacing: Spacing.sm))
+    }
+
+    @objc private func confirm() {
+        Haptics.tap()
+        onSet(datePicker.date)
+        dismiss(animated: true)
+    }
+
+    @objc private func cancel() {
+        Haptics.tap()
+        dismiss(animated: true)
+    }
+
+    private func localized(_ key: String.LocalizationValue) -> String {
+        UIKitStrings.localized(key, locale: locale)
+    }
+
+    private func localized(_ key: StaticString, defaultValue: String.LocalizationValue) -> String {
+        UIKitStrings.localized(key, defaultValue: defaultValue, locale: locale)
     }
 }
 
@@ -7117,6 +7841,7 @@ private struct WorkoutDraftSnapshot: Equatable {
     var sessionName: String
     var sportType: SportType
     var sessionType: SessionType
+    var matchTier: MatchTier?
     var sessionRPE: Double
     var saveAsTemplate: Bool
     var templateName: String
@@ -7170,6 +7895,7 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
     private var sessionName = ""
     private var sportType: SportType = .lifting
     private var sessionType: SessionType = .strength
+    private var matchTier: MatchTier?
     private var entries: [ExerciseEntryDraft] = []
     private var sessionRPE: Double = 5
     private var startTime = Date.now
@@ -7291,13 +8017,17 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
     }
 
     private func makeSessionState() -> ActiveWorkoutSessionState {
-        ActiveWorkoutSessionState.make(
+        var state = ActiveWorkoutSessionState.make(
             sessionName: sessionName,
             sportType: sportType,
             sessionType: sessionType,
             elapsedSeconds: Int(Date.now.timeIntervalSince(startTime)),
             locale: locale
         )
+        if sessionType == .match {
+            state.settingsValue = "\(state.settingsValue) · \((matchTier ?? .pickup).displayName)"
+        }
+        return state
     }
 
     private var athlete: Athlete? {
@@ -7332,6 +8062,7 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
             sessionName: sessionName,
             sportType: sportType,
             sessionType: sessionType,
+            matchTier: matchTier,
             sessionRPE: sessionRPE,
             saveAsTemplate: saveAsTemplate,
             templateName: templateName,
@@ -8071,6 +8802,9 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
         sessionName = template.templateName
         sportType = template.sportType
         sessionType = template.sessionType
+        if sessionType != .match {
+            matchTier = nil
+        }
         sourceTemplate = template
         entries = template.sortedGroups.flatMap { group in
             group.sortedExercises.map { exercise in
@@ -8103,6 +8837,9 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
         sessionName = plan.sessionName
         sportType = plan.sportType
         sessionType = plan.sessionType
+        if sessionType != .match {
+            matchTier = nil
+        }
         resolvedPrescriptionID = plan.prescriptionID
         if plannedSessionRepository == nil {
             plannedSessionRepository = PlannedSessionRepository(modelContext: modelContext)
@@ -8140,11 +8877,14 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
         Haptics.tap()
         let controller = ActiveWorkoutSessionSettingsViewController(
             sportType: sportType,
-            sessionType: sessionType
-        ) { [weak self] sport, type in
+            sessionType: sessionType,
+            matchTier: matchTier,
+            locale: locale
+        ) { [weak self] sport, type, tier in
             guard let self else { return }
             self.sportType = sport
             self.sessionType = type
+            self.matchTier = type == .match ? tier : nil
             self.rebuild()
         }
         present(InstrumentNavigationController(rootViewController: controller), animated: true)
@@ -8317,6 +9057,7 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
         }
 
         session.recalculateDerivedFields()
+        session.matchTier = MatchTier.persistedTier(sessionType: sessionType, selected: matchTier)
         session.sourceTemplateId = sourceTemplate?.id
         session.athlete = athlete
         modelContext.insert(session)
@@ -8564,16 +9305,22 @@ private final class WorkoutPostSaveFeedbackViewController: InstrumentScrollViewC
 private final class ActiveWorkoutSessionSettingsViewController: InstrumentScrollViewController {
     private var sportType: SportType
     private var sessionType: SessionType
-    private let onChange: (SportType, SessionType) -> Void
+    private var matchTier: MatchTier?
+    private let locale: Locale
+    private let onChange: (SportType, SessionType, MatchTier?) -> Void
     private let actionDock = UIKitBottomActionDock(primaryTitle: "Done")
 
     init(
         sportType: SportType,
         sessionType: SessionType,
-        onChange: @escaping (SportType, SessionType) -> Void
+        matchTier: MatchTier?,
+        locale: Locale,
+        onChange: @escaping (SportType, SessionType, MatchTier?) -> Void
     ) {
         self.sportType = sportType
         self.sessionType = sessionType
+        self.matchTier = sessionType == .match ? matchTier : nil
+        self.locale = locale
         self.onChange = onChange
         super.init(nibName: nil, bundle: nil)
     }
@@ -8612,7 +9359,7 @@ private final class ActiveWorkoutSessionSettingsViewController: InstrumentScroll
         ), top: Spacing.sm)
         addHorizontalInsets(settingsStatePlate(state), top: Spacing.sm)
 
-        addSection(content: dataPlate([
+        var rows: [UIView] = [
             settingsRow(
                 state.sportRow,
                 action: #selector(chooseSportType)
@@ -8622,7 +9369,12 @@ private final class ActiveWorkoutSessionSettingsViewController: InstrumentScroll
                 state.sessionTypeRow,
                 action: #selector(chooseSessionType)
             )
-        ], spacing: Spacing.sm))
+        ]
+        if sessionType == .match {
+            rows.append(divider())
+            rows.append(matchTierPickerRow())
+        }
+        addSection(content: dataPlate(rows, spacing: Spacing.sm))
     }
 
     private func makeViewState() -> ActiveWorkoutSessionSettingsViewState {
@@ -8633,11 +9385,13 @@ private final class ActiveWorkoutSessionSettingsViewController: InstrumentScroll
     }
 
     private var settingsStateText: String {
-        makeViewState().stateText
+        let state = makeViewState().stateText
+        guard sessionType == .match else { return state }
+        return "\(state) - \((matchTier ?? .pickup).displayName)"
     }
 
     private func settingsStatePlate(_ state: ActiveWorkoutSessionSettingsViewState) -> UIView {
-        let label = UIKitDesign.label(state.stateText, font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary, lines: 0)
+        let label = UIKitDesign.label(settingsStateText, font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary, lines: 0)
         label.accessibilityIdentifier = state.stateAccessibilityIdentifier
         return dataPlate([label], spacing: Spacing.sm)
     }
@@ -8663,6 +9417,46 @@ private final class ActiveWorkoutSessionSettingsViewController: InstrumentScroll
         return button
     }
 
+    private func matchTierPickerRow() -> UIView {
+        let stack = UIKitDesign.verticalStack(spacing: Spacing.xs)
+        stack.accessibilityIdentifier = "activeWorkout.settings.matchTier"
+        stack.addArrangedSubview(UIKitDesign.microLabel(UIKitStrings.localized("matchTier.picker.title", locale: locale)))
+
+        let buttons = UIStackView()
+        buttons.axis = .horizontal
+        buttons.spacing = Spacing.xs
+        buttons.distribution = .fillEqually
+        buttons.translatesAutoresizingMaskIntoConstraints = false
+        for tier in MatchTier.allCases {
+            buttons.addArrangedSubview(matchTierButton(tier))
+        }
+        stack.addArrangedSubview(buttons)
+        return stack
+    }
+
+    private func matchTierButton(_ tier: MatchTier) -> UIButton {
+        let isSelected = (matchTier ?? .pickup) == tier
+        let button = UIButton(type: .custom)
+        button.setTitle(matchTierTitle(tier), for: .normal)
+        button.setTitleColor(isSelected ? UIKitDesign.background : UIKitDesign.textSecondary, for: .normal)
+        button.titleLabel?.font = UIKitDesign.regular(15)
+        button.titleLabel?.adjustsFontForContentSizeCategory = true
+        button.backgroundColor = isSelected ? UIKitDesign.textPrimary : UIKitDesign.surface
+        button.layer.borderWidth = UIKitDesign.hairline
+        button.layer.borderColor = UIKitDesign.hairlineColor.cgColor
+        button.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
+        button.accessibilityIdentifier = "activeWorkout.settings.matchTier.\(tier.rawValue)"
+        button.accessibilityTraits = isSelected ? [.button, .selected] : .button
+        button.addAction(UIAction { [weak self] _ in
+            guard let self else { return }
+            self.matchTier = tier
+            self.onChange(self.sportType, self.sessionType, self.matchTier)
+            Haptics.select()
+            self.rebuild()
+        }, for: .touchUpInside)
+        return button
+    }
+
     @objc private func chooseSportType() {
         let state = makeViewState()
         let fallbackStateText = state.stateText
@@ -8678,7 +9472,10 @@ private final class ActiveWorkoutSessionSettingsViewController: InstrumentScroll
                         guard let self else { return }
                         self.sportType = sport
                         self.sessionType = self.defaultSessionType(for: sport)
-                        self.onChange(self.sportType, self.sessionType)
+                        if self.sessionType != .match {
+                            self.matchTier = nil
+                        }
+                        self.onChange(self.sportType, self.sessionType, self.matchTier)
                         self.rebuild()
                     }
                 }
@@ -8701,7 +9498,10 @@ private final class ActiveWorkoutSessionSettingsViewController: InstrumentScroll
                     ) { [weak self] in
                         guard let self else { return }
                         self.sessionType = type
-                        self.onChange(self.sportType, self.sessionType)
+                        if type != .match {
+                            self.matchTier = nil
+                        }
+                        self.onChange(self.sportType, self.sessionType, self.matchTier)
                         self.rebuild()
                     }
                 }
@@ -8721,6 +9521,14 @@ private final class ActiveWorkoutSessionSettingsViewController: InstrumentScroll
         case .running, .cycling, .swimming: .cardio
         case .teamSport: .skill
         case .custom: sessionType
+        }
+    }
+
+    private func matchTierTitle(_ tier: MatchTier) -> String {
+        switch tier {
+        case .pickup: UIKitStrings.localized("matchTier.pickup", locale: locale)
+        case .scrimmage: UIKitStrings.localized("matchTier.scrimmage", locale: locale)
+        case .match: UIKitStrings.localized("matchTier.match", locale: locale)
         }
     }
 }
