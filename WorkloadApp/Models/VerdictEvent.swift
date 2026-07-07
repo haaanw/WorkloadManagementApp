@@ -89,6 +89,13 @@ final class VerdictEvent {
     /// When the next-day "felt right?" self-report was recorded; nil until reported / if missed.
     var feltRightRecordedAt: Date?
 
+    /// v2.1 dogfood (protocol criterion 4) — whether this decision's verdict was match-proximity-
+    /// tightened (an ADR-0002 microdose near a scheduled match) rather than a plain readiness
+    /// modify. A COMPOSITE flag (never the match date itself). nil on pre-v2.1 rows = genuinely
+    /// unknown; every new write records an explicit true/false. Additive nullable — no migration;
+    /// local-only by the same sync-omission guarantee as the rest of the model.
+    var matchProximityRaw: Bool?
+
     var updatedAt: Date
 
     /// Bare inverse to the owning athlete (mirrors `SorenessLog`). Deliberately NO array on `Athlete`.
@@ -114,6 +121,7 @@ final class VerdictEvent {
         outcomeRecordedAt: Date? = nil,
         feltRightRaw: String? = nil,
         feltRightRecordedAt: Date? = nil,
+        matchProximityRaw: Bool? = nil,
         athlete: Athlete? = nil
     ) {
         self.id = id
@@ -135,6 +143,7 @@ final class VerdictEvent {
         self.outcomeRecordedAt = outcomeRecordedAt
         self.feltRightRaw = feltRightRaw
         self.feltRightRecordedAt = feltRightRecordedAt
+        self.matchProximityRaw = matchProximityRaw
         self.updatedAt = .now
         self.athlete = athlete
     }

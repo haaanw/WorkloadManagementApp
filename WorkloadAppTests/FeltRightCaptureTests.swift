@@ -19,6 +19,7 @@ final class FeltRightPromptEngineTests: XCTestCase {
         differed: Bool = true,
         action: String = "accepted",
         feltRight: String? = nil,
+        matchProximity: Bool? = nil,
         hour: Int = 10
     ) -> VerdictEvent {
         let planDay = cal.date(byAdding: .day, value: -dayOffset, to: base)!
@@ -34,7 +35,8 @@ final class FeltRightPromptEngineTests: XCTestCase {
             actionRaw: action,
             regionRaw: "legs",
             reasonLine: "x",
-            feltRightRaw: feltRight
+            feltRightRaw: feltRight,
+            matchProximityRaw: matchProximity
         )
     }
 
@@ -169,6 +171,46 @@ final class FeltRightPromptEngineTests: XCTestCase {
         let s = FeltRightPromptEngine.summary(events: events, asOf: today, calendar: cal)
         XCTAssertEqual(s.missedDays, 1, "only a fully-passed, unanswered next-day window is a miss")
         XCTAssertEqual(s.ratedDays, 1)
+    }
+
+    // MARK: - Criterion 4: proximity microdose count
+
+    func test_summary_proximityMicrodoseDays_countsCollapsedDays_andFollowed() {
+        let today = cal.startOfDay(for: .now)
+        let events = [
+            event(base: today, dayOffset: 5, action: "accepted", matchProximity: true),
+            event(base: today, dayOffset: 5, action: "accepted", matchProximity: true, hour: 20), // same day ⇒ collapses
+            event(base: today, dayOffset: 3, action: "keptPlan", matchProximity: true),           // counted, but not followed
+            event(base: today, dayOffset: 2, action: "accepted", matchProximity: false),          // plain modify ⇒ excluded
+            event(base: today, dayOffset: 1, action: "accepted")                                  // nil (pre-v2.1) ⇒ excluded
+        ]
+        let s = FeltRightPromptEngine.summary(events: events, asOf: today, calendar: cal)
+        XCTAssertEqual(s.proximityMicrodoseDays, 2, "criterion 4 counts distinct proximity-microdose days")
+        XCTAssertEqual(s.proximityMicrodoseFollowedDays, 1, "kept-plan microdose days aren't followed")
+    }
+
+    func test_summary_proximityMicrodoseDays_nilFlag_neverFabricated() {
+        // Pre-v2.1 rows (nil) honestly read as not-proximity — the count starts at 0, not a guess.
+        let today = cal.startOfDay(for: .now)
+        let events = [
+            event(base: today, dayOffset: 2, action: "accepted"),
+            event(base: today, dayOffset: 1, action: "accepted")
+        ]
+        let s = FeltRightPromptEngine.summary(events: events, asOf: today, calendar: cal)
+        XCTAssertEqual(s.proximityMicrodoseDays, 0)
+        XCTAssertEqual(s.proximityMicrodoseFollowedDays, 0)
+    }
+
+    func test_summary_proximityDay_representativeIsLatestDecision() {
+        // Day-collapse uses the SAME representative rule (latest decision of the day): a morning
+        // microdose superseded by an evening plain-modify decision is NOT a proximity day.
+        let today = cal.startOfDay(for: .now)
+        let events = [
+            event(base: today, dayOffset: 1, action: "accepted", matchProximity: true, hour: 9),
+            event(base: today, dayOffset: 1, action: "accepted", matchProximity: false, hour: 20)
+        ]
+        let s = FeltRightPromptEngine.summary(events: events, asOf: today, calendar: cal)
+        XCTAssertEqual(s.proximityMicrodoseDays, 0, "the day's latest decision carries the day")
     }
 }
 

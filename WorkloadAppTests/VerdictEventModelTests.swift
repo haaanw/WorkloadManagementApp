@@ -129,6 +129,28 @@ final class VerdictEventModelTests: XCTestCase {
         XCTAssertEqual(fetched.suggestedRPECap, 7)
     }
 
+    func test_verdictEvent_matchProximity_defaultsNil_andRoundTripsExplicitValue() throws {
+        // v2.1 dogfood criterion 4 — additive nullable: legacy-compatible construction leaves
+        // the flag nil (= genuinely unknown, pre-v2.1); new writes round-trip explicit values.
+        let legacy = VerdictEvent(
+            verdictKindRaw: "modify", plannedTopSetKg: 100,
+            actionRaw: "accepted", regionRaw: MuscleRegion.legs.rawValue, reasonLine: "r"
+        )
+        XCTAssertNil(legacy.matchProximityRaw, "pre-v2.1-shaped rows stay nil — unknown, not false")
+
+        let microdose = VerdictEvent(
+            verdictKindRaw: "modify", plannedTopSetKg: 100,
+            actionRaw: "accepted", regionRaw: MuscleRegion.legs.rawValue, reasonLine: "r",
+            matchProximityRaw: true
+        )
+        context.insert(microdose)
+        try context.save()
+        let fetched = try XCTUnwrap(
+            (try context.fetch(FetchDescriptor<VerdictEvent>())).first { $0.id == microdose.id }
+        )
+        XCTAssertEqual(fetched.matchProximityRaw, true)
+    }
+
     // MARK: - Composite-only source-grep guard (no raw biometric field names)
 
     private func source(of relativePath: String) throws -> String {

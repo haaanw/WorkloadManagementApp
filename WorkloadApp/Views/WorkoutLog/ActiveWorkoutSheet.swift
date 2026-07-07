@@ -674,9 +674,11 @@ struct ActiveWorkoutSheet: View {
         }
 
         session.recalculateDerivedFields()
-        // Match tier (v2.1 beachhead): recorded only for match-type sessions. nil (untouched
-        // picker) stays nil — the carry model treats nil as pickup, so nothing is fabricated.
-        session.matchTier = sessionType == .match ? matchTier : nil
+        // Match tier (v2.1 beachhead): recorded only for match-type sessions. An untouched
+        // picker persists .pickup EXPLICITLY — the picker showed Pickup as the effective
+        // selection, so the saved row records "true pickup" instead of conflating it with
+        // "unknown" (pre-v2.1 rows keep nil = genuinely unknown).
+        session.matchTier = MatchTier.persistedTier(sessionType: sessionType, selected: matchTier)
         session.sourceTemplateId = sourceTemplate?.id
         session.athlete = athlete
         modelContext.insert(session)

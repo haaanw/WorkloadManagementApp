@@ -597,6 +597,16 @@ enum MatchTier: String, Codable, CaseIterable, Identifiable {
         case .match: String(localized: "matchTier.match", defaultValue: "Match")
         }
     }
+
+    /// Save-time persistence rule (v2.1): persist what the picker SHOWED. A match-type session
+    /// whose tier picker was never touched (nil) persists `.pickup` explicitly — the picker
+    /// renders Pickup as the effective selection, so "true pickup" is recorded rather than
+    /// conflated with "unknown". Non-match sessions always persist nil (no tier applies).
+    /// Pre-existing rows are untouched by this rule and keep nil = genuinely unknown (pre-v2.1).
+    static func persistedTier(sessionType: SessionType, selected: MatchTier?) -> MatchTier? {
+        guard sessionType == .match else { return nil }
+        return selected ?? .pickup
+    }
 }
 
 // MARK: - RadialSelectable conformances (Phase 21)

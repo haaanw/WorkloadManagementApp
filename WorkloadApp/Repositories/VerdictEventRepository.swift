@@ -38,6 +38,7 @@ final class VerdictEventRepository {
         prescriptionId: UUID? = nil,
         suggestedBackoffSetCut: Int? = nil,
         suggestedRPECap: Double? = nil,
+        matchProximity: Bool? = nil,
         athlete: Athlete?
     ) -> VerdictEvent {
         let event = VerdictEvent(
@@ -55,6 +56,7 @@ final class VerdictEventRepository {
             prescriptionId: prescriptionId,
             suggestedBackoffSetCut: suggestedBackoffSetCut,
             suggestedRPECap: suggestedRPECap,
+            matchProximityRaw: matchProximity,
             athlete: athlete
         )
         modelContext.insert(event)

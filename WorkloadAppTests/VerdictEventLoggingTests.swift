@@ -71,6 +71,7 @@ final class VerdictEventLoggingTests: XCTestCase {
                 confidenceNote: model.display?.confidenceNote,
                 suggestedBackoffSetCut: decision.suggestedBackoffSetCut,
                 suggestedRPECap: decision.suggestedRPECap,
+                matchProximity: model.lastHeadlineMatchProximity,
                 athlete: loggedAthlete
             )
         }
@@ -108,6 +109,10 @@ final class VerdictEventLoggingTests: XCTestCase {
         XCTAssertEqual(all.first?.regionRaw, MuscleRegion.fullBody.rawValue, "manual lift has no muscleGroup ⇒ fullBody")
         XCTAssertEqual(all.first?.verdictKindRaw, "defer", "cold-start ⇒ defer label")
         XCTAssertFalse(all.first?.differed ?? true, "cold-start defer ⇒ no adjustment ⇒ not differed")
+        XCTAssertEqual(
+            all.first?.matchProximityRaw, false,
+            "new writes record an EXPLICIT proximity flag (false here) — nil stays reserved for pre-v2.1 rows"
+        )
 
         // KEEP-PLAN
         vm.keepPlan()
@@ -169,6 +174,22 @@ final class VerdictEventLoggingTests: XCTestCase {
         XCTAssertEqual(e?.suggestedRPECap, 7)
     }
 
+    // MARK: - Proximity flag wiring (dogfood criterion 4)
+
+    func test_repositoryLog_persistsExplicitProximityFlag() {
+        // A proximity-microdose decision must never be logged as a plain "modify" — the
+        // repository persists the explicit flag alongside the composite fields.
+        let microdose = eventRepo.log(
+            decidedAt: .now, planDate: .now, verdictKindRaw: "modify",
+            plannedTopSetKg: 100, adjustedTopSetKg: 90, deltaKg: -10, differed: true,
+            actionRaw: "accepted", regionRaw: MuscleRegion.legs.rawValue,
+            reasonLine: "Match Saturday — microdose.", confidenceNote: nil,
+            matchProximity: true, athlete: athlete
+        )
+        XCTAssertEqual(microdose.matchProximityRaw, true)
+        XCTAssertEqual(eventRepo.fetchAll(athlete: athlete).first?.matchProximityRaw, true)
+    }
+
     // MARK: - SC4 structural guard: the production surface wires the logger
 
     func test_workoutLogView_wiresOnDecisionRecorded_sourceGrep() throws {
@@ -180,6 +201,10 @@ final class VerdictEventLoggingTests: XCTestCase {
         XCTAssertTrue(
             source.contains("onDecisionRecorded"),
             "WorkoutLogView must wire onDecisionRecorded — the SC4 ordering guard (seam never left nil)"
+        )
+        XCTAssertTrue(
+            source.contains("matchProximity: vm.lastHeadlineMatchProximity"),
+            "WorkoutLogView's logger closure must pass the headline proximity flag (dogfood criterion 4)"
         )
     }
 }

@@ -4534,6 +4534,40 @@
         }
       }
     },
+    "measurement.dogfood.proximity.context" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$d followed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已采纳 %1$d"
+          }
+        }
+      }
+    },
+    "measurement.dogfood.proximity.label" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Proximity microdoses"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "赛前微剂量"
+          }
+        }
+      }
+    },
     "measurement.dogfood.title" : {
       "extractionState" : "manual",
       "localizations" : {

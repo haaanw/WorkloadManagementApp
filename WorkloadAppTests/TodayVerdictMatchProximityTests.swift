@@ -496,3 +496,65 @@ final class TodayVerdictServiceMatchProximityTests: XCTestCase {
         XCTAssertFalse((top.verdictReason ?? "").lowercased().contains("microdose"))
     }
 }
+
+/// v2.1 Lane B — `NextMatchSection.displayDaysOut`, the read-site contract behind the "Next match"
+/// days-out copy. A strictly-past stored date must read as ABSENT (nil ⇒ the calm empty state),
+/// never as negative "Match in -1 days" copy — the render-path clamp that covers a view mounted
+/// across midnight before any expiry pass (onAppear / scenePhase → .active / NSCalendarDayChanged)
+/// runs. Mirrors the engine convention already proven above (`matchDaysAway`: past ⇒ absent).
+final class NextMatchDisplayDaysOutTests: XCTestCase {
+
+    private var calendar: Calendar {
+        var c = Calendar(identifier: .gregorian)
+        c.timeZone = TimeZone(identifier: "UTC")!
+        return c
+    }
+
+    /// A fixed "now": Thursday 2026-07-09, 14:00 UTC (same fixture as the engine tests above).
+    private var asOf: Date {
+        calendar.date(from: DateComponents(year: 2026, month: 7, day: 9, hour: 14))!
+    }
+
+    private func matchDate(daysFromNow days: Int) -> Date {
+        let day = calendar.date(byAdding: .day, value: days, to: asOf)!
+        return calendar.startOfDay(for: day)
+    }
+
+    func test_displayDaysOut_nilDate_isNil() {
+        XCTAssertNil(NextMatchSection.displayDaysOut(nextMatchDate: nil, asOf: asOf, calendar: calendar))
+    }
+
+    func test_displayDaysOut_strictlyPastDate_readsAsAbsent_neverNegative() {
+        XCTAssertNil(
+            NextMatchSection.displayDaysOut(nextMatchDate: matchDate(daysFromNow: -1), asOf: asOf, calendar: calendar),
+            "yesterday's match must render the empty state, never 'Match in -1 days'"
+        )
+        XCTAssertNil(
+            NextMatchSection.displayDaysOut(nextMatchDate: matchDate(daysFromNow: -7), asOf: asOf, calendar: calendar)
+        )
+    }
+
+    func test_displayDaysOut_matchDayThroughFuture_countsWholeCalendarDays() {
+        XCTAssertEqual(NextMatchSection.displayDaysOut(nextMatchDate: matchDate(daysFromNow: 0), asOf: asOf, calendar: calendar), 0)
+        XCTAssertEqual(NextMatchSection.displayDaysOut(nextMatchDate: matchDate(daysFromNow: 1), asOf: asOf, calendar: calendar), 1)
+        XCTAssertEqual(NextMatchSection.displayDaysOut(nextMatchDate: matchDate(daysFromNow: 6), asOf: asOf, calendar: calendar), 6)
+    }
+
+    func test_displayDaysOut_timeOfDayNeverMatters() {
+        // 23:59 the night before match day still reads 1; 00:01 on match day reads 0.
+        let matchDay = matchDate(daysFromNow: 2)
+        let lateEvening = calendar.date(byAdding: .minute, value: -1, to: matchDay)!         // 23:59 prior day
+        let earlyMorning = calendar.date(byAdding: .minute, value: 1, to: matchDay)!         // 00:01 match day
+        XCTAssertEqual(NextMatchSection.displayDaysOut(nextMatchDate: matchDay, asOf: lateEvening, calendar: calendar), 1)
+        XCTAssertEqual(NextMatchSection.displayDaysOut(nextMatchDate: matchDay, asOf: earlyMorning, calendar: calendar), 0)
+    }
+
+    func test_displayDaysOut_midnightCrossing_expiresYesterdaysMatch() {
+        // The flagged scenario: "Match today" is showing; the clock crosses midnight while the
+        // view stays mounted. The very next read must be absent — not -1.
+        let match = matchDate(daysFromNow: 0)
+        XCTAssertEqual(NextMatchSection.displayDaysOut(nextMatchDate: match, asOf: asOf, calendar: calendar), 0)
+        let pastMidnight = calendar.date(byAdding: .hour, value: 11, to: asOf)!  // 01:00 next day
+        XCTAssertNil(NextMatchSection.displayDaysOut(nextMatchDate: match, asOf: pastMidnight, calendar: calendar))
+    }
+}

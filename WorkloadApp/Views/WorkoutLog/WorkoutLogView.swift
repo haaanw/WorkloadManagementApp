@@ -363,6 +363,10 @@ struct WorkoutLogView: View {
                             prescriptionId: vm.currentPrescriptionId,
                             suggestedBackoffSetCut: decision.suggestedBackoffSetCut,
                             suggestedRPECap: decision.suggestedRPECap,
+                            // v2.1 dogfood criterion 4: an explicit true/false from the headline
+                            // VerdictResult.matchProximity — a proximity microdose is never logged
+                            // as a plain "modify". (nil stays reserved for pre-v2.1 rows.)
+                            matchProximity: vm.lastHeadlineMatchProximity,
                             athlete: loggedAthlete
                         )
                     }

@@ -1,5 +1,6 @@
 import SwiftUI
 import SwiftData
+import Combine
 
 /// "Next match" — the first schedule-shaped plan object in the wedge (ADR-0002).
 /// ONE optional scheduled match date on the athlete: set, change, clear. No recurrence,
@@ -10,7 +11,10 @@ import SwiftData
 /// is mixed (league weeks and pickup-only weeks) — so it reads calm, never like a nag.
 ///
 /// Expiry convention: the date stays visible through match day itself ("Match today");
-/// the first appearance AFTER match day silently clears it back to the empty state.
+/// the first read AFTER match day silently clears it back to the empty state — checked
+/// onAppear, on scenePhase → .active, and on the NSCalendarDayChanged notification (so a
+/// view mounted across midnight expires too), and additionally clamped at the render read
+/// site so a strictly-past date can never render negative days-out copy.
 /// Silent-clear (not a banner) because an expired date is not an error — the match
 /// happened; the section simply returns to "no scheduled match".
 ///
@@ -20,6 +24,7 @@ struct NextMatchSection: View {
     @Query private var athletes: [Athlete]
     @Environment(\.modelContext) private var modelContext
     @Environment(\.locale) private var locale
+    @Environment(\.scenePhase) private var scenePhase
     @State private var showPicker = false
 
     private var athlete: Athlete? { athletes.first }
@@ -27,8 +32,12 @@ struct NextMatchSection: View {
     var body: some View {
         SectionContainer(header: "nextMatch.section.header") {
             Group {
-                if let date = athlete?.nextMatchDate {
-                    scheduledRow(date: date)
+                // A strictly-past date reads as ABSENT at the read site (displayDaysOut == nil),
+                // so the section can never render negative "Match in -1 days" copy even if the
+                // view stays mounted across midnight before an expiry pass has run.
+                if let date = athlete?.nextMatchDate,
+                   let days = Self.displayDaysOut(nextMatchDate: date, asOf: .now, calendar: .current) {
+                    scheduledRow(date: date, daysOut: days)
                 } else {
                     emptyRow
                 }
@@ -36,6 +45,15 @@ struct NextMatchSection: View {
             .padding(.horizontal, Spacing.sm)
         }
         .onAppear(perform: expireIfPast)
+        // Re-run expiry when the app returns to foreground (the codebase's scenePhase idiom —
+        // mirrors DashboardView) and when the calendar day changes while mounted (the
+        // stayed-open-across-midnight case the onAppear pass misses).
+        .onChange(of: scenePhase) { _, newPhase in
+            if newPhase == .active { expireIfPast() }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+            expireIfPast()
+        }
         .sheet(isPresented: $showPicker) {
             NextMatchPickerSheet(
                 initialDate: athlete?.nextMatchDate,
@@ -66,10 +84,10 @@ struct NextMatchSection: View {
         .cardStyle(verticalPadding: Spacing.sm)
     }
 
-    private func scheduledRow(date: Date) -> some View {
+    private func scheduledRow(date: Date, daysOut: Int) -> some View {
         HStack(spacing: Spacing.sm) {
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                Text(daysOutText(daysOut(to: date)))
+                Text(daysOutText(daysOut))
                     .font(.Tokens.bodyMedium)
                     .monospacedDigit()
                     .foregroundStyle(ColorTokens.text1)
@@ -103,14 +121,18 @@ struct NextMatchSection: View {
 
     // MARK: - Days-out copy
 
-    /// Whole calendar days from today to the match (0 = match day).
-    private func daysOut(to date: Date) -> Int {
-        let cal = Calendar.current
-        return cal.dateComponents(
+    /// Whole calendar days from `asOf` to the match (0 = match day), or nil when the stored
+    /// date is strictly past (expired ⇒ treated as absent — the empty state, never negative
+    /// copy). This is the SINGLE read-site contract for rendering; injected clock/calendar
+    /// keep it deterministic and testable (mirrors `TodayVerdictEngine.matchDaysAway`).
+    static func displayDaysOut(nextMatchDate: Date?, asOf: Date, calendar: Calendar) -> Int? {
+        guard let nextMatchDate else { return nil }
+        let days = calendar.dateComponents(
             [.day],
-            from: cal.startOfDay(for: .now),
-            to: cal.startOfDay(for: date)
+            from: calendar.startOfDay(for: asOf),
+            to: calendar.startOfDay(for: nextMatchDate)
         ).day ?? 0
+        return days < 0 ? nil : days
     }
 
     private func daysOutText(_ days: Int) -> String {
@@ -136,11 +158,13 @@ struct NextMatchSection: View {
         try? modelContext.save()
     }
 
-    /// Auto-expire: strictly before today ⇒ clear. Match day itself still shows.
+    /// Auto-expire: strictly before today ⇒ clear. Match day itself still shows. Runs onAppear,
+    /// on scenePhase → .active, and on NSCalendarDayChanged — the render path additionally
+    /// clamps via `displayDaysOut`, so an expired date can never flash as negative copy between
+    /// expiry passes.
     private func expireIfPast() {
         guard let athlete, let date = athlete.nextMatchDate else { return }
-        let cal = Calendar.current
-        if cal.startOfDay(for: date) < cal.startOfDay(for: .now) {
+        if Self.displayDaysOut(nextMatchDate: date, asOf: .now, calendar: .current) == nil {
             athlete.nextMatchDate = nil
             try? modelContext.save()
         }

@@ -84,6 +84,44 @@ final class MatchTierTests: XCTestCase {
         XCTAssertNil(session.matchTier)
     }
 
+    // MARK: - Save-time persistence rule (persist what the picker showed)
+
+    func test_persistedTier_matchSession_untouchedPicker_defaultsToExplicitPickup() {
+        // A saved match session with a nil picker state persists .pickup EXPLICITLY —
+        // "true pickup" must never be conflated with "unknown/pre-v2.1" (nil).
+        XCTAssertEqual(MatchTier.persistedTier(sessionType: .match, selected: nil), .pickup)
+    }
+
+    func test_persistedTier_matchSession_keepsExplicitSelection() {
+        XCTAssertEqual(MatchTier.persistedTier(sessionType: .match, selected: .scrimmage), .scrimmage)
+        XCTAssertEqual(MatchTier.persistedTier(sessionType: .match, selected: .match), .match)
+        XCTAssertEqual(MatchTier.persistedTier(sessionType: .match, selected: .pickup), .pickup)
+    }
+
+    func test_persistedTier_nonMatchSessions_alwaysPersistNil() {
+        for type in SessionType.allCases where type != .match {
+            XCTAssertNil(
+                MatchTier.persistedTier(sessionType: type, selected: .match),
+                "\(type.rawValue) sessions carry no tier — even a stale picker selection persists nil"
+            )
+            XCTAssertNil(MatchTier.persistedTier(sessionType: type, selected: nil))
+        }
+    }
+
+    func test_activeWorkoutSheet_usesPersistedTierRule_sourceGrep() throws {
+        // Structural guard: the save path must route through MatchTier.persistedTier so the
+        // explicit-.pickup default can't silently regress to persisting raw nil state.
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()   // WorkloadAppTests/
+            .deletingLastPathComponent()   // repo root
+        let url = root.appendingPathComponent("WorkloadApp/Views/WorkoutLog/ActiveWorkoutSheet.swift")
+        let source = try String(contentsOf: url, encoding: .utf8)
+        XCTAssertTrue(
+            source.contains("MatchTier.persistedTier(sessionType:"),
+            "ActiveWorkoutSheet must persist the tier via MatchTier.persistedTier (explicit .pickup on save)"
+        )
+    }
+
     func test_syncRow_neverCarriesMatchTier() throws {
         // Sync fence: matchTier is local-only by design (no Supabase schema change). The
         // explicit-field WorkoutSessionRow must not pick it up, even when set.

@@ -92,7 +92,7 @@ struct VerdictMeasurementView: View {
                     .padding(.horizontal, Spacing.sm)
                     .padding(.top, Spacing.sm)
 
-                // v2.1 — the pre-registered n=1 dogfood criteria (1–3). Same quiet grammar:
+                // v2.1 — the pre-registered n=1 dogfood criteria (1–4). Same quiet grammar:
                 // flat rows, honest nil-states, no accent, no chart.
                 SectionHeader(title: "measurement.dogfood.title")
                     .padding(.top, Spacing.lg)
@@ -126,6 +126,20 @@ struct VerdictMeasurementView: View {
                                 format: String(localized: "measurement.dogfood.feltRight.context",
                                                defaultValue: "%1$d rated · %2$d missed"),
                                 d.ratedDays, d.missedDays
+                            )
+                    )
+                    rowHairline()
+                    // Criterion 4 — proximity microdoses (a raw count, not a rate: the ≥2
+                    // threshold is judged against the count itself).
+                    statRow(
+                        label: "measurement.dogfood.proximity.label",
+                        value: Text(verbatim: "\(d.proximityMicrodoseDays)").monospacedDigit(),
+                        context: d.proximityMicrodoseDays == 0
+                            ? nil
+                            : String(
+                                format: String(localized: "measurement.dogfood.proximity.context",
+                                               defaultValue: "%1$d followed"),
+                                d.proximityMicrodoseFollowedDays
                             )
                     )
                 }

@@ -41,7 +41,7 @@ struct FeltRightPromptEngine {
         return representative.feltRightRaw == nil ? representative : nil
     }
 
-    // MARK: - Pre-registered criteria aggregates (criteria 1–3)
+    // MARK: - Pre-registered criteria aggregates (criteria 1–4)
 
     /// The founder-readable dogfood readout. Day-level: differed events collapse to days; each
     /// day's representative (latest decision) carries the day's action + felt-right answer.
@@ -61,6 +61,13 @@ struct FeltRightPromptEngine {
         /// Criterion 3 (≥70%): "right" answers / ratedDays. "unsure" and "wrong" count against.
         /// `nil` when nothing has been rated yet.
         let feltRightRate: Double?
+        /// Criterion 4 (≥2): distinct days whose representative verdict was a match-proximity
+        /// MICRODOSE (`matchProximityRaw == true`). Pre-v2.1 rows (nil) honestly count as
+        /// not-proximity — never fabricated.
+        let proximityMicrodoseDays: Int
+        /// Proximity-microdose days whose representative was acted on (action ≠ keptPlan) —
+        /// only a followed microdose can end in a fresh-legs match.
+        let proximityMicrodoseFollowedDays: Int
     }
 
     static func summary(
@@ -92,13 +99,23 @@ struct FeltRightPromptEngine {
         let feltRightCount = rated.filter { $0.event.feltRightRaw == feltRight }.count
         let feltRightRate = ratedDays == 0 ? nil : Double(feltRightCount) / Double(ratedDays)
 
+        // Criterion 4: proximity microdoses, at the SAME day-collapse granularity — a day counts
+        // when its representative decision was proximity-tightened (`matchProximityRaw == true`;
+        // nil = pre-v2.1/unknown reads as false, never fabricated).
+        let proximityDays = representatives.filter { $0.event.matchProximityRaw == true }
+        let proximityMicrodoseDays = proximityDays.count
+        let proximityMicrodoseFollowedDays = proximityDays
+            .filter { $0.event.actionRaw != actionKeptPlan }.count
+
         return DogfoodSummary(
             differingDays: differingDays,
             followedDays: followedDays,
             followedRate: followedRate,
             ratedDays: ratedDays,
             missedDays: missedDays,
-            feltRightRate: feltRightRate
+            feltRightRate: feltRightRate,
+            proximityMicrodoseDays: proximityMicrodoseDays,
+            proximityMicrodoseFollowedDays: proximityMicrodoseFollowedDays
         )
     }
 }
