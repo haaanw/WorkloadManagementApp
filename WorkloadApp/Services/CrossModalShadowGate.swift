@@ -1,26 +1,24 @@
 import Foundation
 
-/// **The explicit cross-modal VERDICT-INFLUENCE gate (Phase 41, ACT-02). DEFAULTS FALSE.**
+/// **The explicit cross-modal VERDICT-INFLUENCE gate (Phase 41, ACT-02). DEFAULTS TRUE.**
 ///
 /// The cross-modal fatigue-carry channel (`CrossModalFatigueEngine`, logged as the `"crossModal"`
 /// shadow arm in `ShadowPredictor.registeredArms()`) runs DARK through the existing
-/// `ShadowMetrics` / `ShadowAnalyticsService` harness. This enum is the hard fence that keeps that
-/// channel from ever driving a user-facing number or verdict until it has earned it.
+/// `ShadowMetrics` / `ShadowAnalyticsService` harness. This enum keeps verdict influence revertible
+/// while the founder dogfoods the n=1 validation window.
 ///
 /// ## What `crossModalDrivesVerdict` gates
-/// While `crossModalDrivesVerdict == false` (the shipped default, and the ONLY value this phase),
-/// the cross-modal channel is FORBIDDEN from influencing any verdict number. It logs predictions
-/// for prequential validation and nothing else. Collecting that shadow data while the flag is off
-/// is the entire point of the shadow-gate (CONTEXT.md, locked: "Shadow-gate before influence";
-/// ROADMAP SC4).
+/// While `crossModalDrivesVerdict == true` (the shipped default as of 2026-07-08), the
+/// cross-modal channel may tighten the verdict through `TodayVerdictEngine`'s bounded path. If the
+/// dogfood window shows cross-modal misfires, flip this back to `false`; then the channel returns to
+/// shadow-only logging and contributes zero to the user-facing number.
 ///
 /// ## How it flips (and how it does NOT)
-/// Flipping `crossModalDrivesVerdict` to `true` is a FUTURE human-authorized decision, taken ONLY
-/// after a human reviews the cross-modal shadow-validation signal (paired-MAE CI vs baseline,
-/// region-soreness next-day agreement) and judges it has cleared a validation pass. It is NEVER set
-/// in app code, NEVER assigned from any evaluator's `recommendsActivation`, and NEVER flipped by a
-/// code merge. The magnitude of the cross-modal model is an honest heuristic (LOW confidence per
-/// research §1.5), so day-one there is no shadow data and the gate stays OFF by construction.
+/// `crossModalDrivesVerdict` was activated 2026-07-08 for pre-registered n=1 dogfood validation.
+/// Keep this as a plain default so it remains revertible. It is NEVER assigned from any evaluator's
+/// `recommendsActivation`; validation summaries remain report-only. The magnitude of the
+/// cross-modal model is an honest heuristic (LOW confidence per research §1.5), so the dogfood
+/// criterion decides whether this default survives.
 ///
 /// ## Report-only discipline (mirrors `ActivationGateEvaluator`, GA-7)
 /// `validationSummary(resolvedRows:)` is REPORT-ONLY: it extracts the EXISTING
@@ -31,13 +29,12 @@ import Foundation
 /// `withEnabled(_:)`.
 enum CrossModalShadowGate {
 
-    /// Verdict-influence gate for the cross-modal channel. **Default `false`** — the channel logs
-    /// DARK and cannot drive any user-facing number or verdict until an explicit human
-    /// shadow-validation PASS flips this. Never set in app code; never assigned from any
-    /// evaluator's `recommendsActivation`.
-    static var crossModalDrivesVerdict: Bool { _override ?? false }
+    /// Verdict-influence gate for the cross-modal channel. **Default `true`** — activated
+    /// 2026-07-08 for n=1 dogfood validation; revert to `false` if dogfood shows cross-modal
+    /// misfires. Never assigned from any evaluator's `recommendsActivation`.
+    static var crossModalDrivesVerdict: Bool { _override ?? true }
 
-    /// Test-only override storage. `nil` ⇒ use the shipped default (`false`). Never set in app code.
+    /// Test-only override storage. `nil` ⇒ use the shipped default (`true`). Never set in app code.
     private static var _override: Bool?
 
     /// Run `body` with `crossModalDrivesVerdict` forced to `value`, restoring the prior state after.

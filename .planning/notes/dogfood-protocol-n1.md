@@ -17,7 +17,8 @@ context: /grill-with-docs session. No resources to recruit the 5-user validation
 2. **≥60% of differing verdicts followed** — else founder doesn't trust his own product.
 3. **≥70% of followed verdicts felt right** — judged next-day (session quality / soreness / match freshness), logged same-day, not retro-rated.
 4. **≥2 match-proximity microdoses** that ended in fresh-legs matches.
-5. **≥1 clearly-wrong verdict with an understood cause** — zero wrong verdicts in 6 weeks means insufficient scrutiny (kill-condition against motivated reasoning).
+5. **Cross-modal validation passes on driven days** — on days where cross-modal carry drove the difference (e.g. legs trimmed while upper-body work was spared), ≥60% of those cross-modal-driven trims must feel right next day, with no systematic wrong-direction pattern. Fail action: revert `CrossModalShadowGate.crossModalDrivesVerdict` to `false` and soften website/ASO cross-modal copy to the fallback claim.
+6. **≥1 clearly-wrong verdict with an understood cause** — zero wrong verdicts in 6 weeks means insufficient scrutiny (kill-condition against motivated reasoning).
 
 ## Outcomes
 

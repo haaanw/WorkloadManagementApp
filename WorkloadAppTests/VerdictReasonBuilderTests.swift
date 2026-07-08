@@ -98,13 +98,15 @@ final class VerdictReasonBuilderTests: XCTestCase {
 
     func test_gateOff_crossModalCause_neverNamed() {
         let cross = crossModal(dominantRegion: .legs, elevation: 0.9)
-        // Default (gate off): even with a leg-loaded dominant cross-modal result, the cause is never named.
-        let result = VerdictReasonBuilder.build(
-            decisionInput: decisionInput(),
-            crossModalResult: cross,
-            plannedRegion: .legs,
-            deferToPlan: false
-        )
+        // Gate off: even with a leg-loaded dominant cross-modal result, the cause is never named.
+        let result = CrossModalShadowGate.withEnabled(false) {
+            VerdictReasonBuilder.build(
+                decisionInput: decisionInput(),
+                crossModalResult: cross,
+                plannedRegion: .legs,
+                deferToPlan: false
+            )
+        }
         XCTAssertFalse(result.reasonLine.lowercased().contains("loaded from"))
     }
 
@@ -122,7 +124,28 @@ final class VerdictReasonBuilderTests: XCTestCase {
                 deferToPlan: false
             )
         }
-        XCTAssertTrue(result.reasonLine.lowercased().contains("loaded from"))
+        let lower = result.reasonLine.lowercased()
+        XCTAssertTrue(lower.contains("legs"))
+        XCTAssertTrue(lower.contains("easing"))
+        XCTAssertTrue(lower.contains("lower-body"))
+    }
+
+    func test_gateOn_crossModalDominant_upperBodyLineIsRegionAware() {
+        let cross = crossModal(dominantRegion: .chest, elevation: 0.95)
+        let result = CrossModalShadowGate.withEnabled(true) {
+            VerdictReasonBuilder.build(
+                decisionInput: decisionInput(
+                    readiness: readinessResult(hrvZ: 0.0, sleepZ: 0.0, rhrZ: 0.0),
+                    strain: strainResult(score: 0.05)
+                ),
+                crossModalResult: cross,
+                plannedRegion: .chest,
+                deferToPlan: false
+            )
+        }
+        let lower = result.reasonLine.lowercased()
+        XCTAssertTrue(lower.contains("upper body"))
+        XCTAssertTrue(lower.contains("easing"))
     }
 
     func test_gateOn_crossModalNotDominant_readinessLeads() {
@@ -139,6 +162,29 @@ final class VerdictReasonBuilderTests: XCTestCase {
         // The cross-modal cause is NOT forced into the line; readiness reason leads.
         XCTAssertTrue(result.reasonLine.contains("Heart Rate Variability"))
         XCTAssertFalse(result.reasonLine.lowercased().contains("loaded from"))
+    }
+
+    func test_matchProximityMicrodoseLine_takesPrecedenceOverCrossModal() {
+        let cross = crossModal(dominantRegion: .legs, elevation: 0.95)
+        let calendar = Calendar(identifier: .gregorian)
+        let matchDate = DateComponents(calendar: calendar, year: 2026, month: 7, day: 10).date!
+        let result = CrossModalShadowGate.withEnabled(true) {
+            VerdictReasonBuilder.build(
+                decisionInput: decisionInput(
+                    readiness: readinessResult(hrvZ: 0.0, sleepZ: 0.0, rhrZ: 0.0),
+                    strain: strainResult(score: 0.05)
+                ),
+                crossModalResult: cross,
+                plannedRegion: .legs,
+                deferToPlan: false,
+                matchContext: .init(daysAway: 1, matchDate: matchDate),
+                calendar: calendar
+            )
+        }
+        let lower = result.reasonLine.lowercased()
+        XCTAssertTrue(lower.contains("microdose"))
+        XCTAssertFalse(lower.contains("easing"))
+        XCTAssertFalse(lower.contains("lower-body"))
     }
 
     // MARK: - Cold-start defer (locked honest-confidence rule)

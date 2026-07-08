@@ -98,10 +98,9 @@ struct VerdictReasonBuilder {
         // region. While the gate is off, cross-modal is NEVER referenced (the locked rule).
         if CrossModalShadowGate.crossModalDrivesVerdict,
            let cross = crossModalResult,
-           let cause = cross.dominantReason,
            crossModalIsDominant(cross, plannedRegion: plannedRegion, against: reasons) {
             // Lead with the cross-modal cause — it is the dominant driver this evaluation.
-            line = cause
+            line = crossModalLine(for: plannedRegion)
         }
 
         // --- Match proximity LEADS (ADR-0002). ------------------------------------------------------
@@ -183,6 +182,31 @@ struct VerdictReasonBuilder {
     }
 
     // MARK: - Cross-modal dominance
+
+    private static func crossModalLine(for region: MuscleRegion) -> String {
+        switch region {
+        case .legs:
+            return String(
+                localized: "verdict.reason.crossModal.legs",
+                defaultValue: "Recent court work loaded your legs — easing this lower-body lift."
+            )
+        case .back, .chest, .shoulders, .arms:
+            return String(
+                localized: "verdict.reason.crossModal.upper",
+                defaultValue: "Recent sport work loaded your upper body — easing this lift."
+            )
+        case .core:
+            return String(
+                localized: "verdict.reason.crossModal.core",
+                defaultValue: "Recent sport work loaded your core — easing this lift."
+            )
+        case .fullBody:
+            return String(
+                localized: "verdict.reason.crossModal.fullBody",
+                defaultValue: "Recent sport work is still carrying over — easing this lift."
+            )
+        }
+    }
 
     /// Whether cross-modal is the DOMINANT down-pressure for `plannedRegion`: its 0…1 region
     /// elevation (the "how loaded is this region from other modalities" signal) exceeds the

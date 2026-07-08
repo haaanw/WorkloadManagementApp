@@ -21,8 +21,8 @@ import SwiftData
 /// suggestion equals the plan, the reason is the defer copy) — never a fabricated trim.
 ///
 /// ## Cross-modal
-/// Cross-modal passes straight through to the gate-guarded engines, which zero it out while
-/// `CrossModalShadowGate.crossModalDrivesVerdict` is off (the shipped default). No special-casing here.
+/// Cross-modal passes straight through to the gate-guarded engines. When the gate is on, the
+/// verdict engine keeps it only-tightening and bounded; when off, it contributes zero.
 ///
 /// Conventions: `@MainActor final class` taking `ModelContext` (mirrors the repository/pipeline
 /// convention). Tuwa voice; never frames a trim as harm-forecasting (source-grep fenced).

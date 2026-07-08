@@ -243,16 +243,39 @@ final class TodayVerdictServiceTests: XCTestCase {
             systemicFactor: 0.9, dominantReason: "legs still loaded from recent cross-modal work"
         )
         let w1 = makePrescription(topWeightKg: 100, topRPE: 8)
-        _ = service.evaluateAndWrite(prescribedWorkout: w1, decisionInput: modifyDecisionInput(),
+        _ = CrossModalShadowGate.withEnabled(false) {
+            service.evaluateAndWrite(prescribedWorkout: w1, decisionInput: modifyDecisionInput(),
                                      crossModalResult: legLoaded, plateStepKg: 2.5)
+        }
         let withResult = topSet(of: w1).adjustedTargetWeightKg
 
         let w2 = makePrescription(topWeightKg: 100, topRPE: 8)
-        _ = service.evaluateAndWrite(prescribedWorkout: w2, decisionInput: modifyDecisionInput(),
+        _ = CrossModalShadowGate.withEnabled(false) {
+            service.evaluateAndWrite(prescribedWorkout: w2, decisionInput: modifyDecisionInput(),
                                      crossModalResult: nil, plateStepKg: 2.5)
+        }
         let withNil = topSet(of: w2).adjustedTargetWeightKg
 
         XCTAssertEqual(withResult ?? -1, withNil ?? -2, accuracy: 0.0)
+    }
+
+    func test_coldStartDefer_ignoresCrossModalTrim() {
+        let legLoaded = CrossModalFatigueEngine.CrossModalResult(
+            perRegionCarry: [.legs: 500], perRegionElevation: [.legs: 0.9],
+            systemicFactor: 0.85, dominantReason: "legs still loaded from recent cross-modal work"
+        )
+        let workout = makePrescription(topWeightKg: 100, topRPE: 8)
+        _ = service.evaluateAndWrite(
+            prescribedWorkout: workout,
+            decisionInput: nil,
+            crossModalResult: legLoaded,
+            plateStepKg: 2.5
+        )
+
+        let top = topSet(of: workout)
+        XCTAssertEqual(top.adjustedTargetWeightKg ?? -1, 100, accuracy: 1e-9)
+        XCTAssertNil(top.adjustedTargetRPE)
+        XCTAssertTrue((top.verdictReason ?? "").lowercased().contains("plan"))
     }
 
     // MARK: - makeDecisionInput assembly helper (the live reason seam)

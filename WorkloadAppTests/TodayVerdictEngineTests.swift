@@ -8,8 +8,8 @@ import XCTest
 /// plate-rounded adjusted top-set number / back-off volume cut (VERDICT-02). The engine is a pure
 /// DERIVED function — a Foundation-only value-test, no ModelContainer needed.
 ///
-/// Cross-modal is wired through `CrossModalShadowGate` but contributes EXACTLY ZERO while the gate
-/// is off (the shipped default) — proven by the gate-off-identical test.
+/// Cross-modal is wired through `CrossModalShadowGate`; gate-off still contributes EXACTLY ZERO,
+/// while gate-on can only tighten inside the locked bounds.
 final class TodayVerdictEngineTests: XCTestCase {
 
     // MARK: - Fixtures
@@ -240,7 +240,7 @@ final class TodayVerdictEngineTests: XCTestCase {
         XCTAssertEqual(result.adjustedTopSetKg, 140, accuracy: 1e-9)  // top-set load unchanged
     }
 
-    // MARK: - Cross-modal gate (this ship = zero effect)
+    // MARK: - Cross-modal gate
 
     func test_gateOff_crossModalContributesZero_identicalToNil() {
         let rec = recommendation(cap: 6.0, vol: 0.6, type: .conditioning)
@@ -251,21 +251,52 @@ final class TodayVerdictEngineTests: XCTestCase {
             systemicFactor: 0.9,
             dominantReason: "legs still loaded from recent cross-modal work"
         )
-        let withResult = TodayVerdictEngine.evaluate(
+        let withResult = CrossModalShadowGate.withEnabled(false) {
+            TodayVerdictEngine.evaluate(
+                recommendation: rec,
+                plannedTopSet: plannedTopSet(kg: 100, region: .legs, rpe: 8),
+                crossModalResult: legLoaded,
+                plateStepKg: plateStep
+            )
+        }
+        let withNil = CrossModalShadowGate.withEnabled(false) {
+            TodayVerdictEngine.evaluate(
+                recommendation: rec,
+                plannedTopSet: plannedTopSet(kg: 100, region: .legs, rpe: 8),
+                crossModalResult: nil,
+                plateStepKg: plateStep
+            )
+        }
+        // Gate OFF ⇒ cross-modal contributes exactly 0 ⇒ byte-identical adjusted weight.
+        XCTAssertEqual(withResult.adjustedTopSetKg, withNil.adjustedTopSetKg, accuracy: 0.0)
+        XCTAssertEqual(withResult.loadFactor, withNil.loadFactor, accuracy: 0.0)
+    }
+
+    func test_gateOn_crossModalLegPenalty_tightensSquat_sparesUpperBody() {
+        let rec = recommendation(cap: 9.0, vol: 1.0, type: .strength)
+        let legLoaded = CrossModalFatigueEngine.CrossModalResult(
+            perRegionCarry: [.legs: 500],
+            perRegionElevation: [.legs: 0.8],
+            systemicFactor: 1.0,
+            dominantReason: "legs still loaded from recent cross-modal work"
+        )
+        let squat = TodayVerdictEngine.evaluate(
             recommendation: rec,
-            plannedTopSet: plannedTopSet(kg: 100, region: .legs, rpe: 8),
+            plannedTopSet: plannedTopSet(kg: 200, region: .legs, rpe: 8),
             crossModalResult: legLoaded,
             plateStepKg: plateStep
         )
-        let withNil = TodayVerdictEngine.evaluate(
+        let bench = TodayVerdictEngine.evaluate(
             recommendation: rec,
-            plannedTopSet: plannedTopSet(kg: 100, region: .legs, rpe: 8),
-            crossModalResult: nil,
+            plannedTopSet: plannedTopSet(kg: 200, region: .chest, rpe: 8),
+            crossModalResult: legLoaded,
             plateStepKg: plateStep
         )
-        // Gate OFF (default) ⇒ cross-modal contributes exactly 0 ⇒ byte-identical adjusted weight.
-        XCTAssertEqual(withResult.adjustedTopSetKg, withNil.adjustedTopSetKg, accuracy: 0.0)
-        XCTAssertEqual(withResult.loadFactor, withNil.loadFactor, accuracy: 0.0)
+
+        XCTAssertEqual(squat.verdict, .modify)
+        XCTAssertLessThan(squat.adjustedTopSetKg, 200)
+        XCTAssertEqual(bench.verdict, .go)
+        XCTAssertEqual(bench.adjustedTopSetKg, 200, accuracy: 1e-9)
     }
 
     func test_gateOn_crossModal_trimsAtMost_notMore() {
@@ -276,12 +307,14 @@ final class TodayVerdictEngineTests: XCTestCase {
             systemicFactor: 0.9,
             dominantReason: "legs still loaded from recent cross-modal work"
         )
-        let gateOff = TodayVerdictEngine.evaluate(
-            recommendation: rec,
-            plannedTopSet: plannedTopSet(kg: 100, region: .legs, rpe: 8),
-            crossModalResult: legLoaded,
-            plateStepKg: plateStep
-        )
+        let gateOff = CrossModalShadowGate.withEnabled(false) {
+            TodayVerdictEngine.evaluate(
+                recommendation: rec,
+                plannedTopSet: plannedTopSet(kg: 100, region: .legs, rpe: 8),
+                crossModalResult: legLoaded,
+                plateStepKg: plateStep
+            )
+        }
         let gateOn = CrossModalShadowGate.withEnabled(true) {
             TodayVerdictEngine.evaluate(
                 recommendation: rec,
@@ -290,10 +323,72 @@ final class TodayVerdictEngineTests: XCTestCase {
                 plateStepKg: plateStep
             )
         }
-        // The future wiring lights up with no re-architecture: gate-on trims AT MOST as much as
+        // Gate-on trims AT MOST as much as
         // gate-off (heuristic magnitude — tolerant <= comparison, never tighter than the floor).
         XCTAssertLessThanOrEqual(gateOn.adjustedTopSetKg, gateOff.adjustedTopSetKg + 1e-9)
         XCTAssertGreaterThanOrEqual(gateOn.adjustedTopSetKg, 100 * 0.90 - 1e-9)
+    }
+
+    func test_gateOn_crossModal_cannotPushBelowMinus10PercentCeiling() {
+        let rec = recommendation(cap: 5.0, vol: 0.0, type: .conditioning)
+        let severeCarry = CrossModalFatigueEngine.CrossModalResult(
+            perRegionCarry: [.legs: 2_000],
+            perRegionElevation: [.legs: 1.0],
+            systemicFactor: 0.85,
+            dominantReason: "legs still loaded from recent cross-modal work"
+        )
+        let result = TodayVerdictEngine.evaluate(
+            recommendation: rec,
+            plannedTopSet: plannedTopSet(kg: 200, region: .legs, rpe: 8),
+            crossModalResult: severeCarry,
+            plateStepKg: plateStep
+        )
+
+        XCTAssertEqual(result.loadFactor, 0.90, accuracy: 1e-9)
+        XCTAssertGreaterThanOrEqual(result.adjustedTopSetKg, 200 * 0.90 - 1e-9)
+    }
+
+    func test_gateOn_crossModal_cannotLoosenEvenWithMalformedFactor() {
+        let rec = recommendation(cap: 6.0, vol: 0.6, type: .conditioning)
+        let malformedLoosening = CrossModalFatigueEngine.CrossModalResult(
+            perRegionCarry: [.legs: 1],
+            perRegionElevation: [:],
+            systemicFactor: 1.2,
+            dominantReason: nil
+        )
+        let baseline = TodayVerdictEngine.evaluate(
+            recommendation: rec,
+            plannedTopSet: plannedTopSet(kg: 200, region: .legs, rpe: 8),
+            crossModalResult: nil,
+            plateStepKg: plateStep
+        )
+        let withCrossModal = TodayVerdictEngine.evaluate(
+            recommendation: rec,
+            plannedTopSet: plannedTopSet(kg: 200, region: .legs, rpe: 8),
+            crossModalResult: malformedLoosening,
+            plateStepKg: plateStep
+        )
+
+        XCTAssertLessThanOrEqual(withCrossModal.loadFactor, baseline.loadFactor + 1e-9)
+        XCTAssertLessThanOrEqual(withCrossModal.adjustedTopSetKg, baseline.adjustedTopSetKg + 1e-9)
+    }
+
+    func test_gateOn_crossModal_cannotForceHold() {
+        let rec = recommendation(cap: 9.0, vol: 1.0, type: .strength)
+        let severeCarry = CrossModalFatigueEngine.CrossModalResult(
+            perRegionCarry: [.legs: 2_000],
+            perRegionElevation: [.legs: 1.0],
+            systemicFactor: 0.85,
+            dominantReason: "legs still loaded from recent cross-modal work"
+        )
+        let result = TodayVerdictEngine.evaluate(
+            recommendation: rec,
+            plannedTopSet: plannedTopSet(kg: 200, region: .legs, rpe: 8),
+            crossModalResult: severeCarry,
+            plateStepKg: plateStep
+        )
+
+        XCTAssertNotEqual(result.verdict, .hold)
     }
 
     // MARK: - Honesty fence (no injury-prediction copy in the source)

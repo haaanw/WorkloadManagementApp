@@ -7,7 +7,7 @@ import SwiftData
 /// Covers: ShadowPredictor emits a fourth `"crossModal"` arm (shadow-only, independent of EVERY
 /// activation flag); appending it leaves `baseline` / `cycleAware` / `prs` byte-identical (D-13
 /// regression guard); `crossModalPrediction` is deterministic + niggle-nil; the verdict-influence
-/// fence `CrossModalShadowGate.crossModalDrivesVerdict` defaults FALSE; the gate is REPORT-ONLY
+/// fence `CrossModalShadowGate.crossModalDrivesVerdict` defaults TRUE for dogfood; the gate is REPORT-ONLY
 /// (no `crossModalDrivesVerdict =` production assignment + `validationSummary` does not flip it);
 /// and the shadow log models stay local-only / non-Codable (no sync-payload change).
 @MainActor
@@ -125,11 +125,11 @@ final class CrossModalShadowArmTests: XCTestCase {
         XCTAssertGreaterThan(cmPain, basePain, "elevated carry raises next-day pain")
     }
 
-    // MARK: - 5. Verdict-influence gate defaults OFF
+    // MARK: - 5. Verdict-influence gate defaults ON
 
-    func test_crossModalVerdictGate_defaultsOff() {
-        XCTAssertFalse(CrossModalShadowGate.crossModalDrivesVerdict,
-                       "the cross-modal channel must be fenced from the verdict by default")
+    func test_crossModalVerdictGate_defaultsOn_forDogfood() {
+        XCTAssertTrue(CrossModalShadowGate.crossModalDrivesVerdict,
+                      "cross-modal verdict influence is active by default for n=1 dogfood")
     }
 
     // MARK: - 6. Gate is REPORT-ONLY — no production flag mutation
@@ -161,7 +161,7 @@ final class CrossModalShadowArmTests: XCTestCase {
     }
 
     /// Behavioural no-mutation guard: calling the report-only `validationSummary` must NOT flip the
-    /// verdict gate (it stays false), and the summary's mirrored flag reads false.
+    /// verdict gate (it stays true), and the summary's mirrored flag reads true.
     func test_validationSummary_isReportOnly_doesNotFlipGate() throws {
         let ctx = try makeContext()
         let athlete = makeAthlete(ctx)
@@ -182,10 +182,10 @@ final class CrossModalShadowArmTests: XCTestCase {
         }
         let rows = try ctx.fetch(FetchDescriptor<CyclePredictionLog>())
 
-        XCTAssertFalse(CrossModalShadowGate.crossModalDrivesVerdict) // before
+        XCTAssertTrue(CrossModalShadowGate.crossModalDrivesVerdict) // before
         let summary = CrossModalShadowGate.validationSummary(resolvedRows: rows)
-        XCTAssertFalse(CrossModalShadowGate.crossModalDrivesVerdict, "report-only: must not flip the gate")
-        XCTAssertFalse(summary.crossModalDrivesVerdict, "summary mirrors the still-OFF gate")
+        XCTAssertTrue(CrossModalShadowGate.crossModalDrivesVerdict, "report-only: must not flip the gate")
+        XCTAssertTrue(summary.crossModalDrivesVerdict, "summary mirrors the still-ON gate")
         // The summary surfaces the EXISTING metrics for the crossModal arm (no new statistics).
         XCTAssertNotNil(summary.crossModalMetrics[.wellness])
     }

@@ -4276,6 +4276,125 @@
     "Loading subscription options" : {
 
     },
+    "load.insights.heroKicker" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负荷"
+          }
+        }
+      }
+    },
+    "load.insights.metric.acute" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acute"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "急性"
+          }
+        }
+      }
+    },
+    "load.insights.metric.balance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Balance"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "平衡"
+          }
+        }
+      }
+    },
+    "load.insights.metric.chronic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chronic"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "慢性"
+          }
+        }
+      }
+    },
+    "load.insights.section.balance" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load balance"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负荷平衡"
+          }
+        }
+      }
+    },
+    "load.insights.section.volume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Volume"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练量"
+          }
+        }
+      }
+    },
+    "load.insights.updatedFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · Updated %2$@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ · 更新于 %2$@"
+          }
+        }
+      }
+    },
     "loadSource.combined" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12053,6 +12172,23 @@
         }
       }
     },
+    "template.exerciseCount.one" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d exercise"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 个练习"
+          }
+        }
+      }
+    },
     "template.exerciseSetCount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13454,6 +13590,74 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Going with your plan — still learning your baseline."
+          }
+        }
+      }
+    },
+    "verdict.reason.crossModal.core" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent sport work loaded your core — easing this lift."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近的运动让核心负荷偏高 — 今天这项训练稍微放轻。"
+          }
+        }
+      }
+    },
+    "verdict.reason.crossModal.fullBody" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent sport work is still carrying over — easing this lift."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近的运动负荷还在延续 — 今天这项训练稍微放轻。"
+          }
+        }
+      }
+    },
+    "verdict.reason.crossModal.legs" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent court work loaded your legs — easing this lower-body lift."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近的球场训练让腿部负荷偏高 — 今天下肢训练稍微放轻。"
+          }
+        }
+      }
+    },
+    "verdict.reason.crossModal.upper" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent sport work loaded your upper body — easing this lift."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近的运动让上肢负荷偏高 — 今天这项训练稍微放轻。"
           }
         }
       }

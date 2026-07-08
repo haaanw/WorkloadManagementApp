@@ -181,8 +181,8 @@ struct ShadowPredictor {
     /// MEAN under elevation rather than extrapolating the trend), so the Phase-43-gating shadow
     /// comparison is meaningful.
     ///
-    /// This is shadow-only: it logs DARK and its verdict influence is SEPARATELY fenced by
-    /// `CrossModalShadowGate.crossModalDrivesVerdict` (default OFF). It NEVER drives a user-facing number.
+    /// This is the shadow-harness predictor for the same cross-modal channel. Verdict influence is
+    /// separately controlled by `CrossModalShadowGate.crossModalDrivesVerdict`.
     static func crossModalPrediction(series: [Double], outcome: ShadowPredictor.Outcome) -> Double {
         let base = baselinePrediction(series: series)
         guard outcome != .niggleSeverity else { return base } // no arm predicts niggleSeverity in v1 (P25 D-04)
@@ -253,9 +253,9 @@ extension ShadowPredictor {
     /// - `"cycleAware"` — baseline + fixed literature-derived phase offset (collapses to baseline
     ///   when the phase is `.unknown`).
     /// - `"prs"` — PRS-v1 readiness-trend predicting arm (Phase 28, shadow-only).
-    /// - `"crossModal"` — the DARK cross-modal fatigue-carry arm (Phase 41, ACT-02): represents the
+    /// - `"crossModal"` — the cross-modal fatigue-carry arm (Phase 41, ACT-02): represents the
     ///   `CrossModalFatigueEngine` channel inside the harness contract. Runs UNCONDITIONALLY (shadow
-    ///   only) and is fenced from any verdict by `CrossModalShadowGate.crossModalDrivesVerdict`.
+    ///   only); verdict influence is separately gated by `CrossModalShadowGate.crossModalDrivesVerdict`.
     /// `baseline`/`cycleAware`/`prs` delegate to their existing static methods so their numbers stay
     /// byte-identical to the pre-Phase-24 hard-coded columns (D-13 regression guard); appending the
     /// fourth arm does NOT perturb the first three.
@@ -290,13 +290,12 @@ extension ShadowPredictor {
                 return ShadowPredictor.prsPrediction(series: series, outcome: outcome)
             }
         )
-        // Phase 41, ACT-02: the DARK cross-modal fatigue-carry arm. The full region-resolved
+        // Phase 41, ACT-02: the cross-modal fatigue-carry arm. The full region-resolved
         // CrossModalFatigueEngine is the channel this arm represents; within the harness contract it
         // logs a deterministic, leak-free, cross-modal-flavoured prediction. Runs UNCONDITIONALLY
         // (shadow-only) — independent of EVERY activation flag (PRSActivation / PRSMasterActivation /
         // VerdictSurfaceActivation) AND of CrossModalShadowGate. Its VERDICT influence is separately
-        // gated by CrossModalShadowGate.crossModalDrivesVerdict (default OFF), flipped ONLY by an
-        // explicit human shadow-validation pass — never by this registration or any code merge.
+        // gated by CrossModalShadowGate.crossModalDrivesVerdict — never by this registration.
         let crossModal = ExperimentalArm(
             id: "crossModal",
             engineDerivedOutcomes: engineDerivedOutcomes,

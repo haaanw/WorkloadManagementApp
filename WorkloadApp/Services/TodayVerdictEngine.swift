@@ -33,11 +33,11 @@ import Foundation
 /// away (see `Constants.matchProximityDays` for the exact day-boundary semantics). Proximity can
 /// only move GO → MODIFY — never HOLD (anti-nocebo). nil / expired / >2 days ⇒ EXACTLY unchanged.
 ///
-/// ## Cross-modal stays gate-controlled (this ship = ZERO effect)
-/// Cross-modal is read THROUGH `CrossModalShadowGate.crossModalDrivesVerdict` (default FALSE). While
-/// the gate is off OR the `CrossModalResult` is nil, cross-modal multiplies by EXACTLY 1.0 —
-/// contributing zero to the number. Flipping the gate later lights up the existing wiring with no
-/// re-architecture. (The gate-off-identical test machine-enforces the zero-influence default.)
+/// ## Cross-modal stays gate-controlled
+/// Cross-modal is read THROUGH `CrossModalShadowGate.crossModalDrivesVerdict` (default TRUE as of
+/// 2026-07-08). While the gate is off OR the `CrossModalResult` is nil, cross-modal multiplies by
+/// EXACTLY 1.0 — contributing zero to the number. When on, it can only tighten the load factor and
+/// is re-clamped to the −10% ceiling.
 ///
 /// ## Honesty
 /// This engine emits no user-facing copy at all (the reason string is assembled separately by
@@ -152,8 +152,7 @@ struct TodayVerdictEngine {
     /// - Parameters:
     ///   - recommendation: the already-produced `TrainingRecommendation` (the SOLE decision input).
     ///   - plannedTopSet: today's planned top set (weight in kg).
-    ///   - crossModalResult: optional cross-modal carry — applied ONLY when the shadow gate is on
-    ///     (zero effect at the shipped default).
+    ///   - crossModalResult: optional cross-modal carry — applied ONLY when the shadow gate is on.
     ///   - plateStepKg: loadable plate step in kg (default `Constants.plateStepKg`).
     ///   - matchDaysAway: calendar days to the next scheduled match (from `matchDaysAway(...)`);
     ///     nil ⇒ no match scheduled / expired ⇒ behavior EXACTLY unchanged.
@@ -209,10 +208,12 @@ struct TodayVerdictEngine {
 
         // --- Cross-modal as a multiplicative factor on loadFactor — GATE-GUARDED. ------------------
         // Applied ONLY when `crossModalDrivesVerdict == true` AND a result is present. Off OR nil ⇒
-        // multiply by exactly 1.0 (cross-modal contributes ZERO this ship — the locked default).
+        // multiply by exactly 1.0. Gate-on still cannot loosen: defensively clamp the cross-modal
+        // adjustment to ≤ 1 even if a malformed fixture/result is supplied.
         var effectiveFactor = loadFactor
         if CrossModalShadowGate.crossModalDrivesVerdict, let cross = crossModalResult {
-            effectiveFactor = loadFactor * cross.exerciseAdjustment(forRegion: plannedTopSet.region)
+            let crossFactor = Swift.min(1.0, cross.exerciseAdjustment(forRegion: plannedTopSet.region))
+            effectiveFactor = Swift.min(loadFactor, loadFactor * crossFactor)
             // Re-clamp to the −10% ceiling so the future gate-on path can never over-trim either.
             effectiveFactor = Swift.max(1.0 - Constants.maxLoadTrim, effectiveFactor)
         }
