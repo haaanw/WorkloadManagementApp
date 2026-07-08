@@ -160,8 +160,12 @@ enum UIKitDesign {
         view.translatesAutoresizingMaskIntoConstraints = false
         if axis == .horizontal {
             view.heightAnchor.constraint(equalToConstant: hairline).isActive = true
+            view.setContentHuggingPriority(.required, for: .vertical)
+            view.setContentCompressionResistancePriority(.required, for: .vertical)
         } else {
             view.widthAnchor.constraint(equalToConstant: hairline).isActive = true
+            view.setContentHuggingPriority(.required, for: .horizontal)
+            view.setContentCompressionResistancePriority(.required, for: .horizontal)
         }
         return view
     }
@@ -367,7 +371,7 @@ final class InstrumentSegmentedControlUIKit: UIView {
 
         stack.axis = .horizontal
         stack.spacing = 0
-        stack.distribution = .fillEqually
+        stack.distribution = .fill
         stack.translatesAutoresizingMaskIntoConstraints = false
         addSubview(stack)
         NSLayoutConstraint.activate([
@@ -377,11 +381,22 @@ final class InstrumentSegmentedControlUIKit: UIView {
             stack.bottomAnchor.constraint(equalTo: bottomAnchor)
         ])
 
+        var previousButton: UIButton?
         for (index, button) in buttons.enumerated() {
             button.addTarget(self, action: #selector(selectButton(_:)), for: .touchUpInside)
             stack.addArrangedSubview(button)
+            button.setContentHuggingPriority(.defaultLow, for: .horizontal)
+            button.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+            if let previousButton {
+                button.widthAnchor.constraint(equalTo: previousButton.widthAnchor).isActive = true
+            } else {
+                previousButton = button
+            }
             if index < buttons.count - 1 {
-                stack.addArrangedSubview(UIKitDesign.separator(axis: .vertical))
+                let separator = UIKitDesign.separator(axis: .vertical)
+                separator.setContentHuggingPriority(.required, for: .horizontal)
+                separator.setContentCompressionResistancePriority(.required, for: .horizontal)
+                stack.addArrangedSubview(separator)
             }
         }
         applyState()
@@ -465,7 +480,7 @@ final class UIKitBottomActionDock: UIView {
         button.titleLabel?.minimumScaleFactor = 0.82
         button.backgroundColor = isPrimary ? .clear : UIKitDesign.surface
         button.layer.borderWidth = UIKitDesign.hairline
-        button.layer.borderColor = (isPrimary ? UIKitDesign.hairlineStrong : UIKitDesign.hairlineColor).cgColor
+        button.layer.borderColor = (isPrimary ? UIKitDesign.accent : UIKitDesign.hairlineColor).cgColor
         button.translatesAutoresizingMaskIntoConstraints = false
         button.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
     }
@@ -714,15 +729,29 @@ class InstrumentScrollViewController: UIViewController, AppTabRootResetting {
         if let subtitle {
             textStack.addArrangedSubview(UIKitDesign.label(subtitle, font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary, lines: 0))
         }
+        textStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
 
         row.addArrangedSubview(textStack)
+        let spacer = UIView()
+        spacer.setContentHuggingPriority(.defaultLow, for: .horizontal)
+        spacer.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        row.addArrangedSubview(spacer)
         if let trailing {
-            row.addArrangedSubview(UIKitDesign.label(trailing, font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary))
+            let trailingLabel = UIKitDesign.label(trailing, font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary)
+            trailingLabel.textAlignment = .right
+            trailingLabel.adjustsFontSizeToFitWidth = true
+            trailingLabel.minimumScaleFactor = 0.82
+            trailingLabel.setContentHuggingPriority(.required, for: .horizontal)
+            trailingLabel.setContentCompressionResistancePriority(.required, for: .horizontal)
+            trailingLabel.widthAnchor.constraint(greaterThanOrEqualToConstant: 96).isActive = true
+            row.addArrangedSubview(trailingLabel)
         }
         let chevron = UIImageView(image: UIImage(systemName: "chevron.right"))
         chevron.tintColor = UIKitDesign.textTertiary
         chevron.translatesAutoresizingMaskIntoConstraints = false
         chevron.widthAnchor.constraint(equalToConstant: 16).isActive = true
+        chevron.setContentHuggingPriority(.required, for: .horizontal)
+        chevron.setContentCompressionResistancePriority(.required, for: .horizontal)
         row.addArrangedSubview(chevron)
         row.heightAnchor.constraint(greaterThanOrEqualToConstant: 44).isActive = true
         return row
@@ -741,7 +770,7 @@ class InstrumentScrollViewController: UIViewController, AppTabRootResetting {
         button.titleLabel?.adjustsFontForContentSizeCategory = true
         button.backgroundColor = .clear
         button.layer.borderWidth = UIKitDesign.hairline
-        button.layer.borderColor = UIKitDesign.hairlineStrong.cgColor
+        button.layer.borderColor = UIKitDesign.accent.cgColor
         button.translatesAutoresizingMaskIntoConstraints = false
         button.heightAnchor.constraint(greaterThanOrEqualToConstant: 48).isActive = true
         button.addTarget(self, action: action, for: .touchUpInside)

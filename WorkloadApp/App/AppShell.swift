@@ -105,6 +105,78 @@ private final class AppTabBarController: UITabBarController {
     }
 }
 
+private func instrumentNavigationBarAppearance() -> UINavigationBarAppearance {
+    let appearance = UINavigationBarAppearance()
+    appearance.configureWithOpaqueBackground()
+    appearance.backgroundColor = UIKitDesign.surface
+    appearance.backgroundEffect = nil
+    appearance.shadowColor = UIKitDesign.hairlineColor
+    appearance.titleTextAttributes = [
+        .foregroundColor: UIKitDesign.textPrimary,
+        .font: UIKitDesign.medium(17)
+    ]
+
+    let buttonAppearance = instrumentBarButtonAppearance()
+    appearance.buttonAppearance = buttonAppearance
+    appearance.prominentButtonAppearance = buttonAppearance
+    appearance.doneButtonAppearance = buttonAppearance
+    appearance.backButtonAppearance = buttonAppearance
+    return appearance
+}
+
+private func instrumentBarButtonAppearance() -> UIBarButtonItemAppearance {
+    let appearance = UIBarButtonItemAppearance(style: .plain)
+    let normalAttributes: [NSAttributedString.Key: Any] = [
+        .foregroundColor: UIKitDesign.textPrimary,
+        .font: UIKitDesign.medium(17)
+    ]
+    let disabledAttributes: [NSAttributedString.Key: Any] = [
+        .foregroundColor: UIKitDesign.textTertiary,
+        .font: UIKitDesign.medium(17)
+    ]
+    appearance.normal.titleTextAttributes = normalAttributes
+    appearance.highlighted.titleTextAttributes = normalAttributes
+    appearance.focused.titleTextAttributes = normalAttributes
+    appearance.disabled.titleTextAttributes = disabledAttributes
+    return appearance
+}
+
+private func instrumentPlainBarButtonItem(
+    title: String,
+    target: AnyObject?,
+    action: Selector
+) -> UIBarButtonItem {
+    let item = UIBarButtonItem(
+        title: title,
+        style: .plain,
+        target: target,
+        action: action
+    )
+    item.applyInstrumentPlainAppearance()
+    return item
+}
+
+private extension UIBarButtonItem {
+    func applyInstrumentPlainAppearance() {
+        style = .plain
+        tintColor = UIKitDesign.textPrimary
+        let normalAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIKitDesign.textPrimary,
+            .font: UIKitDesign.medium(17)
+        ]
+        let disabledAttributes: [NSAttributedString.Key: Any] = [
+            .foregroundColor: UIKitDesign.textTertiary,
+            .font: UIKitDesign.medium(17)
+        ]
+        setTitleTextAttributes(normalAttributes, for: .normal)
+        setTitleTextAttributes(normalAttributes, for: .highlighted)
+        setTitleTextAttributes(disabledAttributes, for: .disabled)
+        if #available(iOS 26.0, *) {
+            hidesSharedBackground = true
+        }
+    }
+}
+
 private final class InstrumentNavigationController: UINavigationController {
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -112,14 +184,7 @@ private final class InstrumentNavigationController: UINavigationController {
         modalPresentationStyle = .pageSheet
         view.backgroundColor = UIKitDesign.background
 
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIKitDesign.surface
-        appearance.shadowColor = UIKitDesign.hairlineColor
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIKitDesign.textPrimary,
-            .font: UIKitDesign.medium(17)
-        ]
+        let appearance = instrumentNavigationBarAppearance()
 
         navigationBar.standardAppearance = appearance
         navigationBar.scrollEdgeAppearance = appearance
@@ -135,14 +200,7 @@ private final class InstrumentTabNavigationController: UINavigationController, U
         delegate = self
         view.backgroundColor = UIKitDesign.background
 
-        let appearance = UINavigationBarAppearance()
-        appearance.configureWithOpaqueBackground()
-        appearance.backgroundColor = UIKitDesign.surface
-        appearance.shadowColor = UIKitDesign.hairlineColor
-        appearance.titleTextAttributes = [
-            .foregroundColor: UIKitDesign.textPrimary,
-            .font: UIKitDesign.medium(17)
-        ]
+        let appearance = instrumentNavigationBarAppearance()
 
         navigationBar.standardAppearance = appearance
         navigationBar.scrollEdgeAppearance = appearance
@@ -686,6 +744,63 @@ private enum InsightsSection: Int, CaseIterable, Hashable {
     }
 }
 
+private func localizedTemplateExerciseCount(_ count: Int, locale: Locale) -> String {
+    let format = count == 1
+        ? UIKitStrings.localized("template.exerciseCount.one", locale: locale)
+        : UIKitStrings.localized("template.exerciseCount", locale: locale)
+    return String(format: format, locale: locale, count)
+}
+
+private func compactSetCountText(_ text: String) -> String {
+    text
+        .replacingOccurrences(of: " / ", with: "/")
+        .replacingOccurrences(of: " sets done", with: " sets")
+        .replacingOccurrences(of: " set done", with: " set")
+}
+
+private func localizedLoadInsightText(_ key: String.LocalizationValue, locale: Locale) -> String {
+    UIKitStrings.localized(key, locale: locale)
+}
+
+private func localizedACWRZoneName(_ zone: ACWRZone, locale: Locale) -> String {
+    switch zone {
+    case .undertrained:
+        return UIKitStrings.localized("zone.low", locale: locale)
+    case .optimal:
+        return UIKitStrings.localized("zone.optimal", locale: locale)
+    case .caution:
+        return UIKitStrings.localized("zone.caution", locale: locale)
+    case .danger:
+        return UIKitStrings.localized("zone.danger", locale: locale)
+    case .noData:
+        return UIKitStrings.localized("zone.noData", locale: locale)
+    }
+}
+
+private func localizedLoadInsightBody(latest: WorkloadSnapshot?, fallback: String, locale: Locale) -> String {
+    guard let latest else { return fallback }
+    let format = UIKitStrings.localized("load.insights.updatedFormat", locale: locale)
+    return String(
+        format: format,
+        locale: locale,
+        localizedACWRZoneName(latest.zone, locale: locale),
+        latest.snapshotDate.relativeString(locale: locale)
+    )
+}
+
+private func localizedLoadMetricDetail(_ detail: String, locale: Locale) -> String {
+    switch detail {
+    case "Acute":
+        return UIKitStrings.localized("load.insights.metric.acute", locale: locale)
+    case "Chronic":
+        return UIKitStrings.localized("load.insights.metric.chronic", locale: locale)
+    case "Balance":
+        return UIKitStrings.localized("load.insights.metric.balance", locale: locale)
+    default:
+        return detail
+    }
+}
+
 struct UIKitAuthFlowController: UIViewControllerRepresentable {
     let container: AppContainer
     let modelContext: ModelContext
@@ -830,7 +945,9 @@ private final class AuthFlowViewController: InstrumentScrollViewController, UITe
                 ? localized("auth.brand.tagline")
                 : localized("auth.signup.subhead")
         ), top: Spacing.lg)
-        addHorizontalInsets(authStatePlate(), top: Spacing.sm)
+        if shouldShowAuthStatePlate {
+            addHorizontalInsets(authStatePlate(), top: Spacing.sm)
+        }
 
         addSection(
             title: mode == .signIn
@@ -1039,6 +1156,10 @@ private final class AuthFlowViewController: InstrumentScrollViewController, UITe
             return localized("auth.state.serverError", defaultValue: "Server error")
         }
         return localized("auth.state.idle", defaultValue: "Idle")
+    }
+
+    private var shouldShowAuthStatePlate: Bool {
+        forcedStateText != nil || isLoading || validationMessages.isEmpty == false || errorMessage != nil
     }
 
     private func authStatePlate() -> UIView {
@@ -4596,7 +4717,9 @@ private final class TrainHomeViewController: InstrumentScrollViewController {
             let textStack = UIKitDesign.verticalStack(spacing: Spacing.baselinePair)
             textStack.addArrangedSubview(UIKitDesign.label(daysOutText(days), font: UIKitDesign.medium(17), color: UIKitDesign.textPrimary, lines: 0))
             textStack.addArrangedSubview(UIKitDesign.label(shortDateText(date), font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary))
+            textStack.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
             row.addArrangedSubview(textStack)
+            row.addArrangedSubview(UIView())
 
             let change = quietInlineButton(title: localized("nextMatch.action.change"), accessibilityIdentifier: "workoutLog.nextMatch.change") { [weak self] in
                 self?.presentNextMatchPicker()
@@ -4616,7 +4739,10 @@ private final class TrainHomeViewController: InstrumentScrollViewController {
         row.spacing = Spacing.sm
         row.translatesAutoresizingMaskIntoConstraints = false
         row.accessibilityIdentifier = "workoutLog.nextMatch.empty"
-        row.addArrangedSubview(UIKitDesign.label(localized("nextMatch.empty.label"), font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary, lines: 0))
+        let label = UIKitDesign.label(localized("nextMatch.empty.label"), font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary, lines: 0)
+        label.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
+        row.addArrangedSubview(label)
+        row.addArrangedSubview(UIView())
         let button = quietInlineButton(title: localized("nextMatch.empty.set"), accessibilityIdentifier: "workoutLog.nextMatch.set") { [weak self] in
             self?.presentNextMatchPicker()
         }
@@ -4874,12 +5000,18 @@ private final class TrainHomeViewController: InstrumentScrollViewController {
     private func templateRow(_ rowState: TrainHomeViewState.ProgramRow, template: WorkoutTemplate) -> UIView {
         let button = UIButton(type: .custom)
         button.accessibilityIdentifier = "workoutLog.programStart"
-        button.accessibilityLabel = [rowState.title, rowState.subtitle, rowState.trailing].joined(separator: ", ")
+        let exerciseCount = template.sortedGroups.flatMap(\.sortedExercises).count
+        let subtitle = "\(template.sessionType.displayName) · \(localizedTemplateExerciseCount(exerciseCount, locale: locale))"
+        button.accessibilityLabel = [rowState.title, subtitle, rowState.trailing].joined(separator: ", ")
         button.addAction(UIAction { [weak self] _ in
             Haptics.select()
             self?.presentActiveWorkout(template: template)
         }, for: .touchUpInside)
-        let row = disclosureRow(title: rowState.title, subtitle: rowState.subtitle, trailing: rowState.trailing)
+        let row = disclosureRow(
+            title: rowState.title,
+            subtitle: subtitle,
+            trailing: rowState.trailing
+        )
         row.isUserInteractionEnabled = false
         button.addSubview(row)
         row.translatesAutoresizingMaskIntoConstraints = false
@@ -6594,7 +6726,9 @@ private final class TemplatePickerViewController: InstrumentScrollViewController
     private func templateButton(_ template: WorkoutTemplate) -> UIView {
         let button = UIButton(type: .custom)
         button.accessibilityIdentifier = "templatePicker.template"
-        button.accessibilityLabel = "\(template.templateName), \(template.sortedGroups.flatMap(\.sortedExercises).count) exercises"
+        let exerciseCount = template.sortedGroups.flatMap(\.sortedExercises).count
+        let exerciseText = localizedTemplateExerciseCount(exerciseCount, locale: locale)
+        button.accessibilityLabel = "\(template.templateName), \(exerciseText)"
         button.addAction(UIAction { [weak self] _ in
             guard let self else { return }
             Haptics.select()
@@ -6605,7 +6739,7 @@ private final class TemplatePickerViewController: InstrumentScrollViewController
 
         let row = disclosureRow(
             title: template.templateName,
-            subtitle: "\(template.sessionType.displayName) · \(template.sortedGroups.flatMap(\.sortedExercises).count) exercises",
+            subtitle: "\(template.sessionType.displayName) · \(exerciseText)",
             trailing: template.lastUsedAt?.relativeString(locale: locale)
         )
         row.isUserInteractionEnabled = false
@@ -6783,7 +6917,7 @@ private final class TemplateManagerViewController: InstrumentScrollViewControlle
         addHorizontalInsets(hero(
             kicker: "Plans",
             title: "Template manager",
-            body: "\(templates.count) active templates · \(exerciseCount) exercises"
+            body: "\(templates.count) active templates · \(localizedTemplateExerciseCount(exerciseCount, locale: locale))"
         ), top: Spacing.sm)
 
         addSection(
@@ -6837,7 +6971,7 @@ private final class TemplateManagerViewController: InstrumentScrollViewControlle
         let schedule = weekdayInitials(for: template.scheduledDays)
         let detail = [
             "\(groupCount) group\(groupCount == 1 ? "" : "s")",
-            "\(exerciseCount) exercise\(exerciseCount == 1 ? "" : "s")",
+            localizedTemplateExerciseCount(exerciseCount, locale: locale),
             schedule.isEmpty ? nil : schedule
         ]
             .compactMap { $0 }
@@ -6998,7 +7132,7 @@ private final class TemplatePreviewViewController: InstrumentScrollViewControlle
             ? "Not started yet"
             : "\(template.usageCount) start\(template.usageCount == 1 ? "" : "s")"
         return [
-            "\(template.sessionType.displayName) · \(exerciseCount) exercises · \(setCount) sets",
+            "\(template.sessionType.displayName) · \(localizedTemplateExerciseCount(exerciseCount, locale: locale)) · \(setCount) sets",
             schedule.isEmpty ? nil : schedule,
             usage
         ]
@@ -7934,9 +8068,8 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
     override func viewDidLoad() {
         super.viewDidLoad()
         title = "Workout"
-        navigationItem.leftBarButtonItem = UIBarButtonItem(
+        navigationItem.leftBarButtonItem = instrumentPlainBarButtonItem(
             title: "Cancel",
-            style: .plain,
             target: self,
             action: #selector(cancelWorkout)
         )
@@ -7960,7 +8093,7 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
         addHorizontalInsets(hero(
             kicker: state.heroKicker,
             title: state.sessionTitle,
-            body: state.heroBody
+            body: compactSetCountText(state.heroBody)
         ), top: Spacing.sm)
 
         let sessionState = makeSessionState()
@@ -8163,10 +8296,12 @@ private final class ActiveWorkoutViewController: InstrumentScrollViewController,
         row.translatesAutoresizingMaskIntoConstraints = false
 
         let detailLabel = UIKitDesign.label(blockState.detail, font: UIKitDesign.regular(13), color: UIKitDesign.textSecondary, lines: 0)
+        detailLabel.setContentCompressionResistancePriority(.defaultLow, for: .horizontal)
         row.addArrangedSubview(detailLabel)
+        row.addArrangedSubview(UIView())
 
         let progressLabel = UIKitDesign.label(
-            blockState.progressText,
+            compactSetCountText(blockState.progressText),
             font: UIKitDesign.tabular(UIKitDesign.medium(15)),
             color: UIKitDesign.textPrimary
         )
@@ -10500,17 +10635,22 @@ private final class LoadInsightsSummaryViewController: InstrumentScrollViewContr
         let snapshots = loadSnapshots()
         let state = LoadInsightsViewState.make(snapshots: snapshots, locale: locale)
         addHorizontalInsets(hero(
-            kicker: state.heroKicker,
+            kicker: localizedLoadInsightText("load.insights.heroKicker", locale: locale),
             title: state.acwrText,
-            body: state.body
+            body: localizedLoadInsightBody(latest: snapshots.first, fallback: state.body, locale: locale)
         ), top: Spacing.sm)
 
         addSection(
-            title: "Load balance",
-            content: metricRail(state.balanceMetrics.map { ($0.label, $0.value, $0.detail) })
+            title: localizedLoadInsightText("load.insights.section.balance", locale: locale),
+            content: metricRail(state.balanceMetrics.map {
+                ($0.label, $0.value, localizedLoadMetricDetail($0.detail, locale: locale))
+            })
         )
 
-        addSection(title: "Volume", content: dataPlate(volumeRows(state: state), spacing: Spacing.sm))
+        addSection(
+            title: localizedLoadInsightText("load.insights.section.volume", locale: locale),
+            content: dataPlate(volumeRows(state: state, snapshots: snapshots), spacing: Spacing.sm)
+        )
         let export = actionRow(title: "Export workout data", subtitle: "CSV summary, detailed sets, or PDF report", action: #selector(openExportOptions))
         export.accessibilityIdentifier = "export.workoutData"
         addSection(title: "More", content: dataPlate([
@@ -10530,18 +10670,20 @@ private final class LoadInsightsSummaryViewController: InstrumentScrollViewContr
             .map { $0 }
     }
 
-    private func volumeRows(state: LoadInsightsViewState) -> [UIView] {
+    private func volumeRows(state: LoadInsightsViewState, snapshots: [WorkloadSnapshot]) -> [UIView] {
         guard !state.volumeRows.isEmpty else {
             return [
                 UIKitDesign.label(state.emptyVolumeTitle, font: UIKitDesign.medium(19), color: UIKitDesign.textPrimary),
                 UIKitDesign.label(state.emptyVolumeBody, font: UIKitDesign.regular(15), color: UIKitDesign.textSecondary, lines: 0)
             ]
         }
-        return state.volumeRows.enumerated().flatMap { index, row -> [UIView] in
+        return zip(state.volumeRows, snapshots.prefix(state.volumeRows.count)).enumerated().flatMap { index, pair -> [UIView] in
+            let row = pair.0
+            let snapshot = pair.1
             var rows = [
                 disclosureRow(
                     title: row.title,
-                    subtitle: row.subtitle,
+                    subtitle: localizedACWRZoneName(snapshot.zone, locale: locale),
                     trailing: row.trailing
                 )
             ]
@@ -10621,9 +10763,8 @@ private final class UpgradeViewController: InstrumentScrollViewController {
     override func viewDidLoad() {
         super.viewDidLoad()
         title = localized("upgrade.nav.title")
-        let cancelItem = UIBarButtonItem(
+        let cancelItem = instrumentPlainBarButtonItem(
             title: localized("action.cancel"),
-            style: .plain,
             target: self,
             action: #selector(closeUpgrade)
         )
@@ -10639,7 +10780,9 @@ private final class UpgradeViewController: InstrumentScrollViewController {
             title: selectedTier.headline(locale: locale),
             body: selectedTier.subtitle(locale: locale)
         ), top: Spacing.sm)
-        addHorizontalInsets(paywallStatePlate(), top: Spacing.sm)
+        if shouldShowPaywallStatePlate {
+            addHorizontalInsets(paywallStatePlate(), top: Spacing.sm)
+        }
 
         addSection(title: localized("upgrade.section.tier", defaultValue: "Tier"), content: dataPlate(tierRows(), spacing: Spacing.sm))
         addSection(title: localized("upgrade.section.includes"), content: dataPlate(featureRows(), spacing: Spacing.sm))
@@ -10759,6 +10902,10 @@ private final class UpgradeViewController: InstrumentScrollViewController {
             return localized("upgrade.state.failure", defaultValue: "Recoverable failure")
         }
         return localized("upgrade.state.ready", defaultValue: "Ready")
+    }
+
+    private var shouldShowPaywallStatePlate: Bool {
+        isLoadingOffering || isPurchasing || offeringUnavailable || errorMessage != nil
     }
 
     private func paywallStatePlate() -> UIView {
@@ -11595,10 +11742,10 @@ private final class LoadInsightsDetailViewController: InstrumentScrollViewContro
             body: detailBody(latest: latest)
         ), top: Spacing.sm)
 
-        addSection(title: "Load Balance", content: metricRail([
-            ("ATL", latest.map { String(format: "%.0f", $0.acuteLoad) } ?? "--", "Acute"),
-            ("CTL", latest.map { String(format: "%.0f", $0.chronicLoad) } ?? "--", "Chronic"),
-            ("TSB", latest.map { String(format: "%+.0f", $0.tsb) } ?? "--", latest.map { $0.tsb >= 0 ? "Fresh" : "Fatigued" } ?? "Balance")
+        addSection(title: localizedLoadInsightText("load.insights.section.balance", locale: locale), content: metricRail([
+            ("ATL", latest.map { String(format: "%.0f", $0.acuteLoad) } ?? "--", localizedLoadMetricDetail("Acute", locale: locale)),
+            ("CTL", latest.map { String(format: "%.0f", $0.chronicLoad) } ?? "--", localizedLoadMetricDetail("Chronic", locale: locale)),
+            ("TSB", latest.map { String(format: "%+.0f", $0.tsb) } ?? "--", latest.map { $0.tsb >= 0 ? "Fresh" : "Fatigued" } ?? localizedLoadMetricDetail("Balance", locale: locale))
         ]))
 
         addSection(title: "Workload History", content: dataPlate(loadRows(snapshots), spacing: Spacing.sm))
@@ -11624,7 +11771,11 @@ private final class LoadInsightsDetailViewController: InstrumentScrollViewContro
         guard let latest else {
             return "Log sessions to build acute, chronic, and balance history."
         }
-        return "\(latest.zone.displayName) · Updated \(latest.snapshotDate.relativeString(locale: locale))"
+        return localizedLoadInsightBody(
+            latest: latest,
+            fallback: "Log sessions to build acute, chronic, and balance history.",
+            locale: locale
+        )
     }
 
     private func loadRows(_ snapshots: [WorkloadSnapshot]) -> [UIView] {
@@ -12129,6 +12280,7 @@ private final class CoachPrescriptionViewController: InstrumentScrollViewControl
     private var notes = ""
     private var errorMessage: String?
     private let actionDock = UIKitBottomActionDock(primaryTitle: "Assign Plan")
+    private var locale: Locale { container.localeManager.activeLocale }
 
     init(
         container: AppContainer,
@@ -12280,7 +12432,7 @@ private final class CoachPrescriptionViewController: InstrumentScrollViewControl
         let exerciseCount = template.sortedGroups.flatMap(\.sortedExercises).count
         let row = disclosureRow(
             title: template.templateName,
-            subtitle: "\(template.sportType.displayName) · \(template.sessionType.displayName) · \(exerciseCount) exercises",
+            subtitle: "\(template.sportType.displayName) · \(template.sessionType.displayName) · \(localizedTemplateExerciseCount(exerciseCount, locale: locale))",
             trailing: selected ? "Selected" : nil
         )
         row.isUserInteractionEnabled = false
@@ -12518,7 +12670,7 @@ private final class CoachPlansViewController: InstrumentScrollViewController {
         }, for: .touchUpInside)
         let row = disclosureRow(
             title: template.templateName,
-            subtitle: "\(template.sessionType.displayName) · \(template.sortedGroups.flatMap(\.sortedExercises).count) exercises",
+            subtitle: "\(template.sessionType.displayName) · \(localizedTemplateExerciseCount(template.sortedGroups.flatMap(\.sortedExercises).count, locale: locale))",
             trailing: template.lastUsedAt?.relativeString(locale: locale)
         )
         row.isUserInteractionEnabled = false
