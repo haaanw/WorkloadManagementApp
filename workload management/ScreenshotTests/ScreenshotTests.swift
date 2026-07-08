@@ -34,6 +34,73 @@ final class ScreenshotTests: XCTestCase {
         saveScreenshot("01_Today")
     }
 
+    func test01B_AppStoreV21BasketballScreenshots() throws {
+        launchAuthenticatedApp()
+        tapTab("tab.athlete.train")
+
+        XCTAssertTrue(app.descendants(matching: .any)["workoutLog.verdictCard"].waitForExistence(timeout: 10), "v2.1 verdict card missing")
+        XCTAssertTrue(app.staticTexts["workoutLog.verdict.state"].waitForExistence(timeout: 10), "Verdict state missing")
+        XCTAssertTrue(app.staticTexts["workoutLog.verdict.adjustedTopSet"].waitForExistence(timeout: 5), "Adjusted top set missing")
+        XCTAssertTrue(app.descendants(matching: .any)["workoutLog.verdict.strikeZone"].waitForExistence(timeout: 5), "Strike-zone bar missing")
+        XCTAssertTrue(app.staticTexts["workoutLog.verdict.reason"].waitForExistence(timeout: 5), "Verdict reason missing")
+        saveScreenshot("AppStore_v21_01_VerdictMicrodose")
+
+        saveScreenshot("AppStore_v21_02_StrikeZone")
+
+        let nextMatch = app.descendants(matching: .any)["workoutLog.nextMatch"]
+        if !nextMatch.waitForExistence(timeout: 3) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(nextMatch.waitForExistence(timeout: 10), "Next-match row missing")
+        saveScreenshot("AppStore_v21_03_NextMatch")
+
+        launchAuthenticatedApp()
+        tapTab("tab.athlete.train")
+        let startButton = app.buttons["workoutLog.startWorkout"]
+        XCTAssertTrue(startButton.waitForExistence(timeout: 10), "Workout start button not found")
+        startButton.tap()
+        let blankButton = app.buttons["templatePicker.startBlank"]
+        XCTAssertTrue(blankButton.waitForExistence(timeout: 10), "Start blank button not found")
+        blankButton.tap()
+        let sessionSettings = app.buttons["activeWorkout.sessionSettings"]
+        XCTAssertTrue(sessionSettings.waitForExistence(timeout: 10), "Session settings row missing")
+        sessionSettings.tap()
+        let typeRow = app.buttons["activeWorkout.settings.type"]
+        XCTAssertTrue(typeRow.waitForExistence(timeout: 10), "Session type row missing")
+        typeRow.tap()
+        tapLocalizedButton(labels: ["Match", "比赛"])
+        XCTAssertTrue(app.descendants(matching: .any)["activeWorkout.settings.matchTier"].waitForExistence(timeout: 10), "Match-tier picker missing")
+        let matchTier = app.buttons["activeWorkout.settings.matchTier.match"]
+        XCTAssertTrue(matchTier.waitForExistence(timeout: 5), "Match tier option missing")
+        matchTier.tap()
+        saveScreenshot("AppStore_v21_04_MatchTier")
+
+        launchAuthenticatedApp()
+        tapTab("tab.athlete.insights")
+        tapSegment("Recovery")
+        let detail = app.buttons["recovery.openDetail"]
+        if !detail.waitForExistence(timeout: 3) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(detail.waitForExistence(timeout: 10), "Recovery detail action missing")
+        detail.tap()
+        XCTAssertTrue(app.descendants(matching: .any)["recoveryDetail.checkIn"].waitForExistence(timeout: 10), "Recovery detail did not open")
+        saveScreenshot("AppStore_v21_05_ReadinessSignals")
+
+        launchAuthenticatedApp()
+        tapTab("tab.athlete.train")
+        let planToday = app.buttons["workoutLog.planToday"]
+        if !planToday.waitForExistence(timeout: 3) {
+            app.swipeUp()
+        }
+        XCTAssertTrue(planToday.waitForExistence(timeout: 10), "Plan Today row missing")
+        planToday.tap()
+        XCTAssertTrue(app.buttons["planToday.enterLift"].waitForExistence(timeout: 10), "Manual lift entry action missing")
+        app.buttons["planToday.enterLift"].tap()
+        XCTAssertTrue(app.staticTexts["manualLift.state"].waitForExistence(timeout: 10), "Manual lift plan input missing")
+        saveScreenshot("AppStore_v21_06_PlanInput")
+    }
+
     func test02_Workload() throws {
         launchAuthenticatedApp()
         tapTab("tab.athlete.insights")
@@ -1435,6 +1502,18 @@ final class ScreenshotTests: XCTestCase {
         }
 
         XCTFail("Segment '\(label)' not found")
+    }
+
+    private func tapLocalizedButton(labels: [String]) {
+        for label in labels {
+            let button = app.buttons[label]
+            if button.waitForExistence(timeout: 3) {
+                button.tap()
+                return
+            }
+        }
+
+        XCTFail("None of localized buttons found: \(labels.joined(separator: ", "))")
     }
 
     private var fallbackTabLabels: [String: [String]] {

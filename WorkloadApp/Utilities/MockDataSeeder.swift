@@ -30,7 +30,18 @@ enum MockDataSeeder {
         for pr in stalePRs { modelContext.delete(pr) }
         let staleCheckIns = (try? modelContext.fetch(FetchDescriptor<WellnessCheckIn>())) ?? []
         for ci in staleCheckIns { modelContext.delete(ci) }
+        let staleVerdictEvents = (try? modelContext.fetch(FetchDescriptor<VerdictEvent>())) ?? []
+        for event in staleVerdictEvents { modelContext.delete(event) }
         try? modelContext.save()
+
+        athlete.displayName = "Alex Chen"
+        athlete.sportType = .teamSport
+        athlete.trainingFrequency = .fiveToSix
+        athlete.experienceLevel = .advanced
+        athlete.nextMatchDate = calendar.startOfDay(
+            for: calendar.date(byAdding: .day, value: 2, to: .now) ?? .now
+        )
+        athlete.updatedAt = .now
 
         // Create 28 days of workout sessions (4 weeks)
         for dayOffset in stride(from: -27, through: 0, by: 1) {
@@ -60,13 +71,21 @@ enum MockDataSeeder {
             modelContext.insert(session)
         }
 
+        if let yesterday = calendar.date(byAdding: .day, value: -1, to: .now) {
+            let match = createBasketballMatchSession(date: yesterday, tier: .match)
+            match.athlete = athlete
+            match.recalculateDerivedFields()
+            modelContext.insert(match)
+        }
+
         // Create recovery snapshots (daily)
         for dayOffset in stride(from: -27, through: 0, by: 1) {
             guard let date = calendar.date(byAdding: .day, value: dayOffset, to: .now) else { continue }
 
-            let baseHRV = 45.0 + Double.random(in: -10...15)
-            let baseRHR = 58.0 + Double.random(in: -5...8)
-            let baseSleep = 400.0 + Double.random(in: -60...60)
+            let phase = Double((dayOffset + 28) % 7)
+            let baseHRV = 48.0 + phase
+            let baseRHR = 58.0 - min(phase, 3)
+            let baseSleep = 420.0 + phase * 6
 
             let snapshot = RecoverySnapshot(
                 date: date,
@@ -87,9 +106,9 @@ enum MockDataSeeder {
 
         // Create some personal records
         let prs = [
-            PersonalRecord(exerciseName: "Barbell Bench Press", recordType: .maxWeight, value: 92.5, achievedAt: calendar.date(byAdding: .day, value: -3, to: .now)!),
-            PersonalRecord(exerciseName: "Barbell Back Squat", recordType: .maxWeight, value: 130.0, achievedAt: calendar.date(byAdding: .day, value: -7, to: .now)!),
-            PersonalRecord(exerciseName: "Deadlift", recordType: .maxWeight, value: 155.0, achievedAt: calendar.date(byAdding: .day, value: -14, to: .now)!),
+            PersonalRecord(exerciseName: "Barbell Back Squat", recordType: .maxWeight, value: 142.5, achievedAt: calendar.date(byAdding: .day, value: -7, to: .now)!),
+            PersonalRecord(exerciseName: "Trap Bar Deadlift", recordType: .maxWeight, value: 170.0, achievedAt: calendar.date(byAdding: .day, value: -14, to: .now)!),
+            PersonalRecord(exerciseName: "Split Squat", recordType: .maxVolume, value: 1680.0, achievedAt: calendar.date(byAdding: .day, value: -21, to: .now)!),
         ]
         for pr in prs {
             pr.athlete = athlete
@@ -108,7 +127,7 @@ enum MockDataSeeder {
         modelContext.insert(wellness)
 
         ensureScreenshotTemplates(modelContext: modelContext, athlete: athlete)
-        ensureScreenshotResolvedPlan(modelContext: modelContext, athlete: athlete)
+        ensureScreenshotResolvedPlan(modelContext: modelContext, athlete: athlete, calendar: calendar)
 
         try? modelContext.save()
     }
@@ -197,7 +216,11 @@ enum MockDataSeeder {
         }
     }
 
-    private static func ensureScreenshotResolvedPlan(modelContext: ModelContext, athlete: Athlete) {
+    private static func ensureScreenshotResolvedPlan(
+        modelContext: ModelContext,
+        athlete: Athlete,
+        calendar: Calendar
+    ) {
         let existingPlans = (try? modelContext.fetch(FetchDescriptor<PrescribedWorkout>())) ?? []
         for plan in existingPlans where plan.templateName == "Adjusted Squat" {
             modelContext.delete(plan)
@@ -223,15 +246,38 @@ enum MockDataSeeder {
 
         let warmup = TemplateSet(setIndex: 0, targetReps: 5, targetWeightKg: 60, targetRPE: 5, isWarmup: true)
         let working = TemplateSet(setIndex: 1, targetReps: 5, targetWeightKg: 140, targetRPE: 8, isWarmup: false)
+        let backoff = TemplateSet(setIndex: 2, targetReps: 5, targetWeightKg: 120, targetRPE: 7, isWarmup: false)
         working.adjustedTargetWeightKg = 130
         working.adjustedTargetRPE = 7
-        working.verdictReason = "Readiness is lower than baseline, so intensity was trimmed."
+        working.adjustedBackoffSetCut = 1
+        working.verdictReason = "Recent court work loaded your legs — microdose before the match."
         VerdictDecisionApplier.applyAccept(to: working, appliedAt: .now)
 
-        squat.sets = [warmup, working]
+        squat.sets = [warmup, working, backoff]
         group.exercises = [squat]
         prescription.groups = [group]
         modelContext.insert(prescription)
+
+        let decidedAt = calendar.date(byAdding: .minute, value: -20, to: .now) ?? .now
+        let event = VerdictEvent(
+            decidedAt: decidedAt,
+            planDate: .now,
+            verdictKindRaw: "modify",
+            plannedTopSetKg: 140,
+            adjustedTopSetKg: 130,
+            deltaKg: -10,
+            differed: true,
+            actionRaw: "accepted",
+            regionRaw: MuscleRegion.legs.rawValue,
+            reasonLine: working.verdictReason ?? "",
+            confidenceNote: nil,
+            prescriptionId: prescription.id,
+            suggestedBackoffSetCut: 1,
+            suggestedRPECap: 7,
+            matchProximityRaw: true,
+            athlete: athlete
+        )
+        modelContext.insert(event)
     }
 
     // MARK: - Session Factories
@@ -273,14 +319,14 @@ enum MockDataSeeder {
     private static func createCardioSession(date: Date) -> WorkoutSession {
         let session = WorkoutSession(
             sessionDate: date,
-            sessionName: "Easy Run",
-            sportType: .running,
+            sessionName: "Tempo Conditioning",
+            sportType: .teamSport,
             durationSeconds: Int.random(in: 1800...3600),
             sessionRPE: Double.random(in: 4...6),
             sessionType: .cardio
         )
 
-        let run = ExerciseEntry(exerciseName: "Easy Run", exerciseCategory: .cardio, muscleGroup: .fullBody, orderIndex: 0)
+        let run = ExerciseEntry(exerciseName: "Court Intervals", exerciseCategory: .interval, muscleGroup: .legs, orderIndex: 0)
         let dist = Double.random(in: 4000...8000)
         run.sets.append(SetRecord(setIndex: 0, durationSeconds: session.durationSeconds, distanceMeters: dist, rpe: session.sessionRPE))
         session.exerciseEntries.append(run)
@@ -291,7 +337,7 @@ enum MockDataSeeder {
     private static func createSkillSession(date: Date) -> WorkoutSession {
         let session = WorkoutSession(
             sessionDate: date,
-            sessionName: "Basketball Skills",
+            sessionName: "Shooting + Handles",
             sportType: .teamSport,
             durationSeconds: Int.random(in: 2700...5400),
             sessionRPE: Double.random(in: 5...8),
@@ -309,10 +355,33 @@ enum MockDataSeeder {
         return session
     }
 
+    private static func createBasketballMatchSession(date: Date, tier: MatchTier) -> WorkoutSession {
+        let session = WorkoutSession(
+            sessionDate: date,
+            sessionName: "League Match",
+            sportType: .teamSport,
+            durationSeconds: 48 * 60,
+            sessionRPE: 9,
+            sessionType: .match
+        )
+        session.matchTier = tier
+
+        let game = ExerciseEntry(
+            exerciseName: "Competitive Minutes",
+            exerciseCategory: .drill,
+            muscleGroup: .legs,
+            orderIndex: 0
+        )
+        game.sets.append(SetRecord(setIndex: 0, durationSeconds: 48 * 60, rpe: 9))
+        session.exerciseEntries.append(game)
+
+        return session
+    }
+
     private static func createLongSession(date: Date, weekNumber: Int) -> WorkoutSession {
         let session = WorkoutSession(
             sessionDate: date,
-            sessionName: "Lower Body",
+            sessionName: "Lower Body Strength",
             sportType: .lifting,
             durationSeconds: 4200 + Int.random(in: -600...600),
             sessionRPE: Double.random(in: 7...9),
