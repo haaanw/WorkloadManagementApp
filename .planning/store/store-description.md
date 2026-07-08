@@ -4,7 +4,7 @@ Prep-only draft. Do not publish until the n=1 dogfood gate passes.
 
 ## Verification Notes
 
-This copy intentionally avoids future-projection claims, plan-authoring claims, group-management claims, and any claim that cross-modal carry currently changes the verdict. Verified shipped surfaces include: planned-session verdicts, adjusted top-set numbers, one-line reasons, next match date, match-proximity microdose, match-tier logging, HealthKit HRV / RHR / sleep readiness, accept / keep / feel input, and next-day felt-right tracking.
+This copy intentionally avoids future-projection claims, plan-authoring claims, and group-management claims. Cross-modal carry DOES now drive the verdict (decision (a), 2026-07-08: `CrossModalShadowGate.crossModalDrivesVerdict` defaults true, dogfood-validated via criterion 5) — so the game→legs→squat story is a truthful current-behavior claim, not future projection. Verified shipped surfaces include: planned-session verdicts, adjusted top-set numbers, one-line reasons, cross-modal carry driving the verdict (legs eased after a game, upper body spared), next match date, match-proximity microdose, match-tier logging, HealthKit HRV / RHR / sleep readiness, accept / keep / feel input, and next-day felt-right tracking.
 
 ## English Full Description
 
