@@ -28,6 +28,7 @@ import UIKit
 struct RepScrubber: View {
     /// Bound stored reps (nil = unset / first-ever).
     @Binding var reps: Int?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     /// Suggested reps to render as a ghost baseline when `reps` is nil (from `SetSuggestion`).
     var suggestedReps: Int? = nil
     /// Called when the user commits a reps value (drag or keypad) — marks the set done.
@@ -152,6 +153,7 @@ struct RepScrubber: View {
             Text(displayValue.map { "\($0)" } ?? "—")
                 .font(.Tokens.bodyMedium)
                 .monospacedDigit()
+                .contentTransition(.numericText())
                 .foregroundStyle(isGhost ? ColorTokens.text3 : (displayValue == nil ? ColorTokens.text2 : ColorTokens.text1))
                 .frame(minWidth: 28, alignment: .leading)
         }
@@ -245,7 +247,7 @@ struct RepScrubber: View {
             }
         }
         .frame(height: 32)
-        .animation(Motion.state, value: reps)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: reps)
     }
 
     /// Detent values to draw ticks at: 1, 5, 10, … 30 (constant 5-rep pitch + the floor).

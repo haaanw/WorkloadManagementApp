@@ -13,6 +13,7 @@ struct SharpTextFieldStyle: TextFieldStyle {
 
     private struct SharpField<Label: View>: View {
         let configuration: TextField<Label>
+        @Environment(\.accessibilityReduceMotion) private var reduceMotion
         @FocusState private var isFocused: Bool
 
         var body: some View {
@@ -30,7 +31,7 @@ struct SharpTextFieldStyle: TextFieldStyle {
                             lineWidth: isFocused ? 1 : 0.5
                         )
                 )
-                .animation(Motion.state, value: isFocused)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isFocused)
         }
     }
 }

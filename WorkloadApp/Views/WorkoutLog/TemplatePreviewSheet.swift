@@ -14,20 +14,20 @@ struct TemplatePreviewSheet: View {
                     Text(template.templateName)
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 16)
-                        .padding(.bottom, 4)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.sm)
+                        .padding(.bottom, Spacing.baselinePair)
 
                     Text("\(template.sportType.displayName) - \(template.sessionType.displayName)")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.bottom, Spacing.sm)
 
                     // Scheduled days
                     weekdayRow(scheduledDays: template.scheduledDays)
-                        .padding(.horizontal, 16)
-                        .padding(.bottom, 16)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.bottom, Spacing.sm)
 
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -37,9 +37,9 @@ struct TemplatePreviewSheet: View {
                             .font(.Tokens.micro)
                             .tracking(1.2)
                             .foregroundStyle(ColorTokens.text3)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
-                            .padding(.bottom, 4)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.top, Spacing.sm)
+                            .padding(.bottom, Spacing.baselinePair)
 
                         ForEach(group.sortedExercises, id: \.id) { exercise in
                             HStack {
@@ -52,22 +52,22 @@ struct TemplatePreviewSheet: View {
                                     .foregroundStyle(ColorTokens.text2)
                                     .monospacedDigit()
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 4)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.xs)
                         }
                     }
 
                     // Notes
                     if let notes = template.notes, !notes.isEmpty {
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                            .padding(.top, 8)
+                            .padding(.top, Spacing.xs)
 
                         Text(notes)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
-                            .padding(.bottom, 16)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.top, Spacing.xs)
+                            .padding(.bottom, Spacing.sm)
                     }
                 }
             }
@@ -98,7 +98,7 @@ struct TemplatePreviewSheet: View {
 
     private func weekdayRow(scheduledDays: [Int]) -> some View {
         let days = ["M", "T", "W", "T", "F", "S", "S"]
-        return HStack(spacing: 8) {
+        return HStack(spacing: Spacing.xs) {
             ForEach(Array(days.enumerated()), id: \.offset) { index, initial in
                 let isoDay = index + 1
                 Text(initial)

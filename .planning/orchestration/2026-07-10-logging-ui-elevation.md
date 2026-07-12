@@ -47,7 +47,7 @@ Full test suite + orchestrator design-fence check + /codex review of the round's
 - [x] Lane B dispatched (2026-07-13)
 - [x] Lane B verified + committed (2026-07-13, `4af9276`, pushed; build green, sonnet audit SAFE-TO-COMMIT; import flows hardened, Import-plan entry on blank Strength sessions; ShareImportSheet still has no production callsite — open question for Lane D/final gate)
 - [x] Lane C dispatched (2026-07-13, codex exec high)
-- [ ] Lane C verified + committed
-- [ ] Lane D dispatched
+- [x] Lane C verified + committed (2026-07-13, `ebdbdcb`, pushed; build green, footprint exact, audit clean — its one "must-fix" was a stale-v1-accent-rule false positive, DESIGN.md v2 Rule 4 permits accent-outline CTA)
+- [x] Lane D dispatched (2026-07-13, codex exec high; brief includes Lane C motion grammar reuse + app-wide consistency sweep)
 - [ ] Lane D verified + committed
 - [ ] Final review gate

@@ -11,6 +11,7 @@ struct ActiveWorkoutSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
     @State private var sessionName = ""
     @State private var sportType: SportType = .lifting
@@ -87,7 +88,7 @@ struct ActiveWorkoutSheet: View {
             ScrollView {
                 VStack(spacing: 0) {
                     // Session info
-                    VStack(spacing: 16) {
+                    VStack(spacing: Spacing.sm) {
                         TextField(String(localized: "workout.field.sessionName.placeholder", defaultValue: "Session Name (optional)"), text: $sessionName)
                             .textFieldStyle(SharpTextFieldStyle())
                             .accessibilityIdentifier("activeWorkout.sessionName")
@@ -116,6 +117,10 @@ struct ActiveWorkoutSheet: View {
                                     .contentShape(Rectangle())
                             }
                             .buttonStyle(.pressable)
+                            .padding(.horizontal, Spacing.sm)
+                            .background(ColorTokens.surfaceEl)
+                            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                            .transition(.opacity)
                         }
 
                         TimelineView(.periodic(from: startTime, by: 1)) { _ in
@@ -125,8 +130,8 @@ struct ActiveWorkoutSheet: View {
                                 .foregroundStyle(ColorTokens.text1)
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
                     .background(ColorTokens.surface)
 
                     Rectangle()
@@ -146,24 +151,30 @@ struct ActiveWorkoutSheet: View {
 
                     // Exercise entries
                     ForEach($entries) { $entry in
+                        let entryIndex = entries.firstIndex { $0.id == entry.id } ?? 0
                         ExerciseEntryCard(entry: $entry, sportType: sportType, weightUnit: athlete?.weightUnit ?? .kg)
+                            .entranceReveal(index: entryIndex)
                         Rectangle()
                             .fill(ColorTokens.divider)
                             .frame(height: 0.5)
                     }
                     .onDelete { indexSet in
-                        entries.remove(atOffsets: indexSet)
+                        Haptics.warning()
+                        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                            entries.remove(atOffsets: indexSet)
+                        }
                     }
 
                     // Add exercise button
                     Button {
+                        Haptics.tap()
                         showExercisePicker = true
                     } label: {
                         Label("action.addExercise", systemImage: "plus")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                            .padding(.vertical, Spacing.sm)
                     }
                     .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                     .background(ColorTokens.background)
@@ -176,12 +187,17 @@ struct ActiveWorkoutSheet: View {
                         Rectangle()
                             .fill(ColorTokens.divider)
                             .frame(height: 0.5)
-                        Button(action: duplicateLastExercise) {
+                        Button {
+                            Haptics.tap()
+                            withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                                duplicateLastExercise()
+                            }
+                        } label: {
                             Label("action.duplicateExercise", systemImage: "plus.square.on.square")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text2)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
+                                .padding(.vertical, Spacing.sm)
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         .background(ColorTokens.background)
@@ -198,7 +214,10 @@ struct ActiveWorkoutSheet: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
-                    Button("action.finish") { showFinishConfirmation = true }
+                    Button("action.finish") {
+                        Haptics.tap()
+                        showFinishConfirmation = true
+                    }
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
                 }
@@ -217,7 +236,9 @@ struct ActiveWorkoutSheet: View {
                     } else {
                         fallbackFromHistoryPublic(&draft)
                     }
-                    entries.append(draft)
+                    withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                        entries.append(draft)
+                    }
                 }
             }
             .sheet(isPresented: $showWorkoutImport) {
@@ -245,7 +266,7 @@ struct ActiveWorkoutSheet: View {
             // a session sets a PR AND spikes load. The session is already committed before
             // either appears; tapping the last banner closes the workout sheet.
             .overlay(alignment: .bottom) {
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.xs) {
                     if showPRCelebration {
                         PRBanner(prs: newPRs) {
                             showPRCelebration = false
@@ -261,11 +282,11 @@ struct ActiveWorkoutSheet: View {
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                     }
                 }
-                .padding(.bottom, 16)
-                .padding(.horizontal, 16)
+                .padding(.bottom, Spacing.sm)
+                .padding(.horizontal, Spacing.sm)
             }
-            .animation(Motion.entrance, value: showSpikeAlert)
-            .animation(Motion.entrance, value: showPRCelebration)
+            .animation(Motion.resolved(Motion.entrance, reduceMotion: reduceMotion), value: showSpikeAlert)
+            .animation(Motion.resolved(Motion.entrance, reduceMotion: reduceMotion), value: showPRCelebration)
             .overlay(alignment: .bottom) {
                 if showTemplateSavedToast {
                     ToastBanner(
@@ -273,11 +294,13 @@ struct ActiveWorkoutSheet: View {
                         isError: templateSaveError,
                         isPresented: $showTemplateSavedToast
                     )
-                    .padding(.bottom, 16)
-                    .padding(.horizontal, 16)
+                    .padding(.bottom, Spacing.sm)
+                    .padding(.horizontal, Spacing.sm)
                 }
             }
-            .animation(Motion.entrance, value: showTemplateSavedToast)
+            .animation(Motion.resolved(Motion.entrance, reduceMotion: reduceMotion), value: showTemplateSavedToast)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: sessionStartChoice)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: entries.count)
             // Zero-done save guard: Finish was tapped with NO set marked done. Saving now would
             // log an empty session, so Cancel keeps the user in the sheet and Discard exits
             // without persistence.
@@ -886,6 +909,7 @@ struct ExerciseEntryCard: View {
     @Binding var entry: ExerciseEntryDraft
     var sportType: SportType = .lifting
     var weightUnit: WeightUnit = .kg
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var inputMode: ExerciseInputMode {
         entry.exerciseCategory.inputMode
@@ -906,7 +930,10 @@ struct ExerciseEntryCard: View {
             draft.targetDistanceMeters = last.distanceMeters ?? last.targetDistanceMeters
             draft.targetDurationSeconds = last.durationSeconds ?? last.targetDurationSeconds
         }
-        entry.sets.append(draft)
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            entry.sets.append(draft)
+        }
+        Haptics.tap()
     }
 
     /// Clone the previous set entirely as committed (real) values — the "Repeat last set" path.
@@ -923,7 +950,10 @@ struct ExerciseEntryCard: View {
         // Explicit user action ("repeat this set, it counts") → the clone is performed.
         // (addCarriedSet's passive ghost prefill leaves isDone == false on purpose.)
         clone.isDone = true
-        entry.sets.append(clone)
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            entry.sets.append(clone)
+        }
+        Haptics.success()
     }
 
     var body: some View {
@@ -948,15 +978,15 @@ struct ExerciseEntryCard: View {
                 Text(rationale)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 8)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.bottom, Spacing.xs)
             } else if entry.sets.first?.isFromHistory == true {
                 Text("exercise.label.prefilledFromLast")
                     .font(.Tokens.micro)
                     .tracking(1.0)
                     .foregroundStyle(ColorTokens.text3)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 8)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.bottom, Spacing.xs)
             }
 
             Rectangle()
@@ -1075,6 +1105,7 @@ struct SetEntryRow: View {
     var suggestion: ProgressionEngine.SetSuggestion? = nil
     var progressionType: ProgressionEngine.ProgressionType? = nil
     var showSuggestion: Bool = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Per-set RPE is collapsed behind a "+ RPE" chip; start expanded only if RPE already set.
     @State private var showRPE = false
@@ -1148,15 +1179,19 @@ struct SetEntryRow: View {
             SetStepperDouble(
                 value: $set.rpe,
                 increment: 1,
-                placeholder: "RPE",
+                placeholder: String(localized: "metric.rpe", defaultValue: "RPE"),
                 ghostBaseline: set.targetRPE,
                 floor: 0,
                 fractionDigits: 0
             )
             .frame(width: 120)
+            .transition(.opacity)
         } else {
             Button {
-                showRPE = true
+                Haptics.tap()
+                withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                    showRPE = true
+                }
             } label: {
                 Text("set.rpe.add")
                     .font(.Tokens.label)
@@ -1167,6 +1202,7 @@ struct SetEntryRow: View {
                     .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
             }
             .buttonStyle(.pressable)
+            .transition(.opacity)
         }
     }
 
@@ -1188,7 +1224,7 @@ struct SetEntryRow: View {
         SetStepperInt(
             value: $set.rir,
             increment: 1,
-            placeholder: "RIR",
+            placeholder: String(localized: "metric.rir", defaultValue: "RIR"),
             ghostBaseline: set.targetRIR,
             floor: 0
         )
@@ -1201,9 +1237,15 @@ struct SetEntryRow: View {
     /// toggles `set.isDone`, controlling whether this set is persisted by saveSession().
     @ViewBuilder private var doneToggle: some View {
         Button {
-            set.isDone.toggle()
-            // Commit feedback only on the transition INTO done (the most-repeated commit).
-            if set.isDone { Haptics.tap() }
+            let willComplete = !set.isDone
+            withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                set.isDone.toggle()
+            }
+            if willComplete {
+                Haptics.success()
+            } else {
+                Haptics.tap()
+            }
         } label: {
             ZStack {
                 Rectangle()
@@ -1217,7 +1259,7 @@ struct SetEntryRow: View {
                 }
             }
             // Settle the fill/checkmark in instead of popping it.
-            .animation(Motion.state, value: set.isDone)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: set.isDone)
             .frame(width: 44, height: 44)
             .contentShape(Rectangle())
         }
@@ -1235,6 +1277,7 @@ struct SetEntryRow: View {
     @ViewBuilder private var warmupToggle: some View {
         Button {
             set.isWarmup.toggle()
+            Haptics.select()
         } label: {
             HStack(spacing: Spacing.baselinePair) {
                 Rectangle()
@@ -1262,7 +1305,10 @@ struct SetEntryRow: View {
     /// editable row (the set stays isDone). `text2`, monospacedDigit, 0pt/hairline, no accent.
     @ViewBuilder private var collapsedSummary: some View {
         Button {
-            expandOverride = true
+            Haptics.tap()
+            withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                expandOverride = true
+            }
         } label: {
             HStack(spacing: Spacing.xs) {
                 Text("\(index + 1)")
@@ -1283,7 +1329,7 @@ struct SetEntryRow: View {
                     .font(.Tokens.smallLabel)
                     .foregroundStyle(ColorTokens.text3)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
             .contentShape(Rectangle())
         }
@@ -1426,7 +1472,7 @@ struct SetEntryRow: View {
             weightKg: $set.weightKg,
             unit: weightUnit,
             suggestedCenterKg: suggestedCenterKg,
-            onCommit: { set.isDone = true },
+            onCommit: markSetDone,
             focus: $focusField,
             rowId: set.id,
             advanceTo: .reps(set.id)
@@ -1434,7 +1480,7 @@ struct SetEntryRow: View {
         RepScrubber(
             reps: $set.reps,
             suggestedReps: suggestedReps,
-            onCommit: { set.isDone = true },
+            onCommit: markSetDone,
             focus: $focusField,
             rowId: set.id
         )
@@ -1443,11 +1489,16 @@ struct SetEntryRow: View {
     }
 
     var body: some View {
-        if isCollapsed {
-            collapsedSummary
-        } else {
-            expandedRow
+        Group {
+            if isCollapsed {
+                collapsedSummary
+                    .transition(.opacity)
+            } else {
+                expandedRow
+                    .transition(.opacity)
+            }
         }
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isCollapsed)
     }
 
     @ViewBuilder private var expandedRow: some View {
@@ -1476,16 +1527,29 @@ struct SetEntryRow: View {
                             SetStepperInt(
                                 value: $set.reps,
                                 increment: 1,
-                                placeholder: "reps",
+                                placeholder: String(localized: "unit.reps.short", defaultValue: "reps"),
                                 ghostBaseline: set.targetReps
                             )
 
                         case .distanceDuration:
-                            ghostedField(value: $set.distanceMeters, ghost: set.targetDistanceMeters, placeholder: "m", decimal: true)
-                            ghostedField(value: $set.durationSeconds, ghost: set.targetDurationSeconds, placeholder: "sec")
+                            ghostedField(
+                                value: $set.distanceMeters,
+                                ghost: set.targetDistanceMeters,
+                                placeholder: String(localized: "unit.meter.short", defaultValue: "m"),
+                                decimal: true
+                            )
+                            ghostedField(
+                                value: $set.durationSeconds,
+                                ghost: set.targetDurationSeconds,
+                                placeholder: String(localized: "unit.second.short", defaultValue: "sec")
+                            )
 
                         case .durationOnly:
-                            ghostedField(value: $set.durationSeconds, ghost: set.targetDurationSeconds, placeholder: "min")
+                            ghostedField(
+                                value: $set.durationSeconds,
+                                ghost: set.targetDurationSeconds,
+                                placeholder: String(localized: "unit.minute.short", defaultValue: "min")
+                            )
 
                         case .weightReps:
                             EmptyView()
@@ -1498,16 +1562,24 @@ struct SetEntryRow: View {
                 }
             }
             .font(.Tokens.label)
-            .padding(.horizontal, 16)
-            .padding(.vertical, 8)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
             // Auto-mark performed when the user actually commits a measurement value. Prefill /
             // ghost / carry writes happen before this row renders (in onAppear loaders /
             // addCarriedSet), so their initial values do NOT trigger these onChange handlers —
             // only subsequent in-row user edits do. nil → some transition = a real entry.
-            .onChange(of: set.weightKg) { _, newValue in if newValue != nil { set.isDone = true } }
-            .onChange(of: set.reps) { _, newValue in if newValue != nil { set.isDone = true } }
-            .onChange(of: set.durationSeconds) { _, newValue in if newValue != nil { set.isDone = true } }
-            .onChange(of: set.distanceMeters) { _, newValue in if newValue != nil { set.isDone = true } }
+            .onChange(of: set.weightKg) { oldValue, newValue in
+                if oldValue == nil, newValue != nil { markSetDone() }
+            }
+            .onChange(of: set.reps) { oldValue, newValue in
+                if oldValue == nil, newValue != nil { markSetDone() }
+            }
+            .onChange(of: set.durationSeconds) { oldValue, newValue in
+                if oldValue == nil, newValue != nil { markSetDone() }
+            }
+            .onChange(of: set.distanceMeters) { oldValue, newValue in
+                if oldValue == nil, newValue != nil { markSetDone() }
+            }
 
             // Warmup toggle — visible, labeled, state-bearing (not color-alone). Aligned past
             // the set-number column so it reads as a per-set attribute.
@@ -1515,8 +1587,8 @@ struct SetEntryRow: View {
                 warmupToggle
                 Spacer()
             }
-            .padding(.leading, 16 + 32 + Spacing.xs)
-            .padding(.trailing, 16)
+            .padding(.leading, Spacing.sm + Spacing.lg + Spacing.xs)
+            .padding(.trailing, Spacing.sm)
             .padding(.bottom, Spacing.xs)
 
             // Progression suggestion label (Pro users only)
@@ -1534,6 +1606,14 @@ struct SetEntryRow: View {
             }
         }
     }
+
+    private func markSetDone() {
+        guard !set.isDone else { return }
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            set.isDone = true
+        }
+        Haptics.success()
+    }
 }
 
 // MARK: - Fill Button Bar
@@ -1541,30 +1621,37 @@ struct SetEntryRow: View {
 struct FillButtonBar: View {
     @Binding var entries: [ExerciseEntryDraft]
     let isPro: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
-        HStack(spacing: 16) {
+        HStack(spacing: Spacing.sm) {
             Button {
-                fillLast()
+                Haptics.tap()
+                withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                    fillLast()
+                }
             } label: {
                 Text("workout.fill.last")
                     .font(.Tokens.bodyMedium)
                     .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
                     .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
             }
             .buttonStyle(.pressable)
 
             if isPro {
                 Button {
-                    fillSuggested()
+                    Haptics.tap()
+                    withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                        fillSuggested()
+                    }
                 } label: {
                     Text("workout.fill.suggested")
                         .font(.Tokens.bodyMedium)
                         .foregroundStyle(ColorTokens.text1)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 8)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.xs)
                         .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                 }
                 .buttonStyle(.pressable)
@@ -1572,8 +1659,8 @@ struct FillButtonBar: View {
 
             Spacer()
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 8)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
         .frame(maxWidth: .infinity, alignment: .leading)
         .background(ColorTokens.surface)
     }

@@ -385,6 +385,8 @@ struct RowSeparator: View {
 /// style uses `--text-1` for the on-track and `--surface` for off, with a square 0pt knob —
 /// consistent with the instrument aesthetic.
 struct DesignToggleStyle: ToggleStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     func makeBody(configuration: Configuration) -> some View {
         Button {
             configuration.isOn.toggle()
@@ -400,8 +402,8 @@ struct DesignToggleStyle: ToggleStyle {
                     .padding(Spacing.baselinePair)
             }
         }
-        .buttonStyle(.plain)
-        .animation(Motion.state, value: configuration.isOn)
+        .buttonStyle(.pressable)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: configuration.isOn)
         .accessibilityAddTraits(configuration.isOn ? [.isButton, .isSelected] : .isButton)
     }
 }
@@ -780,7 +782,7 @@ enum Haptics {
     static func impact() { impactMedium.impactOccurred() }
     /// Selection change — pickers, segmented controls, scrubber detents.
     static func select() { selection.selectionChanged() }
-    /// Success — workout saved, PR detected.
+    /// Success — set completed, workout saved, PR detected.
     static func success() { notification.notificationOccurred(.success) }
     /// Warning — spike / caution alert surfaced.
     static func warning() { notification.notificationOccurred(.warning) }

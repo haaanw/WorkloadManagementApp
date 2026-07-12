@@ -10,12 +10,13 @@ struct FinishWorkoutSheet: View {
     let sportType: SportType
     let onFinish: () -> Void
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
+            VStack(spacing: Spacing.md) {
                 // RPE section
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.xs) {
                     Text("workout.prompt.rpe")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
@@ -23,11 +24,20 @@ struct FinishWorkoutSheet: View {
                     Text(String(format: String(localized: "workout.rpe.display", defaultValue: "RPE: %d"), Int(rpe)))
                         .font(.Tokens.pageTitle)
                         .monospacedDigit()
+                        .contentTransition(.numericText())
                         .foregroundStyle(ColorTokens.text1)
 
-                    Slider(value: $rpe, in: 1...10, step: 1)
+                    Slider(
+                        value: $rpe,
+                        in: 1...10,
+                        step: 1,
+                        onEditingChanged: { isEditing in
+                            if !isEditing { Haptics.select() }
+                        }
+                    )
                         .tint(ColorTokens.text2)
                 }
+                .entranceReveal(index: 0)
 
                 Rectangle()
                     .fill(ColorTokens.divider)
@@ -40,6 +50,8 @@ struct FinishWorkoutSheet: View {
                         .foregroundStyle(ColorTokens.text1)
                 }
                 .tint(ColorTokens.text2)
+                .entranceReveal(index: 1)
+                .onChange(of: saveAsTemplate) { _, _ in Haptics.select() }
 
                 // Template name field (visible when toggle is ON)
                 if saveAsTemplate {
@@ -50,7 +62,7 @@ struct FinishWorkoutSheet: View {
 
                 Spacer()
             }
-            .padding(24)
+            .padding(Spacing.md)
             .background(ColorTokens.background)
             .navigationTitle("nav.finishWorkout")
             .navigationBarTitleDisplayMode(.inline)
@@ -69,7 +81,8 @@ struct FinishWorkoutSheet: View {
                     .foregroundStyle(ColorTokens.text1)
                 }
             }
-            .animation(Motion.entrance, value: saveAsTemplate)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: saveAsTemplate)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: rpe)
         }
         .interactiveDismissDisabled(true)
         .onAppear {

@@ -5,6 +5,7 @@ struct ShareCodeSheet: View {
     let template: WorkoutTemplate
     @Environment(AppContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
 
     @State private var shareCode: String?
@@ -25,7 +26,7 @@ struct ShareCodeSheet: View {
                         .font(.Tokens.smallLabel)
                         .foregroundStyle(ColorTokens.text2)
                         .multilineTextAlignment(.center)
-                        .padding(16)
+                        .padding(Spacing.sm)
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                 } else if let code = shareCode {
                     shareContent(code: code)
@@ -61,19 +62,19 @@ struct ShareCodeSheet: View {
                 Text(template.templateName)
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.sm)
 
                 // Sport + session type
                 Text("\(template.sportType.displayName) - \(template.sessionType.displayName)")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 8)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.xs)
 
                 // Divider
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                    .padding(.top, 16)
+                    .padding(.top, Spacing.sm)
 
                 // Share code card
                 VStack(alignment: .leading, spacing: 0) {
@@ -81,37 +82,38 @@ struct ShareCodeSheet: View {
                         .font(.Tokens.smallLabel)
                         .tracking(1.2)
                         .foregroundStyle(ColorTokens.text3)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 16)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.sm)
 
                     Text(code)
                         .font(.Tokens.body)
                         .monospacedDigit()
                         .tracking(2.0)
                         .foregroundStyle(ColorTokens.text1)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.xs)
                         .accessibilityLabel("a11y.shareCode")
                         .accessibilityValue(code)
 
                     Text("shareCode.expiryText")
                         .font(.Tokens.smallLabel)
                         .foregroundStyle(ColorTokens.text3)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
-                        .padding(.bottom, 16)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.xs)
+                        .padding(.bottom, Spacing.sm)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(ColorTokens.surface)
                 .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.sm)
 
                 // Buttons
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.xs) {
                     // Copy Code button
                     Button {
                         UIPasteboard.general.string = code
+                        Haptics.success()
                         showCopied = true
                         Task {
                             try? await Task.sleep(for: .seconds(1.5))
@@ -126,8 +128,8 @@ struct ShareCodeSheet: View {
                             .background(ColorTokens.surface)
                             .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                     }
-                    .buttonStyle(.plain)
-                    .animation(Motion.state, value: showCopied)
+                    .buttonStyle(.pressable)
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: showCopied)
 
                     // Share Link button via ShareLink
                     let shareURL = URL(string: "https://tuwa.app/t/\(code)")!
@@ -140,10 +142,10 @@ struct ShareCodeSheet: View {
                             .background(ColorTokens.surface)
                             .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                     }
-                    .buttonStyle(.plain)
+                    .buttonStyle(.pressable)
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 24)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.md)
             }
         }
     }

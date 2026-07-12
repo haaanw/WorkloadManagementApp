@@ -29,6 +29,7 @@ enum SetFocusField: Hashable {
 struct WeightBlockPicker: View {
     /// Bound stored weight in KG (nil = unset / first-ever).
     @Binding var weightKg: Double?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     var unit: WeightUnit = .kg
     /// Suggested center in KG when `weightKg` is nil (from `SetSuggestion`). May be nil.
     var suggestedCenterKg: Double? = nil
@@ -130,6 +131,7 @@ struct WeightBlockPicker: View {
                 Text(centerDisplay.map(numeralString) ?? "—")
                     .font(.Tokens.bodyMedium)
                     .monospacedDigit()
+                    .contentTransition(.numericText())
                     .foregroundStyle(isUnset ? ColorTokens.text2 : ColorTokens.text1)
                 Text(unitLabel)
                     .font(.Tokens.label)
@@ -258,7 +260,7 @@ struct WeightBlockPicker: View {
         }
         .buttonStyle(.pressable)
         .disabled(!enabled)
-        .animation(Motion.state, value: weightKg)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: weightKg)
         .accessibilityLabel(isCenter
             ? String(localized: "weightPicker.center.accessibility", defaultValue: "Current weight")
             : String(localized: "weightPicker.adjust.accessibility", defaultValue: "Adjust weight"))

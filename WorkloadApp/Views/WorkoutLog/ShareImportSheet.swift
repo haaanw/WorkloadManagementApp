@@ -25,11 +25,14 @@ struct ShareImportSheet: View {
                 Text("import.instructionCode")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 24)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.md)
 
                 // Code entry text field
-                TextField("ABCD1234", text: $codeInput)
+                TextField(
+                    String(localized: "import.code.placeholder", defaultValue: "ABCD1234"),
+                    text: $codeInput
+                )
                     .textFieldStyle(SharpTextFieldStyle())
                     .monospacedDigit()
                     .autocapitalization(.allCharacters)
@@ -40,8 +43,8 @@ struct ShareImportSheet: View {
                         errorMessage = nil
                     }
                     .disabled(isLoading)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.sm)
 
                 // Look Up button
                 Button {
@@ -62,16 +65,16 @@ struct ShareImportSheet: View {
                     .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                 }
                 .disabled(codeInput.count < 8 || isLoading)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.sm)
 
                 // Error message
                 if let errorMessage {
                     Text(errorMessage)
                         .font(.Tokens.smallLabel)
                         .foregroundStyle(ColorTokens.zoneDanger)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 8)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.xs)
                 }
 
                 Spacer()

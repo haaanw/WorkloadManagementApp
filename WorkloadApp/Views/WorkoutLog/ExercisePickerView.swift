@@ -4,6 +4,7 @@ import SwiftData
 struct ExercisePickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(AppContainer.self) private var container
     @Query private var customExercises: [CustomExercise]
     @Query private var athletes: [Athlete]
@@ -84,6 +85,10 @@ struct ExercisePickerView: View {
                     }
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
+                    .animation(
+                        Motion.resolved(Motion.state, reduceMotion: reduceMotion),
+                        value: selectedCategory
+                    )
                 }
 
                 Rectangle()
@@ -117,9 +122,12 @@ struct ExercisePickerView: View {
                         }
                         .buttonStyle(.pressable)
                         .listRowBackground(ColorTokens.surfaceEl2)
+                        .transition(.opacity)
+                        .entranceReveal(index: 0)
                     }
 
                     ForEach(filteredExercises, id: \.name) { exercise in
+                        let index = filteredExercises.firstIndex { $0.name == exercise.name } ?? 0
                         Button {
                             Haptics.select()
                             onSelect(exercise.name, exercise.category, exercise.muscleGroup)
@@ -148,6 +156,8 @@ struct ExercisePickerView: View {
                             }
                         }
                         .foregroundStyle(ColorTokens.text1)
+                        .buttonStyle(.pressable)
+                        .entranceReveal(index: index + 1)
                         .swipeActions(edge: .trailing) {
                             if exercise.isCustom {
                                 Button(role: .destructive) {
@@ -163,9 +173,18 @@ struct ExercisePickerView: View {
                         Text("empty.noExercises")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
+                            .transition(.opacity)
                     }
                 }
                 .listStyle(.plain)
+                .animation(
+                    Motion.resolved(Motion.state, reduceMotion: reduceMotion),
+                    value: filteredExercises.map(\.name)
+                )
+                .animation(
+                    Motion.resolved(Motion.state, reduceMotion: reduceMotion),
+                    value: shouldOfferInstantAdd
+                )
             }
             .background(ColorTokens.background)
             .navigationTitle("exercise.nav.select")
@@ -206,7 +225,7 @@ struct ExercisePickerView: View {
         let athlete = athletes.first
         let context = modelContext
 
-        Haptics.select()
+        Haptics.success()
         onSelect(name, classification.category, classification.muscleGroup)
         dismiss()
 
@@ -257,6 +276,7 @@ struct ExercisePickerView: View {
 
     private func deleteCustomExercise(named name: String) {
         if let exercise = customExercises.first(where: { $0.name == name }) {
+            Haptics.warning()
             modelContext.delete(exercise)
             try? modelContext.save()
         }
@@ -350,6 +370,7 @@ struct AddCustomExerciseSheet: View {
                         exercise.athlete = athletes.first
                         modelContext.insert(exercise)
                         try? modelContext.save()
+                        Haptics.success()
                         onAdd(exercise.name, exercise.exerciseCategory, exercise.muscleGroup)
                         dismiss()
                     }

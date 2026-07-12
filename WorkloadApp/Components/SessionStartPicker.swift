@@ -191,15 +191,18 @@ struct SessionStartPicker: View {
                 ],
                 spacing: Spacing.xs
             ) {
-                ForEach(SessionStartChoice.allCases) { option in
+                ForEach(Array(SessionStartChoice.allCases.enumerated()), id: \.offset) { index, option in
                     choiceButton(option)
+                        .entranceReveal(index: index)
                 }
             }
 
             if choice == .basketball {
-                basketballChoices.transition(.opacity)
+                basketballChoices
+                    .transition(.opacity)
             } else if choice == .otherSport {
-                otherSportChoices.transition(.opacity)
+                otherSportChoices
+                    .transition(.opacity)
             }
 
             Button {
@@ -222,10 +225,14 @@ struct SessionStartPicker: View {
             .buttonStyle(.pressable)
 
             if isAdjustExpanded {
-                fullAdjustments.transition(.opacity)
+                fullAdjustments
+                    .transition(.opacity)
             }
         }
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: choice)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: basketballChoice)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: otherSport)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: sessionType)
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isAdjustExpanded)
     }
 
@@ -233,7 +240,7 @@ struct SessionStartPicker: View {
         let isSelected = choice == option
         return Button {
             apply(option)
-            Haptics.select()
+            Haptics.tap()
         } label: {
             VStack(spacing: Spacing.xs) {
                 Image(systemName: option.systemImage)
@@ -414,6 +421,7 @@ struct SessionStartPicker: View {
 
 struct MatchTierPicker: View {
     @Binding var selection: MatchTier?
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
@@ -430,7 +438,7 @@ struct MatchTierPicker: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .animation(Motion.state, value: selection)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: selection)
     }
 
     private func tierButton(_ tier: MatchTier) -> some View {

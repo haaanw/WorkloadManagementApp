@@ -98,7 +98,7 @@ struct TemplateCarouselSection: View {
     private var carouselContent: some View {
         SectionContainer(header: "section.myTemplates") {
             ScrollView(.horizontal, showsIndicators: false) {
-                HStack(spacing: 16) {
+                HStack(spacing: Spacing.sm) {
                     ForEach(templates, id: \.id) { template in
                         templateCard(template)
                             .containerRelativeFrame(.horizontal) { size, _ in size - 80 }
@@ -257,14 +257,14 @@ struct TemplateCarouselSection: View {
                         .textCase(.uppercase)
                         .foregroundStyle(ColorTokens.text2)
                         .padding(.horizontal, Spacing.xs)
-                        .padding(.vertical, 4)
+                        .padding(.vertical, Spacing.xs)
                         .overlay(
                             Rectangle().stroke(
                                 suggestion.isRecoveryAdjusted ? ColorTokens.zoneCaution : ColorTokens.zoneOptimal,
                                 lineWidth: 0.5
                             )
                         )
-                        .padding(8)
+                        .padding(Spacing.xs)
                 }
             }
             .offset(x: isCentered && swipedTemplateId == template.id ? swipeOffset : 0)
