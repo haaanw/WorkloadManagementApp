@@ -46,6 +46,7 @@ struct RecoveryLoadChart: View {
         }
         .frame(height: 184)
         .id(locale)
+        .entranceReveal()
         .chartOverlay { proxy in
             ChartTooltipGesture(
                 proxy: proxy,

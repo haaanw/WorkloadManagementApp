@@ -49,6 +49,7 @@ struct SleepTrendChart: View {
                 .frame(height: 160)
                 .chartYAxisLabel("hours")
                 .id(locale)
+                .entranceReveal()
 
                 HStack(spacing: 16) {
                     legendItem(color: ColorTokens.zoneOptimal, label: String(localized: "sleep.chart.legend.excellent", defaultValue: "7h+"))

@@ -25,7 +25,10 @@ struct WelcomeActionCard: View {
                 .padding(.bottom, Spacing.sm)
 
             HStack(spacing: Spacing.xs) {
-                Button(action: onLogWorkout) {
+                Button {
+                    Haptics.tap()
+                    onLogWorkout()
+                } label: {
                     Text("dashboard.action.logWorkout")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)
@@ -37,7 +40,10 @@ struct WelcomeActionCard: View {
                 }
                 .buttonStyle(.pressable)
 
-                Button(action: onWellnessCheckIn) {
+                Button {
+                    Haptics.tap()
+                    onWellnessCheckIn()
+                } label: {
                     Text("welcome.card.action.checkIn")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)

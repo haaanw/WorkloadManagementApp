@@ -5,6 +5,7 @@ struct ProfileView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
     @Query private var trainingProfiles: [TrainingProfile]
 
@@ -189,6 +190,7 @@ struct ProfileView: View {
                                 .padding(.horizontal, 16)
                                 .padding(.bottom, 8)
                                 .background(ColorTokens.surfaceEl)
+                                .transition(.opacity)
                         }
 
                         divider()
@@ -372,8 +374,12 @@ struct ProfileView: View {
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text3)
                             .padding(Spacing.lg)
+                            .transition(.opacity)
                     }
                 }
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: athlete?.id)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: trainingProfiles.first?.id)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: notificationsDenied)
             }
             .background(ColorTokens.background)
             .task {
@@ -470,7 +476,10 @@ struct ProfileView: View {
 
     @ViewBuilder
     private func actionButton(_ label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
             Text(label)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)

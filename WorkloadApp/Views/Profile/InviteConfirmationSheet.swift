@@ -10,6 +10,7 @@ struct InviteConfirmationSheet: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
 
     let code: String
@@ -28,12 +29,14 @@ struct InviteConfirmationSheet: View {
                 if isLoading {
                     ProgressView(String(localized: "profile.invite.lookingUp", defaultValue: "Looking up invite..."))
                         .padding(.top, 64)
+                        .transition(.opacity)
                 } else if let error = errorMessage {
                     Text(error)
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.zoneDanger)
-                        .padding(.horizontal, 16)
+                        .padding(.horizontal, Spacing.sm)
                         .padding(.top, 64)
+                        .transition(.opacity)
                 } else if let resolved {
                     VStack(alignment: .leading, spacing: 0) {
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
@@ -50,11 +53,12 @@ struct InviteConfirmationSheet: View {
                                 .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                         }
-                        .padding(16)
+                        .padding(Spacing.sm)
 
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                         Button {
+                            Haptics.tap()
                             Task { await confirm(resolved: resolved) }
                         } label: {
                             Group {
@@ -67,27 +71,35 @@ struct InviteConfirmationSheet: View {
                                 }
                             }
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                            .padding(.vertical, Spacing.sm)
                         }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         .disabled(isConfirming)
 
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                         Button {
+                            Haptics.tap()
                             dismiss()
                         } label: {
                             Text("action.cancel")
                                 .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
+                                .padding(.vertical, Spacing.sm)
                         }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                     }
+                    .transition(.opacity)
                 }
                 Spacer()
             }
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isLoading)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: errorMessage != nil)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: resolved != nil)
+            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isConfirming)
             .background(ColorTokens.background)
             .navigationBarHidden(true)
         }
@@ -120,8 +132,10 @@ struct InviteConfirmationSheet: View {
             )
             modelContext.insert(rel)
             try? modelContext.save()
+            Haptics.success()
             dismiss()
         } catch {
+            Haptics.warning()
             errorMessage = error.localizedDescription
         }
         isConfirming = false

@@ -64,6 +64,8 @@ enum Motion {
     static let exit = Animation.easeIn(duration: 0.20)
     /// Hero readiness score count-up — the one sanctioned moment of personality.
     static let scoreCountUp = Animation.easeOut(duration: 0.40)
+    /// Light section choreography step. Kept here so screens never inline timing literals.
+    static let staggerStep: Double = 0.05
 
     // UI rebuild v3 aliases.
     static let press = state
@@ -77,6 +79,39 @@ enum Motion {
     /// reduceMotion-aware resolver: returns nil (no animation) when reduced motion is requested.
     static func resolved(_ animation: Animation, reduceMotion: Bool) -> Animation? {
         reduceMotion ? nil : animation
+    }
+}
+
+/// A first-render-only section entrance. The state belongs to the section instance, so switching
+/// tabs does not replay choreography while the tab hierarchy remains alive. Reduced Motion makes
+/// the content visible immediately, with no transform or delayed work.
+private struct EntranceRevealModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isVisible = false
+
+    let index: Int
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(isVisible ? 1 : 0)
+            .scaleEffect(isVisible ? 1 : 0.98)
+            .onAppear {
+                guard !isVisible else { return }
+                guard !reduceMotion else {
+                    isVisible = true
+                    return
+                }
+                withAnimation(Motion.entrance.delay(Double(index) * Motion.staggerStep)) {
+                    isVisible = true
+                }
+            }
+    }
+}
+
+extension View {
+    /// Reveals a top-level section once using the design-system entrance spring.
+    func entranceReveal(index: Int = 0) -> some View {
+        modifier(EntranceRevealModifier(index: index))
     }
 }
 

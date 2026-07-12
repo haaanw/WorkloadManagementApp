@@ -4,6 +4,7 @@ import SwiftData
 struct RecoveryView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
     @Query(sort: \RecoverySnapshot.date, order: .reverse)
     private var recoverySnapshots: [RecoverySnapshot]
@@ -42,6 +43,8 @@ struct RecoveryView: View {
                         }
                         .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.sm)
+                        .transition(.opacity)
+                        .entranceReveal()
                     }
 
                     RecoveryScoreCard(
@@ -50,24 +53,29 @@ struct RecoveryView: View {
                     )
                         .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.sm)
+                        .entranceReveal(index: 1)
 
                     SectionContainer(header: "recovery.section.hrvTrend") {
                         HRVTrendChart(data: viewModel.hrvHistory)
                             .cardStyle()
                             .padding(.horizontal, Spacing.sm)
                     }
+                    .entranceReveal(index: 2)
 
                     SectionContainer(header: "recovery.section.sleepTrend") {
                         SleepTrendChart(recoverySnapshots: Array(scopedRecoverySnapshots.prefix(28).reversed()))
                             .cardStyle()
                             .padding(.horizontal, Spacing.sm)
                     }
+                    .entranceReveal(index: 3)
 
                     if !scopedWellnessCheckIns.isEmpty {
                         SectionContainer(header: "recovery.section.wellnessCheckIns") {
                             WellnessHistorySection(checkIns: Array(scopedWellnessCheckIns.prefix(7)))
                                 .padding(.horizontal, Spacing.sm)
                         }
+                        .transition(.opacity)
+                        .entranceReveal(index: 4)
                     }
 
                     // INSIGHTS section (INTEL-05, D-07)
@@ -82,6 +90,8 @@ struct RecoveryView: View {
                                 }
                                 .padding(.horizontal, Spacing.sm)
                             }
+                            .transition(.opacity)
+                            .entranceReveal(index: 5)
                         }
 
                         // Behavior impact
@@ -114,6 +124,8 @@ struct RecoveryView: View {
                                 }
                                 .padding(.horizontal, Spacing.sm)
                             }
+                            .transition(.opacity)
+                            .entranceReveal(index: 6)
                         }
                     } else if viewModel.recoveryHistory.count > 7 {
                         // Has some recovery data but no insights yet -- show encouragement
@@ -124,10 +136,17 @@ struct RecoveryView: View {
                                 message: ""
                             )
                         }
+                        .transition(.opacity)
+                        .entranceReveal(index: 5)
                     }
 
                     Spacer().frame(height: Spacing.lg)
                 }
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.isLoading)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: todayCheckIn == nil)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: scopedWellnessCheckIns.isEmpty)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.fatigueInsights.count)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.behaviorCorrelations.count)
             }
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
@@ -170,7 +189,10 @@ struct MorningCheckInPrompt: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: action) {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
             HStack {
                 VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                     Text("recovery.checkin.title")

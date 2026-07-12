@@ -41,7 +41,10 @@ struct NotificationPrePermissionCard: View {
                 }
                 .buttonStyle(.pressable)
 
-                Button(action: onDismiss) {
+                Button {
+                    Haptics.tap()
+                    onDismiss()
+                } label: {
                     Text("notificationCard.action.dismiss")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text1)

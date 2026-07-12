@@ -10,6 +10,7 @@ struct DashboardView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
     private var recentSessions: [WorkoutSession]
@@ -40,6 +41,7 @@ struct DashboardView: View {
                     // 1. Hero readiness — score + recommendation headline in its footer (recommendation stays "up top").
                     HeroReadinessCard(viewModel: viewModel)
                         .padding(.horizontal, Spacing.sm)
+                        .entranceReveal()
 
                     // 2. Phase 28 Wave 4 — FLAGGED dual-run card; placement PROVISIONAL, flagged for human visual review.
                     // Flag OFF (default) → dualRunMessage nil → PRSDualRunCard renders EmptyView → layout byte-identical.
@@ -86,6 +88,7 @@ struct DashboardView: View {
 
                         TrainingLoadSection(viewModel: viewModel)
                             .padding(.horizontal, Spacing.sm)
+                            .entranceReveal(index: 1)
 
                         Spacer().frame(height: Spacing.lg)
                     }
@@ -96,6 +99,7 @@ struct DashboardView: View {
                     if viewModel.hasRealData {
                         MetricsStrip(viewModel: viewModel)
                             .padding(.horizontal, Spacing.sm)
+                            .entranceReveal(index: 2)
 
                         Spacer().frame(height: Spacing.lg)
 
@@ -150,6 +154,7 @@ struct DashboardView: View {
 
                         RecentSessionsSection(sessions: Array(recentSessions.prefix(5)))
                             .padding(.horizontal, Spacing.sm)
+                            .entranceReveal(index: 3)
 
                         Spacer().frame(height: Spacing.lg)
                     }
@@ -189,8 +194,10 @@ struct DashboardView: View {
                             EmptyStateCard {
                                 Task { try? await container.healthKitService.requestAuthorization() }
                             }
+                            .transition(.opacity)
                         case .requestedNoData:
                             HealthKitNoDataCard()
+                                .transition(.opacity)
                         case .connected:
                             EmptyView()
                         }
@@ -198,6 +205,8 @@ struct DashboardView: View {
 
                     Spacer().frame(height: Spacing.lg)
                 }
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.hasRealData)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.isLoading)
             }
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
@@ -208,10 +217,12 @@ struct DashboardView: View {
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
                     Button("dashboard.action.logWorkout") {
+                        Haptics.tap()
                         showActiveWorkout = true
                     }
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
+                    .buttonStyle(.pressable)
                 }
             }
             .sheet(isPresented: $showActiveWorkout) {
@@ -289,6 +300,7 @@ struct PrimaryActionCTA: View {
 
     var body: some View {
         Button {
+            Haptics.tap()
             onTap()
         } label: {
             Text(String(localized: labelKey))
@@ -335,18 +347,14 @@ struct HeroReadinessCard: View {
                 Text("\(Int(displayedScore))")
                     .font(.Tokens.heroScore)
                     .monospacedDigit()
-                    .contentTransition(.numericText(value: displayedScore))
+                    .contentTransition(.numericText())
                     .foregroundStyle(ColorTokens.accent)
                     .transition(.opacity)
                     .onAppear {
-                        withAnimation(Motion.resolved(Motion.scoreCountUp, reduceMotion: reduceMotion)) {
-                            displayedScore = viewModel.recoveryScore
-                        }
+                        updateDisplayedScore(to: viewModel.recoveryScore)
                     }
                     .onChange(of: viewModel.recoveryScore) { _, newValue in
-                        withAnimation(Motion.resolved(Motion.scoreCountUp, reduceMotion: reduceMotion)) {
-                            displayedScore = newValue
-                        }
+                        updateDisplayedScore(to: newValue)
                     }
             }
 
@@ -392,6 +400,16 @@ struct HeroReadinessCard: View {
         .emphasisCardStyle()
     }
 
+    private func updateDisplayedScore(to score: Double) {
+        guard !reduceMotion else {
+            displayedScore = score
+            return
+        }
+        withAnimation(Motion.scoreCountUp) {
+            displayedScore = score
+        }
+    }
+
     @ViewBuilder
     private func factorRow(_ factor: ReasoningEngine.Factor) -> some View {
         let content = HStack(spacing: 0) {
@@ -414,6 +432,7 @@ struct HeroReadinessCard: View {
         if let dest = trendDestination(for: factor) {
             NavigationLink(value: dest) { content }
                 .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
         } else {
             content
         }
@@ -442,21 +461,30 @@ struct EmptyStateCard: View {
     let onConnectHealth: () -> Void
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Image(systemName: "waveform.path.ecg")
+                .font(.Tokens.pageTitle)
+                .foregroundStyle(ColorTokens.text2)
+                .accessibilityHidden(true)
+
             Text("dashboard.empty.connectHealth")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
 
-            Button(action: onConnectHealth) {
+            Button {
+                Haptics.tap()
+                onConnectHealth()
+            } label: {
                 Text("dashboard.action.connectHealth")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                        Rectangle().stroke(ColorTokens.accent, lineWidth: 1)
                     )
             }
+            .buttonStyle(.pressable)
         }
         .cardStyle()
         .padding(.horizontal, Spacing.sm)
@@ -468,7 +496,12 @@ struct EmptyStateCard: View {
 /// This is a benign informational state — NOT the connect CTA and NOT an error.
 struct HealthKitNoDataCard: View {
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Image(systemName: "heart.text.square")
+                .font(.Tokens.pageTitle)
+                .foregroundStyle(ColorTokens.text2)
+                .accessibilityHidden(true)
+
             Text("dashboard.healthkit.noRecentData")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
@@ -698,4 +731,3 @@ struct RecentSessionsSection: View {
         .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }
-

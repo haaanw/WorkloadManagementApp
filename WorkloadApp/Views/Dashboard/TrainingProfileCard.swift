@@ -24,7 +24,10 @@ struct TrainingProfileCard: View {
                 .padding(.top, Spacing.xs)
                 .padding(.bottom, Spacing.sm)
 
-            Button(action: onComplete) {
+            Button {
+                Haptics.tap()
+                onComplete()
+            } label: {
                 Text("trainingProfile.card.action")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)

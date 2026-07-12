@@ -45,6 +45,7 @@ struct HRVTrendChart: View {
             .frame(height: 184)
             .chartYAxisLabel("ms")
             .id(locale)
+            .entranceReveal()
         }
     }
 }

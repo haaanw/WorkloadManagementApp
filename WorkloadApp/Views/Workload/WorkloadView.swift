@@ -12,6 +12,7 @@ struct WorkloadView: View {
     @Query private var athletes: [Athlete]
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showUpgrade = false
     @State private var showExportOptions = false
     @State private var showShareSheet = false
@@ -73,6 +74,7 @@ struct WorkloadView: View {
                     ACWRGaugeCard(snapshot: latestSnapshot)
                         .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.sm)
+                        .entranceReveal()
 
                     // ATL / CTL / TSB — flat inline strip lifted onto the page.
                     HStack(spacing: 0) {
@@ -97,6 +99,7 @@ struct WorkloadView: View {
                     }
                     .padding(.horizontal, Spacing.sm)
                     .padding(.top, Spacing.xs)
+                    .entranceReveal(index: 1)
 
                     SectionContainer(header: "workload.section.loadTrend") {
                         VStack(spacing: 0) {
@@ -115,6 +118,7 @@ struct WorkloadView: View {
                         }
                         .padding(.horizontal, Spacing.sm)
                     }
+                    .entranceReveal(index: 2)
 
                     if lockedWeeks > 0 {
                         SectionContainer {
@@ -123,6 +127,8 @@ struct WorkloadView: View {
                             }
                             .padding(.horizontal, Spacing.sm)
                         }
+                        .transition(.opacity)
+                        .entranceReveal(index: 3)
                     }
 
                     if container.subscriptionService.isPro {
@@ -134,6 +140,8 @@ struct WorkloadView: View {
                             .cardStyle()
                             .padding(.horizontal, Spacing.sm)
                         }
+                        .transition(.opacity)
+                        .entranceReveal(index: 4)
                     }
 
                     if !visibleRecords.isEmpty {
@@ -141,10 +149,15 @@ struct WorkloadView: View {
                             PRHistorySection(records: visibleRecords)
                                 .padding(.horizontal, Spacing.sm)
                         }
+                        .transition(.opacity)
+                        .entranceReveal(index: 5)
                     }
 
                     Spacer().frame(height: Spacing.lg)
                 }
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.isLoading)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: lockedWeeks)
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: visibleRecords.count)
             }
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
@@ -154,6 +167,7 @@ struct WorkloadView: View {
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button {
+                        Haptics.tap()
                         if container.subscriptionService.isPro {
                             showExportOptions = true
                         } else {
@@ -165,6 +179,7 @@ struct WorkloadView: View {
                     }
                     .accessibilityLabel("a11y.exportWorkoutData")
                     .accessibilityIdentifier("export.workoutData")
+                    .buttonStyle(.pressable)
                 }
             }
             .confirmationDialog("workload.export.title", isPresented: $showExportOptions, titleVisibility: .visible) {
@@ -316,6 +331,7 @@ struct LoadTrendChartView: View {
             .frame(height: 160)
             .chartLegend(position: .bottom)
             .id(locale)
+            .entranceReveal()
             .chartOverlay { proxy in
                 ChartTooltipGesture(
                     proxy: proxy,

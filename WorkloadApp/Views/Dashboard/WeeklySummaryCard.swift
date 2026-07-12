@@ -7,13 +7,14 @@ struct WeeklySummaryCard: View {
     let streak: Int
     @AppStorage("weeklySummaryExpanded") private var storedExpanded: Bool = true
     @State private var isExpanded: Bool = true
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header row (tappable to collapse)
             Button {
                 Haptics.tap()
-                withAnimation(Motion.screen) {
+                withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
                     isExpanded.toggle()
                     storedExpanded = isExpanded
                 }
@@ -95,6 +96,7 @@ struct WeeklySummaryCard: View {
                     }
                 }
                 .padding(.bottom, Spacing.sm)
+                .transition(.opacity)
             }
         }
         .cardStyle(horizontalPadding: 0, verticalPadding: 0)
