@@ -9,7 +9,6 @@ import UniformTypeIdentifiers
 /// the result is presented in TemplateEditorSheet for user review.
 struct WorkoutImportSheet: View {
     @Environment(AppContainer.self) private var container
-    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var athletes: [Athlete]
 
@@ -28,7 +27,7 @@ struct WorkoutImportSheet: View {
     @State private var showCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
     @State private var lastPhotoImage: UIImage?
-    @State private var templateIDsBeforeEditor: Set<UUID> = []
+    @State private var savedTemplate: WorkoutTemplate?
 
     private var athlete: Athlete? { athletes.first }
 
@@ -152,7 +151,8 @@ struct WorkoutImportSheet: View {
                         prefillName: parsedName,
                         prefillSportType: parsedSportType,
                         prefillSessionType: parsedSessionType,
-                        prefillGroups: parsedGroups
+                        prefillGroups: parsedGroups,
+                        onSaved: { savedTemplate = $0 }
                     )
                     .environment(container)
                 } else {
@@ -465,7 +465,7 @@ struct WorkoutImportSheet: View {
         parsedSportType = mapped.sportType
         parsedSessionType = mapped.sessionType
         parsedGroups = mapped.groups
-        templateIDsBeforeEditor = currentTemplateIDs()
+        savedTemplate = nil
         isLoading = false
         Haptics.success()
         showEditor = true
@@ -486,18 +486,8 @@ struct WorkoutImportSheet: View {
         }
     }
 
-    private func currentTemplateIDs() -> Set<UUID> {
-        let templates = (try? modelContext.fetch(FetchDescriptor<WorkoutTemplate>())) ?? []
-        return Set(templates.map(\.id))
-    }
-
     private func handleEditorDismiss() {
-        let templates = (try? modelContext.fetch(FetchDescriptor<WorkoutTemplate>())) ?? []
-        guard let importedTemplate = templates
-            .filter({ !templateIDsBeforeEditor.contains($0.id) })
-            .max(by: { $0.createdAt < $1.createdAt }) else {
-            return
-        }
+        guard let importedTemplate = savedTemplate else { return }
 
         onImported?(importedTemplate)
         dismiss()

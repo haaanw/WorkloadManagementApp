@@ -150,9 +150,8 @@ struct ActiveWorkoutSheet: View {
                     }
 
                     // Exercise entries
-                    ForEach($entries) { $entry in
-                        let entryIndex = entries.firstIndex { $0.id == entry.id } ?? 0
-                        ExerciseEntryCard(entry: $entry, sportType: sportType, weightUnit: athlete?.weightUnit ?? .kg)
+                    ForEach(Array(entries.enumerated()), id: \.element.id) { entryIndex, _ in
+                        ExerciseEntryCard(entry: $entries[entryIndex], sportType: sportType, weightUnit: athlete?.weightUnit ?? .kg)
                             .entranceReveal(index: entryIndex)
                         Rectangle()
                             .fill(ColorTokens.divider)

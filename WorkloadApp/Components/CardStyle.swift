@@ -66,6 +66,8 @@ enum Motion {
     static let scoreCountUp = Animation.easeOut(duration: 0.40)
     /// Light section choreography step. Kept here so screens never inline timing literals.
     static let staggerStep: Double = 0.05
+    /// Long lists stop staggering after this many steps so useful rows never wait seconds to appear.
+    static let maxStaggerSteps = 8
 
     // UI rebuild v3 aliases.
     static let press = state
@@ -90,6 +92,7 @@ private struct EntranceRevealModifier: ViewModifier {
     @State private var isVisible = false
 
     let index: Int
+    let enabled: Bool
 
     func body(content: Content) -> some View {
         content
@@ -97,11 +100,12 @@ private struct EntranceRevealModifier: ViewModifier {
             .scaleEffect(isVisible ? 1 : 0.98)
             .onAppear {
                 guard !isVisible else { return }
-                guard !reduceMotion else {
+                guard enabled, !reduceMotion else {
                     isVisible = true
                     return
                 }
-                withAnimation(Motion.entrance.delay(Double(index) * Motion.staggerStep)) {
+                let staggerIndex = min(index, Motion.maxStaggerSteps)
+                withAnimation(Motion.entrance.delay(Double(staggerIndex) * Motion.staggerStep)) {
                     isVisible = true
                 }
             }
@@ -110,8 +114,8 @@ private struct EntranceRevealModifier: ViewModifier {
 
 extension View {
     /// Reveals a top-level section once using the design-system entrance spring.
-    func entranceReveal(index: Int = 0) -> some View {
-        modifier(EntranceRevealModifier(index: index))
+    func entranceReveal(index: Int = 0, enabled: Bool = true) -> some View {
+        modifier(EntranceRevealModifier(index: index, enabled: enabled))
     }
 }
 

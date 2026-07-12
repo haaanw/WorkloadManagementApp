@@ -12,6 +12,7 @@ struct ExercisePickerView: View {
     @State private var selectedCategory: ExerciseCategory?
     @State private var showAddCustom = false
     @State private var showUpgrade = false
+    @State private var hasSearched = false
 
     // TODO: revisit cap for commercial tiers.
 
@@ -123,11 +124,10 @@ struct ExercisePickerView: View {
                         .buttonStyle(.pressable)
                         .listRowBackground(ColorTokens.surfaceEl2)
                         .transition(.opacity)
-                        .entranceReveal(index: 0)
+                        .entranceReveal(index: 0, enabled: !hasSearched)
                     }
 
-                    ForEach(filteredExercises, id: \.name) { exercise in
-                        let index = filteredExercises.firstIndex { $0.name == exercise.name } ?? 0
+                    ForEach(Array(filteredExercises.enumerated()), id: \.element.name) { index, exercise in
                         Button {
                             Haptics.select()
                             onSelect(exercise.name, exercise.category, exercise.muscleGroup)
@@ -157,7 +157,7 @@ struct ExercisePickerView: View {
                         }
                         .foregroundStyle(ColorTokens.text1)
                         .buttonStyle(.pressable)
-                        .entranceReveal(index: index + 1)
+                        .entranceReveal(index: index + 1, enabled: !hasSearched)
                         .swipeActions(edge: .trailing) {
                             if exercise.isCustom {
                                 Button(role: .destructive) {
@@ -177,19 +177,14 @@ struct ExercisePickerView: View {
                     }
                 }
                 .listStyle(.plain)
-                .animation(
-                    Motion.resolved(Motion.state, reduceMotion: reduceMotion),
-                    value: filteredExercises.map(\.name)
-                )
-                .animation(
-                    Motion.resolved(Motion.state, reduceMotion: reduceMotion),
-                    value: shouldOfferInstantAdd
-                )
             }
             .background(ColorTokens.background)
             .navigationTitle("exercise.nav.select")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "exercise.search.prompt")
+            .onChange(of: searchText) { _, _ in
+                hasSearched = true
+            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { dismiss() }
@@ -220,34 +215,39 @@ struct ExercisePickerView: View {
         let name = trimmedSearchText
         guard !name.isEmpty else { return }
         let classification = ExerciseClassifier.classify(name)
-        let shouldPersist = container.subscriptionService.isPro
+        // Custom-exercise persistence is free for all tiers (product decision 2026-07-13).
+        let shouldPersist = true
         let client = container.supabase
         let athlete = athletes.first
         let context = modelContext
+
+        var savedExerciseID: UUID?
+        var athleteID: UUID?
+        if shouldPersist, let athlete {
+            let exercise = CustomExercise(
+                name: name,
+                exerciseCategory: classification.category,
+                muscleGroup: classification.muscleGroup ?? .fullBody,
+                sportType: sportType
+            )
+            exercise.muscleGroup = classification.muscleGroup
+            exercise.athlete = athlete
+            context.insert(exercise)
+            if (try? context.save()) != nil {
+                savedExerciseID = exercise.id
+                athleteID = athlete.id
+            } else {
+                context.delete(exercise)
+            }
+        }
 
         Haptics.success()
         onSelect(name, classification.category, classification.muscleGroup)
         dismiss()
 
-        Task { @MainActor in
-            var savedExercise: CustomExercise?
-            if shouldPersist {
-                let exercise = CustomExercise(
-                    name: name,
-                    exerciseCategory: classification.category,
-                    muscleGroup: classification.muscleGroup ?? .fullBody,
-                    sportType: sportType
-                )
-                exercise.muscleGroup = classification.muscleGroup
-                exercise.athlete = athlete
-                context.insert(exercise)
-                if (try? context.save()) != nil {
-                    savedExercise = exercise
-                } else {
-                    context.delete(exercise)
-                }
-            }
+        guard let savedExerciseID, let athleteID else { return }
 
+        Task { @MainActor in
             guard let response = try? await WorkoutLLMImportService.parseWorkoutText(
                 "\(name) 3x8",
                 client: client
@@ -259,14 +259,26 @@ struct ExercisePickerView: View {
                 parsed.exercise_category
             )
             let refinedMuscle = WorkoutLLMImportService.mapMuscleGroup(parsed.muscle_group)
-            guard refinedCategory != classification.category
-                    || refinedMuscle != classification.muscleGroup,
-                  let savedExercise else {
+            let descriptor = FetchDescriptor<CustomExercise>(
+                predicate: #Predicate { $0.id == savedExerciseID }
+            )
+            guard let savedExercise = try? context.fetch(descriptor).first,
+                  savedExercise.athlete?.id == athleteID else {
                 return
             }
-            savedExercise.exerciseCategory = refinedCategory
-            savedExercise.muscleGroup = refinedMuscle
-            try? context.save()
+
+            var didRefine = false
+            if let refinedCategory, refinedCategory != savedExercise.exerciseCategory {
+                savedExercise.exerciseCategory = refinedCategory
+                didRefine = true
+            }
+            if let refinedMuscle, refinedMuscle != savedExercise.muscleGroup {
+                savedExercise.muscleGroup = refinedMuscle
+                didRefine = true
+            }
+            if didRefine {
+                try? context.save()
+            }
         }
     }
 

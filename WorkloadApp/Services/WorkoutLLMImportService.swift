@@ -386,9 +386,13 @@ enum WorkoutLLMImportService {
             throw ExerciseResolveError.missingMuscleGroup
         }
 
+        guard let exerciseCategory = mapExerciseCategory(candidate.exerciseCategoryRaw) else {
+            throw ExerciseResolveError.parseReturnedNoExercise
+        }
+
         return ResolvedExercise(
             name: trimmedName,
-            exerciseCategory: mapExerciseCategory(candidate.exerciseCategoryRaw),
+            exerciseCategory: exerciseCategory,
             muscleGroup: muscleGroup,
             sportType: sportType,
             source: .llm,
@@ -430,12 +434,12 @@ enum WorkoutLLMImportService {
         return exercise
     }
 
-    static func mapExerciseCategory(_ rawValue: String) -> ExerciseCategory {
+    static func mapExerciseCategory(_ rawValue: String) -> ExerciseCategory? {
         let normalized = normalizeIdentifier(rawValue)
         return ExerciseCategory.allCases.first {
             normalizeIdentifier($0.rawValue) == normalized
                 || normalizeIdentifier($0.displayName) == normalized
-        } ?? .compound
+        }
     }
 
     static func mapMuscleGroup(_ rawValue: String?) -> MuscleGroup? {

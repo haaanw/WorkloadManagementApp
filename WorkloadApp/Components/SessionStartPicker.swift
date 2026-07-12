@@ -234,6 +234,15 @@ struct SessionStartPicker: View {
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: otherSport)
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: sessionType)
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isAdjustExpanded)
+        .onChange(of: sportType) { _, _ in
+            syncChoiceFromBindings()
+        }
+        .onChange(of: sessionType) { _, _ in
+            syncChoiceFromBindings()
+        }
+        .onChange(of: matchTier) { _, _ in
+            syncChoiceFromBindings()
+        }
     }
 
     private func choiceButton(_ option: SessionStartChoice) -> some View {

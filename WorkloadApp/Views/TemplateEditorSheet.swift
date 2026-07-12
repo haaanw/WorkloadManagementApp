@@ -4,6 +4,7 @@ import SwiftData
 struct TemplateEditorSheet: View {
     let coachId: UUID
     let existingTemplate: WorkoutTemplate?
+    let onSaved: ((WorkoutTemplate) -> Void)?
 
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
@@ -20,9 +21,14 @@ struct TemplateEditorSheet: View {
     @State private var activeGroupIndex: Int = 0
     @State private var saveError: String?
 
-    init(coachId: UUID, existingTemplate: WorkoutTemplate?) {
+    init(
+        coachId: UUID,
+        existingTemplate: WorkoutTemplate?,
+        onSaved: ((WorkoutTemplate) -> Void)? = nil
+    ) {
         self.coachId = coachId
         self.existingTemplate = existingTemplate
+        self.onSaved = onSaved
     }
 
     /// Convenience init for LLM import pre-fill (D-06)
@@ -31,10 +37,12 @@ struct TemplateEditorSheet: View {
         prefillName: String,
         prefillSportType: SportType,
         prefillSessionType: SessionType,
-        prefillGroups: [GroupDraft]
+        prefillGroups: [GroupDraft],
+        onSaved: ((WorkoutTemplate) -> Void)? = nil
     ) {
         self.coachId = coachId
         self.existingTemplate = nil
+        self.onSaved = onSaved
         self._templateName = State(initialValue: prefillName)
         self._sportType = State(initialValue: prefillSportType)
         self._sessionType = State(initialValue: prefillSessionType)
@@ -301,6 +309,7 @@ struct TemplateEditorSheet: View {
             )
         }
 
+        onSaved?(template)
         dismiss()
     }
 }

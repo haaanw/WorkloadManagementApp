@@ -49,5 +49,5 @@ Full test suite + orchestrator design-fence check + /codex review of the round's
 - [x] Lane C dispatched (2026-07-13, codex exec high)
 - [x] Lane C verified + committed (2026-07-13, `ebdbdcb`, pushed; build green, footprint exact, audit clean — its one "must-fix" was a stale-v1-accent-rule false positive, DESIGN.md v2 Rule 4 permits accent-outline CTA)
 - [x] Lane D dispatched (2026-07-13, codex exec high; brief includes Lane C motion grammar reuse + app-wide consistency sweep)
-- [ ] Lane D verified + committed
-- [ ] Final review gate
+- [x] Lane D verified + committed (2026-07-13, `2f94d25`, pushed; build green, behavior-freeze audit SAFE-TO-COMMIT; out-of-scope violations LISTED in lane report: Onboarding/Coach/AppRouter reduce-motion bypasses, Export/TemplateEditor/Niggle/MetricTile/ChartTooltip/Delta off-grid spacing, Profile/Coach/PDFReportEngine hardcoded strings, 74 builtin exercise names = persisted IDs)
+- [~] Final review gate IN PROGRESS (full unit suite + codex cross-lane second-opinion review of b2825249..HEAD)

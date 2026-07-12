@@ -71,4 +71,32 @@ final class SessionStartMapperTests: XCTestCase {
             .otherSport
         )
     }
+
+    func testSelectionRederivationAfterTemplateHydration() {
+        XCTAssertEqual(
+            SessionStartMapper.choice(sportType: .cycling, sessionType: .cardio),
+            .otherSport
+        )
+        XCTAssertEqual(
+            SessionStartMapper.choice(sportType: .custom, sessionType: .cardio),
+            .aerobic
+        )
+
+        let matchCases: [(MatchTier, BasketballSessionChoice)] = [
+            (.pickup, .pickup),
+            (.scrimmage, .scrimmage),
+            (.match, .match)
+        ]
+
+        for (tier, expectedChoice) in matchCases {
+            XCTAssertEqual(
+                SessionStartMapper.choice(sportType: .teamSport, sessionType: .match),
+                .basketball
+            )
+            XCTAssertEqual(
+                SessionStartMapper.basketballChoice(sessionType: .match, matchTier: tier),
+                expectedChoice
+            )
+        }
+    }
 }
