@@ -23,6 +23,7 @@ struct ActiveWorkoutSheet: View {
     @State private var sessionRPE: Double = 5
     @State private var startTime = Date.now
     @State private var showExercisePicker = false
+    @State private var showWorkoutImport = false
     @State private var showFinishConfirmation = false
     @State private var newPRs: [PersonalRecord] = []
     @State private var showPRCelebration = false
@@ -98,6 +99,24 @@ struct ActiveWorkoutSheet: View {
                             matchTier: $matchTier,
                             defaultSessionType: defaultSessionType(for:)
                         )
+
+                        if template == nil,
+                           resolvedPlan == nil,
+                           sessionStartChoice == .strength,
+                           entries.isEmpty {
+                            Button {
+                                Haptics.tap()
+                                showWorkoutImport = true
+                            } label: {
+                                Label("action.importPlan", systemImage: "square.and.arrow.down")
+                                    .font(.Tokens.label)
+                                    .foregroundStyle(ColorTokens.text2)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(.vertical, Spacing.xs)
+                                    .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.pressable)
+                        }
 
                         TimelineView(.periodic(from: startTime, by: 1)) { _ in
                             Text(Date.durationString(seconds: Int(elapsed), locale: locale))
@@ -200,6 +219,12 @@ struct ActiveWorkoutSheet: View {
                     }
                     entries.append(draft)
                 }
+            }
+            .sheet(isPresented: $showWorkoutImport) {
+                WorkoutImportSheet { importedTemplate in
+                    loadFromTemplate(importedTemplate)
+                }
+                .environment(container)
             }
             .sheet(isPresented: $showFinishConfirmation) {
                 FinishWorkoutSheet(
@@ -490,6 +515,10 @@ struct ActiveWorkoutSheet: View {
 
     private func loadFromTemplate() {
         guard let tmpl = template else { return }
+        loadFromTemplate(tmpl)
+    }
+
+    private func loadFromTemplate(_ tmpl: WorkoutTemplate) {
         sessionName = tmpl.templateName
         sportType = tmpl.sportType
         sessionType = tmpl.sessionType
@@ -497,6 +526,7 @@ struct ActiveWorkoutSheet: View {
             sportType: tmpl.sportType,
             sessionType: tmpl.sessionType
         )
+        matchTier = nil
         sourceTemplate = tmpl
 
         let isPro = container.subscriptionService.isPro

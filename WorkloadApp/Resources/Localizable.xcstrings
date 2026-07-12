@@ -665,6 +665,23 @@
         }
       }
     },
+    "action.importPlan" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Import plan"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入计划"
+          }
+        }
+      }
+    },
     "action.importTemplate" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2660,6 +2677,40 @@
         }
       }
     },
+    "error.import.cameraUnavailable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Camera is unavailable on this device. Choose a photo instead."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此设备无法使用相机。请改为选择照片。"
+          }
+        }
+      }
+    },
+    "error.import.noExercises" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No exercises were found. Add more plan detail and try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未找到任何练习。请添加更多计划详情后重试。"
+          }
+        }
+      }
+    },
     "error.import.notAuthenticated" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2707,6 +2758,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "无法解析训练：%@"
+          }
+        }
+      }
+    },
+    "error.import.photoLoadFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not load that photo. Try a different image."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法加载该照片。请尝试其他图像。"
+          }
+        }
+      }
+    },
+    "error.import.saveFailed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not save the imported plan. Try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法保存导入的计划。请重试。"
           }
         }
       }
@@ -4033,6 +4118,40 @@
         }
       }
     },
+    "import.default.groupName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Main"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主要训练"
+          }
+        }
+      }
+    },
+    "import.default.workoutName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练"
+          }
+        }
+      }
+    },
     "import.instructionCode" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4165,6 +4284,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "相册"
+          }
+        }
+      }
+    },
+    "import.tab.pdf" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PDF"
+          }
+        }
+      }
+    },
+    "import.tab.photo" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片"
+          }
+        }
+      }
+    },
+    "import.tab.text" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Text"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文本"
           }
         }
       }
@@ -12444,6 +12614,23 @@
         }
       }
     },
+    "template.setCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d sets"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 组"
+          }
+        }
+      }
+    },
     "template.nav.newTemplate" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15766,6 +15953,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "这次练什么？"
+          }
+        }
+      }
+    },
+    "share.error.import" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not import template. Try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法导入模板。请重试。"
           }
         }
       }

@@ -148,7 +148,8 @@ enum WorkoutLLMImportService {
                 hasResumed = true
 
                 if let error {
-                    continuation.resume(throwing: error)
+                    print("Image OCR error: \(error)")
+                    continuation.resume(throwing: ImportError.invalidImage)
                     return
                 }
 
@@ -170,7 +171,11 @@ enum WorkoutLLMImportService {
                     $0.topCandidates(1).first?.string
                 }.joined(separator: "\n")
 
-                continuation.resume(returning: text)
+                if text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+                    continuation.resume(throwing: ImportError.noTextFound)
+                } else {
+                    continuation.resume(returning: text)
+                }
             }
 
             request.recognitionLevel = .accurate
@@ -182,7 +187,8 @@ enum WorkoutLLMImportService {
             } catch {
                 guard !hasResumed else { return }
                 hasResumed = true
-                continuation.resume(throwing: error)
+                print("Image OCR request error: \(error)")
+                continuation.resume(throwing: ImportError.invalidImage)
             }
         }
     }

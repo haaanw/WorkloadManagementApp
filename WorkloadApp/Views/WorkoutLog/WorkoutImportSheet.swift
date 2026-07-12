@@ -9,8 +9,11 @@ import UniformTypeIdentifiers
 /// the result is presented in TemplateEditorSheet for user review.
 struct WorkoutImportSheet: View {
     @Environment(AppContainer.self) private var container
+    @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
     @Query private var athletes: [Athlete]
+
+    var onImported: ((WorkoutTemplate) -> Void)? = nil
 
     @State private var selectedTab: ImportTab = .text
     @State private var inputText = ""
@@ -24,6 +27,8 @@ struct WorkoutImportSheet: View {
     @State private var showDocumentPicker = false
     @State private var showCamera = false
     @State private var selectedPhotoItem: PhotosPickerItem?
+    @State private var lastPhotoImage: UIImage?
+    @State private var templateIDsBeforeEditor: Set<UUID> = []
 
     private var athlete: Athlete? { athletes.first }
 
@@ -38,9 +43,9 @@ struct WorkoutImportSheet: View {
 
         var displayName: String {
             switch self {
-            case .text: return "Text"
-            case .pdf: return "PDF"
-            case .photo: return "Photo"
+            case .text: return String(localized: "import.tab.text", defaultValue: "Text")
+            case .pdf: return String(localized: "import.tab.pdf", defaultValue: "PDF")
+            case .photo: return String(localized: "import.tab.photo", defaultValue: "Photo")
             }
         }
 
@@ -77,7 +82,10 @@ struct WorkoutImportSheet: View {
 
                             // Error banner (D-08)
                             if let errorMessage {
-                                errorBanner(message: errorMessage)
+                                errorBanner(
+                                    message: errorMessage,
+                                    canRetry: selectedTab != .photo || lastPhotoImage != nil
+                                )
                             }
                         }
                         .padding(16)
@@ -112,6 +120,7 @@ struct WorkoutImportSheet: View {
             }
             .fullScreenCover(isPresented: $showCamera) {
                 CameraPickerView { image in
+                    showCamera = false
                     if let image {
                         handlePhotoImport(image: image)
                     }
@@ -120,14 +129,23 @@ struct WorkoutImportSheet: View {
             .onChange(of: selectedPhotoItem) { _, newItem in
                 guard let newItem else { return }
                 Task {
-                    if let data = try? await newItem.loadTransferable(type: Data.self),
-                       let image = UIImage(data: data) {
+                    do {
+                        guard let data = try await newItem.loadTransferable(type: Data.self),
+                              let image = UIImage(data: data) else {
+                            throw WorkoutLLMImportService.ImportError.invalidImage
+                        }
                         handlePhotoImport(image: image)
+                    } catch {
+                        errorMessage = String(
+                            localized: "error.import.photoLoadFailed",
+                            defaultValue: "Could not load that photo. Try a different image."
+                        )
+                        Haptics.warning()
                     }
                 }
                 selectedPhotoItem = nil
             }
-            .sheet(isPresented: $showEditor, onDismiss: { dismiss() }) {
+            .sheet(isPresented: $showEditor, onDismiss: handleEditorDismiss) {
                 if let athleteId = athlete?.id {
                     TemplateEditorSheet(
                         coachId: athleteId,
@@ -153,6 +171,7 @@ struct WorkoutImportSheet: View {
             ForEach(ImportTab.allCases) { tab in
                 Button {
                     Haptics.select()
+                    errorMessage = nil
                     selectedTab = tab
                 } label: {
                     HStack(spacing: 8) {
@@ -261,7 +280,15 @@ struct WorkoutImportSheet: View {
             HStack(spacing: 16) {
                 Button {
                     Haptics.tap()
-                    showCamera = true
+                    if UIImagePickerController.isSourceTypeAvailable(.camera) {
+                        showCamera = true
+                    } else {
+                        errorMessage = String(
+                            localized: "error.import.cameraUnavailable",
+                            defaultValue: "Camera is unavailable on this device. Choose a photo instead."
+                        )
+                        Haptics.warning()
+                    }
                 } label: {
                     // Primary CTA → accent outline (live / actionable), not a filled accent button.
                     HStack(spacing: 8) {
@@ -320,7 +347,7 @@ struct WorkoutImportSheet: View {
 
     // MARK: - Error Banner (D-08)
 
-    private func errorBanner(message: String) -> some View {
+    private func errorBanner(message: String, canRetry: Bool) -> some View {
         VStack(spacing: 8) {
             Text(message)
                 .font(.Tokens.label)
@@ -330,9 +357,15 @@ struct WorkoutImportSheet: View {
             Button {
                 Haptics.tap()
                 errorMessage = nil
-                retryLastAction()
+                if canRetry {
+                    retryLastAction()
+                }
             } label: {
-                Text("action.retry")
+                Text(
+                    canRetry
+                        ? String(localized: "action.retry", defaultValue: "Retry")
+                        : String(localized: "action.close", defaultValue: "Close")
+                )
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, 24)
@@ -390,6 +423,7 @@ struct WorkoutImportSheet: View {
     }
 
     private func handlePhotoImport(image: UIImage) {
+        lastPhotoImage = image
         isLoading = true
         errorMessage = nil
         Task {
@@ -409,10 +443,29 @@ struct WorkoutImportSheet: View {
 
     private func mapAndPresent(_ response: WorkoutLLMImportService.ParsedWorkoutResponse) {
         let mapped = WorkoutLLMImportService.mapToGroupDrafts(response)
+        guard mapped.groups.contains(where: { !$0.exercises.isEmpty }) else {
+            errorMessage = String(
+                localized: "error.import.noExercises",
+                defaultValue: "No exercises were found. Add more plan detail and try again."
+            )
+            isLoading = false
+            Haptics.warning()
+            return
+        }
+        guard athlete != nil else {
+            errorMessage = String(
+                localized: "error.loadingAthleteData",
+                defaultValue: "Unable to load athlete data."
+            )
+            isLoading = false
+            Haptics.warning()
+            return
+        }
         parsedName = mapped.name
         parsedSportType = mapped.sportType
         parsedSessionType = mapped.sessionType
         parsedGroups = mapped.groups
+        templateIDsBeforeEditor = currentTemplateIDs()
         isLoading = false
         Haptics.success()
         showEditor = true
@@ -427,8 +480,27 @@ struct WorkoutImportSheet: View {
         case .pdf:
             showDocumentPicker = true
         case .photo:
-            break
+            if let lastPhotoImage {
+                handlePhotoImport(image: lastPhotoImage)
+            }
         }
+    }
+
+    private func currentTemplateIDs() -> Set<UUID> {
+        let templates = (try? modelContext.fetch(FetchDescriptor<WorkoutTemplate>())) ?? []
+        return Set(templates.map(\.id))
+    }
+
+    private func handleEditorDismiss() {
+        let templates = (try? modelContext.fetch(FetchDescriptor<WorkoutTemplate>())) ?? []
+        guard let importedTemplate = templates
+            .filter({ !templateIDsBeforeEditor.contains($0.id) })
+            .max(by: { $0.createdAt < $1.createdAt }) else {
+            return
+        }
+
+        onImported?(importedTemplate)
+        dismiss()
     }
 }
 

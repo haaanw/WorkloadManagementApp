@@ -43,7 +43,7 @@ Full test suite + orchestrator design-fence check + /codex review of the round's
 
 ## Status log
 - [x] Lane A dispatched (2026-07-10, codex exec full-auto)
-- [ ] Lane A verified + committed
+- [x] Lane A verified + committed (2026-07-13, `1cb37cd`, pushed; includes CODEX-G freeform-exercise + CODEX-H; audit by sonnet agent; 2 reverts: truncated Enums.swift, unauthorized InfoPlist.xcstrings HealthKit-write key; 4 compile errors fixed; build+3 test suites green. NOTE: build gate now uses `-derivedDataPath ~/.tonus-dd` — in-repo `build/` is poisoned by iCloud xattrs)
 - [ ] Lane B dispatched
 - [ ] Lane B verified + committed
 - [ ] Lane C dispatched

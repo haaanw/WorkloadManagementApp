@@ -6,6 +6,7 @@ import SwiftData
 /// and a sticky import button that creates a deep copy with weights stripped.
 struct ShareImportPreviewSheet: View {
     let response: SharedTemplateResponse
+    var onImported: ((WorkoutTemplate) -> Void)? = nil
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
@@ -81,7 +82,7 @@ struct ShareImportPreviewSheet: View {
                                 .padding(.bottom, 8)
 
                             ForEach(group.sortedExercises, id: \.id) { exercise in
-                                HStack {
+                                HStack(spacing: Spacing.xs) {
                                     Text(exercise.exerciseName)
                                         .font(.Tokens.body)
                                         .foregroundStyle(ColorTokens.text1)
@@ -92,7 +93,7 @@ struct ShareImportPreviewSheet: View {
                                         .monospacedDigit()
                                 }
                                 .padding(.horizontal, 16)
-                                .padding(.vertical, 4)
+                                .padding(.vertical, Spacing.xs)
                             }
                         }
 
@@ -131,17 +132,18 @@ struct ShareImportPreviewSheet: View {
                         Group {
                             if isImporting {
                                 ProgressView()
-                                    .tint(ColorTokens.background)
+                                    .tint(ColorTokens.text2)
                             } else {
                                 Text("action.importTemplate")
                                     .font(.Tokens.bodyMedium)
                             }
                         }
-                        .foregroundStyle(ColorTokens.background)
+                        .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .background(ColorTokens.text1)
+                        .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5))
                     }
+                    .buttonStyle(.pressable)
                     .disabled(isImporting)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
@@ -164,7 +166,8 @@ struct ShareImportPreviewSheet: View {
     // MARK: - Helpers
 
     private func weekdayRow(scheduledDays: [Int]) -> some View {
-        let days = ["M", "T", "W", "T", "F", "S", "S"]
+        let symbols = Calendar.current.veryShortStandaloneWeekdaySymbols
+        let days = Array(symbols.dropFirst()) + Array(symbols.prefix(1))
         return HStack(spacing: 8) {
             ForEach(Array(days.enumerated()), id: \.offset) { index, initial in
                 let isoDay = index + 1
@@ -179,13 +182,20 @@ struct ShareImportPreviewSheet: View {
 
     private func setSummary(_ exercise: TemplateExercise) -> String {
         let sets = exercise.sortedSets.filter { !$0.isWarmup }
-        guard !sets.isEmpty else { return "\(exercise.sets.count) sets" }
+        guard !sets.isEmpty else { return setCountText(exercise.sets.count) }
         if let reps = sets.first?.targetReps, let weight = sets.first?.targetWeightKg {
             return "\(sets.count) x \(reps) @ \(Int(weight))kg"
         } else if let reps = sets.first?.targetReps {
             return "\(sets.count) x \(reps)"
         }
-        return "\(sets.count) sets"
+        return setCountText(sets.count)
+    }
+
+    private func setCountText(_ count: Int) -> String {
+        String(
+            format: String(localized: "template.setCount", defaultValue: "%d sets"),
+            count
+        )
     }
 
     // MARK: - Import
@@ -198,7 +208,7 @@ struct ShareImportPreviewSheet: View {
         isImporting = true
         importError = nil
 
-        let _ = TemplateSharingService.importTemplate(
+        let importedTemplate = TemplateSharingService.importTemplate(
             from: response,
             forAthlete: athlete,
             context: modelContext
@@ -208,12 +218,20 @@ struct ShareImportPreviewSheet: View {
             try modelContext.save()
         } catch {
             print("Import save error: \(error)")
+            modelContext.delete(importedTemplate)
             importError = String(localized: "share.error.import", defaultValue: "Could not import template. Try again.")
             isImporting = false
             return
         }
 
         isImporting = false
+        Task {
+            await container.syncService.pushWorkoutTemplates(
+                context: modelContext,
+                coachId: athlete.id
+            )
+        }
+        onImported?(importedTemplate)
         dismiss()
     }
 }

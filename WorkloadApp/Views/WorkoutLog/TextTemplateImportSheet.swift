@@ -39,8 +39,13 @@ struct TextTemplateImportSheet: View {
 
                     TextEditor(text: $inputText)
                         .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text1)
+                        .scrollContentBackground(.hidden)
                         .frame(minHeight: 200)
+                        .padding(Spacing.xs)
+                        .background(ColorTokens.surface)
                         .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                        .onChange(of: inputText) { _, _ in parseError = nil }
 
                     Button {
                         Haptics.tap()
@@ -55,7 +60,7 @@ struct TextTemplateImportSheet: View {
                             .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5))
                     }
                     .buttonStyle(.pressable)
-                    .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty)
+                    .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSaving)
                 }
                 .padding(16)
 
@@ -74,12 +79,12 @@ struct TextTemplateImportSheet: View {
                     ScrollView {
                         VStack(spacing: 0) {
                             ForEach(Array(parsedTemplates.enumerated()), id: \.offset) { _, template in
-                                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+                                VStack(alignment: .leading, spacing: Spacing.xs) {
                                     Text(template.name)
                                         .font(.Tokens.sectionHead)
                                         .foregroundStyle(ColorTokens.text1)
                                     ForEach(template.exercises, id: \.name) { exercise in
-                                        HStack {
+                                        HStack(spacing: Spacing.xs) {
                                             Text(exercise.name)
                                                 .font(.Tokens.body)
                                                 .foregroundStyle(ColorTokens.text2)
@@ -105,6 +110,8 @@ struct TextTemplateImportSheet: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { dismiss() }
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("action.saveAll") { saveTemplates() }
@@ -142,7 +149,9 @@ struct TextTemplateImportSheet: View {
                 }
             } else {
                 // No header yet — create default
-                currentTemplate = ParsedTemplate(name: "Workout")
+                currentTemplate = ParsedTemplate(
+                    name: String(localized: "import.default.workoutName", defaultValue: "Workout")
+                )
                 if let exercise = parseExerciseLine(trimmed) {
                     currentTemplate?.exercises.append(exercise)
                 }
@@ -228,8 +237,16 @@ struct TextTemplateImportSheet: View {
     // MARK: - Save
 
     private func saveTemplates() {
-        guard let ownerId = athlete?.id else { return }
+        guard let ownerId = athlete?.id else {
+            parseError = String(
+                localized: "error.loadingAthleteData",
+                defaultValue: "Unable to load athlete data."
+            )
+            return
+        }
         isSaving = true
+        parseError = nil
+        var insertedTemplates: [WorkoutTemplate] = []
 
         for parsed in parsedTemplates {
             let template = WorkoutTemplate(
@@ -239,7 +256,10 @@ struct TextTemplateImportSheet: View {
                 sessionType: .strength
             )
 
-            let group = ExerciseGroup(groupName: "Main", orderIndex: 0)
+            let group = ExerciseGroup(
+                groupName: String(localized: "import.default.groupName", defaultValue: "Main"),
+                orderIndex: 0
+            )
 
             for (idx, exercise) in parsed.exercises.enumerated() {
                 let category = matchCategory(exercise.name)
@@ -264,12 +284,30 @@ struct TextTemplateImportSheet: View {
 
             template.groups.append(group)
             modelContext.insert(template)
+            insertedTemplates.append(template)
         }
 
-        try? modelContext.save()
-        Haptics.success()
-        isSaving = false
-        dismiss()
+        do {
+            try modelContext.save()
+            Haptics.success()
+            isSaving = false
+            Task {
+                await container.syncService.pushWorkoutTemplates(
+                    context: modelContext,
+                    coachId: ownerId
+                )
+            }
+            dismiss()
+        } catch {
+            print("Text template import save error: \(error)")
+            insertedTemplates.forEach { modelContext.delete($0) }
+            parseError = String(
+                localized: "error.import.saveFailed",
+                defaultValue: "Could not save the imported plan. Try again."
+            )
+            isSaving = false
+            Haptics.warning()
+        }
     }
 
     /// Try to match exercise name to a known category
