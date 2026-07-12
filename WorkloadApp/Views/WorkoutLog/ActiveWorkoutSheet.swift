@@ -15,6 +15,7 @@ struct ActiveWorkoutSheet: View {
     @State private var sessionName = ""
     @State private var sportType: SportType = .lifting
     @State private var sessionType: SessionType = .strength
+    @State private var sessionStartChoice: SessionStartChoice = .strength
     // v2.1 beachhead: match tier for `.match`-type sessions (pickup → scrimmage → match).
     // nil = untouched picker, treated as pickup by the carry model (safe default).
     @State private var matchTier: MatchTier? = nil
@@ -49,6 +50,16 @@ struct ActiveWorkoutSheet: View {
     init(template: WorkoutTemplate? = nil) {
         self.template = template
         self.resolvedPlan = nil
+        let initialSport = template?.sportType ?? .lifting
+        let initialSession = template?.sessionType ?? .strength
+        _sportType = State(initialValue: initialSport)
+        _sessionType = State(initialValue: initialSession)
+        _sessionStartChoice = State(
+            initialValue: SessionStartMapper.choice(
+                sportType: initialSport,
+                sessionType: initialSession
+            )
+        )
     }
 
     /// Verdict-resolved session path: launch the exact numbers an accepted/kept verdict produced.
@@ -56,6 +67,14 @@ struct ActiveWorkoutSheet: View {
     init(resolvedPlan: ResolvedSessionPlan) {
         self.template = nil
         self.resolvedPlan = resolvedPlan
+        _sportType = State(initialValue: resolvedPlan.sportType)
+        _sessionType = State(initialValue: resolvedPlan.sessionType)
+        _sessionStartChoice = State(
+            initialValue: SessionStartMapper.choice(
+                sportType: resolvedPlan.sportType,
+                sessionType: resolvedPlan.sessionType
+            )
+        )
     }
 
     var elapsed: TimeInterval {
@@ -72,22 +91,13 @@ struct ActiveWorkoutSheet: View {
                             .textFieldStyle(SharpTextFieldStyle())
                             .accessibilityIdentifier("activeWorkout.sessionName")
 
-                        RadialPicker(selection: $sportType, title: "picker.sportType.title")
-                            .onChange(of: sportType) { _, newSport in
-                                sessionType = defaultSessionType(for: newSport)
-                            }
-
-                        RadialPicker(selection: $sessionType, title: "picker.sessionType.title")
-                            .onChange(of: sessionType) { _, newType in
-                                // Tier only applies to match-type sessions; clear it otherwise
-                                // so switching away never leaves a stale tier on the session.
-                                if newType != .match { matchTier = nil }
-                            }
-
-                        // Compact match-tier picker (v2.1 beachhead) — only for match sessions.
-                        if sessionType == .match {
-                            MatchTierPicker(selection: $matchTier)
-                        }
+                        SessionStartPicker(
+                            choice: $sessionStartChoice,
+                            sportType: $sportType,
+                            sessionType: $sessionType,
+                            matchTier: $matchTier,
+                            defaultSessionType: defaultSessionType(for:)
+                        )
 
                         TimelineView(.periodic(from: startTime, by: 1)) { _ in
                             Text(Date.durationString(seconds: Int(elapsed), locale: locale))
@@ -470,12 +480,10 @@ struct ActiveWorkoutSheet: View {
     }
 
     private func defaultSessionType(for sport: SportType) -> SessionType {
-        switch sport {
-        case .lifting, .crossfit: return .strength
-        case .running, .cycling, .swimming: return .cardio
-        case .teamSport: return .skill
-        case .custom: return sessionType
-        }
+        SessionStartMapper.defaultSessionType(
+            for: sport,
+            currentSessionType: sessionType
+        )
     }
 
     // MARK: - Template Loading
@@ -485,6 +493,10 @@ struct ActiveWorkoutSheet: View {
         sessionName = tmpl.templateName
         sportType = tmpl.sportType
         sessionType = tmpl.sessionType
+        sessionStartChoice = SessionStartMapper.choice(
+            sportType: tmpl.sportType,
+            sessionType: tmpl.sessionType
+        )
         sourceTemplate = tmpl
 
         let isPro = container.subscriptionService.isPro
@@ -576,6 +588,10 @@ struct ActiveWorkoutSheet: View {
         sessionName = plan.sessionName
         sportType = plan.sportType
         sessionType = plan.sessionType
+        sessionStartChoice = SessionStartMapper.choice(
+            sportType: plan.sportType,
+            sessionType: plan.sessionType
+        )
         resolvedPrescriptionID = plan.prescriptionID
         // Own the repository for the sheet's lifetime (deinit-safety invariant — see property note).
         if plannedSessionRepository == nil {
@@ -831,57 +847,6 @@ struct ActiveWorkoutSheet: View {
             showTemplateSavedToast = true
             templateSaveError = true
         }
-    }
-}
-
-// MARK: - Match Tier Picker (v2.1 beachhead)
-
-/// Compact match-tier picker shown only when the session type is `.match`:
-/// Pickup / Scrimmage / Match (CONTEXT.md "Match tier"). nil selection renders Pickup as
-/// the effective choice — the carry model treats nil as pickup, so the display is honest.
-/// DESIGN.md compliant: `Rectangle` only, 0.5pt hairline borders, `Font.Tokens` /
-/// `ColorTokens`, 8pt spacing, NO accent — selection is carried by fill + label, never
-/// color alone.
-struct MatchTierPicker: View {
-    @Binding var selection: MatchTier?
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text(String(localized: "matchTier.picker.title", defaultValue: "Match tier"))
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .textCase(.uppercase)
-                .foregroundStyle(ColorTokens.text3)
-
-            HStack(spacing: Spacing.xs) {
-                ForEach(MatchTier.allCases) { tier in
-                    tierButton(tier)
-                }
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .animation(Motion.state, value: selection)
-    }
-
-    @ViewBuilder private func tierButton(_ tier: MatchTier) -> some View {
-        // nil = untouched → pickup is the effective (and displayed) selection.
-        let isSelected = (selection ?? .pickup) == tier
-        Button {
-            selection = tier
-            Haptics.select()
-        } label: {
-            Text(tier.displayName)
-                .font(.Tokens.label)
-                .foregroundStyle(isSelected ? ColorTokens.surface : ColorTokens.text2)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.xs)
-                .background(Rectangle().fill(isSelected ? ColorTokens.text1 : Color.clear))
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
-                .contentShape(Rectangle())
-        }
-        .buttonStyle(.pressable)
-        .accessibilityLabel(tier.displayName)
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }
 

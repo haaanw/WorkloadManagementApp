@@ -2779,6 +2779,57 @@
         }
       }
     },
+    "exercise.resolve.error.emptyName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Enter an exercise name."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "请输入练习名称。"
+          }
+        }
+      }
+    },
+    "exercise.resolve.error.missingMuscleGroup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Choose a muscle group before saving."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "保存前请选择肌群。"
+          }
+        }
+      }
+    },
+    "exercise.resolve.error.noExercise" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not identify an exercise."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法识别练习。"
+          }
+        }
+      }
+    },
     "exercise.field.muscleGroup.optional" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2796,6 +2847,23 @@
         }
       }
     },
+    "exercise.field.muscleGroup.required" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Muscle Group"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "肌群"
+          }
+        }
+      }
+    },
     "exercise.field.name.placeholder" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2809,6 +2877,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "练习名称"
+          }
+        }
+      }
+    },
+    "muscleGroup.required" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Required"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "必填"
           }
         }
       }
@@ -4270,12 +4355,6 @@
     "Load" : {
 
     },
-    "Loading" : {
-
-    },
-    "Loading subscription options" : {
-
-    },
     "load.insights.heroKicker" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4394,6 +4473,12 @@
           }
         }
       }
+    },
+    "Loading" : {
+
+    },
+    "Loading subscription options" : {
+
     },
     "loadSource.combined" : {
       "extractionState" : "manual",
@@ -13505,7 +13590,6 @@
 
     },
     "verdict.match.microdose" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13522,7 +13606,6 @@
       }
     },
     "verdict.match.onDay" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13539,7 +13622,6 @@
       }
     },
     "verdict.match.today" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13556,7 +13638,6 @@
       }
     },
     "verdict.match.tomorrow" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13583,19 +13664,7 @@
         }
       }
     },
-    "verdict.reason.defer" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Going with your plan — still learning your baseline."
-          }
-        }
-      }
-    },
     "verdict.reason.crossModal.core" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13612,7 +13681,6 @@
       }
     },
     "verdict.reason.crossModal.fullBody" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13629,7 +13697,6 @@
       }
     },
     "verdict.reason.crossModal.legs" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13646,7 +13713,6 @@
       }
     },
     "verdict.reason.crossModal.upper" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -13658,6 +13724,17 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最近的运动让上肢负荷偏高 — 今天这项训练稍微放轻。"
+          }
+        }
+      }
+    },
+    "verdict.reason.defer" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Going with your plan — still learning your baseline."
           }
         }
       }
@@ -13991,7 +14068,6 @@
       }
     },
     "verdictCard.state.microdose" : {
-      "extractionState" : "extracted_with_value",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -15418,6 +15494,278 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "暂无数据"
+          }
+        }
+      }
+    },
+    "exercise.action.addQuery" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add “%@”"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加“%@”"
+          }
+        }
+      }
+    },
+    "exercise.field.category" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Category"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "类别"
+          }
+        }
+      }
+    },
+    "sessionStart.adjust.hide" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hide adjustments"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "收起调整"
+          }
+        }
+      }
+    },
+    "sessionStart.adjust.show" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adjust"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "调整"
+          }
+        }
+      }
+    },
+    "sessionStart.aerobic" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Aerobic / Class"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有氧 / 课程"
+          }
+        }
+      }
+    },
+    "sessionStart.basketball" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basketball"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篮球"
+          }
+        }
+      }
+    },
+    "sessionStart.basketball.match" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Match"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "比赛"
+          }
+        }
+      }
+    },
+    "sessionStart.basketball.pickup" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Pickup"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "野球"
+          }
+        }
+      }
+    },
+    "sessionStart.basketball.practice" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Practice"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练"
+          }
+        }
+      }
+    },
+    "sessionStart.basketball.scrimmage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Scrimmage"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "对抗赛"
+          }
+        }
+      }
+    },
+    "sessionStart.basketball.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Basketball session"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "篮球训练类型"
+          }
+        }
+      }
+    },
+    "sessionStart.otherSession.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session type"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练类型"
+          }
+        }
+      }
+    },
+    "sessionStart.otherSport" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Other Sport"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "其他运动"
+          }
+        }
+      }
+    },
+    "sessionStart.otherSport.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sport"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运动"
+          }
+        }
+      }
+    },
+    "sessionStart.strength" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Strength"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "力量"
+          }
+        }
+      }
+    },
+    "sessionStart.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What are you training?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这次练什么？"
           }
         }
       }

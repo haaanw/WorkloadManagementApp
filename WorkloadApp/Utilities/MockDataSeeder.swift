@@ -344,7 +344,7 @@ enum MockDataSeeder {
             sessionType: .skill
         )
 
-        let drills = ExerciseEntry(exerciseName: "Shooting Drills", exerciseCategory: .drill, muscleGroup: nil, orderIndex: 0)
+        let drills = ExerciseEntry(exerciseName: "Shooting Drills", exerciseCategory: .drill, muscleGroup: .fullBody, orderIndex: 0)
         drills.sets.append(SetRecord(setIndex: 0, durationSeconds: 1200, rpe: 5))
         session.exerciseEntries.append(drills)
 

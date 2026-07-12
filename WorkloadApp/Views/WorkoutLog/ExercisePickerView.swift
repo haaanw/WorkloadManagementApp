@@ -6,30 +6,36 @@ struct ExercisePickerView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(AppContainer.self) private var container
     @Query private var customExercises: [CustomExercise]
+    @Query private var athletes: [Athlete]
     @State private var searchText = ""
     @State private var selectedCategory: ExerciseCategory?
     @State private var showAddCustom = false
     @State private var showUpgrade = false
 
-    private static let freeCustomExerciseLimit = 3
+    // TODO: revisit cap for commercial tiers.
 
     let sportType: SportType
     let onSelect: (String, ExerciseCategory, MuscleGroup?) -> Void
 
     private var allExercises: [ExerciseDefinition] {
         var results = ExerciseDatabase.exercises(for: sportType)
-        // Merge custom exercises
-        let custom = customExercises
+        results.append(contentsOf: customExercises
             .filter { $0.sportType == nil || $0.sportType == sportType }
-            .map { ExerciseDefinition(name: $0.name, category: $0.exerciseCategory, muscleGroup: $0.muscleGroup, isCustom: true) }
-        results.append(contentsOf: custom)
+            .map {
+                ExerciseDefinition(
+                    name: $0.name,
+                    category: $0.exerciseCategory,
+                    muscleGroup: $0.muscleGroup,
+                    isCustom: true
+                )
+            })
         return results
     }
 
     private var filteredExercises: [ExerciseDefinition] {
         var results = allExercises
-        if let category = selectedCategory {
-            results = results.filter { $0.category == category }
+        if let selectedCategory {
+            results = results.filter { $0.category == selectedCategory }
         }
         if !searchText.isEmpty {
             results = results.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
@@ -37,95 +43,129 @@ struct ExercisePickerView: View {
         return results
     }
 
-    /// Categories relevant to the current sport type
+    private var trimmedSearchText: String {
+        searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private var shouldOfferInstantAdd: Bool {
+        guard !trimmedSearchText.isEmpty else { return false }
+        return !allExercises.contains {
+            $0.name.compare(
+                trimmedSearchText,
+                options: [.caseInsensitive, .diacriticInsensitive]
+            ) == .orderedSame
+        }
+    }
+
     private var relevantCategories: [ExerciseCategory] {
-        let cats = Set(allExercises.map(\.category))
-        return ExerciseCategory.allCases.filter { cats.contains($0) }
+        let categories = Set(allExercises.map(\.category))
+        return ExerciseCategory.allCases.filter { categories.contains($0) }
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
                 ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: 8) {
-                        FilterChip(label: String(localized: "filter.all", defaultValue: "All"), isSelected: selectedCategory == nil) {
+                    HStack(spacing: Spacing.xs) {
+                        FilterChip(
+                            label: String(localized: "filter.all", defaultValue: "All"),
+                            isSelected: selectedCategory == nil
+                        ) {
                             selectedCategory = nil
                         }
                         ForEach(relevantCategories) { category in
-                            FilterChip(label: category.displayName, isSelected: selectedCategory == category) {
+                            FilterChip(
+                                label: category.displayName,
+                                isSelected: selectedCategory == category
+                            ) {
                                 selectedCategory = category
                             }
                         }
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 8)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
                 }
 
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
 
-                if filteredExercises.isEmpty && !searchText.isEmpty {
-                    VStack(spacing: 16) {
+                List {
+                    if shouldOfferInstantAdd {
+                        Button {
+                            instantlyAddSearchText()
+                        } label: {
+                            HStack(spacing: Spacing.sm) {
+                                Image(systemName: "plus")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Text(
+                                    String(
+                                        format: String(
+                                            localized: "exercise.action.addQuery",
+                                            defaultValue: "Add “%@”"
+                                        ),
+                                        trimmedSearchText
+                                    )
+                                )
+                                .font(.Tokens.bodyMedium)
+                                .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                            }
+                            .padding(.vertical, Spacing.xs)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.pressable)
+                        .listRowBackground(ColorTokens.surfaceEl2)
+                    }
+
+                    ForEach(filteredExercises, id: \.name) { exercise in
+                        Button {
+                            Haptics.select()
+                            onSelect(exercise.name, exercise.category, exercise.muscleGroup)
+                            dismiss()
+                        } label: {
+                            HStack {
+                                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+                                    Text(exercise.name)
+                                        .font(.Tokens.body)
+                                        .foregroundStyle(ColorTokens.text1)
+                                    HStack {
+                                        Text(exercise.category.displayName)
+                                        if let muscle = exercise.muscleGroup {
+                                            Text("·")
+                                            Text(muscle.displayName)
+                                        }
+                                        if exercise.isCustom {
+                                            Text("·")
+                                            Text("sport.custom")
+                                        }
+                                    }
+                                    .font(.Tokens.label)
+                                    .foregroundStyle(ColorTokens.text2)
+                                }
+                                Spacer()
+                            }
+                        }
+                        .foregroundStyle(ColorTokens.text1)
+                        .swipeActions(edge: .trailing) {
+                            if exercise.isCustom {
+                                Button(role: .destructive) {
+                                    deleteCustomExercise(named: exercise.name)
+                                } label: {
+                                    Label("action.delete", systemImage: "trash")
+                                }
+                            }
+                        }
+                    }
+
+                    if filteredExercises.isEmpty && !shouldOfferInstantAdd {
                         Text("empty.noExercises")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
-                        Button {
-                            Haptics.tap()
-                            tryAddCustom()
-                        } label: {
-                            Label(String(format: String(localized: "action.addCustomExercise", defaultValue: "Add \"%@\" as custom exercise"), searchText), systemImage: "plus")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
-                        }
-                        .buttonStyle(.pressable)
                     }
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .background(ColorTokens.background)
-                } else {
-                    List {
-                        ForEach(filteredExercises, id: \.name) { exercise in
-                            Button {
-                                Haptics.select()
-                                onSelect(exercise.name, exercise.category, exercise.muscleGroup)
-                                dismiss()
-                            } label: {
-                                HStack {
-                                    VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-                                        Text(exercise.name)
-                                            .font(.Tokens.body)
-                                            .foregroundStyle(ColorTokens.text1)
-                                        HStack {
-                                            Text(exercise.category.displayName)
-                                            if let muscle = exercise.muscleGroup {
-                                                Text("·")
-                                                Text(muscle.displayName)
-                                            }
-                                            if exercise.isCustom {
-                                                Text("·")
-                                                Text("sport.custom")
-                                            }
-                                        }
-                                        .font(.Tokens.label)
-                                        .foregroundStyle(ColorTokens.text2)
-                                    }
-                                    Spacer()
-                                }
-                            }
-                            .foregroundStyle(ColorTokens.text1)
-                            .swipeActions(edge: .trailing) {
-                                if exercise.isCustom {
-                                    Button(role: .destructive) {
-                                        deleteCustomExercise(named: exercise.name)
-                                    } label: {
-                                        Label("action.delete", systemImage: "trash")
-                                    }
-                                }
-                            }
-                        }
-                    }
-                    .listStyle(.plain)
                 }
+                .listStyle(.plain)
             }
             .background(ColorTokens.background)
             .navigationTitle("exercise.nav.select")
@@ -145,10 +185,8 @@ struct ExercisePickerView: View {
                 }
             }
             .sheet(isPresented: $showAddCustom) {
-                AddCustomExerciseSheet(
-                    initialName: searchText,
-                    sportType: sportType
-                ) { name, category, muscle in
+                AddCustomExerciseSheet(initialName: searchText, sportType: sportType) {
+                    name, category, muscle in
                     onSelect(name, category, muscle)
                 }
             }
@@ -159,14 +197,62 @@ struct ExercisePickerView: View {
         }
     }
 
-    private func tryAddCustom() {
-        let atLimit = !container.subscriptionService.isPro
-            && customExercises.count >= Self.freeCustomExerciseLimit
-        if atLimit {
-            showUpgrade = true
-        } else {
-            showAddCustom = true
+    private func instantlyAddSearchText() {
+        let name = trimmedSearchText
+        guard !name.isEmpty else { return }
+        let classification = ExerciseClassifier.classify(name)
+        let shouldPersist = container.subscriptionService.isPro
+        let client = container.supabase
+        let athlete = athletes.first
+        let context = modelContext
+
+        Haptics.select()
+        onSelect(name, classification.category, classification.muscleGroup)
+        dismiss()
+
+        Task { @MainActor in
+            var savedExercise: CustomExercise?
+            if shouldPersist {
+                let exercise = CustomExercise(
+                    name: name,
+                    exerciseCategory: classification.category,
+                    muscleGroup: classification.muscleGroup ?? .fullBody,
+                    sportType: sportType
+                )
+                exercise.muscleGroup = classification.muscleGroup
+                exercise.athlete = athlete
+                context.insert(exercise)
+                if (try? context.save()) != nil {
+                    savedExercise = exercise
+                } else {
+                    context.delete(exercise)
+                }
+            }
+
+            guard let response = try? await WorkoutLLMImportService.parseWorkoutText(
+                "\(name) 3x8",
+                client: client
+            ), let parsed = response.groups.first?.exercises.first else {
+                return
+            }
+
+            let refinedCategory = WorkoutLLMImportService.mapExerciseCategory(
+                parsed.exercise_category
+            )
+            let refinedMuscle = WorkoutLLMImportService.mapMuscleGroup(parsed.muscle_group)
+            guard refinedCategory != classification.category
+                    || refinedMuscle != classification.muscleGroup,
+                  let savedExercise else {
+                return
+            }
+            savedExercise.exerciseCategory = refinedCategory
+            savedExercise.muscleGroup = refinedMuscle
+            try? context.save()
         }
+    }
+
+    private func tryAddCustom() {
+        showAddCustom = true
     }
 
     private func deleteCustomExercise(named name: String) {
@@ -177,20 +263,22 @@ struct ExercisePickerView: View {
     }
 }
 
-// MARK: - Add Custom Exercise Sheet
-
 struct AddCustomExerciseSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Query private var athletes: [Athlete]
     @State private var name: String
     @State private var category: ExerciseCategory = .drill
-    @State private var muscleGroup: MuscleGroup?
+    @State private var muscleGroup: MuscleGroup? = .fullBody
 
     let sportType: SportType
     let onAdd: (String, ExerciseCategory, MuscleGroup?) -> Void
 
-    init(initialName: String = "", sportType: SportType, onAdd: @escaping (String, ExerciseCategory, MuscleGroup?) -> Void) {
+    init(
+        initialName: String = "",
+        sportType: SportType,
+        onAdd: @escaping (String, ExerciseCategory, MuscleGroup?) -> Void
+    ) {
         _name = State(initialValue: initialName)
         self.sportType = sportType
         self.onAdd = onAdd
@@ -198,13 +286,16 @@ struct AddCustomExerciseSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 16) {
-                TextField(String(localized: "exercise.field.name.placeholder", defaultValue: "Exercise name"), text: $name)
-                    .textFieldStyle(SharpTextFieldStyle())
+            VStack(spacing: Spacing.sm) {
+                TextField(
+                    String(localized: "exercise.field.name.placeholder", defaultValue: "Exercise name"),
+                    text: $name
+                )
+                .textFieldStyle(SharpTextFieldStyle())
 
-                Picker("Category", selection: $category) {
-                    ForEach(ExerciseCategory.allCases) { cat in
-                        Text(cat.displayName).tag(cat)
+                Picker("exercise.field.category", selection: $category) {
+                    ForEach(ExerciseCategory.allCases) { category in
+                        Text(category.displayName).tag(category)
                     }
                 }
                 .pickerStyle(.menu)
@@ -212,19 +303,22 @@ struct AddCustomExerciseSheet: View {
                 NavigationLink {
                     MuscleGroupSelector(selection: $muscleGroup)
                 } label: {
-                    HStack(spacing: 8) {
-                        Text("exercise.field.muscleGroup.optional")
+                    HStack(spacing: Spacing.xs) {
+                        Text("exercise.field.muscleGroup.required")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                         Spacer()
-                        Text(muscleGroup?.displayName ?? String(localized: "muscleGroup.none", defaultValue: "None"))
-                            .font(.Tokens.label)
-                            .foregroundStyle(ColorTokens.text2)
+                        Text(
+                            muscleGroup?.displayName
+                                ?? String(localized: "muscleGroup.required", defaultValue: "Required")
+                        )
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
                         Image(systemName: "chevron.right")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
                     }
-                    .padding(.vertical, 8)
+                    .padding(.vertical, Spacing.xs)
                     .contentShape(Rectangle())
                 }
                 .buttonStyle(.pressable)
@@ -235,7 +329,7 @@ struct AddCustomExerciseSheet: View {
 
                 Spacer()
             }
-            .padding(16)
+            .padding(Spacing.sm)
             .background(ColorTokens.background)
             .navigationTitle("action.addExercise")
             .navigationBarTitleDisplayMode(.inline)
@@ -245,7 +339,8 @@ struct AddCustomExerciseSheet: View {
                 }
                 ToolbarItem(placement: .confirmationAction) {
                     Button("action.add") {
-                        guard !name.trimmingCharacters(in: .whitespaces).isEmpty else { return }
+                        guard !name.trimmingCharacters(in: .whitespaces).isEmpty,
+                              let muscleGroup else { return }
                         let exercise = CustomExercise(
                             name: name.trimmingCharacters(in: .whitespaces),
                             exerciseCategory: category,
@@ -260,27 +355,17 @@ struct AddCustomExerciseSheet: View {
                     }
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
-                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty)
+                    .disabled(name.trimmingCharacters(in: .whitespaces).isEmpty || muscleGroup == nil)
                 }
             }
         }
     }
 }
 
-// MARK: - Muscle Group Selector (hierarchical region -> muscle)
-
-/// Hierarchical muscle-group picker grouped by `MuscleRegion`. Replaces the
-/// flat all-cases menu. Presents a "None" option plus one section per region
-/// (text header) listing that region's specific muscles. When opened on a
-/// retained coarse value (e.g. `.legs`), the row for its `suggestedSpecific`
-/// default is highlighted to nudge the user to refine, while the coarse value
-/// itself remains keepable under its region.
 struct MuscleGroupSelector: View {
     @Environment(\.dismiss) private var dismiss
     @Binding var selection: MuscleGroup?
 
-    /// The specific muscle suggested for the current (possibly coarse) value,
-    /// used only to highlight a nudge — never rewrites the binding.
     private var suggestion: MuscleGroup? {
         guard let selection else { return nil }
         let suggested = MuscleGroup.suggestedSpecific(for: selection)
@@ -293,26 +378,20 @@ struct MuscleGroupSelector: View {
 
     var body: some View {
         List {
-            Section {
-                row(title: String(localized: "muscleGroup.none", defaultValue: "None"),
-                    isSelected: selection == nil) {
-                    selection = nil
-                    dismiss()
-                }
-            }
-
             ForEach(MuscleRegion.allCases) { region in
                 Section {
                     ForEach(muscles(in: region)) { muscle in
-                        row(title: muscle.displayName,
+                        row(
+                            title: muscle.displayName,
                             isSelected: selection == muscle,
-                            isSuggested: suggestion == muscle) {
+                            isSuggested: suggestion == muscle
+                        ) {
                             selection = muscle
                             dismiss()
                         }
                     }
                 } header: {
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.xs) {
                         Image(systemName: region.systemImage)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
@@ -329,10 +408,17 @@ struct MuscleGroupSelector: View {
         .navigationBarTitleDisplayMode(.inline)
     }
 
-    @ViewBuilder
-    private func row(title: String, isSelected: Bool, isSuggested: Bool = false, action: @escaping () -> Void) -> some View {
-        Button(action: { Haptics.select(); action() }) {
-            HStack(spacing: 8) {
+    private func row(
+        title: String,
+        isSelected: Bool,
+        isSuggested: Bool = false,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            Haptics.select()
+            action()
+        } label: {
+            HStack(spacing: Spacing.xs) {
                 VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                     Text(title)
                         .font(.Tokens.body)
@@ -345,20 +431,17 @@ struct MuscleGroupSelector: View {
                 }
                 Spacer()
                 if isSelected {
-                    // Current selection in the picker → accent (live / you-are-here).
                     Image(systemName: "checkmark")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.accent)
                 }
             }
-            .padding(.vertical, 8)
+            .padding(.vertical, Spacing.xs)
             .contentShape(Rectangle())
         }
         .buttonStyle(.pressable)
     }
 }
-
-// MARK: - Filter Chip
 
 struct FilterChip: View {
     let label: String
@@ -366,23 +449,26 @@ struct FilterChip: View {
     let action: () -> Void
 
     var body: some View {
-        Button(action: { Haptics.select(); action() }) {
+        Button {
+            Haptics.select()
+            action()
+        } label: {
             Text(label)
                 .font(.Tokens.label)
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xs)
-                // Active segment carries the accent (live / you-are-here); idle stays neutral.
                 .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
                 .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background)
                 .overlay(
-                    Rectangle().stroke(isSelected ? ColorTokens.accent : ColorTokens.divider, lineWidth: 0.5)
+                    Rectangle().stroke(
+                        isSelected ? ColorTokens.accent : ColorTokens.divider,
+                        lineWidth: 0.5
+                    )
                 )
         }
         .buttonStyle(.pressable)
     }
 }
-
-// MARK: - Exercise Database
 
 struct ExerciseDefinition {
     let name: String
@@ -392,41 +478,29 @@ struct ExerciseDefinition {
 }
 
 enum ExerciseDatabase {
-    /// Returns exercises relevant to the given sport type
     static func exercises(for sportType: SportType) -> [ExerciseDefinition] {
         switch sportType {
-        case .lifting, .crossfit:
-            return strength + bodyweight + plyometric
-        case .running:
-            return running
-        case .cycling:
-            return cycling
-        case .swimming:
-            return swimming
-        case .teamSport:
-            return teamSport + bodyweight + plyometric
-        case .custom:
-            return all
+        case .lifting, .crossfit: strength + bodyweight + plyometric
+        case .running: running
+        case .cycling: cycling
+        case .swimming: swimming
+        case .teamSport: teamSport + bodyweight + plyometric
+        case .custom: all
         }
     }
 
-    static let all: [ExerciseDefinition] = strength + bodyweight + plyometric + running + cycling + swimming + teamSport
+    static let all = strength + bodyweight + plyometric + running + cycling + swimming + teamSport
 
     static let strength: [ExerciseDefinition] = [
-        // Compound - Chest
         ExerciseDefinition(name: "Barbell Bench Press", category: .compound, muscleGroup: .chest),
         ExerciseDefinition(name: "Incline Barbell Press", category: .compound, muscleGroup: .chest),
         ExerciseDefinition(name: "Dumbbell Bench Press", category: .compound, muscleGroup: .chest),
         ExerciseDefinition(name: "Incline Dumbbell Press", category: .compound, muscleGroup: .chest),
-
-        // Compound - Back
         ExerciseDefinition(name: "Barbell Row", category: .compound, muscleGroup: .back),
         ExerciseDefinition(name: "Deadlift", category: .compound, muscleGroup: .back),
         ExerciseDefinition(name: "Pull Up", category: .compound, muscleGroup: .back),
         ExerciseDefinition(name: "Lat Pulldown", category: .compound, muscleGroup: .lats),
         ExerciseDefinition(name: "Seated Cable Row", category: .compound, muscleGroup: .back),
-
-        // Compound - Legs
         ExerciseDefinition(name: "Barbell Back Squat", category: .compound, muscleGroup: .quads),
         ExerciseDefinition(name: "Front Squat", category: .compound, muscleGroup: .quads),
         ExerciseDefinition(name: "Romanian Deadlift", category: .compound, muscleGroup: .hamstrings),
@@ -434,12 +508,8 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Bulgarian Split Squat", category: .compound, muscleGroup: .legs),
         ExerciseDefinition(name: "Hip Thrust", category: .compound, muscleGroup: .glutes),
         ExerciseDefinition(name: "Hex Bar Deadlift", category: .compound, muscleGroup: .legs),
-
-        // Compound - Shoulders
         ExerciseDefinition(name: "Overhead Press", category: .compound, muscleGroup: .shoulders),
         ExerciseDefinition(name: "Dumbbell Shoulder Press", category: .compound, muscleGroup: .shoulders),
-
-        // Isolation
         ExerciseDefinition(name: "Bicep Curl", category: .isolation, muscleGroup: .biceps),
         ExerciseDefinition(name: "Tricep Pushdown", category: .isolation, muscleGroup: .triceps),
         ExerciseDefinition(name: "Lateral Raise", category: .isolation, muscleGroup: .lateralDelts),
@@ -448,11 +518,9 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Leg Extension", category: .isolation, muscleGroup: .quads),
         ExerciseDefinition(name: "Cable Fly", category: .isolation, muscleGroup: .chest),
         ExerciseDefinition(name: "Calf Raise", category: .isolation, muscleGroup: .calves),
-
-        // Cardio (gym)
         ExerciseDefinition(name: "Treadmill Run", category: .cardio, muscleGroup: .fullBody),
         ExerciseDefinition(name: "Rowing Machine", category: .cardio, muscleGroup: .fullBody),
-        ExerciseDefinition(name: "Jump Rope", category: .cardio, muscleGroup: .fullBody),
+        ExerciseDefinition(name: "Jump Rope", category: .cardio, muscleGroup: .fullBody)
     ]
 
     static let bodyweight: [ExerciseDefinition] = [
@@ -460,14 +528,14 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Chin Up", category: .bodyweight, muscleGroup: .back),
         ExerciseDefinition(name: "Dip", category: .bodyweight, muscleGroup: .chest),
         ExerciseDefinition(name: "Plank", category: .bodyweight, muscleGroup: .rectusAbdominis),
-        ExerciseDefinition(name: "Hanging Leg Raise", category: .bodyweight, muscleGroup: .rectusAbdominis),
+        ExerciseDefinition(name: "Hanging Leg Raise", category: .bodyweight, muscleGroup: .rectusAbdominis)
     ]
 
     static let plyometric: [ExerciseDefinition] = [
         ExerciseDefinition(name: "Box Jump", category: .plyometric, muscleGroup: .legs),
         ExerciseDefinition(name: "Depth Jump", category: .plyometric, muscleGroup: .legs),
         ExerciseDefinition(name: "Hex Bar Jump", category: .plyometric, muscleGroup: .legs),
-        ExerciseDefinition(name: "Broad Jump", category: .plyometric, muscleGroup: .legs),
+        ExerciseDefinition(name: "Broad Jump", category: .plyometric, muscleGroup: .legs)
     ]
 
     static let running: [ExerciseDefinition] = [
@@ -478,7 +546,7 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Hill Repeats", category: .interval, muscleGroup: .legs),
         ExerciseDefinition(name: "Recovery Jog", category: .cardio, muscleGroup: .fullBody),
         ExerciseDefinition(name: "Fartlek", category: .interval, muscleGroup: .fullBody),
-        ExerciseDefinition(name: "Track Workout", category: .interval, muscleGroup: .fullBody),
+        ExerciseDefinition(name: "Track Workout", category: .interval, muscleGroup: .fullBody)
     ]
 
     static let cycling: [ExerciseDefinition] = [
@@ -487,7 +555,7 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Long Ride", category: .cardio, muscleGroup: .legs),
         ExerciseDefinition(name: "Hill Climb", category: .interval, muscleGroup: .legs),
         ExerciseDefinition(name: "Sprint Intervals", category: .interval, muscleGroup: .legs),
-        ExerciseDefinition(name: "Recovery Spin", category: .cardio, muscleGroup: .legs),
+        ExerciseDefinition(name: "Recovery Spin", category: .cardio, muscleGroup: .legs)
     ]
 
     static let swimming: [ExerciseDefinition] = [
@@ -497,29 +565,24 @@ enum ExerciseDatabase {
         ExerciseDefinition(name: "Butterfly", category: .cardio, muscleGroup: .fullBody),
         ExerciseDefinition(name: "Kick Drills", category: .drill, muscleGroup: .legs),
         ExerciseDefinition(name: "Pull Drills", category: .drill, muscleGroup: .back),
-        ExerciseDefinition(name: "IM Set", category: .interval, muscleGroup: .fullBody),
+        ExerciseDefinition(name: "IM Set", category: .interval, muscleGroup: .fullBody)
     ]
 
     static let teamSport: [ExerciseDefinition] = [
-        // Basketball
-        ExerciseDefinition(name: "Shooting Drills", category: .drill, muscleGroup: nil),
-        ExerciseDefinition(name: "Ball Handling", category: .drill, muscleGroup: nil),
+        ExerciseDefinition(name: "Shooting Drills", category: .drill, muscleGroup: .fullBody),
+        ExerciseDefinition(name: "Ball Handling", category: .drill, muscleGroup: .fullBody),
         ExerciseDefinition(name: "Defensive Slides", category: .drill, muscleGroup: .legs),
         ExerciseDefinition(name: "Scrimmage", category: .drill, muscleGroup: .fullBody),
         ExerciseDefinition(name: "Fast Break Drills", category: .drill, muscleGroup: .fullBody),
-
-        // Soccer
-        ExerciseDefinition(name: "Passing Drills", category: .drill, muscleGroup: nil),
-        ExerciseDefinition(name: "Dribbling Drills", category: .drill, muscleGroup: nil),
+        ExerciseDefinition(name: "Passing Drills", category: .drill, muscleGroup: .fullBody),
+        ExerciseDefinition(name: "Dribbling Drills", category: .drill, muscleGroup: .fullBody),
         ExerciseDefinition(name: "Small-Sided Game", category: .drill, muscleGroup: .fullBody),
-        ExerciseDefinition(name: "Crossing & Finishing", category: .drill, muscleGroup: nil),
-        ExerciseDefinition(name: "Set Piece Practice", category: .drill, muscleGroup: nil),
-
-        // General
+        ExerciseDefinition(name: "Crossing & Finishing", category: .drill, muscleGroup: .fullBody),
+        ExerciseDefinition(name: "Set Piece Practice", category: .drill, muscleGroup: .fullBody),
         ExerciseDefinition(name: "Agility Ladder", category: .drill, muscleGroup: .legs),
         ExerciseDefinition(name: "Cone Drills", category: .drill, muscleGroup: .legs),
         ExerciseDefinition(name: "Sprint Drills", category: .interval, muscleGroup: .fullBody),
         ExerciseDefinition(name: "Practice Match", category: .drill, muscleGroup: .fullBody),
-        ExerciseDefinition(name: "Conditioning", category: .interval, muscleGroup: .fullBody),
+        ExerciseDefinition(name: "Conditioning", category: .interval, muscleGroup: .fullBody)
     ]
 }

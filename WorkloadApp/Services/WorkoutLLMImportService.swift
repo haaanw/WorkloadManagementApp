@@ -231,4 +231,308 @@ enum WorkoutLLMImportService {
             groups: groups
         )
     }
+
+    // MARK: - Free-form Exercise Resolution
+
+    enum ExerciseResolveSource: Equatable {
+        case localCatalog
+        case localCustom
+        case llm
+        case manual
+    }
+
+    struct ResolvedExercise: Equatable {
+        let name: String
+        let exerciseCategory: ExerciseCategory
+        let muscleGroup: MuscleGroup
+        let sportType: SportType
+        let source: ExerciseResolveSource
+        let confidence: Double
+    }
+
+    struct LLMExerciseCandidate: Equatable {
+        let exerciseName: String
+        let exerciseCategoryRaw: String
+        let muscleGroupRaw: String?
+    }
+
+    enum ExerciseResolveError: LocalizedError, Equatable {
+        case emptyName
+        case missingMuscleGroup
+        case parseReturnedNoExercise
+
+        var errorDescription: String? {
+            switch self {
+            case .emptyName:
+                return String(localized: "exercise.resolve.error.emptyName", defaultValue: "Enter an exercise name.")
+            case .missingMuscleGroup:
+                return String(localized: "exercise.resolve.error.missingMuscleGroup", defaultValue: "Choose a muscle group before saving.")
+            case .parseReturnedNoExercise:
+                return String(localized: "exercise.resolve.error.noExercise", defaultValue: "Could not identify an exercise.")
+            }
+        }
+    }
+
+    static func resolveLocalExercise(
+        name: String,
+        sportType: SportType,
+        customExercises: [CustomExercise]
+    ) -> ResolvedExercise? {
+        let catalog = ExerciseDatabase.exercises(for: sportType)
+        return resolveLocalExercise(
+            name: name,
+            sportType: sportType,
+            catalogExercises: catalog,
+            customExercises: customExercises
+        )
+    }
+
+    static func resolveLocalExercise(
+        name: String,
+        sportType: SportType,
+        catalogExercises: [ExerciseDefinition],
+        customExercises: [CustomExercise]
+    ) -> ResolvedExercise? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let catalogCandidates = catalogExercises.compactMap { exercise -> LocalExerciseCandidate? in
+            guard let muscleGroup = exercise.muscleGroup else { return nil }
+            return LocalExerciseCandidate(
+                name: exercise.name,
+                category: exercise.category,
+                muscleGroup: muscleGroup,
+                source: exercise.isCustom ? .localCustom : .localCatalog
+            )
+        }
+
+        let customCandidates = customExercises.compactMap { exercise -> LocalExerciseCandidate? in
+            guard exercise.sportType == nil || exercise.sportType == sportType else { return nil }
+            guard let muscleGroup = exercise.muscleGroup else { return nil }
+            return LocalExerciseCandidate(
+                name: exercise.name,
+                category: exercise.exerciseCategory,
+                muscleGroup: muscleGroup,
+                source: .localCustom
+            )
+        }
+
+        guard let match = bestLocalMatch(
+            name: trimmed,
+            candidates: customCandidates + catalogCandidates
+        ) else { return nil }
+
+        return ResolvedExercise(
+            name: trimmed,
+            exerciseCategory: match.candidate.category,
+            muscleGroup: match.candidate.muscleGroup,
+            sportType: sportType,
+            source: match.candidate.source,
+            confidence: match.score
+        )
+    }
+
+    @MainActor
+    static func parseExerciseText(
+        name: String,
+        description: String?,
+        sportType: SportType,
+        client: SupabaseClient
+    ) async throws -> ResolvedExercise {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { throw ExerciseResolveError.emptyName }
+
+        let detail = description?
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .nilIfEmpty
+        let text = [
+            "Exercise name: \(trimmedName)",
+            detail.map { "Description: \($0)" },
+            "Sport: \(sportType.rawValue)",
+            "Parse this as one exercise and return exercise_category and muscle_group."
+        ]
+            .compactMap { $0 }
+            .joined(separator: "\n")
+
+        let response = try await parseWorkoutText(text, client: client)
+        guard let exercise = response.groups.first?.exercises.first else {
+            throw ExerciseResolveError.parseReturnedNoExercise
+        }
+        return try resolveLLMExercise(
+            LLMExerciseCandidate(
+                exerciseName: exercise.exercise_name,
+                exerciseCategoryRaw: exercise.exercise_category,
+                muscleGroupRaw: exercise.muscle_group
+            ),
+            requestedName: trimmedName,
+            sportType: sportType
+        )
+    }
+
+    static func resolveLLMExercise(
+        _ candidate: LLMExerciseCandidate,
+        requestedName: String,
+        sportType: SportType
+    ) throws -> ResolvedExercise {
+        let trimmedName = requestedName.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { throw ExerciseResolveError.emptyName }
+        guard let muscleGroup = mapMuscleGroup(candidate.muscleGroupRaw) else {
+            throw ExerciseResolveError.missingMuscleGroup
+        }
+
+        return ResolvedExercise(
+            name: trimmedName,
+            exerciseCategory: mapExerciseCategory(candidate.exerciseCategoryRaw),
+            muscleGroup: muscleGroup,
+            sportType: sportType,
+            source: .llm,
+            confidence: 0.76
+        )
+    }
+
+    static func manualResolution(
+        name: String,
+        exerciseCategory: ExerciseCategory,
+        muscleGroup: MuscleGroup?,
+        sportType: SportType
+    ) throws -> ResolvedExercise {
+        let trimmedName = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmedName.isEmpty else { throw ExerciseResolveError.emptyName }
+        guard let muscleGroup else { throw ExerciseResolveError.missingMuscleGroup }
+
+        return ResolvedExercise(
+            name: trimmedName,
+            exerciseCategory: exerciseCategory,
+            muscleGroup: muscleGroup,
+            sportType: sportType,
+            source: .manual,
+            confidence: 1.0
+        )
+    }
+
+    static func makeCustomExercise(
+        from resolved: ResolvedExercise,
+        athlete: Athlete?
+    ) -> CustomExercise {
+        let exercise = CustomExercise(
+            name: resolved.name,
+            exerciseCategory: resolved.exerciseCategory,
+            muscleGroup: resolved.muscleGroup,
+            sportType: resolved.sportType
+        )
+        exercise.athlete = athlete
+        return exercise
+    }
+
+    static func mapExerciseCategory(_ rawValue: String) -> ExerciseCategory {
+        let normalized = normalizeIdentifier(rawValue)
+        return ExerciseCategory.allCases.first {
+            normalizeIdentifier($0.rawValue) == normalized
+                || normalizeIdentifier($0.displayName) == normalized
+        } ?? .compound
+    }
+
+    static func mapMuscleGroup(_ rawValue: String?) -> MuscleGroup? {
+        guard let rawValue, !rawValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return nil
+        }
+        let normalized = normalizeIdentifier(rawValue)
+        return MuscleGroup.allCases.first {
+            normalizeIdentifier($0.rawValue) == normalized
+                || normalizeIdentifier($0.displayName) == normalized
+        }
+    }
+}
+
+private struct LocalExerciseCandidate {
+    let name: String
+    let category: ExerciseCategory
+    let muscleGroup: MuscleGroup
+    let source: WorkoutLLMImportService.ExerciseResolveSource
+}
+
+private extension WorkoutLLMImportService {
+    static let localMatchThreshold = 0.84
+
+    static func bestLocalMatch(
+        name: String,
+        candidates: [LocalExerciseCandidate]
+    ) -> (candidate: LocalExerciseCandidate, score: Double)? {
+        let normalizedName = normalizeExerciseName(name)
+        guard !normalizedName.isEmpty else { return nil }
+
+        let scored = candidates
+            .map { candidate in
+                (
+                    candidate: candidate,
+                    score: fuzzyScore(
+                        normalizedName,
+                        normalizeExerciseName(candidate.name)
+                    )
+                )
+            }
+            .max { lhs, rhs in lhs.score < rhs.score }
+
+        guard let scored, scored.score >= localMatchThreshold else { return nil }
+        return scored
+    }
+
+    static func fuzzyScore(_ lhs: String, _ rhs: String) -> Double {
+        guard !lhs.isEmpty, !rhs.isEmpty else { return 0 }
+        if lhs == rhs { return 1.0 }
+
+        let lhsTokens = Set(lhs.split(separator: " ").map(String.init))
+        let rhsTokens = Set(rhs.split(separator: " ").map(String.init))
+        let overlap = lhsTokens.intersection(rhsTokens)
+        let tokenScore = Double(overlap.count) / Double(max(lhsTokens.count, rhsTokens.count))
+        let distance = levenshtein(lhs, rhs)
+        let editScore = 1.0 - (Double(distance) / Double(max(lhs.count, rhs.count)))
+        let containsScore = lhs.contains(rhs) || rhs.contains(lhs) ? 0.92 : 0.0
+
+        return max(containsScore, (tokenScore * 0.55) + (editScore * 0.45))
+    }
+
+    static func normalizeExerciseName(_ value: String) -> String {
+        value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "en_US_POSIX"))
+            .replacingOccurrences(of: #"[^a-z0-9]+"#, with: " ", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+            .split(separator: " ")
+            .joined(separator: " ")
+    }
+
+    static func normalizeIdentifier(_ value: String) -> String {
+        value
+            .folding(options: [.diacriticInsensitive, .caseInsensitive], locale: Locale(identifier: "en_US_POSIX"))
+            .replacingOccurrences(of: #"[^a-z0-9]+"#, with: "", options: .regularExpression)
+    }
+
+    static func levenshtein(_ lhs: String, _ rhs: String) -> Int {
+        let lhs = Array(lhs)
+        let rhs = Array(rhs)
+        guard !lhs.isEmpty else { return rhs.count }
+        guard !rhs.isEmpty else { return lhs.count }
+
+        var previous = Array(0...rhs.count)
+        var current = Array(repeating: 0, count: rhs.count + 1)
+
+        for lhsIndex in 1...lhs.count {
+            current[0] = lhsIndex
+            for rhsIndex in 1...rhs.count {
+                let substitution = previous[rhsIndex - 1] + (lhs[lhsIndex - 1] == rhs[rhsIndex - 1] ? 0 : 1)
+                let insertion = current[rhsIndex - 1] + 1
+                let deletion = previous[rhsIndex] + 1
+                current[rhsIndex] = min(substitution, insertion, deletion)
+            }
+            swap(&previous, &current)
+        }
+
+        return previous[rhs.count]
+    }
+}
+
+private extension String {
+    var nilIfEmpty: String? {
+        isEmpty ? nil : self
+    }
 }

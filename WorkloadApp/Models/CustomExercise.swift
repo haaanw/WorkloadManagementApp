@@ -16,7 +16,7 @@ final class CustomExercise {
         id: UUID = UUID(),
         name: String,
         exerciseCategory: ExerciseCategory = .compound,
-        muscleGroup: MuscleGroup? = nil,
+        muscleGroup: MuscleGroup,
         sportType: SportType? = nil
     ) {
         self.id = id

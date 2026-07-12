@@ -61,6 +61,8 @@
 		AB20000000000000000000B1 /* WeightBlockPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB20000000000000000000A1 /* WeightBlockPicker.swift */; };
 		AB20000000000000000000B2 /* RepScrubber.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB20000000000000000000A2 /* RepScrubber.swift */; };
 		EE2102010000000000000002 /* RadialPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2102010000000000000001 /* RadialPicker.swift */; };
+		A60A00020000000000000001 /* SessionStartPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60A00010000000000000001 /* SessionStartPicker.swift */; };
+		A60A00020000000000000002 /* ExerciseClassifier.swift in Sources */ = {isa = PBXBuildFile; fileRef = A60A00010000000000000002 /* ExerciseClassifier.swift */; };
 		62324C322F66CB0E00A9C2BE /* WorkoutLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C0A2F66CB0E00A9C2BE /* WorkoutLogViewModel.swift */; };
 		62324C332F66CB0E00A9C2BE /* SleepTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */; };
 		62324C342F66CB0E00A9C2BE /* RecoveryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */; };
@@ -250,6 +252,8 @@
 		AB20000000000000000000A1 /* WeightBlockPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightBlockPicker.swift; sourceTree = "<group>"; };
 		AB20000000000000000000A2 /* RepScrubber.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RepScrubber.swift; sourceTree = "<group>"; };
 		EE2102010000000000000001 /* RadialPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadialPicker.swift; sourceTree = "<group>"; };
+		A60A00010000000000000001 /* SessionStartPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionStartPicker.swift; sourceTree = "<group>"; };
+		A60A00010000000000000002 /* ExerciseClassifier.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseClassifier.swift; sourceTree = "<group>"; };
 		62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepTrendChart.swift; sourceTree = "<group>"; };
 		62324BE82F66CB0E00A9C2BE /* Athlete.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Athlete.swift; sourceTree = "<group>"; };
 		62324BE92F66CB0E00A9C2BE /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
@@ -489,6 +493,7 @@
 				AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */,
 				AA0202010000000000000003 /* ChartTooltipOverlay.swift */,
 				EE2102010000000000000001 /* RadialPicker.swift */,
+				A60A00010000000000000001 /* SessionStartPicker.swift */,
 			);
 			path = Components;
 			sourceTree = "<group>";
@@ -627,6 +632,7 @@
 				FF0601010000000000000002 /* PDFReportEngine.swift */,
 				AA0901010000000000000002 /* ColdStartEngine.swift */,
 				FF1601010000000000000002 /* WorkoutLLMImportService.swift */,
+				A60A00010000000000000002 /* ExerciseClassifier.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -1009,6 +1015,8 @@
 			AB20000000000000000000B1 /* WeightBlockPicker.swift in Sources */,
 			AB20000000000000000000B2 /* RepScrubber.swift in Sources */,
 				EE2102010000000000000002 /* RadialPicker.swift in Sources */,
+				A60A00020000000000000001 /* SessionStartPicker.swift in Sources */,
+				A60A00020000000000000002 /* ExerciseClassifier.swift in Sources */,
 				CC0302010000000000000001 /* DataSufficiencyRing.swift in Sources */,
 				CC0302010000000000000003 /* BehaviorTagChip.swift in Sources */,
 				CC0302010000000000000005 /* InsightCard.swift in Sources */,
