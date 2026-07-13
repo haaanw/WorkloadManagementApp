@@ -12,25 +12,13 @@ struct AppRouter: View {
     var body: some View {
         Group {
             if isCheckingSession {
-                UIKitLoadingController(
-                    title: "Preparing Tuwa",
-                    message: "Checking your account, local data, and training context."
-                )
+                LaunchLoadingView()
             } else if !container.isAuthenticated {
-                UIKitAuthFlowController(
-                    container: container,
-                    modelContext: modelContext,
-                    locale: container.localeManager.activeLocale
-                )
+                LoginView()
             } else if needsOnboarding {
-                UIKitOnboardingFlowController(
-                    container: container,
-                    modelContext: modelContext,
-                    locale: container.localeManager.activeLocale,
-                    onComplete: { needsOnboarding = false }
-                )
+                OnboardingView(onComplete: { needsOnboarding = false })
             } else {
-                AppShell()
+                MainTabView()
             }
         }
         .environment(container)
@@ -256,4 +244,85 @@ struct AppRouter: View {
         try? modelContext.save()
     }
     #endif
+}
+
+// MARK: - Main tab shell (SwiftUI rehost, Stage R)
+
+/// The live app shell: five athlete tabs over the SwiftUI tree.
+/// Coach mode is intentionally NOT represented here — the self-coached reset is product
+/// intent; the UIKit AppShell carrying coach tabs was the deviation (orchestration D3/R6).
+/// Mirrors the UIKit shell's scenePhase-active foreground sync (entitlement refresh +
+/// push/pull when stale) so rehosting loses no sync behavior.
+struct MainTabView: View {
+    @Environment(AppContainer.self) private var container
+    @Environment(\.modelContext) private var modelContext
+    @Environment(\.scenePhase) private var scenePhase
+
+    var body: some View {
+        TabView {
+            DashboardView()
+                .tabItem { Label("tab.home", systemImage: "sun.max") }
+
+            WorkoutLogView()
+                .tabItem { Label("tab.log", systemImage: "figure.strengthtraining.traditional") }
+
+            RecoveryView()
+                .tabItem { Label("tab.recovery", systemImage: "waveform.path.ecg") }
+
+            WorkloadView()
+                .tabItem { Label("tab.load", systemImage: "chart.xyaxis.line") }
+
+            ProfileView()
+                .tabItem { Label("tab.profile", systemImage: "person.crop.circle") }
+        }
+        // Selected-tab tint: text1, never accent (DESIGN.md — accent is reserved for the
+        // hero readiness number). Scoped to the tab bar chrome via tabItem rendering.
+        .tint(ColorTokens.text1)
+        .onChange(of: scenePhase) { _, newPhase in
+            guard newPhase == .active else { return }
+            Task {
+                await container.subscriptionService.refreshEntitlementAsync()
+                guard container.syncService.shouldForegroundSync else { return }
+                await container.syncService.pushAll(context: modelContext)
+                await container.syncService.pullAll(context: modelContext)
+            }
+        }
+    }
+}
+
+// MARK: - Launch loading state
+
+/// SwiftUI twin of the shell-era loading screen. Keeps the `app.loading` accessibility
+/// identifiers the screenshot/UI harness waits on, and uses verbatim text (matching the
+/// old controller's literal strings) so the string catalog is untouched.
+private struct LaunchLoadingView: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            Spacer()
+
+            Text(verbatim: "Preparing Tuwa")
+                .font(.Tokens.pageTitle)
+                .foregroundStyle(ColorTokens.text1)
+
+            Text(verbatim: "Checking your account, local data, and training context.")
+                .font(.Tokens.body)
+                .foregroundStyle(ColorTokens.text2)
+
+            HStack(spacing: Spacing.xs) {
+                ProgressView()
+                    .tint(ColorTokens.text2)
+                Text(verbatim: "Checking session")
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text2)
+                    .accessibilityIdentifier("app.loading")
+            }
+            .padding(.top, Spacing.sm)
+
+            Spacer()
+        }
+        .padding(.horizontal, Spacing.md)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ColorTokens.background)
+        .accessibilityIdentifier("app.loading.view")
+    }
 }

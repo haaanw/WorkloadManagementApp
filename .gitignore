@@ -3,6 +3,8 @@
 **/RevenueCatConfig.swift
 
 # Xcode
+.DerivedData/
+.xcode-cache/
 *.xcworkspace/xcuserdata/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
@@ -46,6 +48,7 @@ Supabase/.temp/
 Alpino_Complete/
 algorithm research file/
 appstore screenshots/
+Tuwa-v*-AppStoreScreens*/
 Tonus_Market_Competitive_Analysis.md
 Tonus crash log/
 crash log v1/

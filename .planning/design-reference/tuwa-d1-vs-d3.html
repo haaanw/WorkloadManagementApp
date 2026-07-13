@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tuwa v1.6 — D1 vs D3 head-to-head</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&family=Noto+Serif+SC:wght@400&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'General Sans';
+    src: url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype');
+    font-weight: 100 900;
+  }
+  :root {
+    --bg: #ECEEF1; --surface: #F0F2F5; --el: #F8FAFC; --el2: #FCFDFE;
+    --divider: #C0C5CB; --divider-strong: #A4ABB2;
+    --t1: #14171A; --t2: #565D63; --t3: #767D84;
+    --accent: #2E6B86; --optimal: #35513F;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #DDE1E6; font-family: 'General Sans', sans-serif; color: var(--t1); padding: 32px; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .sub { color: var(--t2); font-size: 14px; margin-bottom: 32px; max-width: 900px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1500px; }
+  .col-label { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--t2); margin-bottom: 4px; }
+  .col-desc { font-size: 12.5px; color: var(--t3); margin-bottom: 16px; min-height: 60px; max-width: 430px; }
+  .phone { background: var(--bg); border: 0.5px solid var(--divider-strong); padding: 24px 16px; }
+
+  .micro { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); }
+  .hero { background: var(--el2); border: 0.5px solid var(--divider); border-top: 2px solid var(--accent); margin-bottom: 24px; position: relative; overflow: hidden; }
+  .score { color: var(--accent); font-family: 'Source Serif 4', serif; font-weight: 400; }
+  .verdict { color: var(--t1); font-family: 'Source Serif 4', serif; }
+  .why { color: var(--t2); font-size: 13px; margin-top: 6px; }
+  .cta { display: inline-block; margin-top: 18px; border: none; background: var(--accent); color: var(--el2); font-size: 15px; font-weight: 500; font-family: 'General Sans', sans-serif; border-radius: 999px; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--el2); border: 0.5px solid var(--divider); margin-bottom: 24px; overflow: hidden; }
+  .metric { padding: 16px 12px; border-right: 0.5px solid var(--divider); }
+  .metric:last-child { border-right: none; }
+  .mval { font-size: 19px; font-weight: 500; margin-top: 4px; }
+  .mdet { font-size: 12px; color: var(--t3); margin-top: 4px; }
+  .up { color: var(--optimal); }
+  .session { background: var(--el); border: 0.5px solid var(--divider); padding: 16px; display: flex; justify-content: space-between; align-items: baseline; overflow: hidden; margin-bottom: 8px; }
+  .sname { font-size: 15px; font-weight: 500; }
+  .sdet { font-size: 12px; color: var(--t3); }
+  .dots { position: absolute; top: 0; right: 0; opacity: 0.5;
+    background-image: radial-gradient(var(--accent) 1.2px, transparent 1.2px); background-size: 8px 8px;
+    -webkit-mask-image: linear-gradient(135deg, black 0%, transparent 72%); mask-image: linear-gradient(135deg, black 0%, transparent 72%); }
+  .zh { font-family: 'Source Serif 4', 'Noto Serif SC', serif; }
+  .note { font-size: 11px; color: var(--t3); margin-top: 12px; font-style: italic; }
+
+  /* D1 */
+  .D1 .hero, .D1 .metrics, .D1 .session { border-radius: 16px; }
+  .D1 .hero { padding: 36px 20px; }
+  .D1 .score { font-size: 96px; letter-spacing: -0.035em; line-height: 0.92; }
+  .D1 .verdict { font-size: 26px; letter-spacing: -0.01em; line-height: 1.08; margin-top: 20px; }
+  .D1 .cta { padding: 14px 28px; }
+  .D1 .dots { width: 130px; height: 130px; opacity: 0.45; }
+  .D1 .sname { font-family: 'General Sans', sans-serif; }
+
+  /* BLEND: D1 serif boundary + D3 hero scale, 16pt corners */
+  .BL .hero, .BL .metrics, .BL .session { border-radius: 16px; }
+  .BL .hero { padding: 40px 22px; }
+  .BL .score { font-size: 104px; letter-spacing: -0.04em; line-height: 0.9; }
+  .BL .verdict { font-size: 28px; letter-spacing: -0.01em; line-height: 1.06; margin-top: 22px; }
+  .BL .cta { padding: 15px 30px; }
+  .BL .dots { width: 180px; height: 180px; }
+  .BL .sname { font-family: 'General Sans', sans-serif; }
+
+  /* D3 */
+  .D3 .hero, .D3 .metrics, .D3 .session { border-radius: 20px; }
+  .D3 .hero { padding: 40px 22px; }
+  .D3 .score { font-size: 104px; letter-spacing: -0.04em; line-height: 0.9; }
+  .D3 .verdict { font-size: 28px; letter-spacing: -0.01em; line-height: 1.06; margin-top: 22px; }
+  .D3 .cta { padding: 15px 30px; }
+  .D3 .dots { width: 180px; height: 180px; }
+  .D3 .sname { font-family: 'Source Serif 4', serif; font-size: 17px; font-weight: 400; }
+</style>
+</head>
+<body>
+  <h1>Tuwa v1.6 — D1 vs D3, plus the blend</h1>
+  <p class="sub">Both share: filled pill CTA, halftone signature, serif hero. They differ on <strong>where serif stops</strong>, <strong>corner radius</strong>, and <strong>hero scale</strong>. Second session row shows a Chinese-named session — the case where D3's serif-in-lists gets hard (Latin serif + CJK in one list).</p>
+  <div class="grid">
+
+    <div class="D1">
+      <div class="col-label">D1 · Full Editorial</div>
+      <div class="col-desc">Serif = display voice only (score + verdict). Lists, metrics, buttons stay General Sans. 16pt corners, 96px score, 130px dot field.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="dots"></div>
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+        <div class="session"><div><div class="sname">下肢力量 — 深蹲日</div><div class="sdet">Friday · 65 min</div></div><div class="sdet">TSS 74</div></div>
+        <div class="note">CJK list items: same sans voice as Latin — no mixing problem.</div>
+      </div>
+    </div>
+
+    <div class="BL">
+      <div class="col-label">Blend · "D1.5"</div>
+      <div class="col-desc">D1's serif boundary + D3's hero drama: 104px score, 180px dot field, 40px hero padding — but 16pt corners and sans lists.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="dots"></div>
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+        <div class="session"><div><div class="sname">下肢力量 — 深蹲日</div><div class="sdet">Friday · 65 min</div></div><div class="sdet">TSS 74</div></div>
+        <div class="note">Hero as loud as D3; data surfaces as calm as D1.</div>
+      </div>
+    </div>
+
+    <div class="D3">
+      <div class="col-label">D3 · Editorial Maximal</div>
+      <div class="col-desc">Serif reaches into content: session titles set in Source Serif 4. 20pt corners, 104px score, 180px dot field.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="dots"></div>
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+        <div class="session"><div><div class="sname zh">下肢力量 — 深蹲日</div><div class="sdet">Friday · 65 min</div></div><div class="sdet">TSS 74</div></div>
+        <div class="note">CJK list items need a serif CJK companion font (shown: Noto Serif SC ≈ +8&ndash;15MB bundled) or they'd fall back to sans mid-list.</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>

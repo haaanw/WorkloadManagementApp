@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tuwa v1.6 — Type & Corner Treatments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'General Sans';
+    src: url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype');
+    font-weight: 100 900;
+  }
+  :root {
+    --bg: #ECEEF1; --surface: #F0F2F5; --el: #F8FAFC; --el2: #FCFDFE;
+    --divider: #C0C5CB; --divider-strong: #A4ABB2;
+    --t1: #14171A; --t2: #565D63; --t3: #767D84;
+    --accent: #2E6B86; --optimal: #35513F;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #DDE1E6; font-family: 'General Sans', sans-serif; color: var(--t1); padding: 32px; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .sub { color: var(--t2); font-size: 14px; margin-bottom: 32px; }
+  .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 24px; max-width: 1720px; }
+  .col-label { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--t2); margin-bottom: 4px; }
+  .col-desc { font-size: 12px; color: var(--t3); margin-bottom: 16px; min-height: 30px; }
+  .phone { background: var(--bg); border: 0.5px solid var(--divider-strong); padding: 24px 16px; min-height: 660px; }
+
+  /* shared structure */
+  .micro { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); }
+  .hero { background: var(--el2); border: 0.5px solid var(--divider); border-top: 2px solid var(--accent); padding: 24px 16px; margin-bottom: 24px; }
+  .score { color: var(--accent); }
+  .verdict { color: var(--t1); margin-top: 8px; }
+  .why { color: var(--t2); font-size: 13px; margin-top: 4px; }
+  .cta { display: inline-block; margin-top: 16px; padding: 12px 24px; border: 1px solid var(--accent); color: var(--accent); font-size: 15px; font-weight: 500; background: transparent; font-family: inherit; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; background: var(--el); border: 0.5px solid var(--divider); margin-bottom: 24px; }
+  .metric { padding: 16px 12px; border-right: 0.5px solid var(--divider); }
+  .metric:last-child { border-right: none; }
+  .mval { font-size: 19px; font-weight: 500; margin-top: 4px; }
+  .mdet { font-size: 12px; color: var(--t3); margin-top: 4px; }
+  .up { color: var(--optimal); }
+  .session { background: var(--el); border: 0.5px solid var(--divider); padding: 16px; display: flex; justify-content: space-between; align-items: baseline; }
+  .sname { font-size: 15px; font-weight: 500; }
+  .sdet { font-size: 12px; color: var(--t3); }
+
+  /* A — current */
+  .A .score { font-size: 56px; font-weight: 500; line-height: 1; }
+  .A .verdict { font-size: 17px; font-weight: 500; }
+
+  /* B — editorial sans, 0pt kept */
+  .B .hero { padding: 32px 16px; }
+  .B .score { font-size: 88px; font-weight: 400; letter-spacing: -0.04em; line-height: 0.95; }
+  .B .verdict { font-size: 24px; font-weight: 400; letter-spacing: -0.02em; line-height: 1.05; margin-top: 16px; }
+
+  /* C — serif display + soft corners */
+  .C .hero, .C .metrics, .C .session { border-radius: 12px; overflow: hidden; }
+  .C .score { font-family: 'Source Serif 4', serif; font-size: 88px; font-weight: 400; letter-spacing: -0.03em; line-height: 0.95; }
+  .C .verdict { font-family: 'Source Serif 4', serif; font-size: 24px; letter-spacing: -0.01em; line-height: 1.1; margin-top: 16px; }
+  .C .cta { border-radius: 999px; }
+  .C .hero { padding: 32px 20px; }
+
+  /* D — full editorial: serif + softer + halftone */
+  .D .hero, .D .metrics, .D .session { border-radius: 16px; overflow: hidden; }
+  .D .hero { padding: 36px 20px; position: relative; }
+  .D .score { font-family: 'Source Serif 4', serif; font-size: 96px; font-weight: 400; letter-spacing: -0.035em; line-height: 0.92; }
+  .D .verdict { font-family: 'Source Serif 4', serif; font-size: 26px; letter-spacing: -0.01em; line-height: 1.08; margin-top: 20px; }
+  .D .cta { border-radius: 999px; background: var(--accent); color: var(--el2); border: none; padding: 14px 28px; }
+  .D .dots { position: absolute; top: 16px; right: 16px; width: 96px; height: 96px; opacity: 0.5;
+    background-image: radial-gradient(var(--accent) 1.2px, transparent 1.2px); background-size: 8px 8px;
+    -webkit-mask-image: linear-gradient(135deg, black 0%, transparent 75%); mask-image: linear-gradient(135deg, black 0%, transparent 75%); }
+  .D .metrics { background: var(--el2); }
+</style>
+</head>
+<body>
+  <h1>Tuwa v1.6 — type &amp; corner treatments</h1>
+  <p class="sub">Same palette (unchanged, per your call) · same content · light mode · General Sans body everywhere. Only display type and corner geometry vary.</p>
+  <div class="grid">
+    <div class="A">
+      <div class="col-label">A · Current</div>
+      <div class="col-desc">Baseline for comparison. General Sans, 0pt corners, modest scale.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+      </div>
+    </div>
+    <div class="B">
+      <div class="col-label">B · Editorial Sans</div>
+      <div class="col-desc">Contralabs spirit, Tuwa letter: big tight display in General Sans, 0pt kept.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+      </div>
+    </div>
+    <div class="C">
+      <div class="col-label">C · Serif + Soft</div>
+      <div class="col-desc">Source Serif 4 display only; pill buttons; 12pt cards. Your picked direction, restrained.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+      </div>
+    </div>
+    <div class="D">
+      <div class="col-label">D · Full Editorial</div>
+      <div class="col-desc">Serif display, 16pt cards, filled pill CTA, halftone texture signature.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="dots"></div>
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>

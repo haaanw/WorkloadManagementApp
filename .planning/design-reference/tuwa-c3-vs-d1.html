@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tuwa v1.6 — C3 vs D1 head-to-head</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,400;8..60,500&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'General Sans';
+    src: url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype');
+    font-weight: 100 900;
+  }
+  :root {
+    --bg: #ECEEF1; --surface: #F0F2F5; --el: #F8FAFC; --el2: #FCFDFE;
+    --divider: #C0C5CB; --divider-strong: #A4ABB2;
+    --t1: #14171A; --t2: #565D63; --t3: #767D84;
+    --accent: #2E6B86; --optimal: #35513F;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #DDE1E6; font-family: 'General Sans', sans-serif; color: var(--t1); padding: 32px; }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 4px; }
+  .sub { color: var(--t2); font-size: 14px; margin-bottom: 32px; max-width: 900px; }
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 28px; max-width: 1500px; }
+  .col-label { font-size: 13px; font-weight: 500; letter-spacing: 0.08em; text-transform: uppercase; color: var(--t2); margin-bottom: 4px; }
+  .col-desc { font-size: 12.5px; color: var(--t3); margin-bottom: 16px; min-height: 48px; max-width: 430px; }
+  .phone { background: var(--bg); border: 0.5px solid var(--divider-strong); padding: 24px 16px; }
+
+  .micro { font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--t3); }
+  .hero { background: var(--el2); border: 0.5px solid var(--divider); border-top: 2px solid var(--accent); margin-bottom: 24px; position: relative; overflow: hidden; }
+  .score { color: var(--accent); font-family: 'Source Serif 4', serif; font-weight: 400; }
+  .verdict { color: var(--t1); font-family: 'Source Serif 4', serif; }
+  .why { color: var(--t2); font-size: 13px; margin-top: 6px; }
+  .cta { display: inline-block; margin-top: 18px; border: none; background: var(--accent); color: var(--el2); font-size: 15px; font-weight: 500; font-family: 'General Sans', sans-serif; border-radius: 999px; }
+  .metrics { display: grid; grid-template-columns: 1fr 1fr 1fr; border: 0.5px solid var(--divider); margin-bottom: 24px; overflow: hidden; }
+  .metric { padding: 16px 12px; border-right: 0.5px solid var(--divider); }
+  .metric:last-child { border-right: none; }
+  .mval { font-size: 19px; font-weight: 500; margin-top: 4px; }
+  .mdet { font-size: 12px; color: var(--t3); margin-top: 4px; }
+  .up { color: var(--optimal); }
+  .session { background: var(--el); border: 0.5px solid var(--divider); padding: 16px; display: flex; justify-content: space-between; align-items: baseline; overflow: hidden; margin-bottom: 8px; }
+  .sname { font-size: 15px; font-weight: 500; }
+  .sdet { font-size: 12px; color: var(--t3); }
+  .dots { position: absolute; top: 0; right: 0; opacity: 0.45;
+    background-image: radial-gradient(var(--accent) 1.2px, transparent 1.2px); background-size: 8px 8px;
+    -webkit-mask-image: linear-gradient(135deg, black 0%, transparent 72%); mask-image: linear-gradient(135deg, black 0%, transparent 72%); }
+  .note { font-size: 11px; color: var(--t3); margin-top: 12px; font-style: italic; }
+
+  /* C3 · Serif Ink — 12pt, no dots, 88px, metrics on el */
+  .C3 .hero, .C3 .metrics, .C3 .session { border-radius: 12px; }
+  .C3 .hero { padding: 32px 20px; }
+  .C3 .score { font-size: 88px; letter-spacing: -0.03em; line-height: 0.95; }
+  .C3 .verdict { font-size: 24px; letter-spacing: -0.01em; line-height: 1.1; margin-top: 16px; }
+  .C3 .cta { padding: 13px 26px; }
+  .C3 .metrics { background: var(--el); }
+
+  /* MID · C3 + halftone ("Ink & Grain") — C3 geometry, D1 texture */
+  .MID .hero, .MID .metrics, .MID .session { border-radius: 12px; }
+  .MID .hero { padding: 32px 20px; }
+  .MID .score { font-size: 88px; letter-spacing: -0.03em; line-height: 0.95; }
+  .MID .verdict { font-size: 24px; letter-spacing: -0.01em; line-height: 1.1; margin-top: 16px; }
+  .MID .cta { padding: 13px 26px; }
+  .MID .dots { width: 130px; height: 130px; }
+  .MID .metrics { background: var(--el); }
+
+  /* D1 · Full Editorial — 16pt, dots, 96px, metrics on el2 */
+  .D1 .hero, .D1 .metrics, .D1 .session { border-radius: 16px; }
+  .D1 .hero { padding: 36px 20px; }
+  .D1 .score { font-size: 96px; letter-spacing: -0.035em; line-height: 0.92; }
+  .D1 .verdict { font-size: 26px; letter-spacing: -0.01em; line-height: 1.08; margin-top: 20px; }
+  .D1 .cta { padding: 14px 28px; }
+  .D1 .dots { width: 130px; height: 130px; }
+  .D1 .metrics { background: var(--el2); }
+</style>
+</head>
+<body>
+  <h1>Tuwa v1.6 — C3 vs D1 (and the midpoint)</h1>
+  <p class="sub">Both use the same serif boundary (Source Serif 4 for score + verdict ONLY; General Sans everywhere else) and a filled pill CTA. They differ on exactly three dials: <strong>halftone texture</strong> (no / yes), <strong>corners</strong> (12pt / 16pt), <strong>hero scale</strong> (88px / 96px + brighter metrics plane). Middle column isolates the texture variable at C3's geometry.</p>
+  <div class="grid">
+
+    <div class="C3">
+      <div class="col-label">C3 · Serif Ink</div>
+      <div class="col-desc">Quiet instrument. 12pt corners · 88px score · no texture · metrics on the standard plane. All voice, no costume.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+        <div class="session"><div><div class="sname">下肢力量 — 深蹲日</div><div class="sdet">Friday · 65 min</div></div><div class="sdet">TSS 74</div></div>
+        <div class="note">Signature = the serif verdict voice alone.</div>
+      </div>
+    </div>
+
+    <div class="MID">
+      <div class="col-label">Mid · "Ink &amp; Grain"</div>
+      <div class="col-desc">Exactly C3 plus the halftone field — isolates the one variable. If this beats C3, texture earns its place; if it beats D1, big geometry didn't.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="dots"></div>
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+        <div class="session"><div><div class="sname">下肢力量 — 深蹲日</div><div class="sdet">Friday · 65 min</div></div><div class="sdet">TSS 74</div></div>
+        <div class="note">C3's restraint, D1's fingerprint.</div>
+      </div>
+    </div>
+
+    <div class="D1">
+      <div class="col-label">D1 · Full Editorial</div>
+      <div class="col-desc">Editorial statement. 16pt corners · 96px score · halftone · metrics lifted to the bright plane. More air, more presence.</div>
+      <div class="phone">
+        <div class="hero">
+          <div class="dots"></div>
+          <div class="micro">Readiness</div>
+          <div class="score">82</div>
+          <div class="verdict">Go — full session as planned</div>
+          <div class="why">HRV above baseline · slept 8h12</div>
+          <button class="cta">Start session</button>
+        </div>
+        <div class="metrics">
+          <div class="metric"><div class="micro">HRV</div><div class="mval">64<span style="font-size:12px"> ms</span></div><div class="mdet up">+9% vs baseline</div></div>
+          <div class="metric"><div class="micro">RHR</div><div class="mval">47</div><div class="mdet">at baseline</div></div>
+          <div class="metric"><div class="micro">Sleep</div><div class="mval">8:12</div><div class="mdet up">+0:40</div></div>
+        </div>
+        <div class="micro" style="margin-bottom:8px">Recent sessions</div>
+        <div class="session"><div><div class="sname">Basketball — scrimmage</div><div class="sdet">Yesterday · 92 min</div></div><div class="sdet">TSS 118</div></div>
+        <div class="session"><div><div class="sname">下肢力量 — 深蹲日</div><div class="sdet">Friday · 65 min</div></div><div class="sdet">TSS 74</div></div>
+        <div class="note">The hero is an event; data planes get a brightness bump.</div>
+      </div>
+    </div>
+
+  </div>
+</body>
+</html>
