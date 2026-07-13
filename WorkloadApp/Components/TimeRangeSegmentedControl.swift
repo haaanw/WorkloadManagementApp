@@ -4,6 +4,7 @@ import SwiftUI
 /// `CornerTokens.control` corners (v3 Corner Law), hairline border, General Sans font.
 struct TimeRangeSegmentedControl: View {
     @Binding var selected: TimeRange
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 0) {
@@ -11,7 +12,7 @@ struct TimeRangeSegmentedControl: View {
                 Button(range.rawValue) {
                     guard selected != range else { return }
                     Haptics.select()
-                    withAnimation(Motion.state) {
+                    withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
                         selected = range
                     }
                 }

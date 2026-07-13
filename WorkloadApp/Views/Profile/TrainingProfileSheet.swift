@@ -9,6 +9,7 @@ struct TrainingProfileSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(AppContainer.self) private var container
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
 
     /// Pass an existing profile for re-edit from ProfileView. Nil for first-time completion.
@@ -339,7 +340,7 @@ struct TrainingProfileSheet: View {
         VStack(spacing: 0) {
             Button {
                 Haptics.tap()
-                withAnimation(Motion.state) {
+                withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
                     showInjuryDetail.toggle()
                 }
             } label: {

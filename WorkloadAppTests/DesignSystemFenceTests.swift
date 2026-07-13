@@ -18,6 +18,9 @@ import XCTest
 ///    hero plane only: at most one instantiation per screen file.
 /// 6. **Spacing grid** — structural `spacing:` / bare `.padding(` literals of 4pt and above
 ///    must be multiples of 4 (8pt grid + the sanctioned 4pt `baselinePair`).
+/// 7. **Motion Law** — one motion language: every animation routes through the `Motion`
+///    tokens in CardStyle.swift. Ad-hoc curve/duration literals and bare `withAnimation`
+///    (SwiftUI's default spring) are fence failures.
 final class DesignSystemFenceTests: XCTestCase {
 
     // MARK: - Source enumeration
@@ -156,6 +159,43 @@ final class DesignSystemFenceTests: XCTestCase {
                         )
                     }
                 }
+            }
+        }
+    }
+
+    // MARK: - 7. Motion Law: animation literals only in CardStyle.swift (Stage 2, 2026-07-14)
+
+    func test_animationCurveLiterals_onlyInCardStyle() throws {
+        // Curve/spring constructors define motion personalities. The single motion language
+        // lives in `Motion` (CardStyle.swift); everywhere else must reference tokens
+        // (Motion.state / .entrance / .screen / .exit / .scoreCountUp or their aliases),
+        // ideally via `Motion.resolved(_:reduceMotion:)`.
+        let bannedCurveLiterals = [
+            ".easeIn(", ".easeOut(", ".easeInOut(", ".linear(", ".spring(",
+            ".interpolatingSpring", ".interactiveSpring", ".bouncy", ".snappy",
+            "withAnimation(.", ".animation(."
+        ]
+        for (name, text) in try fencedSources() {
+            if name == "CardStyle.swift" { continue }
+            for banned in bannedCurveLiterals {
+                XCTAssertFalse(
+                    text.contains(banned),
+                    "\(name) contains \(banned) — animation curves/durations are hand-typed only inside CardStyle.swift's Motion tokens; route this through Motion.* (DESIGN.md Motion Law)"
+                )
+            }
+        }
+    }
+
+    func test_noBareWithAnimation() throws {
+        // A bare `withAnimation { }` silently uses SwiftUI's default spring — a hidden,
+        // untokenized personality. Every withAnimation call must name a Motion token
+        // (and should pass through Motion.resolved for Reduce Motion).
+        for (name, text) in try fencedSources() {
+            for banned in ["withAnimation {", "withAnimation() {"] {
+                XCTAssertFalse(
+                    text.contains(banned),
+                    "\(name) contains a bare `withAnimation` — pass a Motion token (Motion.resolved(Motion.state, reduceMotion:)) instead (DESIGN.md Motion Law)"
+                )
             }
         }
     }

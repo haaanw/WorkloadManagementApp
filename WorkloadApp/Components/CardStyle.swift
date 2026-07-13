@@ -116,6 +116,45 @@ extension View {
     }
 }
 
+/// Cross-fades a tab's content in when its tab becomes selected. Driven by the SELECTION value
+/// (not `onAppear`), so navigation pops and sheet dismissals inside a tab never re-trigger the
+/// fade, and the first render of each tab stays with `entranceReveal` choreography (`onChange`
+/// does not fire on initial appearance). Failure mode is safe: if the change never fires, the
+/// content simply stays fully visible. Reduced Motion shows the tab immediately.
+private struct TabCrossfadeModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var contentOpacity: Double = 1
+
+    let isSelected: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(contentOpacity)
+            .onChange(of: isSelected) { _, selected in
+                guard selected, !reduceMotion else {
+                    contentOpacity = 1
+                    return
+                }
+                // Two-phase so the reset to 0 and the animated return to 1 land in separate
+                // update cycles (a single-cycle write would diff 1 → 1 and never animate).
+                contentOpacity = 0
+                DispatchQueue.main.async {
+                    withAnimation(Motion.screen) {
+                        contentOpacity = 1
+                    }
+                }
+            }
+    }
+}
+
+extension View {
+    /// Screen-level cross-fade for tab content on tab REVISITS (`Motion.screen`).
+    /// Apply to each tab root in the main TabView, passing whether its tab is selected.
+    func tabCrossfade(isSelected: Bool) -> some View {
+        modifier(TabCrossfadeModifier(isSelected: isSelected))
+    }
+}
+
 // MARK: - Data plate
 
 struct DataPlateStyle: ViewModifier {
@@ -599,18 +638,30 @@ struct InstrumentTextField: View {
     @Binding var text: String
     var isError: Bool = false
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @FocusState private var isFocused: Bool
+
+    /// Focus feedback mirrors SharpTextFieldStyle: accent hairline thickens to 1pt while
+    /// editing (accent-as-live-state), settling via `Motion.state`. Error keeps priority.
+    private var borderColor: Color {
+        if isError { return ColorTokens.statusCritical }
+        return isFocused ? ColorTokens.accent : ColorTokens.hairline
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(label)
                 .font(.Tokens.smallLabel)
                 .foregroundStyle(ColorTokens.textSecondary)
             TextField(label, text: $text)
+                .focused($isFocused)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.textPrimary)
                 .padding(.horizontal, Spacing.sm)
                 .frame(minHeight: 44)
                 .background(ColorTokens.control, in: RoundedRectangle(cornerRadius: CornerTokens.control))
-                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(isError ? ColorTokens.statusCritical : ColorTokens.hairline, lineWidth: 0.5))
+                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(borderColor, lineWidth: isFocused || isError ? 1 : 0.5))
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isFocused)
         }
     }
 }
@@ -683,6 +734,21 @@ struct BottomActionDock<Content: View>: View {
                 .padding(Spacing.sm)
                 .background(ColorTokens.background)
         }
+    }
+}
+
+/// A calm loading placeholder: a plate-shaped block on the control plane. No shimmer, no
+/// pulse — data arrival is a `Motion.state` transition, not a pop. Pair with `.transition(.opacity)`
+/// inside an animated container so the swap to real content cross-fades.
+struct SkeletonBlock: View {
+    var width: CGFloat? = nil
+    var height: CGFloat
+
+    var body: some View {
+        RoundedRectangle(cornerRadius: CornerTokens.control)
+            .fill(ColorTokens.control)
+            .frame(width: width, height: height)
+            .accessibilityHidden(true)
     }
 }
 

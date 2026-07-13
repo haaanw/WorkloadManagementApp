@@ -75,6 +75,10 @@ final class DashboardViewModel {
     var currentStreak: Int = 0
 
     var isLoading = true
+    /// True once the first `load()` has completed. The Dashboard shows its calm skeleton
+    /// placeholders only BEFORE the first load resolves — foreground reloads never flash
+    /// skeletons over already-rendered content.
+    var hasLoadedOnce = false
 
     func load(
         athlete: Athlete,
@@ -338,6 +342,7 @@ final class DashboardViewModel {
         }
 
         isLoading = false
+        hasLoadedOnce = true
     }
 
     /// ACT-01 — build the dual-run "method updated" message, gated by the OR of the surface flag and

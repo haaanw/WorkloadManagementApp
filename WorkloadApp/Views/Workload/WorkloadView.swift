@@ -216,7 +216,7 @@ struct WorkloadView: View {
             }
             .onChange(of: viewModel.selectedRange) { _, _ in
                 Haptics.select()
-                withAnimation(Motion.screen) {
+                withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                     if let athlete {
                         viewModel.loadTrendData(modelContext: modelContext, athlete: athlete)
                     }

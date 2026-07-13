@@ -9,6 +9,7 @@ struct OnboardingView: View {
 
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
 
     @State private var currentStep = 0
@@ -29,7 +30,7 @@ struct OnboardingView: View {
                 healthKitStep
                     .opacity(currentStep == 3 ? 1 : 0)
             }
-            .animation(Motion.screen, value: currentStep)
+            .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: currentStep)
 
             // MARK: Dot indicators + Continue button
 
@@ -345,7 +346,7 @@ struct OnboardingView: View {
     private var continueButton: some View {
         Button {
             Haptics.tap()
-            withAnimation(Motion.screen) {
+            withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                 currentStep += 1
             }
         } label: {

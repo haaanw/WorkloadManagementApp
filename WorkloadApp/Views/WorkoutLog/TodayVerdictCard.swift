@@ -43,6 +43,7 @@ struct TodayVerdictCard: View {
     var onStartWorkout: (() -> Void)? = nil
 
     @Environment(\.locale) private var locale
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
@@ -121,10 +122,15 @@ struct TodayVerdictCard: View {
 
             // 5. Decision row (equal weight) — or a quiet confirmed line once decided.
             decisionArea
+                .transition(.opacity)
 
             // 6. Feel-override — first-class, obvious, logged input.
             feelRow
         }
+        // Decision settle: suggested → accepted/kept (and a feel-override's number change)
+        // cross-fades via Motion.state instead of snapping the decision row.
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: display.appliedState)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: display.adjustedTopSetKg)
         .onAppear { Haptics.prepare() }
         // Primary decision surface → the emphasis plane (surfaceEl2 + dividerStrong + 2pt accent
         // top rule). The accent rule lives inside the primitive, so it never lands on the verdict

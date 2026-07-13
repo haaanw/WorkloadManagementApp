@@ -8,22 +8,42 @@ struct AppRouter: View {
     @State private var isCheckingSession = true
     @State private var needsOnboarding = false
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    /// The root routing state — a single Equatable value so the loading → login →
+    /// onboarding → tabs hand-offs cross-fade (`Motion.screen`) instead of snapping.
+    private enum Route: Equatable {
+        case loading, login, onboarding, main
+    }
+
+    private var route: Route {
+        if isCheckingSession { return .loading }
+        if !container.isAuthenticated { return .login }
+        if needsOnboarding { return .onboarding }
+        return .main
+    }
 
     var body: some View {
         Group {
-            if isCheckingSession {
+            switch route {
+            case .loading:
                 LaunchLoadingView()
-            } else if !container.isAuthenticated {
+                    .transition(.opacity)
+            case .login:
                 LoginView()
-            } else if needsOnboarding {
+                    .transition(.opacity)
+            case .onboarding:
                 OnboardingView(onComplete: { needsOnboarding = false })
-            } else {
+                    .transition(.opacity)
+            case .main:
                 MainTabView()
+                    .transition(.opacity)
             }
         }
+        .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: route)
         .environment(container)
         .environment(\.locale, container.localeManager.activeLocale)
-        .animation(Motion.state, value: container.localeManager.activeLocale)
+        .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: container.localeManager.activeLocale)
         .onOpenURL { url in
             // Google Sign-In callback
             if GIDSignIn.sharedInstance.handle(url) { return }
@@ -258,22 +278,41 @@ struct MainTabView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
 
+    /// The five athlete tabs. Selection is held here so tab REVISITS cross-fade content in
+    /// via `tabCrossfade` (`Motion.screen`) instead of snapping; first renders stay with
+    /// each screen's `entranceReveal` choreography.
+    private enum Tab: Hashable {
+        case home, log, recovery, load, profile
+    }
+
+    @State private var selectedTab: Tab = .home
+
     var body: some View {
-        TabView {
+        TabView(selection: $selectedTab) {
             DashboardView()
+                .tabCrossfade(isSelected: selectedTab == .home)
                 .tabItem { Label("tab.home", systemImage: "sun.max") }
+                .tag(Tab.home)
 
             WorkoutLogView()
+                .tabCrossfade(isSelected: selectedTab == .log)
                 .tabItem { Label("tab.log", systemImage: "figure.strengthtraining.traditional") }
+                .tag(Tab.log)
 
             RecoveryView()
+                .tabCrossfade(isSelected: selectedTab == .recovery)
                 .tabItem { Label("tab.recovery", systemImage: "waveform.path.ecg") }
+                .tag(Tab.recovery)
 
             WorkloadView()
+                .tabCrossfade(isSelected: selectedTab == .load)
                 .tabItem { Label("tab.load", systemImage: "chart.xyaxis.line") }
+                .tag(Tab.load)
 
             ProfileView()
+                .tabCrossfade(isSelected: selectedTab == .profile)
                 .tabItem { Label("tab.profile", systemImage: "person.crop.circle") }
+                .tag(Tab.profile)
         }
         // Selected-tab tint: text1, never accent (DESIGN.md — accent is reserved for the
         // hero readiness number). Scoped to the tab bar chrome via tabItem rendering.

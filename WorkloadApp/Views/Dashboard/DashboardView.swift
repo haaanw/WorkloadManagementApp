@@ -91,6 +91,19 @@ struct DashboardView: View {
                             .entranceReveal(index: 1)
 
                         Spacer().frame(height: Spacing.lg)
+                    } else if viewModel.isLoading && !viewModel.hasLoadedOnce {
+                        // First-load skeleton where the training-load card will land — a calm
+                        // plate-shaped placeholder so the section arrives as a transition.
+                        Spacer().frame(height: Spacing.lg)
+                        VStack(alignment: .leading, spacing: Spacing.sm) {
+                            SkeletonBlock(width: 96, height: 16)
+                            SkeletonBlock(height: 48)
+                        }
+                        .cardStyle()
+                        .padding(.horizontal, Spacing.sm)
+                        .transition(.opacity)
+
+                        Spacer().frame(height: Spacing.lg)
                     }
 
                     // Established-user value cluster (metrics → weekly summary → recent sessions)
@@ -341,7 +354,12 @@ struct HeroReadinessCard: View {
                 .foregroundStyle(ColorTokens.text3)
                 .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: viewModel.hasRealData)
 
-            if viewModel.hasRealData {
+            if viewModel.isLoading && !viewModel.hasLoadedOnce {
+                // Calm first-load placeholder where the score will land — data arrival is a
+                // cross-fade (the parent animates on isLoading), not a pop. No shimmer.
+                SkeletonBlock(width: 144, height: 88)
+                    .transition(.opacity)
+            } else if viewModel.hasRealData {
                 // Two-Voice Type Law (v3): the hero readiness score is one of the two serif
                 // display roles — Source Serif 4, accent, tabular numerals, -0.03em tracking.
                 Text("\(Int(displayedScore))")

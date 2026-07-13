@@ -91,6 +91,7 @@ struct WorkoutLogView: View {
                                 )
                                 .padding(.horizontal, Spacing.sm)
                             }
+                            .entranceReveal()
                         }
 
                         // v2.1 dogfood — the next-day "felt right?" capture. Renders ONLY on the
@@ -116,6 +117,7 @@ struct WorkoutLogView: View {
                         // renders; empty state ("no scheduled match") is a normal, calm state.
                         // Stage 2 wires the date into the verdict; here it is set/clear only.
                         NextMatchSection()
+                            .entranceReveal(index: 1)
 
                         // Template carousel (My Templates section — header lives inside)
                         TemplateCarouselSection(
@@ -135,6 +137,7 @@ struct WorkoutLogView: View {
                                 selectedTemplateForPreview = template
                             }
                         )
+                        .entranceReveal(index: 2)
 
                         // HealthKit import suggestions
                         if !importSuggestions.isEmpty {
@@ -146,7 +149,7 @@ struct WorkoutLogView: View {
                                     },
                                     onDismiss: { suggestion in
                                         WorkoutImportService.dismissSuggestion(suggestion)
-                                        withAnimation(Motion.exit) {
+                                        withAnimation(Motion.resolved(Motion.exit, reduceMotion: reduceMotion)) {
                                             importSuggestions.removeAll { $0.id == suggestion.id }
                                         }
                                     }
@@ -166,6 +169,7 @@ struct WorkoutLogView: View {
                             }
                             .padding(.vertical, Spacing.xl)
                             .frame(maxWidth: .infinity)
+                            .entranceReveal(index: 3)
                         } else {
                             SectionContainer(header: "workoutLog.section.history") {
                                 VStack(spacing: 0) {
@@ -187,6 +191,7 @@ struct WorkoutLogView: View {
                                 }
                                 .animation(Motion.resolved(Motion.entrance, reduceMotion: reduceMotion), value: visibleSessions.count)
                             }
+                            .entranceReveal(index: 3)
                         }
 
                         Spacer().frame(height: Spacing.lg)
@@ -496,7 +501,7 @@ struct WorkoutLogView: View {
             print("Import pipeline error: \(error)")
         }
 
-        withAnimation(Motion.exit) {
+        withAnimation(Motion.resolved(Motion.exit, reduceMotion: reduceMotion)) {
             importSuggestions.removeAll { $0.id == suggestion.id }
         }
     }

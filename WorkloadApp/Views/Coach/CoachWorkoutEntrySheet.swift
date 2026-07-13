@@ -6,6 +6,7 @@ struct CoachWorkoutEntrySheet: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var myAthletes: [Athlete]
 
     @State private var sessionDate = Date()
@@ -155,7 +156,7 @@ struct CoachWorkoutEntrySheet: View {
                     .padding(.horizontal, 16)
                 }
             }
-            .animation(Motion.screen, value: showSpikeAlert)
+            .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: showSpikeAlert)
         }
     }
 

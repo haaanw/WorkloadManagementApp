@@ -4,6 +4,7 @@ import SwiftData
 struct TemplateCarouselSection: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
 
     // Callbacks for parent coordination
@@ -153,7 +154,7 @@ struct TemplateCarouselSection: View {
                     Spacer()
                     Button {
                         archiveTemplate(template)
-                        withAnimation(Motion.screen) {
+                        withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                             swipeOffset = 0
                             swipedTemplateId = nil
                         }
@@ -174,7 +175,7 @@ struct TemplateCarouselSection: View {
                     Button {
                         templateToDelete = template
                         showDeleteConfirmation = true
-                        withAnimation(Motion.screen) {
+                        withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                             swipeOffset = 0
                             swipedTemplateId = nil
                         }
@@ -277,7 +278,7 @@ struct TemplateCarouselSection: View {
                             swipedTemplateId = template.id
                         }
                         .onEnded { value in
-                            withAnimation(Motion.screen) {
+                            withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                                 if swipeOffset < -72 {
                                     swipeOffset = -144
                                 } else {
@@ -290,7 +291,7 @@ struct TemplateCarouselSection: View {
             )
             .onTapGesture {
                 if swipedTemplateId == template.id && swipeOffset < 0 {
-                    withAnimation(Motion.screen) {
+                    withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                         swipeOffset = 0
                         swipedTemplateId = nil
                     }
@@ -303,7 +304,7 @@ struct TemplateCarouselSection: View {
                 } else {
                     // Re-centering the carousel = a selection change.
                     Haptics.select()
-                    withAnimation(Motion.screen) {
+                    withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                         centeredId = template.id
                     }
                 }

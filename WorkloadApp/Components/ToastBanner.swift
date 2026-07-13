@@ -6,6 +6,7 @@ struct ToastBanner: View {
     let message: String
     let isError: Bool
     @Binding var isPresented: Bool
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 8) {
@@ -27,7 +28,7 @@ struct ToastBanner: View {
         .task {
             let delay: Duration = isError ? .seconds(3) : .seconds(2)
             try? await Task.sleep(for: delay)
-            withAnimation(Motion.exit) {
+            withAnimation(Motion.resolved(Motion.exit, reduceMotion: reduceMotion)) {
                 isPresented = false
             }
         }
