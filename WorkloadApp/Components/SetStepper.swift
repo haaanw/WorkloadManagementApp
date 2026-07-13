@@ -4,9 +4,10 @@ import SwiftUI
 /// for set rows (Phase 38, Variant A). One HStack, left → right: a "−" button, a tappable
 /// center numeric field (tap = numeric keypad for big jumps), a "+" button.
 ///
-/// Design constraints (DESIGN.md): 0pt square corners (Rectangle only), no shadows, hairline
-/// `divider` borders between segments, Font.Tokens only, 8pt grid. NO `accent` anywhere —
-/// steppers/buttons use `text1`/`text2`/`text3`/`divider`.
+/// Design constraints (DESIGN.md v3): the stepper is a control → `CornerTokens.control`
+/// corners on the outer shape (inner segments stay square, clipped by it), no shadows,
+/// hairline `divider` borders between segments, Font.Tokens only, 8pt grid. NO `accent`
+/// anywhere — steppers/buttons use `text1`/`text2`/`text3`/`divider`.
 ///
 /// Ghost behaviour: when `value == nil` but a carried/target baseline exists, the baseline is
 /// rendered ghosted (`text3`) as a not-yet-committed default; the first ± tap or keypad edit
@@ -85,7 +86,8 @@ struct SetStepperDouble: View {
 
             StepperButton(symbol: "plus", action: stepUp)
         }
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }
 
@@ -148,14 +150,15 @@ struct SetStepperInt: View {
 
             StepperButton(symbol: "plus", action: stepUp)
         }
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }
 
 // MARK: - Shared ± button
 
 /// A single ± segment: SF Symbol sized via Font.Tokens (not .system()), text1 foreground,
-/// surface fill, 0pt corners. No accent, no shadow.
+/// surface fill, square inside the control's rounded clip. No accent, no shadow.
 private struct StepperButton: View {
     let symbol: String
     let action: () -> Void

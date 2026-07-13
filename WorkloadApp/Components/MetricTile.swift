@@ -27,12 +27,14 @@ struct MetricTile: View {
     }
 }
 
-/// Square outline badge communicating zone state through text label + colored border.
-/// Color is supplementary — the text label is always the primary information.
+/// Outline chip communicating zone state through text label + colored border (`Capsule()`
+/// per the v3 Corner Law — chips are pills). Color is supplementary — the text label is
+/// always the primary information.
 ///
 /// zh-Hans typography: per 23-UI-SPEC, Chinese has no case and looser tracking is wrong.
 /// Apply textCase(.uppercase) and tracking(1.2) only when the env locale is English.
-/// Horizontal padding widens for zh-Hans glyphs (16 vs 10).
+/// Horizontal padding widens for zh-Hans glyphs (16 vs 8). Paddings sit on the 8pt grid
+/// (+ the sanctioned 4pt sub-step) — normalized from the off-grid 10/5 in Stage 1.
 struct ZoneBadge: View {
     @Environment(\.locale) private var locale
     let label: String
@@ -43,11 +45,11 @@ struct ZoneBadge: View {
             .font(.Tokens.micro)
             .tracking(locale.language.languageCode?.identifier == "en" ? 1.2 : 0)
             .textCase(locale.language.languageCode?.identifier == "en" ? .uppercase : nil)
-            .padding(.horizontal, locale.language.languageCode?.identifier == "zh" ? 16 : 10)
-            .padding(.vertical, 5)
+            .padding(.horizontal, locale.language.languageCode?.identifier == "zh" ? 16 : 8)
+            .padding(.vertical, 4)
             .foregroundStyle(color)
             .overlay(
-                Rectangle().stroke(color, lineWidth: 0.5)
+                Capsule().stroke(color, lineWidth: 0.5)
             )
     }
 }

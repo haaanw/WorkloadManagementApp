@@ -16,10 +16,14 @@ import SwiftUI
 ///  - Keep-my-plan is one tap, no confirmation nag, no guilt copy (SC3).
 ///  - Confidence is shown quietly and separately when present (SC4).
 ///
-/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid, light-only
-/// via `ColorTokens`. Tuwa v2: this is the screen's primary decision surface, so it sits on the
-/// emphasis plane (`.emphasisCardStyle()` — `surfaceEl2` + `dividerStrong` + 2pt accent top rule).
-/// The accent (now the "live / actionable" semantic) is allowed ONLY on the strike-zone FILL and the
+/// DESIGN.md v3 "Ink & Grain" (hard): corners via `CornerTokens` (the emphasis card carries
+/// `CornerTokens.card`; decision buttons/feel chips are `Capsule()` pills), no shadows,
+/// `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`. The reason line is the card's
+/// VERDICT HEADLINE — one of the two sanctioned serif display roles (`Font.Tokens.displayVerdict`,
+/// `text1`, app-authored copy only; the exercise name / numbers stay instrument voice).
+/// Tuwa v2: this is the screen's primary decision surface, so it sits on the emphasis plane
+/// (`.emphasisCardStyle()` — `surfaceEl2` + `dividerStrong` + 2pt accent top rule).
+/// The accent (the "live / actionable" semantic) is allowed ONLY on the strike-zone FILL and the
 /// emphasis rule — NEVER on the verdict state (that stays a text label + desaturated zone strip) and
 /// NEVER on today's number. en defaults inline; zh-Hans in the catalog.
 struct TodayVerdictCard: View {
@@ -99,9 +103,12 @@ struct TodayVerdictCard: View {
                 }
             }
 
-            // 3. Reason line — the one-line why.
+            // 3. Reason line — the one-line why. This is the VERDICT HEADLINE: the second of the
+            //    two serif display roles (Two-Voice Type Law v3) — Source Serif 4, `text1`,
+            //    -0.01em tracking. App-authored copy only (VerdictReasonBuilder templates).
             Text(verbatim: display.reasonLine)
-                .font(.Tokens.label)
+                .font(.Tokens.displayVerdict)
+                .tracking(Font.Tokens.Display.tracking(for: Font.Tokens.Display.verdictSize, em: Font.Tokens.Display.verdictTrackingEm))
                 .foregroundStyle(ColorTokens.text1)
                 .fixedSize(horizontal: false, vertical: true)
 
@@ -126,11 +133,13 @@ struct TodayVerdictCard: View {
         // Supplementary DESATURATED hairline strip (text label above is the primary channel).
         // zoneCaution for an adjustment, zoneLow for a learning defer, none when training as planned.
         // NEVER the danger-zone token (no red gate), NEVER the reserved hero color.
+        // Inset vertically by the card radius so the strip stays inside the rounded shape.
         .overlay(alignment: .leading) {
             if let stripColor {
                 Rectangle()
                     .fill(stripColor)
                     .frame(width: 2)
+                    .padding(.vertical, CornerTokens.card)
             }
         }
     }
@@ -212,6 +221,8 @@ struct TodayVerdictCard: View {
 
     /// The ONE decision-button builder — Accept and Keep-my-plan are provably identical in
     /// size/treatment (same font, padding, frame, fill, border); they differ ONLY in label/action.
+    /// Outlined `Capsule()` pill (v3 Corner Law) — deliberately NOT the filled accent primary
+    /// CTA, so neither decision reads as the "endorsed" one (SC1 equal weight).
     private func decisionButton(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: { Haptics.tap(); action() }) {
             Text(verbatim: title)
@@ -219,8 +230,8 @@ struct TodayVerdictCard: View {
                 .foregroundStyle(ColorTokens.text1)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.xs)
-                .background(ColorTokens.surface)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .background(ColorTokens.surface, in: Capsule())
+                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
     }
@@ -233,7 +244,7 @@ struct TodayVerdictCard: View {
                 .foregroundStyle(ColorTokens.text1)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.xs)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
     }

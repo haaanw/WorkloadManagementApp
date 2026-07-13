@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// Segmented control for time range selection (D-01).
-/// 0pt corner radius, hairline border, General Sans font.
+/// `CornerTokens.control` corners (v3 Corner Law), hairline border, General Sans font.
 struct TimeRangeSegmentedControl: View {
     @Binding var selected: TimeRange
 
@@ -23,8 +23,9 @@ struct TimeRangeSegmentedControl: View {
                 .buttonStyle(.pressable)
             }
         }
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
         .overlay(
-            Rectangle()
+            RoundedRectangle(cornerRadius: CornerTokens.control)
                 .stroke(ColorTokens.divider, lineWidth: 0.5)
         )
         .padding(.horizontal, 16)

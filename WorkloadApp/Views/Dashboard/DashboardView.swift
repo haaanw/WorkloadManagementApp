@@ -278,9 +278,8 @@ struct DashboardView: View {
 /// Recommendation-aware primary-action button shown directly under the hero readiness score.
 /// Label adapts to the existing AutoregulationEngine recommendation (no new engine/VM logic);
 /// the action ALWAYS presents ActiveWorkoutSheet — logging is never blocked regardless of label.
-/// DESIGN.md (Tuwa v2): accent is now the "live / actionable" semantic, so the primary CTA wears
-/// an accent outline (border, not a filled accent button) over the dominant text1 fill. 0pt
-/// corners, no shadow; tactile press via .pressable.
+/// DESIGN.md v3 (Accent Rule v3): the primary CTA is a FILLED accent pill (`Capsule()`, accent
+/// fill, light `surfaceEl2` label). No shadow; tactile press via .pressable.
 struct PrimaryActionCTA: View {
     let recommendation: AutoregulationEngine.TrainingRecommendation?
     let onTap: () -> Void
@@ -305,11 +304,10 @@ struct PrimaryActionCTA: View {
         } label: {
             Text(String(localized: labelKey))
                 .font(.Tokens.bodyMedium)
-                .foregroundStyle(ColorTokens.background)
+                .foregroundStyle(ColorTokens.surfaceEl2)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.sm)
-                .background(ColorTokens.text1)
-                .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 1))
+                .background(ColorTokens.accent, in: Capsule())
         }
         .buttonStyle(.pressable)
         .padding(.horizontal, Spacing.sm)
@@ -344,8 +342,11 @@ struct HeroReadinessCard: View {
                 .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: viewModel.hasRealData)
 
             if viewModel.hasRealData {
+                // Two-Voice Type Law (v3): the hero readiness score is one of the two serif
+                // display roles — Source Serif 4, accent, tabular numerals, -0.03em tracking.
                 Text("\(Int(displayedScore))")
-                    .font(.Tokens.heroScore)
+                    .font(.Tokens.displayScore)
+                    .tracking(Font.Tokens.Display.tracking(for: Font.Tokens.Display.scoreSize, em: Font.Tokens.Display.scoreTrackingEm))
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .foregroundStyle(ColorTokens.accent)
@@ -396,8 +397,9 @@ struct HeroReadinessCard: View {
             }
         }
         // The hero readiness score is THE emphasis surface on the dashboard: raised surfaceEl2
-        // plane + dividerStrong border + 2pt accent top rule.
-        .emphasisCardStyle()
+        // plane + dividerStrong border + 2pt accent top rule + the halftone signature (v3
+        // Halftone Law: hero plane ONLY — this is the single sanctioned instance per screen).
+        .emphasisCardStyle(halftoneSignature: true)
     }
 
     private func updateDisplayedScore(to score: Double) {

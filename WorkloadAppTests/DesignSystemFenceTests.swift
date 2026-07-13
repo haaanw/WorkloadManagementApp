@@ -139,7 +139,6 @@ final class DesignSystemFenceTests: XCTestCase {
     func test_structuralSpacingLiterals_areOnTheGrid() throws {
         // `spacing: N` and bare `.padding(N)` literals: values >= 4 must be multiples of 4
         // (the 8pt grid plus the sanctioned 4pt baselinePair; sub-4 optical kerning gaps pass).
-        // Directional `.padding(.edge, N)` literals are Stage-1 normalization scope.
         let patterns = [
             try NSRegularExpression(pattern: #"spacing:\s*(\d+)"#),
             try NSRegularExpression(pattern: #"\.padding\((\d+)\)"#)
@@ -154,6 +153,33 @@ final class DesignSystemFenceTests: XCTestCase {
                         XCTAssertEqual(
                             value % 4, 0,
                             "\(name) uses structural spacing literal \(value)pt — structural spacing must be a multiple of 4 (DESIGN.md v3 spacing grid)"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
+    func test_directionalPaddingLiterals_areOnTheGrid() throws {
+        // Stage 1 extension: directional `.padding(.edge, ...)` forms. Every INTEGER literal in
+        // the padding argument (including ternary branches like `? 16 : 10`) that is >= 4 must be
+        // a multiple of 4. Decimal literals (0.5 hairline offsets) are excluded via the
+        // dot-adjacency guards; token references (Spacing.*, CornerTokens.*) carry no digits.
+        let argumentPattern = try NSRegularExpression(pattern: #"\.padding\(\.[a-zA-Z]+,([^)]*)\)"#)
+        let integerLiteral = try NSRegularExpression(pattern: #"(?<![\d.])(\d+)(?![\d.])"#)
+        for (name, text) in try fencedSources(subdirectories: ["Views", "Components"]) {
+            let range = NSRange(text.startIndex..., in: text)
+            argumentPattern.enumerateMatches(in: text, range: range) { match, _, _ in
+                guard let match, let argRange = Range(match.range(at: 1), in: text) else { return }
+                let argument = String(text[argRange])
+                let argNSRange = NSRange(argument.startIndex..., in: argument)
+                integerLiteral.enumerateMatches(in: argument, range: argNSRange) { literal, _, _ in
+                    guard let literal, let valueRange = Range(literal.range(at: 1), in: argument),
+                          let value = Int(argument[valueRange]) else { return }
+                    if value >= 4 {
+                        XCTAssertEqual(
+                            value % 4, 0,
+                            "\(name) uses directional padding literal \(value)pt in `.padding(.edge, ...)` — structural spacing must be a multiple of 4 (DESIGN.md v3 spacing grid)"
                         )
                     }
                 }

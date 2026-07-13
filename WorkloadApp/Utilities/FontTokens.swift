@@ -79,8 +79,10 @@ extension Font {
         /// tracking/line-height are applied at the call site (SwiftUI `.tracking()` takes points —
         /// use `Display.tracking(for:em:)`).
         enum Display {
-            /// Hero readiness score point size (locked spec target ≈ 76–88pt; Stage 1 tunes on device).
-            static let scoreSize: CGFloat = 84
+            /// Hero readiness score point size (locked spec target ≈ 76–88pt; Stage-1-tuned on an
+            /// iPhone 17 Pro Max render 2026-07-14: 84 read modest at the hero card's real width —
+            /// 88 matches the C3 reference proportion).
+            static let scoreSize: CGFloat = 88
             /// Verdict headline point size (locked spec target ≈ 24–26pt).
             static let verdictSize: CGFloat = 25
             /// Hero score letter-spacing, in em (spec ≈ -0.03em).

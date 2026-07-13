@@ -30,6 +30,7 @@ struct REDSAttentionBanner: View {
                             .font(.Tokens.smallLabel)
                             .foregroundStyle(ColorTokens.text2)
                     }
+                    .buttonStyle(.pressable)
                     .accessibilityLabel(Text("cycle.reds.dismiss.a11y"))
                 }
 

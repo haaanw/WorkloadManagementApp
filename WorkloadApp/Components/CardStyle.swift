@@ -7,9 +7,10 @@ import UIKit
 /// these instead of hand-rolling background + overlay + animation per screen.
 ///
 /// Hard constraints (enforced here so call sites can't drift):
-/// - Corners come from `CornerTokens` only (DESIGN.md v3 "Ink & Grain": card 12pt /
-///   control 8pt / pill). Never a hand-typed radius literal. (Stage 1 applies the radii
-///   to these primitives; until then they render square.)
+/// - Corners come from `CornerTokens` only (DESIGN.md v3 "Ink & Grain"): grouped surfaces
+///   (plates, rails, cards) wear `CornerTokens.card`, controls (inputs, segments, icon
+///   buttons, toggles) wear `CornerTokens.control`, and CTAs/chips are `Capsule()` pills.
+///   Never a hand-typed radius literal.
 /// - No shadows — elevation is plane (surfaceEl / surfaceEl2) + 0.5pt divider border only.
 /// - Structural spacing on the 8pt grid, with a single 4pt `baselinePair` typography gap.
 /// - Motion goes through the `Motion` tokens — never a bare `withAnimation { }` (which falls
@@ -126,8 +127,8 @@ struct DataPlateStyle: ViewModifier {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
-            .background(ColorTokens.plate)
-            .overlay(Rectangle().stroke(ColorTokens.hairline, lineWidth: 0.5))
+            .background(ColorTokens.plate, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.hairline, lineWidth: 0.5))
     }
 }
 
@@ -169,8 +170,8 @@ struct MetricRail<Content: View>: View {
         .frame(maxWidth: .infinity)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm)
-        .background(ColorTokens.recessed)
-        .overlay(Rectangle().stroke(ColorTokens.hairline, lineWidth: 0.5))
+        .background(ColorTokens.recessed, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.hairline, lineWidth: 0.5))
     }
 }
 
@@ -254,8 +255,9 @@ struct DisclosureRow: View {
 // MARK: - Card
 
 /// The one reusable card container: `surfaceEl` fill + 0.5pt `divider` hairline border,
-/// 16pt horizontal / 24pt vertical padding, 0pt corners. Use for any grouped, elevated,
-/// or tappable container so it reads as a distinct plane lifted off the page.
+/// 16pt horizontal / 24pt vertical padding, `CornerTokens.card` corners (v3 Corner Law).
+/// Use for any grouped, elevated, or tappable container so it reads as a distinct plane
+/// lifted off the page.
 struct CardStyle: ViewModifier {
     var horizontalPadding: CGFloat = Spacing.sm
     var verticalPadding: CGFloat = Spacing.md
@@ -265,15 +267,15 @@ struct CardStyle: ViewModifier {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
-            .background(ColorTokens.surfaceEl)
+            .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
             .overlay(
-                Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5)
             )
     }
 }
 
 extension View {
-    /// Apply the standard card plane (`surfaceEl` + 0.5pt divider border, square corners).
+    /// Apply the standard card plane (`surfaceEl` + 0.5pt divider border, `CornerTokens.card` corners).
     func cardStyle(
         horizontalPadding: CGFloat = Spacing.sm,
         verticalPadding: CGFloat = Spacing.md
@@ -286,41 +288,60 @@ extension View {
 
 /// The emphasis card: the most important / active surface on a screen (hero readiness, a
 /// selected card). Uses the raised `surfaceEl2` plane + the stronger `dividerStrong` border +
-/// a 2pt accent top rule. 0pt corners, no shadow — same as `CardStyle`.
+/// a 2pt accent top rule. `CornerTokens.card` corners — the fill, accent rule, and (optional)
+/// halftone are clipped by the card shape; the hairline strokes the same rounded shape.
+/// No shadow — same as `CardStyle`.
 struct EmphasisCardStyle: ViewModifier {
     var horizontalPadding: CGFloat = Spacing.sm
     var verticalPadding: CGFloat = Spacing.md
     var accentRule: Bool = true
+    /// The one sanctioned texture (DESIGN.md v3 Halftone Law): the accent dot signature,
+    /// ≈130×130pt anchored top-trailing, behind content, clipped by the card shape.
+    /// HERO PLANE ONLY — enable exclusively on the hero readiness card, never elsewhere;
+    /// at most one halftone surface per screen (fenced).
+    var halftoneSignature: Bool = false
 
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
-            .background(ColorTokens.surfaceEl2)
-            .overlay(Rectangle().stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
-            .overlay(alignment: .top) {
-                if accentRule {
-                    Rectangle()
-                        .fill(ColorTokens.accent)
-                        .frame(height: 2)
-                        .accessibilityHidden(true)
+            .background {
+                ZStack(alignment: .top) {
+                    ColorTokens.surfaceEl2
+                    if halftoneSignature {
+                        HalftoneField()
+                            .frame(width: 130, height: 130)
+                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    }
+                    if accentRule {
+                        Rectangle()
+                            .fill(ColorTokens.accent)
+                            .frame(height: 2)
+                            .accessibilityHidden(true)
+                    }
                 }
+                .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
             }
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
     }
 }
 
 extension View {
     /// Apply the emphasis card plane (`surfaceEl2` + `dividerStrong` border + 2pt accent top rule).
+    /// `halftoneSignature` is HERO-PLANE-ONLY per the v3 Halftone Law — pass `true` exclusively
+    /// from the hero readiness card.
     func emphasisCardStyle(
         horizontalPadding: CGFloat = Spacing.sm,
         verticalPadding: CGFloat = Spacing.md,
-        accentRule: Bool = true
+        accentRule: Bool = true,
+        halftoneSignature: Bool = false
     ) -> some View {
         modifier(EmphasisCardStyle(
             horizontalPadding: horizontalPadding,
             verticalPadding: verticalPadding,
-            accentRule: accentRule
+            accentRule: accentRule,
+            halftoneSignature: halftoneSignature
         ))
     }
 }
@@ -381,9 +402,8 @@ struct RowSeparator: View {
 // MARK: - Toggle style (neutral — no Apple green)
 
 /// A deliberately neutral toggle. The default system `Toggle` paints its "on" track Apple
-/// green, which violates the accent-only rule (accent lives only on the hero score). This
-/// style uses `--text-1` for the on-track and `--surface` for off, with a square 0pt knob —
-/// consistent with the instrument aesthetic.
+/// green, which violates the accent rule. This style uses `--text-1` for the on-track and
+/// `--surface` for off; track and knob wear `CornerTokens.control` per the v3 Corner Law.
 struct DesignToggleStyle: ToggleStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -392,11 +412,11 @@ struct DesignToggleStyle: ToggleStyle {
             configuration.isOn.toggle()
         } label: {
             ZStack(alignment: configuration.isOn ? .trailing : .leading) {
-                Rectangle()
+                RoundedRectangle(cornerRadius: CornerTokens.control)
                     .fill(configuration.isOn ? ColorTokens.text1 : ColorTokens.surface)
                     .frame(width: 48, height: 32)
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
-                Rectangle()
+                    .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
+                RoundedRectangle(cornerRadius: CornerTokens.control)
                     .fill(configuration.isOn ? ColorTokens.background : ColorTokens.text2)
                     .frame(width: 24, height: 24)
                     .padding(Spacing.baselinePair)
@@ -415,6 +435,8 @@ extension ToggleStyle where Self == DesignToggleStyle {
 
 // MARK: - Controls
 
+/// Primary CTA — Accent Rule v3: a FILLED accent pill (`Capsule()`, accent fill, light
+/// `surfaceEl2` label). This supersedes the v2 outline-only CTA treatment.
 struct PrimaryActionButton: View {
     let title: LocalizedStringKey
     var isLoading: Bool = false
@@ -429,16 +451,15 @@ struct PrimaryActionButton: View {
             HStack(spacing: Spacing.xs) {
                 if isLoading {
                     ProgressView()
-                        .tint(ColorTokens.textPrimary)
+                        .tint(ColorTokens.surfaceEl2)
                 }
                 Text(title)
                     .font(.Tokens.bodyMedium)
             }
-            .foregroundStyle(ColorTokens.textPrimary)
+            .foregroundStyle(ColorTokens.surfaceEl2)
             .frame(maxWidth: .infinity, minHeight: 44)
             .padding(.horizontal, Spacing.sm)
-            .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 1))
-            .background(ColorTokens.control)
+            .background(ColorTokens.accent, in: Capsule())
         }
         .buttonStyle(.pressable)
         .disabled(isDisabled || isLoading)
@@ -446,6 +467,7 @@ struct PrimaryActionButton: View {
     }
 }
 
+/// Secondary CTA — an OUTLINED pill (hairline stroke, control fill); never accent-filled.
 struct SecondaryActionButton: View {
     let title: LocalizedStringKey
     var isDisabled: Bool = false
@@ -461,8 +483,8 @@ struct SecondaryActionButton: View {
                 .foregroundStyle(ColorTokens.textPrimary)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .padding(.horizontal, Spacing.sm)
-                .overlay(Rectangle().stroke(ColorTokens.hairline, lineWidth: 0.5))
-                .background(ColorTokens.control)
+                .background(ColorTokens.control, in: Capsule())
+                .overlay(Capsule().stroke(ColorTokens.hairline, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
         .disabled(isDisabled)
@@ -504,8 +526,8 @@ struct IconButton: View {
                 .font(.Tokens.body)
                 .foregroundStyle(isSelected ? ColorTokens.textPrimary : ColorTokens.textSecondary)
                 .frame(width: 44, height: 44)
-                .background(isSelected ? ColorTokens.active : ColorTokens.control)
-                .overlay(Rectangle().stroke(isSelected ? ColorTokens.hairlineStrong : ColorTokens.hairline, lineWidth: 0.5))
+                .background(isSelected ? ColorTokens.active : ColorTokens.control, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(isSelected ? ColorTokens.hairlineStrong : ColorTokens.hairline, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
         .accessibilityLabel(accessibilityLabel)
@@ -531,7 +553,8 @@ struct InstrumentSegmentedControl<Option: Hashable>: View {
         }
         .frame(minHeight: 44)
         .background(ColorTokens.control)
-        .overlay(Rectangle().stroke(ColorTokens.hairline, lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.hairline, lineWidth: 0.5))
     }
 
     private func segment(_ option: Option) -> some View {
@@ -586,8 +609,8 @@ struct InstrumentTextField: View {
                 .foregroundStyle(ColorTokens.textPrimary)
                 .padding(.horizontal, Spacing.sm)
                 .frame(minHeight: 44)
-                .background(ColorTokens.control)
-                .overlay(Rectangle().stroke(isError ? ColorTokens.statusCritical : ColorTokens.hairline, lineWidth: 0.5))
+                .background(ColorTokens.control, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(isError ? ColorTokens.statusCritical : ColorTokens.hairline, lineWidth: 0.5))
         }
     }
 }
@@ -603,7 +626,7 @@ struct StatusBadge: View {
             .foregroundStyle(color)
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
-            .overlay(Rectangle().stroke(color, lineWidth: 0.5))
+            .overlay(Capsule().stroke(color, lineWidth: 0.5))
     }
 }
 
