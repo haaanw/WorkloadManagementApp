@@ -103,8 +103,17 @@ final class RadialPickerInteractionTests: XCTestCase {
         // Tuwa v2 (2026-06-17): ColorTokens.accent removed from the forbidden set — the accent rule
         // relaxed to the "live / active" semantic, and RadialPicker uses it for the active selection
         // (selected icon/label + highlighted ring chip), a sanctioned use per DESIGN.md.
-        for forbidden in ["RoundedRectangle", ".shadow(", ".system("] {
+        // Tuwa v3 (2026-07-14, Ink & Grain): `RoundedRectangle` removed from the forbidden set —
+        // the 0pt corner law is retired. Corners are legal, but ONLY via CornerTokens (Corner Law):
+        // any radius usage in this file must reference CornerTokens.
+        for forbidden in [".shadow(", ".system("] {
             XCTAssertFalse(text.contains(forbidden), "RadialPicker.swift must not contain \(forbidden)")
+        }
+        if text.contains("RoundedRectangle(cornerRadius:") || text.contains(".cornerRadius(") {
+            XCTAssertTrue(
+                text.contains("CornerTokens"),
+                "RadialPicker.swift uses a corner radius without CornerTokens — hand-typed radii are banned (DESIGN.md v3 Corner Law)"
+            )
         }
     }
 }

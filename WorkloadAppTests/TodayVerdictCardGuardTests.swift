@@ -29,11 +29,13 @@ final class TodayVerdictCardGuardTests: XCTestCase {
 
     // MARK: - DESIGN fence
 
+    // Tuwa v3 (2026-07-14, Ink & Grain): `RoundedRectangle` and `.cornerRadius` removed from the
+    // banned set — the 0pt corner law is retired. Corners are now legal on the card, but ONLY via
+    // CornerTokens (card 12 / control 8 / pill); a hand-typed radius literal stays a fence failure.
+    // The nocebo guard (no alarm colors on the verdict state) is unchanged.
     func test_card_designFence_noBannedTokens() throws {
         let source = try cardSource()
         let banned = [
-            "RoundedRectangle",
-            ".cornerRadius",
             ".shadow",
             ".system(",
             ".zoneDanger",
@@ -44,6 +46,17 @@ final class TodayVerdictCardGuardTests: XCTestCase {
             XCTAssertFalse(
                 source.contains(token),
                 "TodayVerdictCard.swift must not contain DESIGN-banned token '\(token)'"
+            )
+        }
+    }
+
+    // Tuwa v3 Corner Law: any radius the card draws must come from CornerTokens.
+    func test_card_cornerRadii_onlyViaCornerTokens() throws {
+        let source = try cardSource()
+        if source.contains("RoundedRectangle(cornerRadius:") || source.contains(".cornerRadius(") {
+            XCTAssertTrue(
+                source.contains("CornerTokens"),
+                "TodayVerdictCard.swift uses a corner radius without CornerTokens — hand-typed radii are banned (DESIGN.md v3 Corner Law)"
             )
         }
     }

@@ -7,7 +7,9 @@ import UIKit
 /// these instead of hand-rolling background + overlay + animation per screen.
 ///
 /// Hard constraints (enforced here so call sites can't drift):
-/// - 0pt corners — Rectangle only, never RoundedRectangle.
+/// - Corners come from `CornerTokens` only (DESIGN.md v3 "Ink & Grain": card 12pt /
+///   control 8pt / pill). Never a hand-typed radius literal. (Stage 1 applies the radii
+///   to these primitives; until then they render square.)
 /// - No shadows — elevation is plane (surfaceEl / surfaceEl2) + 0.5pt divider border only.
 /// - Structural spacing on the 8pt grid, with a single 4pt `baselinePair` typography gap.
 /// - Motion goes through the `Motion` tokens — never a bare `withAnimation { }` (which falls
@@ -36,15 +38,9 @@ enum Spacing {
 }
 
 // MARK: - Geometry roles
-
-enum GeometryTokens {
-    /// Structural data plates stay square under the current DESIGN.md contract.
-    static let structural: CGFloat = 0
-    /// Controls stay square until the design system explicitly approves nonzero radius.
-    static let control: CGFloat = 0
-    /// Hero surfaces stay square until the design system explicitly approves nonzero radius.
-    static let hero: CGFloat = 0
-}
+// The corner-radius scale lives in `CornerTokens` (Utilities/CornerTokens.swift) as of
+// DESIGN.md v3 "Ink & Grain" (2026-07-14). The old zero-valued `GeometryTokens` enum
+// (never referenced) was removed with the 0pt law it encoded.
 
 // MARK: - Motion scale (DESIGN.md Motion — "more life" revision 2026-06-17)
 

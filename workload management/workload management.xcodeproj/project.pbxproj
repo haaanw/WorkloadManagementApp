@@ -125,6 +125,9 @@
 		62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */; };
 		2303010100000000000000B1 /* NotoSansSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2303010100000000000000B2 /* NotoSansSC-Regular.otf */; };
 		2303020100000000000000B1 /* NotoSansSC-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2303020100000000000000B2 /* NotoSansSC-Medium.otf */; };
+		2307010100000000000000B1 /* SourceSerif4-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2307010100000000000000B2 /* SourceSerif4-Variable.ttf */; };
+		2307020100000000000000B1 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
+		2307030100000000000000B1 /* HalftoneField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307030100000000000000B2 /* HalftoneField.swift */; };
 		62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB72F71849300B6135F /* HRVDetailView.swift */; };
 		62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB82F71849300B6135F /* SleepDetailView.swift */; };
 		62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CC02F72716500B6135F /* SupabaseConfig.swift */; };
@@ -331,6 +334,10 @@
 		2303010100000000000000B2 /* NotoSansSC-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Regular.otf"; sourceTree = "<group>"; };
 		2303020100000000000000B2 /* NotoSansSC-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Medium.otf"; sourceTree = "<group>"; };
 		2303030100000000000000B2 /* NotoSansSC-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NotoSansSC-LICENSE.txt"; sourceTree = "<group>"; };
+		2307010100000000000000B2 /* SourceSerif4-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "SourceSerif4-Variable.ttf"; sourceTree = "<group>"; };
+		2307040100000000000000B2 /* SourceSerif4-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SourceSerif4-LICENSE.txt"; sourceTree = "<group>"; };
+		2307020100000000000000B2 /* CornerTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerTokens.swift; sourceTree = "<group>"; };
+		2307030100000000000000B2 /* HalftoneField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalftoneField.swift; sourceTree = "<group>"; };
 		62F32CA22F71692C00B6135F /* WorkloadAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkloadAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		62F32CB72F71849300B6135F /* HRVDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailView.swift; sourceTree = "<group>"; };
 		62F32CB82F71849300B6135F /* SleepDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailView.swift; sourceTree = "<group>"; };
@@ -482,6 +489,7 @@
 				AB20000000000000000000A1 /* WeightBlockPicker.swift */,
 				AB20000000000000000000A2 /* RepScrubber.swift */,
 				CD0501010000000000000002 /* CardStyle.swift */,
+				2307030100000000000000B2 /* HalftoneField.swift */,
 				CD0601010000000000000002 /* SetStepper.swift */,
 			CD0701010000000000000002 /* PRBanner.swift */,
 				62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */,
@@ -571,6 +579,8 @@
 				2303010100000000000000B2 /* NotoSansSC-Regular.otf */,
 				2303020100000000000000B2 /* NotoSansSC-Medium.otf */,
 				2303030100000000000000B2 /* NotoSansSC-LICENSE.txt */,
+				2307010100000000000000B2 /* SourceSerif4-Variable.ttf */,
+				2307040100000000000000B2 /* SourceSerif4-LICENSE.txt */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -643,6 +653,7 @@
 				627EC19B2F76917500B89262 /* MockDataSeeder.swift */,
 				62F32C962F7167E000B6135F /* FontTokens.swift */,
 				62324C042F66CB0E00A9C2BE /* ColorTokens.swift */,
+				2307020100000000000000B2 /* CornerTokens.swift */,
 				62324C052F66CB0E00A9C2BE /* DateHelpers.swift */,
 				62324C062F66CB0E00A9C2BE /* WeightFormatter.swift */,
 				AB10000000000000000000A1 /* SetSuggestion.swift */,
@@ -959,6 +970,7 @@
 				62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */,
 				2303010100000000000000B1 /* NotoSansSC-Regular.otf in Resources */,
 				2303020100000000000000B1 /* NotoSansSC-Medium.otf in Resources */,
+				2307010100000000000000B1 /* SourceSerif4-Variable.ttf in Resources */,
 				62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */,
 				2301030100000000000000A1 /* Localizable.xcstrings in Resources */,
 				2301040100000000000000A1 /* InfoPlist.xcstrings in Resources */,
@@ -1053,6 +1065,8 @@
 				EE2805020000000000000001 /* PRSDualRunCard.swift in Sources */,
 				62324C372F66CB0E00A9C2BE /* RecoveryPipeline.swift in Sources */,
 				62F32C972F7167E000B6135F /* FontTokens.swift in Sources */,
+				2307020100000000000000B1 /* CornerTokens.swift in Sources */,
+				2307030100000000000000B1 /* HalftoneField.swift in Sources */,
 				62324C382F66CB0E00A9C2BE /* HRVTrendChart.swift in Sources */,
 				62324C392F66CB0E00A9C2BE /* AthleteRepository.swift in Sources */,
 				62324C3A2F66CB0E00A9C2BE /* AppContainer.swift in Sources */,

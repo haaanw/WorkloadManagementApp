@@ -74,14 +74,15 @@ Always read `DESIGN.md` before making any visual or UI decisions.
 All font choices, colors, spacing, and aesthetic direction are defined there.
 Do not deviate from the design system without explicit user approval.
 
-Key constraints to enforce:
-- **0pt border radius everywhere** — use `Rectangle()`, never `RoundedRectangle`
-- **No shadows** — remove any `.shadow()` modifiers; use hairline borders instead
-- **Accent color (`ColorTokens.accent`) appears only on the hero readiness score number** — nowhere else
-- **General Sans Regular + Medium only** — bundle `GeneralSans-Variable.ttf`; use `Font.Tokens.*`, never `.system()` or semantic styles
-- **All spacing must be multiples of 8pt** — no magic numbers
+Key constraints to enforce (DESIGN.md v3 "Ink & Grain", 2026-07-14):
+- **Corners come from `CornerTokens` only** — card 12pt / control 8pt / pill (`Capsule()`); the old 0pt-everywhere rule is retired; never a hand-typed radius literal
+- **No shadows** — remove any `.shadow()` modifiers; elevation is plane + hairline borders
+- **Two-voice type law** — General Sans (Regular + Medium) everywhere via `Font.Tokens.*`; Source Serif 4 ONLY via `Font.Tokens.displayScore` / `.displayVerdict` (hero readiness score + verdict headline, app-authored strings only, never user content); never `.system()` or semantic styles
+- **Accent Rule v3 (`ColorTokens.accent`)** — hero readiness score, verdict CTA fill (pill), the halftone signature, and v2 live-state semantics (progress fills, active/selected, emphasis top rule); never decorative
+- **Halftone texture only via `HalftoneField`** — hero plane only, at most one per screen
+- **All spacing must be multiples of 8pt** — no magic numbers (4pt only as the sanctioned `baselinePair` micro-gap)
 - **Zone states communicated through text labels + optional colored border** — never color alone
-- **Both dark and light mode supported** via `ColorTokens` semantic tokens; never hardcode hex values in views
+- **Light-only appearance** via `ColorTokens` semantic tokens; never hardcode hex values in views; no dark-mode branches
 - In QA mode, flag any code that deviates from DESIGN.md
 
 <!-- GSD:project-start source:PROJECT.md -->
@@ -101,7 +102,7 @@ Key constraints to enforce:
 - **HealthKit**: Read-only access, raw data must never leave device (only composite scores sync)
 - **Subscriptions**: RevenueCat handles StoreKit; API keys gitignored
 - **Backend**: Supabase PostgreSQL with RLS; no local fallback for sync
-- **Design**: Must follow DESIGN.md — 0pt corners, no shadows, General Sans, 8pt grid
+- **Design**: Must follow DESIGN.md v3 "Ink & Grain" — CornerTokens (card 12 / control 8 / pill), no shadows, two-voice type (General Sans + Source Serif 4 display-only), 8pt grid, halftone on hero plane only
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:codebase/STACK.md -->
@@ -261,10 +262,10 @@ Key constraints to enforce:
 - Example from LoginView: `@State private var email = ""`
 - All colors via `ColorTokens` enum (never hardcoded hex)
 - Semantic properties: `ColorTokens.text1`, `ColorTokens.zoneDanger`, `ColorTokens.accent`
-- Supports dark/light mode automatically
-- Custom fonts only: `Font.Tokens.*` (backed by General Sans Variable)
+- Light-only appearance (ColorTokens forces light; no dark-mode branches)
+- Custom fonts only: `Font.Tokens.*` (General Sans Variable instrument voice + Source Serif 4 display voice)
 - No system fonts (`.system()`, `.headline`, etc.)
-- Font set: General Sans Regular + Medium only (via variable font weight axis)
+- Font set: General Sans Regular + Medium everywhere; Source Serif 4 (400) only for `displayScore` / `displayVerdict` (DESIGN.md v3 Two-Voice Type Law)
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->
