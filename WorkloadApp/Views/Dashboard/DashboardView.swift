@@ -38,6 +38,18 @@ struct DashboardView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+                    // 0. Editorial screen header (Stage 4a) — the visible title lives in the
+                    //    content, not the stock nav bar; the log action rides its baseline.
+                    ScreenHeader(title: "dashboard.nav.title") {
+                        Button("dashboard.action.logWorkout") {
+                            Haptics.tap()
+                            showActiveWorkout = true
+                        }
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text1)
+                        .buttonStyle(.pressable)
+                    }
+
                     // 1. Hero readiness — score + recommendation headline in its footer (recommendation stays "up top").
                     HeroReadinessCard(viewModel: viewModel)
                         .padding(.horizontal, Spacing.sm)
@@ -220,25 +232,14 @@ struct DashboardView: View {
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.hasRealData)
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.isLoading)
             }
-            // Editorial rhythm (Stage 3): generous breathing room under the nav before the hero.
+            // Editorial rhythm (Stage 3): generous breathing room under the status bar
+            // before the header. Stage 4a: the stock nav bar is hidden on this root — the
+            // title is the in-content ScreenHeader; pushed detail screens keep their own
+            // nav bars (and back buttons) untouched.
             .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
-            .navigationTitle("dashboard.nav.title")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(ColorTokens.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("dashboard.action.logWorkout") {
-                        Haptics.tap()
-                        showActiveWorkout = true
-                    }
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text1)
-                    .buttonStyle(.pressable)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet()
             }

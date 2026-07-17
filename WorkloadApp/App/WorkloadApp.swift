@@ -86,6 +86,7 @@ struct WorkloadApp: App {
                 TemplateSet.self,
                 PrescribedWorkout.self,
                 CustomExercise.self,
+                ExerciseOverride.self,
                 BehaviorTag.self,
                 TrainingProfile.self,
             ])

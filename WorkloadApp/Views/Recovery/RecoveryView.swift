@@ -37,6 +37,9 @@ struct RecoveryView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+                    // Editorial screen header (Stage 4a) — in-content title, not stock nav chrome.
+                    ScreenHeader(title: "recovery.nav.title")
+
                     if todayCheckIn == nil {
                         MorningCheckInPrompt {
                             showMorningCheckIn = true
@@ -153,9 +156,7 @@ struct RecoveryView: View {
             .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
-            .navigationTitle("recovery.nav.title")
-            .toolbarBackground(ColorTokens.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showMorningCheckIn) {
                 MorningCheckInSheet(onSaved: {
                     Task { await onCheckInSaved() }

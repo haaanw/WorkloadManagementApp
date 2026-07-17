@@ -1,6 +1,35 @@
 import SwiftUI
 import SwiftData
 
+/// Case + diacritic folding matching `ExerciseCatalogStore`'s normalization, so
+/// picker-side name matching agrees with the catalog index.
+private func fold(_ string: String) -> String {
+    string.folding(
+        options: [.caseInsensitive, .diacriticInsensitive],
+        locale: Locale(identifier: "en_US_POSIX")
+    )
+}
+
+/// Precomputed display state for the picker list — built in ONE place
+/// (`recompute()`, debounced off query + filters), never per-row.
+private struct PickerSections: Equatable {
+    /// Distinct recent exercise names resolved to definitions (browse mode).
+    var recent: [ExerciseDefinition] = []
+    /// The athlete's custom exercises (browse mode).
+    var custom: [ExerciseDefinition] = []
+    /// The full (facet-filtered) pool minus customs (browse mode).
+    var catalog: [ExerciseDefinition] = []
+    /// Ranked search results (search mode).
+    var results: [ExerciseDefinition] = []
+    var isSearching = false
+    /// An exercise with exactly the queried name already exists (suppresses instant-add).
+    var hasExactNameMatch = false
+    /// Regions present in the pool; empty when the facet should hide (≤1 region).
+    var availableRegions: [MuscleRegion] = []
+    /// Equipment facets; empty when the pool carries no equipment metadata.
+    var availableEquipment: [String] = []
+}
+
 struct ExercisePickerView: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -8,183 +37,74 @@ struct ExercisePickerView: View {
     @Environment(AppContainer.self) private var container
     @Query private var customExercises: [CustomExercise]
     @Query private var athletes: [Athlete]
+    @Query private var overrides: [ExerciseOverride]
     @State private var searchText = ""
-    @State private var selectedCategory: ExerciseCategory?
+    @State private var selectedRegion: MuscleRegion?
+    @State private var selectedEquipment: String?
     @State private var showAddCustom = false
     @State private var showUpgrade = false
-    @State private var hasSearched = false
+    @State private var detailExercise: ExerciseDefinition?
+    @State private var recentNames: [String] = []
+    @State private var sections = PickerSections()
+    @State private var appliedQuery = ""
 
     // TODO: revisit cap for commercial tiers.
 
     let sportType: SportType
     let onSelect: (String, ExerciseCategory, MuscleGroup?) -> Void
 
-    private var allExercises: [ExerciseDefinition] {
-        var results = ExerciseDatabase.exercises(for: sportType)
-        results.append(contentsOf: customExercises
-            .filter { $0.sportType == nil || $0.sportType == sportType }
-            .map {
-                ExerciseDefinition(
-                    name: $0.name,
-                    category: $0.exerciseCategory,
-                    muscleGroup: $0.muscleGroup,
-                    isCustom: true
-                )
-            })
-        return results
-    }
-
-    private var filteredExercises: [ExerciseDefinition] {
-        var results = allExercises
-        if let selectedCategory {
-            results = results.filter { $0.category == selectedCategory }
-        }
-        if !searchText.isEmpty {
-            results = results.filter { $0.name.localizedCaseInsensitiveContains(searchText) }
-        }
-        return results
+    /// Public API frozen: all call sites use exactly this shape.
+    init(
+        sportType: SportType,
+        onSelect: @escaping (String, ExerciseCategory, MuscleGroup?) -> Void
+    ) {
+        self.sportType = sportType
+        self.onSelect = onSelect
     }
 
     private var trimmedSearchText: String {
         searchText.trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private var shouldOfferInstantAdd: Bool {
-        guard !trimmedSearchText.isEmpty else { return false }
-        return !allExercises.contains {
-            $0.name.compare(
-                trimmedSearchText,
-                options: [.caseInsensitive, .diacriticInsensitive]
-            ) == .orderedSame
-        }
+    /// Everything the section computation depends on. Driving `.task(id:)` off
+    /// this value gives debounce-with-cancellation on typing and instant
+    /// recomputes on filter taps / custom-exercise or override changes.
+    private struct RecomputeKey: Hashable {
+        let query: String
+        let region: MuscleRegion?
+        let equipment: String?
+        let customCount: Int
+        let overrideCount: Int
+        let recentCount: Int
     }
 
-    private var relevantCategories: [ExerciseCategory] {
-        let categories = Set(allExercises.map(\.category))
-        return ExerciseCategory.allCases.filter { categories.contains($0) }
+    private var recomputeKey: RecomputeKey {
+        RecomputeKey(
+            query: trimmedSearchText,
+            region: selectedRegion,
+            equipment: selectedEquipment,
+            customCount: customExercises.count,
+            overrideCount: overrides.count,
+            recentCount: recentNames.count
+        )
     }
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                ScrollView(.horizontal, showsIndicators: false) {
-                    HStack(spacing: Spacing.xs) {
-                        FilterChip(
-                            label: String(localized: "filter.all", defaultValue: "All"),
-                            isSelected: selectedCategory == nil
-                        ) {
-                            selectedCategory = nil
-                        }
-                        ForEach(relevantCategories) { category in
-                            FilterChip(
-                                label: category.displayName,
-                                isSelected: selectedCategory == category
-                            ) {
-                                selectedCategory = category
-                            }
-                        }
-                    }
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, Spacing.xs)
-                    .animation(
-                        Motion.resolved(Motion.state, reduceMotion: reduceMotion),
-                        value: selectedCategory
-                    )
+                if !sections.availableRegions.isEmpty || !sections.availableEquipment.isEmpty {
+                    filterBar
+                    Rectangle()
+                        .fill(ColorTokens.divider)
+                        .frame(height: 0.5)
                 }
 
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
-
-                List {
-                    if shouldOfferInstantAdd {
-                        Button {
-                            instantlyAddSearchText()
-                        } label: {
-                            HStack(spacing: Spacing.sm) {
-                                Image(systemName: "plus")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Text(
-                                    String(
-                                        format: String(
-                                            localized: "exercise.action.addQuery",
-                                            defaultValue: "Add “%@”"
-                                        ),
-                                        trimmedSearchText
-                                    )
-                                )
-                                .font(.Tokens.bodyMedium)
-                                .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                            }
-                            .padding(.vertical, Spacing.xs)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.pressable)
-                        .listRowBackground(ColorTokens.surfaceEl2)
-                        .transition(.opacity)
-                        .entranceReveal(index: 0, enabled: !hasSearched)
-                    }
-
-                    ForEach(Array(filteredExercises.enumerated()), id: \.element.name) { index, exercise in
-                        Button {
-                            Haptics.select()
-                            onSelect(exercise.name, exercise.category, exercise.muscleGroup)
-                            dismiss()
-                        } label: {
-                            HStack {
-                                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-                                    Text(exercise.name)
-                                        .font(.Tokens.body)
-                                        .foregroundStyle(ColorTokens.text1)
-                                    HStack {
-                                        Text(exercise.category.displayName)
-                                        if let muscle = exercise.muscleGroup {
-                                            Text("·")
-                                            Text(muscle.displayName)
-                                        }
-                                        if exercise.isCustom {
-                                            Text("·")
-                                            Text("sport.custom")
-                                        }
-                                    }
-                                    .font(.Tokens.label)
-                                    .foregroundStyle(ColorTokens.text2)
-                                }
-                                Spacer()
-                            }
-                        }
-                        .foregroundStyle(ColorTokens.text1)
-                        .buttonStyle(.pressable)
-                        .entranceReveal(index: index + 1, enabled: !hasSearched)
-                        .swipeActions(edge: .trailing) {
-                            if exercise.isCustom {
-                                Button(role: .destructive) {
-                                    deleteCustomExercise(named: exercise.name)
-                                } label: {
-                                    Label("action.delete", systemImage: "trash")
-                                }
-                            }
-                        }
-                    }
-
-                    if filteredExercises.isEmpty && !shouldOfferInstantAdd {
-                        Text("empty.noExercises")
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text2)
-                            .transition(.opacity)
-                    }
-                }
-                .listStyle(.plain)
+                exerciseList
             }
             .background(ColorTokens.background)
             .navigationTitle("exercise.nav.select")
             .navigationBarTitleDisplayMode(.inline)
             .searchable(text: $searchText, prompt: "exercise.search.prompt")
-            .onChange(of: searchText) { _, _ in
-                hasSearched = true
-            }
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { dismiss() }
@@ -208,7 +128,393 @@ struct ExercisePickerView: View {
                 UpgradeSheet(trigger: .athletePro)
                     .environment(container)
             }
+            .sheet(item: $detailExercise) { exercise in
+                ExerciseDetailSheet(exercise: exercise) {
+                    Haptics.select()
+                    onSelect(exercise.name, exercise.category, exercise.muscleGroup)
+                    detailExercise = nil
+                    dismiss()
+                }
+            }
+            .task { loadRecentNames() }
+            .task(id: recomputeKey) { await recompute() }
         }
+    }
+
+    // MARK: - Filter bar (region chips + equipment menu)
+
+    private var filterBar: some View {
+        HStack(spacing: Spacing.xs) {
+            if !sections.availableRegions.isEmpty {
+                ScrollView(.horizontal, showsIndicators: false) {
+                    HStack(spacing: Spacing.xs) {
+                        FilterChip(
+                            label: String(localized: "filter.all", defaultValue: "All"),
+                            isSelected: selectedRegion == nil
+                        ) {
+                            selectedRegion = nil
+                        }
+                        ForEach(sections.availableRegions) { region in
+                            FilterChip(
+                                label: region.displayName,
+                                isSelected: selectedRegion == region
+                            ) {
+                                selectedRegion = region
+                            }
+                        }
+                    }
+                    .padding(.vertical, Spacing.xs)
+                    .animation(
+                        Motion.resolved(Motion.state, reduceMotion: reduceMotion),
+                        value: selectedRegion
+                    )
+                }
+            } else {
+                Spacer(minLength: 0)
+            }
+            if !sections.availableEquipment.isEmpty {
+                equipmentMenu
+            }
+        }
+        .padding(.horizontal, Spacing.sm)
+    }
+
+    /// Compact equipment facet: a `Menu` over the store's frequency-ordered
+    /// facets with a checkmark on the active pick — deliberately not a second
+    /// chip row (28 values). Active filter wears accent per the live/selected
+    /// accent semantic.
+    private var equipmentMenu: some View {
+        Menu {
+            Button {
+                Haptics.select()
+                selectedEquipment = nil
+            } label: {
+                if selectedEquipment == nil {
+                    Label(
+                        String(localized: "exercise.filter.anyEquipment", defaultValue: "Any Equipment"),
+                        systemImage: "checkmark"
+                    )
+                } else {
+                    Text(String(localized: "exercise.filter.anyEquipment", defaultValue: "Any Equipment"))
+                }
+            }
+            Divider()
+            ForEach(sections.availableEquipment, id: \.self) { equipment in
+                Button {
+                    Haptics.select()
+                    selectedEquipment = equipment
+                } label: {
+                    if selectedEquipment == equipment {
+                        Label(equipment.capitalized, systemImage: "checkmark")
+                    } else {
+                        Text(equipment.capitalized)
+                    }
+                }
+            }
+        } label: {
+            HStack(spacing: Spacing.xs) {
+                Text(
+                    selectedEquipment?.capitalized
+                        ?? String(localized: "exercise.filter.equipment", defaultValue: "Equipment")
+                )
+                .font(.Tokens.label)
+                .lineLimit(1)
+                Image(systemName: "chevron.up.chevron.down")
+                    .font(.Tokens.micro)
+            }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .foregroundStyle(selectedEquipment != nil ? ColorTokens.accent : ColorTokens.text2)
+            .background(
+                selectedEquipment != nil ? ColorTokens.accentSubtle : ColorTokens.background,
+                in: Capsule()
+            )
+            .overlay(
+                Capsule().stroke(
+                    selectedEquipment != nil ? ColorTokens.accent : ColorTokens.divider,
+                    lineWidth: 0.5
+                )
+            )
+        }
+    }
+
+    // MARK: - List
+
+    private var exerciseList: some View {
+        List {
+            if sections.isSearching {
+                if !sections.hasExactNameMatch && !trimmedSearchText.isEmpty {
+                    instantAddRow
+                }
+                ForEach(sections.results) { exercise in
+                    exerciseRow(exercise)
+                }
+                if sections.results.isEmpty && sections.hasExactNameMatch {
+                    emptyRow
+                }
+            } else {
+                if !sections.recent.isEmpty {
+                    headerRow("exercise.section.recent")
+                    ForEach(sections.recent) { exercise in
+                        exerciseRow(exercise)
+                    }
+                }
+                if !sections.custom.isEmpty {
+                    headerRow("exercise.section.yours")
+                    ForEach(sections.custom) { exercise in
+                        exerciseRow(exercise)
+                    }
+                }
+                if !sections.catalog.isEmpty {
+                    if !sections.recent.isEmpty || !sections.custom.isEmpty {
+                        headerRow("exercise.section.all")
+                    }
+                    ForEach(sections.catalog) { exercise in
+                        exerciseRow(exercise)
+                    }
+                } else if sections.custom.isEmpty && sections.recent.isEmpty {
+                    emptyRow
+                }
+            }
+        }
+        .listStyle(.plain)
+    }
+
+    /// Non-sticky in-list section header (19pt Medium per the separator grammar).
+    private func headerRow(_ key: LocalizedStringKey) -> some View {
+        Text(key)
+            .font(.Tokens.sectionHead)
+            .foregroundStyle(ColorTokens.text1)
+            .padding(.top, Spacing.sm)
+            .listRowSeparator(.hidden)
+    }
+
+    private var instantAddRow: some View {
+        Button {
+            instantlyAddSearchText()
+        } label: {
+            HStack(spacing: Spacing.sm) {
+                Image(systemName: "plus")
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text1)
+                Text(
+                    String(
+                        format: String(
+                            localized: "exercise.action.addQuery",
+                            defaultValue: "Add “%@”"
+                        ),
+                        trimmedSearchText
+                    )
+                )
+                .font(.Tokens.bodyMedium)
+                .foregroundStyle(ColorTokens.text1)
+                Spacer()
+            }
+            .padding(.vertical, Spacing.xs)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable)
+        .listRowBackground(ColorTokens.surfaceEl2)
+    }
+
+    private var emptyRow: some View {
+        Text("empty.noExercises")
+            .font(.Tokens.body)
+            .foregroundStyle(ColorTokens.text2)
+    }
+
+    /// One exercise row: tapping the row selects (as before); the trailing info
+    /// affordance opens the detail sheet WITHOUT selecting.
+    private func exerciseRow(_ exercise: ExerciseDefinition) -> some View {
+        HStack(spacing: Spacing.xs) {
+            Button {
+                Haptics.select()
+                onSelect(exercise.name, exercise.category, exercise.muscleGroup)
+                dismiss()
+            } label: {
+                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+                    Text(exercise.name)
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text1)
+                    HStack(spacing: Spacing.xs) {
+                        if let muscle = exercise.muscleGroup {
+                            Text(muscle.displayName)
+                                .foregroundStyle(ColorTokens.text2)
+                        } else {
+                            Text(exercise.category.displayName)
+                                .foregroundStyle(ColorTokens.text2)
+                        }
+                        if let equipment = exercise.equipment {
+                            Text("·")
+                                .foregroundStyle(ColorTokens.text3)
+                            Text(equipment.capitalized)
+                                .foregroundStyle(ColorTokens.text3)
+                        }
+                        if exercise.isCustom {
+                            Text("·")
+                                .foregroundStyle(ColorTokens.text3)
+                            Text("sport.custom")
+                                .foregroundStyle(ColorTokens.text3)
+                        }
+                    }
+                    .font(.Tokens.label)
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.pressable)
+
+            Button {
+                detailExercise = exercise
+            } label: {
+                Image(systemName: "info.circle")
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text3)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.pressable)
+            .accessibilityLabel(Text("exercise.action.details"))
+        }
+        .swipeActions(edge: .trailing) {
+            if exercise.isCustom {
+                Button(role: .destructive) {
+                    deleteCustomExercise(named: exercise.name)
+                } label: {
+                    Label("action.delete", systemImage: "trash")
+                }
+            }
+        }
+    }
+
+    // MARK: - Section computation (debounced, one place)
+
+    /// Debounces typing (~250ms, cancelled by the next keystroke via `.task(id:)`)
+    /// and rebuilds all section arrays. Filter taps and list mutations recompute
+    /// immediately (query unchanged). Never runs per keystroke on the render path.
+    @MainActor
+    private func recompute() async {
+        let query = trimmedSearchText
+        if !query.isEmpty, fold(query) != fold(appliedQuery) {
+            try? await Task.sleep(for: .milliseconds(250))
+            if Task.isCancelled { return }
+        }
+        appliedQuery = query
+        sections = computeSections(query: query)
+    }
+
+    private func computeSections(query: String) -> PickerSections {
+        // 1. Pool: curated + catalog for this sport, plus the athlete's customs,
+        //    deduped by folded name (first occurrence wins — legacy names keep
+        //    their history-stable identity), then user overrides applied
+        //    (hidden entries drop; remapped muscle/category swap in).
+        var rawPool = ExerciseDatabase.exercises(for: sportType)
+        rawPool.append(contentsOf: customExercises
+            .filter { $0.sportType == nil || $0.sportType == sportType }
+            .map {
+                ExerciseDefinition(
+                    name: $0.name,
+                    category: $0.exerciseCategory,
+                    muscleGroup: $0.muscleGroup,
+                    isCustom: true
+                )
+            })
+
+        var seen = Set<String>()
+        var deduped: [ExerciseDefinition] = []
+        deduped.reserveCapacity(rawPool.count)
+        for def in rawPool where seen.insert(fold(def.name)).inserted {
+            deduped.append(def)
+        }
+
+        var out = PickerSections()
+        out.isSearching = !query.isEmpty
+        // Exact-match check runs pre-override so a hidden name never invites a duplicate.
+        if !query.isEmpty {
+            let foldedQuery = fold(query)
+            out.hasExactNameMatch = deduped.contains { fold($0.name) == foldedQuery }
+        }
+
+        let pool = ExerciseCatalogStore.applying(overrides: overrides, to: deduped)
+
+        // 2. Facet availability — hide gracefully when the pool has no such metadata.
+        let regions = MuscleRegion.allCases.filter { region in
+            pool.contains { $0.muscleGroup?.region == region }
+        }
+        out.availableRegions = regions.count > 1 ? regions : []
+        out.availableEquipment = pool.contains { $0.equipment != nil }
+            ? ExerciseCatalogStore.equipmentFacets
+            : []
+
+        let equipmentKey = selectedEquipment.map(fold)
+        let region = selectedRegion
+        func passesFilters(_ def: ExerciseDefinition) -> Bool {
+            if let region, def.muscleGroup?.region != region { return false }
+            if let equipmentKey {
+                guard let defEquipment = def.equipment, fold(defEquipment) == equipmentKey else {
+                    return false
+                }
+            }
+            return true
+        }
+
+        if out.isSearching {
+            // 3a. Ranked search: token AND-match over name + equipment;
+            //     name-prefix matches first, then contains; recent/custom/legacy
+            //     names above catalog-only names; stable order within tiers.
+            let foldedQuery = fold(query)
+            let tokens = foldedQuery
+                .split(whereSeparator: \.isWhitespace)
+                .map(String.init)
+            let recentSet = Set(recentNames.map(fold))
+            var scored: [(prefixRank: Int, sourceRank: Int, index: Int, def: ExerciseDefinition)] = []
+            for (index, def) in pool.enumerated() where passesFilters(def) {
+                let foldedName = fold(def.name)
+                let searchKey = def.equipment.map { "\(foldedName) \(fold($0))" } ?? foldedName
+                guard tokens.allSatisfy({ searchKey.contains($0) }) else { continue }
+                let prefixRank = foldedName.hasPrefix(foldedQuery) ? 0 : 1
+                let isFamiliar = def.isCustom || def.catalogID == nil || recentSet.contains(foldedName)
+                scored.append((prefixRank, isFamiliar ? 0 : 1, index, def))
+            }
+            scored.sort {
+                ($0.prefixRank, $0.sourceRank, $0.index) < ($1.prefixRank, $1.sourceRank, $1.index)
+            }
+            out.results = scored.map(\.def)
+        } else {
+            // 3b. Browse: Recent (≤8, resolving names only) / Your Exercises / full pool.
+            let filtered = pool.filter(passesFilters)
+            var byFoldedName: [String: ExerciseDefinition] = [:]
+            byFoldedName.reserveCapacity(filtered.count)
+            for def in filtered where byFoldedName[fold(def.name)] == nil {
+                byFoldedName[fold(def.name)] = def
+            }
+            out.recent = Array(recentNames.compactMap { byFoldedName[fold($0)] }.prefix(8))
+            out.custom = filtered.filter(\.isCustom)
+            out.catalog = filtered.filter { !$0.isCustom }
+        }
+        return out
+    }
+
+    /// Distinct exercise names from the athlete's most recent sessions
+    /// (most recent first), fetched once per presentation.
+    private func loadRecentNames() {
+        guard recentNames.isEmpty else { return }
+        guard let athleteID = athletes.first?.id else { return }
+        var descriptor = FetchDescriptor<WorkoutSession>(
+            predicate: #Predicate { $0.athlete?.id == athleteID },
+            sortBy: [SortDescriptor(\.sessionDate, order: .reverse)]
+        )
+        descriptor.fetchLimit = 30
+        guard let sessions = try? modelContext.fetch(descriptor) else { return }
+        var seen = Set<String>()
+        var names: [String] = []
+        for session in sessions {
+            for entry in session.sortedEntries where seen.insert(fold(entry.exerciseName)).inserted {
+                names.append(entry.exerciseName)
+            }
+            if names.count >= 24 { break }
+        }
+        recentNames = names
     }
 
     private func instantlyAddSearchText() {
@@ -503,17 +809,25 @@ struct FilterChip: View {
     }
 }
 
-struct ExerciseDefinition {
+struct ExerciseDefinition: Equatable {
     let name: String
-    let category: ExerciseCategory
-    let muscleGroup: MuscleGroup?
+    var category: ExerciseCategory
+    var muscleGroup: MuscleGroup?
     var isCustom: Bool = false
+    var equipment: String? = nil
+    var catalogID: String? = nil
+}
+
+extension ExerciseDefinition: Identifiable {
+    /// Exercise identity throughout the app IS the name string
+    /// (history, PRs, templates all key on it).
+    var id: String { name }
 }
 
 enum ExerciseDatabase {
     static func exercises(for sportType: SportType) -> [ExerciseDefinition] {
         switch sportType {
-        case .lifting, .crossfit: strength + bodyweight + plyometric
+        case .lifting, .crossfit: gym
         case .running: running
         case .cycling: cycling
         case .swimming: swimming
@@ -522,7 +836,40 @@ enum ExerciseDatabase {
         }
     }
 
-    static let all = strength + bodyweight + plyometric + running + cycling + swimming + teamSport
+    /// Legacy curated lists across all sports. Users' history, PRs, and
+    /// templates reference these exact names — they must stay selectable.
+    static let legacyAll = strength + bodyweight + plyometric + running + cycling + swimming + teamSport
+
+    /// Curated gym entries merged with the full bundled catalog.
+    /// Legacy names win the dedupe and stay listed first.
+    static let gym: [ExerciseDefinition] = merged(
+        legacy: strength + bodyweight + plyometric,
+        catalog: ExerciseCatalogStore.catalogDefinitions
+    )
+
+    /// Everything: legacy curated (all sports) + full catalog, deduped, legacy first.
+    static let all: [ExerciseDefinition] = merged(
+        legacy: legacyAll,
+        catalog: ExerciseCatalogStore.catalogDefinitions
+    )
+
+    /// Case-insensitive name dedupe. `legacy` entries win and keep their order;
+    /// catalog entries append after in catalog order.
+    private static func merged(
+        legacy: [ExerciseDefinition],
+        catalog: [ExerciseDefinition]
+    ) -> [ExerciseDefinition] {
+        var seen = Set<String>()
+        var results: [ExerciseDefinition] = []
+        results.reserveCapacity(legacy.count + catalog.count)
+        for def in legacy where seen.insert(def.name.lowercased()).inserted {
+            results.append(def)
+        }
+        for def in catalog where seen.insert(def.name.lowercased()).inserted {
+            results.append(def)
+        }
+        return results
+    }
 
     static let strength: [ExerciseDefinition] = [
         ExerciseDefinition(name: "Barbell Bench Press", category: .compound, muscleGroup: .chest),

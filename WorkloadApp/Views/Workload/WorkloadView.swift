@@ -71,6 +71,26 @@ struct WorkloadView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+                    // Editorial screen header (Stage 4a) — in-content title; the export
+                    // action moves out of the hidden nav bar onto the header's baseline.
+                    ScreenHeader(title: "workload.nav.title") {
+                        Button {
+                            Haptics.tap()
+                            if container.subscriptionService.isPro {
+                                showExportOptions = true
+                            } else {
+                                showUpgradeForExport = true
+                            }
+                        } label: {
+                            Image(systemName: "square.and.arrow.up")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text1)
+                        }
+                        .accessibilityLabel("a11y.exportWorkoutData")
+                        .accessibilityIdentifier("export.workoutData")
+                        .buttonStyle(.pressable)
+                    }
+
                     ACWRGaugeCard(snapshot: latestSnapshot)
                         .padding(.horizontal, Spacing.sm)
                         .entranceReveal()
@@ -161,27 +181,7 @@ struct WorkloadView: View {
             .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
-            .navigationTitle("workload.nav.title")
-            .toolbarBackground(ColorTokens.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
-                    Button {
-                        Haptics.tap()
-                        if container.subscriptionService.isPro {
-                            showExportOptions = true
-                        } else {
-                            showUpgradeForExport = true
-                        }
-                    } label: {
-                        Image(systemName: "square.and.arrow.up")
-                            .foregroundStyle(ColorTokens.text1)
-                    }
-                    .accessibilityLabel("a11y.exportWorkoutData")
-                    .accessibilityIdentifier("export.workoutData")
-                    .buttonStyle(.pressable)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .confirmationDialog("workload.export.title", isPresented: $showExportOptions, titleVisibility: .visible) {
                 Button("workload.export.sessionSummary") {
                     exportCSV(format: .sessionSummary)
@@ -259,6 +259,11 @@ struct WorkloadView: View {
 
 // MARK: - ACWR Display
 
+/// Stage 4a — the Load screen's one peak: ACWR moves onto the emphasis plane
+/// (`emphasisCardStyle`, accent top rule per Accent Rule v3 item 4) with display-scale
+/// INSTRUMENT numerals (`Font.Tokens.displayMetric` — the Two-Voice law names exactly two
+/// serif roles; ACWR is not one of them). The number is ink (`text1`), never accent; zone
+/// state stays text-label-led via the ZoneBadge (color supplementary, never color alone).
 struct ACWRGaugeCard: View {
     let snapshot: WorkloadSnapshot?
 
@@ -279,13 +284,15 @@ struct ACWRGaugeCard: View {
             }
 
             if let snapshot {
-                HStack(alignment: .lastTextBaseline, spacing: Spacing.baselinePair) {
+                HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                     Text(String(format: "%.2f", snapshot.acwr))
-                        .font(.Tokens.pageTitle)
+                        .font(.Tokens.displayMetric)
                         .monospacedDigit()
-                        .foregroundStyle(ColorTokens.acwrZoneColor(snapshot.zone))
+                        .foregroundStyle(ColorTokens.text1)
                     Text("workload.label.ratio")
                         .font(.Tokens.micro)
+                        .tracking(1.2)
+                        .textCase(.uppercase)
                         .foregroundStyle(ColorTokens.text3)
                 }
             } else {
@@ -294,7 +301,7 @@ struct ACWRGaugeCard: View {
                     .foregroundStyle(ColorTokens.text2)
             }
         }
-        .cardStyle()
+        .emphasisCardStyle()
     }
 }
 

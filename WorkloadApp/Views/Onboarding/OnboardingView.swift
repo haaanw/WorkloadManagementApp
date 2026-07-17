@@ -242,24 +242,13 @@ struct OnboardingView: View {
             // actually presents the system authorization sheet.
             switch container.healthKitService.connectionState {
             case .notRequested:
-                // Connect Health button
-                Button {
+                // Connect Health — shared accent-pill primary CTA (Accent Rule v3, Stage 4a).
+                PrimaryActionButton(title: "onboarding.healthkit.connect") {
                     Task {
                         try? await container.healthKitService.requestAuthorization()
                         completeOnboarding()
                     }
-                } label: {
-                    Text("onboarding.healthkit.connect")
-                        .font(.Tokens.bodyMedium)
-                        .foregroundStyle(ColorTokens.background)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(ColorTokens.text1, in: Capsule())
-                        .overlay(
-                            Capsule().stroke(ColorTokens.accent, lineWidth: 1)
-                        )
                 }
-                .buttonStyle(.pressable)
                 .padding(.horizontal, 16)
 
                 // Skip for now
@@ -285,20 +274,9 @@ struct OnboardingView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 16)
 
-                Button {
+                PrimaryActionButton(title: "action.continue") {
                     completeOnboarding()
-                } label: {
-                    Text("action.continue")
-                        .font(.Tokens.bodyMedium)
-                        .foregroundStyle(ColorTokens.background)
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(ColorTokens.text1, in: Capsule())
-                        .overlay(
-                            Capsule().stroke(ColorTokens.accent, lineWidth: 1)
-                        )
                 }
-                .buttonStyle(.pressable)
                 .padding(.horizontal, 16)
                 .padding(.bottom, 8)
             }
@@ -345,28 +323,14 @@ struct OnboardingView: View {
         }
     }
 
+    /// Shared accent-pill primary CTA (Stage 4a — CTA grammar completion). Disabled state is
+    /// the shared 50%-opacity treatment from `PrimaryActionButton`.
     private var continueButton: some View {
-        Button {
-            Haptics.tap()
+        PrimaryActionButton(title: continueLabelKey, isDisabled: !isContinueEnabled) {
             withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                 currentStep += 1
             }
-        } label: {
-            Text(continueLabelKey)
-                .font(.Tokens.bodyMedium)
-                .foregroundStyle(isContinueEnabled ? ColorTokens.background : ColorTokens.text3)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(isContinueEnabled ? ColorTokens.text1 : ColorTokens.surface, in: Capsule())
-                .overlay(
-                    Capsule().stroke(
-                        isContinueEnabled ? ColorTokens.accent : ColorTokens.divider,
-                        lineWidth: isContinueEnabled ? 1 : 0.5
-                    )
-                )
         }
-        .buttonStyle(.pressable)
-        .disabled(!isContinueEnabled)
     }
 
     /// Step 0 ("Continue to Setup" / "继续设置") uses a longer label per UI-SPEC line 215;

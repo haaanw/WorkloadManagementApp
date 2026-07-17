@@ -157,36 +157,19 @@ struct UpgradeSheet: View {
                                 .foregroundStyle(ColorTokens.text2)
                                 .multilineTextAlignment(.center)
 
-                            Button {
+                            // Shared accent-pill primary CTA (Stage 4a — CTA grammar completion).
+                            PrimaryActionButton(title: "action.retry") {
                                 Task { await loadOffering() }
-                            } label: {
-                                Text("action.retry")
-                                    .font(.Tokens.bodyMedium)
-                                    .foregroundStyle(ColorTokens.background)
-                                    .frame(maxWidth: .infinity, minHeight: 48)
-                                    .background(ColorTokens.text1, in: Capsule())
                             }
-                            .buttonStyle(.pressable)
                         } else {
-                            Button {
+                            PrimaryActionButton(
+                                title: trialAvailable ? "upgrade.cta.trial" : "upgrade.cta.subscribe",
+                                isLoading: isPurchasing,
+                                isDisabled: activePackage == nil
+                            ) {
                                 guard let pkg = activePackage else { return }
                                 Task { await doPurchase(pkg) }
-                            } label: {
-                                if isPurchasing {
-                                    ProgressView()
-                                        .tint(ColorTokens.background)
-                                        .frame(maxWidth: .infinity, minHeight: 48)
-                                } else {
-                                    Text(trialAvailable ? String(localized: "upgrade.cta.trial", defaultValue: "Start 7-Day Free Trial") : String(localized: "upgrade.cta.subscribe", defaultValue: "Subscribe"))
-                                        .font(.Tokens.bodyMedium)
-                                        .foregroundStyle(ColorTokens.background)
-                                        .frame(maxWidth: .infinity, minHeight: 48)
-                                        .background(ColorTokens.text1, in: Capsule())
-                                        .overlay(Capsule().stroke(ColorTokens.accent, lineWidth: 1))
-                                }
                             }
-                            .disabled(isPurchasing || activePackage == nil)
-                            .buttonStyle(.pressable)
                         }
                     }
                     .padding(.horizontal, 24)

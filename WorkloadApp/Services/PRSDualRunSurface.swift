@@ -34,7 +34,7 @@ enum PRSDualRunSurface {
     ) -> DualRunMessage? {
         guard VerdictSurfaceActivation.isEnabled || PRSActivation.isEnabled else { return nil }
         return DualRunMessage(
-            title: String(localized: "prs.dualRun.title", defaultValue: "Recommendation method updated"),
+            title: String(localized: "prs.dualRun.title", defaultValue: "Guidance method updated"),
             explanation: String(localized: "prs.dualRun.explanation",
                 defaultValue: "Tuwa now reads your daily readiness and accumulated training strain together. During this transition we show both your previous and updated guidance."),
             previousHeadline: legacy.headline,

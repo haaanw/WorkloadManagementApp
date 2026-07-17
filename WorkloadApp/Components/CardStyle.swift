@@ -438,6 +438,40 @@ struct SectionHeader: View {
     }
 }
 
+// MARK: - Screen header (Stage 4a — editorial chrome, not stock nav)
+
+/// The editorial in-content screen header: 32pt `screenTitle` in `--text-1` at the top of a
+/// tab root's content, replacing the stock `navigationTitle` chrome (which renders in the
+/// system font — a two-voice-law violation and the "default app" look, orchestration D6).
+/// Toolbar actions that used to live in the nav bar move into `trailing`, baseline-aligned
+/// with the title. Spacing on the 8pt grid: 8pt above, 24pt below.
+struct ScreenHeader<Trailing: View>: View {
+    let title: LocalizedStringKey
+    @ViewBuilder var trailing: Trailing
+
+    init(title: LocalizedStringKey, @ViewBuilder trailing: () -> Trailing) {
+        self.title = title
+        self.trailing = trailing()
+    }
+
+    init(title: LocalizedStringKey) where Trailing == EmptyView {
+        self.init(title: title) { EmptyView() }
+    }
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
+            Text(title)
+                .font(.Tokens.screenTitle)
+                .foregroundStyle(ColorTokens.text1)
+            Spacer(minLength: 0)
+            trailing
+        }
+        .padding(.horizontal, Spacing.sm)
+        .padding(.top, Spacing.xs)
+        .padding(.bottom, Spacing.md)
+    }
+}
+
 // MARK: - Section container
 
 /// Wraps a top-level section: applies the 32pt section-break gap above the content and

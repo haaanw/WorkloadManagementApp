@@ -60,6 +60,53 @@ struct WorkoutLogView: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // Editorial screen header (Stage 4a) — the stock large-title nav (system
+                // font) is retired; title + actions live in the content, above the filter rail.
+                ScreenHeader(title: "workoutLog.nav.title") {
+                    HStack(spacing: Spacing.sm) {
+                        Menu {
+                            Button {
+                                showPlanToday = true
+                            } label: {
+                                Label("planToday.menu.label", systemImage: "calendar.badge.plus")
+                            }
+                            Button {
+                                showLLMImport = true
+                            } label: {
+                                Label("workoutLog.import.ai", systemImage: "sparkles")
+                            }
+                            Button {
+                                showMyPrograms = true
+                            } label: {
+                                Label("workoutLog.menu.myPrograms", systemImage: "doc.text.fill")
+                            }
+                            Button {
+                                if container.subscriptionService.isPro {
+                                    showTextImport = true
+                                } else {
+                                    showUpgrade = true
+                                }
+                            } label: {
+                                Label("workoutLog.import.text", systemImage: "doc.plaintext")
+                            }
+                        } label: {
+                            Image(systemName: "ellipsis.circle")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text2)
+                        }
+                        Button {
+                            showTemplatePicker = true
+                        } label: {
+                            Image(systemName: "plus")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text1)
+                        }
+                        .buttonStyle(.pressable)
+                        .accessibilityIdentifier("workoutLog.startWorkout")
+                    }
+                }
+                .padding(.top, Spacing.md)
+
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                 SessionTypeFilterBar(selectedType: $selectedSessionType)
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
@@ -199,54 +246,10 @@ struct WorkoutLogView: View {
                 .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
                 .background(ColorTokens.background)
             }
-            .navigationTitle("workoutLog.nav.title")
-            .toolbarBackground(ColorTokens.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: UUID.self) { sessionId in
                 if let session = sessions.first(where: { $0.id == sessionId }) {
                     SessionDetailView(session: session)
-                }
-            }
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    HStack(spacing: Spacing.sm) {
-                        Menu {
-                            Button {
-                                showPlanToday = true
-                            } label: {
-                                Label("planToday.menu.label", systemImage: "calendar.badge.plus")
-                            }
-                            Button {
-                                showLLMImport = true
-                            } label: {
-                                Label("workoutLog.import.ai", systemImage: "sparkles")
-                            }
-                            Button {
-                                showMyPrograms = true
-                            } label: {
-                                Label("workoutLog.menu.myPrograms", systemImage: "doc.text.fill")
-                            }
-                            Button {
-                                if container.subscriptionService.isPro {
-                                    showTextImport = true
-                                } else {
-                                    showUpgrade = true
-                                }
-                            } label: {
-                                Label("workoutLog.import.text", systemImage: "doc.plaintext")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .foregroundStyle(ColorTokens.text2)
-                        }
-                        Button {
-                            showTemplatePicker = true
-                        } label: {
-                            Image(systemName: "plus")
-                                .foregroundStyle(ColorTokens.text1)
-                        }
-                        .accessibilityIdentifier("workoutLog.startWorkout")
-                    }
                 }
             }
             .sheet(isPresented: $showActiveWorkout) {

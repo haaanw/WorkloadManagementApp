@@ -27,6 +27,9 @@ struct ProfileView: View {
         NavigationStack {
             ScrollView {
                 VStack(spacing: 0) {
+                    // Editorial screen header (Stage 4a) — in-content title, not stock nav chrome.
+                    ScreenHeader(title: "profile.nav.title")
+
                     if let athlete {
                         if athlete.isCoach && !athlete.isCoachOnly {
                             profileSection("profile.section.context") {
@@ -106,6 +109,31 @@ struct ProfileView: View {
                                 showTrainingProfileSheet = true
                             }
                         }
+                        }
+
+                        // Movement Bank — curate the exercise library that feeds the picker (Stage D)
+                        profileSection("profile.section.exerciseLibrary") {
+                        NavigationLink {
+                            MovementBankView()
+                        } label: {
+                            HStack(spacing: Spacing.xs) {
+                                Image(systemName: "dumbbell")
+                                    .font(.Tokens.label)
+                                    .foregroundStyle(ColorTokens.text2)
+                                    .frame(width: 24)
+                                Text("movementBank.title")
+                                    .font(.Tokens.body)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.Tokens.micro)
+                                    .foregroundStyle(ColorTokens.text3)
+                            }
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
+                            .background(ColorTokens.surfaceEl)
+                        }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         }
 
                         // Preferences
@@ -384,6 +412,8 @@ struct ProfileView: View {
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: trainingProfiles.first?.id)
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: notificationsDenied)
             }
+            // Match the other roots' editorial top rhythm now the nav bar is hidden.
+            .contentMargins(.top, Spacing.md, for: .scrollContent)
             .background(ColorTokens.background)
             .task {
                 let status = await container.notificationService.authorizationStatus()
@@ -393,9 +423,7 @@ struct ProfileView: View {
                     container.notificationService.cancelWeeklySummary()
                 }
             }
-            .navigationTitle("profile.nav.title")
-            .toolbarBackground(ColorTokens.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
+            .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showTrainingProfileSheet) {
                 TrainingProfileSheet(existingProfile: trainingProfiles.first)
                     .environment(container)

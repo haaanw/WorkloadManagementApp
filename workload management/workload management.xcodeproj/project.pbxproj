@@ -115,6 +115,11 @@
 		627EC18E2F75917900B89262 /* TemplateListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC18D2F75917900B89262 /* TemplateListView.swift */; };
 		627EC1902F75917900B89262 /* TemplateEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC18C2F75917900B89262 /* TemplateEditorSheet.swift */; };
 		627EC1942F76620200B89262 /* CustomExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1932F76620200B89262 /* CustomExercise.swift */; };
+		BC1001010000000000000001 /* ExerciseOverride.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1001010000000000000002 /* ExerciseOverride.swift */; };
+		BC1002010000000000000001 /* ExerciseCatalogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1002010000000000000002 /* ExerciseCatalogStore.swift */; };
+		BC1003010000000000000001 /* ExerciseCatalog.json in Resources */ = {isa = PBXBuildFile; fileRef = BC1003010000000000000002 /* ExerciseCatalog.json */; };
+		BC1004010000000000000001 /* ExerciseDetailSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1004010000000000000002 /* ExerciseDetailSheet.swift */; };
+		BC1005010000000000000001 /* MovementBankView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BC1005010000000000000002 /* MovementBankView.swift */; };
 		627EC1962F76622300B89262 /* WorkoutImportBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1952F76622300B89262 /* WorkoutImportBanner.swift */; };
 		627EC1982F76857600B89262 /* ProgressionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1972F76857600B89262 /* ProgressionEngine.swift */; };
 		627EC19A2F76858300B89262 /* TextTemplateImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1992F76858300B89262 /* TextTemplateImportSheet.swift */; };
@@ -128,6 +133,7 @@
 		2307010100000000000000B1 /* SourceSerif4-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2307010100000000000000B2 /* SourceSerif4-Variable.ttf */; };
 		2307020100000000000000B1 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
 		2307030100000000000000B1 /* HalftoneField.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307030100000000000000B2 /* HalftoneField.swift */; };
+		2307050100000000000000B1 /* InkTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307050100000000000000B2 /* InkTabBar.swift */; };
 		62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB72F71849300B6135F /* HRVDetailView.swift */; };
 		62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB82F71849300B6135F /* SleepDetailView.swift */; };
 		62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CC02F72716500B6135F /* SupabaseConfig.swift */; };
@@ -324,6 +330,11 @@
 		627EC18C2F75917900B89262 /* TemplateEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateEditorSheet.swift; sourceTree = "<group>"; };
 		627EC18D2F75917900B89262 /* TemplateListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateListView.swift; sourceTree = "<group>"; };
 		627EC1932F76620200B89262 /* CustomExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomExercise.swift; sourceTree = "<group>"; };
+		BC1001010000000000000002 /* ExerciseOverride.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseOverride.swift; sourceTree = "<group>"; };
+		BC1002010000000000000002 /* ExerciseCatalogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseCatalogStore.swift; sourceTree = "<group>"; };
+		BC1003010000000000000002 /* ExerciseCatalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ExerciseCatalog.json; sourceTree = "<group>"; };
+		BC1004010000000000000002 /* ExerciseDetailSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExerciseDetailSheet.swift; sourceTree = "<group>"; };
+		BC1005010000000000000002 /* MovementBankView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MovementBankView.swift; sourceTree = "<group>"; };
 		627EC1952F76622300B89262 /* WorkoutImportBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportBanner.swift; sourceTree = "<group>"; };
 		627EC1972F76857600B89262 /* ProgressionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionEngine.swift; sourceTree = "<group>"; };
 		627EC1992F76858300B89262 /* TextTemplateImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTemplateImportSheet.swift; sourceTree = "<group>"; };
@@ -338,6 +349,7 @@
 		2307040100000000000000B2 /* SourceSerif4-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SourceSerif4-LICENSE.txt"; sourceTree = "<group>"; };
 		2307020100000000000000B2 /* CornerTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerTokens.swift; sourceTree = "<group>"; };
 		2307030100000000000000B2 /* HalftoneField.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HalftoneField.swift; sourceTree = "<group>"; };
+		2307050100000000000000B2 /* InkTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InkTabBar.swift; sourceTree = "<group>"; };
 		62F32CA22F71692C00B6135F /* WorkloadAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkloadAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		62F32CB72F71849300B6135F /* HRVDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailView.swift; sourceTree = "<group>"; };
 		62F32CB82F71849300B6135F /* SleepDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailView.swift; sourceTree = "<group>"; };
@@ -490,6 +502,7 @@
 				AB20000000000000000000A2 /* RepScrubber.swift */,
 				CD0501010000000000000002 /* CardStyle.swift */,
 				2307030100000000000000B2 /* HalftoneField.swift */,
+				2307050100000000000000B2 /* InkTabBar.swift */,
 				CD0601010000000000000002 /* SetStepper.swift */,
 			CD0701010000000000000002 /* PRBanner.swift */,
 				62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */,
@@ -511,6 +524,7 @@
 			children = (
 				CC0301010000000000000002 /* BehaviorTag.swift */,
 				627EC1932F76620200B89262 /* CustomExercise.swift */,
+				BC1001010000000000000002 /* ExerciseOverride.swift */,
 				627EC1872F75904200B89262 /* PrescribedWorkout.swift */,
 				627EC1882F75904200B89262 /* WorkoutTemplate.swift */,
 				62324BE82F66CB0E00A9C2BE /* Athlete.swift */,
@@ -568,6 +582,7 @@
 				62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */,
 				2301030100000000000000A2 /* Localizable.xcstrings */,
 				2301040100000000000000A2 /* InfoPlist.xcstrings */,
+				BC1003010000000000000002 /* ExerciseCatalog.json */,
 				2303040100000000000000B2 /* Fonts */,
 			);
 			path = Resources;
@@ -643,6 +658,7 @@
 				AA0901010000000000000002 /* ColdStartEngine.swift */,
 				FF1601010000000000000002 /* WorkoutLLMImportService.swift */,
 				A60A00010000000000000002 /* ExerciseClassifier.swift */,
+				BC1002010000000000000002 /* ExerciseCatalogStore.swift */,
 			);
 			path = Services;
 			sourceTree = "<group>";
@@ -718,6 +734,7 @@
 			isa = PBXGroup;
 			children = (
 				62324C142F66CB0E00A9C2BE /* ProfileView.swift */,
+				BC1005010000000000000002 /* MovementBankView.swift */,
 				2301020100000000000000A2 /* LanguagePickerView.swift */,
 				14B27B1AC91147CB45348512 /* SyncStatusView.swift */,
 				AA10010300000000000002 /* TrainingProfileSheet.swift */,
@@ -765,6 +782,7 @@
 				DF4602010000000000000001 /* FeltRightPromptRow.swift */,
 				EE4204010000000000000001 /* ManualLiftEntrySheet.swift */,
 				62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */,
+				BC1004010000000000000002 /* ExerciseDetailSheet.swift */,
 				62324C1D2F66CB0E00A9C2BE /* SessionDetailView.swift */,
 				62324C1E2F66CB0E00A9C2BE /* WorkoutLogView.swift */,
 			);
@@ -974,6 +992,7 @@
 				62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */,
 				2301030100000000000000A1 /* Localizable.xcstrings in Resources */,
 				2301040100000000000000A1 /* InfoPlist.xcstrings in Resources */,
+				BC1003010000000000000001 /* ExerciseCatalog.json in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1067,6 +1086,7 @@
 				62F32C972F7167E000B6135F /* FontTokens.swift in Sources */,
 				2307020100000000000000B1 /* CornerTokens.swift in Sources */,
 				2307030100000000000000B1 /* HalftoneField.swift in Sources */,
+				2307050100000000000000B1 /* InkTabBar.swift in Sources */,
 				62324C382F66CB0E00A9C2BE /* HRVTrendChart.swift in Sources */,
 				62324C392F66CB0E00A9C2BE /* AthleteRepository.swift in Sources */,
 				62324C3A2F66CB0E00A9C2BE /* AppContainer.swift in Sources */,
@@ -1118,6 +1138,10 @@
 				62324C4B2F66CB0E00A9C2BE /* ColorTokens.swift in Sources */,
 				62324C4C2F66CB0E00A9C2BE /* WorkoutPipeline.swift in Sources */,
 				627EC1942F76620200B89262 /* CustomExercise.swift in Sources */,
+				BC1001010000000000000001 /* ExerciseOverride.swift in Sources */,
+				BC1002010000000000000001 /* ExerciseCatalogStore.swift in Sources */,
+				BC1004010000000000000001 /* ExerciseDetailSheet.swift in Sources */,
+				BC1005010000000000000001 /* MovementBankView.swift in Sources */,
 				62324C4D2F66CB0E00A9C2BE /* ExerciseEntry.swift in Sources */,
 				62324C4E2F66CB0E00A9C2BE /* SessionDetailView.swift in Sources */,
 				62324C4F2F66CB0E00A9C2BE /* HealthKitService.swift in Sources */,

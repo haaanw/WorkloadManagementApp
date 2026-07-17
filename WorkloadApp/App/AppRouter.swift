@@ -2,6 +2,7 @@ import SwiftUI
 import SwiftData
 import Supabase
 import GoogleSignIn
+import UIKit
 
 struct AppRouter: View {
     @State private var container = AppContainer()
@@ -287,35 +288,76 @@ struct MainTabView: View {
 
     @State private var selectedTab: Tab = .home
 
+    /// Stage 4a: the stock tab bar stays in the LAYOUT (its UIKit safe-area contribution is
+    /// what keeps tab roots and pushed screens clear of the custom bar) but must draw
+    /// NOTHING — a transparent appearance removes the liquid-glass pill, its shadow halo,
+    /// and the scroll-edge effect that would otherwise peek above the opaque InkTabBar.
+    init() {
+        let appearance = UITabBarAppearance()
+        appearance.configureWithTransparentBackground()
+        UITabBar.appearance().standardAppearance = appearance
+        UITabBar.appearance().scrollEdgeAppearance = appearance
+    }
+
+    /// Stage 4a — items for the custom Ink & Grain bar (text-forward, no glyphs in the
+    /// primary direction). Accessibility IDs are the Stage-4b test contract.
+    private var tabItems: [InkTabBar<Tab>.Item] {
+        [
+            .init(tab: .home, title: "tab.home", accessibilityID: "tab.home"),
+            .init(tab: .log, title: "tab.log", accessibilityID: "tab.log"),
+            .init(tab: .recovery, title: "tab.recovery", accessibilityID: "tab.recovery"),
+            .init(tab: .load, title: "tab.load", accessibilityID: "tab.load"),
+            .init(tab: .profile, title: "tab.profile", accessibilityID: "tab.profile")
+        ]
+    }
+
     var body: some View {
         TabView(selection: $selectedTab) {
             DashboardView()
-                .tabCrossfade(isSelected: selectedTab == .home)
-                .tabItem { Label("tab.home", systemImage: "sun.max") }
+                .inkTabChild(isSelected: selectedTab == .home)
                 .tag(Tab.home)
 
             WorkoutLogView()
-                .tabCrossfade(isSelected: selectedTab == .log)
-                .tabItem { Label("tab.log", systemImage: "figure.strengthtraining.traditional") }
+                .inkTabChild(isSelected: selectedTab == .log)
                 .tag(Tab.log)
 
             RecoveryView()
-                .tabCrossfade(isSelected: selectedTab == .recovery)
-                .tabItem { Label("tab.recovery", systemImage: "waveform.path.ecg") }
+                .inkTabChild(isSelected: selectedTab == .recovery)
                 .tag(Tab.recovery)
 
             WorkloadView()
-                .tabCrossfade(isSelected: selectedTab == .load)
-                .tabItem { Label("tab.load", systemImage: "chart.xyaxis.line") }
+                .inkTabChild(isSelected: selectedTab == .load)
                 .tag(Tab.load)
 
             ProfileView()
-                .tabCrossfade(isSelected: selectedTab == .profile)
-                .tabItem { Label("tab.profile", systemImage: "person.crop.circle") }
+                .inkTabChild(isSelected: selectedTab == .profile)
                 .tag(Tab.profile)
         }
-        // Selected-tab tint: text1, never accent (DESIGN.md — accent is reserved for the
-        // hero readiness number). Scoped to the tab bar chrome via tabItem rendering.
+        // Stage 4a (D6): the stock tab bar is hidden per tab (inkTabChild); the app renders
+        // its own Ink & Grain bar as a bottom safe-area inset. The TabView hosts its tabs in
+        // UIKit, so the inset does NOT reach their safe areas — each child carries a matching
+        // `.safeAreaPadding(.bottom, InkTabBarMetrics.height)` (also in inkTabChild) so scroll
+        // content clears the bar (fixes the stock-chrome bottom clipping). Selection state and
+        // `tabCrossfade` behavior are unchanged.
+        .safeAreaInset(edge: .bottom, spacing: 0) {
+            InkTabBar(items: tabItems, selection: $selectedTab)
+        }
+        // Native parity: the bar stays pinned at the screen bottom and the keyboard covers
+        // it (without this the safe-area inset rides on top of the keyboard). Tab content
+        // keeps its own keyboard avoidance.
+        .ignoresSafeArea(.keyboard, edges: .bottom)
+        // Status-bar cap: with the stock nav bars hidden on the tab roots (editorial
+        // in-content headers, Stage 4a) scrolled content would collide with the clock. A
+        // flat opaque page-plane cap — never a blur/material — keeps the status region
+        // legible; it is invisible at scroll-top because it matches the page color.
+        .overlay(alignment: .top) {
+            ColorTokens.background
+                .frame(height: 0)
+                .background(ColorTokens.background.ignoresSafeArea(edges: [.top, .horizontal]))
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
+        }
+        // Content tint stays text1, never accent (DESIGN.md — accent is a live-state semantic).
         .tint(ColorTokens.text1)
         .onChange(of: scenePhase) { _, newPhase in
             guard newPhase == .active else { return }
@@ -326,6 +368,23 @@ struct MainTabView: View {
                 await container.syncService.pullAll(context: modelContext)
             }
         }
+    }
+}
+
+private extension View {
+    /// Stage 4a tab-child chrome: keeps the Stage-2 `tabCrossfade`. The stock tab bar is NOT
+    /// hidden — it stays in the layout so its UIKit safe-area contribution keeps every tab
+    /// root AND every pushed detail screen clear of the bottom bar (SwiftUI-side
+    /// safeAreaPadding cannot reach the UINavigationController-hosted content). The stock
+    /// bar itself is fully covered by the opaque InkTabBar overlay and never receives taps
+    /// (the InkTabBar's five full-width buttons absorb the entire bar plane).
+    func inkTabChild(isSelected: Bool) -> some View {
+        self
+            .tabCrossfade(isSelected: isSelected)
+            // Hide the stock bar's VISUALS (liquid-glass pill + top glow) while keeping the
+            // bar in the layout for its safe-area contribution. Belt-and-braces with the
+            // UITabBarAppearance transparent config in MainTabView.init.
+            .toolbarBackground(.hidden, for: .tabBar)
     }
 }
 
