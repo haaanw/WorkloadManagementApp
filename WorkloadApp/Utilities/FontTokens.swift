@@ -28,6 +28,16 @@ import CoreText
 extension Font {
 
     enum Tokens {
+        /// The exact PostScript names this chokepoint resolves at runtime. The DEBUG launch
+        /// assert in WorkloadApp.swift consumes this list — the names live HERE so the
+        /// serif-name fence (Two-Voice Type Law) keeps every font literal in this one file.
+        static let requiredPostScriptNames = [
+            "GeneralSansVariable-Bold",
+            "SourceSerif4Roman-Regular",
+            "NotoSansSC-Regular",
+            "NotoSansSC-Medium"
+        ]
+
         /// 64pt — Readiness score. Accent color only. Apply .monospacedDigit() at the call site.
         static let heroScore   = cascaded(size: 64, weight: .regular)
 
@@ -143,17 +153,31 @@ extension Font {
     /// with Chinese in the same string. This is the single point of change that gives every
     /// Font.Tokens.* call site mixed-script harmony without per-string font logic.
     ///
-    /// PostScript names (verified via UIFont.fontNames(forFamilyName:) at runtime):
-    /// - GeneralSans-Regular / GeneralSans-Medium
-    /// - NotoSansSC-Regular / NotoSansSC-Medium
+    /// PostScript resolution (verified 2026-07-17 via fontTools fvar dump + on-sim launch):
+    /// GeneralSans-Variable.ttf declares NO instance postscriptNameIDs, so per-weight names
+    /// ("GeneralSans-Regular"/"GeneralSans-Medium") never register — requesting them made
+    /// the descriptor fall back to the system face silently. The one registered face is the
+    /// font's own PS name `GeneralSansVariable-Bold` (default instance, wght 700, axis
+    /// 200–700); the instrument weights are reached by pinning the 'wght' variation axis —
+    /// the same mechanism `serifDisplay` uses for 'opsz'.
+    /// - NotoSansSC-Regular / NotoSansSC-Medium (static faces, names resolve directly)
     private static func cascaded(size: CGFloat, weight: UIFont.Weight) -> Font {
         let cjkDescriptor: UIFontDescriptor = (weight == .medium)
             ? UIFontDescriptor(fontAttributes: [.name: "NotoSansSC-Medium"])
             : UIFontDescriptor(fontAttributes: [.name: "NotoSansSC-Regular"])
 
-        let primaryName = (weight == .medium) ? "GeneralSans-Medium" : "GeneralSans-Regular"
-        let primaryDescriptor = UIFontDescriptor(name: primaryName, size: size)
+        let variableName = "GeneralSansVariable-Bold"
+        guard UIFont(name: variableName, size: size) != nil else {
+            // Font not registered (missing from bundle / Info.plist) — degrade honestly to
+            // the system face rather than letting an unresolvable descriptor pick one silently.
+            return Font(UIFont.systemFont(ofSize: size, weight: weight))
+        }
+
+        let wght: Double = (weight == .medium) ? 500.0 : 400.0
+        let variation: [Int: Double] = [0x77676874: wght] // 'wght'
+        let primaryDescriptor = UIFontDescriptor(name: variableName, size: size)
             .addingAttributes([
+                UIFontDescriptor.AttributeName(rawValue: kCTFontVariationAttribute as String): variation,
                 UIFontDescriptor.AttributeName.cascadeList: [cjkDescriptor]
             ])
 

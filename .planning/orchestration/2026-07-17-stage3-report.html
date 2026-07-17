@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v1.6 — Stage 3 Report · Ink &amp; Grain</title>
+<style>
+  :root {
+    --bg: #F4F4F2;
+    --surface: #FBFBFA;
+    --ink: #1C1F22;
+    --ink2: #5A6068;
+    --ink3: #9AA0A8;
+    --accent: #7C9BAD;
+    --divider: #E3E3E0;
+    --danger: #B4543E;
+    --ok: #5E7D5A;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, "Helvetica Neue", Arial, sans-serif;
+    font-size: 15px;
+    line-height: 1.6;
+    padding: 64px 24px 96px;
+  }
+  .wrap { max-width: 1080px; margin: 0 auto; }
+  .halftone {
+    height: 8px;
+    background-image: radial-gradient(var(--accent) 1.2px, transparent 1.3px);
+    background-size: 8px 8px;
+    opacity: 0.45;
+    margin-bottom: 40px;
+    -webkit-mask-image: linear-gradient(90deg, black, transparent);
+            mask-image: linear-gradient(90deg, black, transparent);
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-weight: 400;
+    font-size: 44px;
+    line-height: 1.05;
+    letter-spacing: -0.02em;
+    margin-bottom: 8px;
+  }
+  h1 .accent { color: var(--accent); }
+  .sub { color: var(--ink2); margin-bottom: 48px; }
+  h2 {
+    font-size: 12px;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink3);
+    border-top: 2px solid var(--accent);
+    padding-top: 12px;
+    margin: 56px 0 20px;
+  }
+  h3 {
+    font-family: Georgia, serif;
+    font-weight: 400;
+    font-size: 22px;
+    margin: 28px 0 10px;
+  }
+  p { margin-bottom: 12px; max-width: 72ch; }
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--divider);
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-bottom: 16px;
+  }
+  .commits { width: 100%; border-collapse: collapse; font-size: 14px; }
+  .commits td { padding: 8px 12px; border-top: 0.5px solid var(--divider); vertical-align: top; }
+  .commits tr:first-child td { border-top: none; }
+  .commits code { font-family: "SF Mono", Menlo, monospace; font-size: 12.5px; color: var(--accent); white-space: nowrap; }
+  .shots { display: flex; flex-wrap: wrap; gap: 16px; margin: 20px 0; }
+  .shot { flex: 1 1 180px; max-width: 205px; }
+  .shot img {
+    width: 100%;
+    border: 0.5px solid var(--divider);
+    border-radius: 12px;
+    display: block;
+  }
+  .shot figcaption { font-size: 12px; color: var(--ink2); margin-top: 8px; line-height: 1.4; }
+  .pair { display: flex; gap: 16px; flex-wrap: wrap; }
+  .pill {
+    display: inline-block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em;
+    text-transform: uppercase; padding: 3px 12px; border-radius: 999px; margin-right: 6px;
+  }
+  .pill.ok { background: var(--ok); color: white; }
+  .pill.warn { border: 1px solid var(--danger); color: var(--danger); }
+  .pill.quiet { border: 0.5px solid var(--ink3); color: var(--ink2); }
+  .verdict {
+    font-family: Georgia, serif;
+    font-size: 25px;
+    line-height: 1.25;
+    max-width: 60ch;
+    margin: 20px 0;
+  }
+  .opinion li { margin: 0 0 14px 0; max-width: 75ch; }
+  .opinion ul, .opinion ol { padding-left: 22px; }
+  .good { color: var(--ok); font-weight: 600; }
+  .bad { color: var(--danger); font-weight: 600; }
+  .mono { font-family: "SF Mono", Menlo, monospace; font-size: 12.5px; background: #EDEDEA; border-radius: 4px; padding: 1px 6px; }
+  .footnote { color: var(--ink3); font-size: 12.5px; margin-top: 48px; border-top: 0.5px solid var(--divider); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="halftone"></div>
+  <h1>Tuwa <span class="accent">v1.6</span> — Ink &amp; Grain<br>Stage 3 session report</h1>
+  <p class="sub">2026-07-17 · per-screen craft landed + a font bug that mattered more than everything else</p>
+
+  <h2>What happened this session</h2>
+  <div class="card">
+    <table class="commits">
+      <tr><td><span class="pill ok">Done</span></td><td>Resumed Stage 3 after the Jul-14 credit outage. Converted the four attention banners (PR / spike / fatigue / cycle) inline onto a new shared <span class="mono">attentionBannerStyle</span> — one rounded card grammar with a 2pt zone-colored leading rule, replacing four hand-rolled square scaffolds.</td></tr>
+      <tr><td><span class="pill ok">Done</span></td><td>Dispatched the Stage 3 lane agent for the rest: 54 files swept — every import/share/export/profile/onboarding/upgrade surface off square residue onto CornerTokens; Dashboard hero rebuilt (score owns its space, periodization demoted to a compact inline-ring row); recent sessions grouped on one plate; Auth screens onto field + pill grammar; section rhythm normalized; <span class="mono">--</span> → <span class="mono">—</span>.</td></tr>
+      <tr><td><span class="pill ok">Verified</span></td><td>I reviewed the diff and screenshots myself: xcstrings edit is value-only, AppShell untouched, verdict-card nocebo guard intact (comment-only diff). Unit gate: <b>766 tests — 764 passed / 0 failed / 2 skipped</b>. Committed as <code>951537b</code>.</td></tr>
+      <tr><td><span class="pill warn">Found</span></td><td><b>The instrument voice was never rendering.</b> A deferral note from the agent led me to launch the app plain-DEBUG — it trapped on the font assertion. Root cause: <span class="mono">GeneralSans-Variable.ttf</span> declares no instance PostScript names, so the names the code requested (<span class="mono">GeneralSans-Regular/-Medium</span>) <i>never existed</i> — since the phase-14 font switch, all body type silently fell back to the system font. Every screenshot we ever approved showed the fallback.</td></tr>
+      <tr><td><span class="pill ok">Fixed</span></td><td><span class="mono">FontTokens.cascaded</span> now resolves the one truly registered face (<span class="mono">GeneralSansVariable-Bold</span>) and pins the <span class="mono">wght</span> axis to 400/500 — the exact pattern Stage 0 used for the serif's <span class="mono">opsz</span>. Assert list corrected (+ Source Serif added to it), diagnostic family dump added. Plain-DEBUG launch now passes; General Sans renders for the first time. Gate: <span id="gate-result"><b>766 tests — 764 passed / 0 failed / 2 skipped</b>. (First run caught one thing: I'd named the serif in WorkloadApp.swift's assert list and the Two-Voice fence rejected it — the names now live in the FontTokens chokepoint and the assert consumes them. The fences police me too.)</span></td></tr>
+    </table>
+  </div>
+
+  <h2>The app right now — all five tabs, real fonts</h2>
+  <div class="shots">
+    <figure class="shot"><img src="stage-35-fontfix-screens/01-dashboard.png" alt="Dashboard"><figcaption><b>Home.</b> Serif 71 + halftone signature; periodization now one quiet row; zone line closes the card.</figcaption></figure>
+    <figure class="shot"><img src="stage-35-fontfix-screens/02-log.png" alt="Workout Log"><figcaption><b>Log.</b> The verdict card — serif reason line, strike-zone bar, equal-weight decision pills (nocebo guard).</figcaption></figure>
+    <figure class="shot"><img src="stage-35-fontfix-screens/03-recovery.png" alt="Recovery"><figcaption><b>Recovery.</b> Emphasis card with accent top rule; factor rows on the plate grammar.</figcaption></figure>
+    <figure class="shot"><img src="stage-35-fontfix-screens/04-load.png" alt="Load"><figcaption><b>Load.</b> ACWR plate + metric rail + trend charts; "LOAD STEADY" as a text chip, not color-only.</figcaption></figure>
+    <figure class="shot"><img src="stage-35-fontfix-screens/05-profile.png" alt="Profile"><figcaption><b>Profile.</b> Grouped plates with inset hairlines; micro-caps section headers.</figcaption></figure>
+  </div>
+
+  <h2>Stage 3 details worth seeing</h2>
+  <div class="shots">
+    <figure class="shot"><img src="stage-3-screens/03-dashboard-recent-sessions.png" alt="Recent sessions"><figcaption><b>Recent sessions</b> — from a bare text stack to one grouped plate with hairline separators. This is the pattern the whole app now speaks.</figcaption></figure>
+    <figure class="shot"><img src="stage-3-screens/08-login.png" alt="Login"><figcaption><b>Login</b> — fields on control-radius plates, accent pill CTA, social pills. Also fixed here: the email placeholder was markdown-autolinking to blue.</figcaption></figure>
+    <figure class="shot"><img src="stage-3-screens/11-import-sheet.png" alt="Import"><figcaption><b>Import</b> — mode chips with accent selection, rounded paste area, outlined pill CTA.</figcaption></figure>
+    <figure class="shot"><img src="stage-3-screens/10-recovery-scrolled.png" alt="Empty state"><figcaption><b>Empty states</b> — one quiet line on a plate; no illustration noise.</figcaption></figure>
+  </div>
+
+  <h2>My honest opinion</h2>
+  <p class="verdict">The grammar is finally coherent — but two tabs still read like an instrument panel that hasn't earned its calm.</p>
+  <div class="opinion">
+    <h3>What genuinely works</h3>
+    <ul>
+      <li><span class="good">The verdict card is the product.</span> "Recent court work loaded your legs — microdose before the match" in serif, over a strike-zone bar, with a real number adjustment — that one card justifies the whole Ink &amp; Grain direction. Nothing else in the market looks or reasons like this.</li>
+      <li><span class="good">The font fix matters more than any styling this week.</span> We were art-directing a typeface that wasn't rendering. Now the voice you chose is actually the voice on screen — and the difference will compound across every future screen.</li>
+      <li><span class="good">One grammar everywhere.</span> Plates, hairlines, pills, zone rules — the import sheets, banners, profile and auth all speak it now. The app stopped looking like five different eras.</li>
+    </ul>
+    <h3>What I'd push on next (candid)</h3>
+    <ol>
+      <li><span class="bad">The "Recommendation method updated" card is engineer voice on the hero screen.</span> It's long, explains internals ("during this transition we show both..."), and visually competes with the readiness card directly above it. I'd cut it to one line with a disclosure — or sunset it entirely once the transition window passes.</li>
+      <li><span class="bad">Content clips under the floating tab bar.</span> On Home a teal CTA band peeks out behind the pill bar; Profile's "CONNECTED DEVICES" header is half-hidden. The bottom content margin needs one more step of clearance — small fix, disproportionate polish gain.</li>
+      <li><b>The readiness number appears twice</b> (Home hero "71", Recovery "71/100") with different framing. Defensible — one is a verdict, one is a breakdown — but the Recovery card's header + explainer paragraph is wordier than the v3 voice. Recovery is now the weakest-edited tab.</li>
+      <li><b>Load tab is correct but flat.</b> Three plates + two charts, no moment. It's the one tab with no serif, no accent, no hierarchy peak — reads like an admin page. A single emphasis treatment on ACWR (it's the app's core number!) would give it a spine.</li>
+      <li><b>Tab icons are off-voice.</b> A sun for Home, a pictogram runner for Log — stock metaphors under an editorial identity. Low priority, but a custom 5-glyph set would close the loop.</li>
+    </ol>
+  </div>
+
+  <h2>Where the milestone stands</h2>
+  <div class="card">
+    <table class="commits">
+      <tr><td><code>36747b8</code></td><td>Stage R — SwiftUI tree rehosted as the live app</td></tr>
+      <tr><td><code>bdbee4f</code></td><td>Stage 0 — DESIGN.md v3 law, CornerTokens, serif bundle, fences</td></tr>
+      <tr><td><code>0a3c95b</code></td><td>Stage 1 — shared layer adoption: serif hero, pills, halftone</td></tr>
+      <tr><td><code>842a8af</code></td><td>Stage 2 — motion pass: calm grammar, count-up, reduce-motion</td></tr>
+      <tr><td><code>951537b</code></td><td>Stage 3 — per-screen craft (this session)</td></tr>
+      <tr><td><span class="pill quiet">next</span></td><td>Font-fix commit (pending green gate) → <b>Stage 4</b>: ScreenshotTests rewrite, /codex cross-review of the full v1.6 diff, your on-device dogfood, version bump to 1.6, then shell deletion.</td></tr>
+    </table>
+  </div>
+
+  <p class="footnote">Generated by the v1.6 orchestrator session · screenshots are live sim captures (iPhone 17 Pro Max, SCREENSHOT_MODE seed data) · report lives at .planning/orchestration/2026-07-17-stage3-report.html</p>
+
+</div>
+</body>
+</html>

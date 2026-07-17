@@ -26,14 +26,10 @@ struct WorkloadApp: App {
         let hasGeneralSans = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("general") })
         let hasNotoSansSC = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("noto sans sc") })
 
-        // Assert the exact PostScript names FontTokens.cascaded(...) requires.
+        // Assert the exact PostScript names FontTokens requires (list owned by the chokepoint —
+        // Font.Tokens.requiredPostScriptNames — so font-name literals stay in FontTokens.swift).
         // If any of these miss, UIFont silently falls back to system font with no CJK cascade (WR-05).
-        let requiredPostScriptNames = [
-            "GeneralSans-Regular",
-            "GeneralSans-Medium",
-            "NotoSansSC-Regular",
-            "NotoSansSC-Medium"
-        ]
+        let requiredPostScriptNames = Font.Tokens.requiredPostScriptNames
         let missingPostScriptNames = requiredPostScriptNames.filter { UIFont(name: $0, size: 12) == nil }
 
         if isRunningUnderTest {
@@ -56,9 +52,10 @@ struct WorkloadApp: App {
                 hasNotoSansSC,
                 "Noto Sans SC not registered. Add NotoSansSC-Regular.otf + NotoSansSC-Medium.otf and UIAppFonts entries."
             )
-            // One-shot DEBUG print: exact PostScript names iOS resolves for the Noto Sans SC family.
-            // Cascade descriptors in FontTokens.swift MUST use these exact PostScript names (RESEARCH Pitfall 3).
+            // One-shot DEBUG prints: exact PostScript names iOS resolves for the bundled families.
+            // Descriptors in FontTokens.swift MUST use these exact PostScript names (RESEARCH Pitfall 3).
             print("Noto family fonts: \(UIFont.fontNames(forFamilyName: "Noto Sans SC"))")
+            print("General Sans family fonts: \(UIFont.fontNames(forFamilyName: "General Sans Variable"))")
             assert(
                 missingPostScriptNames.isEmpty,
                 "Missing font PostScript name(s): \(missingPostScriptNames). Cascade in FontTokens.swift will silently fall back to system font."
