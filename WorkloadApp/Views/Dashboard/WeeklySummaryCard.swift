@@ -146,7 +146,8 @@ private struct WeeklyZoneBadge: View {
         }
         .padding(.horizontal, Spacing.xs)
         .padding(.vertical, Spacing.xs)
-        .background(ColorTokens.background)
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        // v3 Corner Law: chips are pills.
+        .background(ColorTokens.background, in: Capsule())
+        .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }

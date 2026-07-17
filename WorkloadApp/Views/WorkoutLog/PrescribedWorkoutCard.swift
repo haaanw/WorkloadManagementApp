@@ -89,8 +89,9 @@ struct PrescribedWorkoutCard: View {
                 .buttonStyle(.pressable)
             }
         }
-        .background(ColorTokens.surface)
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 
     private func setSummary(_ exercise: TemplateExercise) -> String {

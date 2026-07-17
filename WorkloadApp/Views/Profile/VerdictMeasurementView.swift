@@ -14,7 +14,7 @@ import SwiftData
 /// the boundary and passes them into `GreenLightEngine.compute(events:asOf:calendar:)` — the only place
 /// `.now` / `.current` appear in the green-light path.
 ///
-/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid, light-only
+/// DESIGN.md (hard): corners via `CornerTokens` (v3 Corner Law), no shadows, `Font.Tokens.*`, 8pt grid, light-only
 /// via `ColorTokens`. The reserved hero accent is FORBIDDEN here.
 struct VerdictMeasurementView: View {
     @Environment(\.modelContext) private var modelContext

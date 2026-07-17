@@ -317,7 +317,8 @@ struct TodayVerdictCard: View {
 /// bracketed by accent hairlines — the "live / actionable" band), the in-zone DOT (today's number),
 /// and — when the plan was trimmed — a faint PLANNED reference tick sitting above the zone. No engine
 /// math: the zone band is a display tolerance centered on the adjusted number (the engine already
-/// placed it in the zone). DESIGN (Tuwa v2): 0pt corners (Rectangle only), no shadow, `ColorTokens`
+/// placed it in the zone). DESIGN: instrument geometry (hairline rules/ticks — the `Rectangle`s here
+/// are marks, not container plates; containers wear `CornerTokens`), no shadow, `ColorTokens`
 /// only. The strike-zone FILL is one of the sanctioned accent locations (live/actionable); the verdict
 /// state never uses accent (it stays a text label + desaturated zone strip on the card).
 private struct StrikeZoneBar: View {

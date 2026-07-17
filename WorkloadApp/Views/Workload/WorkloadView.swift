@@ -73,7 +73,6 @@ struct WorkloadView: View {
                 VStack(spacing: 0) {
                     ACWRGaugeCard(snapshot: latestSnapshot)
                         .padding(.horizontal, Spacing.sm)
-                        .padding(.top, Spacing.sm)
                         .entranceReveal()
 
                     // ATL / CTL / TSB — flat inline strip lifted onto the page.
@@ -159,6 +158,7 @@ struct WorkloadView: View {
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: lockedWeeks)
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: visibleRecords.count)
             }
+            .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
             .navigationTitle("workload.nav.title")
@@ -263,7 +263,7 @@ struct ACWRGaugeCard: View {
     let snapshot: WorkloadSnapshot?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             HStack {
                 Text("workload.section.acwr")
                     .font(.Tokens.micro)
@@ -306,7 +306,7 @@ struct LoadTrendChartView: View {
     @Binding var selectedDate: Date?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Chart {
                 ForEach(snapshots, id: \.id) { snapshot in
                     LineMark(

@@ -43,7 +43,7 @@ struct LoginView: View {
             ScrollView {
                 VStack(spacing: 0) {
                     // Branding
-                    VStack(alignment: .leading, spacing: 8) {
+                    VStack(alignment: .leading, spacing: Spacing.xs) {
                         Text("auth.brand.wordmark")
                             .font(.Tokens.pageTitle)
                             .foregroundStyle(ColorTokens.text1)
@@ -52,103 +52,43 @@ struct LoginView: View {
                             .foregroundStyle(ColorTokens.text2)
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding(.horizontal, 16)
-                    .padding(.top, 64)
-                    .padding(.bottom, 48)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.xl)
+                    .padding(.bottom, Spacing.xl)
 
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-
-                    // Email field
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("auth.field.email")
-                            .font(.Tokens.sectionHead)
-                            .foregroundStyle(ColorTokens.text1)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
-                            .padding(.bottom, 8)
-
-                        TextField("you@example.com", text: $email)
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text1)
+                    // Fields — the standard v3 field treatment (control-radius plate, hairline,
+                    // accent focus feedback), stacked on the page plane instead of full-bleed rows.
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        InputField(label: "auth.field.email", placeholder: "you@example.com", text: $email)
                             .textContentType(.emailAddress)
                             .keyboardType(.emailAddress)
                             .autocorrectionDisabled()
                             .textInputAutocapitalization(.never)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
-                    }
-                    .background(ColorTokens.surfaceEl)
 
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-
-                    // Password field
-                    VStack(alignment: .leading, spacing: 0) {
-                        Text("auth.field.password")
-                            .font(.Tokens.sectionHead)
-                            .foregroundStyle(ColorTokens.text1)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
-                            .padding(.bottom, 8)
-
-                        SecureField("••••••••", text: $password)
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text1)
+                        SecureInputField(label: "auth.field.password", placeholder: "••••••••", text: $password)
                             .textContentType(.password)
-                            .padding(.horizontal, 16)
-                            .padding(.bottom, 16)
                     }
-                    .background(ColorTokens.surfaceEl)
-
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
+                    .padding(.horizontal, Spacing.sm)
 
                     if let error = errorMessage {
                         Text(error)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.zoneDanger)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
-
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.top, Spacing.sm)
                     }
 
-                    // Sign in button
-                    Button {
+                    // Sign in button — primary CTA is a filled accent pill (Accent Rule v3).
+                    PrimaryActionButton(
+                        title: "auth.action.signIn",
+                        isLoading: isLoading,
+                        isDisabled: !signInEnabled || isSocialLoading
+                    ) {
                         Task { await signIn() }
-                    } label: {
-                        Group {
-                            if isLoading {
-                                ProgressView()
-                            } else {
-                                Text("auth.action.signIn")
-                                    .font(.Tokens.bodyMedium)
-                                    .foregroundStyle(signInEnabled ? ColorTokens.background : ColorTokens.text3)
-                            }
-                        }
-                        .frame(maxWidth: .infinity)
-                        .padding(.vertical, 16)
-                        .background(signInEnabled ? ColorTokens.text1 : ColorTokens.surface)
-                        .overlay(
-                            Rectangle().stroke(
-                                signInEnabled ? ColorTokens.accent : ColorTokens.divider,
-                                lineWidth: signInEnabled ? 1 : 0.5
-                            )
-                        )
                     }
-                    .buttonStyle(.pressable)
-                    .disabled(!signInEnabled || isLoading || isSocialLoading)
-
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.md)
 
                     // Social login buttons
                     SocialLoginButtons(
@@ -162,10 +102,6 @@ struct LoginView: View {
                         }
                     )
 
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-
                     // Sign up link
                     Button {
                         showSignUp = true
@@ -173,14 +109,11 @@ struct LoginView: View {
                         Text("auth.action.createAccountLink")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                            .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.pressable)
-
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
+                    .padding(.top, Spacing.sm)
+                    .padding(.bottom, Spacing.lg)
                 }
             }
             .background(ColorTokens.background)

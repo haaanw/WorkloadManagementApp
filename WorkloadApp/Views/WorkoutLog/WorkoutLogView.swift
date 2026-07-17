@@ -159,16 +159,15 @@ struct WorkoutLogView: View {
 
                         // Session history
                         if visibleSessions.isEmpty && importSuggestions.isEmpty {
-                            VStack(spacing: Spacing.sm) {
-                                Text("workoutLog.empty.title")
-                                    .font(.Tokens.sectionHead)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Text("workoutLog.empty.body")
-                                    .font(.Tokens.label)
-                                    .foregroundStyle(ColorTokens.text2)
+                            // v3 empty state: one quiet plate (card plane, instrument voice) —
+                            // not a bare centered text stack.
+                            SectionContainer {
+                                EmptyStateView(
+                                    title: "workoutLog.empty.title",
+                                    message: "workoutLog.empty.body"
+                                )
+                                .padding(.horizontal, Spacing.sm)
                             }
-                            .padding(.vertical, Spacing.xl)
-                            .frame(maxWidth: .infinity)
                             .entranceReveal(index: 3)
                         } else {
                             SectionContainer(header: "workoutLog.section.history") {
@@ -210,7 +209,7 @@ struct WorkoutLogView: View {
             }
             .toolbar {
                 ToolbarItem(placement: .primaryAction) {
-                    HStack(spacing: 16) {
+                    HStack(spacing: Spacing.sm) {
                         Menu {
                             Button {
                                 showPlanToday = true
@@ -530,8 +529,8 @@ struct ImportRPESheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(spacing: 24) {
-                VStack(spacing: 8) {
+            VStack(spacing: Spacing.md) {
+                VStack(spacing: Spacing.xs) {
                     Text(suggestion.name)
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
@@ -547,7 +546,7 @@ struct ImportRPESheet: View {
                     .foregroundStyle(ColorTokens.text2)
                 }
 
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.xs) {
                     Text("workoutLog.rpe.prompt")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
@@ -566,7 +565,7 @@ struct ImportRPESheet: View {
 
                 Spacer()
             }
-            .padding(24)
+            .padding(Spacing.md)
             .background(ColorTokens.background)
             .navigationTitle("workoutLog.import.navTitle")
             .navigationBarTitleDisplayMode(.inline)
@@ -640,7 +639,7 @@ struct SessionTypeFilterBar: View {
                     }
                 }
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, Spacing.sm)
         }
         .frame(height: 40)
         .background(ColorTokens.background)

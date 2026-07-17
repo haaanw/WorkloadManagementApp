@@ -28,9 +28,11 @@ struct WorkoutImportBanner: View {
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
             }
         }
-        // Grouped region → a single bordered card plane (Tuwa v2 separation).
+        // Grouped region → a single bordered card plane (`CornerTokens.card`, v3 Corner Law);
+        // row hairlines inside are clipped by the card shape.
         .background(ColorTokens.surfaceEl)
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }
 
@@ -69,13 +71,13 @@ private struct ImportSuggestionRow: View {
                 Haptics.tap()
                 onAccept()
             } label: {
-                // Primary CTA → accent outline (live / actionable), not a filled accent button.
+                // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                 Text("action.add")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
-                    .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5))
+                    .overlay(Capsule().stroke(ColorTokens.accent, lineWidth: 0.5))
             }
             .buttonStyle(.pressable)
 

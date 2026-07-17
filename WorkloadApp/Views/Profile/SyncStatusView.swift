@@ -47,7 +47,7 @@ struct SyncStatusView: View {
         let hasFailed = store.lastErrors[entity] != nil
         let lastSync = store.lastSuccess(for: entity)
 
-        HStack(spacing: 8) {
+        HStack(spacing: Spacing.xs) {
             // Leading status indicator: 8pt circle
             Circle()
                 .fill(hasFailed ? ColorTokens.zoneCaution : ColorTokens.zoneOptimal)
@@ -84,7 +84,7 @@ struct SyncStatusView: View {
                     .lineLimit(1)
             }
         }
-        .padding(.horizontal, 16)
+        .padding(.horizontal, Spacing.sm)
         .frame(minHeight: 48)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(hasFailed

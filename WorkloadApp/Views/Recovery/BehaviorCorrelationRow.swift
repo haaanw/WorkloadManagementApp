@@ -36,18 +36,9 @@ struct BehaviorCorrelationRow: View {
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text1)
         }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm)
-        .background(ColorTokens.surfaceEl)
-        .overlay(alignment: .leading) {
-            Rectangle()
-                .fill(impactPercentage >= 0 ? ColorTokens.zoneOptimal : ColorTokens.zoneDanger)
-                .frame(width: 3)
-        }
-        .overlay(
-            Rectangle()
-                .stroke(ColorTokens.divider, lineWidth: 0.5)
-        )
+        // Shared attention-banner plane (v3): card plate + zone-colored leading rule; the
+        // impact text above stays the primary channel (never color alone).
+        .attentionBannerStyle(ruleColor: impactPercentage >= 0 ? ColorTokens.zoneOptimal : ColorTokens.zoneDanger)
     }
 
     private var insufficientView: some View {
@@ -64,9 +55,9 @@ struct BehaviorCorrelationRow: View {
         }
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm)
-        .background(ColorTokens.surfaceEl)
+        .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
         .overlay(
-            Rectangle()
+            RoundedRectangle(cornerRadius: CornerTokens.card)
                 .stroke(ColorTokens.divider, lineWidth: 0.5)
         )
     }

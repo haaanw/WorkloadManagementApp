@@ -385,6 +385,43 @@ extension View {
     }
 }
 
+// MARK: - Attention banner
+
+/// The attention-banner plane shared by PR / spike / fatigue / cycle banners: a standard
+/// card (`CornerTokens.card` corners, 0.5pt divider hairline, no shadow) carrying a 2pt
+/// zone-colored leading rule clipped inside the card shape. The zone state is always
+/// communicated by the text label first — the colored rule is supplementary (never color
+/// alone, DESIGN.md rule 5).
+struct AttentionBannerStyle: ViewModifier {
+    let ruleColor: Color
+    var fill: Color = ColorTokens.surfaceEl
+
+    func body(content: Content) -> some View {
+        content
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.sm)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background {
+                ZStack(alignment: .leading) {
+                    fill
+                    Rectangle()
+                        .fill(ruleColor)
+                        .frame(width: 2)
+                        .accessibilityHidden(true)
+                }
+                .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
+            }
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
+    }
+}
+
+extension View {
+    /// Apply the attention-banner plane (zone-colored leading rule inside a standard card).
+    func attentionBannerStyle(ruleColor: Color, fill: Color = ColorTokens.surfaceEl) -> some View {
+        modifier(AttentionBannerStyle(ruleColor: ruleColor, fill: fill))
+    }
+}
+
 // MARK: - Section header
 
 /// 19pt Medium `sectionHead` header in `--text-1`. This is the real section header per

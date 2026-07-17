@@ -34,7 +34,7 @@ struct TrainingProfileCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.xs)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                        Capsule().stroke(ColorTokens.divider, lineWidth: 0.5)
                     )
             }
             .buttonStyle(.pressable)

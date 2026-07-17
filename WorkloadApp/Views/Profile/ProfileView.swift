@@ -125,8 +125,8 @@ struct ProfileView: View {
                                     .font(.Tokens.smallLabel)
                                     .foregroundStyle(ColorTokens.text3)
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
                             .background(ColorTokens.surfaceEl)
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
@@ -177,8 +177,8 @@ struct ProfileView: View {
                             .labelsHidden()
                             .toggleStyle(.design)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.sm)
                         .background(ColorTokens.surfaceEl)
 
                         // System denied warning
@@ -187,8 +187,8 @@ struct ProfileView: View {
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text3)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 16)
-                                .padding(.bottom, 8)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.bottom, Spacing.xs)
                                 .background(ColorTokens.surfaceEl)
                                 .transition(.opacity)
                         }
@@ -261,8 +261,8 @@ struct ProfileView: View {
                                     .font(.Tokens.micro)
                                     .foregroundStyle(ColorTokens.text3)
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
                             .background(ColorTokens.surfaceEl)
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
@@ -271,8 +271,8 @@ struct ProfileView: View {
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
                             .background(ColorTokens.surfaceEl)
                         }
 
@@ -281,7 +281,7 @@ struct ProfileView: View {
                         NavigationLink {
                             SyncStatusView()
                         } label: {
-                            HStack(spacing: 8) {
+                            HStack(spacing: Spacing.xs) {
                                 Image(systemName: "arrow.triangle.2.circlepath")
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
@@ -303,8 +303,8 @@ struct ProfileView: View {
                                     .font(.Tokens.micro)
                                     .foregroundStyle(ColorTokens.text3)
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
                             .background(ColorTokens.surfaceEl)
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
@@ -316,7 +316,7 @@ struct ProfileView: View {
                         NavigationLink {
                             VerdictMeasurementView()
                         } label: {
-                            HStack(spacing: 8) {
+                            HStack(spacing: Spacing.xs) {
                                 Image(systemName: "chart.bar")
                                     .font(.Tokens.label)
                                     .foregroundStyle(ColorTokens.text2)
@@ -329,8 +329,8 @@ struct ProfileView: View {
                                     .font(.Tokens.micro)
                                     .foregroundStyle(ColorTokens.text3)
                             }
-                            .padding(.horizontal, 16)
-                            .padding(.vertical, 16)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
                             .background(ColorTokens.surfaceEl)
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
@@ -347,8 +347,8 @@ struct ProfileView: View {
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 16)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.sm)
                                 .background(ColorTokens.surfaceEl)
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
@@ -360,8 +360,8 @@ struct ProfileView: View {
                                 .font(.Tokens.bodyMedium)
                                 .foregroundStyle(ColorTokens.zoneDanger)
                                 .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 16)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.sm)
                                 .background(ColorTokens.surfaceEl)
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
@@ -370,10 +370,13 @@ struct ProfileView: View {
 
                         Spacer().frame(height: Spacing.lg)
                     } else {
+                        // v3 empty state: one quiet line on the plate plane.
                         Text("profile.empty.noAthlete")
                             .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text3)
-                            .padding(Spacing.lg)
+                            .foregroundStyle(ColorTokens.text2)
+                            .dataPlate()
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.top, Spacing.md)
                             .transition(.opacity)
                     }
                 }
@@ -484,8 +487,8 @@ struct ProfileView: View {
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.sm)
                 .background(ColorTokens.surfaceEl)
         }
         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
@@ -496,7 +499,7 @@ struct ProfileView: View {
         Rectangle()
             .fill(ColorTokens.divider)
             .frame(height: 0.5)
-            .padding(.leading, 16)
+            .padding(.leading, Spacing.sm)
     }
 
     @ViewBuilder
@@ -602,8 +605,8 @@ struct HealthKitPermissionsView: View {
                 Text("profile.healthkit.disclaimer")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
@@ -625,7 +628,7 @@ struct HealthKitPermissionsView: View {
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5).padding(.leading, Spacing.xl)
                 }
 
-                Spacer().frame(height: 24)
+                Spacer().frame(height: Spacing.md)
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                 // State-driven status / action. The persisted state distinguishes:
@@ -647,7 +650,7 @@ struct HealthKitPermissionsView: View {
                         isAuthorizing = false
                     }
                 } label: {
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.xs) {
                         if isAuthorizing {
                             ProgressView()
                         } else {
@@ -672,8 +675,8 @@ struct HealthKitPermissionsView: View {
                         }
                         Spacer()
                     }
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
                 }
                 .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                 .disabled(isAuthorizing || hkState != .notRequested)
@@ -692,7 +695,7 @@ struct HealthKitPermissionsView: View {
                             UIApplication.shared.open(settings)
                         }
                     } label: {
-                        HStack(spacing: 8) {
+                        HStack(spacing: Spacing.xs) {
                             Text("profile.healthkit.manageInHealth")
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
@@ -701,8 +704,8 @@ struct HealthKitPermissionsView: View {
                                 .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                         }
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.sm)
                     }
                     .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 

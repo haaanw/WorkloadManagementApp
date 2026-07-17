@@ -2228,7 +2228,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Keep logging -- periodization insights unlock after %lld weeks of consistent training"
+            "value" : "Keep logging — periodization insights unlock after %lld weeks of consistent training"
           }
         },
         "zh-Hans" : {

@@ -2,7 +2,7 @@ import SwiftUI
 
 /// Dashboard banner shown when accumulated fatigue is elevated.
 /// Not a medical or injury prediction — a load-attention signal.
-/// Design system: flat surface card with colored left border, no shadows, no rounded corners.
+/// Design system: shared attention-banner plane (CornerTokens.card, zone-colored leading rule).
 struct FatigueAttentionBanner: View {
     let fatigueIndex: Double
     let zone: FatigueIndexEngine.FatigueZone
@@ -41,39 +41,27 @@ struct FatigueAttentionBanner: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-            Rectangle()
-                .fill(borderColor)
-                .frame(width: 2)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(spacing: 8) {
+                Text(zoneLabel)
+                    .font(.Tokens.micro)
+                    .tracking(0.88)
+                    .foregroundStyle(borderColor)
 
-            VStack(alignment: .leading, spacing: 8) {
-                HStack(spacing: 8) {
-                    Text(zoneLabel)
-                        .font(.Tokens.micro)
-                        .tracking(0.88)
-                        .foregroundStyle(borderColor)
+                Spacer()
 
-                    Spacer()
-
-                    Text("\(Int(fatigueIndex))")
-                        .font(.Tokens.labelMedium)
-                        .monospacedDigit()
-                        .foregroundStyle(borderColor)
-                }
-
-                Text(message)
-                    .font(.Tokens.smallLabel)
-                    .foregroundStyle(ColorTokens.text2)
-                    .fixedSize(horizontal: false, vertical: true)
+                Text("\(Int(fatigueIndex))")
+                    .font(.Tokens.labelMedium)
+                    .monospacedDigit()
+                    .foregroundStyle(borderColor)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 16)
+
+            Text(message)
+                .font(.Tokens.smallLabel)
+                .foregroundStyle(ColorTokens.text2)
+                .fixedSize(horizontal: false, vertical: true)
         }
-        .background(ColorTokens.surfaceEl)
-        .overlay(
-            Rectangle()
-                .stroke(ColorTokens.divider, lineWidth: 0.5)
-        )
+        .attentionBannerStyle(ruleColor: borderColor)
         .onAppear {
             // Caution surfaced → one warning haptic (guarded so reloads don't re-fire).
             guard !didSignal else { return }

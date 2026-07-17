@@ -120,8 +120,9 @@ struct DashboardView: View {
                         if let summary = viewModel.weeklySummary, summary.sessionCount > 0 {
                             WeeklySummaryCard(summary: summary, streak: viewModel.currentStreak)
                                 .padding(.horizontal, Spacing.sm)
-                            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                                .padding(.horizontal, Spacing.sm)
+                            // Bordered card planes separate by grid gap, not a jammed hairline
+                            // (hairlines are for rows INSIDE a plane — Separator Grammar).
+                            Spacer().frame(height: Spacing.sm)
 
                             // Notification pre-permission card (NOTF-02, D-07)
                             if !prePermissionShown {
@@ -151,8 +152,6 @@ struct DashboardView: View {
                                     }
                                 )
                                 .padding(.horizontal, Spacing.sm)
-                                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-                                    .padding(.horizontal, Spacing.sm)
                             }
 
                             Spacer().frame(height: Spacing.lg)
@@ -221,6 +220,8 @@ struct DashboardView: View {
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.hasRealData)
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.isLoading)
             }
+            // Editorial rhythm (Stage 3): generous breathing room under the nav before the hero.
+            .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
             .navigationTitle("dashboard.nav.title")
@@ -347,12 +348,18 @@ struct HeroReadinessCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        // Stage 3 hierarchy (v3): the READINESS micro-label + serif score are THE moment —
+        // everything below (periodization row, factor rows, zone line) is demoted supporting
+        // matter. Explicit 8pt-grid gaps: sm above the score, lg of breathing room below it,
+        // sm rhythm between the supporting rows. Same information, reordered nothing.
+        VStack(alignment: .leading, spacing: 0) {
             Text(String(format: String(localized: "dashboard.hero.readinessLabel"), dateLabel))
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
                 .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: viewModel.hasRealData)
+
+            Spacer().frame(height: Spacing.sm)
 
             if viewModel.isLoading && !viewModel.hasLoadedOnce {
                 // Calm first-load placeholder where the score will land — data arrival is a
@@ -377,19 +384,24 @@ struct HeroReadinessCard: View {
                     }
             }
 
-            // Periodization phase label (D-01, D-02)
+            // Breathing room below the score block — the score owns its space.
+            Spacer().frame(height: Spacing.lg)
+
+            // Periodization phase label (D-01, D-02) — compact single supporting row.
             if let phaseLabel = viewModel.trainingPhaseLabel {
                 Text(phaseLabel)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
+                Spacer().frame(height: Spacing.sm)
             } else if let sufficiency = viewModel.periodizationSufficiency,
                       !sufficiency.isSufficient,
                       sufficiency.weeksAvailable > 0 {
                 DataSufficiencyRing(
                     progress: Double(sufficiency.weeksAvailable) / Double(sufficiency.weeksRequired),
                     label: String(localized: "dashboard.periodization.progress", defaultValue: "\(sufficiency.weeksAvailable) of \(sufficiency.weeksRequired) weeks"),
-                    message: String(localized: "dashboard.periodization.unlock", defaultValue: "Keep logging -- periodization insights unlock after \(sufficiency.weeksRequired) weeks of consistent training")
+                    message: String(localized: "dashboard.periodization.unlock", defaultValue: "Keep logging — periodization insights unlock after \(sufficiency.weeksRequired) weeks of consistent training")
                 )
+                Spacer().frame(height: Spacing.sm)
             }
 
             if viewModel.hasRealData && !viewModel.reasoningFactors.isEmpty {
@@ -397,15 +409,21 @@ struct HeroReadinessCard: View {
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
 
-                VStack(alignment: .leading, spacing: 16) {
+                Spacer().frame(height: Spacing.sm)
+
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     ForEach(Array(viewModel.reasoningFactors.prefix(2).enumerated()), id: \.offset) { _, factor in
                         factorRow(factor)
                     }
                 }
 
+                Spacer().frame(height: Spacing.sm)
+
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
+
+                Spacer().frame(height: Spacing.sm)
             }
 
             if let rec = viewModel.recommendation {
@@ -433,7 +451,8 @@ struct HeroReadinessCard: View {
     @ViewBuilder
     private func factorRow(_ factor: ReasoningEngine.Factor) -> some View {
         let content = HStack(spacing: 0) {
-            VStack(alignment: .leading, spacing: Spacing.xs) {
+            // Tight label→value pairing (baselinePair) — supporting rows stay compact under the score.
+            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                 Text(factor.label)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
@@ -495,13 +514,14 @@ struct EmptyStateCard: View {
                 Haptics.tap()
                 onConnectHealth()
             } label: {
+                // v3: secondary action reads as an OUTLINED pill (Corner Law — Capsule, never square).
                 Text("dashboard.action.connectHealth")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.accent, lineWidth: 1)
+                        Capsule().stroke(ColorTokens.accent, lineWidth: 1)
                     )
             }
             .buttonStyle(.pressable)
@@ -564,8 +584,11 @@ struct MetricsStrip: View {
             )
         }
         .frame(maxWidth: .infinity)
-        .background(ColorTokens.surface)
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        // Inline strip plane on `CornerTokens.card` (v3 Corner Law); the internal vertical
+        // hairlines are sanctioned separators, clipped by the rounded shape.
+        .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 
     private func sleepString(_ minutes: Double) -> String {
@@ -702,25 +725,25 @@ struct RecentSessionsSection: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
+        // Stage 3 (item 7): header sits OUTSIDE the plate per the section grammar; the rows
+        // live on one grouped card plate (`CornerTokens.card`) with inset hairline separators
+        // between siblings only — no bare text stacks, no square stroke.
         VStack(alignment: .leading, spacing: 0) {
             SectionHeader(title: "dashboard.section.recentSessions")
-                .padding(.bottom, Spacing.sm)
 
-            Rectangle()
-                .fill(ColorTokens.divider)
-                .frame(height: 0.5)
+            Spacer().frame(height: Spacing.sm)
 
-            if sessions.isEmpty {
-                Text("dashboard.empty.noSessions")
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text2)
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, Spacing.sm)
-            } else {
-                ForEach(sessions, id: \.id) { session in
-                    VStack(spacing: 0) {
+            VStack(alignment: .leading, spacing: 0) {
+                if sessions.isEmpty {
+                    Text("dashboard.empty.noSessions")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.sm)
+                } else {
+                    ForEach(Array(sessions.enumerated()), id: \.element.id) { index, session in
                         HStack {
-                            VStack(alignment: .leading, spacing: Spacing.xs) {
+                            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                                 Text(session.sessionName ?? session.sportType.displayName)
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
@@ -739,15 +762,15 @@ struct RecentSessionsSection: View {
                         .padding(.horizontal, Spacing.sm)
                         .padding(.vertical, Spacing.sm)
 
-                        Rectangle()
-                            .fill(ColorTokens.divider)
-                            .frame(height: 0.5)
+                        if index < sessions.count - 1 {
+                            RowSeparator()
+                        }
                     }
                 }
             }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
         }
-        // v2: enclose the recent-sessions list as a card plane; inner row hairlines are kept.
-        .background(ColorTokens.surfaceEl)
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }

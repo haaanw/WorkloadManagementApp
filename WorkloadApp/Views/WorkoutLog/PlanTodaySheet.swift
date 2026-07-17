@@ -5,8 +5,8 @@ import SwiftData
 /// a `PrescribedWorkout` for today via `PlannedSessionRepository`:
 ///   - Load a template — reuses the EXISTING `TemplatePickerSheet`; `planFromTemplate` (frozen copy).
 ///   - Enter a lift — opens `ManualLiftEntrySheet`; `planManualLift` (one-off, templateId nil).
-/// No verdict, no adjusted numbers — those are Phases 43/44. DESIGN.md-compliant: 0pt corners
-/// (Rectangle), no shadows, Font.Tokens, 8pt grid, NO accent.
+/// No verdict, no adjusted numbers — those are Phases 43/44. DESIGN.md-compliant: corners via
+/// `CornerTokens` (v3 Corner Law), no shadows, Font.Tokens, 8pt grid, NO accent.
 struct PlanTodaySheet: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext

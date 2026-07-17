@@ -60,8 +60,8 @@ struct UpgradeSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Drag handle
-            Rectangle()
+            // Drag handle — pill affordance (v3 Corner Law).
+            Capsule()
                 .fill(ColorTokens.text3.opacity(0.3))
                 .frame(width: Spacing.lg, height: Spacing.baselinePair)
                 .padding(.top, Spacing.xs)
@@ -164,7 +164,7 @@ struct UpgradeSheet: View {
                                     .font(.Tokens.bodyMedium)
                                     .foregroundStyle(ColorTokens.background)
                                     .frame(maxWidth: .infinity, minHeight: 48)
-                                    .background(ColorTokens.text1)
+                                    .background(ColorTokens.text1, in: Capsule())
                             }
                             .buttonStyle(.pressable)
                         } else {
@@ -181,8 +181,8 @@ struct UpgradeSheet: View {
                                         .font(.Tokens.bodyMedium)
                                         .foregroundStyle(ColorTokens.background)
                                         .frame(maxWidth: .infinity, minHeight: 48)
-                                        .background(ColorTokens.text1)
-                                        .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 1))
+                                        .background(ColorTokens.text1, in: Capsule())
+                                        .overlay(Capsule().stroke(ColorTokens.accent, lineWidth: 1))
                                 }
                             }
                             .disabled(isPurchasing || activePackage == nil)
@@ -239,7 +239,7 @@ struct UpgradeSheet: View {
                             .foregroundStyle(ColorTokens.text2)
                             .padding(.horizontal, Spacing.baselinePair)
                             .padding(.vertical, Spacing.baselinePair)
-                            .overlay { Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5) }
+                            .overlay { Capsule().stroke(ColorTokens.divider, lineWidth: 0.5) }
                     }
                 }
                 Text(price)

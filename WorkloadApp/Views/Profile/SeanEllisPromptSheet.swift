@@ -7,10 +7,11 @@ import SwiftUI
 /// emitted via `onAnswer`; the host records it locally (`SeanEllisStore`) and, on "very", routes into
 /// the existing RevenueCat paywall (the revealed WTP / card-on-file hop).
 ///
-/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid, light-only
-/// via `ColorTokens`. The reserved hero accent is FORBIDDEN here. Calm, neutral copy — no guilt, no
-/// upsell language in the question itself. The three choices use ONE shared builder so they are
-/// provably equal weight (mirror TodayVerdictCard.decisionButton).
+/// DESIGN.md (hard, v3 "Ink & Grain"): corners from `CornerTokens` only (the three choices are
+/// outlined `Capsule()` pills), no shadows, `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`.
+/// The reserved hero accent is FORBIDDEN here. Calm, neutral copy — no guilt, no upsell language
+/// in the question itself. The three choices use ONE shared builder so they are provably equal
+/// weight (mirror TodayVerdictCard.decisionButton).
 struct SeanEllisPromptSheet: View {
 
     /// Emits the chosen disappointment level.
@@ -78,10 +79,10 @@ struct SeanEllisPromptSheet: View {
             Text(verbatim: title)
                 .font(.Tokens.bodyMedium)
                 .foregroundStyle(ColorTokens.text1)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.xs)
-                .background(ColorTokens.surface)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.horizontal, Spacing.sm)
+                .background(ColorTokens.surface, in: Capsule())
+                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
     }

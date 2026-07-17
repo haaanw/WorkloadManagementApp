@@ -38,7 +38,7 @@ struct SignUpView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("auth.signup.heading")
                         .font(.Tokens.pageTitle)
                         .foregroundStyle(ColorTokens.text1)
@@ -47,54 +47,40 @@ struct SignUpView: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.top, 32)
-                .padding(.bottom, 32)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.lg)
+                .padding(.bottom, Spacing.lg)
 
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
+                // Fields — the standard v3 field treatment (control-radius plate, hairline,
+                // accent focus feedback), stacked on the page plane instead of full-bleed rows.
+                VStack(alignment: .leading, spacing: Spacing.sm) {
+                    InputField(label: "auth.field.name", placeholder: String(localized: "auth.field.namePlaceholder"), text: $displayName)
+                        .textContentType(.name)
 
-                // Name field
-                InputField(label: "auth.field.name", placeholder: "auth.field.namePlaceholder", text: $displayName)
-                    .textContentType(.name)
+                    InputField(label: "auth.field.email", placeholder: "you@example.com", text: $email)
+                        .textContentType(.emailAddress)
+                        .keyboardType(.emailAddress)
+                        .autocorrectionDisabled()
+                        .textInputAutocapitalization(.never)
 
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
-
-                // Email field
-                InputField(label: "auth.field.email", placeholder: "you@example.com", text: $email)
-                    .textContentType(.emailAddress)
-                    .keyboardType(.emailAddress)
-                    .autocorrectionDisabled()
-                    .textInputAutocapitalization(.never)
-
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
-
-                // Password field
-                SecureInputField(label: "auth.field.password", placeholder: "auth.field.passwordPlaceholder", text: $password)
-                    .textContentType(.newPassword)
-
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
+                    SecureInputField(label: "auth.field.password", placeholder: String(localized: "auth.field.passwordPlaceholder"), text: $password)
+                        .textContentType(.newPassword)
+                }
+                .padding(.horizontal, Spacing.sm)
 
                 // Sport picker
-                VStack(alignment: .leading, spacing: 16) {
+                VStack(alignment: .leading, spacing: Spacing.sm) {
                     Text("auth.signup.primarySport")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
 
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: 8) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: 88))], spacing: Spacing.xs) {
                         ForEach(SportType.allCases) { sport in
                             Button {
                                 Haptics.select()
                                 selectedSport = sport
                             } label: {
-                                VStack(spacing: 8) {
+                                VStack(spacing: Spacing.xs) {
                                     Image(systemName: sport.systemImage)
                                         .font(.Tokens.sectionHead)
                                         .foregroundStyle(selectedSport == sport ? ColorTokens.accent : ColorTokens.text2)
@@ -104,10 +90,13 @@ struct SignUpView: View {
                                         .foregroundStyle(selectedSport == sport ? ColorTokens.accent : ColorTokens.text2)
                                 }
                                 .frame(maxWidth: .infinity)
-                                .padding(.vertical, 16)
-                                .background(selectedSport == sport ? ColorTokens.accentSubtle : ColorTokens.surfaceEl)
+                                .padding(.vertical, Spacing.sm)
+                                .background(
+                                    selectedSport == sport ? ColorTokens.accentSubtle : ColorTokens.surfaceEl,
+                                    in: RoundedRectangle(cornerRadius: CornerTokens.control)
+                                )
                                 .overlay(
-                                    Rectangle().stroke(
+                                    RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
                                         selectedSport == sport ? ColorTokens.accent : ColorTokens.divider,
                                         lineWidth: selectedSport == sport ? 1.0 : 0.5
                                     )
@@ -117,56 +106,28 @@ struct SignUpView: View {
                         }
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
-                .background(ColorTokens.background)
-
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.md)
 
                 if let error = errorMessage {
                     Text(error)
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.zoneDanger)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
-
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.top, Spacing.sm)
                 }
 
-                // Create account button
-                Button {
+                // Create account button — primary CTA is a filled accent pill (Accent Rule v3).
+                PrimaryActionButton(
+                    title: "auth.signup.heading",
+                    isLoading: isLoading,
+                    isDisabled: !isFormValid || isSocialLoading
+                ) {
                     Task { await signUp() }
-                } label: {
-                    Group {
-                        if isLoading {
-                            ProgressView()
-                        } else {
-                            Text("auth.signup.heading")
-                                .font(.Tokens.bodyMedium)
-                                .foregroundStyle(isFormValid ? ColorTokens.background : ColorTokens.text3)
-                        }
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 16)
-                    .background(isFormValid ? ColorTokens.text1 : ColorTokens.surface)
-                    .overlay(
-                        Rectangle().stroke(
-                            isFormValid ? ColorTokens.accent : ColorTokens.divider,
-                            lineWidth: isFormValid ? 1 : 0.5
-                        )
-                    )
                 }
-                .buttonStyle(.pressable)
-                .disabled(!isFormValid || isLoading || isSocialLoading)
-
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.md)
 
                 // Social login buttons
                 SocialLoginButtons(
@@ -179,10 +140,7 @@ struct SignUpView: View {
                         Task { await handleGoogleSignIn() }
                     }
                 )
-
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
+                .padding(.bottom, Spacing.lg)
             }
         }
         .background(ColorTokens.background)
@@ -337,48 +295,72 @@ private enum SignUpSocialError: LocalizedError {
 
 // MARK: - Reusable input field components
 
+/// The standard v3 auth field: small caption label above a control-radius field plate
+/// (`CornerTokens.control`, 0.5pt hairline). Focus feedback mirrors `InstrumentTextField` —
+/// the border becomes a 1pt accent rule while editing (accent-as-live-state), settling
+/// via `Motion.state`.
 struct InputField: View {
     let label: LocalizedStringKey
-    let placeholder: LocalizedStringKey
+    /// Verbatim placeholder (String, not LocalizedStringKey — a key would markdown-parse
+    /// "you@example.com" into a blue auto-link). Styled quiet (`text3`) via the prompt.
+    let placeholder: String
     @Binding var text: String
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @FocusState private var isFocused: Bool
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(label)
-                .font(.Tokens.sectionHead)
-                .foregroundStyle(ColorTokens.text1)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
-            TextField(placeholder, text: $text)
+                .font(.Tokens.smallLabel)
+                .foregroundStyle(ColorTokens.text2)
+            TextField(label, text: $text, prompt: Text(placeholder).foregroundStyle(ColorTokens.text3))
+                .focused($isFocused)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .padding(.horizontal, Spacing.sm)
+                .frame(minHeight: 44)
+                .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
+                        isFocused ? ColorTokens.accent : ColorTokens.divider,
+                        lineWidth: isFocused ? 1 : 0.5
+                    )
+                )
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isFocused)
         }
-        .background(ColorTokens.surfaceEl)
     }
 }
 
+/// Secure twin of `InputField` — same v3 field treatment, `SecureField` entry.
 struct SecureInputField: View {
     let label: LocalizedStringKey
-    let placeholder: LocalizedStringKey
+    /// Verbatim placeholder — see `InputField.placeholder`.
+    let placeholder: String
     @Binding var text: String
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @FocusState private var isFocused: Bool
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(label)
-                .font(.Tokens.sectionHead)
-                .foregroundStyle(ColorTokens.text1)
-                .padding(.horizontal, 16)
-                .padding(.top, 16)
-                .padding(.bottom, 8)
-            SecureField(placeholder, text: $text)
+                .font(.Tokens.smallLabel)
+                .foregroundStyle(ColorTokens.text2)
+            SecureField(label, text: $text, prompt: Text(placeholder).foregroundStyle(ColorTokens.text3))
+                .focused($isFocused)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
-                .padding(.horizontal, 16)
-                .padding(.bottom, 16)
+                .padding(.horizontal, Spacing.sm)
+                .frame(minHeight: 44)
+                .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
+                        isFocused ? ColorTokens.accent : ColorTokens.divider,
+                        lineWidth: isFocused ? 1 : 0.5
+                    )
+                )
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isFocused)
         }
-        .background(ColorTokens.surfaceEl)
     }
 }

@@ -58,16 +58,16 @@ struct TrainingProfileSheet: View {
     // MARK: - sRPE Labels
 
     private static let srpeLabels: [Int: String] = [
-        1: "1 -- Rest",
-        2: "2 -- Very Light",
-        3: "3 -- Light",
-        4: "4 -- Moderate-",
-        5: "5 -- Moderate",
-        6: "6 -- Moderate+",
-        7: "7 -- Hard",
-        8: "8 -- Very Hard",
-        9: "9 -- Near Max",
-        10: "10 -- Maximal"
+        1: "1 — Rest",
+        2: "2 — Very Light",
+        3: "3 — Light",
+        4: "4 — Moderate-",
+        5: "5 — Moderate",
+        6: "6 — Moderate+",
+        7: "7 — Hard",
+        8: "8 — Very Hard",
+        9: "9 — Near Max",
+        10: "10 — Maximal"
     ]
 
     private func srpeLabel(_ value: Int) -> String {
@@ -155,8 +155,8 @@ struct TrainingProfileSheet: View {
                         Text(saveError)
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.zoneDanger)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 8)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.top, Spacing.xs)
                     }
                 }
             }
@@ -217,6 +217,9 @@ struct TrainingProfileSheet: View {
             VStack(spacing: 0) {
                 content()
             }
+            // Rows carry their own surfaceEl fills; clip them to the card shape so the
+            // corners stay rounded per the v3 Corner Law (CornerTokens.card).
+            .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
             .cardStyle(horizontalPadding: 0, verticalPadding: 0)
             .padding(.horizontal, Spacing.sm)
         }
@@ -234,7 +237,7 @@ struct TrainingProfileSheet: View {
         Rectangle()
             .fill(ColorTokens.divider)
             .frame(height: 0.5)
-            .padding(.leading, 16)
+            .padding(.leading, Spacing.sm)
     }
 
     @ViewBuilder
@@ -282,8 +285,8 @@ struct TrainingProfileSheet: View {
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
         .background(ColorTokens.surfaceEl)
     }
 
@@ -330,8 +333,8 @@ struct TrainingProfileSheet: View {
                 }
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
         .background(ColorTokens.surfaceEl)
     }
 
@@ -366,8 +369,8 @@ struct TrainingProfileSheet: View {
                             .foregroundStyle(ColorTokens.text3)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.sm)
                 .background(ColorTokens.surfaceEl)
             }
             .buttonStyle(.pressable(scale: 1, opacity: 0.6))
@@ -376,7 +379,7 @@ struct TrainingProfileSheet: View {
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
-                    .padding(.leading, 16)
+                    .padding(.leading, Spacing.sm)
 
                 VStack(alignment: .leading, spacing: 0) {
                     ForEach(BodyRegion.allCases) { region in
@@ -409,21 +412,21 @@ struct TrainingProfileSheet: View {
                             Rectangle()
                                 .fill(ColorTokens.divider)
                                 .frame(height: 0.5)
-                                .padding(.leading, 32)
+                                .padding(.leading, Spacing.lg)
                         }
                     }
 
                     Rectangle()
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
-                        .padding(.leading, 16)
+                        .padding(.leading, Spacing.sm)
 
                     TextField("profile.trainingProfile.injuryNotes", text: $injuryNotes, axis: .vertical)
                         .lineLimit(2...4)
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.sm)
                         .onChange(of: injuryNotes) { userHasEdited = true }
                 }
                 .background(ColorTokens.surfaceEl)

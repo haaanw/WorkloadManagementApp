@@ -106,8 +106,8 @@ struct TemplateEditorSheet: View {
                                     .font(.Tokens.label)
                                     .foregroundStyle(scheduledDays.contains(value) ? ColorTokens.text1 : ColorTokens.text2)
                                     .frame(width: 40, height: 40)
-                                    .background(scheduledDays.contains(value) ? ColorTokens.surface : ColorTokens.background)
-                                    .overlay(Rectangle().stroke(scheduledDays.contains(value) ? ColorTokens.text1 : ColorTokens.divider, lineWidth: 0.5))
+                                    .background(scheduledDays.contains(value) ? ColorTokens.surface : ColorTokens.background, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                                    .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(scheduledDays.contains(value) ? ColorTokens.text1 : ColorTokens.divider, lineWidth: 0.5))
                             }
                             .buttonStyle(.plain)
                         }

@@ -11,14 +11,15 @@ struct BehaviorTagChip: View {
             Haptics.select()
             action()
         } label: {
+            // v3 Corner Law: tag chips are pills. Selection stays accent (live-state semantic).
             Text(label)
                 .font(.Tokens.label)
                 .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 8)
-                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.xs)
+                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background, in: Capsule())
                 .overlay(
-                    Rectangle()
+                    Capsule()
                         .stroke(isSelected ? ColorTokens.accent : ColorTokens.divider, lineWidth: 0.5)
                 )
         }

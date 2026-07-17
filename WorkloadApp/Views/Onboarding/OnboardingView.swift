@@ -133,10 +133,11 @@ struct OnboardingView: View {
                             .background(
                                 selectedFrequency == freq
                                     ? ColorTokens.accentSubtle
-                                    : ColorTokens.surfaceEl
+                                    : ColorTokens.surfaceEl,
+                                in: RoundedRectangle(cornerRadius: CornerTokens.control)
                             )
                             .overlay(
-                                Rectangle().stroke(
+                                RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
                                     selectedFrequency == freq
                                         ? ColorTokens.accent
                                         : ColorTokens.divider,
@@ -186,10 +187,11 @@ struct OnboardingView: View {
                         .background(
                             selectedLevel == level
                                 ? ColorTokens.accentSubtle
-                                : ColorTokens.surfaceEl
+                                : ColorTokens.surfaceEl,
+                            in: RoundedRectangle(cornerRadius: CornerTokens.control)
                         )
                         .overlay(
-                            Rectangle().stroke(
+                            RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
                                 selectedLevel == level
                                     ? ColorTokens.accent
                                     : ColorTokens.divider,
@@ -252,9 +254,9 @@ struct OnboardingView: View {
                         .foregroundStyle(ColorTokens.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(ColorTokens.text1)
+                        .background(ColorTokens.text1, in: Capsule())
                         .overlay(
-                            Rectangle().stroke(ColorTokens.accent, lineWidth: 1)
+                            Capsule().stroke(ColorTokens.accent, lineWidth: 1)
                         )
                 }
                 .buttonStyle(.pressable)
@@ -291,9 +293,9 @@ struct OnboardingView: View {
                         .foregroundStyle(ColorTokens.background)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
-                        .background(ColorTokens.text1)
+                        .background(ColorTokens.text1, in: Capsule())
                         .overlay(
-                            Rectangle().stroke(ColorTokens.accent, lineWidth: 1)
+                            Capsule().stroke(ColorTokens.accent, lineWidth: 1)
                         )
                 }
                 .buttonStyle(.pressable)
@@ -355,9 +357,9 @@ struct OnboardingView: View {
                 .foregroundStyle(isContinueEnabled ? ColorTokens.background : ColorTokens.text3)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
-                .background(isContinueEnabled ? ColorTokens.text1 : ColorTokens.surface)
+                .background(isContinueEnabled ? ColorTokens.text1 : ColorTokens.surface, in: Capsule())
                 .overlay(
-                    Rectangle().stroke(
+                    Capsule().stroke(
                         isContinueEnabled ? ColorTokens.accent : ColorTokens.divider,
                         lineWidth: isContinueEnabled ? 1 : 0.5
                     )

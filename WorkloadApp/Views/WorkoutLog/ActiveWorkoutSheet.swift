@@ -118,8 +118,8 @@ struct ActiveWorkoutSheet: View {
                             }
                             .buttonStyle(.pressable)
                             .padding(.horizontal, Spacing.sm)
-                            .background(ColorTokens.surfaceEl)
-                            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                            .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+                            .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
                             .transition(.opacity)
                         }
 
@@ -1040,7 +1040,7 @@ struct ExerciseEntryCard: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
                     .contentShape(Rectangle())
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                    .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
                 }
                 .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                 .padding(.horizontal, Spacing.sm)
@@ -1060,7 +1060,7 @@ struct ExerciseEntryCard: View {
                 .padding(.vertical, Spacing.sm)
                 .contentShape(Rectangle())
                 .overlay(
-                    Rectangle()
+                    RoundedRectangle(cornerRadius: CornerTokens.control)
                         .stroke(ColorTokens.divider, style: StrokeStyle(lineWidth: 0.5, dash: [4, 4]))
                 )
             }
@@ -1198,7 +1198,7 @@ struct SetEntryRow: View {
                     .padding(.horizontal, Spacing.xs)
                     .padding(.vertical, Spacing.xs)
                     .contentShape(Rectangle())
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                    .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
             }
             .buttonStyle(.pressable)
             .transition(.opacity)
@@ -1231,8 +1231,9 @@ struct SetEntryRow: View {
     }
 
     /// Per-set DONE toggle (proposal §13, Option A). A square `Rectangle` checkbox: empty when
-    /// not done, filled `text1` with a checkmark glyph when done. 0pt corners, 0.5pt hairline
-    /// `divider` border, NO accent. ≥44pt touch target at the trailing end of the row. Tapping
+    /// not done, filled `text1` with a checkmark glyph when done. The square is a deliberate
+    /// checkbox GLYPH (state mark, not a container plate — v3 Corner Law exempts glyphs), 0.5pt
+    /// hairline `divider` border, NO accent. ≥44pt touch target at the trailing end of the row. Tapping
     /// toggles `set.isDone`, controlling whether this set is persisted by saveSession().
     @ViewBuilder private var doneToggle: some View {
         Button {
@@ -1270,8 +1271,9 @@ struct SetEntryRow: View {
     }
 
     /// Per-set WARMUP toggle (§E.4 clarity). A clearly labeled, bordered control — never
-    /// color-alone: the word "Warmup" plus a checkbox-style square communicate state. 0pt
-    /// corners, 0.5pt hairline `divider`, NO accent. Warmups are still excluded from the
+    /// color-alone: the word "Warmup" plus a checkbox-style square glyph communicate state. The
+    /// container wears `CornerTokens.control` (v3 Corner Law; the inner square stays a checkbox
+    /// glyph), 0.5pt hairline `divider`, NO accent. Warmups are still excluded from the
     /// suggestion source + PR by the existing logic; this only makes the flag visible/legible.
     @ViewBuilder private var warmupToggle: some View {
         Button {
@@ -1290,7 +1292,7 @@ struct SetEntryRow: View {
             .padding(.horizontal, Spacing.xs)
             .padding(.vertical, Spacing.baselinePair)
             .contentShape(Rectangle())
-            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
         .accessibilityLabel(String(localized: "set.warmup.label", defaultValue: "Warmup"))
@@ -1301,7 +1303,7 @@ struct SetEntryRow: View {
     }
 
     /// Compact one-line summary of a completed set (§5.3). Tapping re-expands the full
-    /// editable row (the set stays isDone). `text2`, monospacedDigit, 0pt/hairline, no accent.
+    /// editable row (the set stays isDone). `text2`, monospacedDigit, hairline separators, no accent.
     @ViewBuilder private var collapsedSummary: some View {
         Button {
             Haptics.tap()
@@ -1635,7 +1637,7 @@ struct FillButtonBar: View {
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                    .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
             }
             .buttonStyle(.pressable)
 
@@ -1651,7 +1653,7 @@ struct FillButtonBar: View {
                         .foregroundStyle(ColorTokens.text1)
                         .padding(.horizontal, Spacing.sm)
                         .padding(.vertical, Spacing.xs)
-                        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                        .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
                 }
                 .buttonStyle(.pressable)
             }

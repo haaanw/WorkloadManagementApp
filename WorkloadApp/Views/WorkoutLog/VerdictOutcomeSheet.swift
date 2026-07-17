@@ -7,7 +7,7 @@ import SwiftUI
 /// event's planned→adjusted number + reason as quiet read-only context. The selection ("right" /
 /// "wrong" / "unsure") is emitted via `onSelect`; the host writes it onto the awaiting `VerdictEvent`.
 ///
-/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid, light-only
+/// DESIGN.md (hard): corners via `CornerTokens` (v3 Corner Law), no shadows, `Font.Tokens.*`, 8pt grid, light-only
 /// via `ColorTokens`. The reserved hero accent is FORBIDDEN here. NO guilt / coercion copy. The three
 /// choices use ONE shared button builder, so they are provably equal weight (mirror TodayVerdictCard).
 struct VerdictOutcomeSheet: View {
@@ -119,8 +119,8 @@ struct VerdictOutcomeSheet: View {
                 .foregroundStyle(ColorTokens.text1)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.xs)
-                .background(ColorTokens.surface)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .background(ColorTokens.surface, in: Capsule())
+                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
     }

@@ -32,7 +32,7 @@ struct ChartTooltipGesture: View {
     }
 }
 
-/// Tooltip popup view (surfaceEl background, 0pt corners, value + date).
+/// Tooltip popup view (surfaceEl background, `CornerTokens.control` corners, value + date).
 struct TooltipBubble: View {
     let value: String
     let dateLabel: String
@@ -46,9 +46,9 @@ struct TooltipBubble: View {
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
         }
-        .padding(.horizontal, 8)
-        .padding(.vertical, 4)
-        .background(ColorTokens.surfaceEl)
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        .padding(.horizontal, Spacing.xs)
+        .padding(.vertical, Spacing.baselinePair)
+        .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }

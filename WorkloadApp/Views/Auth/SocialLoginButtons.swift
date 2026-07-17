@@ -12,7 +12,7 @@ struct SocialLoginButtons: View {
     var body: some View {
         VStack(spacing: 0) {
             // OR divider
-            HStack(spacing: 16) {
+            HStack(spacing: Spacing.sm) {
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
@@ -23,11 +23,11 @@ struct SocialLoginButtons: View {
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 24)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.md)
 
             // Apple Sign-In button (must be first per Apple HIG)
-            VStack(spacing: 8) {
+            VStack(spacing: Spacing.xs) {
                 SignInWithAppleButton(
                     mode == .signIn ? .signIn : .signUp
                 ) { request in
@@ -45,13 +45,13 @@ struct SocialLoginButtons: View {
                 }
                 .signInWithAppleButtonStyle(.black)
                 .frame(height: 48)
-                .clipShape(Rectangle()) // 0pt corners per DESIGN.md
+                .clipShape(Capsule()) // pill CTA per DESIGN.md v3 Corner Law (CornerTokens.pill)
 
-                // Google Sign-In button
+                // Google Sign-In button — secondary CTA: outlined pill
                 Button {
                     onGoogleTap()
                 } label: {
-                    HStack(spacing: 8) {
+                    HStack(spacing: Spacing.xs) {
                         if isLoading {
                             ProgressView()
                         } else {
@@ -68,15 +68,15 @@ struct SocialLoginButtons: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(ColorTokens.surface)
+                    .background(ColorTokens.surface, in: Capsule())
                     .overlay(
-                        Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                        Capsule().stroke(ColorTokens.divider, lineWidth: 0.5)
                     )
                 }
                 .buttonStyle(.pressable)
                 .disabled(isLoading)
             }
-            .padding(.horizontal, 16)
+            .padding(.horizontal, Spacing.sm)
         }
     }
 }

@@ -3,7 +3,8 @@ import SwiftUI
 /// Push-navigation language picker. Renders an autonym row per supported locale,
 /// with a checkmark on the active row. Tapping a row commits via LocaleManager.setLocale.
 /// Live-renders immediately (no auto-pop) per UI-SPEC line 173.
-/// Conforms to DESIGN.md: 0pt corners, no shadows; the active row carries the accent (Tuwa v2 live-state).
+/// Conforms to DESIGN.md: corners via `CornerTokens` (v3 Corner Law — the row group rides `cardStyle`),
+/// no shadows; the active row carries the accent (Tuwa v2 live-state).
 struct LanguagePickerView: View {
     @Environment(AppContainer.self) private var container
 
@@ -17,6 +18,9 @@ struct LanguagePickerView: View {
                     }
                 }
             }
+            // Row fills (active accentSubtle) are clipped by the card shape so they never
+            // poke past the rounded corners.
+            .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
             .cardStyle(horizontalPadding: 0, verticalPadding: 0)
             .padding(.horizontal, Spacing.sm)
             .padding(.top, Spacing.lg)

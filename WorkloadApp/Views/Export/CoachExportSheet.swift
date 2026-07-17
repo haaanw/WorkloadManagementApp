@@ -133,7 +133,7 @@ struct CoachExportSheet: View {
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .overlay(
-                        Rectangle()
+                        Capsule()
                             .stroke(zoneColor, lineWidth: 0.5)
                     )
             }
@@ -163,10 +163,11 @@ struct CoachExportSheet: View {
                         .padding(.horizontal, 16)
                         .padding(.vertical, 8)
                         .background(
-                            selectedRange == range ? ColorTokens.surface : Color.clear
+                            selectedRange == range ? ColorTokens.surface : Color.clear,
+                            in: Capsule()
                         )
                         .overlay(
-                            Rectangle()
+                            Capsule()
                                 .stroke(
                                     selectedRange == range ? ColorTokens.text1 : ColorTokens.divider,
                                     lineWidth: 0.5
@@ -181,22 +182,13 @@ struct CoachExportSheet: View {
     // MARK: - Generate Button
 
     private var generateButton: some View {
-        Button {
+        PrimaryActionButton(
+            title: isGenerating ? "profile.action.generating" : "export.coach.generateButton",
+            isLoading: isGenerating,
+            isDisabled: selectedAthleteIds.isEmpty
+        ) {
             generateReport()
-        } label: {
-            Text(isGenerating ? "profile.action.generating" : "export.coach.generateButton")
-                .font(.Tokens.bodyMedium)
-                .foregroundStyle(ColorTokens.background)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 16)
-                .background(
-                    selectedAthleteIds.isEmpty || isGenerating
-                        ? ColorTokens.text3
-                        : ColorTokens.text1
-                )
         }
-        .buttonStyle(.plain)
-        .disabled(isGenerating || selectedAthleteIds.isEmpty)
     }
 
     // MARK: - Actions

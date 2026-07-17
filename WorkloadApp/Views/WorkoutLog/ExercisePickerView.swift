@@ -491,9 +491,9 @@ struct FilterChip: View {
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xs)
                 .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
-                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background)
+                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background, in: Capsule())
                 .overlay(
-                    Rectangle().stroke(
+                    Capsule().stroke(
                         isSelected ? ColorTokens.accent : ColorTokens.divider,
                         lineWidth: 0.5
                     )

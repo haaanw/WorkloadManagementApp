@@ -90,27 +90,12 @@ struct PDFGenerationSheet: View {
     // MARK: - Generate Button
 
     private var generateButton: some View {
-        Button {
+        PrimaryActionButton(
+            title: isGenerating ? "profile.action.generating" : "export.pdf.generateButton",
+            isLoading: isGenerating
+        ) {
             generateReport()
-        } label: {
-            HStack(spacing: 8) {
-                if isGenerating {
-                    ProgressView()
-                        .tint(ColorTokens.background)
-                    Text("profile.action.generating")
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.background)
-                } else {
-                    Text("export.pdf.generateButton")
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.background)
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 16)
-            .background(ColorTokens.text1)
         }
-        .disabled(isGenerating)
     }
 
     // MARK: - Report Generation
@@ -188,9 +173,9 @@ struct RangeChip: View {
                 .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
                 .padding(.horizontal, Spacing.sm)
                 .frame(maxWidth: .infinity, minHeight: 48)
-                .background(isSelected ? ColorTokens.surface : ColorTokens.surfaceEl)
+                .background(isSelected ? ColorTokens.surface : ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                 .overlay(
-                    Rectangle().stroke(
+                    RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
                         isSelected ? ColorTokens.text1 : ColorTokens.divider,
                         lineWidth: 0.5
                     )

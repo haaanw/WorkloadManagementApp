@@ -13,7 +13,7 @@ import SwiftData
 /// so Phase 27 can fuse the log per-muscle against the muscle taxonomy. The row is written
 /// through the local-only `SorenessLogRepository` — it never syncs.
 ///
-/// DESIGN contract: 0pt corners (Rectangle only), no shadows, 8pt grid, `Font.Tokens.*` +
+/// DESIGN contract: corners via `CornerTokens` (v3 Corner Law), no shadows, 8pt grid, `Font.Tokens.*` +
 /// `ColorTokens.*`, and the limited-training Toggle uses the neutral design toggle style.
 struct NiggleLogSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -129,8 +129,8 @@ struct NiggleLogSheet: View {
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.sm)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ColorTokens.surface)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
             }
         }
         .padding(.horizontal, Spacing.sm)
@@ -169,7 +169,8 @@ struct NiggleLogSheet: View {
                     }
                 }
             }
-            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+            .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm)

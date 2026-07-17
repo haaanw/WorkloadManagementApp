@@ -10,7 +10,7 @@ import SwiftUI
 /// (including Unsure) records once and removes the card; there is no separate close affordance and
 /// no back-fill path.
 ///
-/// DESIGN.md (hard): 0pt corners (Rectangle only), no shadows, `Font.Tokens.*`, 8pt grid,
+/// DESIGN.md (hard): corners via `CornerTokens` (v3 Corner Law), no shadows, `Font.Tokens.*`, 8pt grid,
 /// light-only via `ColorTokens`. The accent is FORBIDDEN here (not a live/actionable-number
 /// surface). No red / alarm styling — the three choices use ONE shared button builder, so they are
 /// provably equal weight (mirrors `VerdictOutcomeSheet`).
@@ -99,8 +99,8 @@ struct FeltRightPromptRow: View {
                 .foregroundStyle(ColorTokens.text1)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.xs)
-                .background(ColorTokens.surface)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .background(ColorTokens.surface, in: Capsule())
+                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
     }

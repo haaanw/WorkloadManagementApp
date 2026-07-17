@@ -84,8 +84,11 @@ struct SessionDetailView: View {
                     }
                 }
                 }
-                .background(ColorTokens.surfaceEl)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                // v3 Corner Law: card plane on `CornerTokens.card`; internal hairlines are
+                // sanctioned separators, clipped by the rounded shape.
+                .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+                .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
+                .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
 
                 // Exercises — each a distinct bordered card (Tuwa v2 separation).
                 ForEach(session.sortedEntries, id: \.id) { entry in
@@ -185,7 +188,8 @@ struct ExerciseDetailCard: View {
                 .padding(.vertical, Spacing.xs)
             }
         }
-        .background(ColorTokens.surfaceEl)
-        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+        .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }

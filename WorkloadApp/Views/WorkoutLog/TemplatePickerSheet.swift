@@ -81,9 +81,9 @@ struct TemplatePickerSheet: View {
                 Text("action.createTemplate")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, 24)
-                    .padding(.vertical, 8)
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.xs)
+                    .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
             }
             .buttonStyle(.pressable)
         }
@@ -140,9 +140,9 @@ struct TemplatePickerSheet: View {
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(16)
-            .background(ColorTokens.surface)
-            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+            .padding(Spacing.sm)
+            .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
         .accessibilityLabel("\(template.templateName), \(exercises.count) exercises\(lastUsedText.map { ", last used \($0)" } ?? "")")

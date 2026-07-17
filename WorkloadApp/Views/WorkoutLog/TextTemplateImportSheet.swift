@@ -43,21 +43,21 @@ struct TextTemplateImportSheet: View {
                         .scrollContentBackground(.hidden)
                         .frame(minHeight: 200)
                         .padding(Spacing.xs)
-                        .background(ColorTokens.surface)
-                        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                        .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
                         .onChange(of: inputText) { _, _ in parseError = nil }
 
                     Button {
                         Haptics.tap()
                         parseInput()
                     } label: {
-                        // Primary CTA → accent outline (live / actionable), not a filled accent button.
+                        // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                         Text("action.parse")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, Spacing.sm)
-                            .overlay(Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5))
+                            .overlay(Capsule().stroke(ColorTokens.accent, lineWidth: 0.5))
                     }
                     .buttonStyle(.pressable)
                     .disabled(inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || isSaving)

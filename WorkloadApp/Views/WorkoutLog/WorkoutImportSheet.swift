@@ -167,7 +167,7 @@ struct WorkoutImportSheet: View {
     // MARK: - Tab Picker
 
     private var tabPicker: some View {
-        HStack(spacing: 0) {
+        HStack(spacing: Spacing.xs) {
             ForEach(ImportTab.allCases) { tab in
                 Button {
                     Haptics.select()
@@ -184,9 +184,9 @@ struct WorkoutImportSheet: View {
                     .foregroundStyle(selectedTab == tab ? ColorTokens.accent : ColorTokens.text2)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
-                    .background(selectedTab == tab ? ColorTokens.accentSubtle : ColorTokens.background)
+                    .background(selectedTab == tab ? ColorTokens.accentSubtle : ColorTokens.background, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                     .overlay(
-                        Rectangle()
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
                             .stroke(selectedTab == tab ? ColorTokens.accent : ColorTokens.divider, lineWidth: 0.5)
                     )
                 }
@@ -211,16 +211,16 @@ struct WorkoutImportSheet: View {
                 .scrollContentBackground(.hidden)
                 .frame(minHeight: 200)
                 .padding(8)
-                .background(ColorTokens.surface)
+                .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                 .overlay(
-                    Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5)
                 )
 
             Button {
                 Haptics.tap()
                 handleTextParse()
             } label: {
-                // Primary CTA → accent outline (live / actionable), not a filled accent button.
+                // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                 Text("action.parseWorkout")
                     .font(.Tokens.body)
                     .foregroundStyle(
@@ -230,7 +230,7 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5)
+                        Capsule().stroke(ColorTokens.accent, lineWidth: 0.5)
                     )
             }
             .buttonStyle(.pressable)
@@ -250,7 +250,7 @@ struct WorkoutImportSheet: View {
                 Haptics.tap()
                 showDocumentPicker = true
             } label: {
-                // Primary CTA → accent outline (live / actionable), not a filled accent button.
+                // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                 HStack(spacing: 8) {
                     Image(systemName: "doc.richtext")
                         .font(.Tokens.body)
@@ -261,7 +261,7 @@ struct WorkoutImportSheet: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .overlay(
-                    Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5)
+                    Capsule().stroke(ColorTokens.accent, lineWidth: 0.5)
                 )
             }
             .buttonStyle(.pressable)
@@ -290,7 +290,7 @@ struct WorkoutImportSheet: View {
                         Haptics.warning()
                     }
                 } label: {
-                    // Primary CTA → accent outline (live / actionable), not a filled accent button.
+                    // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                     HStack(spacing: 8) {
                         Image(systemName: "camera")
                             .font(.Tokens.body)
@@ -301,7 +301,7 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5)
+                        Capsule().stroke(ColorTokens.accent, lineWidth: 0.5)
                     )
                 }
                 .buttonStyle(.pressable)
@@ -311,7 +311,7 @@ struct WorkoutImportSheet: View {
                     selection: $selectedPhotoItem,
                     matching: .images
                 ) {
-                    // Primary CTA → accent outline (live / actionable), not a filled accent button.
+                    // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                     HStack(spacing: 8) {
                         Image(systemName: "photo.on.rectangle")
                             .font(.Tokens.body)
@@ -322,7 +322,7 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.accent, lineWidth: 0.5)
+                        Capsule().stroke(ColorTokens.accent, lineWidth: 0.5)
                     )
                 }
                 .disabled(isLoading)
@@ -371,7 +371,7 @@ struct WorkoutImportSheet: View {
                     .padding(.horizontal, 24)
                     .padding(.vertical, 8)
                     .overlay(
-                        Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5)
+                        Capsule().stroke(ColorTokens.divider, lineWidth: 0.5)
                     )
             }
             .buttonStyle(.pressable)
@@ -379,8 +379,8 @@ struct WorkoutImportSheet: View {
         .frame(maxWidth: .infinity)
         .padding(16)
         // Banner = surfaceEl plane + thin zone-colored border + text label (never a flooded fill).
-        .background(ColorTokens.surfaceEl)
-        .overlay(Rectangle().stroke(ColorTokens.zoneDanger, lineWidth: 0.5))
+        .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.zoneDanger, lineWidth: 0.5))
     }
 
     // MARK: - Handlers

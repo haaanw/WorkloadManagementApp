@@ -42,7 +42,7 @@ struct RecoveryView: View {
                             showMorningCheckIn = true
                         }
                         .padding(.horizontal, Spacing.sm)
-                        .padding(.top, Spacing.sm)
+                        .padding(.bottom, Spacing.sm)
                         .transition(.opacity)
                         .entranceReveal()
                     }
@@ -52,7 +52,6 @@ struct RecoveryView: View {
                         wellnessScore: todayCheckIn?.wellnessScore
                     )
                         .padding(.horizontal, Spacing.sm)
-                        .padding(.top, Spacing.sm)
                         .entranceReveal(index: 1)
 
                     SectionContainer(header: "recovery.section.hrvTrend") {
@@ -135,6 +134,9 @@ struct RecoveryView: View {
                                 label: String(localized: "recovery.section.insights.prompt", defaultValue: "Tag behaviors in your morning check-in to see recovery impact"),
                                 message: ""
                             )
+                            .frame(maxWidth: .infinity)
+                            .cardStyle(verticalPadding: Spacing.sm)
+                            .padding(.horizontal, Spacing.sm)
                         }
                         .transition(.opacity)
                         .entranceReveal(index: 5)
@@ -148,6 +150,7 @@ struct RecoveryView: View {
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.fatigueInsights.count)
                 .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.behaviorCorrelations.count)
             }
+            .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
             .navigationTitle("recovery.nav.title")
@@ -225,7 +228,7 @@ struct RecoveryScoreCard: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 16) {
+        VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("recovery.section.recoveryScore")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
@@ -258,7 +261,7 @@ struct RecoveryScoreCard: View {
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
 
-                VStack(spacing: 8) {
+                VStack(spacing: Spacing.xs) {
                     if let hrv = recovery.hrvSDNN {
                         RecoveryComponentRow(
                             label: "recovery.label.hrv",

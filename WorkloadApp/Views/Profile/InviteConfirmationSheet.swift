@@ -38,10 +38,11 @@ struct InviteConfirmationSheet: View {
                         .padding(.top, 64)
                         .transition(.opacity)
                 } else if let resolved {
-                    VStack(alignment: .leading, spacing: 0) {
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-
-                        VStack(alignment: .leading, spacing: 8) {
+                    // v3 sheet scaffold: the invite summary sits on a card plane
+                    // (CornerTokens.card via cardStyle), the confirm action is the filled
+                    // accent pill CTA, cancel stays quiet — no full-bleed hairline scaffold.
+                    VStack(alignment: .leading, spacing: Spacing.md) {
+                        VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text(mode == .athleteAccepting ? "COACH REQUEST" : "LINK ATHLETE")
                                 .font(.Tokens.micro)
                                 .tracking(1.2)
@@ -53,45 +54,30 @@ struct InviteConfirmationSheet: View {
                                 .font(.Tokens.smallLabel)
                                 .foregroundStyle(ColorTokens.text2)
                         }
-                        .padding(Spacing.sm)
+                        .cardStyle()
 
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-
-                        Button {
-                            Haptics.tap()
-                            Task { await confirm(resolved: resolved) }
-                        } label: {
-                            Group {
-                                if isConfirming {
-                                    ProgressView()
-                                } else {
-                                    Text("profile.invite.confirmLink")
-                                        .font(.Tokens.label)
-                                        .foregroundStyle(ColorTokens.text1)
-                                }
+                        VStack(spacing: Spacing.xs) {
+                            PrimaryActionButton(
+                                title: "profile.invite.confirmLink",
+                                isLoading: isConfirming
+                            ) {
+                                Task { await confirm(resolved: resolved) }
                             }
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Spacing.sm)
+
+                            Button {
+                                Haptics.tap()
+                                dismiss()
+                            } label: {
+                                Text("action.cancel")
+                                    .font(.Tokens.smallLabel)
+                                    .foregroundStyle(ColorTokens.text2)
+                                    .frame(maxWidth: .infinity, minHeight: 44)
+                            }
+                            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         }
-                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-                        .disabled(isConfirming)
-
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
-
-                        Button {
-                            Haptics.tap()
-                            dismiss()
-                        } label: {
-                            Text("action.cancel")
-                                .font(.Tokens.smallLabel)
-                                .foregroundStyle(ColorTokens.text2)
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, Spacing.sm)
-                        }
-                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-
-                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                     }
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.lg)
                     .transition(.opacity)
                 }
                 Spacer()

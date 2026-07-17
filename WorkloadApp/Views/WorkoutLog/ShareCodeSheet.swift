@@ -103,8 +103,8 @@ struct ShareCodeSheet: View {
                         .padding(.bottom, Spacing.sm)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ColorTokens.surface)
-                .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+                .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
                 .padding(.horizontal, Spacing.sm)
                 .padding(.top, Spacing.sm)
 
@@ -125,8 +125,8 @@ struct ShareCodeSheet: View {
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
                             .frame(height: 48)
-                            .background(ColorTokens.surface)
-                            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                            .background(ColorTokens.surface, in: Capsule())
+                            .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
                     }
                     .buttonStyle(.pressable)
                     .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: showCopied)
@@ -139,8 +139,8 @@ struct ShareCodeSheet: View {
                             .foregroundStyle(ColorTokens.text1)
                             .frame(maxWidth: .infinity)
                             .frame(height: 48)
-                            .background(ColorTokens.surface)
-                            .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                            .background(ColorTokens.surface, in: Capsule())
+                            .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
                     }
                     .buttonStyle(.pressable)
                 }

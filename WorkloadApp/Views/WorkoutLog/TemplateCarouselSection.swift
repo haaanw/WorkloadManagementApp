@@ -84,7 +84,7 @@ struct TemplateCarouselSection: View {
                         .foregroundStyle(ColorTokens.text1)
                         .padding(.horizontal, Spacing.md)
                         .padding(.vertical, Spacing.xs)
-                        .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                        .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
                 }
                 .buttonStyle(.pressable)
             }
@@ -238,8 +238,9 @@ struct TemplateCarouselSection: View {
             .frame(height: 160)
             // v2: the centered (active) card lifts to the emphasis plane with the stronger
             // border and a 2pt accent top rule — the sanctioned active-surface treatment.
-            .background(isCentered ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl)
-            .overlay(Rectangle().stroke(isCentered ? ColorTokens.dividerStrong : ColorTokens.divider, lineWidth: 0.5))
+            // v3 Corner Law: card plane on `CornerTokens.card`; the accent rule is clipped by
+            // the card shape and the hairline strokes the same rounded shape.
+            .background(isCentered ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
             .overlay(alignment: .top) {
                 if isCentered {
                     Rectangle()
@@ -248,6 +249,8 @@ struct TemplateCarouselSection: View {
                         .accessibilityHidden(true)
                 }
             }
+            .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(isCentered ? ColorTokens.dividerStrong : ColorTokens.divider, lineWidth: 0.5))
             .overlay(alignment: .topTrailing) {
                 if container.subscriptionService.isPro,
                    let suggestion = suggestionResult,
@@ -260,7 +263,7 @@ struct TemplateCarouselSection: View {
                         .padding(.horizontal, Spacing.xs)
                         .padding(.vertical, Spacing.xs)
                         .overlay(
-                            Rectangle().stroke(
+                            Capsule().stroke(
                                 suggestion.isRecoveryAdjusted ? ColorTokens.zoneCaution : ColorTokens.zoneOptimal,
                                 lineWidth: 0.5
                             )
@@ -352,9 +355,9 @@ struct TemplateCarouselSection: View {
         }
         .frame(maxWidth: .infinity)
         .frame(height: 160)
-        .background(ColorTokens.background)
+        .background(ColorTokens.background, in: RoundedRectangle(cornerRadius: CornerTokens.card))
         .overlay(
-            Rectangle()
+            RoundedRectangle(cornerRadius: CornerTokens.card)
                 .stroke(style: StrokeStyle(lineWidth: 0.5, dash: [6, 4]))
                 .foregroundStyle(ColorTokens.divider)
         )

@@ -5,8 +5,8 @@ import SwiftUI
 /// Evidence-tagged to Dr. Stacy Sims (research §9.4/§6.2/§9.9). The card offers SUGGESTIONS
 /// only — never a training prescription (no volume/intensity directives, SC5). Two always-on
 /// lines (avoid fasted hard work; protein within ~45 min) plus two luteal-only lines
-/// (heat/hydration; extra protein + complex carbs). Flat surface, 0pt corners, no accent,
-/// no shadow — matches the InsightCard recipe.
+/// (heat/hydration; extra protein + complex carbs). Flat surface, `CornerTokens.card` corners
+/// (v3 Corner Law), no accent, no shadow — matches the InsightCard recipe.
 struct CycleFuelingCard: View {
     let phase: CyclePhase
 
@@ -46,11 +46,11 @@ struct CycleFuelingCard: View {
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 16)
-        .background(ColorTokens.surface)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
+        .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.card))
         .overlay(
-            Rectangle()
+            RoundedRectangle(cornerRadius: CornerTokens.card)
                 .stroke(ColorTokens.divider, lineWidth: 0.5)
         )
     }

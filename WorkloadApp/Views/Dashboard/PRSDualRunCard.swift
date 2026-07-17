@@ -6,8 +6,9 @@ import SwiftUI
 /// `PRSActivation.isEnabled` is ON). With the flag OFF (default), the parent passes `message == nil`
 /// and this view renders `EmptyView()` — the Dashboard is BYTE-UNCHANGED.
 ///
-/// DESIGN.md compliance: 0pt corners (`Rectangle`, never `RoundedRectangle`), NO shadows (hairline
-/// border instead), General Sans via `Font.Tokens.*`, 8pt-grid spacing, accent reserved for the hero
+/// DESIGN.md compliance: corners via `CornerTokens` (v3 Corner Law — `cardStyle` supplies the card
+/// plane), NO shadows (hairline border instead), General Sans via `Font.Tokens.*`, 8pt-grid spacing,
+/// accent reserved for the hero
 /// readiness number (NOT used here), semantic `ColorTokens` only. Copy is "Tuwa"-only and never says
 /// "injury prediction".
 struct PRSDualRunCard: View {

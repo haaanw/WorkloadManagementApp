@@ -4,8 +4,8 @@ import SwiftData
 /// Minimal one-off "today's lift" entry form (PLAN-10, manual path). Captures a lift name and
 /// target weight / reps / optional RPE, then creates today's `PrescribedWorkout` (templateId nil)
 /// via `PlannedSessionRepository.planManualLift`. No verdict, no adjusted numbers — those are
-/// Phases 43/44. DESIGN.md-compliant: 0pt corners (Rectangle / SharpTextFieldStyle), no shadows,
-/// Font.Tokens, 8pt grid, NO accent (accent is the hero readiness number only).
+/// Phases 43/44. DESIGN.md-compliant: corners via `CornerTokens` (v3 Corner Law — fields via
+/// SharpTextFieldStyle), no shadows, Font.Tokens, 8pt grid, NO accent (accent per Accent Rule v3).
 struct ManualLiftEntrySheet: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss

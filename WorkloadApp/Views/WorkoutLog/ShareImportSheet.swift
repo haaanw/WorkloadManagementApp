@@ -61,8 +61,8 @@ struct ShareImportSheet: View {
                     .foregroundStyle(codeInput.count == 8 ? ColorTokens.text1 : ColorTokens.text3)
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(ColorTokens.surface)
-                    .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
+                    .background(ColorTokens.surface, in: Capsule())
+                    .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
                 }
                 .disabled(codeInput.count < 8 || isLoading)
                 .padding(.horizontal, Spacing.sm)
