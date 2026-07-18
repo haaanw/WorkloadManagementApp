@@ -52,6 +52,7 @@ struct DashboardView: View {
 
                     // 1. Hero readiness — score + recommendation headline in its footer (recommendation stays "up top").
                     HeroReadinessCard(viewModel: viewModel)
+                        .accessibilityIdentifier("dashboard.hero")
                         .padding(.horizontal, Spacing.sm)
                         .entranceReveal()
 

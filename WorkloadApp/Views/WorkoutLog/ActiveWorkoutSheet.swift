@@ -176,6 +176,7 @@ struct ActiveWorkoutSheet: View {
                             .padding(.vertical, Spacing.sm)
                     }
                     .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                    .accessibilityIdentifier("activeWorkout.addExercise")
                     .background(ColorTokens.background)
 
                     // Duplicate the most-recently-added exercise as a fresh GHOST-scaffolded

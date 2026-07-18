@@ -94,6 +94,7 @@ struct WorkloadView: View {
                     ACWRGaugeCard(snapshot: latestSnapshot)
                         .padding(.horizontal, Spacing.sm)
                         .entranceReveal()
+                        .accessibilityIdentifier("workload.acwr")
 
                     // ATL / CTL / TSB — flat inline strip lifted onto the page.
                     HStack(spacing: 0) {

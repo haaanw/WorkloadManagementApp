@@ -134,6 +134,7 @@ struct ProfileView: View {
                             .background(ColorTokens.surfaceEl)
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                        .accessibilityIdentifier("profile.movementBank")
                         }
 
                         // Preferences

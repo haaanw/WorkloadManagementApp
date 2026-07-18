@@ -56,6 +56,7 @@ struct RecoveryView: View {
                     )
                         .padding(.horizontal, Spacing.sm)
                         .entranceReveal(index: 1)
+                        .accessibilityIdentifier("recovery.scoreCard")
 
                     SectionContainer(header: "recovery.section.hrvTrend") {
                         HRVTrendChart(data: viewModel.hrvHistory)

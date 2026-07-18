@@ -97,6 +97,7 @@ struct TodayVerdictCard: View {
                     )
                     .frame(height: 28)
                     .padding(.top, Spacing.baselinePair)
+                    .accessibilityIdentifier("workoutLog.verdict.strikeZone")
                     Text(zoneCaption)
                         .font(.Tokens.micro)
                         .tracking(1.2)
@@ -112,6 +113,7 @@ struct TodayVerdictCard: View {
                 .tracking(Font.Tokens.Display.tracking(for: Font.Tokens.Display.verdictSize, em: Font.Tokens.Display.verdictTrackingEm))
                 .foregroundStyle(ColorTokens.text1)
                 .fixedSize(horizontal: false, vertical: true)
+                .accessibilityIdentifier("workoutLog.verdict.reason")
 
             // 4. Confidence — quiet + separate, never alarm-colored.
             if let note = display.confidenceNote {
@@ -148,6 +150,9 @@ struct TodayVerdictCard: View {
                     .padding(.vertical, CornerTokens.card)
             }
         }
+        // NOTE deliberately NO container accessibilityIdentifier here: SwiftUI stamps a
+        // container ID onto every descendant element, clobbering the leaf IDs
+        // (workoutLog.verdict.reason / .strikeZone) the UI tests anchor on.
     }
 
     // MARK: - Number-led captions (the "from planned" reference + the zone caption)
