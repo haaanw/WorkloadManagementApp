@@ -40,9 +40,11 @@ Athlete workload management iOS app built with SwiftUI + SwiftData. Tracks train
 
 - **Phase 1 (local wiring): Complete** — app works end-to-end locally
 - **Phase 2 (Supabase backend): Complete** — auth, sync, PostgreSQL schema
-- **Phase 3 (coach+athlete multi-user): Complete** — invite flows, coach UI, session attribution
+- **Phase 3 (coach+athlete multi-user): RETIRED** — coach mode DROPPED as of v1.6 (user decision 2026-07-18): the app is **athlete-only**. Coach UI is unreachable (Views/Coach/ compiles but is unmounted; will be deleted with the retired UIKit shell after v1.6 validates). Coach @Model classes (CoachAthleteRelationship, PrescribedWorkout) are retained for data/schema compatibility only. Do NOT build or port coach surfaces.
 - **Phase 4 (subscriptions): Complete** — RevenueCat two-tier (Athlete Pro + Coach), all features gated
 - **Phase 5 (App Store readiness): In progress** — legal pages done, screenshots in progress
+- **v1.6 "Ink & Grain" (UI polish + rehost): Machine-complete 2026-07-18** — SwiftUI tree is the live app, DESIGN.md v3 applied app-wide, custom InkTabBar, full suite green (782 tests). Awaiting on-device dogfood → version bump → shell deletion.
+- **Movement Bank: Complete 2026-07-18** — 1,324-exercise preset catalog (`Resources/ExerciseCatalog.json`, MIT data from hasaneyldrm/exercises-dataset; Gym visual GIFs NOT licensed — data-only, never bundle the media). `ExerciseCatalogStore` (decode + search index), `ExerciseOverride` @Model (local-only hide/remap, purged on sign-out/account-deletion), search-first `ExercisePickerView`, `MovementBankView` in Profile (add/modify/hide entries). Exercise identity = name string; legacy curated names win dedupe so history/PRs stay continuous. Regenerate catalog: `scripts/generate_exercise_catalog.py`.
 
 ## Auth
 
@@ -52,7 +54,7 @@ Supabase Auth (email/password). `AppRouter` checks Keychain for existing session
 
 Two-tier model via RevenueCat:
 - `isPro` (athlete_pro OR coach entitlement) — gates history, overload suggestions, custom exercises, PRs
-- `isCoach` (coach entitlement only) — gates coach dashboard, coach mode, coach-only toggle
+- `isCoach` (coach entitlement only) — legacy entitlement; coach mode was DROPPED in v1.6 (athlete-only app). No UI is gated on it anymore except the coach-trigger paywall variant in export flows. Existing coach subscribers keep `isPro` via the OR above.
 - `SubscriptionService` in `AppContainer`, `UpgradeSheet` for paywall
 - `RevenueCatConfig.swift` is gitignored — never commit API keys
 
@@ -348,7 +350,7 @@ Key constraints to enforce (DESIGN.md v3 "Ink & Grain", 2026-07-14):
 - Responsibilities: Check Keychain session, bootstrap Athlete if needed, show ProgressView (loading) → LoginView (no auth) → MainTabView (authenticated)
 - Location: `WorkloadApp/App/AppRouter.swift` (MainTabView struct)
 - Triggers: Authenticated app state
-- Responsibilities: Render TabView with athlete tabs (Home, Log, Recovery, Load, Profile) or coach tabs (Roster, Templates, Profile); handle mode switching; foreground sync on scenePhase.active
+- Responsibilities: Render the five athlete tabs (Home, Log, Recovery, Load, Profile) via the custom InkTabBar (stock tab bar stripped transparent but kept for safe-area insets); foreground sync on scenePhase.active. Athlete-only — there is NO coach mode or mode switching (dropped v1.6).
 - Location: `WorkloadApp/Views/Dashboard/DashboardView.swift`
 - Responsibilities: Render hero readiness card (recovery score), metrics strip, training load section, recent sessions
 - Location: `WorkloadApp/Views/WorkoutLog/WorkoutLogView.swift` + ActiveWorkoutSheet
