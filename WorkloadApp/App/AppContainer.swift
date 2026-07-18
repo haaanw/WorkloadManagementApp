@@ -96,6 +96,11 @@ final class AppContainer {
         for athlete in athletes {
             modelContext.delete(athlete)
         }
+        // ExerciseOverride is local-only and NOT athlete-scoped (keyed by exercise name),
+        // so it survives the cascade — purge explicitly or the next signed-in user
+        // inherits the previous user's hidden/remapped exercises (codex P2, 2026-07-18).
+        let overrides = try modelContext.fetch(FetchDescriptor<ExerciseOverride>())
+        for override in overrides { modelContext.delete(override) }
         try modelContext.save()
         isAuthenticated = false
     }
@@ -116,6 +121,8 @@ final class AppContainer {
         for pw in prescribed { modelContext.delete(pw) }
         let profiles = try modelContext.fetch(FetchDescriptor<TrainingProfile>())
         for p in profiles { modelContext.delete(p) }
+        let overrides = try modelContext.fetch(FetchDescriptor<ExerciseOverride>())
+        for override in overrides { modelContext.delete(override) }
         try modelContext.save()
         isAuthenticated = false
     }

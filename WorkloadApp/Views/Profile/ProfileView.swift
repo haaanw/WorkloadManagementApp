@@ -21,7 +21,6 @@ struct ProfileView: View {
     @State private var showTrainingProfileSheet = false
     @State private var showDeleteConfirmation = false
     @State private var isDeletingAccount = false
-    @State private var showCoachUpgrade = false
 
     var body: some View {
         NavigationStack {
@@ -31,39 +30,10 @@ struct ProfileView: View {
                     ScreenHeader(title: "profile.nav.title")
 
                     if let athlete {
-                        if athlete.isCoach && !athlete.isCoachOnly {
-                            profileSection("profile.section.context") {
-                                Button {
-                                    if container.subscriptionService.isCoach {
-                                        container.setMode(.coach)
-                                    } else {
-                                        showCoachUpgrade = true
-                                    }
-                                } label: {
-                                    HStack(spacing: Spacing.sm) {
-                                        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-                                            Text("Coach mode")
-                                                .font(.Tokens.body)
-                                                .foregroundStyle(ColorTokens.text1)
-                                            Text("Roster, plans, reports, and coach profile")
-                                                .font(.Tokens.label)
-                                                .foregroundStyle(ColorTokens.text2)
-                                        }
-                                        Spacer()
-                                        Text(container.subscriptionService.isCoach ? "Open" : "Coach")
-                                            .font(.Tokens.label)
-                                            .foregroundStyle(ColorTokens.text2)
-                                        Image(systemName: "chevron.right")
-                                            .font(.Tokens.micro)
-                                            .foregroundStyle(ColorTokens.text3)
-                                    }
-                                    .padding(.horizontal, Spacing.sm)
-                                    .padding(.vertical, Spacing.sm)
-                                    .background(ColorTokens.surfaceEl)
-                                }
-                                .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-                            }
-                        }
+                        // Coach-mode entry REMOVED (codex P1, 2026-07-18): the rehosted SwiftUI
+                        // app intentionally carries no coach surfaces (decision D3), so the old
+                        // "Open coach mode" action was a dead button — setMode(.coach) is never
+                        // observed by AppRouter.
 
                         // Athlete Info
                         profileSection("profile.section.athlete") {
@@ -427,10 +397,6 @@ struct ProfileView: View {
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showTrainingProfileSheet) {
                 TrainingProfileSheet(existingProfile: trainingProfiles.first)
-                    .environment(container)
-            }
-            .sheet(isPresented: $showCoachUpgrade) {
-                UpgradeSheet(trigger: .coach)
                     .environment(container)
             }
             // Delete account confirmation
