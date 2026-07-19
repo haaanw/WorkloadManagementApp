@@ -16,7 +16,7 @@ struct DataSufficiencyRing: View {
                     .stroke(ColorTokens.divider, lineWidth: 2)
                 Circle()
                     .trim(from: 0, to: progress)
-                    .stroke(ColorTokens.accent, lineWidth: 2)
+                    .stroke(ColorTokens.text1, lineWidth: 2)
                     .rotationEffect(.degrees(-90))
             }
             .frame(width: 24, height: 24)

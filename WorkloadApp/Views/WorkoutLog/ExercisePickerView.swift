@@ -224,14 +224,14 @@ struct ExercisePickerView: View {
             }
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
-            .foregroundStyle(selectedEquipment != nil ? ColorTokens.accent : ColorTokens.text2)
+            .foregroundStyle(selectedEquipment != nil ? ColorTokens.text1 : ColorTokens.text2)
             .background(
-                selectedEquipment != nil ? ColorTokens.accentSubtle : ColorTokens.background,
+                selectedEquipment != nil ? ColorTokens.surfaceEl2 : ColorTokens.background,
                 in: Capsule()
             )
             .overlay(
                 Capsule().stroke(
-                    selectedEquipment != nil ? ColorTokens.accent : ColorTokens.divider,
+                    selectedEquipment != nil ? ColorTokens.text1 : ColorTokens.divider,
                     lineWidth: 0.5
                 )
             )
@@ -772,7 +772,7 @@ struct MuscleGroupSelector: View {
                 if isSelected {
                     Image(systemName: "checkmark")
                         .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.accent)
+                        .foregroundStyle(ColorTokens.text1)
                 }
             }
             .padding(.vertical, Spacing.xs)
@@ -796,11 +796,11 @@ struct FilterChip: View {
                 .font(.Tokens.label)
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xs)
-                .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
-                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background, in: Capsule())
+                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
+                .background(isSelected ? ColorTokens.surfaceEl2 : ColorTokens.background, in: Capsule())
                 .overlay(
                     Capsule().stroke(
-                        isSelected ? ColorTokens.accent : ColorTokens.divider,
+                        isSelected ? ColorTokens.text1 : ColorTokens.divider,
                         lineWidth: 0.5
                     )
                 )

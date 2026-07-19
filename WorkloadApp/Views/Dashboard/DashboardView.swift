@@ -294,13 +294,13 @@ struct DashboardView: View {
 /// Recommendation-aware primary-action button shown directly under the hero readiness score.
 /// Label adapts to the existing AutoregulationEngine recommendation (no new engine/VM logic);
 /// the action ALWAYS presents ActiveWorkoutSheet — logging is never blocked regardless of label.
-/// DESIGN.md v3 (Accent Rule v3): the primary CTA is a FILLED accent pill (`Capsule()`, accent
-/// fill, light `surfaceEl2` label). No shadow; tactile press via .pressable.
+/// DESIGN.md v4 "Instrument": the primary CTA is the shared ink-filled key
+/// (`PrimaryActionButton`) — never a pill, never red (Index Rule).
 struct PrimaryActionCTA: View {
     let recommendation: AutoregulationEngine.TrainingRecommendation?
     let onTap: () -> Void
 
-    private var labelKey: String.LocalizationValue {
+    private var labelKey: LocalizedStringKey {
         switch recommendation?.sessionType {
         case .rest:
             return "dashboard.cta.logRestDay"
@@ -314,21 +314,11 @@ struct PrimaryActionCTA: View {
     }
 
     var body: some View {
-        Button {
-            Haptics.tap()
-            onTap()
-        } label: {
-            Text(String(localized: labelKey))
-                .font(.Tokens.bodyMedium)
-                .foregroundStyle(ColorTokens.surfaceEl2)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.sm)
-                .background(ColorTokens.accent, in: Capsule())
-        }
-        .buttonStyle(.pressable)
-        .padding(.horizontal, Spacing.sm)
-        .padding(.top, Spacing.lg)
-        .accessibilityLabel(String(localized: labelKey))
+        // v4 Key Row Law: the primary CTA is the shared INK-FILLED key (never a red pill —
+        // the index never fills). Haptics + press treatment come with the shared button.
+        PrimaryActionButton(title: labelKey, action: onTap)
+            .padding(.horizontal, Spacing.sm)
+            .padding(.top, Spacing.lg)
     }
 }
 
@@ -349,35 +339,52 @@ struct HeroReadinessCard: View {
         return locale.language.languageCode?.identifier == "en" ? s.uppercased() : s
     }
 
+    /// The score band of the CURRENT recovery zone (RecoveryZone.classify thresholds) —
+    /// rendered as the TickScale zone band (panel ink; the needle marks the reading).
+    private var zoneBand: ClosedRange<Double> {
+        switch viewModel.recoveryZone {
+        case .red:    return 0...34
+        case .yellow: return 34...66
+        case .green:  return 66...100
+        }
+    }
+
     var body: some View {
-        // Stage 3 hierarchy (v3): the READINESS micro-label + serif score are THE moment —
-        // everything below (periodization row, factor rows, zone line) is demoted supporting
-        // matter. Explicit 8pt-grid gaps: sm above the score, lg of breathing room below it,
-        // sm rhythm between the supporting rows. Same information, reordered nothing.
+        // v4 "Instrument" (mockup column D): the readiness reading lives on THE one black
+        // instrument panel on Home (Panel Law) — micro-caps label, `dialHero` mono reading
+        // in `panelInk`, zone as a caps TEXT label, full-width TickScale 0–100 with the
+        // zone band and the red index needle at the score. Supporting matter (factor rows,
+        // periodization, recommendation) is demoted onto a light card below.
         VStack(alignment: .leading, spacing: 0) {
-            Text(String(format: String(localized: "dashboard.hero.readinessLabel"), dateLabel))
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
-                .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: viewModel.hasRealData)
+            VStack(alignment: .leading, spacing: 0) {
+                Text(String(format: String(localized: "dashboard.hero.readinessLabel"), dateLabel))
+                    .font(.Tokens.micro)
+                    .tracking(1.2)
+                    .foregroundStyle(ColorTokens.panelInk2)
+                    .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: viewModel.hasRealData)
 
-            Spacer().frame(height: Spacing.sm)
+                Spacer().frame(height: Spacing.sm)
 
-            if viewModel.isLoading && !viewModel.hasLoadedOnce {
-                // Calm first-load placeholder where the score will land — data arrival is a
-                // cross-fade (the parent animates on isLoading), not a pop. No shimmer.
-                SkeletonBlock(width: 144, height: 88)
-                    .transition(.opacity)
-            } else if viewModel.hasRealData {
-                // v4 "Instrument" dial voice: the hero readiness reading renders in IBM Plex
-                // Mono (`dialHero`). Stage-0″ compile shim — Stage 2″ rebuilds this hero as
-                // the black instrument panel with the TickScale.
-                Text("\(Int(displayedScore))")
-                    .font(.Tokens.dialHero)
-                    .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.heroSize, em: Font.Tokens.Dial.heroTrackingEm))
-                    .monospacedDigit()
-                    .contentTransition(.numericText())
-                    .foregroundStyle(ColorTokens.accent)
+                if viewModel.isLoading && !viewModel.hasLoadedOnce {
+                    // Calm first-load placeholder where the score will land — data arrival is a
+                    // cross-fade (the parent animates on isLoading), not a pop. No shimmer.
+                    SkeletonBlock(width: 144, height: 88)
+                        .transition(.opacity)
+                } else if viewModel.hasRealData {
+                    HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
+                        Text("\(Int(displayedScore))")
+                            .font(.Tokens.dialHero)
+                            .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.heroSize, em: Font.Tokens.Dial.heroTrackingEm))
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                            .foregroundStyle(ColorTokens.panelInk)
+                        // Zone state as a caps TEXT label (never color alone).
+                        Text(viewModel.recoveryZone.displayName)
+                            .font(.Tokens.micro)
+                            .tracking(1.2)
+                            .textCase(.uppercase)
+                            .foregroundStyle(ColorTokens.panelInk)
+                    }
                     .transition(.opacity)
                     .onAppear {
                         updateDisplayedScore(to: viewModel.recoveryScore)
@@ -385,60 +392,84 @@ struct HeroReadinessCard: View {
                     .onChange(of: viewModel.recoveryScore) { _, newValue in
                         updateDisplayedScore(to: newValue)
                     }
-            }
 
-            // Breathing room below the score block — the score owns its space.
-            Spacer().frame(height: Spacing.lg)
+                    Spacer().frame(height: Spacing.sm)
 
-            // Periodization phase label (D-01, D-02) — compact single supporting row.
-            if let phaseLabel = viewModel.trainingPhaseLabel {
-                Text(phaseLabel)
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text2)
-                Spacer().frame(height: Spacing.sm)
-            } else if let sufficiency = viewModel.periodizationSufficiency,
-                      !sufficiency.isSufficient,
-                      sufficiency.weeksAvailable > 0 {
-                DataSufficiencyRing(
-                    progress: Double(sufficiency.weeksAvailable) / Double(sufficiency.weeksRequired),
-                    label: String(localized: "dashboard.periodization.progress", defaultValue: "\(sufficiency.weeksAvailable) of \(sufficiency.weeksRequired) weeks"),
-                    message: String(localized: "dashboard.periodization.unlock", defaultValue: "Keep logging — periodization insights unlock after \(sufficiency.weeksRequired) weeks of consistent training")
-                )
-                Spacer().frame(height: Spacing.sm)
-            }
-
-            if viewModel.hasRealData && !viewModel.reasoningFactors.isEmpty {
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
-
-                Spacer().frame(height: Spacing.sm)
-
-                VStack(alignment: .leading, spacing: Spacing.sm) {
-                    ForEach(Array(viewModel.reasoningFactors.prefix(2).enumerated()), id: \.offset) { _, factor in
-                        factorRow(factor)
-                    }
+                    TickScale(
+                        range: 0...100,
+                        value: displayedScore,
+                        zone: zoneBand,
+                        variant: .scale,
+                        theme: .panel,
+                        accessibilityLabel: Text(verbatim: "\(Int(viewModel.recoveryScore)) / 100 · \(viewModel.recoveryZone.displayName)")
+                    )
                 }
-
-                Spacer().frame(height: Spacing.sm)
-
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
-
-                Spacer().frame(height: Spacing.sm)
             }
+            .panelStyle(verticalPadding: Spacing.sm)
 
-            if let rec = viewModel.recommendation {
-                Text(rec.headline)
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text1)
+            if hasSupportingContent {
+                Spacer().frame(height: Spacing.xs)
+                supportingCard
             }
         }
-        // The hero readiness score is THE emphasis surface on the dashboard: raised surfaceEl2
-        // plane + dividerStrong border (v4: accent rule deleted; Stage 2″ rebuilds this hero
-        // as the black instrument panel).
-        .emphasisCardStyle()
+    }
+
+    /// Whether the light supporting card under the panel has anything to show —
+    /// avoids rendering an empty card plane during cold start.
+    private var hasSupportingContent: Bool {
+        if viewModel.hasRealData && !viewModel.reasoningFactors.isEmpty { return true }
+        if viewModel.trainingPhaseLabel != nil { return true }
+        if let sufficiency = viewModel.periodizationSufficiency,
+           !sufficiency.isSufficient,
+           sufficiency.weeksAvailable > 0 { return true }
+        if viewModel.recommendation != nil { return true }
+        return false
+    }
+
+    /// Supporting matter — metric factor rows (mono readings), periodization,
+    /// recommendation headline — on a quiet light card under the panel (mockup D).
+    private var supportingCard: some View {
+        VStack(alignment: .leading, spacing: 0) {
+                if viewModel.hasRealData && !viewModel.reasoningFactors.isEmpty {
+                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                        ForEach(Array(viewModel.reasoningFactors.prefix(2).enumerated()), id: \.offset) { _, factor in
+                            factorRow(factor)
+                        }
+                    }
+
+                    Spacer().frame(height: Spacing.sm)
+
+                    Rectangle()
+                        .fill(ColorTokens.divider)
+                        .frame(height: 0.5)
+
+                    Spacer().frame(height: Spacing.sm)
+                }
+
+                // Periodization phase label (D-01, D-02) — compact single supporting row.
+                if let phaseLabel = viewModel.trainingPhaseLabel {
+                    Text(phaseLabel)
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
+                    Spacer().frame(height: Spacing.sm)
+                } else if let sufficiency = viewModel.periodizationSufficiency,
+                          !sufficiency.isSufficient,
+                          sufficiency.weeksAvailable > 0 {
+                    DataSufficiencyRing(
+                        progress: Double(sufficiency.weeksAvailable) / Double(sufficiency.weeksRequired),
+                        label: String(localized: "dashboard.periodization.progress", defaultValue: "\(sufficiency.weeksAvailable) of \(sufficiency.weeksRequired) weeks"),
+                        message: String(localized: "dashboard.periodization.unlock", defaultValue: "Keep logging — periodization insights unlock after \(sufficiency.weeksRequired) weeks of consistent training")
+                    )
+                    Spacer().frame(height: Spacing.sm)
+                }
+
+                if let rec = viewModel.recommendation {
+                    Text(rec.headline)
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text1)
+                }
+        }
+        .cardStyle(verticalPadding: Spacing.sm)
     }
 
     private func updateDisplayedScore(to score: Double) {
@@ -459,8 +490,9 @@ struct HeroReadinessCard: View {
                 Text(factor.label)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
+                // Data reading in the dial voice (mono mrow value, mockup D).
                 Text(factor.deltaText)
-                    .font(.Tokens.label)
+                    .font(.Tokens.dialSmall)
                     .foregroundStyle(factorColor(factor.direction))
             }
             Spacer()
@@ -517,14 +549,17 @@ struct EmptyStateCard: View {
                 Haptics.tap()
                 onConnectHealth()
             } label: {
-                // v3: secondary action reads as an OUTLINED pill (Corner Law — Capsule, never square).
+                // v4: secondary action is a hairline-bordered rectangular key (control
+                // corners) — pills are demoted to chips; the index never outlines CTAs.
                 Text("dashboard.action.connectHealth")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
+                    .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                     .overlay(
-                        Capsule().stroke(ColorTokens.accent, lineWidth: 1)
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
                     )
             }
             .buttonStyle(.pressable)
@@ -612,9 +647,9 @@ struct MetricStripCell: View {
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
             HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
+                // Metric reading in the dial voice (v4 — all data numerals are mono).
                 Text(value)
-                    .font(.Tokens.sectionHead)
-                    .monospacedDigit()
+                    .font(.Tokens.dialSmall)
                     .foregroundStyle(ColorTokens.text1)
                 if let unit {
                     Text(unit)
@@ -656,10 +691,11 @@ struct TrainingLoadSection: View {
                         .fill(ColorTokens.divider)
                         .frame(height: 1)
                         .overlay(alignment: .leading) {
-                            // v2: progress / readiness-bar FILLS carry the accent (live magnitude).
-                            // Zone classification is still communicated via the ZoneBadge text above.
+                            // v4 Index Rule: progress fills are INK, never red — the index is
+                            // reserved for needle marks. Zone classification is still
+                            // communicated via the ZoneBadge text above.
                             Rectangle()
-                                .fill(ColorTokens.accent)
+                                .fill(ColorTokens.text1)
                                 .frame(width: geo.size.width * min(viewModel.acwr / 2.0, 1.0), height: 1)
                         }
                 }
@@ -705,9 +741,9 @@ struct LoadStatCell: View {
                 .font(.Tokens.micro)
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
+            // Load reading in the dial voice (v4 — all data numerals are mono).
             Text(value)
-                .font(.Tokens.sectionHead)
-                .monospacedDigit()
+                .font(.Tokens.dialSmall)
                 .foregroundStyle(ColorTokens.text1)
             if isEstimated {
                 Text("dashboard.label.estimated")
@@ -757,8 +793,7 @@ struct RecentSessionsSection: View {
                             Spacer()
                             if let rpe = session.sessionRPE {
                                 Text(String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)))
-                                    .font(.Tokens.label)
-                                    .monospacedDigit()
+                                    .font(.Tokens.dialSmall)
                                     .foregroundStyle(ColorTokens.text2)
                             }
                         }

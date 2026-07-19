@@ -823,11 +823,12 @@ struct InstrumentTextField: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @FocusState private var isFocused: Bool
 
-    /// Focus feedback mirrors SharpTextFieldStyle: accent hairline thickens to 1pt while
-    /// editing (accent-as-live-state), settling via `Motion.state`. Error keeps priority.
+    /// Focus feedback mirrors SharpTextFieldStyle: the INK hairline thickens to 1pt while
+    /// editing (v4 Index Rule — red never marks focus), settling via `Motion.state`.
+    /// Error keeps priority.
     private var borderColor: Color {
         if isError { return ColorTokens.statusCritical }
-        return isFocused ? ColorTokens.accent : ColorTokens.hairline
+        return isFocused ? ColorTokens.text1 : ColorTokens.hairline
     }
 
     var body: some View {

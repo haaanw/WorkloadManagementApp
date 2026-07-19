@@ -180,14 +180,14 @@ struct WorkoutImportSheet: View {
                         Text(tab.displayName)
                             .font(.Tokens.label)
                     }
-                    // Active segment carries the accent (live / you-are-here); idle stays neutral.
-                    .foregroundStyle(selectedTab == tab ? ColorTokens.accent : ColorTokens.text2)
+                    // v4: the active segment is marked in INK (Index Rule — never red).
+                    .foregroundStyle(selectedTab == tab ? ColorTokens.text1 : ColorTokens.text2)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)
-                    .background(selectedTab == tab ? ColorTokens.accentSubtle : ColorTokens.background, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                    .background(selectedTab == tab ? ColorTokens.surfaceEl2 : ColorTokens.background, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                     .overlay(
                         RoundedRectangle(cornerRadius: CornerTokens.control)
-                            .stroke(selectedTab == tab ? ColorTokens.accent : ColorTokens.divider, lineWidth: 0.5)
+                            .stroke(selectedTab == tab ? ColorTokens.text1 : ColorTokens.divider, lineWidth: 0.5)
                     )
                 }
                 .buttonStyle(.pressable)
@@ -220,7 +220,6 @@ struct WorkoutImportSheet: View {
                 Haptics.tap()
                 handleTextParse()
             } label: {
-                // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                 Text("action.parseWorkout")
                     .font(.Tokens.body)
                     .foregroundStyle(
@@ -230,7 +229,8 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Capsule().stroke(ColorTokens.accent, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
                     )
             }
             .buttonStyle(.pressable)
@@ -250,7 +250,6 @@ struct WorkoutImportSheet: View {
                 Haptics.tap()
                 showDocumentPicker = true
             } label: {
-                // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                 HStack(spacing: 8) {
                     Image(systemName: "doc.richtext")
                         .font(.Tokens.body)
@@ -261,7 +260,8 @@ struct WorkoutImportSheet: View {
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 16)
                 .overlay(
-                    Capsule().stroke(ColorTokens.accent, lineWidth: 0.5)
+                    RoundedRectangle(cornerRadius: CornerTokens.control)
+                        .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
                 )
             }
             .buttonStyle(.pressable)
@@ -290,8 +290,7 @@ struct WorkoutImportSheet: View {
                         Haptics.warning()
                     }
                 } label: {
-                    // CTA pill (v3 Corner Law) — accent outline (live / actionable).
-                    HStack(spacing: 8) {
+                        HStack(spacing: 8) {
                         Image(systemName: "camera")
                             .font(.Tokens.body)
                         Text("import.photo.camera")
@@ -301,7 +300,8 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Capsule().stroke(ColorTokens.accent, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
                     )
                 }
                 .buttonStyle(.pressable)
@@ -311,8 +311,7 @@ struct WorkoutImportSheet: View {
                     selection: $selectedPhotoItem,
                     matching: .images
                 ) {
-                    // CTA pill (v3 Corner Law) — accent outline (live / actionable).
-                    HStack(spacing: 8) {
+                        HStack(spacing: 8) {
                         Image(systemName: "photo.on.rectangle")
                             .font(.Tokens.body)
                         Text("import.photo.library")
@@ -322,7 +321,8 @@ struct WorkoutImportSheet: View {
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 16)
                     .overlay(
-                        Capsule().stroke(ColorTokens.accent, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
                     )
                 }
                 .disabled(isLoading)

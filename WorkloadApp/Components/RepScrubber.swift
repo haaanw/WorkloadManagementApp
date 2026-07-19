@@ -194,10 +194,11 @@ struct RepScrubber: View {
                         .offset(x: tFrac * width)
                 }
 
-                // Position indicator — a 0pt-corner Rectangle (no thumb, no shadow). v2: the
-                // committed/active selection carries the accent; a ghost suggestion stays text3.
+                // Position indicator — a plain Rectangle (no thumb, no shadow). v4: the
+                // committed/active selection is INK; a ghost suggestion stays text3
+                // (Index Rule: the red needle lives on TickScale only).
                 Rectangle()
-                    .fill(isGhost ? ColorTokens.text3 : ColorTokens.accent)
+                    .fill(isGhost ? ColorTokens.text3 : ColorTokens.text1)
                     .frame(width: 2, height: 24)
                     .frame(maxHeight: .infinity, alignment: .center)
                     .offset(x: indicatorX - 1)

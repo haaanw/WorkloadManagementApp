@@ -125,21 +125,21 @@ struct OnboardingView: View {
                             .font(selectedFrequency == freq ? .Tokens.bodyMedium : .Tokens.body)
                             .foregroundStyle(
                                 selectedFrequency == freq
-                                    ? ColorTokens.accent
+                                    ? ColorTokens.text1
                                     : ColorTokens.text2
                             )
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 24)
                             .background(
                                 selectedFrequency == freq
-                                    ? ColorTokens.accentSubtle
+                                    ? ColorTokens.surfaceEl2
                                     : ColorTokens.surfaceEl,
                                 in: RoundedRectangle(cornerRadius: CornerTokens.control)
                             )
                             .overlay(
                                 RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
                                     selectedFrequency == freq
-                                        ? ColorTokens.accent
+                                        ? ColorTokens.text1
                                         : ColorTokens.divider,
                                     lineWidth: selectedFrequency == freq ? 1.0 : 0.5
                                 )
@@ -174,7 +174,7 @@ struct OnboardingView: View {
                                 .font(.Tokens.body)
                                 .foregroundStyle(
                                     selectedLevel == level
-                                        ? ColorTokens.accent
+                                        ? ColorTokens.text1
                                         : ColorTokens.text2
                                 )
                             Text(level.subtitle)
@@ -186,14 +186,14 @@ struct OnboardingView: View {
                         .padding(.vertical, 24)
                         .background(
                             selectedLevel == level
-                                ? ColorTokens.accentSubtle
+                                ? ColorTokens.surfaceEl2
                                 : ColorTokens.surfaceEl,
                             in: RoundedRectangle(cornerRadius: CornerTokens.control)
                         )
                         .overlay(
                             RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
                                 selectedLevel == level
-                                    ? ColorTokens.accent
+                                    ? ColorTokens.text1
                                     : ColorTokens.divider,
                                 lineWidth: selectedLevel == level ? 1.0 : 0.5
                             )

@@ -254,14 +254,14 @@ struct MovementBankView: View {
             }
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
-            .foregroundStyle(selectedEquipment != nil ? ColorTokens.accent : ColorTokens.text2)
+            .foregroundStyle(selectedEquipment != nil ? ColorTokens.text1 : ColorTokens.text2)
             .background(
-                selectedEquipment != nil ? ColorTokens.accentSubtle : ColorTokens.background,
+                selectedEquipment != nil ? ColorTokens.surfaceEl2 : ColorTokens.background,
                 in: Capsule()
             )
             .overlay(
                 Capsule().stroke(
-                    selectedEquipment != nil ? ColorTokens.accent : ColorTokens.divider,
+                    selectedEquipment != nil ? ColorTokens.text1 : ColorTokens.divider,
                     lineWidth: 0.5
                 )
             )
@@ -529,10 +529,10 @@ private struct BankScopeControl: View {
                 } label: {
                     Text(scope.titleKey)
                         .font(selection == scope ? .Tokens.labelMedium : .Tokens.label)
-                        .foregroundStyle(selection == scope ? ColorTokens.accent : ColorTokens.text2)
+                        .foregroundStyle(selection == scope ? ColorTokens.panelInk : ColorTokens.text2)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.xs)
-                        .background(selection == scope ? ColorTokens.accentSubtle : ColorTokens.surface)
+                        .background(selection == scope ? ColorTokens.text1 : ColorTokens.surface)
                         .contentShape(Rectangle())
                 }
                 .buttonStyle(.pressable)

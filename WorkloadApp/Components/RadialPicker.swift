@@ -87,7 +87,7 @@ struct RadialRingGeometry {
 ///
 /// Design (D-10/D-11/D-12): every rectangular sub-element uses `Rectangle()` with
 /// a hairline border — only the functional ring is circular. Selected / highlighted
-/// state = the accent (accentSubtle fill + accent label + accent hairline), the Tuwa v2
+/// state = INK (surfaceEl2 fill + ink label + ink hairline — v4 Index Rule), the
 /// live-state semantic; unselected = `text2` + `divider` hairline.
 struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Element == Option {
     @Binding var selection: Option
@@ -152,10 +152,10 @@ struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Elemen
             Spacer(minLength: 8)
             Image(systemName: selection.radialIcon)
                 .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.accent)
+                .foregroundStyle(ColorTokens.text1)
             Text(selection.displayName)
                 .font(.Tokens.bodyMedium)
-                .foregroundStyle(ColorTokens.accent)
+                .foregroundStyle(ColorTokens.text1)
         }
         .padding(.horizontal, chipPadding)
         .padding(.vertical, chipPadding)
@@ -229,13 +229,13 @@ struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Elemen
                 .font(isHighlighted ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
                 .lineLimit(1)
         }
-        .foregroundStyle(isHighlighted ? ColorTokens.accent : ColorTokens.text2)
+        .foregroundStyle(isHighlighted ? ColorTokens.text1 : ColorTokens.text2)
         .padding(.horizontal, chipPadding)
         .padding(.vertical, 8)
-        .background(isHighlighted ? ColorTokens.accentSubtle : ColorTokens.surface)
+        .background(isHighlighted ? ColorTokens.surfaceEl2 : ColorTokens.surface)
         .overlay(
             Rectangle().stroke(
-                isHighlighted ? ColorTokens.accent : ColorTokens.divider,
+                isHighlighted ? ColorTokens.text1 : ColorTokens.divider,
                 lineWidth: 0.5
             )
         )

@@ -71,13 +71,12 @@ private struct ImportSuggestionRow: View {
                 Haptics.tap()
                 onAccept()
             } label: {
-                // CTA pill (v3 Corner Law) — accent outline (live / actionable).
                 Text("action.add")
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
-                    .overlay(Capsule().stroke(ColorTokens.accent, lineWidth: 0.5))
+                    .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
             }
             .buttonStyle(.pressable)
 

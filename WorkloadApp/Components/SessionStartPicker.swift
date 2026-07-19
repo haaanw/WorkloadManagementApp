@@ -258,13 +258,13 @@ struct SessionStartPicker: View {
                     .font(.Tokens.label)
                     .multilineTextAlignment(.center)
             }
-            .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
+            .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
             .frame(maxWidth: .infinity, minHeight: 64)
             .padding(Spacing.xs)
-            .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.surfaceEl)
+            .background(isSelected ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl)
             .overlay(
                 Rectangle().stroke(
-                    isSelected ? ColorTokens.accent : ColorTokens.divider,
+                    isSelected ? ColorTokens.text1 : ColorTokens.divider,
                     lineWidth: 0.5
                 )
             )
@@ -367,13 +367,13 @@ struct SessionStartPicker: View {
         } label: {
             Text(label)
                 .font(.Tokens.label)
-                .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
+                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xs)
-                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.surfaceEl)
+                .background(isSelected ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl)
                 .overlay(
                     Rectangle().stroke(
-                        isSelected ? ColorTokens.accent : ColorTokens.divider,
+                        isSelected ? ColorTokens.text1 : ColorTokens.divider,
                         lineWidth: 0.5
                     )
                 )

@@ -45,8 +45,7 @@ struct WeeklySummaryCard: View {
                                 .foregroundStyle(ColorTokens.text2)
                                 .accessibilityHidden(true)
                             Text("\(streak)")
-                                .font(.Tokens.sectionHead)
-                                .monospacedDigit()
+                                .font(.Tokens.dialSmall)
                                 .foregroundStyle(ColorTokens.text1)
                             Text("weekly.summary.streak.label")
                                 .font(.Tokens.label)
@@ -117,8 +116,7 @@ struct WeeklySummaryCard: View {
                 .foregroundStyle(ColorTokens.text3)
             HStack(spacing: Spacing.xs) {
                 Text(value)
-                    .font(.Tokens.sectionHead)
-                    .monospacedDigit()
+                    .font(.Tokens.dialSmall)
                     .foregroundStyle(ColorTokens.text1)
                 DeltaIndicator(delta: delta)
             }

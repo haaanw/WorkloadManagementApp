@@ -45,9 +45,10 @@ struct SocialLoginButtons: View {
                 }
                 .signInWithAppleButtonStyle(.black)
                 .frame(height: 48)
-                .clipShape(Capsule()) // pill CTA per DESIGN.md v3 Corner Law (CornerTokens.pill)
+                // v4 Corner Law: near-square control corners — pills are demoted to chips.
+                .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
 
-                // Google Sign-In button — secondary CTA: outlined pill
+                // Google Sign-In button — secondary CTA: hairline-bordered rectangular key
                 Button {
                     onGoogleTap()
                 } label: {
@@ -68,9 +69,10 @@ struct SocialLoginButtons: View {
                     }
                     .frame(maxWidth: .infinity)
                     .frame(height: 48)
-                    .background(ColorTokens.surface, in: Capsule())
+                    .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                     .overlay(
-                        Capsule().stroke(ColorTokens.divider, lineWidth: 0.5)
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
                     )
                 }
                 .buttonStyle(.pressable)

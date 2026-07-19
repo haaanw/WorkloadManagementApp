@@ -18,7 +18,7 @@ struct LanguagePickerView: View {
                     }
                 }
             }
-            // Row fills (active accentSubtle) are clipped by the card shape so they never
+            // Row fills (active surfaceEl2) are clipped by the card shape so they never
             // poke past the rounded corners.
             .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
             .cardStyle(horizontalPadding: 0, verticalPadding: 0)
@@ -50,18 +50,18 @@ struct LanguagePickerView: View {
                 if isActive {
                     Image(systemName: "checkmark")
                         .frame(width: 24)
-                        .foregroundStyle(ColorTokens.accent)
+                        .foregroundStyle(ColorTokens.text1)
                 } else {
                     Color.clear.frame(width: 24, height: 1)
                 }
                 Text(autonym(for: locale))
                     .font(.Tokens.body)
-                    .foregroundStyle(isActive ? ColorTokens.accent : ColorTokens.text1)
+                    .foregroundStyle(ColorTokens.text1)
                 Spacer()
             }
             .padding(.horizontal, 16)
             .frame(height: 56)
-            .background(isActive ? ColorTokens.accentSubtle : ColorTokens.surfaceEl)
+            .background(isActive ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl)
             .contentShape(Rectangle())
         }
         .buttonStyle(.pressable(scale: 1, opacity: 0.6))

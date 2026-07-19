@@ -141,7 +141,7 @@ struct ShareImportPreviewSheet: View {
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
                         .frame(height: 48)
-                        .overlay(Capsule().stroke(ColorTokens.accent, lineWidth: 0.5))
+                        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
                     }
                     .buttonStyle(.pressable)
                     .disabled(isImporting)

@@ -16,7 +16,7 @@ enum SetFocusField: Hashable {
 /// "type" affordance that opens the decimal keypad for big jumps.
 ///
 /// LOCKED DECISIONS (Tuwa v2 — accent now marks live / active state):
-/// - Selected-center cue = ACCENT: the center tile fills `accentSubtle` with a 1pt inset
+/// - Selected-center cue = INK (v4): the center tile fills `surfaceEl2` with a 1pt inset
 ///   `accent` edge and an `accent` Medium / larger / `.monospacedDigit()` numeral; the side
 ///   tiles fill `surface` with `text2` Regular / smaller numerals. The center is the active
 ///   selection, so it carries the accent (the sanctioned active-cell treatment).
@@ -239,14 +239,14 @@ struct WeightBlockPicker: View {
         Button(action: action) {
             ZStack {
                 Rectangle()
-                    .fill(isCenter ? ColorTokens.accentSubtle : ColorTokens.surface)
+                    .fill(isCenter ? ColorTokens.surfaceEl2 : ColorTokens.surface)
                     .frame(width: 48, height: 48)
                     .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                 if isCenter {
-                    // v2: the active/center cell carries the accent (accent = live state) — a
-                    // 1pt inset accent edge marks it as the current selection.
+                    // v4: the active/center cell is marked in INK — a 1pt inset ink edge
+                    // (Index Rule: red never marks selection).
                     Rectangle()
-                        .stroke(ColorTokens.accent, lineWidth: 1)
+                        .stroke(ColorTokens.text1, lineWidth: 1)
                         .padding(2)
                         .frame(width: 48, height: 48)
                 }
@@ -269,6 +269,6 @@ struct WeightBlockPicker: View {
 
     private func tileForeground(isCenter: Bool, enabled: Bool) -> Color {
         if !enabled { return ColorTokens.text3 }
-        return isCenter ? ColorTokens.accent : ColorTokens.text2
+        return isCenter ? ColorTokens.text1 : ColorTokens.text2
     }
 }

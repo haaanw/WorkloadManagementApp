@@ -1,14 +1,17 @@
 import SwiftUI
 
 /// Segmented control for time range selection (D-01).
-/// `CornerTokens.control` corners (v3 Corner Law), hairline border, General Sans font.
+/// v4 Key Row Law: butted segments — flex cells separated by interior 0.5pt hairlines
+/// inside one `dividerStrong`-bordered container (`CornerTokens.control` corners).
+/// The selected segment is an INK-FILLED cell (`text1` fill, `panelInk` label) —
+/// never a red wash (Index Rule).
 struct TimeRangeSegmentedControl: View {
     @Binding var selected: TimeRange
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var body: some View {
         HStack(spacing: 0) {
-            ForEach(TimeRange.allCases) { range in
+            ForEach(Array(TimeRange.allCases.enumerated()), id: \.element) { index, range in
                 Button(range.rawValue) {
                     guard selected != range else { return }
                     Haptics.select()
@@ -16,18 +19,26 @@ struct TimeRangeSegmentedControl: View {
                         selected = range
                     }
                 }
-                .font(selected == range ? .Tokens.bodyMedium : .Tokens.body)
-                .foregroundStyle(selected == range ? ColorTokens.accent : ColorTokens.text2)
+                .font(selected == range ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
+                .foregroundStyle(selected == range ? ColorTokens.panelInk : ColorTokens.text2)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, 8)
-                .background(selected == range ? ColorTokens.accentSubtle : ColorTokens.surface)
-                .buttonStyle(.pressable)
+                .background(selected == range ? ColorTokens.text1 : ColorTokens.surfaceEl)
+                .buttonStyle(.pressable(scale: 1, opacity: 0.7))
+                .accessibilityAddTraits(selected == range ? [.isButton, .isSelected] : .isButton)
+
+                if index < TimeRange.allCases.count - 1 {
+                    Rectangle()
+                        .fill(ColorTokens.dividerStrong)
+                        .frame(width: 0.5)
+                        .accessibilityHidden(true)
+                }
             }
         }
         .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
         .overlay(
             RoundedRectangle(cornerRadius: CornerTokens.control)
-                .stroke(ColorTokens.divider, lineWidth: 0.5)
+                .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
         )
         .padding(.horizontal, 16)
     }

@@ -83,21 +83,21 @@ struct SignUpView: View {
                                 VStack(spacing: Spacing.xs) {
                                     Image(systemName: sport.systemImage)
                                         .font(.Tokens.sectionHead)
-                                        .foregroundStyle(selectedSport == sport ? ColorTokens.accent : ColorTokens.text2)
+                                        .foregroundStyle(selectedSport == sport ? ColorTokens.text1 : ColorTokens.text2)
                                     Text(sport.displayName)
                                         .font(.Tokens.micro)
                                         .tracking(0.5)
-                                        .foregroundStyle(selectedSport == sport ? ColorTokens.accent : ColorTokens.text2)
+                                        .foregroundStyle(selectedSport == sport ? ColorTokens.text1 : ColorTokens.text2)
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Spacing.sm)
                                 .background(
-                                    selectedSport == sport ? ColorTokens.accentSubtle : ColorTokens.surfaceEl,
+                                    selectedSport == sport ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl,
                                     in: RoundedRectangle(cornerRadius: CornerTokens.control)
                                 )
                                 .overlay(
                                     RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
-                                        selectedSport == sport ? ColorTokens.accent : ColorTokens.divider,
+                                        selectedSport == sport ? ColorTokens.text1 : ColorTokens.divider,
                                         lineWidth: selectedSport == sport ? 1.0 : 0.5
                                     )
                                 )
@@ -323,7 +323,7 @@ struct InputField: View {
                 .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
-                        isFocused ? ColorTokens.accent : ColorTokens.divider,
+                        isFocused ? ColorTokens.text1 : ColorTokens.divider,
                         lineWidth: isFocused ? 1 : 0.5
                     )
                 )
@@ -356,7 +356,7 @@ struct SecureInputField: View {
                 .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
-                        isFocused ? ColorTokens.accent : ColorTokens.divider,
+                        isFocused ? ColorTokens.text1 : ColorTokens.divider,
                         lineWidth: isFocused ? 1 : 0.5
                     )
                 )

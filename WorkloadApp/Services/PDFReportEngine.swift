@@ -53,7 +53,7 @@ struct PDFReportEngine {
     private static let textPrimary = light(ColorTokens.text1)
     private static let textSecondary = light(ColorTokens.text2)
     private static let dividerColor = light(ColorTokens.divider)
-    private static let accentMetric = light(ColorTokens.accent)
+    private static let accentMetric = light(ColorTokens.text1)
     private static let chartATL = light(ColorTokens.chartATL)
     private static let chartCTL = light(ColorTokens.chartCTL)
     private static let zoneOptimal = light(ColorTokens.zoneOptimal)

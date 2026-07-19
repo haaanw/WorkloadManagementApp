@@ -244,11 +244,14 @@ struct RecoveryScoreCard: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
 
             if let recovery {
+                // v4: the score reading is `dialValue` mono INK — Home owns the readiness
+                // panel; this stays a light card (Panel Law), and red never carries text.
                 HStack(alignment: .lastTextBaseline) {
                     Text("\(Int(recovery.recoveryScore))")
-                        .font(.Tokens.pageTitle)
+                        .font(.Tokens.dialValue)
+                        .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.valueSize, em: Font.Tokens.Dial.valueTrackingEm))
                         .monospacedDigit()
-                        .foregroundStyle(ColorTokens.accent)
+                        .foregroundStyle(ColorTokens.text1)
                     Text("/ 100")
                         .font(.Tokens.label)
                         .foregroundStyle(ColorTokens.text2)
@@ -306,8 +309,7 @@ struct RecoveryScoreCard: View {
                             .foregroundStyle(ColorTokens.text2)
                         Spacer()
                         Text("\(Int(wellnessScore))/100")
-                            .font(.Tokens.label)
-                            .monospacedDigit()
+                            .font(.Tokens.dialSmall)
                             .foregroundStyle(ColorTokens.text1)
                     }
 
@@ -339,9 +341,9 @@ struct RecoveryComponentRow: View {
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
             Spacer()
+            // Factor reading in the dial voice (v4 — all data numerals are mono).
             Text(value)
-                .font(.Tokens.label)
-                .monospacedDigit()
+                .font(.Tokens.dialSmall)
                 .foregroundStyle(ColorTokens.text1)
         }
     }
@@ -362,8 +364,7 @@ struct WellnessHistorySection: View {
                         .foregroundStyle(ColorTokens.text2)
                     Spacer()
                     Text("\(Int(checkIn.wellnessScore))/100")
-                        .font(.Tokens.label)
-                        .monospacedDigit()
+                        .font(.Tokens.dialSmall)
                         .foregroundStyle(ColorTokens.text1)
                 }
                 .padding(.horizontal, Spacing.sm)

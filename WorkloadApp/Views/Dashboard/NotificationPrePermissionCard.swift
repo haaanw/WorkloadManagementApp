@@ -35,8 +35,10 @@ struct NotificationPrePermissionCard: View {
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.xs)
+                        .background(ColorTokens.surfaceEl2, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                         .overlay(
-                            Capsule().stroke(ColorTokens.divider, lineWidth: 0.5)
+                            RoundedRectangle(cornerRadius: CornerTokens.control)
+                                .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
                         )
                 }
                 .buttonStyle(.pressable)
@@ -50,8 +52,10 @@ struct NotificationPrePermissionCard: View {
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.xs)
+                        .background(ColorTokens.surfaceEl2, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                         .overlay(
-                            Capsule().stroke(ColorTokens.divider, lineWidth: 0.5)
+                            RoundedRectangle(cornerRadius: CornerTokens.control)
+                                .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
                         )
                 }
                 .buttonStyle(.pressable)

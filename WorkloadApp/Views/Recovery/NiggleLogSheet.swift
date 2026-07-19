@@ -155,10 +155,10 @@ struct NiggleLogSheet: View {
                     } label: {
                         Text(type.displayName)
                             .font(selectedType == type ? .Tokens.labelMedium : .Tokens.label)
-                            .foregroundStyle(selectedType == type ? ColorTokens.accent : ColorTokens.text2)
+                            .foregroundStyle(selectedType == type ? ColorTokens.panelInk : ColorTokens.text2)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, Spacing.sm)
-                            .background(selectedType == type ? ColorTokens.accentSubtle : ColorTokens.surface)
+                            .background(selectedType == type ? ColorTokens.text1 : ColorTokens.surface)
                     }
                     .buttonStyle(.plain)
 

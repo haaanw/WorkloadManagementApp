@@ -227,15 +227,10 @@ struct UpgradeSheet: View {
                 }
                 Text(price)
                     .font(.Tokens.sectionHead)
-                    .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
+                    .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .background(isSelected ? ColorTokens.accentSubtle : Color.clear)
-            .overlay(alignment: .bottom) {
-                if isSelected {
-                    Rectangle().fill(ColorTokens.accent).frame(height: 2)
-                }
-            }
+            .background(isSelected ? ColorTokens.surfaceEl2 : Color.clear)
         }
         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
     }

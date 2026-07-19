@@ -662,15 +662,17 @@ private struct SessionFilterChip: View {
         } label: {
             label
                 .font(isSelected ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
-                .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
+                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xs)
-                .overlay(alignment: .leading) {
+                .overlay(alignment: .bottom) {
                     if isSelected {
-                        // v2: the active segment carries a 2pt accent edge (accent = active).
+                        // v4: the active filter is marked by an INK underline (needle-style
+                        // placement, ink weight — the red index never marks selection).
                         Rectangle()
-                            .fill(ColorTokens.accent)
-                            .frame(width: 2)
+                            .fill(ColorTokens.text1)
+                            .frame(height: 1.5)
+                            .padding(.horizontal, Spacing.sm)
                     }
                 }
         }

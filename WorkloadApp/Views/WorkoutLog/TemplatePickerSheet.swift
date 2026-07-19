@@ -52,6 +52,8 @@ struct TemplatePickerSheet: View {
             .background(ColorTokens.surfaceEl)
             .navigationTitle("nav.templates")
             .navigationBarTitleDisplayMode(.inline)
+            .toolbarBackground(ColorTokens.surfaceEl, for: .navigationBar)
+            .toolbarBackground(.visible, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("action.cancel") { dismiss() }

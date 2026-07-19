@@ -96,27 +96,27 @@ struct WorkloadView: View {
                         .entranceReveal()
                         .accessibilityIdentifier("workload.acwr")
 
-                    // ATL / CTL / TSB — flat inline strip lifted onto the page.
-                    HStack(spacing: 0) {
-                        MetricTile(
-                            title: "ATL",
-                            value: String(format: "%.0f", latestSnapshot?.acuteLoad ?? 0),
-                            subtitle: "Acute \u{00B7} 7-day",
-                            color: ColorTokens.chartATL
+                    // ATL / CTL / TSB — quiet mono metric rows on one light card (mrow pattern).
+                    VStack(spacing: 0) {
+                        LoadMetricRow(
+                            label: "ATL",
+                            detail: "Acute \u{00B7} 7-day",
+                            value: String(format: "%.0f", latestSnapshot?.acuteLoad ?? 0)
                         )
-                        MetricTile(
-                            title: "CTL",
-                            value: String(format: "%.0f", latestSnapshot?.chronicLoad ?? 0),
-                            subtitle: "Chronic \u{00B7} 28-day",
-                            color: ColorTokens.chartCTL
+                        RowSeparator()
+                        LoadMetricRow(
+                            label: "CTL",
+                            detail: "Chronic \u{00B7} 28-day",
+                            value: String(format: "%.0f", latestSnapshot?.chronicLoad ?? 0)
                         )
-                        MetricTile(
-                            title: "TSB",
-                            value: String(format: "%+.0f", latestSnapshot?.tsb ?? 0),
-                            subtitle: latestSnapshot.map { $0.tsb >= 0 ? "Fresh" : "Fatigued" } ?? "\u{2014}",
-                            color: ColorTokens.chartTSB
+                        RowSeparator()
+                        LoadMetricRow(
+                            label: "TSB",
+                            detail: latestSnapshot.map { $0.tsb >= 0 ? "Fresh" : "Fatigued" } ?? "\u{2014}",
+                            value: String(format: "%+.0f", latestSnapshot?.tsb ?? 0)
                         )
                     }
+                    .cardStyle(horizontalPadding: 0, verticalPadding: Spacing.xs)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.top, Spacing.xs)
                     .entranceReveal(index: 1)
@@ -260,49 +260,92 @@ struct WorkloadView: View {
 
 // MARK: - ACWR Display
 
-/// Stage 4a — the Load screen's one peak: ACWR moves onto the emphasis plane
-/// (`emphasisCardStyle` — v4: no accent rule; Stage 2″ rebuilds this hero as the black
-/// instrument panel) with display-scale INSTRUMENT numerals (`Font.Tokens.displayMetric`).
-/// The number is ink (`text1`), never accent; zone
-/// state stays text-label-led via the ZoneBadge (color supplementary, never color alone).
+/// v4 "Instrument": the Load screen's hero reading — ACWR on THE one black instrument
+/// panel (Panel Law): micro-caps label in `panelInk2`, `dialHero` mono ratio in `panelInk`,
+/// zone state as a caps TEXT label (never color alone), and a full-width `TickScale`
+/// 0–2.0 with the 0.8–1.3 productive band (ACWRZone.classify) and the red index needle
+/// at today's ratio.
 struct ACWRGaugeCard: View {
     let snapshot: WorkloadSnapshot?
 
+    /// The productive ACWR band (ACWRZone.classify: optimal = 0.8..<1.3) — the zone band
+    /// rendered on the panel scale.
+    private static let optimalBand: ClosedRange<Double> = 0.8...1.3
+
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            HStack {
-                Text("workload.section.acwr")
-                    .font(.Tokens.micro)
-                    .tracking(1.2)
-                    .foregroundStyle(ColorTokens.text3)
-                Spacer()
-                if let snapshot {
-                    ZoneBadge(
-                        label: snapshot.zone.displayName,
-                        color: ColorTokens.acwrZoneColor(snapshot.zone)
-                    )
-                }
-            }
+        VStack(alignment: .leading, spacing: 0) {
+            Text("workload.section.acwr")
+                .font(.Tokens.micro)
+                .tracking(1.2)
+                .foregroundStyle(ColorTokens.panelInk2)
+
+            Spacer().frame(height: Spacing.sm)
 
             if let snapshot {
-                HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
+                HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
                     Text(String(format: "%.2f", snapshot.acwr))
-                        .font(.Tokens.displayMetric)
+                        .font(.Tokens.dialHero)
+                        .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.heroSize, em: Font.Tokens.Dial.heroTrackingEm))
                         .monospacedDigit()
-                        .foregroundStyle(ColorTokens.text1)
-                    Text("workload.label.ratio")
+                        .foregroundStyle(ColorTokens.panelInk)
+                    // Zone state as a caps TEXT label (never color alone).
+                    Text(snapshot.zone.displayName)
                         .font(.Tokens.micro)
                         .tracking(1.2)
                         .textCase(.uppercase)
-                        .foregroundStyle(ColorTokens.text3)
+                        .foregroundStyle(ColorTokens.panelInk)
                 }
+
+                Spacer().frame(height: Spacing.sm)
+
+                TickScale(
+                    range: 0...2,
+                    value: snapshot.acwr,
+                    zone: Self.optimalBand,
+                    variant: .scale,
+                    theme: .panel,
+                    numeralText: { String(format: "%.1f", $0) },
+                    accessibilityLabel: Text(verbatim: "\(String(format: "%.2f", snapshot.acwr)) · \(snapshot.zone.displayName)")
+                )
             } else {
                 Text("workload.empty.body")
                     .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text2)
+                    .foregroundStyle(ColorTokens.panelInk2)
             }
         }
-        .emphasisCardStyle()
+        .panelStyle(verticalPadding: Spacing.sm)
+    }
+}
+
+// MARK: - Load metric rows (mockup D mrow pattern)
+
+/// ATL / CTL / TSB as quiet metric rows on one light card: caps label + tertiary detail
+/// on the left, `dialSmall` mono reading on the right (v4 — all data numerals are mono).
+private struct LoadMetricRow: View {
+    let label: String
+    let detail: String
+    let value: String
+
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                Text(label)
+                    .font(.Tokens.micro)
+                    .tracking(1.2)
+                    .foregroundStyle(ColorTokens.text2)
+                Text(detail)
+                    .font(.Tokens.micro)
+                    .foregroundStyle(ColorTokens.text3)
+            }
+            Spacer()
+            Text(value)
+                .font(.Tokens.dialSmall)
+                .foregroundStyle(ColorTokens.text1)
+        }
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .accessibilityElement(children: .combine)
+        .accessibilityLabel("\(label) \(value)")
     }
 }
 

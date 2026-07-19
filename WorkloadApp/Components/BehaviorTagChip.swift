@@ -11,16 +11,17 @@ struct BehaviorTagChip: View {
             Haptics.select()
             action()
         } label: {
-            // v3 Corner Law: tag chips are pills. Selection stays accent (live-state semantic).
+            // v4: tag chips keep capsule geometry (chips only); selection is INK — text1 label,
+            // surfaceEl2 wash, ink hairline (Index Rule: red never marks selection).
             Text(label)
                 .font(.Tokens.label)
-                .foregroundStyle(isSelected ? ColorTokens.accent : ColorTokens.text2)
+                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text2)
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.xs)
-                .background(isSelected ? ColorTokens.accentSubtle : ColorTokens.background, in: Capsule())
+                .background(isSelected ? ColorTokens.surfaceEl2 : ColorTokens.background, in: Capsule())
                 .overlay(
                     Capsule()
-                        .stroke(isSelected ? ColorTokens.accent : ColorTokens.divider, lineWidth: 0.5)
+                        .stroke(isSelected ? ColorTokens.text1 : ColorTokens.divider, lineWidth: 0.5)
                 )
         }
         .buttonStyle(.pressable)

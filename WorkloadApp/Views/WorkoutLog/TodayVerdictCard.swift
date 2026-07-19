@@ -9,7 +9,9 @@ import SwiftUI
 ///
 /// Anti-nocebo / autonomy invariants (DESIGN-fenced by `TodayVerdictCardGuardTests`):
 ///  - Leads with the ACTION on the plan + one-line reason — never a bare readiness number (SC4).
-///  - Accept and Keep-my-plan are EQUAL visual weight via one shared button builder (SC1).
+///  - Accept and Keep-my-plan are EQUAL visual weight: both are plain `.standard` cells in one
+///    butted `KeyRow` (SC1) — the ink-filled CTA cell appears ONLY for the single start action
+///    after the decision is made.
 ///  - A hold/low verdict reads as a number + reason, never a red gate (SC2): the verdict state is a
 ///    TEXT LABEL + at most a DESATURATED hairline strip — never the danger-zone token, never the
 ///    reserved hero color.
@@ -47,37 +49,36 @@ struct TodayVerdictCard: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
 
-            // 1. Header label (micro-caps — NOT a readiness number).
-            Text(String(localized: "verdictCard.title", defaultValue: "TODAY'S PLAN"))
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
+            // 1. Header label (micro-caps, mockup D: "TODAY'S PLAN · <EXERCISE>" — NOT a
+            //    readiness number). The verdict state rides the same line as a TEXT label.
+            HStack(alignment: .firstTextBaseline) {
+                Text(verbatim: "\(String(localized: "verdictCard.title", defaultValue: "TODAY'S PLAN")) · \(display.headlineExerciseName)")
+                    .font(.Tokens.micro)
+                    .tracking(1.2)
+                    .textCase(.uppercase)
+                    .foregroundStyle(ColorTokens.text3)
+                Spacer()
+                // Verdict state as a TEXT LABEL (the primary state channel — never color alone).
+                Text(stateLabel)
+                    .font(.Tokens.micro)
+                    .tracking(1.2)
+                    .foregroundStyle(ColorTokens.text2)
+            }
 
             // 2. Action-on-the-plan hero — NUMBER-LED with a strike-zone bar (lead with today's
             //    number + where it lands in today's productive zone; never a bare readiness score).
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                HStack(alignment: .firstTextBaseline) {
-                    Text(verbatim: display.headlineExerciseName)
-                        .font(.Tokens.bodyMedium)
-                        .foregroundStyle(ColorTokens.text1)
-                    Spacer()
-                    // Verdict state as a TEXT LABEL (the primary state channel — never color alone).
-                    Text(stateLabel)
-                        .font(.Tokens.micro)
-                        .tracking(1.2)
-                        .foregroundStyle(ColorTokens.text2)
-                }
-
-                // Today's number leads (the lift target, NOT a readiness score → accent stays off it).
+                // Today's number leads (the lift target, NOT a readiness score → the index stays
+                // off it). Dial voice: `dialValue` mono (mockup D `vnum`), "from" caption mono small.
                 HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
                     Text(WeightFormatter.display(display.adjustedTopSetKg, unit: weightUnit, locale: locale))
-                        .font(.Tokens.pageTitle)
+                        .font(.Tokens.dialValue)
+                        .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.valueSize, em: Font.Tokens.Dial.valueTrackingEm))
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
                     if display.hasAdjustment {
                         Text(fromPlannedCaption)
-                            .font(.Tokens.smallLabel)
-                            .monospacedDigit()
+                            .font(.Tokens.dialSmall)
                             .foregroundStyle(ColorTokens.text3)
                     }
                 }
@@ -181,27 +182,27 @@ struct TodayVerdictCard: View {
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
                 // Start CTA only when a resolved plan can actually be produced (no render-then-no-op).
+                // The ONE place the ink-filled CTA cell is sanctioned: it is the single primary
+                // action once the decision is made (no competing equal-weight choice remains).
                 if canStartWorkout, let onStartWorkout {
-                    decisionButton(startLabel, action: onStartWorkout)
+                    KeyRow([
+                        KeyRow.Key(title: startLabelKey, role: .cta, action: onStartWorkout)
+                    ])
                 }
             }
         } else if display.kind == .asPlanned {
-            // Nothing to accept/decline — a single friction-free acknowledge.
-            decisionButton(
-                String(localized: "verdictCard.action.gotIt", defaultValue: "Got it"),
-                action: onKeepPlan
-            )
+            // Nothing to accept/decline — a single friction-free acknowledge (plain cell).
+            KeyRow([
+                KeyRow.Key(title: "verdictCard.action.gotIt", action: onKeepPlan)
+            ])
         } else {
-            HStack(spacing: Spacing.xs) {
-                decisionButton(
-                    String(localized: "verdictCard.action.accept", defaultValue: "Use this"),
-                    action: onAccept
-                )
-                decisionButton(
-                    String(localized: "verdictCard.action.keep", defaultValue: "Keep my plan"),
-                    action: onKeepPlan
-                )
-            }
+            // SC1 equal weight (nocebo guard): Accept and Keep-my-plan are BOTH plain
+            // `.standard` key cells in ONE butted row — identical size, type, fill, and press
+            // treatment; neither reads as the endorsed option. NEVER give either the CTA role.
+            KeyRow([
+                KeyRow.Key(title: "verdictCard.action.accept", action: onAccept),
+                KeyRow.Key(title: "verdictCard.action.keep", action: onKeepPlan)
+            ])
         }
     }
 
@@ -227,24 +228,8 @@ struct TodayVerdictCard: View {
 
     // MARK: - Shared button builders (equal-weight guarantee lives here)
 
-    /// The ONE decision-button builder — Accept and Keep-my-plan are provably identical in
-    /// size/treatment (same font, padding, frame, fill, border); they differ ONLY in label/action.
-    /// Outlined `Capsule()` pill (v3 Corner Law) — deliberately NOT the filled accent primary
-    /// CTA, so neither decision reads as the "endorsed" one (SC1 equal weight).
-    private func decisionButton(_ title: String, action: @escaping () -> Void) -> some View {
-        Button(action: { Haptics.tap(); action() }) {
-            Text(verbatim: title)
-                .font(.Tokens.bodyMedium)
-                .foregroundStyle(ColorTokens.text1)
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, Spacing.xs)
-                .background(ColorTokens.surface, in: Capsule())
-                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
-        }
-        .buttonStyle(.pressable)
-    }
-
-    /// The feel pills — same shared treatment, slightly smaller type than the decision buttons.
+    /// The feel cells — quiet plain cells (v4: control-corner rectangles, hairline border —
+    /// pills are demoted to chips). Both feel options share one identical treatment.
     private func feelPill(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: { Haptics.select(); action() }) {
             Text(verbatim: title)
@@ -252,7 +237,8 @@ struct TodayVerdictCard: View {
                 .foregroundStyle(ColorTokens.text1)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.xs)
-                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+                .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
     }
@@ -288,16 +274,17 @@ struct TodayVerdictCard: View {
         }
     }
 
-    /// The start CTA label — reflects WHAT will be started: the accepted adjustment, the kept plan
-    /// (after declining a real suggestion), or simply the workout (when there was nothing to adjust).
-    private var startLabel: String {
+    /// The start CTA label key — reflects WHAT will be started: the accepted adjustment, the kept
+    /// plan (after declining a real suggestion), or simply the workout (when there was nothing to
+    /// adjust). Catalog keys (values live in the xcstrings catalog).
+    private var startLabelKey: LocalizedStringKey {
         switch display.appliedState {
         case .accepted:
-            return String(localized: "verdictCard.start.adjusted", defaultValue: "Start adjusted workout")
+            return "verdictCard.start.adjusted"
         case .keptPlan:
             return display.kind == .adjusted
-                ? String(localized: "verdictCard.start.plan", defaultValue: "Start my plan")
-                : String(localized: "verdictCard.start.workout", defaultValue: "Start workout")
+                ? "verdictCard.start.plan"
+                : "verdictCard.start.workout"
         case .pending:
             return ""
         }

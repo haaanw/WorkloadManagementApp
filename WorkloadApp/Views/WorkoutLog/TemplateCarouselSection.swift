@@ -236,19 +236,10 @@ struct TemplateCarouselSection: View {
             }
             .padding(Spacing.sm)
             .frame(height: 160)
-            // v2: the centered (active) card lifts to the emphasis plane with the stronger
-            // border and a 2pt accent top rule — the sanctioned active-surface treatment.
-            // v3 Corner Law: card plane on `CornerTokens.card`; the accent rule is clipped by
-            // the card shape and the hairline strokes the same rounded shape.
+            // v4: the centered (active) card lifts to the emphasis plane — surfaceEl2 +
+            // the stronger hairline ONLY (the v2 red top band is deleted; the index never
+            // decorates — Index Rule).
             .background(isCentered ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
-            .overlay(alignment: .top) {
-                if isCentered {
-                    Rectangle()
-                        .fill(ColorTokens.accent)
-                        .frame(height: 2)
-                        .accessibilityHidden(true)
-                }
-            }
             .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
             .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(isCentered ? ColorTokens.dividerStrong : ColorTokens.divider, lineWidth: 0.5))
             .overlay(alignment: .topTrailing) {

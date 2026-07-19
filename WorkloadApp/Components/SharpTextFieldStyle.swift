@@ -3,8 +3,8 @@ import SwiftUI
 /// Design-system text field style (v3 "Ink & Grain": `CornerTokens.control` corners).
 /// Replaces .roundedBorder across all text inputs.
 ///
-/// Tuwa v2: a focused field is the *active* element, so its hairline lifts from
-/// `divider` to `accent` (the one sanctioned accent use here) and thickens 0.5→1pt.
+/// v4 "Instrument": a focused field is the *active* element — its hairline lifts from
+/// `divider` to INK (`text1`) and thickens 0.5→1pt (Index Rule: red never marks focus).
 /// The transition routes through `Motion.state`.
 struct SharpTextFieldStyle: TextFieldStyle {
     func _body(configuration: TextField<Self._Label>) -> some View {
@@ -27,7 +27,7 @@ struct SharpTextFieldStyle: TextFieldStyle {
                 .overlay(
                     RoundedRectangle(cornerRadius: CornerTokens.control)
                         .stroke(
-                            isFocused ? ColorTokens.accent : ColorTokens.divider,
+                            isFocused ? ColorTokens.text1 : ColorTokens.divider,
                             lineWidth: isFocused ? 1 : 0.5
                         )
                 )
