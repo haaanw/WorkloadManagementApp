@@ -20,7 +20,15 @@ import SwiftUI
 /// `TickScale.Theme`. Decorative internals are hidden from accessibility: the whole scale is
 /// ONE combined element carrying a caller-supplied label (same approach as the verdict
 /// card's strike-zone bar).
-struct TickScale: View {
+///
+/// Motion (v4 Stage 3″): the view is `Animatable` on `value`, so needle position changes
+/// sweep mechanically under whatever `Motion` token the call site's transaction carries
+/// (`Motion.state` snap-settle for readings; the Home hero inherits `Motion.scoreCountUp`
+/// so the needle sweeps in sync with the counting digits). No transaction (Reduce Motion →
+/// `Motion.resolved` returns nil) = the needle settles instantly on the value. Detent
+/// haptics: one `Haptics.select()` click each time the animated needle crosses a zone-band
+/// boundary (max one per frame, never on first render).
+struct TickScale: View, Animatable {
 
     // MARK: Theme
 
@@ -69,8 +77,9 @@ struct TickScale: View {
 
     /// The scale's domain, in the caller's units.
     let range: ClosedRange<Double>
-    /// The current reading — marked by the red index needle.
-    let value: Double
+    /// The current reading — marked by the red index needle. `var` (not `let`) because the
+    /// animation system writes interpolated values through `animatableData` each frame.
+    var value: Double
     /// Optional zone band (e.g. today's productive band), in the caller's units.
     var zone: ClosedRange<Double>? = nil
     /// Optional ghost mark (planned/previous value), in the caller's units.
@@ -88,6 +97,41 @@ struct TickScale: View {
     /// The ONE accessibility label for the combined element — supplied by the caller,
     /// phrased in the caller's domain language.
     let accessibilityLabel: Text
+
+    // MARK: Needle motion (Animatable + detent haptics)
+
+    /// The needle position is the animatable channel: state changes to `value` interpolate
+    /// per frame (mechanical sweep), driven by the call site's `Motion` token transaction.
+    var animatableData: Double {
+        get { value }
+        set { value = newValue }
+    }
+
+    /// Reference-type frame memory for detent haptics. The struct is recreated with a fresh
+    /// interpolated `animatableData` every animation frame, so the last drawn needle
+    /// position must live in `@State`-held reference storage to survive across frames.
+    final class DetentTracker {
+        var lastValue: Double?
+    }
+
+    // NOT private: a private stored property would demote the synthesized memberwise
+    // initializer to private and break every call site. Defaulted, so callers ignore it.
+    @State var detentTracker = DetentTracker()
+
+    /// Detent haptics (DESIGN.md v4 Motion: detent clicks on scale/needle landings): fire
+    /// ONE `Haptics.select()` when the animated needle crosses a zone-band boundary —
+    /// evaluated per interpolation frame, at most one click per frame (no haptic spam),
+    /// never on the first render. Under Reduce Motion the value lands in a single frame,
+    /// so at most one settle click fires (haptics are feedback, not motion).
+    private func trackDetents() {
+        guard let zone else { return }
+        defer { detentTracker.lastValue = value }
+        guard let last = detentTracker.lastValue, last != value else { return }
+        let crossed = [zone.lowerBound, zone.upperBound].contains { boundary in
+            (last < boundary && value >= boundary) || (last > boundary && value <= boundary)
+        }
+        if crossed { Haptics.select() }
+    }
 
     // MARK: Metrics (component-internal geometry, mockup column D)
 
@@ -121,13 +165,16 @@ struct TickScale: View {
     // MARK: Body
 
     var body: some View {
-        Canvas { context, size in
+        let _ = trackDetents()
+        return Canvas { context, size in
             switch variant {
             case .scale: drawScale(in: &context, size: size)
             case .micro: drawMicro(in: &context, size: size)
             }
         }
         .frame(height: variant == .scale ? Metrics.scaleHeight : Metrics.microHeight)
+        // Warm the selection generator so the first detent click has no latency.
+        .onAppear { if zone != nil { Haptics.prepare() } }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
     }

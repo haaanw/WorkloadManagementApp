@@ -43,31 +43,45 @@ enum Spacing {
 // DESIGN.md v3 "Ink & Grain" (2026-07-14). The old zero-valued `GeometryTokens` enum
 // (never referenced) was removed with the 0pt law it encoded.
 
-// MARK: - Motion scale (DESIGN.md Motion — "more life" revision 2026-06-17)
+// MARK: - Motion scale (DESIGN.md Motion — v4 "Instrument", Emil Kowalski framework, 2026-07-20)
 
-/// The single motion language. Tuwa v2 relaxes the old no-spring rule: gentle springs are
-/// permitted for state settle and entrances (low overshoot — alive, not bouncy), while
-/// screen/exit transitions stay on easing curves. The hero score count-up keeps its 0.4s
-/// easeOut personality. Route ALL animations through these tokens — never a bare
-/// `withAnimation { }` (it silently uses SwiftUI's default spring).
+/// The single motion language. v4 is a precision instrument: crisp, mechanical, fast —
+/// motion is a detent click, not a flourish. One curve (the strong ease-out
+/// `cubic-bezier(0.23, 1, 0.32, 1)`), UI transitions 150–250ms, NEVER >300ms, no
+/// ease-in ever, and springs reserved for gesture/momentum contexts only (none exist
+/// today — the v2 "gentle spring" state/entrance personalities are retired). Route ALL
+/// animations through these tokens — never a bare `withAnimation { }` (it silently uses
+/// SwiftUI's default spring).
 enum Motion {
-    /// Quick state settle — toggles, selection, press release. Gentle spring, minimal overshoot.
-    static let state = Animation.spring(response: 0.30, dampingFraction: 0.86)
-    /// Entrance of cards / rows / banners / sheets — a touch more life.
-    static let entrance = Animation.spring(response: 0.42, dampingFraction: 0.82)
-    /// Screen / nav-level easing where a spring would feel heavy.
-    static let screen = Animation.easeOut(duration: 0.28)
-    /// Exit / removal.
-    static let exit = Animation.easeIn(duration: 0.20)
-    /// Hero readiness score count-up — the one sanctioned moment of personality.
-    static let scoreCountUp = Animation.easeOut(duration: 0.40)
-    /// Light section choreography step. Kept here so screens never inline timing literals.
-    static let staggerStep: Double = 0.05
+    /// The v4 signature curve — strong ease-out cubic-bezier(0.23, 1, 0.32, 1)
+    /// (DESIGN.md Motion: "starts fast, feels responsive"; never ease-in).
+    private static func strongEaseOut(_ duration: Double) -> Animation {
+        .timingCurve(0.23, 1, 0.32, 1, duration: duration)
+    }
+
+    /// Press feedback — law: 100–160ms. Used by `PressableButtonStyle` (scale 0.97).
+    static let press = strongEaseOut(0.12)
+    /// Quick state settle — toggles, selection, needle position, value swaps.
+    /// Law: UI transitions 150–250ms; mechanical snap-settle, no overshoot.
+    static let state = strongEaseOut(0.18)
+    /// Screen / nav-level transition (route swaps, disclosure reveals). Law: 150–250ms.
+    static let screen = strongEaseOut(0.20)
+    /// Entrance of cards / rows / banners / sheets. Law: entrances are ease-out,
+    /// 150–250ms — no spring (springs are gesture-only in v4).
+    static let entrance = strongEaseOut(0.24)
+    /// Exit / removal — ease-OUT and fast (law: "never ease-in on UI"; exits leave quickly).
+    static let exit = Animation.easeOut(duration: 0.15)
+    /// Tab switches are FREQUENT actions (law: "reduce drastically" — near-instant).
+    static let tabSwitch = strongEaseOut(0.15)
+    /// Hero readiness count-up sweep — the one sanctioned longer moment (law: ≤400ms).
+    static let scoreCountUp = Animation.easeOut(duration: 0.35)
+    /// Section choreography step — law: stagger 30–80ms. Kept here so screens never
+    /// inline timing literals.
+    static let staggerStep: Double = 0.04
     /// Long lists stop staggering after this many steps so useful rows never wait seconds to appear.
     static let maxStaggerSteps = 8
 
-    // UI rebuild v3 aliases.
-    static let press = state
+    // UI rebuild v3 aliases (names retained; press is now its own faster token).
     static let selection = state
     static let contentChange = entrance
     static let navigation = screen
@@ -110,7 +124,7 @@ private struct EntranceRevealModifier: ViewModifier {
 }
 
 extension View {
-    /// Reveals a top-level section once using the design-system entrance spring.
+    /// Reveals a top-level section once using the design-system entrance curve (`Motion.entrance`).
     func entranceReveal(index: Int = 0, enabled: Bool = true) -> some View {
         modifier(EntranceRevealModifier(index: index, enabled: enabled))
     }
@@ -139,7 +153,7 @@ private struct TabCrossfadeModifier: ViewModifier {
                 // update cycles (a single-cycle write would diff 1 → 1 and never animate).
                 contentOpacity = 0
                 DispatchQueue.main.async {
-                    withAnimation(Motion.screen) {
+                    withAnimation(Motion.tabSwitch) {
                         contentOpacity = 1
                     }
                 }
@@ -148,7 +162,8 @@ private struct TabCrossfadeModifier: ViewModifier {
 }
 
 extension View {
-    /// Screen-level cross-fade for tab content on tab REVISITS (`Motion.screen`).
+    /// Near-instant cross-fade for tab content on tab REVISITS (`Motion.tabSwitch` —
+    /// tab switches are frequent actions, so the treatment is drastically reduced).
     /// Apply to each tab root in the main TabView, passing whether its tab is selected.
     func tabCrossfade(isSelected: Bool) -> some View {
         modifier(TabCrossfadeModifier(isSelected: isSelected))
@@ -649,7 +664,9 @@ struct KeyRow: View {
                 .background(key.role == .cta ? ColorTokens.text1 : ColorTokens.surfaceEl)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable(scale: 1, opacity: 0.7))
+        // Full key-press treatment (0.97 / 120ms): the cell depresses inside the clipped
+        // row like a mechanical key — no dead-feeling cells (v4 motion pass).
+        .buttonStyle(.pressable)
         .accessibilityIdentifier(key.accessibilityID ?? "")
     }
 }
@@ -1008,12 +1025,13 @@ struct MenuChevron: View {
     }
 }
 
-// MARK: - Pressable button style (tactile feedback — "more life" revision 2026-06-17)
+// MARK: - Pressable button style (tactile feedback — v4 mechanical key press)
 
-/// Tactile press feedback for any tappable surface (rows, cards, CTAs). Scales to 0.97 and
-/// dims to 0.7 on press, springing back via `Motion.state`. No color shift, no shadow — it
-/// respects the instrument aesthetic while making controls feel alive. Replace
-/// `.buttonStyle(.plain)` with `.buttonStyle(.pressable)` on interactive rows / cards / CTAs.
+/// Tactile press feedback for any tappable surface (rows, cards, CTAs, key cells). Scales
+/// to 0.97 and dims to 0.7 on press, settling back via `Motion.press` (120ms strong
+/// ease-out — the law's 100–160ms press-feedback window; mechanical, no spring). No color
+/// shift, no shadow. Replace `.buttonStyle(.plain)` with `.buttonStyle(.pressable)` on
+/// interactive rows / cards / CTAs.
 struct PressableButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -1024,12 +1042,13 @@ struct PressableButtonStyle: ButtonStyle {
         configuration.label
             .scaleEffect(configuration.isPressed ? pressedScale : 1)
             .opacity(configuration.isPressed ? pressedOpacity : 1)
-            .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: configuration.isPressed)
+            .animation(Motion.resolved(Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
     }
 }
 
 extension ButtonStyle where Self == PressableButtonStyle {
-    /// Tactile press feedback (scale + fade, springs back). Use on interactive rows/cards/CTAs.
+    /// Tactile press feedback (scale 0.97 + fade, 120ms mechanical settle). Use on
+    /// interactive rows/cards/CTAs.
     static var pressable: PressableButtonStyle { PressableButtonStyle() }
     /// Tactile press with custom press depth (e.g. subtler `opacity:` for large surfaces).
     static func pressable(scale: CGFloat = 0.97, opacity: Double = 0.7) -> PressableButtonStyle {

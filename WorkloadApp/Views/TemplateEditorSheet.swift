@@ -109,7 +109,7 @@ struct TemplateEditorSheet: View {
                                     .background(scheduledDays.contains(value) ? ColorTokens.surface : ColorTokens.background, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                                     .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(scheduledDays.contains(value) ? ColorTokens.text1 : ColorTokens.divider, lineWidth: 0.5))
                             }
-                            .buttonStyle(.plain)
+                            .buttonStyle(.pressable)
                         }
                     }
                     .padding(.horizontal, 16)

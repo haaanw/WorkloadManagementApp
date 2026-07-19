@@ -160,7 +160,9 @@ struct NiggleLogSheet: View {
                             .padding(.vertical, Spacing.sm)
                             .background(selectedType == type ? ColorTokens.text1 : ColorTokens.surface)
                     }
-                    .buttonStyle(.plain)
+                    // Press feedback for the butted segment cell (opacity-only inside the
+                    // clipped row — same treatment as InstrumentSegmentedControl).
+                    .buttonStyle(.pressable(scale: 1, opacity: 0.7))
 
                     if index < NiggleType.allCases.count - 1 {
                         Rectangle()

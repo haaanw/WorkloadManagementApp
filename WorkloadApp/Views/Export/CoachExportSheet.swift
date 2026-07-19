@@ -141,7 +141,7 @@ struct CoachExportSheet: View {
             .frame(minHeight: 48)
             .contentShape(Rectangle())
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
         .accessibilityValue(selectedAthleteIds.contains(athlete.id) ? "selected" : "not selected")
     }
 
@@ -174,7 +174,7 @@ struct CoachExportSheet: View {
                                 )
                         )
                 }
-                .buttonStyle(.plain)
+                .buttonStyle(.pressable)
             }
         }
     }

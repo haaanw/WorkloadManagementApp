@@ -268,6 +268,8 @@ struct WorkloadView: View {
 struct ACWRGaugeCard: View {
     let snapshot: WorkloadSnapshot?
 
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     /// The productive ACWR band (ACWRZone.classify: optimal = 0.8..<1.3) — the zone band
     /// rendered on the panel scale.
     private static let optimalBand: ClosedRange<Double> = 0.8...1.3
@@ -307,6 +309,9 @@ struct ACWRGaugeCard: View {
                     numeralText: { String(format: "%.1f", $0) },
                     accessibilityLabel: Text(verbatim: "\(String(format: "%.2f", snapshot.acwr)) · \(snapshot.zone.displayName)")
                 )
+                // Needle position changes settle mechanically via `Motion.state` (TickScale
+                // is Animatable on `value`); Reduce Motion resolves to an instant settle.
+                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: snapshot.acwr)
             } else {
                 Text("workload.empty.body")
                     .font(.Tokens.label)

@@ -183,10 +183,11 @@ final class DesignSystemFenceTests: XCTestCase {
     func test_animationCurveLiterals_onlyInCardStyle() throws {
         // Curve/spring constructors define motion personalities. The single motion language
         // lives in `Motion` (CardStyle.swift); everywhere else must reference tokens
-        // (Motion.state / .entrance / .screen / .exit / .scoreCountUp or their aliases),
-        // ideally via `Motion.resolved(_:reduceMotion:)`.
+        // (Motion.press / .state / .screen / .entrance / .exit / .tabSwitch / .scoreCountUp
+        // or their aliases), ideally via `Motion.resolved(_:reduceMotion:)`. v4 Stage 3″
+        // adds `.timingCurve(` — the strong ease-out cubic-bezier lives ONLY in the tokens.
         let bannedCurveLiterals = [
-            ".easeIn(", ".easeOut(", ".easeInOut(", ".linear(", ".spring(",
+            ".easeIn(", ".easeOut(", ".easeInOut(", ".linear(", ".spring(", ".timingCurve(",
             ".interpolatingSpring", ".interactiveSpring", ".bouncy", ".snappy",
             "withAnimation(.", ".animation(."
         ]

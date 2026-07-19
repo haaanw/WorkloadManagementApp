@@ -181,6 +181,6 @@ struct RangeChip: View {
                     )
                 )
         }
-        .buttonStyle(.plain)
+        .buttonStyle(.pressable)
     }
 }

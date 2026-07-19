@@ -280,8 +280,9 @@ struct MainTabView: View {
     @Environment(\.scenePhase) private var scenePhase
 
     /// The five athlete tabs. Selection is held here so tab REVISITS cross-fade content in
-    /// via `tabCrossfade` (`Motion.screen`) instead of snapping; first renders stay with
-    /// each screen's `entranceReveal` choreography.
+    /// via `tabCrossfade` (`Motion.tabSwitch` — near-instant; tab switches are frequent
+    /// actions) instead of snapping; first renders stay with each screen's
+    /// `entranceReveal` choreography.
     private enum Tab: Hashable {
         case home, log, recovery, load, profile
     }
