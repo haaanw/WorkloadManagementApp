@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v4 "Instrument" — pivot report</title>
+<style>
+  :root { --bg:#E9EAEB; --card:#F5F6F7; --ink:#17181A; --ink2:#4A4D51; --ink3:#85898E; --line:#D0D2D5; --index:#D04234; --panel:#1E2022; --panelink:#F0F1F2; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:15px; line-height:1.6; padding:56px 24px 96px; }
+  .wrap { max-width:1100px; margin:0 auto; }
+  h1 { font-weight:600; font-size:13px; letter-spacing:0.3em; text-transform:uppercase; }
+  .hero-title { font-family:"SF Mono",Menlo,monospace; font-size:44px; font-weight:500; letter-spacing:-0.02em; margin:10px 0 4px; }
+  .sub { color:var(--ink2); margin-bottom:40px; max-width:80ch; }
+  h2 { font-size:11px; font-weight:600; letter-spacing:0.24em; text-transform:uppercase; color:var(--ink3); margin:52px 0 16px; padding-top:14px; border-top:1px solid var(--line); position:relative; }
+  h2::before { content:''; position:absolute; top:-1px; left:0; width:36px; height:2px; background:var(--index); }
+  p { margin-bottom:12px; max-width:78ch; }
+  .card { background:var(--card); border:0.5px solid var(--line); border-radius:5px; padding:20px 24px; margin-bottom:14px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  td { padding:8px 12px; border-top:0.5px solid var(--line); vertical-align:top; }
+  tr:first-child td { border-top:none; }
+  code { font-family:"SF Mono",Menlo,monospace; font-size:12.5px; color:var(--ink2); }
+  .commit { font-family:"SF Mono",Menlo,monospace; font-size:12.5px; white-space:nowrap; }
+  .shots { display:flex; flex-wrap:wrap; gap:14px; margin:18px 0; }
+  .shot { flex:1 1 170px; max-width:200px; }
+  .shot img { width:100%; border:0.5px solid var(--line); border-radius:5px; display:block; }
+  .shot figcaption { font-size:12px; color:var(--ink2); margin-top:7px; line-height:1.45; }
+  .pill { display:inline-block; font-size:10px; font-weight:600; letter-spacing:0.12em; text-transform:uppercase; padding:2px 10px; border:1px solid var(--line); border-radius:3px; margin-right:6px; color:var(--ink2); }
+  .good { color:#3F5A46; font-weight:600; }
+  .bad { color:var(--index); font-weight:600; }
+  .opinion li { margin-bottom:13px; max-width:78ch; }
+  .opinion ul, .opinion ol { padding-left:22px; }
+  .verdict { font-family:"SF Mono",Menlo,monospace; font-size:21px; line-height:1.4; letter-spacing:-0.01em; max-width:64ch; margin:18px 0; }
+  .footnote { color:var(--ink3); font-size:12.5px; margin-top:44px; border-top:0.5px solid var(--line); padding-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tuwa · Design Language v4</h1>
+  <div class="hero-title">INSTRUMENT</div>
+  <p class="sub">Aluminum Panel treatment — Braun · B&amp;O · 1990s Contax, motion by the Emil Kowalski framework. Full pivot executed 2026-07-20 in four gated stages. Ready for your on-device re-dogfood.</p>
+
+  <h2>What shipped today</h2>
+  <div class="card">
+    <table>
+      <tr><td class="commit">7a4eaec</td><td><b>Law + tokens.</b> DESIGN.md v4; aluminum repalette; IBM Plex Mono bundled as the dial voice (PostScript names verified at runtime — not repeating the phase-14 bug); Source Serif and the halftone texture deleted; corners to 5/4pt; fences flipped. The new mono fence caught its own author's assert message on the first run — reworded, chokepoint holds.</td></tr>
+      <tr><td class="commit">5aa4b83</td><td><b>Shared layer.</b> The black <code>panelStyle</code> plane with a one-per-screen fence; the <code>TickScale</code> component (two-weight ticks, zone band, red needle, ghost mark, mono numerals); strike-zone bar rebuilt on it with its anti-nocebo guard tests intact; butted key rows replacing pill CTAs; the red emphasis rule deleted; tab bar and screen headers onto the caps/needle grammar.</td></tr>
+      <tr><td class="commit">f0d4512</td><td><b>Per-screen apply.</b> Home readiness and Load ACWR onto panels with live scales; verdict card onto dial numerals + equal-weight key row; the full Index Rule sweep — red now renders from exactly two places in the app: scale needles and the active-tab tick. 25+ files cleared of accent washes.</td></tr>
+      <tr><td class="commit">df8b876</td><td><b>Motion.</b> Every animation now rides one strong ease-out curve: 120ms presses, 150–250ms transitions, nothing over 300ms, ease-in eliminated, springs retired from non-gesture paths. The count-up sweeps the hero needle with haptic detents at zone boundaries (verified frame-by-frame on video). Five dead-feeling controls got press states.</td></tr>
+    </table>
+  </div>
+  <p>Every stage passed the full 783-test gate (fences, nocebo guards, all 13 UI tests) before its commit. Retained from v1.6: the rehost, tab-bar architecture, movement bank, athlete-only reset, and the whole test suite.</p>
+
+  <h2>The app now</h2>
+  <div class="shots">
+    <figure class="shot"><img src="stage-v4-2-screens/01-home.png" alt="Home"><figcaption><b>Home.</b> The readiness panel: mono 71, GO as text, live tick scale with the needle at score. One red mark on the whole screen.</figcaption></figure>
+    <figure class="shot"><img src="stage-v4-2-screens/03-log.png" alt="Log"><figcaption><b>Log.</b> Verdict as an instrument reading — dial weight, micro scale with needle + planned ghost, ink CTA key, equal-weight feel keys.</figcaption></figure>
+    <figure class="shot"><img src="stage-v4-2-screens/06-load.png" alt="Load"><figcaption><b>Load.</b> ACWR panel with the 0.8–1.3 band; mono metric rows; ink-fill segments.</figcaption></figure>
+    <figure class="shot"><img src="stage-v4-2-screens/05-recovery.png" alt="Recovery"><figcaption><b>Recovery.</b> Light cards by law (Home owns the panel); dial values in ink.</figcaption></figure>
+    <figure class="shot"><img src="stage-v4-2-screens/09-login.png" alt="Login"><figcaption><b>Login.</b> Control-corner fields, ink keys, no pills.</figcaption></figure>
+  </div>
+
+  <h2>Before / after</h2>
+  <div class="shots">
+    <figure class="shot"><img src="stage-4a-screens/4a-home.png" alt="v1.6 Home"><figcaption><b>Before</b> — v1.6 "Ink &amp; Grain": serif score, paper-blue, editorial.</figcaption></figure>
+    <figure class="shot"><img src="stage-v4-2-screens/01-home.png" alt="v4 Home"><figcaption><b>After</b> — v4 "Instrument": panel, mono, needle.</figcaption></figure>
+  </div>
+
+  <h2>My honest opinion</h2>
+  <p class="verdict">This one has an identity. The panel + needle is a real signature — but three leaks still say "iOS app" and one screen got left behind.</p>
+  <div class="opinion">
+    <h3 style="font-size:15px; margin-bottom:8px;">What genuinely works</h3>
+    <ul>
+      <li><span class="good">The panel hero is ownable.</span> No fitness app renders its core number as a black instrument panel with a swept needle. It photographs well, it demos well, and it makes the readiness number feel <i>measured</i> rather than gamified — which is exactly the product's claim.</li>
+      <li><span class="good">One accent, used twice.</span> The discipline of red-only-on-indices gives the whole app a physics. When something red moves, it means a reading changed. That's Braun thinking, actually executed.</li>
+      <li><span class="good">The motion finally matches the material.</span> Crisp mechanical settles instead of soft springs; the count-up needle sweep with detents is the one moment of theatre, and it's earned.</li>
+    </ul>
+    <h3 style="font-size:15px; margin:16px 0 8px;">What I'd push next (candid)</h3>
+    <ol>
+      <li><span class="bad">Sheet chrome is the biggest remaining leak.</span> Open "Log Workout" — the most-used flow — and you're back in stock iOS: system-font sheet title, glass Cancel pill, the ~0.4s system sheet spring. The world-building breaks exactly where usage is highest. If the re-dogfood confirms the direction, this is the first follow-up lane I'd run.</li>
+      <li><b>Recovery reads like the poor sibling.</b> The Panel Law (one panel, Home owns it) leaves Recovery with no peak. Correct discipline, but the screen is now quiet to the point of plain. A future option: a micro tick-scale strip on the score card — instrument grammar without breaking the law.</li>
+      <li><b>Chart palette clash.</b> The Swift Charts still use the old olive/moss line colors, which sat well on warm paper but clash mildly with cool aluminum. Chart tokens were exempted from the sweep; a small retune would finish the room.</li>
+      <li><b>Watch the small mono.</b> 13pt Plex Mono in dense rows (Log history, metric rows) is information-rich but can tip into busy. Judge it on the device, not the sim.</li>
+      <li><b>Detent haptics are unverified on hardware</b> — the simulator has no Taptic engine. First thing to feel for on your phone: the click as the needle crosses into GO.</li>
+    </ol>
+  </div>
+
+  <h2>What happens after your re-dogfood</h2>
+  <div class="card">
+    <table>
+      <tr><td><span class="pill">You</span></td><td>Install current main on your phone. Feel for: the count-up detents, tab-switch speed, whether the aluminum reads premium or flat in daylight, and whether the sheet-chrome leak bothers you in real use.</td></tr>
+      <tr><td><span class="pill">Then</span></td><td>Verdict + your calls on the follow-ups above → version/numbering decision (this is arguably bigger than a 1.6 now) → shell + coach-code deletion commit → push (9+ commits held locally) → ASO re-shoot with the new visuals.</td></tr>
+    </table>
+  </div>
+
+  <p class="footnote">Generated by the v4 orchestrator session · sim captures (iPhone 17 Pro Max, SCREENSHOT_MODE seed) · motion videos at ~/.tonus-dd/v4-stage3-videos/ · report lives at .planning/orchestration/2026-07-20-v4-report.html</p>
+
+</div>
+</body>
+</html>
