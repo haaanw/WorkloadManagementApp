@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v2 Design Language — Instrument Treatments (Braun · B&amp;O · Contax)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'General Sans';
+    src: url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype');
+    font-weight: 200 700;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: #202124;
+    font-family: 'General Sans', 'Archivo', -apple-system, sans-serif;
+    padding: 48px 24px;
+    color: #ddd;
+  }
+  .intro { max-width: 1280px; margin: 0 auto 40px; }
+  .intro h1 { font-weight: 500; font-size: 26px; letter-spacing: -0.01em; color: #fff; }
+  .intro p { color: #999; font-size: 14px; margin-top: 8px; max-width: 80ch; line-height: 1.6; }
+  .row { display: flex; gap: 28px; justify-content: center; flex-wrap: wrap; max-width: 1320px; margin: 0 auto; }
+  .col { width: 390px; flex-shrink: 0; }
+  .col-label { margin-bottom: 14px; }
+  .col-label h2 { font-size: 15px; font-weight: 600; color: #fff; letter-spacing: 0.02em; }
+  .col-label p { font-size: 12px; color: #8a8a8a; margin-top: 4px; line-height: 1.55; }
+  .phone { border-radius: 28px; overflow: hidden; border: 1px solid #3a3a3a; }
+
+  /* ============ T1 — BRAUN FUNCTIONAL (ET66 / Rams) ============ */
+  .t1 { background: #E9E6DF; color: #26241F; padding: 26px 18px 0; }
+  .t1 .screentitle { font-size: 26px; font-weight: 500; letter-spacing: -0.01em; padding-bottom: 18px; }
+  .t1 .card { background: #F4F2EC; border: 0.5px solid #CFCBC0; border-radius: 6px; padding: 18px 16px; margin-bottom: 14px; }
+  .t1 .micro { font-size: 10px; letter-spacing: 0.14em; color: #8B867A; font-weight: 500; }
+  .t1 .hero-row { display: flex; align-items: center; gap: 18px; margin-top: 14px; }
+  .t1 .dial {
+    width: 108px; height: 108px; border-radius: 50%;
+    background: #EDEAE2;
+    border: 0.5px solid #C8C3B7;
+    position: relative; flex-shrink: 0;
+  }
+  .t1 .dial::before { /* tick ring */
+    content: ''; position: absolute; inset: 7px; border-radius: 50%;
+    background:
+      repeating-conic-gradient(from -120deg, #B5AFA2 0deg 0.8deg, transparent 0.8deg 12deg);
+    -webkit-mask: radial-gradient(circle, transparent 62%, black 63%, black 100%);
+            mask: radial-gradient(circle, transparent 62%, black 63%, black 100%);
+  }
+  .t1 .dial .needle { /* orange index dot at score position */
+    position: absolute; width: 9px; height: 9px; border-radius: 50%;
+    background: #E8A000; top: 13px; left: 71px;
+  }
+  .t1 .dial .val {
+    position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 34px; letter-spacing: -0.02em;
+  }
+  .t1 .dial .val small { font-family: 'General Sans'; font-size: 8.5px; letter-spacing: 0.14em; color: #8B867A; margin-top: 1px; }
+  .t1 .hero-info .zone { font-size: 15px; font-weight: 500; margin-top: 6px; }
+  .t1 .hero-info .sub { font-size: 12.5px; color: #6E6A60; margin-top: 4px; line-height: 1.5; }
+  .t1 .mrow { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 2px; border-top: 0.5px solid #DDD9CE; font-size: 13.5px; }
+  .t1 .mrow:first-of-type { margin-top: 14px; }
+  .t1 .mrow b { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 13.5px; }
+  .t1 .vhead { display: flex; justify-content: space-between; align-items: baseline; }
+  .t1 .vnum { font-family: 'IBM Plex Mono', monospace; font-size: 30px; font-weight: 500; margin-top: 10px; }
+  .t1 .vnum small { font-size: 12px; color: #8B867A; font-weight: 400; }
+  .t1 .scale { margin-top: 12px; position: relative; height: 26px; }
+  .t1 .scale .band { position: absolute; top: 10px; left: 0; right: 0; height: 6px; border-radius: 3px; background: #DDD9CE; }
+  .t1 .scale .zoneband { position: absolute; top: 10px; left: 22%; width: 42%; height: 6px; border-radius: 3px; background: #B9B2A2; }
+  .t1 .scale .dot { position: absolute; top: 7px; left: 43%; width: 12px; height: 12px; border-radius: 50%; background: #E8A000; border: 2px solid #F4F2EC; }
+  .t1 .reason { font-size: 14px; line-height: 1.5; margin-top: 12px; color: #26241F; }
+  .t1 .keys { display: flex; gap: 10px; margin-top: 16px; }
+  .t1 .key {
+    flex: 1; text-align: center; padding: 13px 0 12px; border-radius: 999px;
+    background: linear-gradient(180deg, #FDFCF9, #EFECE4);
+    border: 0.5px solid #C8C3B7; font-size: 13.5px; font-weight: 500;
+  }
+  .t1 .key.go { background: linear-gradient(180deg, #F0B12D, #E8A000); border-color: #C98F00; color: #26241F; }
+  .t1 .tabbar { display: flex; border-top: 0.5px solid #C8C3B7; background: #E9E6DF; margin: 10px -18px 0; padding: 12px 8px 22px; }
+  .t1 .tab { flex: 1; text-align: center; font-size: 9.5px; letter-spacing: 0.13em; color: #8B867A; font-weight: 500; position: relative; }
+  .t1 .tab.on { color: #26241F; }
+  .t1 .tab.on::before { content: ''; position: absolute; top: -6px; left: 50%; transform: translateX(-50%); width: 6px; height: 6px; border-radius: 50%; background: #E8A000; }
+
+  /* ============ T2 — B&O LINEAR (Beogram / Jensen) ============ */
+  .t2 { background: linear-gradient(180deg, #ECEDEE, #E6E7E9); color: #17181A; padding: 26px 18px 0; }
+  .t2 .screentitle { font-size: 13px; font-weight: 500; letter-spacing: 0.26em; padding-bottom: 20px; }
+  .t2 .card { background: #F5F6F7; border: 0.5px solid #D2D4D7; padding: 18px 16px; margin-bottom: 14px; }
+  .t2 .micro { font-size: 9.5px; letter-spacing: 0.22em; color: #85898E; font-weight: 500; }
+  .t2 .heronum { display: flex; align-items: baseline; gap: 12px; margin-top: 16px; }
+  .t2 .heronum b { font-size: 58px; font-weight: 400; letter-spacing: -0.02em; font-family: 'Archivo', sans-serif; }
+  .t2 .heronum span { font-size: 11px; letter-spacing: 0.2em; color: #85898E; }
+  .t2 .linscale { margin-top: 14px; position: relative; height: 34px; }
+  .t2 .linscale .ticks {
+    position: absolute; top: 0; left: 0; right: 0; height: 12px;
+    background: repeating-linear-gradient(90deg, #B9BCC0 0 1px, transparent 1px 9.5%);
+  }
+  .t2 .linscale .ticknums { display: flex; justify-content: space-between; position: absolute; top: 16px; left: 0; right: 0; font-size: 8.5px; letter-spacing: 0.08em; color: #9A9EA3; font-family: 'IBM Plex Mono', monospace; }
+  .t2 .linscale .needle { position: absolute; top: -4px; left: 71%; width: 1.5px; height: 22px; background: #C7372F; }
+  .t2 .mrow { display: flex; justify-content: space-between; align-items: baseline; padding: 11px 2px; border-top: 0.5px solid #DFE1E3; font-size: 13px; }
+  .t2 .mrow:first-of-type { margin-top: 16px; }
+  .t2 .mrow b { font-family: 'IBM Plex Mono', monospace; font-weight: 500; font-size: 13px; }
+  .t2 .mrow .lab { letter-spacing: 0.1em; font-size: 11px; color: #4A4D51; }
+  .t2 .vnum { font-size: 30px; font-weight: 400; margin-top: 12px; font-family: 'Archivo'; }
+  .t2 .vnum small { font-size: 11px; color: #85898E; letter-spacing: 0.1em; }
+  .t2 .vscale { margin-top: 12px; position: relative; height: 20px; }
+  .t2 .vscale .band { position: absolute; top: 9px; left: 0; right: 0; height: 1px; background: #C6C9CC; }
+  .t2 .vscale .zoneband { position: absolute; top: 8px; left: 22%; width: 42%; height: 3px; background: #17181A; }
+  .t2 .vscale .needle { position: absolute; top: 2px; left: 43%; width: 1.5px; height: 15px; background: #C7372F; }
+  .t2 .reason { font-size: 13.5px; line-height: 1.55; margin-top: 12px; }
+  .t2 .keys { display: flex; gap: 1px; margin-top: 16px; border: 0.5px solid #C6C9CC; }
+  .t2 .key { flex: 1; text-align: center; padding: 13px 0; background: #F5F6F7; font-size: 10.5px; letter-spacing: 0.18em; font-weight: 500; }
+  .t2 .key + .key { border-left: 0.5px solid #C6C9CC; }
+  .t2 .key.go { background: #17181A; color: #F5F6F7; }
+  .t2 .tabbar { display: flex; border-top: 0.5px solid #C6C9CC; margin: 10px -18px 0; padding: 13px 8px 22px; background: #E9EAEC; }
+  .t2 .tab { flex: 1; text-align: center; font-size: 9px; letter-spacing: 0.2em; color: #9A9EA3; font-weight: 500; position: relative; }
+  .t2 .tab.on { color: #17181A; }
+  .t2 .tab.on::before { content: ''; position: absolute; top: -13.5px; left: 25%; right: 25%; height: 1.5px; background: #C7372F; }
+
+  /* ============ T3 — CONTAX TITANIUM (T2/G2 two-tone) ============ */
+  .t3 { background: #E5DFD0; color: #2A2620; padding: 26px 18px 0; }
+  .t3 .screentitle { font-size: 22px; font-weight: 500; letter-spacing: 0.04em; padding-bottom: 18px; }
+  .t3 .panel { background: #211F1B; color: #EDE8DC; border-radius: 8px; padding: 18px 16px; margin-bottom: 14px; border: 0.5px solid #3A362E; }
+  .t3 .card { background: #EFEADD; border: 0.5px solid #CDC5B0; border-radius: 8px; padding: 16px; margin-bottom: 14px; }
+  .t3 .micro { font-size: 9.5px; letter-spacing: 0.2em; color: #8F8878; font-weight: 500; }
+  .t3 .panel .micro { color: #948C7B; }
+  .t3 .heronum { display: flex; align-items: baseline; gap: 10px; margin-top: 12px; }
+  .t3 .heronum b { font-family: 'IBM Plex Mono', monospace; font-size: 54px; font-weight: 500; letter-spacing: -0.02em; color: #EDE8DC; }
+  .t3 .heronum .idx { width: 8px; height: 8px; border-radius: 50%; background: #C23B2E; align-self: center; }
+  .t3 .heronum span { font-size: 10px; letter-spacing: 0.18em; color: #948C7B; }
+  .t3 .engraved-scale { margin-top: 12px; display: flex; gap: 6px; align-items: baseline; font-family: 'IBM Plex Mono', monospace; font-size: 10px; color: #948C7B; }
+  .t3 .engraved-scale i { font-style: normal; }
+  .t3 .engraved-scale i.hot { color: #EDE8DC; font-weight: 600; }
+  .t3 .engraved-scale i.red { color: #C23B2E; }
+  .t3 .mrow { display: flex; justify-content: space-between; align-items: baseline; padding: 10px 2px; border-top: 0.5px solid #DCD4C0; font-size: 13px; }
+  .t3 .mrow:first-of-type { border-top: none; }
+  .t3 .mrow b { font-family: 'IBM Plex Mono', monospace; font-weight: 500; }
+  .t3 .vnum { font-family: 'IBM Plex Mono', monospace; font-size: 28px; font-weight: 500; margin-top: 10px; }
+  .t3 .vnum small { font-size: 11px; color: #8F8878; font-weight: 400; }
+  .t3 .vscale { margin-top: 12px; position: relative; height: 22px; }
+  .t3 .vscale .band { position: absolute; top: 10px; left: 0; right: 0; height: 4px; border-radius: 2px; background: #DCD4C0; }
+  .t3 .vscale .zoneband { position: absolute; top: 10px; left: 22%; width: 42%; height: 4px; border-radius: 2px; background: #A79E88; }
+  .t3 .vscale .dot { position: absolute; top: 6.5px; left: 43%; width: 11px; height: 11px; border-radius: 50%; background: #C23B2E; border: 2px solid #EFEADD; }
+  .t3 .reason { font-size: 13.5px; line-height: 1.5; margin-top: 12px; }
+  .t3 .keys { display: flex; gap: 10px; margin-top: 14px; }
+  .t3 .key {
+    flex: 1; text-align: center; padding: 12px 0; border-radius: 7px;
+    background: #211F1B; color: #EDE8DC; font-size: 12.5px; font-weight: 500; letter-spacing: 0.04em;
+    border: 0.5px solid #3A362E;
+  }
+  .t3 .key.alt { background: transparent; color: #2A2620; border: 0.5px solid #B4AB94; }
+  .t3 .tabbar { display: flex; border-top: 0.5px solid #C6BCA4; margin: 10px -18px 0; padding: 12px 8px 22px; background: #E0D9C8; }
+  .t3 .tab { flex: 1; text-align: center; font-size: 9.5px; letter-spacing: 0.16em; color: #8F8878; font-weight: 500; position: relative; }
+  .t3 .tab.on { color: #2A2620; }
+  .t3 .tab.on::before { content: ''; position: absolute; top: -5.5px; left: 50%; transform: translateX(-50%); width: 5px; height: 5px; border-radius: 50%; background: #C23B2E; }
+
+  .footnote { max-width: 1280px; margin: 36px auto 0; color: #777; font-size: 12.5px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Tuwa design language v4 — the instrument direction</h1>
+  <p>Three syntheses of Braun · Bang &amp; Olufsen · 1990s Contax on real Tuwa surfaces (Home hero, metric rows, the verdict card, tab bar). Common to all three: the serif and halftone are retired; numerals become the voice (mono/tabular "dial" digits); one tiny functional accent used like a power dot or index mark; scales get real ticks; controls look like controls. Motion (applied later, per Emil Kowalski's framework): crisp, sub-300ms, strong ease-out, mechanical detents with haptics.</p>
+</div>
+
+<div class="row">
+
+  <!-- T1 BRAUN -->
+  <div class="col">
+    <div class="col-label">
+      <h2>T1 · Functional — Braun (Rams / ET66)</h2>
+      <p>Warm matte cream-grey body, round dial motif for readiness, convex pill keys, ONE Braun-orange dot. The friendliest of the three; closest to a beloved household object.</p>
+    </div>
+    <div class="phone"><div class="t1">
+      <div class="screentitle">Today</div>
+      <div class="card">
+        <div class="micro">READINESS · SUN, JUL 20</div>
+        <div class="hero-row">
+          <div class="dial"><div class="needle"></div><div class="val">71<small>/ 100</small></div></div>
+          <div class="hero-info">
+            <div class="micro" style="color:#E8A000">GO ZONE</div>
+            <div class="zone">Recovery is high</div>
+            <div class="sub">HRV above baseline. Train as planned.</div>
+          </div>
+        </div>
+        <div class="mrow"><span>Resting heart rate</span><b>58 bpm · −3%</b></div>
+        <div class="mrow"><span>Heart rate variability</span><b>48 ms · +0%</b></div>
+      </div>
+      <div class="card">
+        <div class="vhead"><span class="micro">TODAY'S PLAN · BARBELL BACK SQUAT</span></div>
+        <div class="vnum">130.0 <small>kg · from 140.0</small></div>
+        <div class="scale"><div class="band"></div><div class="zoneband"></div><div class="dot"></div></div>
+        <div class="reason">Recent court work loaded your legs. Microdose before the match.</div>
+        <div class="keys"><div class="key go">Start adjusted</div><div class="key">Keep plan</div></div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on">HOME</div><div class="tab">LOG</div><div class="tab">RECOVERY</div><div class="tab">LOAD</div><div class="tab">PROFILE</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- T2 B&O -->
+  <div class="col">
+    <div class="col-label">
+      <h2>T2 · Linear — Bang &amp; Olufsen (Beogram / Jensen)</h2>
+      <p>Cool aluminum planes, everything on hairline linear scales with a red index needle, wide-tracked caps, square geometry. The most austere and luxurious; least like any other fitness app.</p>
+    </div>
+    <div class="phone"><div class="t2">
+      <div class="screentitle">TUWA · TODAY</div>
+      <div class="card">
+        <div class="micro">READINESS · SUN JUL 20</div>
+        <div class="heronum"><b>71</b><span>GO ZONE — RECOVERY HIGH</span></div>
+        <div class="linscale">
+          <div class="ticks"></div>
+          <div class="needle"></div>
+          <div class="ticknums"><i>0</i><i>25</i><i>50</i><i>75</i><i>100</i></div>
+        </div>
+        <div class="mrow"><span class="lab">RESTING HR</span><b>58 · −3%</b></div>
+        <div class="mrow"><span class="lab">HRV</span><b>48 · +0%</b></div>
+      </div>
+      <div class="card">
+        <div class="micro">TODAY'S PLAN · BACK SQUAT</div>
+        <div class="vnum">130.0 <small>KG · FROM 140.0</small></div>
+        <div class="vscale"><div class="band"></div><div class="zoneband"></div><div class="needle"></div></div>
+        <div class="reason">Recent court work loaded your legs. Microdose before the match.</div>
+        <div class="keys"><div class="key go">START ADJUSTED</div><div class="key">KEEP PLAN</div></div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on">HOME</div><div class="tab">LOG</div><div class="tab">RECOVERY</div><div class="tab">LOAD</div><div class="tab">PROFILE</div>
+      </div>
+    </div></div>
+  </div>
+
+  <!-- T3 CONTAX -->
+  <div class="col">
+    <div class="col-label">
+      <h2>T3 · Two-tone — 1990s Contax (T2 / G2 titanium)</h2>
+      <p>Champagne-titanium body with BLACK instrument panels — the hero readiness and key data live on dark plates with engraved mono digits and a red index dot. Two materials, like the camera's titanium top plate over leatherette. The most distinctive and "pro tool".</p>
+    </div>
+    <div class="phone"><div class="t3">
+      <div class="screentitle">Today</div>
+      <div class="panel">
+        <div class="micro">READINESS · SUN JUL 20</div>
+        <div class="heronum"><b>71</b><div class="idx"></div><span>GO ZONE</span></div>
+        <div class="engraved-scale"><i>30</i><i>·</i><i>45</i><i>·</i><i>60</i><i>·</i><i class="hot">71</i><i class="red">▲</i><i>·</i><i>85</i><i>·</i><i>100</i></div>
+      </div>
+      <div class="card">
+        <div class="mrow"><span>Resting heart rate</span><b>58 · −3%</b></div>
+        <div class="mrow"><span>Heart rate variability</span><b>48 · +0%</b></div>
+      </div>
+      <div class="card">
+        <div class="micro">TODAY'S PLAN · BACK SQUAT</div>
+        <div class="vnum">130.0 <small>kg · from 140.0</small></div>
+        <div class="vscale"><div class="band"></div><div class="zoneband"></div><div class="dot"></div></div>
+        <div class="reason">Recent court work loaded your legs. Microdose before the match.</div>
+        <div class="keys"><div class="key">Start adjusted</div><div class="key alt">Keep plan</div></div>
+      </div>
+      <div class="tabbar">
+        <div class="tab on">HOME</div><div class="tab">LOG</div><div class="tab">RECOVERY</div><div class="tab">LOAD</div><div class="tab">PROFILE</div>
+      </div>
+    </div></div>
+  </div>
+
+</div>
+
+<div class="footnote">
+  Numerals: IBM Plex Mono (free, bundleable) as the dial voice; General Sans stays as the UI voice (already licensed). T2's hero uses Archivo to show a non-mono alternative. All palettes are light-only and WCAG-checked at full size. The verdict decision keys keep equal visual weight in every treatment (nocebo guard). What does NOT survive any of these: Source Serif display, halftone texture, the current cool paper-blue palette.
+</div>
+
+</body>
+</html>

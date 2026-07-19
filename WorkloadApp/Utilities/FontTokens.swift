@@ -2,43 +2,53 @@ import SwiftUI
 import UIKit
 import CoreText
 
-/// Type scale for the app — the DESIGN.md v3 "Ink & Grain" two-voice system:
+/// Type scale for the app — the DESIGN.md v4 "Instrument" two-voice system:
 ///
-/// - **Instrument voice** (everything): General Sans Variable (Regular + Medium weights)
+/// - **UI voice** (everything textual): General Sans Variable (Regular + Medium weights)
 ///   with a UIFontDescriptor cascade fallback to Noto Sans SC for CJK glyphs.
-/// - **Display voice** (exactly two roles): Source Serif 4 Variable, weight 400, used ONLY
-///   for the hero readiness score (`displayScore`) and the verdict headline (`displayVerdict`).
-///   App-authored strings only — NEVER user content (session names, exercise names, notes).
-///   zh display strings cascade to Noto Sans SC (no serif CJK font is bundled — intentional).
+/// - **Dial voice** (data numerals): IBM Plex Mono (static Regular/Medium/SemiBold), used
+///   ONLY via the `dial*` tokens for instrument readings — scores, weights, metric values,
+///   tick numerals, units. App-authored numerals/units only — never body copy, never user
+///   content. Being a monospace face, all digits are tabular by construction (the
+///   `.monospacedDigit()` call-site convention is satisfied inherently).
 ///
-/// All hierarchy is achieved through size — no bold, italic, or semantic styles.
+/// The v3 serif display voice (Source Serif 4, `displayScore`/`displayVerdict`) is RETIRED
+/// as of v4 (2026-07-20) — the font file, tokens, and chokepoint are deleted.
 ///
-/// Usage: `.font(.Tokens.body)` or `.font(Font.Tokens.label)`
+/// All hierarchy is achieved through size — no bold, no italic, no semantic styles.
+///
+/// Usage: `.font(.Tokens.body)` or `.font(Font.Tokens.dialHero)`
 ///
 /// Glyph routing (single point of change for the whole app per phase 23):
-/// - Latin / digits / punctuation render via General Sans (PostScript: GeneralSans-Regular / -Medium).
-/// - CJK glyphs (and any glyph General Sans does not cover) cascade to Noto Sans SC
-///   (PostScript: NotoSansSC-Regular / -Medium).
+/// - Latin / digits / punctuation render via the primary face.
+/// - CJK glyphs (and any glyph the primary face does not cover) cascade to Noto Sans SC
+///   (PostScript: NotoSansSC-Regular / -Medium). Dial tokens carry the same defensive
+///   cascade even though their content is app-authored numerals/units.
 ///
 /// The cascade is built via UIFontDescriptor.AttributeName.cascadeList; PostScript names
 /// (not family names) are used per 23-RESEARCH Pitfall 3.
 ///
-/// Note: GeneralSans-Variable.ttf and NotoSansSC-{Regular,Medium}.otf must be added to the
-/// Xcode project and registered in Info.plist under UIAppFonts.
+/// Note: GeneralSans-Variable.ttf, IBMPlexMono-{Regular,Medium,SemiBold}.ttf and
+/// NotoSansSC-{Regular,Medium}.otf must be added to the Xcode project and registered in
+/// Info.plist under UIAppFonts.
 extension Font {
 
     enum Tokens {
         /// The exact PostScript names this chokepoint resolves at runtime. The DEBUG launch
         /// assert in WorkloadApp.swift consumes this list — the names live HERE so the
-        /// serif-name fence (Two-Voice Type Law) keeps every font literal in this one file.
+        /// mono-name fence (Two-Voice Type Law) keeps every font literal in this one file.
+        /// Plex Mono PS names verified at runtime via the DEBUG family dump 2026-07-20.
         static let requiredPostScriptNames = [
             "GeneralSansVariable-Bold",
-            "SourceSerif4Roman-Regular",
+            "IBMPlexMono-Regular",
+            "IBMPlexMono-Medium",
+            "IBMPlexMono-SemiBold",
             "NotoSansSC-Regular",
             "NotoSansSC-Medium"
         ]
 
-        /// 64pt — Readiness score. Accent color only. Apply .monospacedDigit() at the call site.
+        /// 64pt — Large numeric instrument values in the UI voice (legacy role; new hero
+        /// readings use `dialHero`). Apply .monospacedDigit() at the call site.
         static let heroScore   = cascaded(size: 64, weight: .regular)
 
         /// 64pt — Large numeric instrument values. Apply .monospacedDigit() at the call site.
@@ -83,64 +93,71 @@ extension Font {
         /// 12pt — Micro labels, all-caps. Apply .tracking(1.2) and .textCase(.uppercase) at call site.
         static let micro       = cascaded(size: 12, weight: .regular)
 
-        // MARK: Display voice — Source Serif 4 (DESIGN.md v3 "Ink & Grain", 2026-07-14)
+        // MARK: Dial voice — IBM Plex Mono (DESIGN.md v4 "Instrument", 2026-07-20)
 
-        /// Metrics for the two serif display roles. Sizes are Stage-1-tunable constants;
-        /// tracking/line-height are applied at the call site (SwiftUI `.tracking()` takes points —
-        /// use `Display.tracking(for:em:)`).
-        enum Display {
-            /// Hero readiness score point size (locked spec target ≈ 76–88pt; Stage-1-tuned on an
-            /// iPhone 17 Pro Max render 2026-07-14: 84 read modest at the hero card's real width —
-            /// 88 matches the C3 reference proportion).
-            static let scoreSize: CGFloat = 88
-            /// Verdict headline point size (locked spec target ≈ 24–26pt).
-            static let verdictSize: CGFloat = 25
-            /// Hero score letter-spacing, in em (spec ≈ -0.03em).
-            static let scoreTrackingEm: CGFloat = -0.03
-            /// Verdict headline letter-spacing, in em (spec ≈ -0.01em).
-            static let verdictTrackingEm: CGFloat = -0.01
-            /// Hero score line-height multiple (spec ≈ 0.95).
-            static let scoreLineHeight: CGFloat = 0.95
-            /// Verdict headline line-height multiple (spec ≈ 1.1).
-            static let verdictLineHeight: CGFloat = 1.1
+        /// Metrics for the dial roles. Sizes are Stage-1″/2″-tunable constants; tracking is
+        /// applied at the call site in points (`Dial.tracking(for:em:)` converts an em spec).
+        enum Dial {
+            /// Hero instrument reading point size (mockup D: 60px, −0.03em, line-height 0.95).
+            static let heroSize: CGFloat = 60
+            /// Standing dial value point size (mockup D `vnum`: 30px, −0.02em).
+            static let valueSize: CGFloat = 30
+            /// Inline dial value point size (mockup D `mrow b`: 13px).
+            static let smallSize: CGFloat = 13
+            /// Tick-numeral point size (mockup D scale nums: 8.5–10px band; token: 9).
+            static let tickSize: CGFloat = 9
+            /// Hero reading letter-spacing, in em (spec ≈ -0.03em).
+            static let heroTrackingEm: CGFloat = -0.03
+            /// Standing value letter-spacing, in em (spec ≈ -0.02em).
+            static let valueTrackingEm: CGFloat = -0.02
             /// Convert an em-tracking spec into the point value SwiftUI's `.tracking()` expects.
             static func tracking(for size: CGFloat, em: CGFloat) -> CGFloat { size * em }
         }
 
-        /// Source Serif 4 Regular, `Display.scoreSize` — the hero readiness score ONLY.
-        /// Accent color only. Apply `.monospacedDigit()` and score tracking at the call site.
-        static let displayScore   = serifDisplay(size: Display.scoreSize)
+        /// IBM Plex Mono Medium, `Dial.heroSize` (60pt) — the ONE hero instrument reading
+        /// per screen (readiness score on the panel, ACWR hero). Tabular by construction.
+        static let dialHero  = mono(size: Dial.heroSize, weight: .medium)
 
-        /// Source Serif 4 Regular, `Display.verdictSize` — the verdict headline ONLY (`--text-1`).
-        static let displayVerdict = serifDisplay(size: Display.verdictSize)
+        /// IBM Plex Mono Medium, `Dial.valueSize` (30pt) — standing dial values
+        /// (verdict weight, metric detail readings).
+        static let dialValue = mono(size: Dial.valueSize, weight: .medium)
+
+        /// IBM Plex Mono Medium, `Dial.smallSize` (13pt) — inline data readings
+        /// (metric rows, table numerals, deltas).
+        static let dialSmall = mono(size: Dial.smallSize, weight: .medium)
+
+        /// IBM Plex Mono Regular, `Dial.tickSize` (9pt) — tick-scale numerals ONLY.
+        static let dialTick  = mono(size: Dial.tickSize, weight: .regular)
     }
 
-    /// Construct a display-voice Font: Source Serif 4 (variable, wght 400, opsz pinned to the
-    /// display end of the axis) cascading to Noto Sans SC for CJK glyphs.
+    /// Construct a dial-voice Font: IBM Plex Mono (static faces) cascading to Noto Sans SC
+    /// for any non-covered glyph (defensive — dial content is app-authored numerals/units).
     ///
-    /// Sanctioned roles per DESIGN.md v3: hero readiness score + verdict headline. Nothing else.
-    /// App-authored strings only — never user content.
+    /// Sanctioned roles per DESIGN.md v4: data numerals, units, and tick labels via the
+    /// `dial*` tokens. Never body copy, never user content.
     ///
-    /// PostScript name (Google Fonts variable build, default named instance, verified via
-    /// fontTools fvar dump): `SourceSerif4Roman-Regular`.
+    /// PostScript names (static faces, verified at runtime via the DEBUG family dump):
+    /// `IBMPlexMono-Regular`, `IBMPlexMono-Medium` (SemiBold bundled for Stage-2″ use).
     ///
-    /// Graceful fallback: if the serif face is not registered (font file missing from the
-    /// bundle / Info.plist), this degrades to the General Sans instrument voice at the same
-    /// size instead of crashing or snapping to San Francisco.
-    static func serifDisplay(size: CGFloat) -> Font {
-        let serifName = "SourceSerif4Roman-Regular"
-        guard UIFont(name: serifName, size: size) != nil else {
-            // SourceSerif4-Variable.ttf not registered — degrade to the instrument voice.
-            return cascaded(size: size, weight: .regular)
+    /// Graceful fallback: if the mono face is not registered (font file missing from the
+    /// bundle / Info.plist), this degrades to the General Sans UI voice at the same size
+    /// instead of crashing or snapping to San Francisco.
+    private static func mono(size: CGFloat, weight: UIFont.Weight) -> Font {
+        let monoName: String = switch weight {
+        case .semibold: "IBMPlexMono-SemiBold"
+        case .medium:   "IBMPlexMono-Medium"
+        default:        "IBMPlexMono-Regular"
+        }
+        guard UIFont(name: monoName, size: size) != nil else {
+            // IBM Plex Mono not registered — degrade to the UI voice.
+            return cascaded(size: size, weight: weight == .regular ? .regular : .medium)
         }
 
-        let cjkDescriptor = UIFontDescriptor(fontAttributes: [.name: "NotoSansSC-Regular"])
-        // Pin the optical-size axis ('opsz', max 60 = display cut) so large sizes render the
-        // display drawing rather than the 20pt text default. 'wght' stays at the 400 default.
-        let variation: [Int: Double] = [0x6F70737A: 60.0] // 'opsz'
-        let descriptor = UIFontDescriptor(name: serifName, size: size)
+        let cjkDescriptor: UIFontDescriptor = (weight == .regular)
+            ? UIFontDescriptor(fontAttributes: [.name: "NotoSansSC-Regular"])
+            : UIFontDescriptor(fontAttributes: [.name: "NotoSansSC-Medium"])
+        let descriptor = UIFontDescriptor(name: monoName, size: size)
             .addingAttributes([
-                UIFontDescriptor.AttributeName(rawValue: kCTFontVariationAttribute as String): variation,
                 UIFontDescriptor.AttributeName.cascadeList: [cjkDescriptor]
             ])
         return Font(UIFont(descriptor: descriptor, size: size))
@@ -158,8 +175,7 @@ extension Font {
     /// ("GeneralSans-Regular"/"GeneralSans-Medium") never register — requesting them made
     /// the descriptor fall back to the system face silently. The one registered face is the
     /// font's own PS name `GeneralSansVariable-Bold` (default instance, wght 700, axis
-    /// 200–700); the instrument weights are reached by pinning the 'wght' variation axis —
-    /// the same mechanism `serifDisplay` uses for 'opsz'.
+    /// 200–700); the UI weights are reached by pinning the 'wght' variation axis.
     /// - NotoSansSC-Regular / NotoSansSC-Medium (static faces, names resolve directly)
     private static func cascaded(size: CGFloat, weight: UIFont.Weight) -> Font {
         let cjkDescriptor: UIFontDescriptor = (weight == .medium)

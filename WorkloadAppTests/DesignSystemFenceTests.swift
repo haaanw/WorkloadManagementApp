@@ -1,26 +1,28 @@
 import XCTest
 
-/// App-wide design-fence — DESIGN.md v3 "Ink & Grain" (2026-07-14).
+/// App-wide design-fence — DESIGN.md v4 "Instrument" (Aluminum Panel, 2026-07-20).
 ///
 /// Source-grep fences over the styled SwiftUI layer (`Views/`, `Components/`, `Utilities/`,
 /// plus the live SwiftUI app files in `App/`). The retired UIKit shell
 /// (`AppShell.swift` / `AppShellUIKitPrimitives.swift`) is excluded — it is scheduled for
-/// deletion after v1.6 validates and must merely keep compiling.
+/// deletion after the pivot validates and must merely keep compiling.
 ///
-/// The v3 laws these enforce:
-/// 1. **Corner Law** — radii are legal (0pt rule retired) but only via `CornerTokens`
-///    (card 12 / control 8 / pill). Hand-typed radius literals are a fence failure.
+/// The v4 laws these enforce:
+/// 1. **Corner Law** — radii only via `CornerTokens` (card 5 / panel 5 / control 4;
+///    pill demoted to chips). Hand-typed radius literals are a fence failure.
 /// 2. **No shadows** — elevation stays plane + hairline, never blur.
 /// 3. **No hardcoded colors in views** — everything routes through `ColorTokens`.
-/// 4. **Two-Voice Type Law** — the serif's PostScript name lives ONLY in `FontTokens.swift`
-///    (`serifDisplay(size:)` is the single chokepoint); no `.system(` fonts.
-/// 5. **Halftone Law** — the dot signature exists only as the `HalftoneField` component,
-///    hero plane only: at most one instantiation per screen file.
-/// 6. **Spacing grid** — structural `spacing:` / bare `.padding(` literals of 4pt and above
+/// 4. **Two-Voice Type Law** — the dial voice's font name ("IBMPlexMono") lives ONLY in
+///    `FontTokens.swift` (the `dial*` tokens are the single chokepoint); no `.system(` fonts.
+///    The retired serif ("SourceSerif4") is BANNED app-wide — it must not reappear.
+/// 5. **Spacing grid** — structural `spacing:` / bare `.padding(` literals of 4pt and above
 ///    must be multiples of 4 (8pt grid + the sanctioned 4pt `baselinePair`).
-/// 7. **Motion Law** — one motion language: every animation routes through the `Motion`
+/// 6. **Motion Law** — one motion language: every animation routes through the `Motion`
 ///    tokens in CardStyle.swift. Ad-hoc curve/duration literals and bare `withAnimation`
 ///    (SwiftUI's default spring) are fence failures.
+///
+/// Retired v3 fences: the halftone fence was deleted with `HalftoneField` (v4 retires the
+/// texture); the serif-chokepoint fence inverted into the app-wide SourceSerif4 ban.
 final class DesignSystemFenceTests: XCTestCase {
 
     // MARK: - Source enumeration
@@ -73,7 +75,7 @@ final class DesignSystemFenceTests: XCTestCase {
                 || text.contains(".cornerRadius(") {
                 XCTAssertTrue(
                     text.contains("CornerTokens"),
-                    "\(name) uses a corner radius without CornerTokens — hand-typed radii are banned (DESIGN.md v3 Corner Law: card 12 / control 8 / pill)"
+                    "\(name) uses a corner radius without CornerTokens — hand-typed radii are banned (DESIGN.md v4 Corner Law: card 5 / panel 5 / control 4)"
                 )
             }
         }
@@ -85,7 +87,7 @@ final class DesignSystemFenceTests: XCTestCase {
         for (name, text) in try fencedSources() {
             XCTAssertFalse(
                 text.contains(".shadow("),
-                "\(name) contains .shadow( — DESIGN.md v3 keeps the no-shadow law; elevation is plane + hairline only"
+                "\(name) contains .shadow( — DESIGN.md v4 keeps the no-shadow law; elevation is plane + hairline only"
             )
         }
     }
@@ -97,20 +99,31 @@ final class DesignSystemFenceTests: XCTestCase {
             for banned in ["Color(red:", "#colorLiteral", "UIColor(red:"] {
                 XCTAssertFalse(
                     text.contains(banned),
-                    "\(name) contains \(banned) — colors must come from ColorTokens (DESIGN.md v3)"
+                    "\(name) contains \(banned) — colors must come from ColorTokens (DESIGN.md v4)"
                 )
             }
         }
     }
 
-    // MARK: - 4. Two-Voice Type Law: serif name only in FontTokens; no .system( fonts
+    // MARK: - 4. Two-Voice Type Law: mono name only in FontTokens; serif banned; no .system( fonts
 
-    func test_serifFontName_onlyInFontTokens() throws {
+    func test_monoFontName_onlyInFontTokens() throws {
         for (name, text) in try fencedSources() {
             if name == "FontTokens.swift" { continue }
             XCTAssertFalse(
+                text.contains("IBMPlexMono"),
+                "\(name) names the dial font directly — IBM Plex Mono is reachable only via Font.Tokens.dial* (DESIGN.md v4 Two-Voice Type Law)"
+            )
+        }
+    }
+
+    func test_sourceSerif_bannedAppWide() throws {
+        // Fence inversion (v4): the v3 serif display voice is RETIRED. The name must not
+        // reappear anywhere in the styled layer — including FontTokens.swift.
+        for (name, text) in try fencedSources() {
+            XCTAssertFalse(
                 text.contains("SourceSerif4"),
-                "\(name) names the serif directly — Source Serif 4 is reachable only via Font.Tokens.displayScore / .displayVerdict (DESIGN.md v3 Two-Voice Type Law)"
+                "\(name) references SourceSerif4 — the serif display voice was retired by DESIGN.md v4 \"Instrument\" (2026-07-20) and must not reappear"
             )
         }
     }
@@ -119,25 +132,12 @@ final class DesignSystemFenceTests: XCTestCase {
         for (name, text) in try fencedSources(subdirectories: ["Views", "Components"]) {
             XCTAssertFalse(
                 text.contains(".system("),
-                "\(name) contains .system( — all type goes through Font.Tokens.* (DESIGN.md v3)"
+                "\(name) contains .system( — all type goes through Font.Tokens.* (DESIGN.md v4)"
             )
         }
     }
 
-    // MARK: - 5. Halftone Law: component-only, at most one per screen file
-
-    func test_halftone_atMostOnePerScreenFile() throws {
-        for (name, text) in try fencedSources() {
-            if name == "HalftoneField.swift" { continue }
-            let count = text.components(separatedBy: "HalftoneField(").count - 1
-            XCTAssertLessThanOrEqual(
-                count, 1,
-                "\(name) instantiates HalftoneField \(count) times — the halftone signature is hero-plane-only, at most ONE per screen (DESIGN.md v3 Halftone Law)"
-            )
-        }
-    }
-
-    // MARK: - 6. Spacing grid: structural literals are multiples of 4
+    // MARK: - 5. Spacing grid: structural literals are multiples of 4
 
     func test_structuralSpacingLiterals_areOnTheGrid() throws {
         // `spacing: N` and bare `.padding(N)` literals: values >= 4 must be multiples of 4
@@ -155,7 +155,7 @@ final class DesignSystemFenceTests: XCTestCase {
                     if value >= 4 {
                         XCTAssertEqual(
                             value % 4, 0,
-                            "\(name) uses structural spacing literal \(value)pt — structural spacing must be a multiple of 4 (DESIGN.md v3 spacing grid)"
+                            "\(name) uses structural spacing literal \(value)pt — structural spacing must be a multiple of 4 (DESIGN.md v4 spacing grid)"
                         )
                     }
                 }
@@ -163,7 +163,7 @@ final class DesignSystemFenceTests: XCTestCase {
         }
     }
 
-    // MARK: - 7. Motion Law: animation literals only in CardStyle.swift (Stage 2, 2026-07-14)
+    // MARK: - 6. Motion Law: animation literals only in CardStyle.swift
 
     func test_animationCurveLiterals_onlyInCardStyle() throws {
         // Curve/spring constructors define motion personalities. The single motion language
@@ -219,7 +219,7 @@ final class DesignSystemFenceTests: XCTestCase {
                     if value >= 4 {
                         XCTAssertEqual(
                             value % 4, 0,
-                            "\(name) uses directional padding literal \(value)pt in `.padding(.edge, ...)` — structural spacing must be a multiple of 4 (DESIGN.md v3 spacing grid)"
+                            "\(name) uses directional padding literal \(value)pt in `.padding(.edge, ...)` — structural spacing must be a multiple of 4 (DESIGN.md v4 spacing grid)"
                         )
                     }
                 }

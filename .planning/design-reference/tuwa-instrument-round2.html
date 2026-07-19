@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v4 — Round 2: T2 · T3 · Blends</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Archivo:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @font-face {
+    font-family: 'General Sans';
+    src: url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype');
+    font-weight: 200 700;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { background: #1D1E20; font-family: 'General Sans', 'Archivo', -apple-system, sans-serif; padding: 44px 20px; color: #ddd; }
+  .intro { max-width: 1720px; margin: 0 auto 36px; }
+  .intro h1 { font-weight: 500; font-size: 24px; color: #fff; }
+  .intro p { color: #999; font-size: 13.5px; margin-top: 6px; max-width: 90ch; line-height: 1.6; }
+  .row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; max-width: 1760px; margin: 0 auto; }
+  .col { width: 385px; flex-shrink: 0; }
+  .col-label { margin-bottom: 12px; }
+  .col-label h2 { font-size: 14.5px; font-weight: 600; color: #fff; }
+  .col-label p { font-size: 11.5px; color: #8a8a8a; margin-top: 3px; line-height: 1.5; }
+  .phone { border-radius: 26px; overflow: hidden; border: 1px solid #3a3a3a; }
+
+  /* shared scale primitives, themed via CSS vars */
+  .linscale { position: relative; height: 36px; }
+  .linscale .ticks {
+    position: absolute; top: 0; left: 0; right: 0; height: 11px;
+    background:
+      repeating-linear-gradient(90deg, var(--tick) 0 1px, transparent 1px 2.5%),
+      repeating-linear-gradient(90deg, var(--tickmajor) 0 1.5px, transparent 1.5px 25%);
+  }
+  .linscale .nums { display: flex; justify-content: space-between; position: absolute; top: 16px; left: -2px; right: -2px; font-size: 8.5px; color: var(--numink); font-family: 'IBM Plex Mono', monospace; }
+  .linscale .needle { position: absolute; top: -5px; width: 1.5px; height: 22px; background: var(--index); }
+  .linscale .zoneband { position: absolute; top: 11px; height: 3px; background: var(--zone); }
+  .microscale { position: relative; height: 24px; }
+  .microscale .band { position: absolute; top: 9px; left: 0; right: 0; height: 1px; background: var(--tick); }
+  .microscale .zoneband { position: absolute; top: 7.5px; height: 4px; background: var(--zone); }
+  .microscale .needle { position: absolute; top: 1px; width: 1.5px; height: 17px; background: var(--index); }
+  .microscale .ghost { position: absolute; top: 4px; width: 1px; height: 11px; background: var(--numink); opacity: 0.55; }
+
+  /* ============ A — T2 REFINED: B&O LINEAR ============ */
+  .A { --tick:#C2C5C9; --tickmajor:#9DA1A6; --numink:#94989D; --index:#C13A30; --zone:#17181A;
+       background: linear-gradient(180deg,#EDEEEF,#E5E6E8); color:#17181A; padding: 24px 18px 0; }
+  .A .titlebar { display:flex; justify-content:space-between; align-items:baseline; padding-bottom:18px; }
+  .A .screentitle { font-size: 12.5px; font-weight: 600; letter-spacing: 0.3em; }
+  .A .titlebar .act { font-size: 10px; letter-spacing: 0.18em; color:#77797d; font-weight:500; }
+  .A .card { background:#F5F6F7; border: 0.5px solid #D0D2D5; padding: 17px 16px; margin-bottom: 13px; }
+  .A .micro { font-size: 9.5px; letter-spacing: 0.22em; color:#85898E; font-weight:500; }
+  .A .heronum { display:flex; align-items:baseline; gap:12px; margin-top:14px; }
+  .A .heronum b { font-size: 64px; font-weight: 400; letter-spacing:-0.025em; font-family:'Archivo'; line-height:0.95; }
+  .A .heronum .zl { font-size:10.5px; letter-spacing:0.2em; color:#4A4D51; font-weight:500; }
+  .A .heronum .zl em { display:block; font-style:normal; color:#85898E; font-size:9.5px; margin-top:3px; letter-spacing:0.16em; }
+  .A .mrow { display:flex; justify-content:space-between; align-items:baseline; padding:10.5px 2px; border-top:0.5px solid #E0E2E4; }
+  .A .mrow .lab { letter-spacing:0.12em; font-size:10.5px; color:#4A4D51; font-weight:500; }
+  .A .mrow b { font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13px; }
+  .A .vnum { font-size:32px; font-weight:400; margin-top:12px; font-family:'Archivo'; letter-spacing:-0.01em; }
+  .A .vnum small { font-size:10.5px; color:#85898E; letter-spacing:0.12em; }
+  .A .reason { font-size:13.5px; line-height:1.55; margin-top:12px; }
+  .A .keys { display:flex; gap:1px; margin-top:15px; border:0.5px solid #C6C9CC; }
+  .A .key { flex:1; text-align:center; padding:13px 0; background:#F5F6F7; font-size:10.5px; letter-spacing:0.18em; font-weight:500; }
+  .A .key + .key { border-left:0.5px solid #C6C9CC; }
+  .A .key.go { background:#17181A; color:#F5F6F7; }
+  .A .tabbar { display:flex; border-top:0.5px solid #C6C9CC; margin:8px -18px 0; padding:13px 8px 22px; background:#E8E9EB; }
+  .A .tab { flex:1; text-align:center; font-size:9px; letter-spacing:0.2em; color:#9A9EA3; font-weight:500; position:relative; }
+  .A .tab.on { color:#17181A; }
+  .A .tab.on::before { content:''; position:absolute; top:-13.5px; left:28%; right:28%; height:1.5px; background:#C13A30; }
+
+  /* ============ B — T3 REFINED: CONTAX TWO-TONE ============ */
+  .B { --tick:#4A463D; --tickmajor:#6B665A; --numink:#8E8776; --index:#C23B2E; --zone:#EDE8DC;
+       background:#E2DCCC; color:#2A2620; padding:24px 18px 0; }
+  .B .titlebar { display:flex; justify-content:space-between; align-items:baseline; padding-bottom:16px; }
+  .B .screentitle { font-size:21px; font-weight:500; letter-spacing:0.03em; }
+  .B .titlebar .act { font-size:10px; letter-spacing:0.16em; color:#8F8878; font-weight:500; }
+  .B .panel { background:linear-gradient(180deg,#25221E,#1E1C18); color:#EDE8DC; border-radius:9px; padding:17px 16px; margin-bottom:13px; border:0.5px solid #3A362E; }
+  .B .card { background:#EDE7D8; border:0.5px solid #CBC2AC; border-radius:9px; padding:15px 16px; margin-bottom:13px; }
+  .B .micro { font-size:9.5px; letter-spacing:0.2em; color:#8F8878; font-weight:500; }
+  .B .panel .micro { color:#948C7B; }
+  .B .heronum { display:flex; align-items:baseline; gap:12px; margin-top:12px; }
+  .B .heronum b { font-family:'IBM Plex Mono',monospace; font-size:56px; font-weight:500; letter-spacing:-0.03em; line-height:0.95; }
+  .B .heronum .zl { font-size:10.5px; letter-spacing:0.16em; color:#C8C1B0; font-weight:500; }
+  .B .heronum .zl em { display:block; font-style:normal; color:#948C7B; font-size:9.5px; margin-top:3px; }
+  .B .panel .linscale { margin-top:12px; }
+  .B .mrow { display:flex; justify-content:space-between; align-items:baseline; padding:10px 2px; }
+  .B .mrow + .mrow { border-top:0.5px solid #DCD4C0; }
+  .B .mrow b { font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13px; }
+  .B .mrow span { font-size:13px; }
+  .B .vnum { font-family:'IBM Plex Mono',monospace; font-size:30px; font-weight:500; margin-top:10px; letter-spacing:-0.02em; }
+  .B .vnum small { font-size:11px; color:#8F8878; font-weight:400; }
+  .B .reason { font-size:13.5px; line-height:1.5; margin-top:12px; }
+  .B .keys { display:flex; gap:10px; margin-top:14px; }
+  .B .key { flex:1; text-align:center; padding:12px 0; border-radius:8px; background:#211F1B; color:#EDE8DC; font-size:12.5px; font-weight:500; border:0.5px solid #3A362E; }
+  .B .key.alt { background:transparent; color:#2A2620; border:0.5px solid #B0A78F; }
+  .B .card .microscale { --tick:#C4BBA4; --zone:#5A5442; margin-top:12px; }
+  .B .tabbar { display:flex; border-top:0.5px solid #C4BAA1; margin:8px -18px 0; padding:12px 8px 22px; background:#DCD5C3; }
+  .B .tab { flex:1; text-align:center; font-size:9.5px; letter-spacing:0.16em; color:#8F8878; font-weight:500; position:relative; }
+  .B .tab.on { color:#2A2620; }
+  .B .tab.on::before { content:''; position:absolute; top:-5.5px; left:50%; transform:translateX(-50%); width:5px; height:5px; border-radius:50%; background:#C23B2E; }
+
+  /* ============ C — BLEND "TITANIUM LINEAR": Contax materials × B&O scale grammar ============ */
+  .C { --tick:#4A463D; --tickmajor:#6B665A; --numink:#8E8776; --index:#D04234; --zone:#EDE8DC;
+       background:#E0DACA; color:#292520; padding:24px 18px 0; }
+  .C .titlebar { display:flex; justify-content:space-between; align-items:baseline; padding-bottom:17px; }
+  .C .screentitle { font-size:12.5px; font-weight:600; letter-spacing:0.28em; }
+  .C .titlebar .act { font-size:10px; letter-spacing:0.16em; color:#8F8878; font-weight:500; }
+  .C .panel { background:linear-gradient(180deg,#25221E,#1D1B17); color:#EDE8DC; border-radius:4px; padding:17px 16px; margin-bottom:13px; border:0.5px solid #3A362E; }
+  .C .card { background:#EBE5D6; border:0.5px solid #C9C0AA; border-radius:4px; padding:15px 16px; margin-bottom:13px; }
+  .C .micro { font-size:9.5px; letter-spacing:0.24em; color:#8F8878; font-weight:500; }
+  .C .panel .micro { color:#948C7B; }
+  .C .heronum { display:flex; align-items:baseline; gap:12px; margin-top:13px; }
+  .C .heronum b { font-family:'IBM Plex Mono',monospace; font-size:60px; font-weight:500; letter-spacing:-0.03em; line-height:0.95; }
+  .C .heronum .zl { font-size:10px; letter-spacing:0.2em; color:#C8C1B0; font-weight:500; }
+  .C .heronum .zl em { display:block; font-style:normal; color:#948C7B; font-size:9px; margin-top:3px; }
+  .C .panel .linscale { margin-top:13px; }
+  .C .mrow { display:flex; justify-content:space-between; align-items:baseline; padding:10.5px 2px; }
+  .C .mrow + .mrow { border-top:0.5px solid #DAD2BD; }
+  .C .mrow .lab { letter-spacing:0.14em; font-size:10.5px; color:#5C564A; font-weight:500; }
+  .C .mrow b { font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13px; }
+  .C .vnum { font-family:'IBM Plex Mono',monospace; font-size:30px; font-weight:500; margin-top:11px; letter-spacing:-0.02em; }
+  .C .vnum small { font-size:10.5px; color:#8F8878; font-weight:400; letter-spacing:0.08em; }
+  .C .reason { font-size:13.5px; line-height:1.5; margin-top:12px; }
+  .C .card .microscale { --tick:#C2B9A2; --zone:#57503E; margin-top:12px; }
+  .C .keys { display:flex; gap:1px; margin-top:15px; border:0.5px solid #B5AC94; }
+  .C .key { flex:1; text-align:center; padding:12.5px 0; background:#EBE5D6; font-size:10.5px; letter-spacing:0.18em; font-weight:500; }
+  .C .key + .key { border-left:0.5px solid #B5AC94; }
+  .C .key.go { background:#211F1B; color:#EDE8DC; }
+  .C .tabbar { display:flex; border-top:0.5px solid #C2B9A1; margin:8px -18px 0; padding:13px 8px 22px; background:#DAD3C1; }
+  .C .tab { flex:1; text-align:center; font-size:9px; letter-spacing:0.2em; color:#8F8878; font-weight:500; position:relative; }
+  .C .tab.on { color:#292520; }
+  .C .tab.on::before { content:''; position:absolute; top:-13.5px; left:28%; right:28%; height:1.5px; background:#D04234; }
+
+  /* ============ D — BLEND "ALUMINUM PANEL": B&O body × black hero panel ============ */
+  .D { --tick:#4E5154; --tickmajor:#6E7175; --numink:#8B8F94; --index:#D04234; --zone:#F0F1F2;
+       background:linear-gradient(180deg,#ECEDEE,#E4E5E7); color:#17181A; padding:24px 18px 0; }
+  .D .titlebar { display:flex; justify-content:space-between; align-items:baseline; padding-bottom:17px; }
+  .D .screentitle { font-size:12.5px; font-weight:600; letter-spacing:0.3em; }
+  .D .titlebar .act { font-size:10px; letter-spacing:0.18em; color:#77797d; font-weight:500; }
+  .D .panel { background:linear-gradient(180deg,#232527,#1A1C1E); color:#F0F1F2; border-radius:5px; padding:17px 16px; margin-bottom:13px; border:0.5px solid #35373A; }
+  .D .card { background:#F5F6F7; border:0.5px solid #D0D2D5; border-radius:5px; padding:15px 16px; margin-bottom:13px; }
+  .D .micro { font-size:9.5px; letter-spacing:0.22em; color:#85898E; font-weight:500; }
+  .D .panel .micro { color:#8B8F94; }
+  .D .heronum { display:flex; align-items:baseline; gap:12px; margin-top:13px; }
+  .D .heronum b { font-family:'IBM Plex Mono',monospace; font-size:60px; font-weight:500; letter-spacing:-0.03em; line-height:0.95; }
+  .D .heronum .zl { font-size:10px; letter-spacing:0.2em; color:#C9CCCF; font-weight:500; }
+  .D .heronum .zl em { display:block; font-style:normal; color:#8B8F94; font-size:9px; margin-top:3px; }
+  .D .panel .linscale { margin-top:13px; }
+  .D .mrow { display:flex; justify-content:space-between; align-items:baseline; padding:10.5px 2px; }
+  .D .mrow + .mrow { border-top:0.5px solid #E0E2E4; }
+  .D .mrow .lab { letter-spacing:0.12em; font-size:10.5px; color:#4A4D51; font-weight:500; }
+  .D .mrow b { font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13px; }
+  .D .vnum { font-family:'IBM Plex Mono',monospace; font-size:30px; font-weight:500; margin-top:11px; letter-spacing:-0.02em; }
+  .D .vnum small { font-size:10.5px; color:#85898E; font-weight:400; letter-spacing:0.08em; }
+  .D .reason { font-size:13.5px; line-height:1.55; margin-top:12px; }
+  .D .card .microscale { --tick:#C6C9CC; --zone:#17181A; margin-top:12px; }
+  .D .keys { display:flex; gap:1px; margin-top:15px; border:0.5px solid #C6C9CC; }
+  .D .key { flex:1; text-align:center; padding:12.5px 0; background:#F5F6F7; font-size:10.5px; letter-spacing:0.18em; font-weight:500; }
+  .D .key + .key { border-left:0.5px solid #C6C9CC; }
+  .D .key.go { background:#17181A; color:#F0F1F2; }
+  .D .tabbar { display:flex; border-top:0.5px solid #C6C9CC; margin:8px -18px 0; padding:13px 8px 22px; background:#E7E8EA; }
+  .D .tab { flex:1; text-align:center; font-size:9px; letter-spacing:0.2em; color:#9A9EA3; font-weight:500; position:relative; }
+  .D .tab.on { color:#17181A; }
+  .D .tab.on::before { content:''; position:absolute; top:-13.5px; left:28%; right:28%; height:1.5px; background:#D04234; }
+
+  .footnote { max-width: 1720px; margin: 32px auto 0; color: #777; font-size: 12px; line-height: 1.7; }
+</style>
+</head>
+<body>
+
+<div class="intro">
+  <h1>Round 2 — T2 · T3 refined, plus two blends</h1>
+  <p>Same surfaces in all four (hero, metrics, verdict, tab bar) so only the language differs. A and B are the refined originals. C and D cross them: C = Contax titanium materials wearing B&amp;O's linear-scale grammar and caps discipline. D = B&amp;O aluminum body but with the hero on a black instrument panel (the two-tone drama on the cool palette).</p>
+</div>
+
+<div class="row">
+
+  <!-- A: T2 refined -->
+  <div class="col">
+    <div class="col-label"><h2>A · B&amp;O Linear (T2 refined)</h2><p>Bigger hero numeral (Archivo), finer two-weight tick scales, red needle. Single-material aluminum; austere.</p></div>
+    <div class="phone"><div class="A">
+      <div class="titlebar"><div class="screentitle">TODAY</div><div class="act">LOG WORKOUT</div></div>
+      <div class="card">
+        <div class="micro">READINESS · SUN JUL 20</div>
+        <div class="heronum"><b>71</b><div class="zl">GO ZONE<em>RECOVERY HIGH</em></div></div>
+        <div class="linscale" style="margin-top:14px">
+          <div class="ticks"></div>
+          <div class="zoneband" style="left:60%; width:40%"></div>
+          <div class="needle" style="left:71%"></div>
+          <div class="nums"><i>0</i><i>25</i><i>50</i><i>75</i><i>100</i></div>
+        </div>
+        <div class="mrow" style="margin-top:10px"><span class="lab">RESTING HR</span><b>58 · −3%</b></div>
+        <div class="mrow"><span class="lab">HRV</span><b>48 · +0%</b></div>
+      </div>
+      <div class="card">
+        <div class="micro">TODAY'S PLAN · BACK SQUAT</div>
+        <div class="vnum">130.0 <small>KG · FROM 140.0</small></div>
+        <div class="microscale"><div class="band"></div><div class="zoneband" style="left:22%; width:42%"></div><div class="ghost" style="left:58%"></div><div class="needle" style="left:43%"></div></div>
+        <div class="reason">Recent court work loaded your legs. Microdose before the match.</div>
+        <div class="keys"><div class="key go">START ADJUSTED</div><div class="key">KEEP PLAN</div></div>
+      </div>
+      <div class="tabbar"><div class="tab on">HOME</div><div class="tab">LOG</div><div class="tab">RECOVERY</div><div class="tab">LOAD</div><div class="tab">PROFILE</div></div>
+    </div></div>
+  </div>
+
+  <!-- B: T3 refined -->
+  <div class="col">
+    <div class="col-label"><h2>B · Contax Two-tone (T3 refined)</h2><p>Champagne tuned less yellow, black panel gets a real tick scale, title-case content voice, red dot only on the active tab.</p></div>
+    <div class="phone"><div class="B">
+      <div class="titlebar"><div class="screentitle">Today</div><div class="act">LOG WORKOUT</div></div>
+      <div class="panel">
+        <div class="micro">READINESS · SUN JUL 20</div>
+        <div class="heronum"><b>71</b><div class="zl">GO ZONE<em>Recovery is high</em></div></div>
+        <div class="linscale">
+          <div class="ticks"></div>
+          <div class="zoneband" style="left:60%; width:40%"></div>
+          <div class="needle" style="left:71%"></div>
+          <div class="nums"><i>0</i><i>25</i><i>50</i><i>75</i><i>100</i></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="mrow"><span>Resting heart rate</span><b>58 · −3%</b></div>
+        <div class="mrow"><span>Heart rate variability</span><b>48 · +0%</b></div>
+      </div>
+      <div class="card">
+        <div class="micro">TODAY'S PLAN · BACK SQUAT</div>
+        <div class="vnum">130.0 <small>kg · from 140.0</small></div>
+        <div class="microscale"><div class="band"></div><div class="zoneband" style="left:22%; width:42%"></div><div class="ghost" style="left:58%"></div><div class="needle" style="left:43%"></div></div>
+        <div class="reason">Recent court work loaded your legs. Microdose before the match.</div>
+        <div class="keys"><div class="key">Start adjusted</div><div class="key alt">Keep plan</div></div>
+      </div>
+      <div class="tabbar"><div class="tab on">HOME</div><div class="tab">LOG</div><div class="tab">RECOVERY</div><div class="tab">LOAD</div><div class="tab">PROFILE</div></div>
+    </div></div>
+  </div>
+
+  <!-- C: blend titanium linear -->
+  <div class="col">
+    <div class="col-label"><h2>C · Blend "Titanium Linear" (T3 materials × T2 grammar)</h2><p>Champagne + black panels, but B&amp;O's caps discipline, near-square corners, butted key rows, thin red needle. The most "camera top-plate".</p></div>
+    <div class="phone"><div class="C">
+      <div class="titlebar"><div class="screentitle">TODAY</div><div class="act">LOG</div></div>
+      <div class="panel">
+        <div class="micro">READINESS · SUN JUL 20</div>
+        <div class="heronum"><b>71</b><div class="zl">GO ZONE<em>RECOVERY HIGH</em></div></div>
+        <div class="linscale">
+          <div class="ticks"></div>
+          <div class="zoneband" style="left:60%; width:40%"></div>
+          <div class="needle" style="left:71%"></div>
+          <div class="nums"><i>0</i><i>25</i><i>50</i><i>75</i><i>100</i></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="mrow"><span class="lab">RESTING HR</span><b>58 · −3%</b></div>
+        <div class="mrow"><span class="lab">HRV</span><b>48 · +0%</b></div>
+      </div>
+      <div class="card">
+        <div class="micro">TODAY'S PLAN · BACK SQUAT</div>
+        <div class="vnum">130.0 <small>KG · FROM 140.0</small></div>
+        <div class="microscale"><div class="band"></div><div class="zoneband" style="left:22%; width:42%"></div><div class="ghost" style="left:58%"></div><div class="needle" style="left:43%"></div></div>
+        <div class="reason">Recent court work loaded your legs. Microdose before the match.</div>
+        <div class="keys"><div class="key go">START ADJUSTED</div><div class="key">KEEP PLAN</div></div>
+      </div>
+      <div class="tabbar"><div class="tab on">HOME</div><div class="tab">LOG</div><div class="tab">RECOVERY</div><div class="tab">LOAD</div><div class="tab">PROFILE</div></div>
+    </div></div>
+  </div>
+
+  <!-- D: blend aluminum panel -->
+  <div class="col">
+    <div class="col-label"><h2>D · Blend "Aluminum Panel" (T2 body × T3 panel)</h2><p>Cool aluminum body, hero on a black panel with mono digits — two-tone drama without the champagne warmth. Red needle index.</p></div>
+    <div class="phone"><div class="D">
+      <div class="titlebar"><div class="screentitle">TODAY</div><div class="act">LOG WORKOUT</div></div>
+      <div class="panel">
+        <div class="micro">READINESS · SUN JUL 20</div>
+        <div class="heronum"><b>71</b><div class="zl">GO ZONE<em>RECOVERY HIGH</em></div></div>
+        <div class="linscale">
+          <div class="ticks"></div>
+          <div class="zoneband" style="left:60%; width:40%"></div>
+          <div class="needle" style="left:71%"></div>
+          <div class="nums"><i>0</i><i>25</i><i>50</i><i>75</i><i>100</i></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="mrow"><span class="lab">RESTING HR</span><b>58 · −3%</b></div>
+        <div class="mrow"><span class="lab">HRV</span><b>48 · +0%</b></div>
+      </div>
+      <div class="card">
+        <div class="micro">TODAY'S PLAN · BACK SQUAT</div>
+        <div class="vnum">130.0 <small>KG · FROM 140.0</small></div>
+        <div class="microscale"><div class="band"></div><div class="zoneband" style="left:22%; width:42%"></div><div class="ghost" style="left:58%"></div><div class="needle" style="left:43%"></div></div>
+        <div class="reason">Recent court work loaded your legs. Microdose before the match.</div>
+        <div class="keys"><div class="key go">START ADJUSTED</div><div class="key">KEEP PLAN</div></div>
+      </div>
+      <div class="tabbar"><div class="tab on">HOME</div><div class="tab">LOG</div><div class="tab">RECOVERY</div><div class="tab">LOAD</div><div class="tab">PROFILE</div></div>
+    </div></div>
+  </div>
+
+</div>
+
+<div class="footnote">
+  Shared in all four: IBM Plex Mono dial numerals (A's hero shows the Archivo alternative), tick scales with a zone band + index needle and a faint "planned" ghost mark on the verdict scale, equal-weight decision keys (nocebo guard), text-first tab bar. Differences are material (aluminum vs titanium+black), corner radius (A/C near-square vs B softer), case discipline (A/C/D caps vs B title-case content), and accent deployment (needle vs dot).
+</div>
+
+</body>
+</html>

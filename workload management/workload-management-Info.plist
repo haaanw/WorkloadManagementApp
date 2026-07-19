@@ -37,7 +37,9 @@
 		<string>GeneralSans-Variable.ttf</string>
 		<string>NotoSansSC-Regular.otf</string>
 		<string>NotoSansSC-Medium.otf</string>
-		<string>SourceSerif4-Variable.ttf</string>
+		<string>IBMPlexMono-Regular.ttf</string>
+		<string>IBMPlexMono-Medium.ttf</string>
+		<string>IBMPlexMono-SemiBold.ttf</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

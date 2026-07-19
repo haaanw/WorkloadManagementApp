@@ -25,12 +25,22 @@ struct WorkloadApp: App {
 
         let hasGeneralSans = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("general") })
         let hasNotoSansSC = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("noto sans sc") })
+        let hasPlexMono = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("plex mono") })
 
         // Assert the exact PostScript names FontTokens requires (list owned by the chokepoint —
         // Font.Tokens.requiredPostScriptNames — so font-name literals stay in FontTokens.swift).
         // If any of these miss, UIFont silently falls back to system font with no CJK cascade (WR-05).
         let requiredPostScriptNames = Font.Tokens.requiredPostScriptNames
         let missingPostScriptNames = requiredPostScriptNames.filter { UIFont(name: $0, size: 12) == nil }
+
+        // One-shot DEBUG prints (all launch paths, incl. SCREENSHOT_MODE): exact PostScript
+        // names iOS resolves for the bundled families. Descriptors in FontTokens.swift MUST
+        // use these exact PostScript names (RESEARCH Pitfall 3 / phase-14 lesson).
+        print("Noto family fonts: \(UIFont.fontNames(forFamilyName: "Noto Sans SC"))")
+        print("General Sans family fonts: \(UIFont.fontNames(forFamilyName: "General Sans Variable"))")
+        for family in UIFont.familyNames where family.localizedCaseInsensitiveContains("plex") {
+            print("\(family) family fonts: \(UIFont.fontNames(forFamilyName: family))")
+        }
 
         if isRunningUnderTest {
             // Non-fatal: fonts aren't bundled into the test host; just log.
@@ -39,6 +49,9 @@ struct WorkloadApp: App {
             }
             if !hasNotoSansSC {
                 print("[font-check] Noto Sans SC not registered (test host — non-fatal).")
+            }
+            if !hasPlexMono {
+                print("[font-check] IBM Plex Mono not registered (test host — non-fatal).")
             }
             if !missingPostScriptNames.isEmpty {
                 print("[font-check] Missing font PostScript names (test host — non-fatal): \(missingPostScriptNames)")
@@ -52,10 +65,10 @@ struct WorkloadApp: App {
                 hasNotoSansSC,
                 "Noto Sans SC not registered. Add NotoSansSC-Regular.otf + NotoSansSC-Medium.otf and UIAppFonts entries."
             )
-            // One-shot DEBUG prints: exact PostScript names iOS resolves for the bundled families.
-            // Descriptors in FontTokens.swift MUST use these exact PostScript names (RESEARCH Pitfall 3).
-            print("Noto family fonts: \(UIFont.fontNames(forFamilyName: "Noto Sans SC"))")
-            print("General Sans family fonts: \(UIFont.fontNames(forFamilyName: "General Sans Variable"))")
+            assert(
+                hasPlexMono,
+                "IBM Plex Mono not registered. Add the three static Plex Mono TTFs (see Font.Tokens.requiredPostScriptNames) and their UIAppFonts entries."
+            )
             assert(
                 missingPostScriptNames.isEmpty,
                 "Missing font PostScript name(s): \(missingPostScriptNames). Cascade in FontTokens.swift will silently fall back to system font."

@@ -369,11 +369,12 @@ struct HeroReadinessCard: View {
                 SkeletonBlock(width: 144, height: 88)
                     .transition(.opacity)
             } else if viewModel.hasRealData {
-                // Two-Voice Type Law (v3): the hero readiness score is one of the two serif
-                // display roles — Source Serif 4, accent, tabular numerals, -0.03em tracking.
+                // v4 "Instrument" dial voice: the hero readiness reading renders in IBM Plex
+                // Mono (`dialHero`). Stage-0″ compile shim — Stage 2″ rebuilds this hero as
+                // the black instrument panel with the TickScale.
                 Text("\(Int(displayedScore))")
-                    .font(.Tokens.displayScore)
-                    .tracking(Font.Tokens.Display.tracking(for: Font.Tokens.Display.scoreSize, em: Font.Tokens.Display.scoreTrackingEm))
+                    .font(.Tokens.dialHero)
+                    .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.heroSize, em: Font.Tokens.Dial.heroTrackingEm))
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .foregroundStyle(ColorTokens.accent)
@@ -435,9 +436,9 @@ struct HeroReadinessCard: View {
             }
         }
         // The hero readiness score is THE emphasis surface on the dashboard: raised surfaceEl2
-        // plane + dividerStrong border + 2pt accent top rule + the halftone signature (v3
-        // Halftone Law: hero plane ONLY — this is the single sanctioned instance per screen).
-        .emphasisCardStyle(halftoneSignature: true)
+        // plane + dividerStrong border + 2pt accent top rule. (v4: the halftone signature is
+        // retired; Stage 2″ rebuilds this hero as the black instrument panel.)
+        .emphasisCardStyle()
     }
 
     private func updateDisplayedScore(to score: Double) {

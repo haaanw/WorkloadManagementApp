@@ -327,18 +327,13 @@ extension View {
 
 /// The emphasis card: the most important / active surface on a screen (hero readiness, a
 /// selected card). Uses the raised `surfaceEl2` plane + the stronger `dividerStrong` border +
-/// a 2pt accent top rule. `CornerTokens.card` corners — the fill, accent rule, and (optional)
-/// halftone are clipped by the card shape; the hairline strokes the same rounded shape.
-/// No shadow — same as `CardStyle`.
+/// a 2pt accent top rule, clipped by the card shape; the hairline strokes the same shape.
+/// No shadow — same as `CardStyle`. (The v3 halftone signature is RETIRED as of v4
+/// "Instrument"; Stage 1″ rebuilds the hero surface as the black instrument panel.)
 struct EmphasisCardStyle: ViewModifier {
     var horizontalPadding: CGFloat = Spacing.sm
     var verticalPadding: CGFloat = Spacing.md
     var accentRule: Bool = true
-    /// The one sanctioned texture (DESIGN.md v3 Halftone Law): the accent dot signature,
-    /// ≈130×130pt anchored top-trailing, behind content, clipped by the card shape.
-    /// HERO PLANE ONLY — enable exclusively on the hero readiness card, never elsewhere;
-    /// at most one halftone surface per screen (fenced).
-    var halftoneSignature: Bool = false
 
     func body(content: Content) -> some View {
         content
@@ -348,11 +343,6 @@ struct EmphasisCardStyle: ViewModifier {
             .background {
                 ZStack(alignment: .top) {
                     ColorTokens.surfaceEl2
-                    if halftoneSignature {
-                        HalftoneField()
-                            .frame(width: 130, height: 130)
-                            .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
-                    }
                     if accentRule {
                         Rectangle()
                             .fill(ColorTokens.accent)
@@ -368,19 +358,15 @@ struct EmphasisCardStyle: ViewModifier {
 
 extension View {
     /// Apply the emphasis card plane (`surfaceEl2` + `dividerStrong` border + 2pt accent top rule).
-    /// `halftoneSignature` is HERO-PLANE-ONLY per the v3 Halftone Law — pass `true` exclusively
-    /// from the hero readiness card.
     func emphasisCardStyle(
         horizontalPadding: CGFloat = Spacing.sm,
         verticalPadding: CGFloat = Spacing.md,
-        accentRule: Bool = true,
-        halftoneSignature: Bool = false
+        accentRule: Bool = true
     ) -> some View {
         modifier(EmphasisCardStyle(
             horizontalPadding: horizontalPadding,
             verticalPadding: verticalPadding,
-            accentRule: accentRule,
-            halftoneSignature: halftoneSignature
+            accentRule: accentRule
         ))
     }
 }

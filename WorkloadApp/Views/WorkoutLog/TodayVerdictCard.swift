@@ -16,11 +16,10 @@ import SwiftUI
 ///  - Keep-my-plan is one tap, no confirmation nag, no guilt copy (SC3).
 ///  - Confidence is shown quietly and separately when present (SC4).
 ///
-/// DESIGN.md v3 "Ink & Grain" (hard): corners via `CornerTokens` (the emphasis card carries
-/// `CornerTokens.card`; decision buttons/feel chips are `Capsule()` pills), no shadows,
-/// `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`. The reason line is the card's
-/// VERDICT HEADLINE — one of the two sanctioned serif display roles (`Font.Tokens.displayVerdict`,
-/// `text1`, app-authored copy only; the exercise name / numbers stay instrument voice).
+/// DESIGN.md v4 "Instrument" (hard): corners via `CornerTokens`, no shadows,
+/// `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`. The reason line renders in the
+/// UI voice (Stage-0″ shim — the serif display voice is retired; Stage 2″ rebuilds the
+/// verdict header per the v4 law; app-authored copy only).
 /// Tuwa v2: this is the screen's primary decision surface, so it sits on the emphasis plane
 /// (`.emphasisCardStyle()` — `surfaceEl2` + `dividerStrong` + 2pt accent top rule).
 /// The accent (the "live / actionable" semantic) is allowed ONLY on the strike-zone FILL and the
@@ -105,12 +104,11 @@ struct TodayVerdictCard: View {
                 }
             }
 
-            // 3. Reason line — the one-line why. This is the VERDICT HEADLINE: the second of the
-            //    two serif display roles (Two-Voice Type Law v3) — Source Serif 4, `text1`,
-            //    -0.01em tracking. App-authored copy only (VerdictReasonBuilder templates).
+            // 3. Reason line — the one-line why. v4 "Instrument": the serif display voice is
+            //    retired; Stage-0″ compile shim renders this in the UI voice (`body`) until
+            //    Stage 2″ rebuilds the verdict header. App-authored copy only.
             Text(verbatim: display.reasonLine)
-                .font(.Tokens.displayVerdict)
-                .tracking(Font.Tokens.Display.tracking(for: Font.Tokens.Display.verdictSize, em: Font.Tokens.Display.verdictTrackingEm))
+                .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
                 .fixedSize(horizontal: false, vertical: true)
                 .accessibilityIdentifier("workoutLog.verdict.reason")
