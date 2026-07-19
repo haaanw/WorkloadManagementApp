@@ -261,9 +261,9 @@ struct WorkloadView: View {
 // MARK: - ACWR Display
 
 /// Stage 4a — the Load screen's one peak: ACWR moves onto the emphasis plane
-/// (`emphasisCardStyle`, accent top rule per Accent Rule v3 item 4) with display-scale
-/// INSTRUMENT numerals (`Font.Tokens.displayMetric` — the Two-Voice law names exactly two
-/// serif roles; ACWR is not one of them). The number is ink (`text1`), never accent; zone
+/// (`emphasisCardStyle` — v4: no accent rule; Stage 2″ rebuilds this hero as the black
+/// instrument panel) with display-scale INSTRUMENT numerals (`Font.Tokens.displayMetric`).
+/// The number is ink (`text1`), never accent; zone
 /// state stays text-label-led via the ZoneBadge (color supplementary, never color alone).
 struct ACWRGaugeCard: View {
     let snapshot: WorkloadSnapshot?

@@ -41,12 +41,12 @@ struct DashboardView: View {
                     // 0. Editorial screen header (Stage 4a) — the visible title lives in the
                     //    content, not the stock nav bar; the log action rides its baseline.
                     ScreenHeader(title: "dashboard.nav.title") {
+                        // Inherits the header-action slot styling (10pt Medium micro-caps,
+                        // text2) from ScreenHeader — no per-site font/color overrides.
                         Button("dashboard.action.logWorkout") {
                             Haptics.tap()
                             showActiveWorkout = true
                         }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
                         .buttonStyle(.pressable)
                     }
 
@@ -436,8 +436,8 @@ struct HeroReadinessCard: View {
             }
         }
         // The hero readiness score is THE emphasis surface on the dashboard: raised surfaceEl2
-        // plane + dividerStrong border + 2pt accent top rule. (v4: the halftone signature is
-        // retired; Stage 2″ rebuilds this hero as the black instrument panel.)
+        // plane + dividerStrong border (v4: accent rule deleted; Stage 2″ rebuilds this hero
+        // as the black instrument panel).
         .emphasisCardStyle()
     }
 

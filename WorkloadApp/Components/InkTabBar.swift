@@ -1,16 +1,17 @@
 import SwiftUI
 
-/// Stage 4a — the Ink & Grain tab bar (de-defaultification, orchestration D6).
+/// The v4 "Instrument" tab bar (Stage 4a architecture, Stage 1″ restyle — mockup column D).
 ///
 /// Replaces the stock TabView chrome with the app's own instrument bar:
-/// - A flat OPAQUE `ColorTokens.background` plane with a 0.5pt `divider` top hairline.
-///   NO material blur, NO floating pill, NO shadow, NO corner radius — this is an
-///   edge-to-edge plane (an edge of the instrument), not a card.
-/// - Text-forward editorial items: micro-caps labels (`Font.Tokens.micro`, +0.10em-class
-///   tracking as used for micro-caps elsewhere). Selected = `text1` + a 2pt accent tick
-///   (short rule) above the label — the live-state accent semantic (Accent Rule v3 item 4).
-///   Unselected = `text3`. An optional compact glyph variant exists (`glyph:`) as the
-///   fallback direction; the primary direction is text-only.
+/// - A flat OPAQUE `ColorTokens.tabBarSurface` plane (a hair darker than the aluminum base)
+///   with a 0.5pt `dividerStrong` top hairline. NO material blur, NO floating pill, NO
+///   shadow, NO corner radius — this is an edge-to-edge plane (the machined bottom edge of
+///   the instrument), not a card.
+/// - Text-only micro-caps items: 9pt Medium `tabLabel`, ~0.2em tracking. Selected = `text1`
+///   + the 1.5pt red index tick ABOVE the label at the bar's top edge — needle grammar, one
+///   of the sanctioned index-mark locations (Index Rule). Unselected = `disabled`. An
+///   optional compact glyph variant exists (`glyph:`) as the fallback direction; the
+///   primary direction is text-only.
 /// - Full-height ≥44pt tap targets, `Haptics.select()` on switch (commit-only feedback),
 ///   tick movement via `Motion.state` (reduceMotion-aware).
 ///
@@ -51,13 +52,13 @@ struct InkTabBar<Tab: Hashable>: View {
         .frame(maxWidth: .infinity)
         .frame(height: InkTabBarMetrics.height)
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: selection)
-        // Opaque page plane, extended under the home-indicator region so the bar reads as
-        // the bottom edge of the instrument (never a floating pill), capped by the 0.5pt
-        // top hairline.
-        .background(ColorTokens.background.ignoresSafeArea(edges: [.bottom, .horizontal]))
+        // Opaque bar plane (a hair darker than the aluminum base), extended under the
+        // home-indicator region so the bar reads as the machined bottom edge of the
+        // instrument (never a floating pill), capped by the 0.5pt strong top hairline.
+        .background(ColorTokens.tabBarSurface.ignoresSafeArea(edges: [.bottom, .horizontal]))
         .overlay(alignment: .top) {
             Rectangle()
-                .fill(ColorTokens.divider)
+                .fill(ColorTokens.dividerStrong)
                 .frame(height: 0.5)
                 .accessibilityHidden(true)
         }
@@ -73,37 +74,33 @@ struct InkTabBar<Tab: Hashable>: View {
             selection = item.tab
         } label: {
             VStack(spacing: Spacing.xs) {
-                // The 2pt accent tick — the "you are here" live-state mark. A clear
-                // placeholder keeps unselected items on the same baseline grid.
-                ZStack {
-                    Rectangle()
-                        .fill(Color.clear)
-                        .frame(width: Spacing.sm, height: 2)
-                    if isSelected {
-                        Rectangle()
-                            .fill(ColorTokens.accent)
-                            .frame(width: Spacing.sm, height: 2)
-                            .matchedGeometryEffect(id: "ink.tab.tick", in: tickNamespace)
-                    }
-                }
-                .accessibilityHidden(true)
-
                 if let glyph = item.glyph {
                     Image(systemName: glyph)
                         .font(.Tokens.label)
-                        .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text3)
+                        .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.disabled)
                         .accessibilityHidden(true)
                 }
 
                 Text(item.title)
-                    .font(.Tokens.micro)
-                    .tracking(1.2)
+                    .font(.Tokens.tabLabel)
+                    .tracking(1.8)
                     .textCase(.uppercase)
                     .lineLimit(1)
-                    .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text3)
+                    .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.disabled)
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
+            // The 1.5pt red index tick ABOVE the label, riding the bar's top edge —
+            // needle grammar (Index Rule): the needle points at the active tab.
+            .overlay(alignment: .top) {
+                if isSelected {
+                    Rectangle()
+                        .fill(ColorTokens.index)
+                        .frame(width: 36, height: 1.5)
+                        .matchedGeometryEffect(id: "ink.tab.tick", in: tickNamespace)
+                        .accessibilityHidden(true)
+                }
+            }
         }
         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
         .accessibilityIdentifier(item.accessibilityID)

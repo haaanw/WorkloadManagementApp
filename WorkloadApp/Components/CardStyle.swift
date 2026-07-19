@@ -7,11 +7,11 @@ import UIKit
 /// these instead of hand-rolling background + overlay + animation per screen.
 ///
 /// Hard constraints (enforced here so call sites can't drift):
-/// - Corners come from `CornerTokens` only (DESIGN.md v3 "Ink & Grain"): grouped surfaces
-///   (plates, rails, cards) wear `CornerTokens.card`, controls (inputs, segments, icon
-///   buttons, toggles) wear `CornerTokens.control`, and CTAs/chips are `Capsule()` pills.
-///   Never a hand-typed radius literal.
-/// - No shadows — elevation is plane (surfaceEl / surfaceEl2) + 0.5pt divider border only.
+/// - Corners come from `CornerTokens` only (DESIGN.md v4 "Instrument"): grouped surfaces
+///   (plates, rails, cards) wear `CornerTokens.card` (5pt), the black instrument panel wears
+///   `CornerTokens.panel` (5pt), controls wear `CornerTokens.control` (4pt); CTAs are butted
+///   key cells (`KeyRow`) or rectangular keys — never pills. Never a hand-typed radius literal.
+/// - No shadows — elevation is plane (aluminum card / black panel) + 0.5pt hairline border only.
 /// - Structural spacing on the 8pt grid, with a single 4pt `baselinePair` typography gap.
 /// - Motion goes through the `Motion` tokens — never a bare `withAnimation { }` (which falls
 ///   back to SwiftUI's default spring) and never a hand-typed duration literal.
@@ -323,50 +323,79 @@ extension View {
     }
 }
 
-// MARK: - Emphasis card
+// MARK: - Panel plane (the v4 signature — DESIGN.md Panel Law)
 
-/// The emphasis card: the most important / active surface on a screen (hero readiness, a
-/// selected card). Uses the raised `surfaceEl2` plane + the stronger `dividerStrong` border +
-/// a 2pt accent top rule, clipped by the card shape; the hairline strokes the same shape.
-/// No shadow — same as `CardStyle`. (The v3 halftone signature is RETIRED as of v4
-/// "Instrument"; Stage 1″ rebuilds the hero surface as the black instrument panel.)
-struct EmphasisCardStyle: ViewModifier {
+/// The black instrument panel — the ONE hero surface per screen (Home readiness, Load ACWR,
+/// Log verdict header if hero'd). Vertical `panelGradientTop → panelGradientBottom` gradient,
+/// `CornerTokens.panel` corners, 0.5pt `panelHairline` border, NO shadow. Content inherits
+/// `panelInk` as its default foreground so on-panel children read correctly without per-view
+/// color plumbing (micro-labels/units opt into `panelInk2` explicitly).
+///
+/// Panel Law (fence-enforced): at most ONE `panelStyle(` call per file under Views/ —
+/// a second dark surface on the same screen is a design error.
+struct PanelStyle: ViewModifier {
     var horizontalPadding: CGFloat = Spacing.sm
-    var verticalPadding: CGFloat = Spacing.md
-    var accentRule: Bool = true
+    var verticalPadding: CGFloat = Spacing.sm
 
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
-            .background {
-                ZStack(alignment: .top) {
-                    ColorTokens.surfaceEl2
-                    if accentRule {
-                        Rectangle()
-                            .fill(ColorTokens.accent)
-                            .frame(height: 2)
-                            .accessibilityHidden(true)
-                    }
-                }
-                .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
-            }
+            .foregroundStyle(ColorTokens.panelInk)
+            .background(
+                LinearGradient(
+                    colors: [ColorTokens.panelGradientTop, ColorTokens.panelGradientBottom],
+                    startPoint: .top,
+                    endPoint: .bottom
+                ),
+                in: RoundedRectangle(cornerRadius: CornerTokens.panel)
+            )
+            .overlay(RoundedRectangle(cornerRadius: CornerTokens.panel).stroke(ColorTokens.panelHairline, lineWidth: 0.5))
+    }
+}
+
+extension View {
+    /// Apply the black instrument panel plane (gradient fill + `panelHairline` border +
+    /// `panelInk` default foreground). Max ONE per screen — hero reading only (Panel Law).
+    func panelStyle(
+        horizontalPadding: CGFloat = Spacing.sm,
+        verticalPadding: CGFloat = Spacing.sm
+    ) -> some View {
+        modifier(PanelStyle(horizontalPadding: horizontalPadding, verticalPadding: verticalPadding))
+    }
+}
+
+// MARK: - Emphasis card
+
+/// The emphasis card: a slightly raised light surface (a selected card, the screen's primary
+/// decision surface when it is NOT the hero panel). `surfaceEl2` plane + the stronger
+/// `dividerStrong` border. No shadow — same as `CardStyle`. (v4 "Instrument": the 2pt accent
+/// top rule is DELETED — a red decorative rule violates the Index Rule; the black `panelStyle`
+/// is the hero plane now, and emphasis is just "slightly raised".)
+struct EmphasisCardStyle: ViewModifier {
+    var horizontalPadding: CGFloat = Spacing.sm
+    var verticalPadding: CGFloat = Spacing.md
+
+    func body(content: Content) -> some View {
+        content
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.horizontal, horizontalPadding)
+            .padding(.vertical, verticalPadding)
+            .background(ColorTokens.surfaceEl2, in: RoundedRectangle(cornerRadius: CornerTokens.card))
             .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
     }
 }
 
 extension View {
-    /// Apply the emphasis card plane (`surfaceEl2` + `dividerStrong` border + 2pt accent top rule).
+    /// Apply the emphasis card plane (`surfaceEl2` + `dividerStrong` border — no accent rule in v4).
     func emphasisCardStyle(
         horizontalPadding: CGFloat = Spacing.sm,
-        verticalPadding: CGFloat = Spacing.md,
-        accentRule: Bool = true
+        verticalPadding: CGFloat = Spacing.md
     ) -> some View {
         modifier(EmphasisCardStyle(
             horizontalPadding: horizontalPadding,
-            verticalPadding: verticalPadding,
-            accentRule: accentRule
+            verticalPadding: verticalPadding
         ))
     }
 }
@@ -424,16 +453,21 @@ struct SectionHeader: View {
     }
 }
 
-// MARK: - Screen header (Stage 4a — editorial chrome, not stock nav)
+// MARK: - Screen header (v4 instrument titlebar — micro-caps, not large-title chrome)
 
-/// The editorial in-content screen header: 32pt `screenTitle` in `--text-1` at the top of a
-/// tab root's content, replacing the stock `navigationTitle` chrome (which renders in the
-/// system font — a two-voice-law violation and the "default app" look, orchestration D6).
-/// Toolbar actions that used to live in the nav bar move into `trailing`, baseline-aligned
-/// with the title. Spacing on the 8pt grid: 8pt above, 24pt below.
+/// The in-content screen titlebar: UPPERCASE micro-caps title (13pt Medium `screenTitle`,
+/// ~0.28em tracking, `--text-1`) with a quiet trailing action slot (10pt Medium
+/// `headerAction`, `--text-2`, uppercase) on its baseline — a camera top-plate engraving,
+/// not a large title (DESIGN.md v4 case discipline; replaces the v3 32pt editorial title).
+/// The uppercase transform is rendering-level (`.textCase(.uppercase)`) so localized title
+/// strings stay untouched; tracking is locale-aware (Chinese gets none — case/tracking are
+/// Latin-only typography). Same API and IDs as the Stage-4a header; spacing unchanged
+/// (8pt above, 24pt below, on the grid).
 struct ScreenHeader<Trailing: View>: View {
     let title: LocalizedStringKey
     @ViewBuilder var trailing: Trailing
+
+    @Environment(\.locale) private var locale
 
     init(title: LocalizedStringKey, @ViewBuilder trailing: () -> Trailing) {
         self.title = title
@@ -444,13 +478,22 @@ struct ScreenHeader<Trailing: View>: View {
         self.init(title: title) { EmptyView() }
     }
 
+    private var isLatinLocale: Bool {
+        locale.language.languageCode?.identifier != "zh"
+    }
+
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
             Text(title)
                 .font(.Tokens.screenTitle)
+                .tracking(isLatinLocale ? 3.6 : 0)
+                .textCase(.uppercase)
                 .foregroundStyle(ColorTokens.text1)
             Spacer(minLength: 0)
             trailing
+                .font(.Tokens.headerAction)
+                .textCase(.uppercase)
+                .foregroundStyle(ColorTokens.text2)
         }
         .padding(.horizontal, Spacing.sm)
         .padding(.top, Spacing.xs)
@@ -529,10 +572,93 @@ extension ToggleStyle where Self == DesignToggleStyle {
     static var design: DesignToggleStyle { DesignToggleStyle() }
 }
 
+// MARK: - Key grammar (v4 Key Row Law — butted keys, no pills)
+
+/// Locale-aware micro-caps key label: `keyLabel` (11pt Medium), uppercase, ~0.18em tracking
+/// on Latin locales (Chinese has no case; wide tracking is wrong there — same rule as
+/// ZoneBadge). Shared by `KeyRow`, `PrimaryActionButton`, `SecondaryActionButton` so every
+/// key in the app is provably the same instrument engraving.
+private struct KeyCellLabel: View {
+    @Environment(\.locale) private var locale
+    let title: LocalizedStringKey
+
+    var body: some View {
+        Text(title)
+            .font(.Tokens.keyLabel)
+            .tracking(locale.language.languageCode?.identifier == "zh" ? 0 : 2)
+            .textCase(.uppercase)
+            .lineLimit(1)
+    }
+}
+
+/// Butted key row — the v4 decision/action grammar (DESIGN.md Key Row Law): flex cells of
+/// equal weight inside ONE container with a 0.5pt `dividerStrong` border, separated by
+/// interior 0.5pt hairlines — no gaps, no pills. Outer corners `CornerTokens.control`.
+/// The CTA key is an ink-filled cell (`text1` fill, `panelInk` label) — NOT red (the index
+/// never fills). Equal visual weight between cells is the nocebo guard: identical size,
+/// type, and press treatment; only the fill differs, and only when a role is explicit.
+struct KeyRow: View {
+    struct Key: Identifiable {
+        enum Role {
+            /// Card-filled cell (`surfaceEl`), ink label.
+            case standard
+            /// Ink-filled CTA cell (`text1` fill, `panelInk` label).
+            case cta
+        }
+
+        let title: LocalizedStringKey
+        var role: Role = .standard
+        var accessibilityID: String? = nil
+        let action: () -> Void
+
+        var id: String { accessibilityID ?? String(describing: title) }
+    }
+
+    let keys: [Key]
+
+    init(_ keys: [Key]) {
+        self.keys = keys
+    }
+
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(keys.enumerated()), id: \.element.id) { index, key in
+                cell(key)
+                if index < keys.count - 1 {
+                    Rectangle()
+                        .fill(ColorTokens.dividerStrong)
+                        .frame(width: 0.5)
+                        .accessibilityHidden(true)
+                }
+            }
+        }
+        .frame(minHeight: 44)
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
+    }
+
+    private func cell(_ key: Key) -> some View {
+        Button {
+            Haptics.tap()
+            key.action()
+        } label: {
+            KeyCellLabel(title: key.title)
+                .foregroundStyle(key.role == .cta ? ColorTokens.panelInk : ColorTokens.text1)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .padding(.horizontal, Spacing.xs)
+                .background(key.role == .cta ? ColorTokens.text1 : ColorTokens.surfaceEl)
+                .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable(scale: 1, opacity: 0.7))
+        .accessibilityIdentifier(key.accessibilityID ?? "")
+    }
+}
+
 // MARK: - Controls
 
-/// Primary CTA — Accent Rule v3: a FILLED accent pill (`Capsule()`, accent fill, light
-/// `surfaceEl2` label). This supersedes the v2 outline-only CTA treatment.
+/// Primary CTA — v4 Key Row Law: an INK-FILLED rectangle (`text1` fill, `panelInk`
+/// micro-caps label, `CornerTokens.control` corners). NOT a pill, NOT accent-filled —
+/// the red index never fills (Index Rule).
 struct PrimaryActionButton: View {
     let title: LocalizedStringKey
     var isLoading: Bool = false
@@ -547,15 +673,14 @@ struct PrimaryActionButton: View {
             HStack(spacing: Spacing.xs) {
                 if isLoading {
                     ProgressView()
-                        .tint(ColorTokens.surfaceEl2)
+                        .tint(ColorTokens.panelInk)
                 }
-                Text(title)
-                    .font(.Tokens.bodyMedium)
+                KeyCellLabel(title: title)
             }
-            .foregroundStyle(ColorTokens.surfaceEl2)
+            .foregroundStyle(ColorTokens.panelInk)
             .frame(maxWidth: .infinity, minHeight: 44)
             .padding(.horizontal, Spacing.sm)
-            .background(ColorTokens.accent, in: Capsule())
+            .background(ColorTokens.text1, in: RoundedRectangle(cornerRadius: CornerTokens.control))
         }
         .buttonStyle(.pressable)
         .disabled(isDisabled || isLoading)
@@ -563,7 +688,8 @@ struct PrimaryActionButton: View {
     }
 }
 
-/// Secondary CTA — an OUTLINED pill (hairline stroke, control fill); never accent-filled.
+/// Secondary CTA — a hairline-bordered rectangle (card fill, ink micro-caps label,
+/// `CornerTokens.control` corners); never a pill, never accent.
 struct SecondaryActionButton: View {
     let title: LocalizedStringKey
     var isDisabled: Bool = false
@@ -574,13 +700,12 @@ struct SecondaryActionButton: View {
             Haptics.tap()
             action()
         } label: {
-            Text(title)
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.textPrimary)
+            KeyCellLabel(title: title)
+                .foregroundStyle(ColorTokens.text1)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .padding(.horizontal, Spacing.sm)
-                .background(ColorTokens.control, in: Capsule())
-                .overlay(Capsule().stroke(ColorTokens.hairline, lineWidth: 0.5))
+                .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
         }
         .buttonStyle(.pressable)
         .disabled(isDisabled)

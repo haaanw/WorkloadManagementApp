@@ -1,6 +1,8 @@
 import SwiftUI
 
 /// Reusable metric display tile used across Workload and Session detail views.
+/// v4 "Instrument": the value is a data numeral, so it renders in the dial voice
+/// (`dialSmall` — IBM Plex Mono, tabular by construction).
 struct MetricTile: View {
     let title: String
     let value: String
@@ -14,8 +16,7 @@ struct MetricTile: View {
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
             Text(value)
-                .font(.Tokens.sectionHead)
-                .monospacedDigit()
+                .font(.Tokens.dialSmall)
                 .foregroundStyle(color)
             if let subtitle {
                 Text(subtitle)
@@ -27,14 +28,15 @@ struct MetricTile: View {
     }
 }
 
-/// Outline chip communicating zone state through text label + colored border (`Capsule()`
-/// per the v3 Corner Law — chips are pills). Color is supplementary — the text label is
-/// always the primary information.
+/// Hairline-bordered text-first chip communicating zone state (v4 "Instrument": near-square
+/// `CornerTokens.control` corners — the pill silhouette is retired for zone chips). Zone
+/// color appears as TEXT + border only, never as a fill; the text label is always the
+/// primary information (color supplementary — never color alone).
 ///
 /// zh-Hans typography: per 23-UI-SPEC, Chinese has no case and looser tracking is wrong.
 /// Apply textCase(.uppercase) and tracking(1.2) only when the env locale is English.
 /// Horizontal padding widens for zh-Hans glyphs (16 vs 8). Paddings sit on the 8pt grid
-/// (+ the sanctioned 4pt sub-step) — normalized from the off-grid 10/5 in Stage 1.
+/// (+ the sanctioned 4pt sub-step).
 struct ZoneBadge: View {
     @Environment(\.locale) private var locale
     let label: String
@@ -49,7 +51,7 @@ struct ZoneBadge: View {
             .padding(.vertical, 4)
             .foregroundStyle(color)
             .overlay(
-                Capsule().stroke(color, lineWidth: 0.5)
+                RoundedRectangle(cornerRadius: CornerTokens.control).stroke(color, lineWidth: 0.5)
             )
     }
 }

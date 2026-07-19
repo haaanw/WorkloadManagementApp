@@ -20,11 +20,11 @@ import SwiftUI
 /// `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`. The reason line renders in the
 /// UI voice (Stage-0″ shim — the serif display voice is retired; Stage 2″ rebuilds the
 /// verdict header per the v4 law; app-authored copy only).
-/// Tuwa v2: this is the screen's primary decision surface, so it sits on the emphasis plane
-/// (`.emphasisCardStyle()` — `surfaceEl2` + `dividerStrong` + 2pt accent top rule).
-/// The accent (the "live / actionable" semantic) is allowed ONLY on the strike-zone FILL and the
-/// emphasis rule — NEVER on the verdict state (that stays a text label + desaturated zone strip) and
-/// NEVER on today's number. en defaults inline; zh-Hans in the catalog.
+/// Tuwa v4: this is the screen's primary decision surface, so it sits on the emphasis plane
+/// (`.emphasisCardStyle()` — `surfaceEl2` + `dividerStrong`; the v3 accent rule is deleted).
+/// The red index appears ONLY as the strike-zone NEEDLE (TickScale, Index Rule) — NEVER on the
+/// verdict state (that stays a text label + desaturated zone strip) and NEVER on today's number.
+/// en defaults inline; zh-Hans in the catalog.
 struct TodayVerdictCard: View {
 
     let display: TodayVerdictDisplay
@@ -132,9 +132,8 @@ struct TodayVerdictCard: View {
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: display.appliedState)
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: display.adjustedTopSetKg)
         .onAppear { Haptics.prepare() }
-        // Primary decision surface → the emphasis plane (surfaceEl2 + dividerStrong + 2pt accent
-        // top rule). The accent rule lives inside the primitive, so it never lands on the verdict
-        // state or today's number.
+        // Primary decision surface → the emphasis plane (surfaceEl2 + dividerStrong; no accent
+        // rule in v4 — the Index Rule reserves red for index marks only).
         .emphasisCardStyle()
         // Supplementary DESATURATED hairline strip (text label above is the primary channel).
         // zoneCaution for an adjustment, zoneLow for a learning defer, none when training as planned.
@@ -316,75 +315,38 @@ struct TodayVerdictCard: View {
 
 // MARK: - StrikeZoneBar (the compact "where today's number lands in today's zone" visualization)
 
-/// A presentation-only horizontal bar: a hairline track, the strike ZONE (today's productive band,
-/// bracketed by accent hairlines — the "live / actionable" band), the in-zone DOT (today's number),
-/// and — when the plan was trimmed — a faint PLANNED reference tick sitting above the zone. No engine
-/// math: the zone band is a display tolerance centered on the adjusted number (the engine already
-/// placed it in the zone). DESIGN: instrument geometry (hairline rules/ticks — the `Rectangle`s here
-/// are marks, not container plates; containers wear `CornerTokens`), no shadow, `ColorTokens`
-/// only. The strike-zone FILL is one of the sanctioned accent locations (live/actionable); the verdict
-/// state never uses accent (it stays a text label + desaturated zone strip on the card).
+/// A presentation-only micro tick-scale (v4 "Instrument"): the strike ZONE (today's productive
+/// band) as an ink zone band, the red index NEEDLE at today's number, and — when the plan was
+/// trimmed — a faint PLANNED ghost mark. No engine math: the zone band is a display tolerance
+/// centered on the adjusted number (the engine already placed it in the zone). Rendering is
+/// delegated to `TickScale` (`.micro` variant, light theme): zone band = ink on light surfaces,
+/// needle = the red index (a sanctioned index-mark location — Index Rule). The verdict STATE
+/// never uses the index (it stays a text label + desaturated zone strip on the card).
+/// Same public shape (planned/adjusted/hasAdjustment) and accessibility semantics as before.
 private struct StrikeZoneBar: View {
     let planned: Double
     let adjusted: Double
     let hasAdjustment: Bool
 
     var body: some View {
-        GeometryReader { geo in
-            let w = geo.size.width
-            let midY = geo.size.height / 2
+        let lo = Swift.min(planned, adjusted)
+        let hi = Swift.max(planned, adjusted)
+        // Avoid a zero span when there's no adjustment; give the zone a sensible visible width.
+        let span = Swift.max(hi - lo, Swift.max(lo, 1) * 0.08)
+        // Generous padding so nothing clips the edges.
+        let scaleMin = lo - span * 0.7
+        let scaleMax = Swift.max(hi + span * 0.7, scaleMin + 0.0001)
 
-            let lo = Swift.min(planned, adjusted)
-            let hi = Swift.max(planned, adjusted)
-            // Avoid a zero span when there's no adjustment; give the zone a sensible visible width.
-            let span = Swift.max(hi - lo, Swift.max(lo, 1) * 0.08)
-            // Generous padding so nothing clips the edges.
-            let scaleMin = lo - span * 0.7
-            let scaleRange = Swift.max((hi + span * 0.7) - scaleMin, 0.0001)
-            let x: (Double) -> CGFloat = { v in CGFloat((v - scaleMin) / scaleRange) * w }
-
+        TickScale(
+            range: scaleMin...scaleMax,
+            value: adjusted,
             // Zone lane: a display tolerance centered on the adjusted (in-zone) number.
-            let zoneLo = adjusted - span * 0.45
-            let zoneHi = adjusted + span * 0.45
-
-            ZStack(alignment: .topLeading) {
-                // Base track — the full range.
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(width: w, height: 1)
-                    .position(x: w / 2, y: midY)
-
-                // The strike zone — the live/actionable productive band (accent fill), bracketed at
-                // both ends. Accent on the strike-zone FILL is sanctioned in Tuwa v2.
-                Rectangle()
-                    .fill(ColorTokens.accent)
-                    .frame(width: Swift.max(x(zoneHi) - x(zoneLo), 1), height: 3)
-                    .position(x: (x(zoneLo) + x(zoneHi)) / 2, y: midY)
-                Rectangle()
-                    .fill(ColorTokens.accent)
-                    .frame(width: 1.5, height: 14)
-                    .position(x: x(zoneLo), y: midY)
-                Rectangle()
-                    .fill(ColorTokens.accent)
-                    .frame(width: 1.5, height: 14)
-                    .position(x: x(zoneHi), y: midY)
-
-                // Planned reference — a faint tick sitting OUTSIDE the zone (only when trimmed).
-                if hasAdjustment {
-                    Rectangle()
-                        .fill(ColorTokens.text3)
-                        .frame(width: 1.5, height: 16)
-                        .position(x: x(planned), y: midY)
-                }
-
-                // Today's number — the dot, sitting inside the zone lane.
-                Circle()
-                    .fill(ColorTokens.text1)
-                    .frame(width: 8, height: 8)
-                    .position(x: x(adjusted), y: midY)
-            }
-        }
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(String(localized: "verdictCard.zone.a11y", defaultValue: "Today's number sits inside today's training zone")))
+            zone: (adjusted - span * 0.45)...(adjusted + span * 0.45),
+            // Planned reference — the faint ghost mark (only when trimmed).
+            ghost: hasAdjustment ? planned : nil,
+            variant: .micro,
+            theme: .light,
+            accessibilityLabel: Text(String(localized: "verdictCard.zone.a11y", defaultValue: "Today's number sits inside today's training zone"))
+        )
     }
 }

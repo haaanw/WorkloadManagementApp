@@ -79,6 +79,25 @@ enum ColorTokens {
     static let panelInk2     = Color(uiColor: .light(0x8B8F94))
     /// `#35373A` — hairline rules inside/around the panel.
     static let panelHairline = Color(uiColor: .light(0x35373A))
+    /// `#232527` — TOP endpoint of the panel component's vertical gradient. Reserved for
+    /// `panelStyle()` (CardStyle.swift) — everywhere else uses the flat `panel` token.
+    static let panelGradientTop = Color(uiColor: .light(0x232527))
+    /// `#1A1C1E` — BOTTOM endpoint of the panel component's vertical gradient. Reserved for
+    /// `panelStyle()` (CardStyle.swift) — everywhere else uses the flat `panel` token.
+    static let panelGradientBottom = Color(uiColor: .light(0x1A1C1E))
+
+    // MARK: - Chrome (v4 instrument chrome surfaces)
+    /// `#E7E8EA` — the tab-bar plane: a hair darker than `background` so the bar reads as
+    /// the machined bottom edge of the instrument body (mockup D tab bar).
+    static let tabBarSurface = Color(uiColor: .light(0xE7E8EA))
+
+    // MARK: - Tick scale (TickScale component colors — column D mockup vars)
+    /// `#4E5154` — minor tick marks (1px weight) on the TickScale.
+    static let tickMinor    = Color(uiColor: .light(0x4E5154))
+    /// `#6E7175` — major tick marks (1.5px weight) on the TickScale.
+    static let tickMajor    = Color(uiColor: .light(0x6E7175))
+    /// `#8B8F94` — tick numerals (equals `panelInk2` by design — the dial numeral gray).
+    static let tickNumeral  = Color(uiColor: .light(0x8B8F94))
 
     // MARK: - Index accent (v4 accent law)
     /// `#D04234` — the red index. INDEX MARKS ONLY: scale needles, the active-tab tick,

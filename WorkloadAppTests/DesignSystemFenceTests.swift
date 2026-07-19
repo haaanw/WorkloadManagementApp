@@ -137,6 +137,21 @@ final class DesignSystemFenceTests: XCTestCase {
         }
     }
 
+    // MARK: - 4b. Panel Law: at most ONE black instrument panel per screen file
+
+    func test_panelLaw_atMostOnePanelStylePerViewFile() throws {
+        // DESIGN.md v4 Panel Law: the near-black panel carries the ONE hero instrument
+        // reading per screen — a second dark surface on the same screen is a design error.
+        // Enforced per screen file (mirrors the retired one-halftone-per-screen fence).
+        for (name, text) in try fencedSources(subdirectories: ["Views"]) {
+            let count = text.components(separatedBy: "panelStyle(").count - 1
+            XCTAssertLessThanOrEqual(
+                count, 1,
+                "\(name) applies panelStyle( \(count) times — at most ONE black instrument panel per screen (DESIGN.md v4 Panel Law)"
+            )
+        }
+    }
+
     // MARK: - 5. Spacing grid: structural literals are multiples of 4
 
     func test_structuralSpacingLiterals_areOnTheGrid() throws {

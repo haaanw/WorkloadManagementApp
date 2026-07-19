@@ -57,11 +57,24 @@ extension Font {
         /// 32pt — Dominant action or verdict copy.
         static let displayAction = cascaded(size: 32, weight: .regular)
 
-        /// 32pt — Page title
+        /// 32pt — Page title (legacy large-numeral / display role; the v4 screen TITLE is
+        /// the micro-caps `screenTitle` below, per DESIGN.md v4 case discipline).
         static let pageTitle   = cascaded(size: 32, weight: .regular)
 
-        /// 32pt — Screen title
-        static let screenTitle = pageTitle
+        /// 13pt Medium — the v4 micro-caps screen title (ScreenHeader). Rendered UPPERCASE
+        /// with ~0.28em tracking at the render site — NOT a large title (DESIGN.md v4).
+        static let screenTitle = cascaded(size: 13, weight: .medium)
+
+        /// 10pt Medium — the screen header's trailing action slot (micro-caps, ~0.18em
+        /// tracking at the render site, `text2`).
+        static let headerAction = cascaded(size: 10, weight: .medium)
+
+        /// 11pt Medium — butted key-row cell labels and rectangular CTA labels (micro-caps,
+        /// ~0.18em tracking at the render site; DESIGN.md v4 Key Row Law "10.5pt-class").
+        static let keyLabel = cascaded(size: 11, weight: .medium)
+
+        /// 9pt Medium — tab-bar item labels (micro-caps, ~0.2em tracking at the render site).
+        static let tabLabel = cascaded(size: 9, weight: .medium)
 
         /// 19pt Medium — Section header
         static let sectionHead = cascaded(size: 19, weight: .medium)

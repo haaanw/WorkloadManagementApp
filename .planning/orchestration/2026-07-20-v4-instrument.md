@@ -31,4 +31,5 @@ Build gate command, xcresulttool verification, sim `8E872500-703D-4292-9758-38AD
 - [x] Round 1 mockups (T1 Braun / T2 B&O / T3 Contax) → user: iterate T2+T3+blends; full pivot ratified
 - [x] Round 2 mockups (A/B/C/D) → **user picked D "Aluminum Panel"**
 - [x] Stage 0″ dispatched + verified + committed (2026-07-20): DESIGN.md v4, repalette (panel/index tokens, WCAG-checked zones), dial chokepoint (Plex Mono statics, PS names runtime-verified), serif+halftone deleted, corners 5/4, fences flipped. Lane's own mono fence caught a PS-name literal in WorkloadApp.swift's assert message — reworded (chokepoint stays the only namer). Gates: full 782 run → 1 fence fail → fix → unit 767/0/2 green (UI tests green in the full run).
-- [ ] Stage 1″ dispatched (shared layer — brief: `stage-v4-1-brief.md`)
+- [x] Stage 1″ dispatched + verified + committed (2026-07-20): panelStyle + Panel Law fence, TickScale component (scale/micro × light/panel), StrikeZoneBar rebuilt on TickScale (guard tests intact), KeyRow + ink Primary/hairline Secondary buttons, emphasis red rule deleted, InkTabBar needle tick + darker plane, ScreenHeader micro-caps, ZoneBadge squared. Gate 783/781/0/2. Accent-residue inventory recorded in lane report for Stage 2″.
+- [ ] Stage 2″ dispatched (per-screen apply — brief: `stage-v4-2-brief.md`)
