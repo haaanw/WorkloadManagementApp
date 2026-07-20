@@ -371,13 +371,17 @@ struct HeroReadinessCard: View {
                     SkeletonBlock(width: 144, height: 88)
                         .transition(.opacity)
                 } else if viewModel.hasRealData {
-                    HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
+                    // Baseline-aligned readout (demo §3 After): the hero reading dominates
+                    // the left, the zone label is pinned to the trailing edge on the score's
+                    // baseline — tension across the panel instead of a label tucked beside it.
+                    HStack(alignment: .lastTextBaseline, spacing: Spacing.sm) {
                         Text("\(Int(displayedScore))")
                             .font(.Tokens.dialHero)
                             .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.heroSize, em: Font.Tokens.Dial.heroTrackingEm))
                             .monospacedDigit()
                             .contentTransition(.numericText())
                             .foregroundStyle(ColorTokens.panelInk)
+                        Spacer(minLength: Spacing.sm)
                         // Zone state as a caps TEXT label (never color alone).
                         Text(viewModel.recoveryZone.displayName)
                             .font(.Tokens.micro)
@@ -401,6 +405,7 @@ struct HeroReadinessCard: View {
                         zone: zoneBand,
                         variant: .scale,
                         theme: .panel,
+                        detents: true,
                         accessibilityLabel: Text(verbatim: "\(Int(viewModel.recoveryScore)) / 100 · \(viewModel.recoveryZone.displayName)")
                     )
                 }
@@ -597,73 +602,39 @@ struct MetricsStrip: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        HStack(spacing: 0) {
-            MetricStripCell(
+        // Demo §3 After: RHR/HRV/Sleep as a 3-cell metric grid — individually-planed cells
+        // with unit superscripts, scannable in one fixation instead of a butted strip. Each
+        // cell keeps its staleness badge in the bottom accessory slot (no behaviour change).
+        HStack(alignment: .top, spacing: Spacing.xs) {
+            MetricCell(
                 label: "HRV",
                 value: viewModel.latestHRV.map { String(format: "%.0f", $0) } ?? "—",
-                unit: viewModel.latestHRV != nil ? "ms" : nil,
-                staleDaysAgo: viewModel.staleness.daysAgo(viewModel.staleness.lastHRVDate)
-            )
-            Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
+                unit: viewModel.latestHRV != nil ? "ms" : nil
+            ) { staleAccessory(viewModel.staleness.daysAgo(viewModel.staleness.lastHRVDate)) }
 
-            MetricStripCell(
+            MetricCell(
                 label: "RHR",
                 value: viewModel.latestRHR.map { String(format: "%.0f", $0) } ?? "—",
-                unit: viewModel.latestRHR != nil ? "bpm" : nil,
-                staleDaysAgo: viewModel.staleness.daysAgo(viewModel.staleness.lastRHRDate)
-            )
-            Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
+                unit: viewModel.latestRHR != nil ? "bpm" : nil
+            ) { staleAccessory(viewModel.staleness.daysAgo(viewModel.staleness.lastRHRDate)) }
 
-            MetricStripCell(
+            MetricCell(
                 label: "SLEEP",
-                value: viewModel.latestSleepMinutes.map { sleepString($0) } ?? "—",
-                unit: nil,
-                staleDaysAgo: viewModel.staleness.daysAgo(viewModel.staleness.lastSleepDate)
-            )
+                value: viewModel.latestSleepMinutes.map { sleepString($0) } ?? "—"
+            ) { staleAccessory(viewModel.staleness.daysAgo(viewModel.staleness.lastSleepDate)) }
         }
-        .frame(maxWidth: .infinity)
-        // Inline strip plane on `CornerTokens.card` (v3 Corner Law); the internal vertical
-        // hairlines are sanctioned separators, clipped by the rounded shape.
-        .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.card))
-        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
-        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
+    }
+
+    @ViewBuilder
+    private func staleAccessory(_ daysAgo: Int?) -> some View {
+        if let daysAgo {
+            Spacer().frame(height: Spacing.baselinePair)
+            StalenessWarningBadge(daysAgo: daysAgo)
+        }
     }
 
     private func sleepString(_ minutes: Double) -> String {
         Date.durationString(seconds: Int(minutes) * 60, locale: locale)
-    }
-}
-
-struct MetricStripCell: View {
-    let label: String
-    let value: String
-    let unit: String?
-    var staleDaysAgo: Int? = nil
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text(label)
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
-            HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
-                // Metric reading in the dial voice (v4 — all data numerals are mono).
-                Text(value)
-                    .font(.Tokens.dialSmall)
-                    .foregroundStyle(ColorTokens.text1)
-                if let unit {
-                    Text(unit)
-                        .font(.Tokens.micro)
-                        .foregroundStyle(ColorTokens.text2)
-                }
-            }
-            if let days = staleDaysAgo {
-                StalenessWarningBadge(daysAgo: days)
-            }
-        }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm)
     }
 }
 
@@ -768,7 +739,7 @@ struct RecentSessionsSection: View {
         // live on one grouped card plate (`CornerTokens.card`) with inset hairline separators
         // between siblings only — no bare text stacks, no square stroke.
         VStack(alignment: .leading, spacing: 0) {
-            SectionHeader(title: "dashboard.section.recentSessions")
+            RuledSectionHeader(title: "dashboard.section.recentSessions")
 
             Spacer().frame(height: Spacing.sm)
 

@@ -439,7 +439,10 @@ struct ProfileView: View {
     ) -> some View {
         VStack(alignment: .leading, spacing: 0) {
             Spacer().frame(height: Spacing.lg)
-            SectionHeader(title: header)
+            // Ruled micro-caps header (demo §3): structures each section with a trailing
+            // hairline instead of a floating 19pt title. Inset to align flush with the card.
+            RuledSectionHeader(title: header)
+                .padding(.horizontal, Spacing.sm)
             Spacer().frame(height: Spacing.sm)
             VStack(spacing: 0) {
                 content()
@@ -451,7 +454,8 @@ struct ProfileView: View {
 
     @ViewBuilder
     private func sectionHeader(_ title: LocalizedStringKey) -> some View {
-        SectionHeader(title: title)
+        RuledSectionHeader(title: title)
+            .padding(.horizontal, Spacing.sm)
             .padding(.top, Spacing.lg)
             .padding(.bottom, Spacing.sm)
     }
@@ -722,7 +726,8 @@ struct HealthKitPermissionsView: View {
 
     @ViewBuilder
     private func sectionHeader(_ title: LocalizedStringKey) -> some View {
-        SectionHeader(title: title)
+        RuledSectionHeader(title: title)
+            .padding(.horizontal, Spacing.sm)
             .padding(.top, Spacing.lg)
             .padding(.bottom, Spacing.sm)
     }

@@ -96,32 +96,33 @@ struct WorkloadView: View {
                         .entranceReveal()
                         .accessibilityIdentifier("workload.acwr")
 
-                    // ATL / CTL / TSB — quiet mono metric rows on one light card (mrow pattern).
-                    VStack(spacing: 0) {
-                        LoadMetricRow(
+                    // ATL / CTL / TSB — demo §3 metric grid: three individually-planed dial
+                    // cells with their descriptor on the delta line, scannable in one fixation.
+                    HStack(alignment: .top, spacing: Spacing.xs) {
+                        MetricCell(
                             label: "ATL",
-                            detail: "Acute \u{00B7} 7-day",
-                            value: String(format: "%.0f", latestSnapshot?.acuteLoad ?? 0)
+                            value: String(format: "%.0f", latestSnapshot?.acuteLoad ?? 0),
+                            delta: "Acute \u{00B7} 7-day"
                         )
-                        RowSeparator()
-                        LoadMetricRow(
+                        MetricCell(
                             label: "CTL",
-                            detail: "Chronic \u{00B7} 28-day",
-                            value: String(format: "%.0f", latestSnapshot?.chronicLoad ?? 0)
+                            value: String(format: "%.0f", latestSnapshot?.chronicLoad ?? 0),
+                            delta: "Chronic \u{00B7} 28-day"
                         )
-                        RowSeparator()
-                        LoadMetricRow(
+                        MetricCell(
                             label: "TSB",
-                            detail: latestSnapshot.map { $0.tsb >= 0 ? "Fresh" : "Fatigued" } ?? "\u{2014}",
-                            value: String(format: "%+.0f", latestSnapshot?.tsb ?? 0)
+                            value: String(format: "%+.0f", latestSnapshot?.tsb ?? 0),
+                            delta: latestSnapshot.map { $0.tsb >= 0 ? "Fresh" : "Fatigued" } ?? "\u{2014}"
                         )
                     }
-                    .cardStyle(horizontalPadding: 0, verticalPadding: Spacing.xs)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.top, Spacing.xs)
                     .entranceReveal(index: 1)
 
-                    SectionContainer(header: "workload.section.loadTrend") {
+                    SectionContainer {
+                        RuledSectionHeader(title: "workload.section.loadTrend")
+                            .padding(.horizontal, Spacing.sm)
+                        Spacer().frame(height: Spacing.sm)
                         VStack(spacing: 0) {
                             if container.subscriptionService.isPro {
                                 TimeRangeSegmentedControl(selected: $viewModel.selectedRange)
@@ -152,7 +153,10 @@ struct WorkloadView: View {
                     }
 
                     if container.subscriptionService.isPro {
-                        SectionContainer(header: "workload.section.recoveryVsLoad") {
+                        SectionContainer {
+                            RuledSectionHeader(title: "workload.section.recoveryVsLoad")
+                                .padding(.horizontal, Spacing.sm)
+                            Spacer().frame(height: Spacing.sm)
                             RecoveryLoadChart(
                                 loadSnapshots: viewModel.correlationLoadSnapshots,
                                 recoverySnapshots: viewModel.correlationRecoverySnapshots
@@ -165,7 +169,10 @@ struct WorkloadView: View {
                     }
 
                     if !visibleRecords.isEmpty {
-                        SectionContainer(header: "workload.section.recentPRs") {
+                        SectionContainer {
+                            RuledSectionHeader(title: "workload.section.recentPRs")
+                                .padding(.horizontal, Spacing.sm)
+                            Spacer().frame(height: Spacing.sm)
                             PRHistorySection(records: visibleRecords)
                                 .padding(.horizontal, Spacing.sm)
                         }
@@ -284,12 +291,15 @@ struct ACWRGaugeCard: View {
             Spacer().frame(height: Spacing.sm)
 
             if let snapshot {
-                HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
+                // Baseline-aligned readout (demo §3 After): the ratio dominates the left, the
+                // zone label pinned to the trailing edge on its baseline — same grammar as Home.
+                HStack(alignment: .lastTextBaseline, spacing: Spacing.sm) {
                     Text(String(format: "%.2f", snapshot.acwr))
                         .font(.Tokens.dialHero)
                         .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.heroSize, em: Font.Tokens.Dial.heroTrackingEm))
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.panelInk)
+                    Spacer(minLength: Spacing.sm)
                     // Zone state as a caps TEXT label (never color alone).
                     Text(snapshot.zone.displayName)
                         .font(.Tokens.micro)
@@ -319,38 +329,6 @@ struct ACWRGaugeCard: View {
             }
         }
         .panelStyle(verticalPadding: Spacing.sm)
-    }
-}
-
-// MARK: - Load metric rows (mockup D mrow pattern)
-
-/// ATL / CTL / TSB as quiet metric rows on one light card: caps label + tertiary detail
-/// on the left, `dialSmall` mono reading on the right (v4 — all data numerals are mono).
-private struct LoadMetricRow: View {
-    let label: String
-    let detail: String
-    let value: String
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline) {
-            HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
-                Text(label)
-                    .font(.Tokens.micro)
-                    .tracking(1.2)
-                    .foregroundStyle(ColorTokens.text2)
-                Text(detail)
-                    .font(.Tokens.micro)
-                    .foregroundStyle(ColorTokens.text3)
-            }
-            Spacer()
-            Text(value)
-                .font(.Tokens.dialSmall)
-                .foregroundStyle(ColorTokens.text1)
-        }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xs)
-        .accessibilityElement(children: .combine)
-        .accessibilityLabel("\(label) \(value)")
     }
 }
 

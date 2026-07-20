@@ -217,25 +217,34 @@ struct WorkoutLogView: View {
                             }
                             .entranceReveal(index: 3)
                         } else {
-                            SectionContainer(header: "workoutLog.section.history") {
-                                VStack(spacing: 0) {
-                                    ForEach(visibleSessions, id: \.id) { session in
-                                        NavigationLink(value: session.id) {
-                                            SessionRow(session: session)
-                                        }
-                                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-                                        .transition(.opacity)
+                            // Demo §3 After: the history section carries a RULED header
+                            // (micro-caps + trailing hairline) so it structures the page instead
+                            // of a 19pt title floating over a bare list. Rows stay two-line
+                            // (SessionRow: name + meta line, date right) for varied density.
+                            SectionContainer {
+                                VStack(alignment: .leading, spacing: Spacing.sm) {
+                                    RuledSectionHeader(title: "workoutLog.section.history")
+                                        .padding(.horizontal, Spacing.sm)
 
-                                        RowSeparator()
-                                    }
+                                    VStack(spacing: 0) {
+                                        ForEach(visibleSessions, id: \.id) { session in
+                                            NavigationLink(value: session.id) {
+                                                SessionRow(session: session)
+                                            }
+                                            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                                            .transition(.opacity)
 
-                                    if lockedWeeks > 0 {
-                                        HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
-                                            showUpgrade = true
+                                            RowSeparator()
+                                        }
+
+                                        if lockedWeeks > 0 {
+                                            HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
+                                                showUpgrade = true
+                                            }
                                         }
                                     }
+                                    .animation(Motion.resolved(Motion.entrance, reduceMotion: reduceMotion), value: visibleSessions.count)
                                 }
-                                .animation(Motion.resolved(Motion.entrance, reduceMotion: reduceMotion), value: visibleSessions.count)
                             }
                             .entranceReveal(index: 3)
                         }

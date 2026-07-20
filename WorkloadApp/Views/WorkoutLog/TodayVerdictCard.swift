@@ -59,9 +59,12 @@ struct TodayVerdictCard: View {
                     .foregroundStyle(ColorTokens.text3)
                 Spacer()
                 // Verdict state as a TEXT LABEL (the primary state channel — never color alone).
+                // Micro-caps to optically align with the header label on the same baseline —
+                // matched cap-heights, so the two ends of the header line read as one rule.
                 Text(stateLabel)
                     .font(.Tokens.micro)
                     .tracking(1.2)
+                    .textCase(.uppercase)
                     .foregroundStyle(ColorTokens.text2)
             }
 
