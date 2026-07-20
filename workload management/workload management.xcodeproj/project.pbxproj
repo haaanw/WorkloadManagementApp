@@ -136,6 +136,8 @@
 		2307020100000000000000B1 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
 		2307050100000000000000B1 /* InkTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307050100000000000000B2 /* InkTabBar.swift */; };
 		2307060100000000000000B1 /* TickScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307060100000000000000B2 /* TickScale.swift */; };
+		2307090100000000000000B1 /* LayoutPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307090100000000000000B2 /* LayoutPrimitives.swift */; };
+		23070A0100000000000000B1 /* SheetChrome.swift in Sources */ = {isa = PBXBuildFile; fileRef = 23070A0100000000000000B2 /* SheetChrome.swift */; };
 		62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB72F71849300B6135F /* HRVDetailView.swift */; };
 		62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB82F71849300B6135F /* SleepDetailView.swift */; };
 		62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CC02F72716500B6135F /* SupabaseConfig.swift */; };
@@ -354,6 +356,8 @@
 		2307020100000000000000B2 /* CornerTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerTokens.swift; sourceTree = "<group>"; };
 		2307050100000000000000B2 /* InkTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InkTabBar.swift; sourceTree = "<group>"; };
 		2307060100000000000000B2 /* TickScale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickScale.swift; sourceTree = "<group>"; };
+		2307090100000000000000B2 /* LayoutPrimitives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutPrimitives.swift; sourceTree = "<group>"; };
+		23070A0100000000000000B2 /* SheetChrome.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SheetChrome.swift; sourceTree = "<group>"; };
 		62F32CA22F71692C00B6135F /* WorkloadAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkloadAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		62F32CB72F71849300B6135F /* HRVDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailView.swift; sourceTree = "<group>"; };
 		62F32CB82F71849300B6135F /* SleepDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailView.swift; sourceTree = "<group>"; };
@@ -507,6 +511,8 @@
 				CD0501010000000000000002 /* CardStyle.swift */,
 				2307050100000000000000B2 /* InkTabBar.swift */,
 				2307060100000000000000B2 /* TickScale.swift */,
+				2307090100000000000000B2 /* LayoutPrimitives.swift */,
+				23070A0100000000000000B2 /* SheetChrome.swift */,
 				CD0601010000000000000002 /* SetStepper.swift */,
 			CD0701010000000000000002 /* PRBanner.swift */,
 				62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */,
@@ -1095,6 +1101,8 @@
 				2307020100000000000000B1 /* CornerTokens.swift in Sources */,
 				2307050100000000000000B1 /* InkTabBar.swift in Sources */,
 				2307060100000000000000B1 /* TickScale.swift in Sources */,
+				2307090100000000000000B1 /* LayoutPrimitives.swift in Sources */,
+				23070A0100000000000000B1 /* SheetChrome.swift in Sources */,
 				62324C382F66CB0E00A9C2BE /* HRVTrendChart.swift in Sources */,
 				62324C392F66CB0E00A9C2BE /* AthleteRepository.swift in Sources */,
 				62324C3A2F66CB0E00A9C2BE /* AppContainer.swift in Sources */,

@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v4.1 — Interaction & Layout Demos (click everything)</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family:'General Sans'; src:url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype'); font-weight:200 700; }
+  :root {
+    --bg:#E9EAEB; --card:#F5F6F7; --card2:#FAFBFB; --ink:#17181A; --ink2:#4A4D51; --ink3:#85898E; --dis:#9A9EA3;
+    --line:#D0D2D5; --line2:#C6C9CC; --index:#D04234; --panel:#1E2022; --pink:#F0F1F2; --pink2:#8B8F94; --pline:#35373A;
+    --ease:cubic-bezier(0.23,1,0.32,1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:#1D1E20; color:#ddd; font-family:'General Sans',-apple-system,sans-serif; padding:48px 24px 120px; }
+  .wrap { max-width:1200px; margin:0 auto; }
+  h1 { color:#fff; font-weight:500; font-size:24px; }
+  .sub { color:#999; font-size:13.5px; margin:6px 0 40px; max-width:88ch; line-height:1.6; }
+  h2 { color:#fff; font-size:15px; font-weight:600; margin:52px 0 6px; }
+  .h2sub { color:#8a8a8a; font-size:12.5px; margin-bottom:16px; max-width:88ch; line-height:1.55; }
+  .demo-strip { display:flex; gap:22px; flex-wrap:wrap; }
+  .demo { background:var(--bg); border-radius:14px; border:1px solid #3a3a3a; overflow:hidden; }
+  .demo-label { font-size:11px; color:#8a8a8a; letter-spacing:0.08em; margin:10px 2px 6px; text-transform:uppercase; }
+
+  /* ---------- SECTION 1: TAB BARS (interactive) ---------- */
+  .tabdemo { width:385px; }
+  .tab-screen { height:64px; background:var(--bg); display:flex; align-items:center; justify-content:center; color:var(--ink3); font-size:12px; }
+  /* V-A current baseline */
+  .bar { background:#E7E8EA; border-top:0.5px solid var(--line2); display:flex; position:relative; }
+  .bar .item { flex:1; text-align:center; padding:13px 0 20px; font-size:9px; letter-spacing:0.2em; color:var(--dis); font-weight:500; cursor:pointer; user-select:none; position:relative; transition:color 150ms var(--ease); }
+  .bar .item.on { color:var(--ink); }
+  .bar .tick { position:absolute; top:-1px; height:1.5px; width:34px; background:var(--index); transition:left 180ms var(--ease); }
+  /* V-B console */
+  .barB { background:#E7E8EA; border-top:0.5px solid var(--line2); display:flex; position:relative; }
+  .barB .item { flex:1; text-align:center; padding:14px 0 22px; font-size:11px; letter-spacing:0.14em; color:#6E7175; font-weight:500; cursor:pointer; user-select:none; position:relative;
+    transition:color 150ms var(--ease), transform 120ms var(--ease), font-variation-settings 150ms var(--ease); }
+  .barB .item:active { transform:scale(0.94); }
+  .barB .item.on { color:var(--ink); font-weight:600; }
+  .barB .well { position:absolute; top:6px; bottom:14px; width:19%; border-radius:5px; background:rgba(23,24,26,0.055); transition:left 220ms var(--ease); }
+  .barB .tick { position:absolute; top:-1px; height:1.5px; width:38px; background:var(--index); transition:left 220ms cubic-bezier(0.3,1.15,0.4,1); }
+  /* V-C key deck */
+  .barC { background:#E7E8EA; border-top:0.5px solid var(--line2); display:flex; padding:8px 10px 20px; gap:0; }
+  .barC .deck { display:flex; flex:1; border:0.5px solid var(--line2); border-radius:5px; overflow:hidden; background:var(--card); }
+  .barC .item { flex:1; text-align:center; padding:12px 0; font-size:10.5px; letter-spacing:0.12em; color:var(--ink2); font-weight:500; cursor:pointer; user-select:none;
+    border-left:0.5px solid var(--line); transition:background 180ms var(--ease), color 180ms var(--ease), transform 110ms var(--ease); }
+  .barC .item:first-child { border-left:none; }
+  .barC .item:active { transform:scale(0.96); }
+  .barC .item.on { background:var(--ink); color:var(--pink); }
+
+  /* ---------- SECTION 2: INTERACTION FABRIC ---------- */
+  .fabric { padding:22px; width:385px; }
+  .frow-label { font-size:9.5px; letter-spacing:0.2em; color:var(--ink3); font-weight:500; margin:18px 0 8px; }
+  .frow-label:first-child { margin-top:0; }
+  .key { background:var(--ink); color:var(--pink); text-align:center; padding:13px 0; border-radius:4px; font-size:11px; letter-spacing:0.16em; font-weight:500; cursor:pointer; user-select:none;
+    transition:transform 120ms var(--ease), filter 120ms var(--ease); }
+  .key:active { transform:scale(0.97); filter:brightness(1.35); }
+  .rowpress { background:var(--card); border:0.5px solid var(--line); border-radius:5px; overflow:hidden; }
+  .rowpress .r { display:flex; justify-content:space-between; padding:13px 14px; font-size:13.5px; color:var(--ink); cursor:pointer; user-select:none; transition:background 110ms var(--ease); border-top:0.5px solid var(--line); }
+  .rowpress .r:first-child { border-top:none; }
+  .rowpress .r:active { background:rgba(23,24,26,0.06); }
+  .rowpress .r b { font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13px; color:var(--ink); }
+  .toggle { display:flex; justify-content:space-between; align-items:center; background:var(--card); border:0.5px solid var(--line); border-radius:5px; padding:12px 14px; }
+  .toggle span { font-size:13.5px; color:var(--ink); }
+  .tg { width:46px; height:26px; border-radius:4px; background:var(--line); position:relative; cursor:pointer; transition:background 180ms var(--ease); }
+  .tg .knob { position:absolute; top:2px; left:2px; width:22px; height:22px; border-radius:3px; background:var(--card2); border:0.5px solid var(--line2); transition:left 200ms cubic-bezier(0.3,1.15,0.4,1); }
+  .tg.on { background:var(--ink); }
+  .tg.on .knob { left:22px; }
+  .stepper { display:flex; align-items:center; justify-content:space-between; background:var(--card); border:0.5px solid var(--line); border-radius:5px; padding:10px 12px; }
+  .stepper .lab { font-size:13.5px; color:var(--ink); }
+  .stepper .ctrl { display:flex; align-items:center; border:0.5px solid var(--line2); border-radius:4px; overflow:hidden; }
+  .stepper .btn { padding:8px 14px; font-size:15px; color:var(--ink); background:var(--card2); cursor:pointer; user-select:none; transition:background 100ms var(--ease), transform 100ms var(--ease); }
+  .stepper .btn:active { background:rgba(23,24,26,0.08); transform:scale(0.94); }
+  .stepper .val { font-family:'IBM Plex Mono',monospace; font-size:14px; font-weight:500; padding:0 14px; min-width:74px; text-align:center; color:var(--ink); border-left:0.5px solid var(--line); border-right:0.5px solid var(--line); }
+  .stepper .val .digit { display:inline-block; transition:transform 160ms var(--ease), opacity 160ms var(--ease); }
+  .stepper .val.rolling .digit { transform:translateY(-6px); opacity:0; }
+  .scale-demo { background:var(--panel); border-radius:5px; padding:16px 14px 12px; }
+  .scale-demo .sc-num { font-family:'IBM Plex Mono',monospace; font-size:34px; font-weight:500; color:var(--pink); letter-spacing:-0.02em; transition:none; }
+  .scale-demo .track { position:relative; height:14px; margin-top:8px; background:repeating-linear-gradient(90deg,#4E5154 0 1px,transparent 1px 2.5%); }
+  .scale-demo .needle { position:absolute; top:-3px; width:1.5px; height:18px; background:var(--index); transition:left 350ms cubic-bezier(0.23,1,0.32,1); }
+  .scale-demo .hint { font-size:9px; letter-spacing:0.18em; color:var(--pink2); margin-top:10px; }
+
+  /* ---------- SECTION 3: LAYOUT (before/after) ---------- */
+  .layout-col { width:385px; }
+  .lay { background:var(--bg); padding:20px 18px; }
+  .lay .caps { font-size:9.5px; letter-spacing:0.22em; color:var(--ink3); font-weight:500; }
+  .lay .titlebar { display:flex; justify-content:space-between; align-items:baseline; margin-bottom:16px; }
+  .lay .titlebar .t { font-size:12.5px; font-weight:600; letter-spacing:0.28em; color:var(--ink); }
+  /* before: uniform stack */
+  .b-card { background:var(--card); border:0.5px solid var(--line); border-radius:5px; padding:15px 16px; margin-bottom:13px; }
+  .b-card .mrow { display:flex; justify-content:space-between; padding:10px 0; border-top:0.5px solid var(--line); font-size:13px; color:var(--ink); }
+  .b-card .mrow:first-child { border-top:none; padding-top:0; }
+  .b-card .mrow b { font-family:'IBM Plex Mono',monospace; font-size:13px; font-weight:500; }
+  /* after: composed */
+  .a-panel { background:linear-gradient(180deg,#232527,#1A1C1E); border:0.5px solid var(--pline); border-radius:5px; padding:16px; margin-bottom:8px; color:var(--pink); }
+  .a-panel .toprow { display:flex; justify-content:space-between; align-items:baseline; }
+  .a-panel .toprow .caps { color:var(--pink2); }
+  .a-panel .readout { display:flex; align-items:flex-end; justify-content:space-between; margin-top:10px; }
+  .a-panel .score { font-family:'IBM Plex Mono',monospace; font-size:62px; font-weight:500; letter-spacing:-0.03em; line-height:0.9; }
+  .a-panel .zstack { text-align:right; padding-bottom:6px; }
+  .a-panel .zstack .z { font-size:11px; letter-spacing:0.2em; font-weight:600; color:var(--pink); }
+  .a-panel .zstack .zs { font-size:9.5px; letter-spacing:0.14em; color:var(--pink2); margin-top:3px; }
+  .a-panel .track { position:relative; height:12px; margin-top:14px; background:repeating-linear-gradient(90deg,#4E5154 0 1px,transparent 1px 2.5%); }
+  .a-panel .needle { position:absolute; top:-3px; left:71%; width:1.5px; height:16px; background:var(--index); }
+  .a-panel .tnums { display:flex; justify-content:space-between; font-family:'IBM Plex Mono',monospace; font-size:8.5px; color:var(--pink2); margin-top:5px; }
+  .a-grid { display:flex; gap:8px; margin-bottom:8px; }
+  .a-cell { flex:1; background:var(--card); border:0.5px solid var(--line); border-radius:5px; padding:12px 13px 11px; }
+  .a-cell .caps { font-size:8.5px; }
+  .a-cell .v { font-family:'IBM Plex Mono',monospace; font-size:21px; font-weight:500; color:var(--ink); margin-top:6px; letter-spacing:-0.01em; }
+  .a-cell .v small { font-size:10px; color:var(--ink3); font-weight:400; letter-spacing:0; }
+  .a-cell .d { font-family:'IBM Plex Mono',monospace; font-size:10px; margin-top:3px; color:var(--ink3); }
+  .a-sect { display:flex; align-items:baseline; gap:10px; margin:20px 0 9px; }
+  .a-sect .caps { flex-shrink:0; color:var(--ink2); }
+  .a-sect .rule { flex:1; height:0.5px; background:var(--line2); position:relative; top:-3px; }
+  .a-rowcard { background:var(--card); border:0.5px solid var(--line); border-radius:5px; }
+  .a-rowcard .r { display:flex; justify-content:space-between; align-items:baseline; padding:12px 14px; border-top:0.5px solid var(--line); }
+  .a-rowcard .r:first-child { border-top:none; }
+  .a-rowcard .r .n { font-size:13.5px; color:var(--ink); }
+  .a-rowcard .r .meta { font-size:10.5px; color:var(--ink3); margin-top:2px; }
+  .a-rowcard .r b { font-family:'IBM Plex Mono',monospace; font-size:12px; font-weight:500; color:var(--ink2); }
+  .note { color:#8a8a8a; font-size:12px; margin-top:10px; line-height:1.55; max-width:60ch; }
+  .footnote { color:#777; font-size:12.5px; margin-top:48px; line-height:1.7; max-width:100ch; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>v4.1 polish — interaction &amp; layout demos</h1>
+<p class="sub">Everything here is CLICKABLE — click tabs, press keys and rows, flip the toggle, hit the stepper, tap the panel to re-sweep the needle. Timings use the exact curves the app ships (strong ease-out, 100–250ms). Judge the feel, not just the look.</p>
+
+<h2>1 · Tab bar — three ways to fix readability + interactivity</h2>
+<p class="h2sub">Current complaint: 9px labels too quiet, weak selected state, no per-item touch response. All three variants below raise label size + unselected contrast and add press feedback. Click between tabs in each.</p>
+<div class="demo-strip">
+  <div>
+    <div class="demo-label">A · Current (baseline, for comparison)</div>
+    <div class="demo tabdemo"><div class="tab-screen">content</div>
+      <div class="bar" data-bar><span class="tick" style="left:7.6%"></span>
+        <div class="item on">HOME</div><div class="item">LOG</div><div class="item">RECOVERY</div><div class="item">LOAD</div><div class="item">PROFILE</div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="demo-label">B · Console — bigger labels, press-down, well + springy tick</div>
+    <div class="demo tabdemo"><div class="tab-screen">content</div>
+      <div class="barB" data-barb><span class="well" style="left:0.5%"></span><span class="tick" style="left:7.2%"></span>
+        <div class="item on">Home</div><div class="item">Log</div><div class="item">Recovery</div><div class="item">Load</div><div class="item">Profile</div>
+      </div>
+    </div>
+    <p class="note">11px title-case Medium (readability without shouting), weight shift on select, a faint "well" that slides with the tick, item scales 0.94 on press. Tick gets a hint of overshoot — the one springy element, because the gesture "throws" it.</p>
+  </div>
+  <div>
+    <div class="demo-label">C · Key deck — the tab bar IS a key row</div>
+    <div class="demo tabdemo"><div class="tab-screen">content</div>
+      <div class="barC"><div class="deck" data-barc>
+        <div class="item on">Home</div><div class="item">Log</div><div class="item">Recovery</div><div class="item">Load</div><div class="item">Profile</div>
+      </div></div>
+    </div>
+    <p class="note">Butted cells, selected = ink-filled key (maximum readability — it's a pressed key, not a label). Loses the red tick; the fill is the state. Most "instrument", most readable, heaviest visually.</p>
+  </div>
+</div>
+
+<h2>2 · Interaction fabric — the feel vocabulary (press everything)</h2>
+<p class="h2sub">The proposed system-wide vocabulary: every touchable class gets exactly one defined response. This is what "interactive in every detail" means concretely — five primitives, applied everywhere, never improvised per-screen.</p>
+<div class="demo-strip">
+  <div class="demo fabric">
+    <div class="frow-label">KEY — SCALE 0.97 + BRIGHTEN, 120MS</div>
+    <div class="key">START SESSION</div>
+    <div class="frow-label">ROW — TOUCH-DOWN WELL, 110MS (no scale)</div>
+    <div class="rowpress">
+      <div class="r"><span>Resting heart rate</span><b>58 · −3%</b></div>
+      <div class="r"><span>Heart rate variability</span><b>48 · +0%</b></div>
+    </div>
+    <div class="frow-label">TOGGLE — SQUARE KNOB, DETENT SNAP</div>
+    <div class="toggle"><span>Weekly summary</span><div class="tg" data-tg><div class="knob"></div></div></div>
+    <div class="frow-label">STEPPER — DIGIT ROLL + DETENT PER STEP</div>
+    <div class="stepper"><span class="lab">Top set</span>
+      <div class="ctrl"><div class="btn" data-step="-2.5">−</div><div class="val" data-val><span class="digit">130.0</span> kg</div><div class="btn" data-step="2.5">+</div></div>
+    </div>
+    <div class="frow-label">NEEDLE — TAP PANEL TO RE-SWEEP (350MS, DETENTS AT BANDS)</div>
+    <div class="scale-demo" data-sweep>
+      <div class="sc-num" data-scnum>71</div>
+      <div class="track"><div class="needle" data-scneedle style="left:71%"></div></div>
+      <div class="hint">TAP TO RE-MEASURE</div>
+    </div>
+  </div>
+  <div style="max-width:420px">
+    <div class="demo-label">The five-primitive law (goes into DESIGN.md v4.1)</div>
+    <p class="note" style="font-size:12.5px">
+      <b style="color:#bbb">1 · Key</b> — anything that commits an action: scale 0.97 + brightness on touch-down, 120ms. Release always snappy.<br><br>
+      <b style="color:#bbb">2 · Row</b> — anything that navigates: background well on touch-down, NO scale (rows aren't buttons), 110ms.<br><br>
+      <b style="color:#bbb">3 · Detent control</b> — anything with discrete values (toggle, stepper, segments, pickers): mechanical snap + one haptic per detent, digit-roll for value changes.<br><br>
+      <b style="color:#bbb">4 · Needle</b> — anything that displays a measured value: sweeps on change (350ms), detent at band crossings, never fades or jumps.<br><br>
+      <b style="color:#bbb">5 · Surface</b> — sheets/expansions: origin-aware, interruptible, 200–250ms; content staggers in 40ms steps behind the surface.<br><br>
+      SwiftUI carriers: custom ButtonStyles (touch-down via configuration.isPressed), .sensoryFeedback, .contentTransition(.numericText), matchedGeometryEffect, scrollTransition, Animatable TickScale (already built).
+    </p>
+  </div>
+</div>
+
+<h2>3 · "Considered layout" — Home recomposed (static)</h2>
+<p class="h2sub">The current screens are correct but monotone: every card is full-width, every row the same height, one rhythm everywhere. The recomposition keeps the law but adds compositional contrast: an asymmetric readout, a metric grid with baseline-aligned numerals, section headers that carry a rule, and varied density between zones.</p>
+<div class="demo-strip">
+  <div class="layout-col">
+    <div class="demo-label">Before — v4.0 today (uniform stack)</div>
+    <div class="demo lay">
+      <div class="titlebar"><div class="t">DASHBOARD</div><div class="caps">LOG WORKOUT</div></div>
+      <div class="a-panel"><div class="caps" style="color:var(--pink2)">READINESS · SUN JUL 20</div>
+        <div style="display:flex;align-items:baseline;gap:10px;margin-top:10px"><span class="score" style="font-family:'IBM Plex Mono',monospace;font-size:56px;font-weight:500">71</span><span style="font-size:10px;letter-spacing:0.2em;color:var(--pink2)">GO</span></div>
+        <div class="track"><div class="needle"></div></div>
+      </div>
+      <div class="b-card">
+        <div class="mrow"><span>Resting heart rate</span><b>58 · −3%</b></div>
+        <div class="mrow"><span>Heart rate variability</span><b>48 · +0%</b></div>
+      </div>
+      <div class="b-card">
+        <div class="mrow"><span>3 of 8 weeks</span><b></b></div>
+        <div class="mrow"><span style="color:var(--ink2);font-size:12px">Keep logging — periodization insights unlock…</span><b></b></div>
+      </div>
+      <div class="b-card"><div class="mrow"><span>Upper Body</span><b>RPE 7</b></div><div class="mrow"><span>League Match</span><b>RPE 9</b></div></div>
+    </div>
+  </div>
+  <div class="layout-col">
+    <div class="demo-label">After — v4.1 composed (same content, designed)</div>
+    <div class="demo lay">
+      <div class="titlebar"><div class="t">TODAY</div><div class="caps">SUN JUL 20</div></div>
+      <div class="a-panel">
+        <div class="toprow"><span class="caps">READINESS</span><span class="caps" style="color:#4E5154">SN·07</span></div>
+        <div class="readout">
+          <span class="score">71</span>
+          <div class="zstack"><div class="z">GO</div><div class="zs">RECOVERY HIGH</div></div>
+        </div>
+        <div class="track"><div class="needle"></div></div>
+        <div class="tnums"><span>0</span><span>25</span><span>50</span><span>75</span><span>100</span></div>
+      </div>
+      <div class="a-grid">
+        <div class="a-cell"><div class="caps">RHR</div><div class="v">58<small> bpm</small></div><div class="d">−3% vs base</div></div>
+        <div class="a-cell"><div class="caps">HRV</div><div class="v">48<small> ms</small></div><div class="d">+0% vs base</div></div>
+        <div class="a-cell"><div class="caps">SLEEP</div><div class="v">7:00</div><div class="d">−0:30 vs base</div></div>
+      </div>
+      <div class="a-sect"><span class="caps">RECENT SESSIONS</span><span class="rule"></span></div>
+      <div class="a-rowcard">
+        <div class="r"><div><div class="n">Upper Body</div><div class="meta">Today · 56m</div></div><b>RPE 7</b></div>
+        <div class="r"><div><div class="n">League Match</div><div class="meta">Yesterday · 48m</div></div><b>RPE 9</b></div>
+      </div>
+    </div>
+  </div>
+</div>
+<p class="note" style="max-width:88ch">What changed, precisely: (1) score and zone form one <b>baseline-aligned readout</b> — big number left, zone stack right, tension across the panel instead of a lonely corner; (2) tick numerals return under the hero scale (they carry the instrument story); (3) RHR/HRV/Sleep become a <b>3-cell metric grid</b> with unit-superscripts and delta lines — scannable in one fixation instead of four rows of prose; (4) section headers carry a <b>trailing hairline rule</b> — they structure the page instead of floating; (5) row cards get two-line rows (name + meta) so density varies between zones. Same tokens, same laws, no new colors.</p>
+
+<div class="footnote">
+  References feeding this round: emilkowalski/skills (design-eng framework: frequency-based animation decisions, strong custom ease-out, touch-down feedback, interruptibility; apple-design: fluid interfaces, velocity handoff, spatial consistency, materials) · SwiftUI carriers already in the codebase or stdlib: custom ButtonStyle isPressed, .sensoryFeedback, .contentTransition(.numericText), matchedGeometryEffect, .scrollTransition, Animatable (TickScale). Nothing here requires new dependencies.
+</div>
+
+</div>
+<script>
+  function wireBar(sel, tickW, wellSel) {
+    const bar = document.querySelector(sel); if (!bar) return;
+    const items = [...bar.querySelectorAll('.item')];
+    const tick = bar.querySelector('.tick');
+    const well = wellSel ? bar.querySelector(wellSel) : null;
+    items.forEach((it, i) => it.addEventListener('click', () => {
+      items.forEach(x => x.classList.remove('on')); it.classList.add('on');
+      const center = (i + 0.5) * (100 / items.length);
+      if (tick) tick.style.left = `calc(${center}% - ${tickW / 2}px)`;
+      if (well) well.style.left = `${i * (100 / items.length) + 0.5}%`;
+    }));
+  }
+  wireBar('[data-bar]', 34, null);
+  wireBar('[data-barb]', 38, '.well');
+  (function(){ const deck = document.querySelector('[data-barc]'); if (!deck) return;
+    const items = [...deck.querySelectorAll('.item')];
+    items.forEach(it => it.addEventListener('click', () => { items.forEach(x => x.classList.remove('on')); it.classList.add('on'); }));
+  })();
+  (function(){ const tg = document.querySelector('[data-tg]'); if (tg) tg.addEventListener('click', () => tg.classList.toggle('on')); })();
+  (function(){
+    const val = document.querySelector('[data-val]'); if (!val) return;
+    let v = 130.0;
+    document.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
+      v = Math.round((v + parseFloat(b.dataset.step)) * 10) / 10;
+      val.classList.add('rolling');
+      setTimeout(() => { val.querySelector('.digit').textContent = v.toFixed(1); val.classList.remove('rolling'); }, 160);
+    }));
+  })();
+  (function(){
+    const panel = document.querySelector('[data-sweep]'); if (!panel) return;
+    const num = panel.querySelector('[data-scnum]'), needle = panel.querySelector('[data-scneedle]');
+    panel.addEventListener('click', () => {
+      const target = 40 + Math.round(Math.random() * 55);
+      needle.style.transition = 'none'; needle.style.left = '2%';
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        needle.style.transition = 'left 350ms cubic-bezier(0.23,1,0.32,1)';
+        needle.style.left = target + '%';
+      }));
+      const t0 = performance.now(), from = 0;
+      (function tick(now){
+        const p = Math.min((now - t0) / 350, 1);
+        const eased = 1 - Math.pow(1 - p, 3);
+        num.textContent = Math.round(from + (target - from) * eased);
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
+    });
+  })();
+</script>
+</body>
+</html>
