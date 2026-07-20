@@ -43,14 +43,18 @@ struct SetStepperDouble: View {
         // 0-load set past the empty-set filter). Only step down from a committed value or
         // a carried/target ghost baseline.
         guard let base = value ?? ghostBaseline else { return }
-        value = max(floor, base - increment)
-        Haptics.select()
+        let next = max(floor, base - increment)
+        // v4.1 D13(a): per-step taps are SILENT. Fire the limit haptic only when the
+        // press is rejected at the floor (value already clamped, nothing to decrement).
+        if next == base {
+            Haptics.limit()
+        }
+        value = next
     }
 
     private func stepUp() {
         let base = value ?? ghostBaseline ?? floor
         value = max(floor, base + increment)
-        Haptics.select()
     }
 
     var body: some View {
@@ -108,14 +112,18 @@ struct SetStepperInt: View {
         // No-op when there is nothing to decrement from (see SetStepperDouble.stepDown):
         // an empty field with no ghost baseline must NOT commit a spurious 0.
         guard let base = value ?? ghostBaseline else { return }
-        value = max(floor, base - increment)
-        Haptics.select()
+        let next = max(floor, base - increment)
+        // v4.1 D13(a): per-step taps are SILENT. Fire the limit haptic only when the
+        // press is rejected at the floor (value already clamped, nothing to decrement).
+        if next == base {
+            Haptics.limit()
+        }
+        value = next
     }
 
     private func stepUp() {
         let base = value ?? ghostBaseline ?? floor
         value = max(floor, base + increment)
-        Haptics.select()
     }
 
     var body: some View {
@@ -173,6 +181,7 @@ private struct StepperButton: View {
                 .background(ColorTokens.surface)
                 .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable)
+        // Small ± keys depress a touch deeper (0.94) to match the demo's stepper feel.
+        .buttonStyle(.pressable(scale: 0.94))
     }
 }

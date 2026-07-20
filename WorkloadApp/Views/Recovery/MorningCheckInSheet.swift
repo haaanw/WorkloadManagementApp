@@ -31,9 +31,15 @@ struct MorningCheckInSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    Text("morning.checkin.heading")
+            VStack(spacing: 0) {
+                InstrumentSheetHeader(title: "morning.nav.title") {
+                    SheetHeaderButton(title: "action.cancel") { dismiss() }
+                } trailing: {
+                    SheetHeaderButton(title: "action.save", emphasis: true, isDisabled: athlete == nil) { save() }
+                }
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Text("morning.checkin.heading")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -170,23 +176,10 @@ struct MorningCheckInSheet: View {
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
                 }
-            }
-            .background(ColorTokens.background)
-            .navigationTitle("morning.nav.title")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.save") { save() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
-                        .disabled(athlete == nil)
-                }
+                .background(ColorTokens.background)
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .task {
             Haptics.prepare()
@@ -437,40 +430,41 @@ private struct CustomTagManagementSheet: View {
 
     var body: some View {
         NavigationStack {
-            List {
-                ForEach(customTagNames, id: \.self) { tag in
-                    Text(tag)
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
+            VStack(spacing: 0) {
+                InstrumentSheetHeader(title: "tags.nav.title") {
+                    EmptyView()
+                } trailing: {
+                    SheetHeaderButton(title: "action.done", emphasis: true) { dismiss() }
                 }
-                .onDelete(perform: deleteTag)
-
-                if customTagNames.count < maxCustomTags {
-                    HStack {
-                        TextField("tags.field.name.placeholder", text: $newTagName)
+                List {
+                    ForEach(customTagNames, id: \.self) { tag in
+                        Text(tag)
                             .font(.Tokens.body)
-                            .onChange(of: newTagName) { _, new in
-                                if new.count > maxTagLength {
-                                    newTagName = String(new.prefix(maxTagLength))
-                                }
-                            }
-                        Button("action.add") { addTag() }
-                            .font(.Tokens.label)
-                            .disabled(newTagName.trimmingCharacters(in: .whitespaces).isEmpty)
+                            .foregroundStyle(ColorTokens.text1)
                     }
-                } else {
-                    Text(String(format: String(localized: "tags.max.message", defaultValue: "Maximum %d custom tags"), maxCustomTags))
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
+                    .onDelete(perform: deleteTag)
+
+                    if customTagNames.count < maxCustomTags {
+                        HStack {
+                            TextField("tags.field.name.placeholder", text: $newTagName)
+                                .font(.Tokens.body)
+                                .onChange(of: newTagName) { _, new in
+                                    if new.count > maxTagLength {
+                                        newTagName = String(new.prefix(maxTagLength))
+                                    }
+                                }
+                            Button("action.add") { addTag() }
+                                .font(.Tokens.label)
+                                .disabled(newTagName.trimmingCharacters(in: .whitespaces).isEmpty)
+                        }
+                    } else {
+                        Text(String(format: String(localized: "tags.max.message", defaultValue: "Maximum %d custom tags"), maxCustomTags))
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text2)
+                    }
                 }
             }
-            .navigationTitle("tags.nav.title")
-            .toolbar {
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.done") { dismiss() }
-                        .font(.Tokens.label)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

@@ -30,9 +30,15 @@ struct NiggleLogSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    Text("niggle.heading")
+            VStack(spacing: 0) {
+                InstrumentSheetHeader(title: "niggle.nav.title") {
+                    SheetHeaderButton(title: "action.cancel") { dismiss() }
+                } trailing: {
+                    SheetHeaderButton(title: "action.save", emphasis: true) { save() }
+                }
+                ScrollView {
+                    VStack(spacing: 0) {
+                        Text("niggle.heading")
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -70,23 +76,11 @@ struct NiggleLogSheet: View {
 
                     divider
                 }
-            }
-            .background(ColorTokens.background)
-            .navigationTitle("niggle.nav.title")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.save") { save() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
-                }
+                .background(ColorTokens.background)
+                .onAppear { Haptics.prepare() }
             }
-            .onAppear { Haptics.prepare() }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

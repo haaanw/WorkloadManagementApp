@@ -78,9 +78,15 @@ struct TrainingProfileSheet: View {
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // REQUIRED section
+            VStack(spacing: 0) {
+                InstrumentSheetHeader(title: "profile.trainingProfile.navTitle") {
+                    SheetHeaderButton(title: "action.discardChanges") { dismiss() }
+                } trailing: {
+                    SheetHeaderButton(title: "action.saveProfile", emphasis: true, isDisabled: !isFormValid) { save() }
+                }
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // REQUIRED section
                     formSection(String(localized: "profile.trainingProfile.sectionRequired", defaultValue: "REQUIRED")) {
 
                     pickerRow(
@@ -159,25 +165,10 @@ struct TrainingProfileSheet: View {
                             .padding(.top, Spacing.xs)
                     }
                 }
-            }
-            .background(ColorTokens.background)
-            .navigationTitle("profile.trainingProfile.navTitle")
-            .navigationBarTitleDisplayMode(.inline)
-            .interactiveDismissDisabled(hasChanges)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.discardChanges") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.saveProfile") { save() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
-                        .disabled(!isFormValid)
-                }
-            }
-            .onAppear {
+                .background(ColorTokens.background)
+                .interactiveDismissDisabled(hasChanges)
+                .onAppear {
                 if let p = existingProfile {
                     sessionsPerWeek = p.sessionsPerWeek
                     avgDurationMinutes = p.avgDurationMinutes
@@ -198,6 +189,8 @@ struct TrainingProfileSheet: View {
                     }
                 }
             }
+            }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

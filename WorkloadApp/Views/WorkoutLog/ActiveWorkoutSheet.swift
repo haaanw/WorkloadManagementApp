@@ -85,6 +85,14 @@ struct ActiveWorkoutSheet: View {
 
     var body: some View {
         NavigationStack {
+            VStack(spacing: 0) {
+            InstrumentSheetHeader(title: "nav.workout") {
+                SheetHeaderButton(title: "action.cancel") { dismiss() }
+            } trailing: {
+                SheetHeaderButton(title: "action.finish", emphasis: true) {
+                    showFinishConfirmation = true
+                }
+            }
             ScrollView {
                 VStack(spacing: 0) {
                     // Session info
@@ -205,23 +213,6 @@ struct ActiveWorkoutSheet: View {
                 }
             }
             .background(ColorTokens.background)
-            .navigationTitle("nav.workout")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.finish") {
-                        Haptics.tap()
-                        showFinishConfirmation = true
-                    }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
-                }
-            }
             .sheet(isPresented: $showExercisePicker) {
                 ExercisePickerView(sportType: sportType) { name, category, muscle in
                     var draft = ExerciseEntryDraft(
@@ -326,6 +317,8 @@ struct ActiveWorkoutSheet: View {
                     loadFromResolvedPlan(resolvedPlan)
                 }
             }
+            }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

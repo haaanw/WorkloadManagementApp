@@ -14,6 +14,15 @@ struct FinishWorkoutSheet: View {
 
     var body: some View {
         NavigationStack {
+            VStack(spacing: 0) {
+            InstrumentSheetHeader(title: "nav.finishWorkout") {
+                SheetHeaderButton(title: "action.keepEditing") { dismiss() }
+            } trailing: {
+                SheetHeaderButton(title: "action.finish", emphasis: true) {
+                    onFinish()
+                    dismiss()
+                }
+            }
             VStack(spacing: Spacing.md) {
                 // RPE section
                 VStack(spacing: Spacing.xs) {
@@ -64,25 +73,10 @@ struct FinishWorkoutSheet: View {
             }
             .padding(Spacing.md)
             .background(ColorTokens.background)
-            .navigationTitle("nav.finishWorkout")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.keepEditing") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.finish") {
-                        onFinish()
-                        dismiss()
-                    }
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text1)
-                }
-            }
             .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: saveAsTemplate)
             .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: rpe)
+            }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .interactiveDismissDisabled(true)
         .onAppear {

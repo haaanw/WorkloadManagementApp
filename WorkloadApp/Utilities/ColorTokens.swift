@@ -124,13 +124,28 @@ enum ColorTokens {
     /// `#46525E` — desaturated slate (undertrained / neutral). 6.6:1 / 7.4:1.
     static let zoneLow      = Color(uiColor: .light(0x46525E))
 
-    // MARK: - Charts (instrument-variant series)
-    static let chartATL     = zoneCaution
-    static let chartCTL     = zoneLow
-    static let chartTSB     = zoneOptimal
-    static let chartVolume  = text2
-    static let chartHRV     = zoneOptimal
-    static let chartSleep   = zoneLow
+    // MARK: - Charts (v4.1 instrument traces — WS3 retune 2026-07-20)
+    // The v4.0 chart series aliased the olive/moss zone tokens, which read as alarm colors on
+    // the aluminum body. Retuned to instrument traces: cool-neutral inks graded by lightness
+    // for the load/volume series, plus ONE muted supporting hue (a desaturated instrument teal,
+    // `#4E7A74`) reserved for the "positive" series (form/TSB + HRV) so a single-series
+    // physiology chart still carries a hint of life. Semantic pairing preserved (acute =
+    // prominent dark, chronic base = quiet light, form = the hue). Inter-series
+    // distinguishability ≥3:1 on the co-plotted load chart (ATL dark vs CTL light vs TSB teal,
+    // separated by lightness + hue). Dedicated hex literals — do not re-alias zone tokens.
+    /// `#33383D` — dark cool ink. Acute load (ATL): the prominent, volatile line.
+    static let chartATL     = Color(uiColor: .light(0x33383D))
+    /// `#8B9096` — light cool ink. Chronic base (CTL): the quiet backbone line.
+    static let chartCTL     = Color(uiColor: .light(0x8B9096))
+    /// `#4E7A74` — the ONE muted supporting hue (desaturated instrument teal). Training-stress
+    /// balance / form: the positive series.
+    static let chartTSB     = Color(uiColor: .light(0x4E7A74))
+    /// `#6E757B` — mid cool ink. Session-volume bars.
+    static let chartVolume  = Color(uiColor: .light(0x6E757B))
+    /// `#4E7A74` — supporting teal (shares TSB's positive hue). HRV: positive physiology.
+    static let chartHRV     = Color(uiColor: .light(0x4E7A74))
+    /// `#5A6066` — mid-dark cool ink. Sleep duration.
+    static let chartSleep   = Color(uiColor: .light(0x5A6066))
 
     // MARK: - Legacy aliases (migrate views to new tokens progressively)
     static let primaryAccent       = text1

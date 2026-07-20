@@ -18,6 +18,10 @@ struct PlanTodaySheet: View {
 
     var body: some View {
         NavigationStack {
+            VStack(spacing: 0) {
+            InstrumentSheetHeader(title: "planToday.chooser.navTitle") {
+                SheetHeaderButton(title: "action.cancel") { dismiss() }
+            }
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     Text("planToday.chooser.subtitle")
@@ -45,15 +49,6 @@ struct PlanTodaySheet: View {
                 .padding(.vertical, Spacing.md)
             }
             .background(ColorTokens.background)
-            .navigationTitle("planToday.chooser.navTitle")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                }
-            }
             .sheet(isPresented: $showTemplatePicker) {
                 TemplatePickerSheet(
                     onSelectTemplate: { template in
@@ -72,6 +67,8 @@ struct PlanTodaySheet: View {
             .sheet(isPresented: $showManual) {
                 ManualLiftEntrySheet(onPlanned: { dismiss() })
             }
+            }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

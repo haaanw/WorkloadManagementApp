@@ -61,51 +61,49 @@ struct WorkoutImportSheet: View {
 
     var body: some View {
         NavigationStack {
-            ZStack {
-                VStack(spacing: 0) {
-                    // Segmented picker
-                    tabPicker
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+            VStack(spacing: 0) {
+                InstrumentSheetHeader(title: "nav.importWorkout") {
+                    SheetHeaderButton(title: "action.cancel") { dismiss() }
+                }
 
-                    // Tab content
-                    ScrollView {
-                        VStack(spacing: 16) {
-                            switch selectedTab {
-                            case .text:
-                                textTabContent
-                            case .pdf:
-                                pdfTabContent
-                            case .photo:
-                                photoTabContent
-                            }
+                ZStack {
+                    VStack(spacing: 0) {
+                        // Segmented picker
+                        tabPicker
+                        Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
-                            // Error banner (D-08)
-                            if let errorMessage {
-                                errorBanner(
-                                    message: errorMessage,
-                                    canRetry: selectedTab != .photo || lastPhotoImage != nil
-                                )
+                        // Tab content
+                        ScrollView {
+                            VStack(spacing: 16) {
+                                switch selectedTab {
+                                case .text:
+                                    textTabContent
+                                case .pdf:
+                                    pdfTabContent
+                                case .photo:
+                                    photoTabContent
+                                }
+
+                                // Error banner (D-08)
+                                if let errorMessage {
+                                    errorBanner(
+                                        message: errorMessage,
+                                        canRetry: selectedTab != .photo || lastPhotoImage != nil
+                                    )
+                                }
                             }
+                            .padding(16)
                         }
-                        .padding(16)
+                    }
+                    .background(ColorTokens.background)
+
+                    // Loading overlay (D-09)
+                    if isLoading {
+                        loadingOverlay
                     }
                 }
-                .background(ColorTokens.background)
-
-                // Loading overlay (D-09)
-                if isLoading {
-                    loadingOverlay
-                }
             }
-            .navigationTitle("nav.importWorkout")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                }
-            }
+            .toolbar(.hidden, for: .navigationBar)
             .fileImporter(
                 isPresented: $showDocumentPicker,
                 allowedContentTypes: [.pdf]

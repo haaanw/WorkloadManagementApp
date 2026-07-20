@@ -22,7 +22,7 @@ struct TimeRangeSegmentedControl: View {
                 .font(selected == range ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
                 .foregroundStyle(selected == range ? ColorTokens.panelInk : ColorTokens.text2)
                 .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
+                .padding(.vertical, Spacing.xs)
                 .background(selected == range ? ColorTokens.text1 : ColorTokens.surfaceEl)
                 .buttonStyle(.pressable(scale: 1, opacity: 0.7))
                 .accessibilityAddTraits(selected == range ? [.isButton, .isSelected] : .isButton)
@@ -40,6 +40,6 @@ struct TimeRangeSegmentedControl: View {
             RoundedRectangle(cornerRadius: CornerTokens.control)
                 .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
         )
-        .padding(.horizontal, 16)
+        .padding(.horizontal, Spacing.sm)
     }
 }

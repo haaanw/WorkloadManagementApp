@@ -34,7 +34,12 @@ struct ShareImportPreviewSheet: View {
 
     var body: some View {
         NavigationStack {
-            ZStack(alignment: .bottom) {
+            VStack(spacing: 0) {
+                InstrumentSheetHeader(title: "nav.importTemplate") {
+                    SheetHeaderButton(title: "action.close") { dismiss() }
+                }
+
+                ZStack(alignment: .bottom) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         // Banner
@@ -149,16 +154,9 @@ struct ShareImportPreviewSheet: View {
                     .padding(.vertical, 16)
                 }
                 .background(ColorTokens.background)
-            }
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.close") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
                 }
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .presentationDetents([.medium, .large])
     }

@@ -31,6 +31,17 @@ struct TextTemplateImportSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                InstrumentSheetHeader(title: "nav.importProgram") {
+                    SheetHeaderButton(title: "action.cancel") { dismiss() }
+                } trailing: {
+                    SheetHeaderButton(
+                        title: "action.saveAll",
+                        emphasis: true,
+                        isDisabled: parsedTemplates.isEmpty || isSaving
+                    ) { saveTemplates() }
+                }
+
+                VStack(spacing: 0) {
                 // Input area
                 VStack(alignment: .leading, spacing: 8) {
                     Text("import.instructionText")
@@ -102,23 +113,10 @@ struct TextTemplateImportSheet: View {
                         }
                     }
                 }
-            }
-            .background(ColorTokens.background)
-            .navigationTitle("nav.importProgram")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
                 }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.saveAll") { saveTemplates() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
-                        .disabled(parsedTemplates.isEmpty || isSaving)
-                }
+                .background(ColorTokens.background)
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

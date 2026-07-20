@@ -20,7 +20,12 @@ struct ShareImportSheet: View {
 
     var body: some View {
         NavigationStack {
-            VStack(alignment: .leading, spacing: 0) {
+            VStack(spacing: 0) {
+                InstrumentSheetHeader(title: "nav.importTemplate") {
+                    SheetHeaderButton(title: "action.close") { dismiss() }
+                }
+
+                VStack(alignment: .leading, spacing: 0) {
                 // Instruction text
                 Text("import.instructionCode")
                     .font(.Tokens.label)
@@ -78,22 +83,10 @@ struct ShareImportSheet: View {
                 }
 
                 Spacer()
-            }
-            .background(ColorTokens.background)
-            .navigationTitle("")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .principal) {
-                    Text("nav.importTemplate")
-                        .font(.Tokens.sectionHead)
-                        .foregroundStyle(ColorTokens.text1)
                 }
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.close") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                }
+                .background(ColorTokens.background)
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
         .presentationDetents([.medium])
         .onAppear {

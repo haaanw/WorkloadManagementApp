@@ -23,6 +23,10 @@ struct TemplatePickerSheet: View {
 
     var body: some View {
         NavigationStack {
+            VStack(spacing: 0) {
+            InstrumentSheetHeader(title: "nav.templates") {
+                SheetHeaderButton(title: "action.cancel") { dismiss() }
+            }
             ScrollView {
                 VStack(spacing: 0) {
                     if templates.isEmpty {
@@ -50,17 +54,8 @@ struct TemplatePickerSheet: View {
                 }
             }
             .background(ColorTokens.surfaceEl)
-            .navigationTitle("nav.templates")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(ColorTokens.surfaceEl, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                }
             }
+            .toolbar(.hidden, for: .navigationBar)
         }
     }
 

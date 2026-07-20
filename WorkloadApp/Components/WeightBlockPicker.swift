@@ -126,13 +126,17 @@ struct WeightBlockPicker: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            // Live readout above the cluster (display-over-control).
+            // Live readout above the cluster (display-over-control). Fixed-width value cell
+            // (D13(c)): reserved for the widest realistic reading ("999.5") so the numeral
+            // never jitters the unit label as digits change; the swap rolls via digitRoll (D13(b)).
             HStack(spacing: Spacing.baselinePair) {
                 Text(centerDisplay.map(numeralString) ?? "—")
                     .font(.Tokens.bodyMedium)
                     .monospacedDigit()
                     .contentTransition(.numericText())
                     .foregroundStyle(isUnset ? ColorTokens.text2 : ColorTokens.text1)
+                    .frame(minWidth: 56, alignment: .leading)
+                    .animation(Motion.resolved(Motion.digitRoll, reduceMotion: reduceMotion), value: centerDisplay)
                 Text(unitLabel)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)

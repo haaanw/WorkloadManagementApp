@@ -248,8 +248,10 @@ struct SessionStartPicker: View {
     private func choiceButton(_ option: SessionStartChoice) -> some View {
         let isSelected = choice == option
         return Button {
+            // True discrete-detent landing (D13(a) exception): one select haptic on an
+            // actual selection change; re-tapping the current choice is silent.
+            if !isSelected { Haptics.select() }
             apply(option)
-            Haptics.tap()
         } label: {
             VStack(spacing: Spacing.xs) {
                 Image(systemName: option.systemImage)
@@ -362,8 +364,9 @@ struct SessionStartPicker: View {
         action: @escaping () -> Void
     ) -> some View {
         Button {
+            // Discrete-detent landing: one select haptic only on an actual selection change.
+            if !isSelected { Haptics.select() }
             action()
-            Haptics.select()
         } label: {
             Text(label)
                 .font(.Tokens.label)
@@ -453,8 +456,9 @@ struct MatchTierPicker: View {
     private func tierButton(_ tier: MatchTier) -> some View {
         let isSelected = (selection ?? .pickup) == tier
         return Button {
+            // Discrete-detent landing: one select haptic only on an actual selection change.
+            if !isSelected { Haptics.select() }
             selection = tier
-            Haptics.select()
         } label: {
             Text(tier.displayName)
                 .font(.Tokens.label)

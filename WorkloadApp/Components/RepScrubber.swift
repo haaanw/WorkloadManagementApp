@@ -22,9 +22,9 @@ import UIKit
 /// Tap the number (or anywhere on the track) → `.numberPad` keypad fallback for the fast
 /// known-value path; clamp 1–30 on dismiss.
 ///
-/// Haptics: a local `UISelectionFeedbackGenerator` fired once per crossed integer (NOT
-/// `.sensoryFeedback`), `prepare()`d on touch-down, gated on changed-integer so a fast
-/// 1→30 drag is not buzzy.
+/// Haptics (v4.1 D13(a)): per-detent scrub ticks are SILENT — the motion carries the
+/// feedback. The ONLY haptic is `Haptics.limit()` when the drag reaches the 1 or 30 bound
+/// (a rejected/at-limit press), fired once on the crossing into that bound.
 struct RepScrubber: View {
     /// Bound stored reps (nil = unset / first-ever).
     @Binding var reps: Int?
@@ -49,14 +49,15 @@ struct RepScrubber: View {
     /// Live drag value (integer) while a drag is in progress; nil when not dragging.
     /// Isolated in local @State so per-pixel motion never writes the @Binding.
     @State private var dragValue: Int? = nil
-    /// Last integer for which we fired a selection haptic, to gate per-detent firing.
-    @State private var lastHapticInt: Int? = nil
     @State private var isDragging = false
 
     @State private var showKeypad = false
     @State private var keypadText = ""
 
-    private let haptic = UISelectionFeedbackGenerator()
+    // v4.1 D13(a): the ONLY per-adjustment haptic is the min/max limit bump (a firm medium
+    // impact, matching `Haptics.limit()`). Kept as a local generator so it can be `prepare()`d
+    // on touch-down for tight drag latency; no per-detent selection buzz during the scrub.
+    private let limitHaptic = UIImpactFeedbackGenerator(style: .medium)
 
     /// The value the indicator should sit on: the live drag value, else the committed reps,
     /// else the suggested ghost baseline, else the floor.
@@ -155,7 +156,10 @@ struct RepScrubber: View {
                 .monospacedDigit()
                 .contentTransition(.numericText())
                 .foregroundStyle(isGhost ? ColorTokens.text3 : (displayValue == nil ? ColorTokens.text2 : ColorTokens.text1))
+                // Fixed-width value cell (D13(c)) — reserved for two digits ("30"); the swap
+                // rolls subtly via digitRoll (D13(b)) so 1↔30 never jitters the row.
                 .frame(minWidth: 28, alignment: .leading)
+                .animation(Motion.resolved(Motion.digitRoll, reduceMotion: reduceMotion), value: displayValue)
         }
     }
 
@@ -212,18 +216,18 @@ struct RepScrubber: View {
                     .onChanged { g in
                         if !isDragging {
                             isDragging = true
-                            haptic.prepare()
-                            lastHapticInt = displayValue
+                            limitHaptic.prepare()
                         }
                         let f = max(0, min(1, g.location.x / max(1, width)))
                         let v = clamp(minReps + Int((f * span).rounded()))
                         if v != dragValue {
+                            let previous = dragValue
                             dragValue = v
-                            // One haptic per crossed integer (gated on change).
-                            if v != lastHapticInt {
-                                haptic.selectionChanged()
-                                haptic.prepare()
-                                lastHapticInt = v
+                            // Per-detent ticks are SILENT (D13(a)); fire the limit bump only
+                            // when the scrub newly lands on the 1 or 30 bound.
+                            if (v == minReps || v == maxReps) && v != previous {
+                                limitHaptic.impactOccurred()
+                                limitHaptic.prepare()
                             }
                         }
                     }
@@ -233,7 +237,6 @@ struct RepScrubber: View {
                         }
                         dragValue = nil
                         isDragging = false
-                        lastHapticInt = nil
                     }
             )
             // Tap → keypad fallback (fast known-value path). With a focus chain, focus the
