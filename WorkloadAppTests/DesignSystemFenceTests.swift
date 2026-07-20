@@ -202,6 +202,22 @@ final class DesignSystemFenceTests: XCTestCase {
         }
     }
 
+    func test_tickSpring_overshootReservedForTabTick() throws {
+        // v4.1 Five-Primitive Interaction Law: `Motion.tickSpring` is the ONE sanctioned
+        // overshoot curve in the whole app, reserved for the Console tab tick. It is DEFINED
+        // in CardStyle.swift (the Motion chokepoint) and may be REFERENCED only by
+        // InkTabBar.swift. Any other consumer would leak overshoot into the otherwise
+        // overshoot-free mechanical grammar — a design-law failure.
+        let allowed: Set<String> = ["CardStyle.swift", "InkTabBar.swift"]
+        for (name, text) in try fencedSources() {
+            if allowed.contains(name) { continue }
+            XCTAssertFalse(
+                text.contains("tickSpring"),
+                "\(name) references Motion.tickSpring — the overshoot curve is reserved for the Console tab tick (InkTabBar.swift) only (DESIGN.md v4.1 Five-Primitive Interaction Law)"
+            )
+        }
+    }
+
     func test_noBareWithAnimation() throws {
         // A bare `withAnimation { }` silently uses SwiftUI's default spring — a hidden,
         // untokenized personality. Every withAnimation call must name a Motion token

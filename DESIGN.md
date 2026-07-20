@@ -1,6 +1,6 @@
 # Design System — Tuwa
 
-**v4 "Instrument" — Aluminum Panel, 2026-07-20.** Created by /design-consultation 2026-03-21 · light-only v2 2026-06-17 · v3 "Ink & Grain" 2026-07-14 · **v4 "Instrument" treatment locked by user decision 2026-07-20** (orchestration `.planning/orchestration/2026-07-20-v4-instrument.md` D9–D11; picked mockup `.planning/design-reference/tuwa-instrument-round2.html`, column D "Aluminum Panel" — its CSS is tone ground truth).
+**v4 "Instrument" — Aluminum Panel, 2026-07-20** (amended **v4.1 polish round, 2026-07-20** — Console tab bar + the Five-Primitive Interaction Law, decisions D12–D15, demo `.planning/design-reference/tuwa-v4-polish-demos.html`). Created by /design-consultation 2026-03-21 · light-only v2 2026-06-17 · v3 "Ink & Grain" 2026-07-14 · **v4 "Instrument" treatment locked by user decision 2026-07-20** (orchestration `.planning/orchestration/2026-07-20-v4-instrument.md` D9–D11; picked mockup `.planning/design-reference/tuwa-instrument-round2.html`, column D "Aluminum Panel" — its CSS is tone ground truth).
 
 ## Product Context
 
@@ -133,9 +133,13 @@ Decision/action rows are **butted key rows**: flex cells of equal weight inside 
 - Optional faint **ghost mark** (planned/previous value) at ~0.55 opacity of the numeral ink.
 - Tick colors on aluminum: `#4E5154` minor / `#6E7175` major / `#8B8F94` numerals (column D vars; Stage 1″ tokenizes as component-internal constants derived from ColorTokens).
 
-### Tab bar
+### Tab bar — Console (v4.1 D12)
 
-Text-only micro-caps labels (9pt-class, tracking 0.2em) on a flat opaque bar (`surface`-tinted, 0.5pt top hairline). Active tab: ink label + the 1.5pt red index tick ABOVE the label. Inactive: `--disabled`. No icons, no pill highlights. (InkTabBar architecture retained; Stage 1″ restyles.)
+Text-only **title-case** labels (11pt Medium `keyLabel`, modest ~0.13em tracking, Latin only) on a flat opaque bar (`tabBarSurface`, 0.5pt `dividerStrong` top hairline). The v4.1 readability raise: 9pt all-caps `--disabled` → 11pt title-case, with inactive labels lifted to `--text-3`.
+
+Selected state is a three-part **presence** grammar (not a font-weight change — see below): (1) the ink color step `--text-3` → `--text-1`; (2) a faint sliding **well** behind the active item — `--text-1` @5%, `CornerTokens.control` plate, inset off the bar edges, sliding between tabs on `Motion.state`; (3) the 1.5pt red **index tick** ABOVE the active label (needle grammar, Index Rule), which slides on the springy `Motion.tickSpring` — the one overshoot in the app. Per-item press-down: scale 0.94. No icons, no pill highlights.
+
+**Weight-shift caveat:** D12's mock shows a 500→600 shift on select, but General Sans is Regular/Medium-only and bold is banned — a same-size bump would be fake-bolding. Labels therefore stay Medium at both states and selection is carried by color + well + tick (the sanctioned "color+size, not fake bolding" substitute). A literal within-law weight shift (Regular→Medium) would need an 11pt-Regular tab token in `FontTokens.swift`; deferred. (InkTabBar architecture + a11y IDs unchanged.)
 
 ### Zone Color Rule (retained)
 
@@ -179,6 +183,18 @@ Crisp + mechanical. Motion is a detent click, not a flourish.
 - **Haptics:** commit-only, plus **detent haptics** on scale/needle landings. Never decorative.
 - One motion language, one chokepoint: the `Motion` token enum (CardStyle.swift). Never a bare `withAnimation { }`, never a hand-typed duration at a call site. `reduceMotion` honored via `Motion.resolved(_:reduceMotion:)`. (Stage 3″ retunes the token values to this law; the token names and fence stay.)
 
+## The Five-Primitive Interaction Law (v4.1)
+
+Every touchable class in the app gets **exactly one defined response** — the feel vocabulary is a fixed set of five primitives, applied everywhere, never improvised per screen. This is what "interactive in every detail" means concretely. Carriers live in `CardStyle.swift`; call sites reference the styles/tokens, never raw curves. (Ratified by decision D13 with the adjustments below; demo `.planning/design-reference/tuwa-v4-polish-demos.html` §2.)
+
+1. **Key** — anything that *commits an action* (CTAs, key cells, tab items). Touch-down: **scale 0.97** + (for ink-filled keys) **brighten**, settling on `Motion.press` (120ms). Carrier: `.buttonStyle(.key)` (brighten) or `.buttonStyle(.pressable)` (dim, for light surfaces). Release always snappy.
+2. **Row** — anything that *navigates* (disclosure/list rows). Touch-down: a **background well** (`--text-1` @6%), **NO scale** (rows are surfaces, not buttons), on `Motion.rowWell` (~110ms). Carrier: `.buttonStyle(.rowWell)`.
+3. **Detent control** — anything with *discrete values* (toggles, steppers, segments, pickers). Mechanical snap; value swaps **digit-roll** subtly (~100ms, small travel — `Motion.digitRoll` + `.contentTransition(.numericText())`). **Fixed-width value cells:** a value container **never resizes** when the digit count changes — reserve width for the widest realistic reading (carrier: `DialValueCell`, hidden `widthTemplate`). **Haptics are reduced (D13a):** per-step taps are **silent**; a haptic fires ONLY at **min/max limits** (`Haptics.limit()`) and on **toggle flips** (`Haptics.tap()`), plus the Home hero count-up band detents.
+4. **Needle** — anything that *displays a measured value* (`TickScale`). Sweeps only on **real moments** (screen load / explicit re-measure); minor updates settle instantly under `Motion.state`. Value changes animate **current→new directly — never back through zero** (79→42 travels straight down); sweep-from-zero is allowed ONLY on genuine first appearance (the Home count-up). Detent haptics are **opt-in** and restricted to the Home hero (`TickScale(detents: true)`).
+5. **Surface** — sheets / expansions. **One-unit entrance** (the surface moves as a whole, origin-aware, interruptible, 200–250ms) — **no content stagger** (D13f; the v4.0 40ms row-stagger inside sheets is retired). Carrier: WS3's `SheetChrome` + `Motion.entrance`.
+
+Motion carriers added in v4.1: `Motion.rowWell`, `Motion.digitRoll`, and `Motion.tickSpring` (the ONE sanctioned overshoot — Console tab tick only). The `tickSpring` overshoot must appear nowhere else.
+
 ## Implementation Rules for SwiftUI
 
 1. **Corners from `CornerTokens` only** (card 5 / panel 5 / control 4; pill = chips only). Hand-typed radius literals are fence failures.
@@ -192,6 +208,7 @@ Crisp + mechanical. Motion is a detent click, not a flourish.
 9. **CTAs are butted key cells** (ink fill), never pills, never red.
 10. **Spacing on the 8pt grid** (4pt `baselinePair` only).
 11. **Motion through `Motion` tokens only**, per the v4 motion law.
+12. **Interaction through the Five Primitives** (v4.1): every touchable uses its one defined response — `.key` / `.pressable` (Key), `.rowWell` (Row), detent controls with fixed-width `DialValueCell` value areas + reduced haptics, `TickScale` needles that never return to zero, one-unit sheet surfaces. Value cells that display data numerals never resize with digit count (reserve the widest reading).
 
 ## Retired v3 concepts (do not reintroduce)
 
@@ -218,3 +235,4 @@ Retained from v2/v3: light-only, no shadows, 8pt grid, text-label-first zones, n
 | 2026-06-27 | Light-only direction confirmed                   | Light appearance is the only supported material expression                           |
 | 2026-07-14 | Tuwa v3 "Ink & Grain" — serif display, 12pt corners, halftone, accent pill CTA | Superseded by v4: on-device dogfood failed on aesthetics ("feels like a default app") |
 | 2026-07-20 | **Tuwa v4 "Instrument" (Aluminum Panel)** — Braun/B&O/Contax pivot | User decisions D9–D11: v1.6 dogfood failed on aesthetics; treatment picked via 2 mockup rounds (column D). Full pivot: serif + halftone + paper-blue palette retired; IBM Plex Mono dial voice, black panel hero, red index marks, near-square geometry, butted keys, TickScale grammar, Emil Kowalski motion law. Structural v1.6 work (rehost, InkTabBar, ScreenHeader, movement bank, fences) retained. |
+| 2026-07-20 | **v4.1 polish round** — Console tab bar + Five-Primitive Interaction Law | User decisions D12–D15: Console tab bar (11pt title-case, sliding well + springy red tick, press-down 0.94); the five-primitive interaction fabric ratified with adjustments (reduced haptics, ~100ms subtle digit-roll, fixed-width dial value cells, needles never return to zero, sheet surfaces enter as one unit with no content stagger); layout recomposition across all tabs. Motion carriers `rowWell`/`digitRoll`/`tickSpring` added; `tickSpring` is the sole sanctioned overshoot. |

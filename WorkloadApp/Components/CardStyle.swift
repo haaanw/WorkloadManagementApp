@@ -52,6 +52,10 @@ enum Spacing {
 /// today — the v2 "gentle spring" state/entrance personalities are retired). Route ALL
 /// animations through these tokens — never a bare `withAnimation { }` (it silently uses
 /// SwiftUI's default spring).
+///
+/// v4.1 exception (Five-Primitive Interaction Law): `tickSpring` is the single sanctioned
+/// overshoot curve, and it is reserved for exactly one element — the Console tab tick. It is
+/// the "throw" the finger imparts on the index needle; nothing else overshoots.
 enum Motion {
     /// The v4 signature curve — strong ease-out cubic-bezier(0.23, 1, 0.32, 1)
     /// (DESIGN.md Motion: "starts fast, feels responsive"; never ease-in).
@@ -61,6 +65,19 @@ enum Motion {
 
     /// Press feedback — law: 100–160ms. Used by `PressableButtonStyle` (scale 0.97).
     static let press = strongEaseOut(0.12)
+    /// Row touch-down well — the Row primitive's background settle (v4.1 Five-Primitive
+    /// Interaction Law: Row = ~110ms well, no scale). Used by `RowWellButtonStyle`.
+    static let rowWell = strongEaseOut(0.11)
+    /// Detent digit-roll — the value-swap on a stepper/scrubber/dial cell (v4.1 D13(b):
+    /// "digit roll faster/subtler, ~100ms, small travel"). Pairs with
+    /// `.contentTransition(.numericText())` in `DialValueCell` and the controls.
+    static let digitRoll = strongEaseOut(0.10)
+    /// The ONE sanctioned overshoot curve in the whole app — the Console tab tick's springy
+    /// throw only (v4.1 D12). cubic-bezier(0.3, 1.15, 0.4, 1): the y2 > 1 control point is
+    /// the slight overshoot that makes the red index "settle" onto the newly-selected tab
+    /// like a thrown needle. NOT a general motion personality — every other transition stays
+    /// on the overshoot-free `strongEaseOut`. Reserved for `InkTabBar`'s active-tab tick.
+    static let tickSpring = Animation.timingCurve(0.3, 1.15, 0.4, 1, duration: 0.22)
     /// Quick state settle — toggles, selection, needle position, value swaps.
     /// Law: UI transitions 150–250ms; mechanical snap-settle, no overshoot.
     static let state = strongEaseOut(0.18)
@@ -563,6 +580,8 @@ struct DesignToggleStyle: ToggleStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         Button {
+            // A toggle flip is one of the sanctioned v4.1 discrete-commit haptics (D13(a)).
+            Haptics.tap()
             configuration.isOn.toggle()
         } label: {
             ZStack(alignment: configuration.isOn ? .trailing : .leading) {
@@ -699,7 +718,8 @@ struct PrimaryActionButton: View {
             .padding(.horizontal, Spacing.sm)
             .background(ColorTokens.text1, in: RoundedRectangle(cornerRadius: CornerTokens.control))
         }
-        .buttonStyle(.pressable)
+        // The canonical Key: an ink-filled CTA lights under the finger (brighten, not dim).
+        .buttonStyle(.key)
         .disabled(isDisabled || isLoading)
         .opacity(isDisabled ? 0.5 : 1)
     }
@@ -881,6 +901,55 @@ struct StatusBadge: View {
     }
 }
 
+// MARK: - Dial value cell (fixed-width instrument reading — v4.1 D13(c))
+
+/// A dial-voice reading whose container NEVER resizes as the digit count changes (v4.1
+/// D13(c): "fixed-width dial value cells — a value container never resizes when digit count
+/// changes; reserve width for the widest realistic reading"). A hidden `widthTemplate` (the
+/// widest reading the cell will ever show, e.g. `"888.8"`, `"100"`) reserves the width; the
+/// live `text` is drawn over it at `alignment`. Because the dial voice is monospaced, the
+/// template width equals any same-length reading exactly.
+///
+/// Digit changes roll subtly via `.contentTransition(.numericText())` on `Motion.digitRoll`
+/// (~100ms, small travel — D13(b)); pass `rolls: false` for readings that should snap. Under
+/// Reduce Motion the roll resolves to an instant swap. The cell carries the reading itself as
+/// its accessibility value (the template is hidden from a11y).
+struct DialValueCell: View {
+    /// The live reading, already formatted (`"71"`, `"130.0"`, `"7:00"`).
+    let text: String
+    /// The widest realistic reading this cell will show — reserves the fixed width.
+    let widthTemplate: String
+    var font: Font = .Tokens.dialSmall
+    var color: Color = ColorTokens.text1
+    /// Where the reading sits inside the reserved cell (trailing for right-aligned columns).
+    var alignment: Alignment = .trailing
+    var rolls: Bool = true
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var body: some View {
+        Text(widthTemplate)
+            .font(font)
+            .monospacedDigit()
+            .foregroundStyle(.clear)
+            .accessibilityHidden(true)
+            .overlay(alignment: alignment) {
+                Text(text)
+                    .font(font)
+                    .monospacedDigit()
+                    .foregroundStyle(color)
+                    .lineLimit(1)
+                    .contentTransition(.numericText())
+                    .animation(
+                        rolls ? Motion.resolved(Motion.digitRoll, reduceMotion: reduceMotion) : nil,
+                        value: text
+                    )
+            }
+            .accessibilityElement()
+            .accessibilityLabel(Text(text))
+    }
+}
+
 struct SheetScaffold<Content: View, Footer: View>: View {
     let title: LocalizedStringKey
     @ViewBuilder var content: Content
@@ -1027,21 +1096,28 @@ struct MenuChevron: View {
 
 // MARK: - Pressable button style (tactile feedback — v4 mechanical key press)
 
-/// Tactile press feedback for any tappable surface (rows, cards, CTAs, key cells). Scales
-/// to 0.97 and dims to 0.7 on press, settling back via `Motion.press` (120ms strong
-/// ease-out — the law's 100–160ms press-feedback window; mechanical, no spring). No color
-/// shift, no shadow. Replace `.buttonStyle(.plain)` with `.buttonStyle(.pressable)` on
-/// interactive rows / cards / CTAs.
+/// **Primitive 1 · Key** (v4.1 Five-Primitive Interaction Law). Tactile press feedback for
+/// anything that commits an action (CTAs, key cells, tab items). Scales to 0.97 on press,
+/// settling back via `Motion.press` (120ms strong ease-out — the law's 100–160ms window;
+/// mechanical, no spring). Two release channels: `pressedOpacity` (dim, the general default)
+/// OR `pressedBrightness` (brighten — the canonical Key spec from the demo: an ink-filled key
+/// lightens under the finger). No color shift, no shadow. Replace `.buttonStyle(.plain)` with
+/// `.buttonStyle(.pressable)` (dim) or `.buttonStyle(.key)` (brighten) on interactive
+/// rows / cards / CTAs.
 struct PressableButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var pressedScale: CGFloat = 0.97
     var pressedOpacity: Double = 0.7
+    /// Additive brightness on press (0 = off). The Key spec brightens instead of dimming so an
+    /// ink-filled key reads as "lit under the finger" rather than "faded".
+    var pressedBrightness: Double = 0
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .scaleEffect(configuration.isPressed ? pressedScale : 1)
             .opacity(configuration.isPressed ? pressedOpacity : 1)
+            .brightness(configuration.isPressed ? pressedBrightness : 0)
             .animation(Motion.resolved(Motion.press, reduceMotion: reduceMotion), value: configuration.isPressed)
     }
 }
@@ -1054,6 +1130,42 @@ extension ButtonStyle where Self == PressableButtonStyle {
     static func pressable(scale: CGFloat = 0.97, opacity: Double = 0.7) -> PressableButtonStyle {
         PressableButtonStyle(pressedScale: scale, pressedOpacity: opacity)
     }
+    /// The canonical **Key** press (scale 0.97 + brighten, 120ms). For ink-filled keys — the
+    /// fill lifts toward light under the finger rather than dimming (v4.1 demo §2 "KEY").
+    static var key: PressableButtonStyle {
+        PressableButtonStyle(pressedScale: 0.97, pressedOpacity: 1, pressedBrightness: 0.12)
+    }
+}
+
+/// **Primitive 2 · Row** (v4.1 Five-Primitive Interaction Law). Touch-down feedback for
+/// anything that NAVIGATES (disclosure rows, list rows). A faint ink "well" fills behind the
+/// row on press — NO scale (rows are surfaces, not buttons) — settling via `Motion.rowWell`
+/// (~110ms). The well is `text1` at 6% (the demo's `rgba(23,24,26,0.06)`), clipped to
+/// `CornerTokens.control` by default so it tucks inside the row's own corners; pass a matching
+/// `cornerRadius:` when the row sits in a differently-cornered container.
+struct RowWellButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var cornerRadius: CGFloat = CornerTokens.control
+    var wellColor: Color = ColorTokens.text1.opacity(0.06)
+
+    func makeBody(configuration: Configuration) -> some View {
+        configuration.label
+            .background(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .fill(configuration.isPressed ? wellColor : Color.clear)
+            )
+            .animation(Motion.resolved(Motion.rowWell, reduceMotion: reduceMotion), value: configuration.isPressed)
+    }
+}
+
+extension ButtonStyle where Self == RowWellButtonStyle {
+    /// The **Row** press (touch-down well, no scale). Use on navigating rows.
+    static var rowWell: RowWellButtonStyle { RowWellButtonStyle() }
+    /// The Row press with the well clipped to a specific corner radius.
+    static func rowWell(cornerRadius: CGFloat) -> RowWellButtonStyle {
+        RowWellButtonStyle(cornerRadius: cornerRadius)
+    }
 }
 
 // MARK: - Haptics (commit-only feedback — "more life" revision 2026-06-17)
@@ -1061,17 +1173,30 @@ extension ButtonStyle where Self == PressableButtonStyle {
 /// Centralized haptic feedback, fired on meaningful commits only — never decoratively.
 /// Call `Haptics.prepare()` in `onAppear` (or at the start of a latency-sensitive action) to
 /// warm the generators. All calls happen from SwiftUI actions on the main actor.
+///
+/// **v4.1 haptic policy (D13(a)) — reduced.** Haptics are now rare and load-bearing. Fire ONLY:
+/// - `limit()` — a stepper/scrubber hits its min or max bound (per-STEP taps are silent now).
+/// - `tap()` — a toggle flip (the one discrete on/off commit) and set-done commit.
+/// - `select()` — a true discrete-detent picker landing (segmented control, session-type
+///   picker) where each detent is a distinct choice.
+/// - `select()` from `TickScale` — ONLY the Home hero count-up's band detents (opt-in).
+/// - `success()` / `warning()` — workout saved, PR, spike alert.
+/// Everything else (needle micro-updates, digit rolls, row/key presses) is SILENT — the
+/// motion carries the feedback. WS3 strips per-tap control haptics against this policy.
 enum Haptics {
     private static let impactLight = UIImpactFeedbackGenerator(style: .light)
     private static let impactMedium = UIImpactFeedbackGenerator(style: .medium)
     private static let selection = UISelectionFeedbackGenerator()
     private static let notification = UINotificationFeedbackGenerator()
 
-    /// Light tap — the per-set done toggle and other small, frequent commits.
+    /// Light tap — the per-set done toggle, toggle flips, and other small discrete commits.
     static func tap() { impactLight.impactOccurred() }
     /// Medium tap — a heavier discrete action.
     static func impact() { impactMedium.impactOccurred() }
-    /// Selection change — pickers, segmented controls, scrubber detents.
+    /// Limit reached — a stepper/scrubber hitting its min or max bound. The ONLY per-adjustment
+    /// haptic in v4.1 (D13(a)); ordinary steps in the interior are silent. A firm medium bump.
+    static func limit() { impactMedium.impactOccurred() }
+    /// Selection change — true discrete-detent pickers/segmented controls, scale-band detents.
     static func select() { selection.selectionChanged() }
     /// Success — set completed, workout saved, PR detected.
     static func success() { notification.notificationOccurred(.success) }

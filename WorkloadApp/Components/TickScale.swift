@@ -21,13 +21,26 @@ import SwiftUI
 /// ONE combined element carrying a caller-supplied label (same approach as the verdict
 /// card's strike-zone bar).
 ///
-/// Motion (v4 Stage 3″): the view is `Animatable` on `value`, so needle position changes
-/// sweep mechanically under whatever `Motion` token the call site's transaction carries
-/// (`Motion.state` snap-settle for readings; the Home hero inherits `Motion.scoreCountUp`
-/// so the needle sweeps in sync with the counting digits). No transaction (Reduce Motion →
-/// `Motion.resolved` returns nil) = the needle settles instantly on the value. Detent
-/// haptics: one `Haptics.select()` click each time the animated needle crosses a zone-band
-/// boundary (max one per frame, never on first render).
+/// Motion (v4 Stage 3″ / v4.1 sweep policy): the view is `Animatable` on `value`, so needle
+/// position changes sweep mechanically under whatever `Motion` token the call site's
+/// transaction carries (`Motion.state` snap-settle for readings; the Home hero inherits
+/// `Motion.scoreCountUp` so the needle sweeps in sync with the counting digits). No
+/// transaction (Reduce Motion → `Motion.resolved` returns nil) = the needle settles instantly
+/// on the value.
+///
+/// **Sweep policy (v4.1 D13(d)/(e)) — needles never return to zero.** Because the needle is a
+/// pure `Animatable` function of `value`, a value change interpolates DIRECTLY current→new
+/// (79→42 travels straight down, never via 0). TickScale itself holds no zero-reset path:
+/// sweep-from-zero happens ONLY when the *call site's* bound value genuinely starts at the
+/// range floor on first appearance (the sanctioned Home-hero count-up: `displayedScore`
+/// animates 0→score once). Callers must not re-seed their bound value to the floor on
+/// re-measure — animate the stored reading current→new instead. Minor updates settle under
+/// `Motion.state` (a real transaction), not a re-sweep.
+///
+/// **Detent haptics are opt-in** (v4.1 D13 restricts them to the Home hero). Pass
+/// `detents: true` and a `zone` to get one `Haptics.select()` click each time the animated
+/// needle crosses a zone-band boundary (max one per frame, never on first render). Default
+/// off: the verdict microscale and the Load ACWR scale render silently.
 struct TickScale: View, Animatable {
 
     // MARK: Theme
@@ -86,6 +99,9 @@ struct TickScale: View, Animatable {
     var ghost: Double? = nil
     var variant: Variant = .scale
     var theme: Theme = .light
+    /// Opt in to zone-band detent haptics (v4.1 D13: restricted to the Home hero). Default off
+    /// — the verdict microscale and the Load ACWR scale render without haptics.
+    var detents: Bool = false
     /// Render mono numerals under the major ticks (`.scale` variant only).
     var showsNumerals: Bool = true
     /// Major divisions across the range (4 → major ticks/numerals at 0/25/50/75/100%).
@@ -124,7 +140,7 @@ struct TickScale: View, Animatable {
     /// never on the first render. Under Reduce Motion the value lands in a single frame,
     /// so at most one settle click fires (haptics are feedback, not motion).
     private func trackDetents() {
-        guard let zone else { return }
+        guard detents, let zone else { return }
         defer { detentTracker.lastValue = value }
         guard let last = detentTracker.lastValue, last != value else { return }
         let crossed = [zone.lowerBound, zone.upperBound].contains { boundary in
@@ -173,8 +189,8 @@ struct TickScale: View, Animatable {
             }
         }
         .frame(height: variant == .scale ? Metrics.scaleHeight : Metrics.microHeight)
-        // Warm the selection generator so the first detent click has no latency.
-        .onAppear { if zone != nil { Haptics.prepare() } }
+        // Warm the selection generator so the first detent click has no latency (opt-in only).
+        .onAppear { if detents, zone != nil { Haptics.prepare() } }
         .accessibilityElement(children: .ignore)
         .accessibilityLabel(accessibilityLabel)
     }

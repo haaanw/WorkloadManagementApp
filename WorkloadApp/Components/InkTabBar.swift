@@ -1,19 +1,31 @@
 import SwiftUI
 
-/// The v4 "Instrument" tab bar (Stage 4a architecture, Stage 1″ restyle — mockup column D).
+/// The v4 "Instrument" tab bar — **Console** (v4.1 D12 restyle; demo §1-B).
 ///
 /// Replaces the stock TabView chrome with the app's own instrument bar:
 /// - A flat OPAQUE `ColorTokens.tabBarSurface` plane (a hair darker than the aluminum base)
 ///   with a 0.5pt `dividerStrong` top hairline. NO material blur, NO floating pill, NO
 ///   shadow, NO corner radius — this is an edge-to-edge plane (the machined bottom edge of
 ///   the instrument), not a card.
-/// - Text-only micro-caps items: 9pt Medium `tabLabel`, ~0.2em tracking. Selected = `text1`
-///   + the 1.5pt red index tick ABOVE the label at the bar's top edge — needle grammar, one
-///   of the sanctioned index-mark locations (Index Rule). Unselected = `disabled`. An
-///   optional compact glyph variant exists (`glyph:`) as the fallback direction; the
-///   primary direction is text-only.
-/// - Full-height ≥44pt tap targets, `Haptics.select()` on switch (commit-only feedback),
-///   tick movement via `Motion.state` (reduceMotion-aware).
+/// - Text-only **Console** items: 11pt Medium `keyLabel`, TITLE-CASE (not caps), modest
+///   ~0.13em tracking (Latin only; zh gets none) — the D12 readability raise from the old
+///   9pt all-caps labels. Selected = `text1` ink + a faint sliding "well" behind the item
+///   (`text1` @5%, `Motion.state`) + the 1.5pt red index tick ABOVE the label riding the
+///   bar's top edge on the springy `Motion.tickSpring` throw — needle grammar, a sanctioned
+///   index-mark location (Index Rule). Unselected = `text3` (raised from the old `disabled`).
+/// - Per-item press-down: scale 0.94 (the D12 Console press), via `.pressable`.
+/// - Full-height ≥44pt tap targets, `Haptics.select()` on switch (commit-only feedback).
+///
+/// **On the weight-shift (D12) and the Two-Voice Type Law:** the demo shows selected labels
+/// at font-weight 600, but General Sans ships only Regular/Medium and DESIGN.md forbids bold —
+/// a same-size 500→600 shift would be fake-bolding. So selection is carried by the sanctioned
+/// substitutes the handoff calls for ("use color+size, not fake bolding"): the ink color step
+/// (`text3`→`text1`), the sliding well, and the springy tick. Labels stay Medium at both
+/// states (matching the butted-key grammar). A literal within-law weight shift would need an
+/// 11pt-Regular tab token in FontTokens (noted for the orchestrator; not owned by WS1).
+///
+/// The optional compact `glyph:` variant is retired in Console (text-only per D12); the field
+/// is retained on `Item` for source compatibility but is not rendered.
 ///
 /// Mount via `.safeAreaInset(edge: .bottom)` on the TabView, WITHOUT hiding the stock tab
 /// bar. The TabView's tabs are UIKit-hosted, so a SwiftUI inset cannot reach their safe
@@ -41,7 +53,14 @@ struct InkTabBar<Tab: Hashable>: View {
     @Binding var selection: Tab
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
     @Namespace private var tickNamespace
+
+    /// Case/tracking are Latin typography — Chinese labels get neither (same rule as
+    /// ScreenHeader / ZoneBadge).
+    private var isLatinLocale: Bool {
+        locale.language.languageCode?.identifier != "zh"
+    }
 
     var body: some View {
         HStack(spacing: 0) {
@@ -73,36 +92,45 @@ struct InkTabBar<Tab: Hashable>: View {
             Haptics.select()
             selection = item.tab
         } label: {
-            VStack(spacing: Spacing.xs) {
-                if let glyph = item.glyph {
-                    Image(systemName: glyph)
-                        .font(.Tokens.label)
-                        .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.disabled)
-                        .accessibilityHidden(true)
+            Text(item.title)
+                // Console: 11pt Medium, title-case, modest tracking (D12).
+                .font(.Tokens.keyLabel)
+                .tracking(isLatinLocale ? 1.4 : 0)
+                .lineLimit(1)
+                .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.text3)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                // The faint sliding "well" behind the active item — `text1` @5%, clipped to
+                // a control-cornered plate, inset off the bar edges. Slides between tabs on
+                // the container's `Motion.state` transaction (D12).
+                .background {
+                    if isSelected {
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .fill(ColorTokens.text1.opacity(0.05))
+                            .padding(.vertical, Spacing.xs)
+                            .padding(.horizontal, Spacing.baselinePair)
+                            .matchedGeometryEffect(id: "ink.tab.well", in: tickNamespace)
+                            .accessibilityHidden(true)
+                    }
                 }
-
-                Text(item.title)
-                    .font(.Tokens.tabLabel)
-                    .tracking(1.8)
-                    .textCase(.uppercase)
-                    .lineLimit(1)
-                    .foregroundStyle(isSelected ? ColorTokens.text1 : ColorTokens.disabled)
-            }
-            .frame(maxWidth: .infinity, maxHeight: .infinity)
-            .contentShape(Rectangle())
-            // The 1.5pt red index tick ABOVE the label, riding the bar's top edge —
-            // needle grammar (Index Rule): the needle points at the active tab.
-            .overlay(alignment: .top) {
-                if isSelected {
-                    Rectangle()
-                        .fill(ColorTokens.index)
-                        .frame(width: 36, height: 1.5)
-                        .matchedGeometryEffect(id: "ink.tab.tick", in: tickNamespace)
-                        .accessibilityHidden(true)
+                .contentShape(Rectangle())
+                // The 1.5pt red index tick ABOVE the label, riding the bar's top edge —
+                // needle grammar (Index Rule): the needle points at the active tab. It is the
+                // ONE element that gets the springy `Motion.tickSpring` throw (its own
+                // transaction, overriding the container's ease-out), so it settles onto the
+                // newly-selected tab with a hint of overshoot.
+                .overlay(alignment: .top) {
+                    if isSelected {
+                        Rectangle()
+                            .fill(ColorTokens.index)
+                            .frame(width: 38, height: 1.5)
+                            .matchedGeometryEffect(id: "ink.tab.tick", in: tickNamespace)
+                            .animation(Motion.resolved(Motion.tickSpring, reduceMotion: reduceMotion), value: selection)
+                            .accessibilityHidden(true)
+                    }
                 }
-            }
         }
-        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+        // Per-item press-down 0.94 (D12 Console), no dim — the well + tick carry state.
+        .buttonStyle(.pressable(scale: 0.94, opacity: 1))
         .accessibilityIdentifier(item.accessibilityID)
         .accessibilityLabel(Text(item.title))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
