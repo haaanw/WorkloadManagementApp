@@ -151,12 +151,16 @@ struct MorningCheckInSheet: View {
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
 
-                    // Notes field
-                    TextField("morning.field.notes.placeholder", text: $notes, axis: .vertical)
-                        .lineLimit(3...6)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 16)
+                    // Notes field — machined field: grows a debossed focus well (v4.2).
+                    FormField(
+                        placeholder: "morning.field.notes.placeholder",
+                        text: $notes,
+                        axis: .vertical,
+                        alignment: .leading,
+                        lineLimit: 3...6
+                    )
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
@@ -168,10 +172,11 @@ struct MorningCheckInSheet: View {
                             .font(.Tokens.sectionHead)
                             .foregroundStyle(ColorTokens.text1)
                         Spacer()
-                        Text("\(Int(wellnessScore))/100")
-                            .font(.Tokens.sectionHead)
-                            .monospacedDigit()
-                            .foregroundStyle(wellnessScoreColor)
+                        ReadoutWell(
+                            value: "\(Int(wellnessScore))/100",
+                            widthTemplate: "100/100",
+                            color: wellnessScoreColor
+                        )
                     }
                     .padding(.horizontal, 16)
                     .padding(.vertical, 16)
@@ -322,10 +327,7 @@ struct WellnessSlider: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
                 Spacer()
-                Text("\(value)/5")
-                    .font(.Tokens.sectionHead)
-                    .monospacedDigit()
-                    .foregroundStyle(scoreColor)
+                ReadoutWell(value: "\(value)/5", widthTemplate: "5/5", color: scoreColor)
             }
 
             HStack(spacing: 8) {

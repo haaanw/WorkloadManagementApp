@@ -56,13 +56,14 @@ struct OnboardingView: View {
                 subtitle: "onboarding.language.subtitle"
             )
 
-            VStack(spacing: 0) {
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+            // Machined option channel (v4.2): raised cells with drilled dots in a debossed bay.
+            VStack(spacing: Spacing.baselinePair) {
                 ForEach(container.localeManager.supportedLocales, id: \.identifier) { locale in
                     languageRow(for: locale)
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                 }
             }
+            .padding(Spacing.xs)
+            .debossed(cornerRadius: CornerTokens.control)
             .padding(.horizontal, 16)
             .padding(.top, 32)
 
@@ -72,28 +73,12 @@ struct OnboardingView: View {
 
     @ViewBuilder
     private func languageRow(for locale: Locale) -> some View {
-        Button {
-            Haptics.select()
+        MachinedOptionCell(
+            label: languageAutonym(for: locale),
+            isSelected: container.localeManager.activeLocale.identifier == locale.identifier
+        ) {
             container.localeManager.setLocale(locale)
-        } label: {
-            HStack {
-                if container.localeManager.activeLocale.identifier == locale.identifier {
-                    Image(systemName: "checkmark")
-                        .frame(width: 24)
-                        .foregroundStyle(ColorTokens.text1)
-                } else {
-                    Color.clear.frame(width: 24, height: 1)
-                }
-                Text(languageAutonym(for: locale))
-                    .font(.Tokens.body)
-                    .foregroundStyle(ColorTokens.text1)
-                Spacer()
-            }
-            .padding(.horizontal, 16)
-            .frame(height: 56)
-            .contentShape(Rectangle())
         }
-        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
     }
 
     private func languageAutonym(for locale: Locale) -> String {
@@ -117,35 +102,13 @@ struct OnboardingView: View {
                 spacing: 8
             ) {
                 ForEach(TrainingFrequency.allCases) { freq in
-                    Button {
-                        Haptics.select()
+                    // Machined option cell (v4.2): raised plate + drilled selection dot.
+                    MachinedOptionCell(
+                        label: freq.displayName,
+                        isSelected: selectedFrequency == freq
+                    ) {
                         selectedFrequency = freq
-                    } label: {
-                        Text(freq.displayName)
-                            .font(selectedFrequency == freq ? .Tokens.bodyMedium : .Tokens.body)
-                            .foregroundStyle(
-                                selectedFrequency == freq
-                                    ? ColorTokens.text1
-                                    : ColorTokens.text2
-                            )
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 24)
-                            .background(
-                                selectedFrequency == freq
-                                    ? ColorTokens.surfaceEl2
-                                    : ColorTokens.surfaceEl,
-                                in: RoundedRectangle(cornerRadius: CornerTokens.control)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
-                                    selectedFrequency == freq
-                                        ? ColorTokens.text1
-                                        : ColorTokens.divider,
-                                    lineWidth: selectedFrequency == freq ? 1.0 : 0.5
-                                )
-                            )
                     }
-                    .buttonStyle(.pressable)
                 }
             }
             .padding(.horizontal, 16)
@@ -165,41 +128,14 @@ struct OnboardingView: View {
 
             VStack(spacing: 8) {
                 ForEach(ExperienceLevel.allCases) { level in
-                    Button {
-                        Haptics.select()
+                    // Machined option cell (v4.2): raised plate + drilled selection dot.
+                    MachinedOptionCell(
+                        label: level.displayName,
+                        subtitle: level.subtitle,
+                        isSelected: selectedLevel == level
+                    ) {
                         selectedLevel = level
-                    } label: {
-                        VStack(alignment: .leading, spacing: 8) {
-                            Text(level.displayName)
-                                .font(.Tokens.body)
-                                .foregroundStyle(
-                                    selectedLevel == level
-                                        ? ColorTokens.text1
-                                        : ColorTokens.text2
-                                )
-                            Text(level.subtitle)
-                                .font(.Tokens.label)
-                                .foregroundStyle(ColorTokens.text2)
-                        }
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.vertical, 24)
-                        .background(
-                            selectedLevel == level
-                                ? ColorTokens.surfaceEl2
-                                : ColorTokens.surfaceEl,
-                            in: RoundedRectangle(cornerRadius: CornerTokens.control)
-                        )
-                        .overlay(
-                            RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
-                                selectedLevel == level
-                                    ? ColorTokens.text1
-                                    : ColorTokens.divider,
-                                lineWidth: selectedLevel == level ? 1.0 : 0.5
-                            )
-                        )
                     }
-                    .buttonStyle(.pressable)
                 }
             }
             .padding(.horizontal, 16)

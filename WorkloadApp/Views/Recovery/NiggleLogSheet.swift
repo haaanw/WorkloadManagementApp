@@ -67,12 +67,16 @@ struct NiggleLogSheet: View {
 
                     divider
 
-                    // Note (optional)
-                    TextField("niggle.field.note.placeholder", text: $note, axis: .vertical)
-                        .lineLimit(3...6)
-                        .textFieldStyle(SharpTextFieldStyle())
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, Spacing.sm)
+                    // Note (optional) — machined field: grows a debossed focus well (v4.2).
+                    FormField(
+                        placeholder: "niggle.field.note.placeholder",
+                        text: $note,
+                        axis: .vertical,
+                        alignment: .leading,
+                        lineLimit: 3...6
+                    )
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.sm)
 
                     divider
                 }
@@ -93,42 +97,15 @@ struct NiggleLogSheet: View {
     // MARK: - Region
 
     private var regionRow: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text("niggle.field.region")
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text1)
-
-            Menu {
-                ForEach(MuscleRegion.allCases) { region in
-                    Button {
-                        if selectedRegion != region {
-                            Haptics.select()
-                            selectedRegion = region
-                        }
-                    } label: {
-                        Label(region.displayName, systemImage: region.systemImage)
-                    }
-                }
-            } label: {
-                HStack(spacing: Spacing.xs) {
-                    Image(systemName: selectedRegion.systemImage)
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                    Text(selectedRegion.displayName)
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
-                    Spacer()
-                    MenuChevron()
-                }
-                .padding(.horizontal, Spacing.sm)
-                .padding(.vertical, Spacing.sm)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.control))
-                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
-            }
-        }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm)
+        // Machined inline select (v4.2) — the stock Menu dies.
+        InlineOptionList(
+            "niggle.field.region",
+            selection: $selectedRegion,
+            options: MuscleRegion.allCases,
+            systemImageFor: { $0.systemImage },
+            displayName: { $0.displayName }
+        )
+        .padding(.vertical, Spacing.xs)
     }
 
     // MARK: - Type
@@ -243,8 +220,7 @@ struct NiggleLogSheet: View {
             Spacer()
             Toggle("", isOn: $limitedTraining)
                 .labelsHidden()
-                .toggleStyle(.design)
-                .onChange(of: limitedTraining) { _, _ in Haptics.tap() }
+                .toggleStyle(.machined)
         }
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm)

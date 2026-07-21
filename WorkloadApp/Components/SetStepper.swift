@@ -58,10 +58,9 @@ struct SetStepperDouble: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        // v4.2: raised ± keys flanking a debossed readout well (the editable value pocket).
+        HStack(spacing: Spacing.xs) {
             StepperButton(symbol: "minus", action: stepDown)
-
-            Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
 
             ZStack {
                 // Ghosted carried baseline behind the empty field.
@@ -81,17 +80,13 @@ struct SetStepperDouble: View {
                     .monospacedDigit()
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.sm)
-            .background(ColorTokens.surface)
+            .frame(minHeight: 44)
+            .debossed(cornerRadius: CornerTokens.control)
             .contentShape(Rectangle())
             .onTapGesture { focused = true }
 
-            Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
-
             StepperButton(symbol: "plus", action: stepUp)
         }
-        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
-        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }
 
@@ -127,10 +122,9 @@ struct SetStepperInt: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
+        // v4.2: raised ± keys flanking a debossed readout well (the editable value pocket).
+        HStack(spacing: Spacing.xs) {
             StepperButton(symbol: "minus", action: stepDown)
-
-            Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
 
             ZStack {
                 if isGhost, let g = ghostBaseline {
@@ -149,24 +143,20 @@ struct SetStepperInt: View {
                     .monospacedDigit()
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, Spacing.sm)
-            .background(ColorTokens.surface)
+            .frame(minHeight: 44)
+            .debossed(cornerRadius: CornerTokens.control)
             .contentShape(Rectangle())
             .onTapGesture { focused = true }
 
-            Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
-
             StepperButton(symbol: "plus", action: stepUp)
         }
-        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
-        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
     }
 }
 
 // MARK: - Shared ± button
 
-/// A single ± segment: SF Symbol sized via Font.Tokens (not .system()), text1 foreground,
-/// surface fill, square inside the control's rounded clip. No accent, no shadow.
+/// A single ± segment: SF Symbol sized via Font.Tokens (not .system()), text1 foreground, on a
+/// milled RAISED key (v4.2 Relief Law). No accent, no shadow.
 private struct StepperButton: View {
     let symbol: String
     let action: () -> Void
@@ -176,10 +166,9 @@ private struct StepperButton: View {
             Image(systemName: symbol)
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text1)
-                .frame(width: 44)
-                .padding(.vertical, Spacing.sm)
-                .background(ColorTokens.surface)
+                .frame(width: 44, height: 44)
                 .contentShape(Rectangle())
+                .raised(cornerRadius: CornerTokens.control)
         }
         // Small ± keys depress a touch deeper (0.94) to match the demo's stepper feel.
         .buttonStyle(.pressable(scale: 0.94))

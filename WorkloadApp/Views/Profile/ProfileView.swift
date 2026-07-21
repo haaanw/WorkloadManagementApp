@@ -64,7 +64,7 @@ struct ProfileView: View {
                             // Profile exists: show summary rows
                             profileRow("profile.field.sessionsPerWeek", value: "\(profile.sessionsPerWeek)")
                             divider()
-                            profileRow("profile.field.avgDuration", value: "\(profile.avgDurationMinutes) min")
+                            profileRow("profile.field.avgDuration", value: "\(profile.avgDurationMinutes)", unit: "min")
                             divider()
                             profileRow("profile.field.typicalEffort", value: "\(Int(profile.typicalSRPE))/10")
                             divider()
@@ -101,7 +101,8 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, Spacing.sm)
                             .padding(.vertical, Spacing.sm)
-                            .background(ColorTokens.surfaceEl)
+                            .background(Color.clear)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         .accessibilityIdentifier("profile.movementBank")
@@ -126,7 +127,8 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, Spacing.sm)
                             .padding(.vertical, Spacing.sm)
-                            .background(ColorTokens.surfaceEl)
+                            .background(Color.clear)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         divider()
@@ -139,16 +141,11 @@ struct ProfileView: View {
                         // NOTIFICATIONS section (NOTF-03)
                         profileSection("profile.section.notifications") {
 
-                        // Toggle row
-                        HStack {
-                            Text("profile.row.weeklySummary")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
-                            Spacer()
+                        // Toggle row — machined round knob in a debossed channel (v4.2).
+                        InstrumentFormRow(label: "profile.row.weeklySummary") {
                             Toggle("", isOn: Binding(
                                 get: { notificationsEnabled },
                                 set: { newValue in
-                                    Haptics.tap()
                                     if newValue {
                                         Task {
                                             let status = await container.notificationService.authorizationStatus()
@@ -174,11 +171,8 @@ struct ProfileView: View {
                                 }
                             ))
                             .labelsHidden()
-                            .toggleStyle(.design)
+                            .toggleStyle(.machined)
                         }
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, Spacing.sm)
-                        .background(ColorTokens.surfaceEl)
 
                         // System denied warning
                         if notificationsDenied {
@@ -188,7 +182,6 @@ struct ProfileView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, Spacing.sm)
                                 .padding(.bottom, Spacing.xs)
-                                .background(ColorTokens.surfaceEl)
                                 .transition(.opacity)
                         }
 
@@ -262,7 +255,8 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, Spacing.sm)
                             .padding(.vertical, Spacing.sm)
-                            .background(ColorTokens.surfaceEl)
+                            .background(Color.clear)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         divider()
@@ -272,7 +266,8 @@ struct ProfileView: View {
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, Spacing.sm)
                             .padding(.vertical, Spacing.sm)
-                            .background(ColorTokens.surfaceEl)
+                            .background(Color.clear)
+                            .contentShape(Rectangle())
                         }
 
                         // Data Sync
@@ -304,7 +299,8 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, Spacing.sm)
                             .padding(.vertical, Spacing.sm)
-                            .background(ColorTokens.surfaceEl)
+                            .background(Color.clear)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         }
@@ -330,41 +326,29 @@ struct ProfileView: View {
                             }
                             .padding(.horizontal, Spacing.sm)
                             .padding(.vertical, Spacing.sm)
-                            .background(ColorTokens.surfaceEl)
+                            .background(Color.clear)
+                            .contentShape(Rectangle())
                         }
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         }
 
                         // Account — destructive actions, grouped + separated
                         profileSection("profile.section.account") {
-                        Button {
+                        InstrumentFormRow(label: "profile.signOut", action: {
                             Task {
                                 try? await container.signOut(modelContext: modelContext)
                             }
-                        } label: {
-                            Text("profile.signOut")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, Spacing.sm)
-                                .padding(.vertical, Spacing.sm)
-                                .background(ColorTokens.surfaceEl)
+                        }) {
+                            EmptyView()
                         }
-                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         divider()
-                        Button {
+                        // Quiet destructive row (v4.2): zone-danger label, no alarm fill.
+                        DestructiveFormRow(
+                            label: isDeletingAccount ? "profile.action.deleting" : "profile.action.deleteAccount",
+                            isBusy: isDeletingAccount
+                        ) {
                             showDeleteConfirmation = true
-                        } label: {
-                            Text(isDeletingAccount ? "profile.action.deleting" : "profile.action.deleteAccount")
-                                .font(.Tokens.bodyMedium)
-                                .foregroundStyle(ColorTokens.zoneDanger)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, Spacing.sm)
-                                .padding(.vertical, Spacing.sm)
-                                .background(ColorTokens.surfaceEl)
                         }
-                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-                        .disabled(isDeletingAccount)
                         }
 
                         Spacer().frame(height: Spacing.lg)
@@ -447,7 +431,8 @@ struct ProfileView: View {
             VStack(spacing: 0) {
                 content()
             }
-            .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+            // v4.2 Relief Law: each section is a milled RAISED plate; rows sit transparent on it.
+            .raised(cornerRadius: CornerTokens.card)
             .padding(.horizontal, Spacing.sm)
         }
     }
@@ -461,36 +446,18 @@ struct ProfileView: View {
     }
 
     @ViewBuilder
-    private func profileRow(_ label: LocalizedStringKey, value: String) -> some View {
-        HStack {
-            Text(label)
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text2)
-            Spacer()
-            Text(value)
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text1)
+    private func profileRow(_ label: LocalizedStringKey, value: String, unit: String? = nil) -> some View {
+        // Machined summary row: label + a debossed readout well (v4.2).
+        InstrumentFormRow(label: label) {
+            ReadoutWell(value: value, unit: unit)
         }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xs)
-        .background(ColorTokens.surfaceEl)
     }
 
     @ViewBuilder
     private func actionButton(_ label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
-        Button {
-            Haptics.tap()
-            action()
-        } label: {
-            Text(label)
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text1)
-                .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, Spacing.sm)
-                .padding(.vertical, Spacing.sm)
-                .background(ColorTokens.surfaceEl)
+        InstrumentFormRow(label: label, showsChevron: false, action: action) {
+            EmptyView()
         }
-        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
     }
 
     @ViewBuilder
@@ -510,52 +477,30 @@ struct ProfileView: View {
 
     @ViewBuilder
     private func editableTextField(_ label: LocalizedStringKey, value: Binding<String>) -> some View {
-        HStack {
-            Text(label)
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text2)
-            Spacer()
-            TextField(label, text: value)
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text1)
-                .multilineTextAlignment(.trailing)
+        // Machined field: quiet at rest, grows a debossed focus well + ink border while editing.
+        InstrumentFormRow(label: label) {
+            FormField(placeholder: label, text: value)
+                .frame(maxWidth: 200)
         }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xs)
-        .background(ColorTokens.surfaceEl)
     }
 
+    /// Machined select (v4.2): every stock `Menu` dies — the row opens an inline debossed channel
+    /// of raised option cells with drilled selection dots.
     @ViewBuilder
     private func editablePicker<T: Hashable>(
         _ label: LocalizedStringKey,
         selection: Binding<T>,
         options: [T],
+        unit: String? = nil,
         displayName: @escaping (T) -> String
     ) -> some View {
-        HStack {
-            Text(label)
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text2)
-            Spacer()
-            Menu {
-                ForEach(options, id: \.self) { option in
-                    Button(displayName(option)) {
-                        Haptics.select()
-                        selection.wrappedValue = option
-                    }
-                }
-            } label: {
-                HStack(spacing: Spacing.baselinePair) {
-                    Text(displayName(selection.wrappedValue))
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
-                    MenuChevron()
-                }
-            }
-        }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.xs)
-        .background(ColorTokens.surfaceEl)
+        InlineOptionList(
+            label,
+            selection: selection,
+            options: options,
+            unit: unit,
+            displayName: displayName
+        )
     }
 
     private func scheduleNotification() {

@@ -210,10 +210,11 @@ struct TrainingProfileSheet: View {
             VStack(spacing: 0) {
                 content()
             }
-            // Rows carry their own surfaceEl fills; clip them to the card shape so the
-            // corners stay rounded per the v3 Corner Law (CornerTokens.card).
+            // v4.2 Relief Law: the section is a milled RAISED plate; rows sit transparent on it,
+            // and any inline option channel recesses INTO it. Clip so expanding channels stay
+            // inside the plate corners (CornerTokens.card).
             .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
-            .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+            .raised(cornerRadius: CornerTokens.card)
             .padding(.horizontal, Spacing.sm)
         }
     }
@@ -240,6 +241,9 @@ struct TrainingProfileSheet: View {
             .frame(height: 0.5)
     }
 
+    /// Machined select (v4.2): the stock `Menu` dies — an inline debossed channel of raised
+    /// option cells with drilled selection dots. `label` arrives already-localized, so it is
+    /// shown verbatim through a `LocalizedStringKey` interpolation.
     @ViewBuilder
     private func pickerRow<T: Hashable>(
         _ label: String,
@@ -248,87 +252,29 @@ struct TrainingProfileSheet: View {
         placeholder: String,
         displayName: @escaping (T) -> String
     ) -> some View {
-        HStack {
-            Text(label)
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text2)
-            Spacer()
-            Menu {
-                ForEach(options, id: \.self) { option in
-                    Button(displayName(option)) {
-                        Haptics.select()
-                        selection.wrappedValue = option
-                        userHasEdited = true
-                    }
-                }
-            } label: {
-                HStack(spacing: Spacing.baselinePair) {
-                    if let value = selection.wrappedValue {
-                        Text(displayName(value))
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text1)
-                    } else {
-                        Text(placeholder)
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text3)
-                    }
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.Tokens.micro)
-                        .foregroundStyle(ColorTokens.text3)
-                }
-            }
-        }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm)
-        .background(ColorTokens.surfaceEl)
+        InlineOptionList(
+            LocalizedStringKey("\(label)"),
+            selection: selection,
+            options: options,
+            placeholder: placeholder,
+            onSelect: { userHasEdited = true },
+            displayName: displayName
+        )
     }
 
     @ViewBuilder
     private func movementTypesRow() -> some View {
-        HStack {
-            Text("profile.trainingProfile.movementTypes")
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text2)
-            Spacer()
-            Menu {
-                ForEach(SportType.allCases) { sport in
-                    Button {
-                        Haptics.tap()
-                        if selectedMovementTypes.contains(sport) {
-                            selectedMovementTypes.remove(sport)
-                        } else {
-                            selectedMovementTypes.insert(sport)
-                        }
-                        userHasEdited = true
-                    } label: {
-                        HStack {
-                            Text(sport.displayName)
-                            if selectedMovementTypes.contains(sport) {
-                                Image(systemName: "checkmark")
-                            }
-                        }
-                    }
-                }
-            } label: {
-                HStack(spacing: Spacing.baselinePair) {
-                    if selectedMovementTypes.isEmpty {
-                        Text("profile.trainingProfile.placeholder.dash")
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text3)
-                    } else {
-                        Text(String(localized: "profile.trainingProfile.movementTypes.selected", defaultValue: "\(selectedMovementTypes.count) selected"))
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text1)
-                    }
-                    Image(systemName: "chevron.up.chevron.down")
-                        .font(.Tokens.micro)
-                        .foregroundStyle(ColorTokens.text3)
-                }
-            }
-        }
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm)
-        .background(ColorTokens.surfaceEl)
+        InlineMultiOptionList(
+            label: "profile.trainingProfile.movementTypes",
+            selection: $selectedMovementTypes,
+            options: SportType.allCases,
+            displayName: { $0.displayName },
+            summary: { count in
+                String(localized: "profile.trainingProfile.movementTypes.selected", defaultValue: "\(count) selected")
+            },
+            placeholder: String(localized: "profile.trainingProfile.placeholder.dash", defaultValue: "---"),
+            onToggle: { userHasEdited = true }
+        )
     }
 
     @ViewBuilder
@@ -364,65 +310,44 @@ struct TrainingProfileSheet: View {
                 }
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.sm)
-                .background(ColorTokens.surfaceEl)
+                .background(Color.clear)
+                .contentShape(Rectangle())
             }
             .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 
             if showInjuryDetail {
-                Rectangle()
-                    .fill(ColorTokens.divider)
-                    .frame(height: 0.5)
-                    .padding(.leading, Spacing.sm)
-
-                VStack(alignment: .leading, spacing: 0) {
+                // Body regions as machined option cells in a debossed channel + a machined notes
+                // field — the same relief vocabulary as the inline selects (v4.2).
+                VStack(spacing: Spacing.baselinePair) {
                     ForEach(BodyRegion.allCases) { region in
-                        Button {
-                            Haptics.tap()
+                        MachinedOptionCell(
+                            label: region.displayName,
+                            isSelected: selectedBodyRegions.contains(region)
+                        ) {
                             if selectedBodyRegions.contains(region) {
                                 selectedBodyRegions.remove(region)
                             } else {
                                 selectedBodyRegions.insert(region)
                             }
                             userHasEdited = true
-                        } label: {
-                            HStack {
-                                Text(region.displayName)
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                                if selectedBodyRegions.contains(region) {
-                                    Image(systemName: "checkmark")
-                                        .font(.Tokens.label)
-                                        .foregroundStyle(ColorTokens.text1)
-                                }
-                            }
-                            .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, Spacing.xs)
-                        }
-                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-
-                        if region != BodyRegion.allCases.last {
-                            Rectangle()
-                                .fill(ColorTokens.divider)
-                                .frame(height: 0.5)
-                                .padding(.leading, Spacing.lg)
                         }
                     }
-
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-                        .padding(.leading, Spacing.sm)
-
-                    TextField("profile.trainingProfile.injuryNotes", text: $injuryNotes, axis: .vertical)
-                        .lineLimit(2...4)
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
-                        .padding(.horizontal, Spacing.sm)
-                        .padding(.vertical, Spacing.sm)
-                        .onChange(of: injuryNotes) { userHasEdited = true }
                 }
-                .background(ColorTokens.surfaceEl)
+                .padding(Spacing.xs)
+                .debossed(cornerRadius: CornerTokens.control)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.bottom, Spacing.xs)
+
+                FormField(
+                    placeholder: "profile.trainingProfile.injuryNotes",
+                    text: $injuryNotes,
+                    axis: .vertical,
+                    alignment: .leading,
+                    lineLimit: 2...4,
+                    onEdit: { userHasEdited = true }
+                )
+                .padding(.horizontal, Spacing.sm)
+                .padding(.bottom, Spacing.sm)
             }
         }
     }
