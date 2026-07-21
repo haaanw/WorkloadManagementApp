@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v4.2 — tuning board (pick A / B / C per row)</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family:'General Sans'; src:url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype'); font-weight:200 700; }
+  :root {
+    --bg:#E9EAEB; --card:#F5F6F7; --card2:#FAFBFB; --ink:#17181A; --ink2:#4A4D51; --ink3:#85898E;
+    --line:#D0D2D5; --line2:#C6C9CC; --hi:rgba(255,255,255,0.85);
+    --spring:cubic-bezier(0.25,0.9,0.35,1.02); --curve:cubic-bezier(0.23,1,0.32,1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:#1D1E20; color:#ddd; font-family:'General Sans',-apple-system,sans-serif; padding:48px 24px 120px; }
+  .wrap { max-width:1240px; margin:0 auto; }
+  h1 { color:#fff; font-weight:500; font-size:24px; }
+  .sub { color:#999; font-size:13.5px; margin:6px 0 30px; max-width:92ch; line-height:1.6; }
+  h2 { color:#fff; font-size:14px; font-weight:600; margin:40px 0 3px; }
+  .h2sub { color:#8a8a8a; font-size:12px; margin-bottom:14px; max-width:92ch; line-height:1.5; }
+  .rowstrip { display:flex; gap:20px; flex-wrap:wrap; }
+  .cell { width:335px; background:var(--bg); border-radius:12px; border:1px solid #3a3a3a; padding:16px; }
+  .badge { display:inline-block; font-size:11px; font-weight:600; color:#ccc; background:#333; border-radius:4px; padding:2px 9px; margin-bottom:10px; letter-spacing:0.06em; }
+  .note { color:#8a8a8a; font-size:11.5px; margin-top:9px; line-height:1.5; }
+
+  .prow { display:flex; justify-content:space-between; align-items:center; height:54px; padding:0 14px; }
+  .prow .k { font-size:14px; color:var(--ink); }
+  .mono { font-family:'IBM Plex Mono',monospace; font-weight:500; font-size:13.5px; color:var(--ink); }
+  .mono small { font-family:'General Sans'; font-size:9px; letter-spacing:0.12em; color:var(--ink3); font-weight:500; }
+
+  /* === ROW 1: relief depth === */
+  .pA { background:var(--card); border:0.5px solid var(--line); border-radius:6px; }
+  .pB { background:linear-gradient(180deg, var(--card2), var(--card)); border:0.5px solid var(--line2); border-radius:6px; box-shadow: inset 0 1px 0 var(--hi); }
+  .pC { background:linear-gradient(180deg, #FDFDFE, #F1F2F4); border:0.5px solid #B9BCC0; border-radius:6px; box-shadow: inset 0 1.5px 0 rgba(255,255,255,1), inset 0 -1px 0 rgba(23,24,26,0.06); }
+
+  /* === ROW 2: readout wells === */
+  .wA { background:transparent; border:0.5px solid var(--line2); border-radius:5px; }
+  .wB { background:linear-gradient(180deg, #E0E1E4, #E7E8EA); border:0.5px solid var(--line2); border-radius:5px; box-shadow: inset 0 1.5px 2px rgba(23,24,26,0.08), inset 0 -1px 0 rgba(255,255,255,0.55); }
+  .wC { background:linear-gradient(180deg, #D8DADD, #E2E3E6); border:0.5px solid #B9BCC0; border-radius:5px; box-shadow: inset 0 2px 3px rgba(23,24,26,0.14), inset 0 -1px 0 rgba(255,255,255,0.65); }
+  .well { min-width:100px; height:34px; display:flex; align-items:center; justify-content:flex-end; gap:5px; padding:0 11px; }
+
+  /* === ROW 3: toggles === */
+  .trow { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; }
+  .tglbase { position:relative; cursor:pointer; }
+  /* A: knurled square (current ultra) */
+  .tgA { width:52px; height:30px; border-radius:5px; background:linear-gradient(180deg,#DDDEE1,#E5E6E9); border:0.5px solid var(--line2); box-shadow: inset 0 1.5px 2px rgba(23,24,26,0.10); transition:background 220ms var(--curve); }
+  .tgA.on { background:linear-gradient(180deg,#212326,#191B1D); }
+  .tgA .knob { position:absolute; top:2.5px; left:2.5px; width:24px; height:24px; border-radius:4px; background:linear-gradient(180deg,#FCFCFD,#EDEEF0); border:0.5px solid var(--line2); box-shadow: inset 0 1px 0 var(--hi); transition:left 300ms var(--spring); display:flex; align-items:center; justify-content:center; gap:1.5px; }
+  .tgA.on .knob { left:24.5px; }
+  .tgA .knob i { width:1px; height:9px; background:var(--line2); }
+  /* B: round knob machined */
+  .tgB { width:52px; height:30px; border-radius:15px; background:linear-gradient(180deg,#DDDEE1,#E5E6E9); border:0.5px solid var(--line2); box-shadow: inset 0 1.5px 2px rgba(23,24,26,0.10); transition:background 220ms var(--curve); }
+  .tgB.on { background:linear-gradient(180deg,#212326,#191B1D); }
+  .tgB .knob { position:absolute; top:2.5px; left:2.5px; width:24px; height:24px; border-radius:50%; background:linear-gradient(180deg,#FCFCFD,#EDEEF0); border:0.5px solid var(--line2); box-shadow: inset 0 1px 0 var(--hi), 0 0.5px 1.5px rgba(23,24,26,0.2); transition:left 300ms var(--spring); }
+  .tgB.on .knob { left:24.5px; }
+  /* C: flat ink slider (no machining) */
+  .tgC { width:48px; height:28px; border-radius:4px; background:var(--line); transition:background 200ms var(--curve); }
+  .tgC.on { background:var(--ink); }
+  .tgC .knob { position:absolute; top:3px; left:3px; width:22px; height:22px; border-radius:3px; background:var(--card2); transition:left 260ms var(--spring); }
+  .tgC.on .knob { left:23px; }
+
+  /* === ROW 4: press feel === */
+  .key { height:46px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:11px; letter-spacing:0.16em; color:#F0F1F2; cursor:pointer; user-select:none; font-weight:500; margin-bottom:10px;
+    background:linear-gradient(180deg,#25272A,#1A1C1E); border:0.5px solid #0E0F10; box-shadow: inset 0 1px 0 rgba(255,255,255,0.14); }
+  .kA { transition:all 300ms var(--spring); }
+  .kA:active { background:linear-gradient(180deg,#17191B,#212326); box-shadow: inset 0 1.5px 2.5px rgba(0,0,0,0.5); transform:translateY(0.5px); filter:brightness(1.18); transition:all 85ms var(--curve); }
+  .kB { transition:all 420ms var(--spring); }
+  .kB:active { background:linear-gradient(180deg,#141618,#1F2124); box-shadow: inset 0 2px 4px rgba(0,0,0,0.65); transform:translateY(1px) scale(0.995); filter:brightness(1.25); transition:all 70ms var(--curve); }
+  .kC { transition:transform 300ms var(--spring), filter 300ms var(--spring); }
+  .kC:active { transform:scale(0.97); filter:brightness(1.35); transition:transform 90ms var(--curve), filter 90ms var(--curve); }
+
+  /* === ROW 5: option presentation === */
+  .optrowdemo { cursor:pointer; user-select:none; }
+  .chev { width:8px; height:8px; border-right:1.5px solid var(--ink3); border-bottom:1.5px solid var(--ink3); transform:rotate(45deg) translate(-1px,-1px); transition:transform 260ms var(--spring); }
+  .optrowdemo.open .chev { transform:rotate(225deg) translate(0,-2px); }
+  .ow { overflow:hidden; max-height:0; transition:max-height 300ms var(--spring); }
+  .ow.open { max-height:210px; }
+  /* A: machined cells in debossed channel */
+  .owA { background:#E4E5E8; box-shadow: inset 0 2px 3px rgba(23,24,26,0.07); }
+  .owA .deck { padding:10px 14px 12px; }
+  .owA .o { display:flex; justify-content:space-between; align-items:center; height:44px; padding:0 13px; font-size:13.5px; color:var(--ink2);
+    background:linear-gradient(180deg, var(--card2), var(--card)); border:0.5px solid var(--line2); border-top-width:0; box-shadow: inset 0 1px 0 var(--hi); }
+  .owA .deck .o:first-child { border-top-width:0.5px; border-radius:5px 5px 0 0; }
+  .owA .deck .o:last-child { border-radius:0 0 5px 5px; }
+  /* B: flat rows, hairlines only */
+  .owB { background:var(--card2); }
+  .owB .o { display:flex; justify-content:space-between; align-items:center; height:44px; padding:0 26px 0 26px; font-size:13.5px; color:var(--ink2); border-top:0.5px solid var(--line); }
+  .o.sel { color:var(--ink); font-weight:500; }
+  .dot { width:14px; height:14px; border-radius:50%; border:1.5px solid var(--line2); position:relative; }
+  .o.sel .dot { border-color:var(--ink); }
+  .o.sel .dot::after { content:''; position:absolute; inset:3px; border-radius:50%; background:var(--ink); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>Tuning board — point at the one you want, per row</h1>
+<p class="sub">Every dimension you flagged, at three concrete settings. Interact with all of them (toggles flip, keys press, option rows open). Answer per row: A, B, or C — or "between A and B", "B but…". The final system uses your picks everywhere.</p>
+
+<h2>1 · Relief depth (the milled-edge strength on raised plates)</h2>
+<div class="rowstrip">
+  <div class="cell"><span class="badge">A · Flat (v4.1 today)</span>
+    <div class="pA"><div class="prow"><span class="k">Training frequency</span><span class="mono">5–6 <small>D/WK</small></span></div></div>
+    <p class="note">Hairline only. Clean, but you called it raw.</p></div>
+  <div class="cell"><span class="badge">B · Milled (ultra demo)</span>
+    <div class="pB"><div class="prow"><span class="k">Training frequency</span><span class="mono">5–6 <small>D/WK</small></span></div></div>
+    <p class="note">1px top-highlight + faint vertical gradient.</p></div>
+  <div class="cell"><span class="badge">C · Deep-machined</span>
+    <div class="pC"><div class="prow"><span class="k">Training frequency</span><span class="mono">5–6 <small>D/WK</small></span></div></div>
+    <p class="note">Stronger highlight + bottom-edge tint + darker border. Most physical, most visible.</p></div>
+</div>
+
+<h2>2 · Readout wells (where values live)</h2>
+<div class="rowstrip">
+  <div class="cell"><span class="badge">A · Outline only</span>
+    <div class="pB"><div class="prow"><span class="k">Top set</span><span class="well wA mono">130.0 <small>KG</small></span></div></div>
+    <p class="note">Hairline frame, no recess. Quietest.</p></div>
+  <div class="cell"><span class="badge">B · Debossed (ultra demo)</span>
+    <div class="pB"><div class="prow"><span class="k">Top set</span><span class="well wB mono">130.0 <small>KG</small></span></div></div>
+    <p class="note">Soft pocket — visible but restrained.</p></div>
+  <div class="cell"><span class="badge">C · Deep pocket</span>
+    <div class="pB"><div class="prow"><span class="k">Top set</span><span class="well wC mono">130.0 <small>KG</small></span></div></div>
+    <p class="note">Darker + deeper inner shade. Reads like a cut display window.</p></div>
+</div>
+
+<h2>3 · Toggle (flip each)</h2>
+<div class="rowstrip">
+  <div class="cell"><span class="badge">A · Knurled square (ultra demo)</span>
+    <div class="pB"><div class="trow"><span class="k" style="font-size:14px;color:var(--ink)">Weekly summary</span><div class="tglbase tgA on" data-tg><div class="knob"><i></i><i></i><i></i></div></div></div></div>
+    <p class="note">Square knob, 3 engraved knurl lines, channel turns ink.</p></div>
+  <div class="cell"><span class="badge">B · Round machined</span>
+    <div class="pB"><div class="trow"><span class="k" style="font-size:14px;color:var(--ink)">Weekly summary</span><div class="tglbase tgB on" data-tg><div class="knob"></div></div></div></div>
+    <p class="note">Same channel, round polished knob — closer to iOS muscle memory, still machined.</p></div>
+  <div class="cell"><span class="badge">C · Flat ink (v4.1 today)</span>
+    <div class="pB"><div class="trow"><span class="k" style="font-size:14px;color:var(--ink)">Weekly summary</span><div class="tglbase tgC on" data-tg><div class="knob"></div></div></div></div>
+    <p class="note">No relief. The current shipped style.</p></div>
+</div>
+
+<h2>4 · Press feel (hold each key)</h2>
+<div class="rowstrip">
+  <div class="cell"><span class="badge">A · Inversion (ultra demo)</span><div class="key kA">SAVE PROFILE</div>
+    <p class="note">85ms in — relief inverts + 0.5px drop + brighten; ~300ms spring out.</p></div>
+  <div class="cell"><span class="badge">B · Deep inversion</span><div class="key kB">SAVE PROFILE</div>
+    <p class="note">70ms in — deeper shadow, 1px drop, brighter; ~420ms slower settle. Heaviest, most mechanical.</p></div>
+  <div class="cell"><span class="badge">C · Scale only (v4.1 today)</span><div class="key kC">SAVE PROFILE</div>
+    <p class="note">0.97 scale + brighten, no relief change. The current shipped feel.</p></div>
+</div>
+
+<h2>5 · Option presentation (click each Sport row)</h2>
+<div class="rowstrip">
+  <div class="cell"><span class="badge">A · Machined cells in channel (ultra demo)</span>
+    <div class="pB">
+      <div class="prow optrowdemo" data-o="a"><span class="k">Sport</span><span style="display:flex;align-items:center;gap:9px"><span class="mono" style="font-family:'General Sans';font-weight:400">Team Sport</span><span class="chev"></span></span></div>
+      <div class="ow owA" data-ob="a"><div class="deck">
+        <div class="o sel"><span>Team Sport</span><span class="dot"></span></div>
+        <div class="o"><span>Endurance</span><span class="dot"></span></div>
+        <div class="o"><span>Strength</span><span class="dot"></span></div>
+      </div></div>
+    </div>
+    <p class="note">Recessed bay holding raised cells. Most instrument, most visual weight.</p></div>
+  <div class="cell"><span class="badge">B · Recessed flat list</span>
+    <div class="pB">
+      <div class="prow optrowdemo" data-o="b"><span class="k">Sport</span><span style="display:flex;align-items:center;gap:9px"><span class="mono" style="font-family:'General Sans';font-weight:400">Team Sport</span><span class="chev"></span></span></div>
+      <div class="ow owB" data-ob="b">
+        <div class="o sel"><span>Team Sport</span><span class="dot"></span></div>
+        <div class="o"><span>Endurance</span><span class="dot"></span></div>
+        <div class="o"><span>Strength</span><span class="dot"></span></div>
+      </div>
+    </div>
+    <p class="note">Options as quiet indented rows on a lighter plane — lighter, faster to scan.</p></div>
+</div>
+
+</div>
+<script>
+  document.querySelectorAll('[data-tg]').forEach(t => t.addEventListener('click', () => t.classList.toggle('on')));
+  document.querySelectorAll('[data-o]').forEach(r => r.addEventListener('click', () => {
+    const b = document.querySelector(`[data-ob="${r.dataset.o}"]`);
+    r.classList.toggle('open'); b.classList.toggle('open');
+  }));
+  document.querySelectorAll('.o').forEach(o => o.addEventListener('click', () => {
+    const p = o.parentElement; p.querySelectorAll('.o').forEach(x => x.classList.remove('sel')); o.classList.add('sel');
+  }));
+</script>
+</body>
+</html>

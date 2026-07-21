@@ -432,6 +432,92 @@ extension View {
     }
 }
 
+// MARK: - Relief (DESIGN.md v4.2 "Machined" — Relief Law)
+
+/// RAISED — the milled plate (tuning-board pick 1-B): vertical `surfaceEl2→surfaceEl`
+/// gradient, `dividerStrong` outer hairline, and a 1px top-highlight line INSIDE the shape
+/// (the milled aluminum edge). No `.shadow()` — relief is strokes + gradients only, so the
+/// no-shadow law holds. Every machined surface in the app is either `.raised` or `.debossed`;
+/// flat is reserved for the base plane and text.
+struct RaisedStyle: ViewModifier {
+    var cornerRadius: CGFloat = CornerTokens.card
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                LinearGradient(
+                    colors: [ColorTokens.surfaceEl2, ColorTokens.surfaceEl],
+                    startPoint: .top, endPoint: .bottom
+                ),
+                in: RoundedRectangle(cornerRadius: cornerRadius)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .inset(by: 0.75)
+                    .stroke(
+                        LinearGradient(
+                            colors: [ColorTokens.reliefHighlight, .clear],
+                            startPoint: .top, endPoint: .center
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .overlay(RoundedRectangle(cornerRadius: cornerRadius).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
+    }
+}
+
+/// DEBOSSED — the readout pocket (tuning-board pick 2-B): `wellTop→wellBottom` gradient,
+/// a 1.5px inner top shade (the cut edge) and a 1px bottom inner highlight closing the
+/// pocket. Values, fields-in-focus, option channels, and toggle tracks live in pockets.
+struct DebossedStyle: ViewModifier {
+    var cornerRadius: CGFloat = CornerTokens.control
+
+    func body(content: Content) -> some View {
+        content
+            .background(
+                LinearGradient(
+                    colors: [ColorTokens.wellTop, ColorTokens.wellBottom],
+                    startPoint: .top, endPoint: .bottom
+                ),
+                in: RoundedRectangle(cornerRadius: cornerRadius)
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .inset(by: 0.75)
+                    .stroke(
+                        LinearGradient(
+                            colors: [ColorTokens.reliefShade, .clear],
+                            startPoint: .top, endPoint: .center
+                        ),
+                        lineWidth: 1.5
+                    )
+            )
+            .overlay(
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .inset(by: 0.75)
+                    .stroke(
+                        LinearGradient(
+                            colors: [.clear, ColorTokens.reliefHighlightSoft],
+                            startPoint: .center, endPoint: .bottom
+                        ),
+                        lineWidth: 1
+                    )
+            )
+            .overlay(RoundedRectangle(cornerRadius: cornerRadius).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
+    }
+}
+
+extension View {
+    /// Milled raised plate (Relief Law). See `RaisedStyle`.
+    func raised(cornerRadius: CGFloat = CornerTokens.card) -> some View {
+        modifier(RaisedStyle(cornerRadius: cornerRadius))
+    }
+    /// Debossed pocket (Relief Law). See `DebossedStyle`.
+    func debossed(cornerRadius: CGFloat = CornerTokens.control) -> some View {
+        modifier(DebossedStyle(cornerRadius: cornerRadius))
+    }
+}
+
 // MARK: - Attention banner
 
 /// The attention-banner plane shared by PR / spike / fatigue / cycle banners: a standard

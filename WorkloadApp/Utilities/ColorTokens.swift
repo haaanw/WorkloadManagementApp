@@ -58,6 +58,17 @@ enum ColorTokens {
     /// `#C6C9CC` — stronger hairline: key-row container borders, high-priority boundaries.
     static let dividerStrong = Color(uiColor: .light(0xC6C9CC))
 
+    // MARK: - Relief (DESIGN.md v4.2 "Machined" — Relief Law; used ONLY by .raised/.debossed)
+    /// 1px milled top-highlight inside RAISED plates (white @ 0.85).
+    static let reliefHighlight     = Color.white.opacity(0.85)
+    /// Softer bottom inner highlight closing a DEBOSSED pocket (white @ 0.55).
+    static let reliefHighlightSoft = Color.white.opacity(0.55)
+    /// Inner top shade of a DEBOSSED pocket (ink @ 0.08) — the cut edge.
+    static let reliefShade         = Color(uiColor: .light(0x17181A)).opacity(0.08)
+    /// `#E0E1E4 → #E7E8EA` — the debossed well's vertical gradient (top → bottom).
+    static let wellTop             = Color(uiColor: .light(0xE0E1E4))
+    static let wellBottom          = Color(uiColor: .light(0xE7E8EA))
+
     // MARK: - Text (aluminum surfaces)
     /// `#17181A` — ink. 14.8:1 on base.
     static let text1        = Color(uiColor: .light(0x17181A))

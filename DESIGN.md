@@ -210,6 +210,21 @@ Motion carriers added in v4.1: `Motion.rowWell`, `Motion.digitRoll`, and `Motion
 11. **Motion through `Motion` tokens only**, per the v4 motion law.
 12. **Interaction through the Five Primitives** (v4.1): every touchable uses its one defined response — `.key` / `.pressable` (Key), `.rowWell` (Row), detent controls with fixed-width `DialValueCell` value areas + reduced haptics, `TickScale` needles that never return to zero, one-unit sheet surfaces. Value cells that display data numerals never resize with digit count (reserve the widest reading).
 
+## v4.2 "Machined" amendment (2026-07-21 — decisions D16–D18)
+
+**The Relief Law.** Every machined surface is either RAISED or DEBOSSED; flat is reserved for the base plane and text. Implemented as the two chokepoint modifiers in CardStyle.swift — never hand-rolled:
+- **`.raised(cornerRadius:)`** — milled plate (tuning pick 1-B): `surfaceEl2→surfaceEl` vertical gradient, 1px `reliefHighlight` top line inside the shape, `dividerStrong` hairline. Cards, option cells, keys, toggle knobs.
+- **`.debossed(cornerRadius:)`** — pocket (pick 2-B): `wellTop→wellBottom` gradient, 1.5px `reliefShade` inner top edge, 1px `reliefHighlightSoft` bottom closing line, `dividerStrong` hairline. Readout wells, focused fields, option channels, toggle tracks.
+- No `.shadow()` anywhere — relief is strokes + gradients only; the no-shadow law holds.
+
+**Readout wells.** Every displayed value (form values, stepper counts, selections) sits in a fixed-width debossed well: mono value + micro-caps unit; digits change, the metal never resizes.
+
+**Press inverts relief (pick 4-A).** Keys press in ~85ms (raised→pocket: highlight dies, inner shade appears, 0.5px drop, brightness lift) and release on a ~300ms non-bouncy spring. This asymmetry + inversion is the app's press feel; scale-only presses are retired for keys.
+
+**Machined form system** (InstrumentForm.swift): 56pt press-well rows; drawn 1.5px tick-chevrons rotating on the spring; options expand INLINE as butted raised cells with drilled selection dots inside a debossed channel (pick 5-A) — stock iOS `Menu` is BANNED app-wide for settings/pickers; fields grow a debossed focus well + ink border; toggle = round polished knob (pick 3-B) in a debossed channel that turns ink when on, with an engraved index tick; destructive rows are quiet zone-danger text.
+
+**Spring motion law (D16).** Motion tokens move from fixed timing curves to NON-BOUNCY springs (interruptible, velocity-preserving). No content anywhere may pass through full invisibility during a transition (the dip-crossfade is banned); tab content hands off layered (incoming rises ~6px + fades over the outgoing). `tickSpring` remains the sole sanctioned overshoot. Durations stay in the premium-fast band (presses ~100ms in, settles ≤400ms, transitions ≤300ms).
+
 ## Retired v3 concepts (do not reintroduce)
 
 | v3 concept                              | v4 status                                                    |
@@ -235,4 +250,5 @@ Retained from v2/v3: light-only, no shadows, 8pt grid, text-label-first zones, n
 | 2026-06-27 | Light-only direction confirmed                   | Light appearance is the only supported material expression                           |
 | 2026-07-14 | Tuwa v3 "Ink & Grain" — serif display, 12pt corners, halftone, accent pill CTA | Superseded by v4: on-device dogfood failed on aesthetics ("feels like a default app") |
 | 2026-07-20 | **Tuwa v4 "Instrument" (Aluminum Panel)** — Braun/B&O/Contax pivot | User decisions D9–D11: v1.6 dogfood failed on aesthetics; treatment picked via 2 mockup rounds (column D). Full pivot: serif + halftone + paper-blue palette retired; IBM Plex Mono dial voice, black panel hero, red index marks, near-square geometry, butted keys, TickScale grammar, Emil Kowalski motion law. Structural v1.6 work (rehost, InkTabBar, ScreenHeader, movement bank, fences) retained. |
+| 2026-07-21 | **v4.2 "Machined"** — Relief Law, readout wells, press-inversion, machined form system, spring motion refit | User decisions D16–D18 after v4.1 review ("subtle but not premium; components raw"): tuning-board picks 1-B milled relief / 2-B debossed wells / 3-B round machined toggle / 4-A press inversion / 5-A machined option cells; full spring refit (no-dip transitions, asymmetric press); stock iOS Menu banned; form system app-wide. Demos: `tuwa-v42-premium-demos.html`, `tuwa-v42-ultra-forms.html`, `tuwa-v42-tuning-board.html`. |
 | 2026-07-20 | **v4.1 polish round** — Console tab bar + Five-Primitive Interaction Law | User decisions D12–D15: Console tab bar (11pt title-case, sliding well + springy red tick, press-down 0.94); the five-primitive interaction fabric ratified with adjustments (reduced haptics, ~100ms subtle digit-roll, fixed-width dial value cells, needles never return to zero, sheet surfaces enter as one unit with no content stagger); layout recomposition across all tabs. Motion carriers `rowWell`/`digitRoll`/`tickSpring` added; `tickSpring` is the sole sanctioned overshoot. |

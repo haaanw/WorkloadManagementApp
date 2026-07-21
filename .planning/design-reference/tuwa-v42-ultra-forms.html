@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v4.2 — ULTRA form components (machined) — click everything</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family:'General Sans'; src:url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype'); font-weight:200 700; }
+  :root {
+    --bg:#E9EAEB; --card:#F5F6F7; --card2:#FAFBFB; --well:#E2E3E5; --ink:#17181A; --ink2:#4A4D51; --ink3:#85898E;
+    --line:#D0D2D5; --line2:#C6C9CC; --index:#D04234; --hi:rgba(255,255,255,0.85); --lo:rgba(23,24,26,0.10);
+    --spring:cubic-bezier(0.25,0.9,0.35,1.02); --curve:cubic-bezier(0.23,1,0.32,1);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:#1D1E20; color:#ddd; font-family:'General Sans',-apple-system,sans-serif; padding:48px 24px 120px; }
+  .wrap { max-width:1240px; margin:0 auto; }
+  h1 { color:#fff; font-weight:500; font-size:24px; }
+  .sub { color:#999; font-size:13.5px; margin:6px 0 34px; max-width:94ch; line-height:1.6; }
+  h2 { color:#fff; font-size:15px; font-weight:600; margin:44px 0 4px; }
+  .h2sub { color:#8a8a8a; font-size:12.5px; margin-bottom:16px; max-width:94ch; line-height:1.55; }
+  .strip { display:flex; gap:24px; flex-wrap:wrap; align-items:flex-start; }
+  .phone { width:385px; background:var(--bg); border-radius:14px; border:1px solid #3a3a3a; padding:18px; }
+  .lab { font-size:11px; color:#8a8a8a; letter-spacing:0.08em; margin:0 2px 8px; text-transform:uppercase; }
+  .lab b { color:#ccc; }
+  .note { color:#8a8a8a; font-size:12px; margin-top:10px; line-height:1.55; max-width:52ch; }
+
+  /* ============ THE RELIEF SYSTEM ============ */
+  /* RAISED (milled plate): outer hairline + 1px inner top highlight + faint bottom-edge tint */
+  .plate {
+    background:linear-gradient(180deg, var(--card2), var(--card));
+    border:0.5px solid var(--line2);
+    border-radius:6px;
+    box-shadow: inset 0 1px 0 var(--hi);
+    overflow:hidden;
+  }
+  /* DEBOSSED (readout well): darker fill + inner top shade line + bottom inner highlight */
+  .rwell {
+    background:linear-gradient(180deg, #E0E1E4, #E7E8EA);
+    border:0.5px solid var(--line2);
+    border-radius:5px;
+    box-shadow: inset 0 1.5px 2px rgba(23,24,26,0.08), inset 0 -1px 0 rgba(255,255,255,0.55);
+  }
+  .f-sect { display:flex; align-items:center; gap:10px; margin:18px 0 8px; }
+  .f-sect span { font-size:9.5px; letter-spacing:0.2em; color:var(--ink2); font-weight:500; }
+  .f-sect i { flex:1; height:0.5px; background:var(--line2); }
+
+  /* form rows */
+  .row { display:flex; justify-content:space-between; align-items:center; height:56px; padding:0 14px; border-top:0.5px solid var(--line); cursor:pointer; user-select:none; transition:background 120ms var(--curve); }
+  .row:first-child { border-top:none; }
+  .row:active { background:var(--lo); }
+  .row .k { font-size:14px; color:var(--ink); }
+  .row .ksub { font-size:10.5px; color:var(--ink3); margin-top:2px; }
+  .rv { display:flex; align-items:center; gap:10px; }
+  /* the machined readout: value sits IN a debossed well */
+  .readout { min-width:104px; height:34px; display:flex; align-items:center; justify-content:flex-end; gap:5px; padding:0 11px; font-family:'IBM Plex Mono',monospace; font-size:13.5px; font-weight:500; color:var(--ink); }
+  .readout small { font-family:'General Sans'; font-size:9px; letter-spacing:0.12em; color:var(--ink3); font-weight:500; }
+  .readout.text { font-family:'General Sans'; font-weight:400; font-size:13.5px; letter-spacing:0; }
+  /* precision chevron: 1.5px drawn tick */
+  .chev { width:8px; height:8px; border-right:1.5px solid var(--ink3); border-bottom:1.5px solid var(--ink3); transform:rotate(45deg) translate(-1px,-1px); transition:transform 260ms var(--spring); flex-shrink:0; }
+  .row.open .chev { transform:rotate(225deg) translate(0px,-2px); }
+
+  /* inline option deck: debossed channel holding butted machined options */
+  .optwrap { overflow:hidden; max-height:0; transition:max-height 300ms var(--spring); background:#E4E5E8; box-shadow: inset 0 2px 3px rgba(23,24,26,0.07); }
+  .optwrap.open { max-height:230px; }
+  .optdeck { padding:10px 14px 12px; }
+  .opt { display:flex; justify-content:space-between; align-items:center; height:46px; padding:0 13px; font-size:13.5px; color:var(--ink2); cursor:pointer; user-select:none;
+    background:linear-gradient(180deg, var(--card2), var(--card)); border:0.5px solid var(--line2); border-top-width:0; box-shadow: inset 0 1px 0 var(--hi);
+    transition:background 130ms var(--curve), color 130ms var(--curve); }
+  .optdeck .opt:first-child { border-top-width:0.5px; border-radius:5px 5px 0 0; }
+  .optdeck .opt:last-child { border-radius:0 0 5px 5px; }
+  .opt:active { background:var(--lo); }
+  .opt.sel { color:var(--ink); font-weight:500; }
+  .opt .dot { width:14px; height:14px; border-radius:50%; border:1.5px solid var(--line2); position:relative; transition:border-color 150ms var(--curve); }
+  .opt.sel .dot { border-color:var(--ink); }
+  .opt.sel .dot::after { content:''; position:absolute; inset:3px; border-radius:50%; background:var(--ink); }
+
+  /* machined toggle: knurled knob in a debossed channel */
+  .mtg { width:52px; height:30px; border-radius:5px; position:relative; cursor:pointer;
+    background:linear-gradient(180deg,#DDDEE1,#E5E6E9); border:0.5px solid var(--line2);
+    box-shadow: inset 0 1.5px 2px rgba(23,24,26,0.10), inset 0 -1px 0 rgba(255,255,255,0.5);
+    transition:background 220ms var(--curve); }
+  .mtg.on { background:linear-gradient(180deg,#212326,#191B1D); }
+  .mtg .knob { position:absolute; top:2.5px; left:2.5px; width:24px; height:24px; border-radius:4px;
+    background:linear-gradient(180deg,#FCFCFD,#EDEEF0); border:0.5px solid var(--line2);
+    box-shadow: inset 0 1px 0 var(--hi), 0 0.5px 1px rgba(23,24,26,0.18);
+    transition:left 300ms var(--spring); display:flex; align-items:center; justify-content:center; gap:1.5px; }
+  .mtg.on .knob { left:24.5px; }
+  .mtg .knob i { width:1px; height:9px; background:var(--line2); }
+  /* ON tick — engraved index mark in the channel */
+  .mtg::before { content:''; position:absolute; left:9px; top:50%; transform:translateY(-50%); width:1.5px; height:10px; background:rgba(255,255,255,0.0); transition:background 200ms var(--curve); }
+  .mtg.on::before { background:#F0F1F2; opacity:0.9; }
+
+  /* machined stepper: relief keys that INVERT on press + readout well */
+  .mstep { display:flex; align-items:center; gap:10px; }
+  .mkey { width:44px; height:36px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:17px; color:var(--ink); cursor:pointer; user-select:none;
+    background:linear-gradient(180deg, var(--card2), var(--card)); border:0.5px solid var(--line2); box-shadow: inset 0 1px 0 var(--hi);
+    transition:all 280ms var(--spring); }
+  .mkey:active { background:linear-gradient(180deg, #E2E3E6, #E9EAEC); box-shadow: inset 0 1.5px 2px rgba(23,24,26,0.10); transform:translateY(0.5px); transition:all 80ms var(--curve); }
+  .mstep .readout-box { min-width:92px; }
+  .rollval { display:inline-block; transition:transform 110ms var(--curve), opacity 110ms var(--curve); }
+  .rolling .rollval { transform:translateY(-5px); opacity:0; }
+
+  /* ink key with relief + press inversion */
+  .inkkey { height:48px; border-radius:5px; display:flex; align-items:center; justify-content:center; font-size:11px; letter-spacing:0.16em; color:#F0F1F2; cursor:pointer; user-select:none; font-weight:500;
+    background:linear-gradient(180deg,#25272A,#1A1C1E); border:0.5px solid #0E0F10; box-shadow: inset 0 1px 0 rgba(255,255,255,0.14);
+    transition:all 300ms var(--spring); }
+  .inkkey:active { background:linear-gradient(180deg,#17191B,#212326); box-shadow: inset 0 1.5px 2.5px rgba(0,0,0,0.5); transform:translateY(0.5px); filter:brightness(1.18); transition:all 85ms var(--curve); }
+
+  /* field with recessed focus well */
+  .frow input { border:0.5px solid transparent; background:transparent; text-align:right; font:inherit; font-size:13.5px; color:var(--ink); outline:none; padding:8px 11px; border-radius:5px; width:150px; transition:all 180ms var(--curve); }
+  .frow input:focus { background:linear-gradient(180deg,#E0E1E4,#E7E8EA); border-color:var(--ink); box-shadow: inset 0 1.5px 2px rgba(23,24,26,0.08); }
+
+  .drow { height:52px; display:flex; align-items:center; padding:0 14px; font-size:13.5px; color:#7E362E; border-top:0.5px solid var(--line); cursor:pointer; user-select:none; transition:background 120ms var(--curve); }
+  .drow:active { background:rgba(126,54,46,0.07); }
+  .compare { display:flex; gap:24px; flex-wrap:wrap; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>v4.2 forms — the ULTRA pass: machined, not flat</h1>
+<p class="sub">Your note: "not premium enough, even in the proposal." Agreed — the previous B was clean but flat. This version adds the <b>Relief System</b>: raised surfaces carry a milled top-highlight edge, values sit in <b>debossed readout wells</b>, options live in a recessed channel holding machined cells, the toggle is a knurled slider in a channel with an engraved ON index, and every key <b>inverts its relief when pressed</b> — raised metal becomes a pressed-in key under your finger. All of it is strokes and gradients (the no-blur-shadow law holds). Press and hold everything below.</p>
+
+<h2>The machined Profile</h2>
+<div class="strip">
+  <div class="phone">
+    <div class="lab"><b>Interactive</b> — press rows, open Sport, flip the toggle, hit the stepper, hold Save</div>
+    <div class="f-sect"><span>ATHLETE</span><i></i></div>
+    <div class="plate">
+      <div class="row frow"><span class="k">Name</span><input value="Alex Chen"></div>
+      <div class="row" data-acc="sport"><span class="k">Sport</span>
+        <span class="rv"><span class="rwell readout text" data-val="sport">Team Sport</span><span class="chev"></span></span></div>
+      <div class="optwrap" data-accbody="sport"><div class="optdeck">
+        <div class="opt sel"><span>Team Sport</span><span class="dot"></span></div>
+        <div class="opt"><span>Endurance</span><span class="dot"></span></div>
+        <div class="opt"><span>Strength</span><span class="dot"></span></div>
+      </div></div>
+      <div class="row"><span class="k">Training frequency</span>
+        <span class="rv"><span class="rwell readout">5–6 <small>D/WK</small></span><span class="chev"></span></span></div>
+      <div class="row"><span class="k">Experience</span>
+        <span class="rv"><span class="rwell readout text">Advanced</span><span class="chev"></span></span></div>
+    </div>
+
+    <div class="f-sect"><span>NOTIFICATIONS</span><i></i></div>
+    <div class="plate">
+      <div class="row" style="cursor:default"><span class="k">Weekly summary</span><div class="mtg on" data-tg><div class="knob"><i></i><i></i><i></i></div></div></div>
+      <div class="row" style="cursor:default"><span class="k">Top set</span>
+        <div class="mstep">
+          <div class="mkey" data-step="-2.5">−</div>
+          <div class="rwell readout readout-box" style="justify-content:center" data-rollbox><span class="rollval" data-roll>130.0</span><small>KG</small></div>
+          <div class="mkey" data-step="2.5">+</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="f-sect"><span>ACCOUNT</span><i></i></div>
+    <div class="plate">
+      <div class="row"><span class="k">Sign out</span></div>
+      <div class="drow">Delete account…</div>
+    </div>
+
+    <div style="height:16px"></div>
+    <div class="inkkey">SAVE PROFILE</div>
+    <p class="note">Hold SAVE: the ink key's top-light dies, the inner shadow deepens, it drops 0.5px and brightens — a pressed key, not a dimmed button. Release rides the spring back.</p>
+  </div>
+
+  <div style="max-width:430px">
+    <div class="lab">What makes it ultra (the Relief Law, DESIGN.md v4.2)</div>
+    <p class="note" style="font-size:12.5px; max-width:none">
+      <b style="color:#bbb">1 · Two reliefs, one law.</b> RAISED = outer hairline + 1px top-highlight inside (milled edge). DEBOSSED = darker gradient + inner top shade + 1px bottom-highlight (a pocket cut into the metal). Every surface is one or the other — flat dies.<br><br>
+      <b style="color:#bbb">2 · Values live in readout wells.</b> Every reading — form values, stepper counts, picker selections — sits in a debossed mono well with a micro-caps unit. The well is fixed-width; digits change, metal doesn't.<br><br>
+      <b style="color:#bbb">3 · Press inverts relief.</b> Raised keys become recessed under the finger (highlight dies, inner shadow appears, 0.5px drop) in ~85ms; release springs back over ~300ms. That asymmetry + inversion IS the premium feel.<br><br>
+      <b style="color:#bbb">4 · Options are machined cells in a channel.</b> The row opens a debossed channel holding butted raised cells with drilled selection dots — reads like a component bay, not a menu.<br><br>
+      <b style="color:#bbb">5 · Machined toggle.</b> Knurled knob (3 engraved lines) sliding in a debossed channel; the channel turns ink when on and an engraved index tick appears. Spring glide, one haptic.<br><br>
+      <b style="color:#bbb">6 · Everything else inherits.</b> Focus = recessed well + ink border. Destructive rows stay quiet zone-red text. Chevrons are drawn 1.5px ticks that rotate on the spring.<br><br>
+      SwiftUI: all strokes + LinearGradients + overlay lines — zero <span style="font-family:monospace">.shadow()</span>, law intact. The relief becomes two ViewModifiers (<span style="font-family:monospace">.raised</span> / <span style="font-family:monospace">.debossed</span>) in the form component file, so the whole app machines itself from two primitives.
+    </p>
+  </div>
+</div>
+
+</div>
+<script>
+  document.querySelectorAll('[data-acc]').forEach(row => row.addEventListener('click', () => {
+    const body = document.querySelector(`[data-accbody="${row.dataset.acc}"]`);
+    row.classList.toggle('open'); body.classList.toggle('open');
+  }));
+  document.querySelectorAll('.opt').forEach(o => o.addEventListener('click', () => {
+    const wrap = o.closest('.optwrap'); const deck = o.parentElement;
+    deck.querySelectorAll('.opt').forEach(x => x.classList.remove('sel')); o.classList.add('sel');
+    document.querySelector('[data-val="sport"]').textContent = o.querySelector('span').textContent;
+    const row = document.querySelector(`[data-acc="${wrap.dataset.accbody}"]`);
+    setTimeout(() => { row.classList.remove('open'); wrap.classList.remove('open'); }, 200);
+  }));
+  const tg = document.querySelector('[data-tg]'); tg.addEventListener('click', () => tg.classList.toggle('on'));
+  let v = 130.0;
+  const box = document.querySelector('[data-rollbox]'), roll = document.querySelector('[data-roll]');
+  document.querySelectorAll('[data-step]').forEach(b => b.addEventListener('click', () => {
+    v = Math.round((v + parseFloat(b.dataset.step)) * 10) / 10;
+    box.classList.add('rolling');
+    setTimeout(() => { roll.textContent = v.toFixed(1); box.classList.remove('rolling'); }, 110);
+  }));
+</script>
+</body>
+</html>

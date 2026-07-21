@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v4.2 — premium motion + instrument forms (click everything)</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  @font-face { font-family:'General Sans'; src:url('../../WorkloadApp/Resources/GeneralSans-Variable.ttf') format('truetype'); font-weight:200 700; }
+  :root {
+    --bg:#E9EAEB; --card:#F5F6F7; --card2:#FAFBFB; --ink:#17181A; --ink2:#4A4D51; --ink3:#85898E; --dis:#9A9EA3;
+    --line:#D0D2D5; --line2:#C6C9CC; --index:#D04234;
+    --curve:cubic-bezier(0.23,1,0.32,1);
+    --spring:cubic-bezier(0.25,0.9,0.35,1.02); /* approximates a critically-damped smooth spring settle */
+  }
+  * { margin:0; padding:0; box-sizing:border-box; -webkit-tap-highlight-color:transparent; }
+  body { background:#1D1E20; color:#ddd; font-family:'General Sans',-apple-system,sans-serif; padding:48px 24px 120px; }
+  .wrap { max-width:1240px; margin:0 auto; }
+  h1 { color:#fff; font-weight:500; font-size:24px; }
+  .sub { color:#999; font-size:13.5px; margin:6px 0 36px; max-width:92ch; line-height:1.6; }
+  h2 { color:#fff; font-size:15px; font-weight:600; margin:48px 0 4px; }
+  .h2sub { color:#8a8a8a; font-size:12.5px; margin-bottom:16px; max-width:92ch; line-height:1.55; }
+  .strip { display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; }
+  .demo { background:var(--bg); border-radius:14px; border:1px solid #3a3a3a; overflow:hidden; padding:18px; }
+  .lab { font-size:11px; color:#8a8a8a; letter-spacing:0.08em; margin:0 2px 8px; text-transform:uppercase; }
+  .lab b { color:#ccc; }
+  .note { color:#8a8a8a; font-size:12px; margin-top:8px; line-height:1.5; max-width:46ch; }
+
+  /* tab-content transition demos */
+  .tc { width:320px; }
+  .tc .stage { position:relative; height:120px; background:var(--card); border:0.5px solid var(--line); border-radius:5px; overflow:hidden; }
+  .tc .pane { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; font-size:26px; font-family:'IBM Plex Mono',monospace; color:var(--ink); font-weight:500; }
+  .tc .btns { display:flex; gap:8px; margin-top:10px; }
+  .tc .btns div { flex:1; text-align:center; padding:9px 0; background:#E0E1E3; border-radius:4px; font-size:11px; color:var(--ink2); cursor:pointer; user-select:none; letter-spacing:0.1em; }
+  .tc .btns div.on { background:var(--ink); color:#F0F1F2; }
+  /* A: dip (current) */
+  .tcA .pane { transition:opacity 150ms var(--curve); }
+  /* B: no-dip layered */
+  .tcB .pane { transition:opacity 220ms var(--spring), transform 220ms var(--spring); }
+
+  /* press demos */
+  .pressrow { width:320px; }
+  .pkey { background:var(--ink); color:#F0F1F2; text-align:center; padding:13px 0; border-radius:4px; font-size:11px; letter-spacing:0.16em; cursor:pointer; user-select:none; margin-bottom:10px; }
+  .pkeyA { transition:transform 120ms var(--curve), filter 120ms var(--curve); }
+  .pkeyA:active { transform:scale(0.97); filter:brightness(1.35); }
+  .pkeyB { transition:transform 320ms var(--spring), filter 320ms var(--spring); }
+  .pkeyB:active { transform:scale(0.965); filter:brightness(1.35); transition:transform 90ms var(--curve), filter 90ms var(--curve); }
+
+  /* well slide */
+  .wellslide { width:320px; }
+  .ws-bar { position:relative; display:flex; background:#E7E8EA; border:0.5px solid var(--line2); border-radius:5px; overflow:hidden; height:44px; }
+  .ws-bar .it { flex:1; display:flex; align-items:center; justify-content:center; font-size:11.5px; color:var(--ink2); cursor:pointer; user-select:none; z-index:1; }
+  .ws-bar .it.on { color:var(--ink); font-weight:500; }
+  .ws-well { position:absolute; top:4px; bottom:4px; width:calc(33.33% - 8px); margin:0 4px; background:rgba(23,24,26,0.07); border-radius:4px; }
+  .wsA .ws-well { transition:left 180ms var(--curve); }
+  .wsB .ws-well { transition:left 300ms var(--spring); }
+
+  /* entrance demos */
+  .ent { width:320px; }
+  .ent .stagearea { height:168px; }
+  .ent .item { background:var(--card); border:0.5px solid var(--line); border-radius:5px; padding:12px 14px; font-size:13px; color:var(--ink); margin-bottom:8px; opacity:0; }
+  .entA .item { transform:scale(0.98); }
+  .entA.play .item { animation:entA 240ms var(--curve) forwards; }
+  @keyframes entA { to { opacity:1; transform:scale(1); } }
+  .entB .item { transform:translateY(7px); }
+  .entB.play .item { animation:entB 420ms var(--spring) forwards; }
+  .entB.play .item:nth-child(2) { animation-delay:45ms; }
+  .entB.play .item:nth-child(3) { animation-delay:90ms; }
+  @keyframes entB { to { opacity:1; transform:translateY(0); } }
+  .replay { margin-top:6px; text-align:center; padding:8px 0; background:#E0E1E3; border-radius:4px; font-size:11px; color:var(--ink2); cursor:pointer; user-select:none; letter-spacing:0.1em; }
+
+  /* ---------- form components ---------- */
+  .formcol { width:385px; }
+  .f-sect { display:flex; align-items:center; gap:10px; margin:16px 0 8px; }
+  .f-sect span { font-size:9.5px; letter-spacing:0.2em; color:var(--ink2); font-weight:500; }
+  .f-sect i { flex:1; height:0.5px; background:var(--line2); }
+  /* raw (current) */
+  .rawcard { background:var(--card); border:0.5px solid var(--line); border-radius:5px; overflow:hidden; }
+  .rawrow { display:flex; justify-content:space-between; align-items:center; padding:10px 14px; border-top:0.5px solid var(--line); font-size:14px; }
+  .rawrow:first-child { border-top:none; }
+  .rawrow .k { color:var(--ink2); }
+  .rawrow .v { color:var(--ink); display:flex; align-items:center; gap:5px; }
+  .rawrow .v .chev { font-size:8px; color:var(--ink3); display:flex; flex-direction:column; line-height:0.8; }
+  /* instrument form */
+  .insrow { display:flex; justify-content:space-between; align-items:center; height:52px; padding:0 14px; border-top:0.5px solid var(--line); cursor:pointer; user-select:none; transition:background 110ms var(--curve); font-size:14px; }
+  .insrow:first-child { border-top:none; }
+  .insrow:active { background:rgba(23,24,26,0.05); }
+  .insrow .k { color:var(--ink); }
+  .insrow .v { color:var(--ink2); display:flex; align-items:center; gap:8px; }
+  .insrow .v .mono { font-family:'IBM Plex Mono',monospace; font-size:13px; }
+  .insrow .tickchev { width:9px; height:9px; border-right:1.5px solid var(--ink3); border-bottom:1.5px solid var(--ink3); transform:rotate(45deg) translateY(-2px); transition:transform 200ms var(--spring); }
+  .insrow.open .tickchev { transform:rotate(225deg) translateY(-1px); }
+  .optwrap { overflow:hidden; max-height:0; transition:max-height 260ms var(--spring); background:var(--card2); }
+  .optwrap.open { max-height:200px; }
+  .opt { display:flex; justify-content:space-between; align-items:center; height:44px; padding:0 14px; font-size:13.5px; color:var(--ink2); border-top:0.5px solid var(--line); cursor:pointer; user-select:none; transition:background 110ms var(--curve), color 110ms var(--curve); }
+  .opt:active { background:rgba(23,24,26,0.05); }
+  .opt.sel { color:var(--ink); font-weight:500; }
+  .opt.sel::after { content:''; width:6px; height:6px; border-radius:50%; background:var(--ink); }
+  .fieldrow { display:flex; justify-content:space-between; align-items:center; height:52px; padding:0 14px; border-top:0.5px solid var(--line); font-size:14px; }
+  .fieldrow .k { color:var(--ink); }
+  .fieldrow input { border:0.5px solid transparent; background:transparent; text-align:right; font:inherit; font-size:14px; color:var(--ink); outline:none; padding:6px 10px; border-radius:4px; width:150px;
+    transition:background 160ms var(--curve), border-color 160ms var(--curve); }
+  .fieldrow input:focus { background:var(--card2); border-color:var(--ink); }
+  .drow { height:52px; display:flex; align-items:center; padding:0 14px; font-size:14px; color:#7E362E; border-top:0.5px solid var(--line); cursor:pointer; user-select:none; transition:background 110ms var(--curve); }
+  .drow:active { background:rgba(126,54,46,0.06); }
+  .syslabel { font-size:10px; color:var(--ink3); padding:8px 14px; background:#ECEDEF; border-top:0.5px solid var(--line); }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<h1>v4.2 — premium motion + instrument forms</h1>
+<p class="sub">Two fixes demoed side by side. §1: the smoothness gap — the current system's fixed curves and dip-crossfade vs a spring-settle system with no dead frames. §2: the Profile problem — the raw rows and the stock iOS menu vs a full instrument form system. Click and press everything; A is always "current", B the proposal.</p>
+
+<h2>1 · Motion: curves → smooth springs</h2>
+<p class="h2sub">Why it reads "subtle but not premium": (a) tab content dips to invisible before fading back — a blink; (b) every animation is a fixed-duration curve — mechanical, stops dead; (c) press release snaps back at the same speed it went down. The proposal: press fast + settle slow, springs that glide into place, and NOTHING ever passes through zero opacity.</p>
+<div class="strip">
+  <div class="demo tc tcA" data-tc="A">
+    <div class="lab"><b>A · current</b> — dip-crossfade (watch the blink)</div>
+    <div class="stage"><div class="pane" style="opacity:1">71</div><div class="pane" style="opacity:0">1.17</div></div>
+    <div class="btns"><div class="on">HOME</div><div>LOAD</div></div>
+    <p class="note">Outgoing hits opacity 0, THEN incoming fades in — one dead frame of empty card.</p>
+  </div>
+  <div class="demo tc tcB" data-tc="B">
+    <div class="lab"><b>B · proposed</b> — layered hand-off, no dip</div>
+    <div class="stage"><div class="pane" style="opacity:1">71</div><div class="pane" style="opacity:0; transform:translateY(6px)">1.17</div></div>
+    <div class="btns"><div class="on">HOME</div><div>LOAD</div></div>
+    <p class="note">Incoming rises 6px + fades in OVER the outgoing — continuous, no empty frame, spring settle.</p>
+  </div>
+  <div class="demo pressrow">
+    <div class="lab"><b>Press feel</b> — hold each</div>
+    <div class="pkey pkeyA">A · CURRENT — SAME SPEED DOWN/UP</div>
+    <div class="pkey pkeyB">B · PROPOSED — FAST DOWN, SPRING SETTLE UP</div>
+    <p class="note">B presses in 90ms but releases over ~300ms with a spring glide — the "expensive button" feel. Same subtlety, different physics.</p>
+  </div>
+  <div class="demo wellslide">
+    <div class="lab"><b>Well / tick glide</b> — click items</div>
+    <div class="ws-bar wsA" data-ws><span class="ws-well" style="left:0"></span><div class="it on">Home</div><div class="it">Log</div><div class="it">Load</div></div>
+    <div style="height:10px"></div>
+    <div class="ws-bar wsB" data-ws><span class="ws-well" style="left:0"></span><div class="it on">Home</div><div class="it">Log</div><div class="it">Load</div></div>
+    <p class="note">Top = current fixed curve (arrives and stops). Bottom = spring glide (decelerates into place). Watch the last 20% of travel.</p>
+  </div>
+  <div class="demo ent">
+    <div class="lab"><b>List entrance</b></div>
+    <div class="stagearea">
+      <div class="entA" data-ent><div class="item">A · current — pop (opacity + scale, all at once)</div></div>
+      <div class="entB" data-ent style="margin-top:6px"><div class="item">B · proposed — rise + fade</div><div class="item">45ms behind</div><div class="item">90ms behind</div></div>
+    </div>
+    <div class="replay" data-replay>REPLAY</div>
+    <p class="note">B: 7px rise, spring settle, 45ms stagger — content "arrives" instead of "appears".</p>
+  </div>
+</div>
+<p class="h2sub" style="margin-top:18px">In SwiftUI terms: Motion tokens move from `timingCurve` to non-bouncy springs (`.spring(duration:bounce:0)` / `.smooth` family — interruptible + velocity-preserving by construction), tabCrossfade is rebuilt as a ZStack hand-off with no zero-dip, press styles get asymmetric down/up timing, and entrances get the rise+stagger treatment. Durations stay in the same premium-fast band (droll ≤300ms).</p>
+
+<h2>2 · Profile — raw rows → the instrument form system</h2>
+<p class="h2sub">Left: what ships today — cramped rows, a bare TextField, and the stock iOS context menu (system blur, system font, checkmarks — the single most world-breaking element left in the app). Right: the proposed form system — 52pt rows with press wells, mono values, a drawn tick-chevron that rotates open, options expanding INLINE as butted instrument cells (no system menu, no lost context), fields that grow a focus well, quiet destructive rows. Click the Sport row on the right.</p>
+<div class="strip">
+  <div class="formcol">
+    <div class="lab"><b>A · current</b> (raw)</div>
+    <div class="demo" style="padding:14px">
+      <div class="f-sect"><span>ATHLETE</span><i></i></div>
+      <div class="rawcard">
+        <div class="rawrow"><span class="k">Name</span><span class="v">Alex Chen</span></div>
+        <div class="rawrow"><span class="k">Sport</span><span class="v">Team Sport <span class="chev">▲▼</span></span></div>
+        <div class="rawrow"><span class="k">Training Frequency</span><span class="v">5-6 days/week <span class="chev">▲▼</span></span></div>
+      </div>
+      <div class="syslabel">▲ taps open the STOCK iOS menu — system blur, SF font, checkmarks. Off-world.</div>
+      <div class="f-sect"><span>ACCOUNT</span><i></i></div>
+      <div class="rawcard">
+        <div class="rawrow"><span class="k" style="color:var(--ink)">Sign Out</span></div>
+        <div class="rawrow"><span class="k" style="color:#B4543E">Delete Account</span></div>
+      </div>
+    </div>
+  </div>
+  <div class="formcol">
+    <div class="lab"><b>B · proposed</b> (instrument form — interactive)</div>
+    <div class="demo" style="padding:14px">
+      <div class="f-sect"><span>ATHLETE</span><i></i></div>
+      <div class="rawcard">
+        <div class="fieldrow"><span class="k">Name</span><input value="Alex Chen"></div>
+        <div class="insrow" data-acc="sport"><span class="k">Sport</span><span class="v"><span>Team Sport</span><span class="tickchev"></span></span></div>
+        <div class="optwrap" data-accbody="sport">
+          <div class="opt sel">Team Sport</div>
+          <div class="opt">Endurance</div>
+          <div class="opt">Strength</div>
+        </div>
+        <div class="insrow"><span class="k">Training Frequency</span><span class="v"><span class="mono">5–6</span><span>days/wk</span><span class="tickchev"></span></span></div>
+      </div>
+      <div class="f-sect"><span>ACCOUNT</span><i></i></div>
+      <div class="rawcard">
+        <div class="insrow"><span class="k">Sign out</span></div>
+        <div class="drow">Delete account…</div>
+      </div>
+      <p class="note">Options expand inline with a spring, selected carries the ink dot; value numerals go mono; the chevron is a drawn tick that rotates. Field focus grows a bordered well. Everything presses.</p>
+    </div>
+  </div>
+</div>
+<p class="h2sub" style="margin-top:14px">The same system covers every form surface: onboarding, training profile sheet, notifications (day/time become inline option rows), language picker, and the settings rows in sheets. One component family — InstrumentFormRow / InlineOptionList / FormField — replaces every stock Menu, bare TextField, and ad-hoc row in the app.</p>
+
+</div>
+<script>
+  document.querySelectorAll('[data-tc]').forEach(d => {
+    const panes = d.querySelectorAll('.pane'), btns = d.querySelectorAll('.btns div');
+    const dip = d.dataset.tc === 'A';
+    btns.forEach((b, i) => b.addEventListener('click', () => {
+      btns.forEach(x => x.classList.remove('on')); b.classList.add('on');
+      const show = panes[i], hide = panes[1 - i];
+      if (dip) {
+        hide.style.opacity = 0; show.style.opacity = 0;
+        setTimeout(() => { show.style.opacity = 1; }, 160);
+      } else {
+        hide.style.opacity = 0;
+        show.style.transform = 'translateY(6px)';
+        requestAnimationFrame(() => requestAnimationFrame(() => { show.style.opacity = 1; show.style.transform = 'translateY(0)'; }));
+      }
+    }));
+  });
+  document.querySelectorAll('[data-ws]').forEach(bar => {
+    const its = bar.querySelectorAll('.it'), well = bar.querySelector('.ws-well');
+    its.forEach((it, i) => it.addEventListener('click', () => {
+      its.forEach(x => x.classList.remove('on')); it.classList.add('on');
+      well.style.left = (i * 33.33) + '%';
+    }));
+  });
+  const entD = document.querySelectorAll('[data-ent]');
+  function play() { entD.forEach(e => { e.classList.remove('play'); void e.offsetWidth; e.classList.add('play'); }); }
+  document.querySelector('[data-replay]').addEventListener('click', play);
+  setTimeout(play, 400);
+  document.querySelectorAll('[data-acc]').forEach(row => row.addEventListener('click', () => {
+    const body = document.querySelector(`[data-accbody="${row.dataset.acc}"]`);
+    row.classList.toggle('open'); body.classList.toggle('open');
+  }));
+  document.querySelectorAll('.opt').forEach(o => o.addEventListener('click', e => {
+    const wrap = o.parentElement;
+    wrap.querySelectorAll('.opt').forEach(x => x.classList.remove('sel')); o.classList.add('sel');
+    const row = document.querySelector(`[data-acc="${wrap.dataset.accbody}"]`);
+    row.querySelector('.v span').textContent = o.textContent;
+    setTimeout(() => { row.classList.remove('open'); wrap.classList.remove('open'); }, 180);
+  }));
+</script>
+</body>
+</html>
