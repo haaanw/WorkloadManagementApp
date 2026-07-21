@@ -43,60 +43,83 @@ enum Spacing {
 // DESIGN.md v3 "Ink & Grain" (2026-07-14). The old zero-valued `GeometryTokens` enum
 // (never referenced) was removed with the 0pt law it encoded.
 
-// MARK: - Motion scale (DESIGN.md Motion — v4 "Instrument", Emil Kowalski framework, 2026-07-20)
+// MARK: - Motion scale (DESIGN.md v4.2 "Machined" — Spring Motion Law D16, 2026-07-21)
 
-/// The single motion language. v4 is a precision instrument: crisp, mechanical, fast —
-/// motion is a detent click, not a flourish. One curve (the strong ease-out
-/// `cubic-bezier(0.23, 1, 0.32, 1)`), UI transitions 150–250ms, NEVER >300ms, no
-/// ease-in ever, and springs reserved for gesture/momentum contexts only (none exist
-/// today — the v2 "gentle spring" state/entrance personalities are retired). Route ALL
-/// animations through these tokens — never a bare `withAnimation { }` (it silently uses
-/// SwiftUI's default spring).
+/// The single motion language. v4.2's Spring Motion Law (D16) moves the tokens off fixed
+/// timing curves and onto NON-BOUNCY springs: interruptible and velocity-preserving, so a
+/// re-target mid-flight blends instead of restarting, yet critically damped (`bounce: 0`) so
+/// nothing overshoots. This is Emil Kowalski's spring model — physical, not decorative. The
+/// premium-fast band is preserved: presses attack ~85–100ms, state settles ≤250ms, screen
+/// transitions ≤300ms, the hero count-up ≤400ms. Route ALL animations through these tokens —
+/// never a bare `withAnimation { }` (it silently uses SwiftUI's default *bouncy* spring).
 ///
-/// v4.1 exception (Five-Primitive Interaction Law): `tickSpring` is the single sanctioned
-/// overshoot curve, and it is reserved for exactly one element — the Console tab tick. It is
-/// the "throw" the finger imparts on the index needle; nothing else overshoots.
+/// Two carriers keep timing curves rather than springs, by design:
+/// - `tickSpring` — the single sanctioned OVERSHOOT (Console tab tick only, v4.1 D12). The
+///   `y2 > 1` control point is the "thrown needle" settle; it is the one place bounce is legal.
+/// - `exit` — removals leave on a fast ease-out; a spring release on a disappearing view is
+///   wasted (it is already gone before the tail matters).
+///
+/// Asymmetric press (pick 4-A): a key depresses fast (`pressIn`, ~85ms) and releases slow on a
+/// ~300ms non-bouncy spring (`keyReliefRelease`). That asymmetry — quick bite, unhurried
+/// return — is the machined press feel; `ReliefPressButtonStyle` reads both tokens.
 enum Motion {
-    /// The v4 signature curve — strong ease-out cubic-bezier(0.23, 1, 0.32, 1)
-    /// (DESIGN.md Motion: "starts fast, feels responsive"; never ease-in).
-    private static func strongEaseOut(_ duration: Double) -> Animation {
-        .timingCurve(0.23, 1, 0.32, 1, duration: duration)
+    /// A non-bouncy spring of the given perceived duration. `bounce: 0` is critically damped —
+    /// zero overshoot — and iOS 17's spring is interruptible + velocity-preserving by
+    /// construction, so a value that re-targets mid-animation blends from its current velocity.
+    /// This one helper is the whole Spring Motion Law; every token below is an instance of it.
+    private static func snap(_ duration: Double) -> Animation {
+        .spring(duration: duration, bounce: 0)
     }
 
-    /// Press feedback — law: 100–160ms. Used by `PressableButtonStyle` (scale 0.97).
-    static let press = strongEaseOut(0.12)
+    /// Press feedback for scale-only presses on light chrome (icon buttons, tab items,
+    /// segments) — the quick non-bouncy settle used by `PressableButtonStyle`. Keys proper
+    /// use the asymmetric relief press below, not this.
+    static let press = snap(0.16)
+    /// Asymmetric press ATTACK — the fast ~85ms depress of a machined key (pick 4-A: "keys
+    /// press in ~85ms"). Paired on release with `keyReliefRelease`. Used by `ReliefPressButtonStyle`.
+    static let pressIn = snap(0.09)
+    /// Asymmetric press RELEASE — the ~300ms non-bouncy spring the key rides back up on
+    /// (pick 4-A). The unhurried return is what makes the press feel sprung rather than clicked.
+    static let keyReliefRelease = snap(0.30)
     /// Row touch-down well — the Row primitive's background settle (v4.1 Five-Primitive
     /// Interaction Law: Row = ~110ms well, no scale). Used by `RowWellButtonStyle`.
-    static let rowWell = strongEaseOut(0.11)
+    static let rowWell = snap(0.14)
     /// Detent digit-roll — the value-swap on a stepper/scrubber/dial cell (v4.1 D13(b):
     /// "digit roll faster/subtler, ~100ms, small travel"). Pairs with
     /// `.contentTransition(.numericText())` in `DialValueCell` and the controls.
-    static let digitRoll = strongEaseOut(0.10)
+    static let digitRoll = snap(0.12)
     /// The ONE sanctioned overshoot curve in the whole app — the Console tab tick's springy
     /// throw only (v4.1 D12). cubic-bezier(0.3, 1.15, 0.4, 1): the y2 > 1 control point is
     /// the slight overshoot that makes the red index "settle" onto the newly-selected tab
     /// like a thrown needle. NOT a general motion personality — every other transition stays
-    /// on the overshoot-free `strongEaseOut`. Reserved for `InkTabBar`'s active-tab tick.
+    /// on a non-bouncy spring. Reserved for `InkTabBar`'s active-tab tick.
     static let tickSpring = Animation.timingCurve(0.3, 1.15, 0.4, 1, duration: 0.22)
-    /// Quick state settle — toggles, selection, needle position, value swaps.
-    /// Law: UI transitions 150–250ms; mechanical snap-settle, no overshoot.
-    static let state = strongEaseOut(0.18)
-    /// Screen / nav-level transition (route swaps, disclosure reveals). Law: 150–250ms.
-    static let screen = strongEaseOut(0.20)
-    /// Entrance of cards / rows / banners / sheets. Law: entrances are ease-out,
-    /// 150–250ms — no spring (springs are gesture-only in v4).
-    static let entrance = strongEaseOut(0.24)
-    /// Exit / removal — ease-OUT and fast (law: "never ease-in on UI"; exits leave quickly).
+    /// Quick state settle — toggles, selection, needle position, the tab well glide, value
+    /// swaps. Non-bouncy spring, ≤250ms perceived; interruptible so a rapid re-select blends.
+    static let state = snap(0.22)
+    /// Screen / nav-level transition (route swaps, disclosure reveals). Non-bouncy, ≤300ms.
+    static let screen = snap(0.26)
+    /// Entrance of cards / rows / banners — the rise+fade reveal. A non-bouncy spring gives the
+    /// upward glide a physical decelerate without any bounce (D16 retires the flat ease-out).
+    static let entrance = snap(0.34)
+    /// Exit / removal — a fast ease-out (NOT a spring): a disappearing view is gone before a
+    /// spring tail would matter, so the cheap curve is correct here. `exit` never overshoots.
     static let exit = Animation.easeOut(duration: 0.15)
-    /// Tab switches are FREQUENT actions (law: "reduce drastically" — near-instant).
-    static let tabSwitch = strongEaseOut(0.15)
-    /// Hero readiness count-up sweep — the one sanctioned longer moment (law: ≤400ms).
-    static let scoreCountUp = Animation.easeOut(duration: 0.35)
+    /// The layered tab handoff — incoming content rises + fades OVER the still-present outgoing
+    /// (D16: no content may pass through full invisibility). Non-bouncy, brisk (~200ms) because
+    /// tab switches are frequent. Used by `TabCrossfadeModifier`.
+    static let tabSwitch = snap(0.20)
+    /// Hero readiness count-up sweep — the one sanctioned longer moment (D16: settles ≤400ms).
+    /// A non-bouncy spring so the digits and the needle decelerate onto the reading together.
+    static let scoreCountUp = snap(0.40)
     /// Section choreography step — law: stagger 30–80ms. Kept here so screens never
     /// inline timing literals.
     static let staggerStep: Double = 0.04
     /// Long lists stop staggering after this many steps so useful rows never wait seconds to appear.
     static let maxStaggerSteps = 8
+    /// The rise distance for the entrance reveal and the tab handoff — content glides up this
+    /// far as it fades in (D16 layered handoff / rise entrance). One 8pt-grid-adjacent unit.
+    static let riseOffset: CGFloat = 6
 
     // UI rebuild v3 aliases (names retained; press is now its own faster token).
     static let selection = state
@@ -124,8 +147,10 @@ private struct EntranceRevealModifier: ViewModifier {
 
     func body(content: Content) -> some View {
         content
+            // Rise + fade (D16): the section glides up `riseOffset` as it fades in, riding the
+            // non-bouncy `entrance` spring — a physical settle, not the old scale-up pop.
             .opacity(isVisible ? 1 : 0)
-            .scaleEffect(isVisible ? 1 : 0.98)
+            .offset(y: isVisible ? 0 : Motion.riseOffset)
             .onAppear {
                 guard !isVisible else { return }
                 guard enabled, !reduceMotion else {
@@ -147,31 +172,47 @@ extension View {
     }
 }
 
-/// Cross-fades a tab's content in when its tab becomes selected. Driven by the SELECTION value
-/// (not `onAppear`), so navigation pops and sheet dismissals inside a tab never re-trigger the
-/// fade, and the first render of each tab stays with `entranceReveal` choreography (`onChange`
-/// does not fire on initial appearance). Failure mode is safe: if the change never fires, the
-/// content simply stays fully visible. Reduced Motion shows the tab immediately.
+/// Layered rise+fade handoff for tab content when its tab becomes selected (D16 Spring Motion
+/// Law: the v4.0/4.1 dip-crossfade is BANNED — no content may pass through full invisibility).
+/// Driven by the SELECTION value (not `onAppear`), so navigation pops and sheet dismissals
+/// inside a tab never re-trigger it, and the first render of each tab stays with
+/// `entranceReveal` choreography (`onChange` does not fire on initial appearance).
+///
+/// **How it guarantees no empty frame.** On becoming selected the incoming content lands its
+/// pre-handoff state — opacity `handoffFloor` (a VISIBLE floor, never 0) plus a `riseOffset`
+/// rise — in one update cycle, then springs to rest (opacity 1, offset 0) in the next. Because
+/// the floor is well above zero, every rendered frame shows substantial content: the incoming
+/// rises into place OVER the outgoing rather than blinking in from black. Failure mode is safe:
+/// if the change never fires, content simply sits at rest, fully visible. Reduced Motion snaps.
 private struct TabCrossfadeModifier: ViewModifier {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    @State private var contentOpacity: Double = 1
+    /// `true` = at rest (opacity 1, offset 0). Starts settled so the first paint is never faded.
+    @State private var settled = true
 
     let isSelected: Bool
 
+    /// The incoming content NEVER dips below this opacity — the whole point of D16's ban on the
+    /// dip-crossfade. High enough that a single frame at the floor is provably not an empty
+    /// frame (verified by frame extraction), low enough that the rise+fade still reads.
+    private static let handoffFloor: Double = 0.5
+
     func body(content: Content) -> some View {
         content
-            .opacity(contentOpacity)
+            .opacity(settled ? 1 : Self.handoffFloor)
+            .offset(y: settled ? 0 : Motion.riseOffset)
             .onChange(of: isSelected) { _, selected in
                 guard selected, !reduceMotion else {
-                    contentOpacity = 1
+                    settled = true
                     return
                 }
-                // Two-phase so the reset to 0 and the animated return to 1 land in separate
-                // update cycles (a single-cycle write would diff 1 → 1 and never animate).
-                contentOpacity = 0
+                // Two-phase so the pre-handoff state (floor + rise) and the animated settle land
+                // in separate update cycles (a single-cycle write would diff rest → rest and
+                // never animate). The un-animated first write floors opacity to 0.5, NOT 0 — so
+                // the one frame it produces is visible, not blank.
+                settled = false
                 DispatchQueue.main.async {
                     withAnimation(Motion.tabSwitch) {
-                        contentOpacity = 1
+                        settled = true
                     }
                 }
             }
@@ -179,9 +220,10 @@ private struct TabCrossfadeModifier: ViewModifier {
 }
 
 extension View {
-    /// Near-instant cross-fade for tab content on tab REVISITS (`Motion.tabSwitch` —
-    /// tab switches are frequent actions, so the treatment is drastically reduced).
-    /// Apply to each tab root in the main TabView, passing whether its tab is selected.
+    /// Layered rise+fade handoff for tab content on tab REVISITS (`Motion.tabSwitch`). The
+    /// incoming rises `Motion.riseOffset` + fades from a visible floor to rest — never through
+    /// full invisibility (D16). Apply to each tab root in the main TabView, passing whether its
+    /// tab is selected.
     func tabCrossfade(isSelected: Bool) -> some View {
         modifier(TabCrossfadeModifier(isSelected: isSelected))
     }
@@ -769,9 +811,9 @@ struct KeyRow: View {
                 .background(key.role == .cta ? ColorTokens.text1 : ColorTokens.surfaceEl)
                 .contentShape(Rectangle())
         }
-        // Full key-press treatment (0.97 / 120ms): the cell depresses inside the clipped
-        // row like a mechanical key — no dead-feeling cells (v4 motion pass).
-        .buttonStyle(.pressable)
+        // Relief-inversion press (pick 4-A): the cell sinks into a pocket under the finger —
+        // no scale (scale-only key presses are retired). Corner 0 because the row clips.
+        .buttonStyle(key.role == .cta ? .reliefKey(cornerRadius: 0) : .reliefPress(cornerRadius: 0))
         .accessibilityIdentifier(key.accessibilityID ?? "")
     }
 }
@@ -804,8 +846,9 @@ struct PrimaryActionButton: View {
             .padding(.horizontal, Spacing.sm)
             .background(ColorTokens.text1, in: RoundedRectangle(cornerRadius: CornerTokens.control))
         }
-        // The canonical Key: an ink-filled CTA lights under the finger (brighten, not dim).
-        .buttonStyle(.key)
+        // The canonical Key (pick 4-A): the ink face lifts + sinks into a pocket under the
+        // finger, fast bite / sprung return — relief inversion, not scale.
+        .buttonStyle(.reliefKey)
         .disabled(isDisabled || isLoading)
         .opacity(isDisabled ? 0.5 : 1)
     }
@@ -830,7 +873,8 @@ struct SecondaryActionButton: View {
                 .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                 .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
         }
-        .buttonStyle(.pressable)
+        // Relief-inversion press (pick 4-A): the aluminum key sinks into a pocket, no scale.
+        .buttonStyle(.reliefPress)
         .disabled(isDisabled)
         .opacity(isDisabled ? 0.5 : 1)
     }
@@ -1251,6 +1295,80 @@ extension ButtonStyle where Self == RowWellButtonStyle {
     /// The Row press with the well clipped to a specific corner radius.
     static func rowWell(cornerRadius: CGFloat) -> RowWellButtonStyle {
         RowWellButtonStyle(cornerRadius: cornerRadius)
+    }
+}
+
+// MARK: - Relief-inversion key press (v4.2 "Machined" — pick 4-A, asymmetric)
+
+/// The machined **Key** press (v4.2 pick 4-A): pressing INVERTS the key's relief — a cut top
+/// inner-edge and a lit bottom inner-edge fade in (the surface reads as recessed into a
+/// pocket), the key drops 0.5px, and its face lifts in brightness under the finger. Timing is
+/// ASYMMETRIC: a fast ~85ms attack (`Motion.pressIn`) and an unhurried ~300ms non-bouncy
+/// spring release (`Motion.keyReliefRelease`) — quick bite, sprung return. Scale-only key
+/// presses are retired (pick 4-A); this replaces `.pressable`/`.key` on the app's real keys.
+///
+/// Deliberately an OVERLAY, not a background-owner: the pocket is a tint-neutral
+/// shade+highlight pair (no opaque fill), so it inverts the relief correctly over BOTH an
+/// aluminum key and an ink-filled CTA without the style needing to know the resting fill. Keys
+/// keep drawing their own resting face; only the press treatment lives here. Pass the key's own
+/// `cornerRadius` so the pocket edges track the key corners (0 for a butted `KeyRow` cell that
+/// the row already clips).
+struct ReliefPressButtonStyle: ButtonStyle {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    var cornerRadius: CGFloat = CornerTokens.control
+    /// Additive brightness on press — the "lit under the finger" lift (pick 4-A). Ink keys sit
+    /// dark so they lift more to register; aluminum keys need only a hair.
+    var pressedBrightness: Double = 0.03
+
+    func makeBody(configuration: Configuration) -> some View {
+        let pressed = configuration.isPressed
+        return configuration.label
+            .brightness(pressed ? pressedBrightness : 0)
+            .overlay {
+                // The pocket: a dark cut along the top inner edge + a soft lit line along the
+                // bottom inner edge — the exact inner-edge pair `DebossedStyle` draws, minus the
+                // opaque fill and outer border, so it reads as "recessed" over any face colour.
+                RoundedRectangle(cornerRadius: cornerRadius)
+                    .inset(by: 0.75)
+                    .stroke(
+                        LinearGradient(colors: [ColorTokens.reliefShade, .clear], startPoint: .top, endPoint: .center),
+                        lineWidth: 1.5
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: cornerRadius)
+                            .inset(by: 0.75)
+                            .stroke(
+                                LinearGradient(colors: [.clear, ColorTokens.reliefHighlightSoft], startPoint: .center, endPoint: .bottom),
+                                lineWidth: 1
+                            )
+                    )
+                    .opacity(pressed ? 1 : 0)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
+            // The key sinks into the pocket. Sub-pixel, but it sells the depression.
+            .offset(y: pressed ? 0.5 : 0)
+            // Asymmetric: fast bite on the way down, sprung return on the way up.
+            .animation(
+                Motion.resolved(pressed ? Motion.pressIn : Motion.keyReliefRelease, reduceMotion: reduceMotion),
+                value: pressed
+            )
+    }
+}
+
+extension ButtonStyle where Self == ReliefPressButtonStyle {
+    /// Relief-inversion press for an ALUMINUM key (standard key cell, secondary action) — a
+    /// hair of brightness lift. Pass the key's corner radius (0 for a butted `KeyRow` cell).
+    static var reliefPress: ReliefPressButtonStyle { ReliefPressButtonStyle() }
+    static func reliefPress(cornerRadius: CGFloat) -> ReliefPressButtonStyle {
+        ReliefPressButtonStyle(cornerRadius: cornerRadius)
+    }
+    /// Relief-inversion press for an INK-FILLED CTA key — the dark face lifts more in brightness
+    /// so the depression registers. Pass the key's corner radius (0 for a butted cell).
+    static var reliefKey: ReliefPressButtonStyle { ReliefPressButtonStyle(pressedBrightness: 0.10) }
+    static func reliefKey(cornerRadius: CGFloat) -> ReliefPressButtonStyle {
+        ReliefPressButtonStyle(cornerRadius: cornerRadius, pressedBrightness: 0.10)
     }
 }
 
