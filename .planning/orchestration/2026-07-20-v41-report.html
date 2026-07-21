@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tuwa v4.1 — polish round report</title>
+<style>
+  :root { --bg:#E9EAEB; --card:#F5F6F7; --ink:#17181A; --ink2:#4A4D51; --ink3:#85898E; --line:#D0D2D5; --index:#D04234; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--ink); font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; font-size:15px; line-height:1.6; padding:56px 24px 96px; }
+  .wrap { max-width:1160px; margin:0 auto; }
+  h1 { font-weight:600; font-size:13px; letter-spacing:0.3em; text-transform:uppercase; }
+  .hero-title { font-family:"SF Mono",Menlo,monospace; font-size:40px; font-weight:500; letter-spacing:-0.02em; margin:10px 0 4px; }
+  .sub { color:var(--ink2); margin-bottom:40px; max-width:84ch; }
+  h2 { font-size:11px; font-weight:600; letter-spacing:0.24em; text-transform:uppercase; color:var(--ink3); margin:52px 0 16px; padding-top:14px; border-top:1px solid var(--line); position:relative; }
+  h2::before { content:''; position:absolute; top:-1px; left:0; width:36px; height:2px; background:var(--index); }
+  p { margin-bottom:12px; max-width:80ch; }
+  .card { background:var(--card); border:0.5px solid var(--line); border-radius:5px; padding:20px 24px; margin-bottom:14px; }
+  table { width:100%; border-collapse:collapse; font-size:14px; }
+  td { padding:8px 12px; border-top:0.5px solid var(--line); vertical-align:top; }
+  tr:first-child td { border-top:none; }
+  .commit { font-family:"SF Mono",Menlo,monospace; font-size:12.5px; white-space:nowrap; }
+  .shots { display:flex; flex-wrap:wrap; gap:16px; margin:18px 0; align-items:flex-start; }
+  .shot { flex:1 1 180px; max-width:215px; }
+  .shot.wide { max-width:460px; flex-basis:420px; }
+  .shot img, .shot video { width:100%; border:0.5px solid var(--line); border-radius:5px; display:block; }
+  .shot figcaption { font-size:12px; color:var(--ink2); margin-top:7px; line-height:1.45; }
+  .ba { display:flex; gap:16px; flex-wrap:wrap; margin:12px 0 4px; }
+  .tag { display:inline-block; font-size:9.5px; font-weight:600; letter-spacing:0.14em; text-transform:uppercase; padding:2px 8px; border:1px solid var(--line); border-radius:3px; color:var(--ink3); margin-bottom:6px; }
+  .tag.after { color:var(--ink); border-color:var(--ink2); }
+  .footnote { color:var(--ink3); font-size:12.5px; margin-top:44px; border-top:0.5px solid var(--line); padding-top:14px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <h1>Tuwa · v4.1 polish round</h1>
+  <div class="hero-title">FABRIC · COMPOSITION · CHROME</div>
+  <p class="sub">Three parallel sessions (your dispatch), verified and landed 2026-07-20. Combined gate: 784 tests — 782 passed / 0 failed / 2 skipped. Everything below is a real sim capture from the landed tree.</p>
+
+  <h2>The three commits</h2>
+  <div class="card">
+    <table>
+      <tr><td class="commit">03331d3</td><td><b>WS1 — Interaction fabric + Console tab bar.</b> Five-Primitive Law (Key/Row/Detent/Needle/Surface) in DESIGN.md v4.1 with your adjustments: reduced haptics, ~100ms digit rolls, fixed-width value cells, needles never travel via zero. Console bar: 11pt title-case, sliding well, springy red tick (the one sanctioned overshoot — fenced).</td></tr>
+      <tr><td class="commit">0a960ce</td><td><b>WS2 — Layout recomposition.</b> Baseline-aligned readouts on both panels, MetricCell grids with unit superscripts, ruled section headers on all five tabs, Recovery's designed peak (micro tick scale, no panel — law intact).</td></tr>
+      <tr><td class="commit">8d6da07</td><td><b>WS3 — Sheet chrome + controls + charts.</b> InstrumentSheetHeader on 12 sheets (stock glass chrome dead), detent pass on 6 controls (haptics only at limits and true detents), chart palette moved to cool instrument traces.</td></tr>
+    </table>
+  </div>
+
+  <h2>Before / after — the screens</h2>
+
+  <div class="ba">
+    <figure class="shot"><span class="tag">Before · v4.0</span><img src="stage-v4-2-screens/01-home.png" alt="Home before"><figcaption>Home: zone tucked under the score, prose metric rows, floating headers, caps tab bar.</figcaption></figure>
+    <figure class="shot"><span class="tag after">After · v4.1</span><img src="ws2-shots/01-home.png" alt="Home after"><figcaption>Baseline-aligned readout (71 left, GO pinned right), Console bar below.</figcaption></figure>
+    <figure class="shot"><span class="tag after">After · scrolled</span><img src="ws2-shots/03-home-metricgrid.png" alt="Home metric grid"><figcaption>HRV / RHR / SLEEP as the MetricCell grid — one-fixation scan, width-stable values.</figcaption></figure>
+    <figure class="shot"><span class="tag after">After · sections</span><img src="ws2-shots/02-home-scrolled.png" alt="Home sections"><figcaption>Ruled section headers structure the page instead of floating.</figcaption></figure>
+  </div>
+
+  <div class="ba">
+    <figure class="shot"><span class="tag">Before · v4.0</span><img src="stage-v4-2-screens/05-recovery.png" alt="Recovery before"><figcaption>Recovery: correct but flat — no peak.</figcaption></figure>
+    <figure class="shot"><span class="tag after">After · v4.1</span><img src="ws2-shots/05-recovery.png" alt="Recovery after"><figcaption>The designed peak: baseline readout + micro tick scale + contributor grid + teal HRV trace.</figcaption></figure>
+    <figure class="shot"><span class="tag">Before · v4.0</span><img src="stage-v4-2-screens/06-load.png" alt="Load before"><figcaption>Load: mono rows under the panel.</figcaption></figure>
+    <figure class="shot"><span class="tag after">After · v4.1</span><img src="ws2-shots/06-load.png" alt="Load after"><figcaption>ACWR baseline readout, ATL/CTL/TSB grid, ruled headers, retuned chart inks.</figcaption></figure>
+  </div>
+
+  <h2>The sheet chrome kill (WS3's headline)</h2>
+  <div class="ba">
+    <figure class="shot"><span class="tag">Before · stock iOS</span><img src="stage-v4-2-screens/08-sheet.png" alt="Sheet before"><figcaption>System-font title, translucent glass Cancel pill — the old "default app" leak (Templates sheet shown).</figcaption></figure>
+    <figure class="shot"><span class="tag after">After · instrument</span><img src="ws3-shots/04-activeworkout-header.png" alt="ActiveWorkout after"><figcaption>CANCEL · WORKOUT · FINISH — micro-caps on a flat opaque plane with a bottom hairline. Applied to 12 sheets.</figcaption></figure>
+    <figure class="shot"><span class="tag after">After · states</span><img src="ws3-shots/06-trainingprofile-header.png" alt="TrainingProfile header"><figcaption>Two-tier action hierarchy: SAVE PROFILE in ink, dimmed while the form is invalid.</figcaption></figure>
+    <figure class="shot"><span class="tag after">After · controls</span><img src="ws3-shots/05-entry-steppers.png" alt="Steppers"><figcaption>Weight tiles + fixed-width readout; per-tap haptic spam stripped, limits click.</figcaption></figure>
+  </div>
+
+  <h2>Tab bar &amp; fabric close-ups</h2>
+  <div class="shots">
+    <figure class="shot wide"><img src="ws1-shots/crop-bar.png" alt="Console bar crop"><figcaption><b>Console bar at 2×:</b> title-case labels, well behind the active item, red needle tick above. Unselected raised to text-3 for readability.</figcaption></figure>
+    <figure class="shot"><img src="ws1-shots/key-press-crop.png" alt="Key press"><figcaption><b>Key under a held press</b> — visibly brighter + 0.97 scale. Every commit-action in the app now responds like this.</figcaption></figure>
+    <figure class="shot"><img src="ws3-shots/11-recovery-hrv-chart.png" alt="HRV chart"><figcaption>Chart traces off olive/moss onto instrument inks + one muted teal.</figcaption></figure>
+  </div>
+
+  <h2>Motion (watch, don't read)</h2>
+  <div class="shots">
+    <figure class="shot wide"><video src="ws1-shots/ws1-fabric.mp4" controls muted playsinline></video><figcaption><b>WS1 fabric reel:</b> tab walk — well + springy tick sliding between items — and a held START SESSION key press.</figcaption></figure>
+    <figure class="shot wide"><video src="ws3-shots/activeworkout.mp4" controls muted playsinline></video><figcaption><b>WS3:</b> ActiveWorkout sheet — stepper interaction and the one-unit dismiss (no content stagger).</figcaption></figure>
+  </div>
+
+  <h2>What only your phone can judge</h2>
+  <div class="card">
+    <table>
+      <tr><td>1</td><td><b>Detent clicks</b> — the Home count-up should tick once as the needle crosses into the zone band (the app's only scale haptics; simulator can't render them).</td></tr>
+      <tr><td>2</td><td><b>Press feel</b> — key brighten + row wells under a real finger; steppers should feel silent-but-solid, clicking only at floors/ceilings.</td></tr>
+      <tr><td>3</td><td><b>Console bar at arm's length</b> — the readability complaint this round set out to fix.</td></tr>
+      <tr><td>4</td><td><b>Digit rolls</b> — value changes should read as a tick, not an animation (~100ms), and never reflow their container width.</td></tr>
+    </table>
+  </div>
+
+  <p class="footnote">Open threads (logged in the handoff doc): optional 11pt-Regular tab token · TemplateCarousel/NextMatch 19pt headers · ShareImportPreviewSheet title key · broader RowWell/DialValueCell adoption. Report lives at .planning/orchestration/2026-07-20-v41-report.html · commits 03331d3 / 0a960ce / 8d6da07 / ca25b8e, unpushed on main.</p>
+
+</div>
+</body>
+</html>
