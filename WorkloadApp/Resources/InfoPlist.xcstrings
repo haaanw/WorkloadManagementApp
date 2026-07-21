@@ -25,6 +25,23 @@
         }
       }
     },
+    "NSHealthUpdateUsageDescription" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa never writes data to Apple Health. This notice is required because the sign-in flow references a HealthKit API that can request write access; Tuwa only ever requests read access."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa 不会向 Apple 健康写入任何数据。由于授权流程引用了可请求写入权限的 HealthKit 接口，系统要求提供此说明；Tuwa 只会请求读取权限。"
+          }
+        }
+      }
+    },
     "NSHealthShareUsageDescription" : {
       "extractionState" : "manual",
       "localizations" : {

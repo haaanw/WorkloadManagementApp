@@ -1372,6 +1372,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Tuwa;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa never writes data to Apple Health. This notice is required because the sign-in flow references a HealthKit API that can request write access; Tuwa only ever requests read access.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -1408,6 +1409,7 @@
 				INFOPLIST_KEY_CFBundleDisplayName = Tuwa;
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa never writes data to Apple Health. This notice is required because the sign-in flow references a HealthKit API that can request write access; Tuwa only ever requests read access.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
