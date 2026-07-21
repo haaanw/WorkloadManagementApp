@@ -10,7 +10,7 @@ struct RecoveryLoadChart: View {
     @State private var selectedDate: Date?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
             if loadSnapshots.count < 7 {
                 Text("workload.chart.insufficientData")
                     .font(.Tokens.label)
@@ -40,7 +40,9 @@ struct RecoveryLoadChart: View {
                     x: .value("Date", snapshot.date),
                     y: .value("Recovery", snapshot.recoveryScore * scaleFactor)
                 )
-                .foregroundStyle(ColorTokens.zoneOptimal)
+                // Recovery is a positive-physiology series — it takes the ONE muted
+                // supporting hue (shared with TSB/HRV), never a zone token (v5 chart law).
+                .foregroundStyle(ColorTokens.chartHRV)
                 .lineStyle(StrokeStyle(lineWidth: 1.5))
             }
         }

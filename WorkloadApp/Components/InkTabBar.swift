@@ -1,28 +1,27 @@
 import SwiftUI
 
-/// The v4 "Instrument" tab bar — **Console** (v4.1 D12 restyle; demo §1-B).
+/// The tab bar — **Console architecture, stone dress** (DESIGN.md v5 "Pavilion"; Console
+/// grammar from v4.1 D12 retained).
 ///
-/// Replaces the stock TabView chrome with the app's own instrument bar:
-/// - A flat OPAQUE `ColorTokens.tabBarSurface` plane (a hair darker than the aluminum base)
+/// Replaces the stock TabView chrome with the app's own bar:
+/// - A flat OPAQUE `ColorTokens.tabBarSurface` plane (a hair darker than the stone base)
 ///   with a 0.5pt `dividerStrong` top hairline. NO material blur, NO floating pill, NO
-///   shadow, NO corner radius — this is an edge-to-edge plane (the machined bottom edge of
-///   the instrument), not a card.
+///   shadow, NO corner radius — this is an edge-to-edge plane (the bottom edge of the
+///   stone body), not a card.
 /// - Text-only **Console** items: 11pt Medium `keyLabel`, TITLE-CASE (not caps), modest
-///   ~0.13em tracking (Latin only; zh gets none) — the D12 readability raise from the old
-///   9pt all-caps labels. Selected = `text1` ink + a faint sliding "well" behind the item
-///   (`text1` @5%, `Motion.state`) + the 1.5pt red index tick ABOVE the label riding the
-///   bar's top edge on the springy `Motion.tickSpring` throw — needle grammar, a sanctioned
-///   index-mark location (Index Rule). Unselected = `text3` (raised from the old `disabled`).
+///   ~0.13em tracking (Latin only; zh gets none) — the D12 readability raise, kept in v5.
+///   Selected = the three-part presence grammar: `text1` ink + a faint sliding "well" behind
+///   the item (`text1` @5%, `Motion.state`) + the 1.5pt ACCENT tick (travertine) ABOVE the
+///   label riding the bar's top edge on the springy `Motion.tickSpring` throw — needle
+///   grammar, a sanctioned live-state accent mark (Accent Rule). Unselected = `text3`.
 /// - Per-item press-down: scale 0.94 (the D12 Console press), via `.pressable`.
 /// - Full-height ≥44pt tap targets, `Haptics.select()` on switch (commit-only feedback).
 ///
-/// **On the weight-shift (D12) and the Two-Voice Type Law:** the demo shows selected labels
-/// at font-weight 600, but General Sans ships only Regular/Medium and DESIGN.md forbids bold —
+/// **On the weight-shift (D12) and the One-Voice Type Law:** the demo shows selected labels
+/// at font-weight 600, but the app ships only Regular/Medium and DESIGN.md forbids bold —
 /// a same-size 500→600 shift would be fake-bolding. So selection is carried by the sanctioned
-/// substitutes the handoff calls for ("use color+size, not fake bolding"): the ink color step
-/// (`text3`→`text1`), the sliding well, and the springy tick. Labels stay Medium at both
-/// states (matching the butted-key grammar). A literal within-law weight shift would need an
-/// 11pt-Regular tab token in FontTokens (noted for the orchestrator; not owned by WS1).
+/// substitutes: the ink color step (`text3`→`text1`), the sliding well, and the springy tick.
+/// Labels stay Medium at both states (matching the butted-key grammar).
 ///
 /// The optional compact `glyph:` variant is retired in Console (text-only per D12); the field
 /// is retained on `Item` for source compatibility but is not rendered.
@@ -71,9 +70,9 @@ struct InkTabBar<Tab: Hashable>: View {
         .frame(maxWidth: .infinity)
         .frame(height: InkTabBarMetrics.height)
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: selection)
-        // Opaque bar plane (a hair darker than the aluminum base), extended under the
-        // home-indicator region so the bar reads as the machined bottom edge of the
-        // instrument (never a floating pill), capped by the 0.5pt strong top hairline.
+        // Opaque bar plane (a hair darker than the stone base), extended under the
+        // home-indicator region so the bar reads as the bottom edge of the stone body
+        // (never a floating pill), capped by the 0.5pt strong top hairline.
         .background(ColorTokens.tabBarSurface.ignoresSafeArea(edges: [.bottom, .horizontal]))
         .overlay(alignment: .top) {
             Rectangle()
@@ -113,15 +112,15 @@ struct InkTabBar<Tab: Hashable>: View {
                     }
                 }
                 .contentShape(Rectangle())
-                // The 1.5pt red index tick ABOVE the label, riding the bar's top edge —
-                // needle grammar (Index Rule): the needle points at the active tab. It is the
-                // ONE element that gets the springy `Motion.tickSpring` throw (its own
-                // transaction, overriding the container's ease-out), so it settles onto the
-                // newly-selected tab with a hint of overshoot.
+                // The 1.5pt accent tick (travertine) ABOVE the label, riding the bar's top
+                // edge — needle grammar (Accent Rule live-state mark): the needle points at
+                // the active tab. It is the ONE element that gets the springy
+                // `Motion.tickSpring` throw (its own transaction, overriding the container's
+                // ease-out), so it settles onto the newly-selected tab with a hint of overshoot.
                 .overlay(alignment: .top) {
                     if isSelected {
                         Rectangle()
-                            .fill(ColorTokens.index)
+                            .fill(ColorTokens.accent)
                             .frame(width: 38, height: 1.5)
                             .matchedGeometryEffect(id: "ink.tab.tick", in: tickNamespace)
                             .animation(Motion.resolved(Motion.tickSpring, reduceMotion: reduceMotion), value: selection)

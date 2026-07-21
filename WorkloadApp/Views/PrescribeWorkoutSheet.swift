@@ -31,7 +31,7 @@ struct PrescribeWorkoutSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("coach.prescribe.fieldTemplate")
                             .font(.Tokens.micro)
-                            .tracking(1.2)
+                            .tracking(0.9)
                             .foregroundStyle(ColorTokens.text3)
 
                         Button {
@@ -69,7 +69,7 @@ struct PrescribeWorkoutSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("coach.prescribe.fieldScheduledDate")
                             .font(.Tokens.micro)
-                            .tracking(1.2)
+                            .tracking(0.9)
                             .foregroundStyle(ColorTokens.text3)
 
                         DatePicker(
@@ -89,7 +89,7 @@ struct PrescribeWorkoutSheet: View {
                     VStack(alignment: .leading, spacing: 8) {
                         Text("coach.prescribe.fieldNotes")
                             .font(.Tokens.micro)
-                            .tracking(1.2)
+                            .tracking(0.9)
                             .foregroundStyle(ColorTokens.text3)
 
                         TextField("coach.prescribe.notes.placeholder", text: $notes, axis: .vertical)
@@ -131,7 +131,7 @@ struct PrescribeWorkoutSheet: View {
             ForEach(template.sortedGroups, id: \.id) { group in
                 Text(group.groupName.uppercased())
                     .font(.Tokens.micro)
-                    .tracking(1.2)
+                    .tracking(0.9)
                     .foregroundStyle(ColorTokens.text3)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.top, Spacing.sm)

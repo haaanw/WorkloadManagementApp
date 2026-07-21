@@ -23,9 +23,8 @@ struct WorkloadApp: App {
             || NSClassFromString("XCTestCase") != nil
             || ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE")
 
-        let hasGeneralSans = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("general") })
+        let hasPrimaryFace = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("instrument sans") })
         let hasNotoSansSC = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("noto sans sc") })
-        let hasPlexMono = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("plex mono") })
 
         // Assert the exact PostScript names FontTokens requires (list owned by the chokepoint —
         // Font.Tokens.requiredPostScriptNames — so font-name literals stay in FontTokens.swift).
@@ -37,37 +36,29 @@ struct WorkloadApp: App {
         // names iOS resolves for the bundled families. Descriptors in FontTokens.swift MUST
         // use these exact PostScript names (RESEARCH Pitfall 3 / phase-14 lesson).
         print("Noto family fonts: \(UIFont.fontNames(forFamilyName: "Noto Sans SC"))")
-        print("General Sans family fonts: \(UIFont.fontNames(forFamilyName: "General Sans Variable"))")
-        for family in UIFont.familyNames where family.localizedCaseInsensitiveContains("plex") {
+        for family in UIFont.familyNames where family.localizedCaseInsensitiveContains("instrument") {
             print("\(family) family fonts: \(UIFont.fontNames(forFamilyName: family))")
         }
 
         if isRunningUnderTest {
             // Non-fatal: fonts aren't bundled into the test host; just log.
-            if !hasGeneralSans {
-                print("[font-check] General Sans font not found (test host — non-fatal).")
+            if !hasPrimaryFace {
+                print("[font-check] Instrument Sans not found (test host — non-fatal).")
             }
             if !hasNotoSansSC {
                 print("[font-check] Noto Sans SC not registered (test host — non-fatal).")
-            }
-            if !hasPlexMono {
-                print("[font-check] IBM Plex Mono not registered (test host — non-fatal).")
             }
             if !missingPostScriptNames.isEmpty {
                 print("[font-check] Missing font PostScript names (test host — non-fatal): \(missingPostScriptNames)")
             }
         } else {
             assert(
-                hasGeneralSans,
-                "General Sans font not found. Add GeneralSans-Variable.ttf to the project and UIAppFonts in Info.plist."
+                hasPrimaryFace,
+                "Instrument Sans not found. Add the two static Instrument Sans TTFs (see Font.Tokens.requiredPostScriptNames) and their UIAppFonts entries."
             )
             assert(
                 hasNotoSansSC,
                 "Noto Sans SC not registered. Add NotoSansSC-Regular.otf + NotoSansSC-Medium.otf and UIAppFonts entries."
-            )
-            assert(
-                hasPlexMono,
-                "IBM Plex Mono not registered. Add the three static Plex Mono TTFs (see Font.Tokens.requiredPostScriptNames) and their UIAppFonts entries."
             )
             assert(
                 missingPostScriptNames.isEmpty,

@@ -18,14 +18,15 @@ import SwiftUI
 ///  - Keep-my-plan is one tap, no confirmation nag, no guilt copy (SC3).
 ///  - Confidence is shown quietly and separately when present (SC4).
 ///
-/// DESIGN.md v4 "Instrument" (hard): corners via `CornerTokens`, no shadows,
-/// `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`. The reason line renders in the
-/// UI voice (Stage-0″ shim — the serif display voice is retired; Stage 2″ rebuilds the
-/// verdict header per the v4 law; app-authored copy only).
-/// Tuwa v4: this is the screen's primary decision surface, so it sits on the emphasis plane
-/// (`.emphasisCardStyle()` — `surfaceEl2` + `dividerStrong`; the v3 accent rule is deleted).
-/// The red index appears ONLY as the strike-zone NEEDLE (TickScale, Index Rule) — NEVER on the
-/// verdict state (that stays a text label + desaturated zone strip) and NEVER on today's number.
+/// DESIGN.md v5 "Pavilion" (hard): corners via `CornerTokens`, no shadows, the one
+/// Instrument Sans voice via `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`.
+/// The verdict value renders in INK (`displayAction` + `.monospacedDigit()`, `text1`) —
+/// it is NOT the hero readiness score, so it never wears the accent.
+/// Tuwa v5: this is the screen's primary decision surface, so it sits on the emphasis plane
+/// (`.emphasisCardStyle()` — `surfaceEl2` + `dividerStrong`).
+/// Accent (travertine) appears ONLY as the strike-zone NEEDLE (TickScale — a sanctioned
+/// live-state mark) — NEVER on the verdict state (that stays a text label + desaturated
+/// zone strip) and NEVER on today's number.
 /// en defaults inline; zh-Hans in the catalog.
 struct TodayVerdictCard: View {
 
@@ -54,7 +55,7 @@ struct TodayVerdictCard: View {
             HStack(alignment: .firstTextBaseline) {
                 Text(verbatim: "\(String(localized: "verdictCard.title", defaultValue: "TODAY'S PLAN")) · \(display.headlineExerciseName)")
                     .font(.Tokens.micro)
-                    .tracking(1.2)
+                    .tracking(0.9)
                     .textCase(.uppercase)
                     .foregroundStyle(ColorTokens.text3)
                 Spacer()
@@ -63,7 +64,7 @@ struct TodayVerdictCard: View {
                 // matched cap-heights, so the two ends of the header line read as one rule.
                 Text(stateLabel)
                     .font(.Tokens.micro)
-                    .tracking(1.2)
+                    .tracking(0.9)
                     .textCase(.uppercase)
                     .foregroundStyle(ColorTokens.text2)
             }
@@ -71,17 +72,17 @@ struct TodayVerdictCard: View {
             // 2. Action-on-the-plan hero — NUMBER-LED with a strike-zone bar (lead with today's
             //    number + where it lands in today's productive zone; never a bare readiness score).
             VStack(alignment: .leading, spacing: Spacing.xs) {
-                // Today's number leads (the lift target, NOT a readiness score → the index stays
-                // off it). Dial voice: `dialValue` mono (mockup D `vnum`), "from" caption mono small.
+                // Today's number leads (the lift target, NOT the hero readiness score → the
+                // accent stays off it). One-voice display value in ink; tabular digits.
                 HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
                     Text(WeightFormatter.display(display.adjustedTopSetKg, unit: weightUnit, locale: locale))
-                        .font(.Tokens.dialValue)
-                        .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.valueSize, em: Font.Tokens.Dial.valueTrackingEm))
+                        .font(.Tokens.displayAction)
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
                     if display.hasAdjustment {
                         Text(fromPlannedCaption)
-                            .font(.Tokens.dialSmall)
+                            .font(.Tokens.smallLabelMedium)
+                            .monospacedDigit()
                             .foregroundStyle(ColorTokens.text3)
                     }
                 }
@@ -103,14 +104,13 @@ struct TodayVerdictCard: View {
                     .accessibilityIdentifier("workoutLog.verdict.strikeZone")
                     Text(zoneCaption)
                         .font(.Tokens.micro)
-                        .tracking(1.2)
+                        .tracking(0.9)
                         .foregroundStyle(ColorTokens.text3)
                 }
             }
 
-            // 3. Reason line — the one-line why. v4 "Instrument": the serif display voice is
-            //    retired; Stage-0″ compile shim renders this in the UI voice (`body`) until
-            //    Stage 2″ rebuilds the verdict header. App-authored copy only.
+            // 3. Reason line — the one-line why, in the one v5 voice (`body`).
+            //    App-authored copy only.
             Text(verbatim: display.reasonLine)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
@@ -136,8 +136,8 @@ struct TodayVerdictCard: View {
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: display.appliedState)
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: display.adjustedTopSetKg)
         .onAppear { Haptics.prepare() }
-        // Primary decision surface → the emphasis plane (surfaceEl2 + dividerStrong; no accent
-        // rule in v4 — the Index Rule reserves red for index marks only).
+        // Primary decision surface → the emphasis plane (surfaceEl2 + dividerStrong; the v5
+        // Accent Rule keeps the accent off it — accent is the hero score + live-state marks only).
         .emphasisCardStyle()
         // Supplementary DESATURATED hairline strip (text label above is the primary channel).
         // zoneCaution for an adjustment, zoneLow for a learning defer, none when training as planned.
@@ -231,8 +231,8 @@ struct TodayVerdictCard: View {
 
     // MARK: - Shared button builders (equal-weight guarantee lives here)
 
-    /// The feel cells — quiet plain cells (v4: control-corner rectangles, hairline border —
-    /// pills are demoted to chips). Both feel options share one identical treatment.
+    /// The feel cells — quiet plain cells (control-corner rectangles, hairline border).
+    /// Both feel options share one identical treatment.
     private func feelPill(_ title: String, action: @escaping () -> Void) -> some View {
         Button(action: { Haptics.select(); action() }) {
             Text(verbatim: title)
@@ -305,13 +305,13 @@ struct TodayVerdictCard: View {
 
 // MARK: - StrikeZoneBar (the compact "where today's number lands in today's zone" visualization)
 
-/// A presentation-only micro tick-scale (v4 "Instrument"): the strike ZONE (today's productive
-/// band) as an ink zone band, the red index NEEDLE at today's number, and — when the plan was
+/// A presentation-only micro tick-scale (v5 "Pavilion"): the strike ZONE (today's productive
+/// band) as an ink zone band, the accent NEEDLE at today's number, and — when the plan was
 /// trimmed — a faint PLANNED ghost mark. No engine math: the zone band is a display tolerance
 /// centered on the adjusted number (the engine already placed it in the zone). Rendering is
 /// delegated to `TickScale` (`.micro` variant, light theme): zone band = ink on light surfaces,
-/// needle = the red index (a sanctioned index-mark location — Index Rule). The verdict STATE
-/// never uses the index (it stays a text label + desaturated zone strip on the card).
+/// needle = travertine accent (a sanctioned live-state mark — Accent Rule). The verdict STATE
+/// never uses the accent (it stays a text label + desaturated zone strip on the card).
 /// Same public shape (planned/adjusted/hasAdjustment) and accessibility semantics as before.
 private struct StrikeZoneBar: View {
     let planned: Double

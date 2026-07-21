@@ -6,21 +6,22 @@ import SwiftUI
 //
 // The demo §3 "After" composition (`.planning/design-reference/tuwa-v4-polish-demos.html`)
 // asks every screen for the same two compositional moves: a scannable METRIC GRID (a row of
-// baseline-aligned dial readouts, each with a unit superscript and an optional delta line)
+// baseline-aligned tabular readouts, each with a unit superscript and an optional delta line)
 // and RULED SECTION HEADERS (micro-caps that carry a trailing hairline so they structure the
-// page instead of floating). Both live here so the five recomposed tabs share one grammar.
+// page instead of floating). Both live here so the five recomposed tabs share one grammar
+// (values re-inked for DESIGN.md v5 "Pavilion").
 //
 // All values route through ColorTokens / Font.Tokens / Spacing / CornerTokens — no literals.
 
 // MARK: - Metric cell
 
-/// One cell of the demo-§3 metric grid: a micro-caps label, a dial-voice value with an
+/// One cell of the demo-§3 metric grid: a micro-caps label, a display value with an
 /// optional unit superscript, and an optional bottom accessory (a delta line, a staleness
 /// badge, anything the caller supplies). Designed to sit in an equal-width `HStack` so a row
 /// of cells reads as a scannable grid.
 ///
-/// FIXED-width behaviour (D13-c / the handoff's fixed-width rule): the value renders in the
-/// dial voice (IBM Plex Mono — tabular by construction) with `.monospacedDigit()`, and the
+/// FIXED-width behaviour (D13-c / the handoff's fixed-width rule): the value renders at
+/// `displayAction` with `.monospacedDigit()` (tabular figures, v5 numeral law), and the
 /// cell fills its share of the row via `maxWidth: .infinity`. A cell therefore never resizes
 /// when its digit count changes — 58 and 148 occupy the same box — so a re-measure never
 /// reflows the grid.
@@ -61,7 +62,7 @@ struct MetricCell<Accessory: View>: View {
 
             HStack(alignment: .firstTextBaseline, spacing: Spacing.baselinePair) {
                 Text(value)
-                    .font(.Tokens.dialValue)
+                    .font(.Tokens.displayAction)
                     .monospacedDigit()
                     .foregroundStyle(valueColor)
                     .lineLimit(1)
@@ -81,10 +82,9 @@ struct MetricCell<Accessory: View>: View {
     }
 }
 
-/// The default metric-cell accessory: the demo's mono-ish delta line (`−3% vs base`). Renders
+/// The default metric-cell accessory: the demo's quiet delta line (`−3% vs base`). Renders
 /// nothing when `text` is nil, so a cell with no delta collapses to label + value cleanly.
-/// The copy is mixed (numerals + words), so it stays in the UI voice per the Two-Voice law —
-/// the dial voice is numerals/units only.
+/// Mixed copy (numerals + words) at the micro size — one voice (v5), no special numeral face.
 struct MetricDeltaLine: View {
     let text: String?
 

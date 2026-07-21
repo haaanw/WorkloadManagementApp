@@ -127,7 +127,7 @@ struct CoachExportSheet: View {
                 let zoneColor = zoneColorFor(athlete)
                 Text(zoneName)
                     .font(.Tokens.micro)
-                    .tracking(1.2)
+                    .tracking(0.9)
                     .textCase(.uppercase)
                     .foregroundStyle(ColorTokens.text2)
                     .padding(.horizontal, 8)
@@ -155,7 +155,7 @@ struct CoachExportSheet: View {
                 } label: {
                     Text(range.displayName)
                         .font(.Tokens.micro)
-                        .tracking(1.2)
+                        .tracking(0.9)
                         .textCase(.uppercase)
                         .foregroundStyle(
                             selectedRange == range ? ColorTokens.text1 : ColorTokens.text2

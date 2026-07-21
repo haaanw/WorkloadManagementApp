@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tuwa v5 — Font Shootout</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500&family=Hanken+Grotesk:wght@400;500&family=Space+Grotesk:wght@400;500&family=Familjen+Grotesk:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://api.fontshare.com/v2/css?f[]=cabinet-grotesk@400,500&f[]=general-sans@400,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* v5 draft palette — v1 warmth pulled slightly cooler (stone/greige) */
+    --bg:      #F2F1EE;
+    --surface: #ECEBE7;
+    --well:    #E6E5E0;
+    --divider: #D2D0CA;
+    --text-1:  #1B1A17;
+    --text-2:  #6B6862;
+    --text-3:  #A5A29B;
+    --accent:  #6F6759;
+    --optimal: #3E5C49;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: var(--text-1);
+    padding: 48px 32px 96px;
+    font-family: -apple-system, sans-serif;
+  }
+  h1 { font-size: 22px; font-weight: 500; margin-bottom: 8px; }
+  .sub { color: var(--text-2); font-size: 14px; margin-bottom: 48px; max-width: 640px; line-height: 1.5; }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(390px, 1fr));
+    gap: 32px;
+    max-width: 1400px;
+  }
+  .card {
+    background: var(--surface);
+    border: 0.5px solid var(--divider);
+    border-radius: 12px;
+    padding: 24px;
+    /* subtle relief nod (v4.2 carry-over) */
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
+  }
+  .fontname {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.02em;
+    padding-bottom: 4px;
+  }
+  .fonttag { font-size: 12px; color: var(--text-2); margin-bottom: 20px; line-height: 1.4; }
+  .baseline .fontname::after {
+    content: "  ·  CURRENT BASELINE"; color: var(--text-3); font-weight: 400; font-size: 10px; letter-spacing: 0.08em;
+  }
+  .micro {
+    font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--text-3); margin-bottom: 8px; font-weight: 400;
+  }
+  .hero {
+    font-size: 64px; line-height: 1; color: var(--accent);
+    font-weight: 400; font-variant-numeric: tabular-nums;
+    margin-bottom: 12px;
+  }
+  .verdict { font-size: 17px; font-weight: 500; margin-bottom: 8px; }
+  .body {
+    font-size: 14px; font-weight: 400; color: var(--text-2);
+    line-height: 1.55; margin-bottom: 16px;
+  }
+  .rule { border: none; border-top: 0.5px solid var(--divider); margin: 16px 0; }
+  .metrics { display: flex; gap: 0; }
+  .metric { flex: 1; padding: 0 12px; border-left: 0.5px solid var(--divider); }
+  .metric:first-child { border-left: none; padding-left: 0; }
+  .metric .label { font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--text-3); margin-bottom: 4px; }
+  .metric .value { font-size: 20px; font-weight: 500; font-variant-numeric: tabular-nums; }
+  .metric .unit { font-size: 12px; color: var(--text-2); font-weight: 400; }
+  .zone {
+    display: inline-block; margin-top: 16px; padding: 4px 12px;
+    border: 1px solid var(--optimal); border-radius: 999px;
+    color: var(--optimal); font-size: 11px; letter-spacing: 0.06em; font-weight: 500;
+  }
+  .numerals {
+    margin-top: 16px; font-size: 15px; color: var(--text-2);
+    font-variant-numeric: tabular-nums; letter-spacing: 0.01em;
+  }
+
+  .f-general    { font-family: 'General Sans', sans-serif; }
+  .f-instrument { font-family: 'Instrument Sans', sans-serif; }
+  .f-bricolage  { font-family: 'Bricolage Grotesque', sans-serif; }
+  .f-hanken     { font-family: 'Hanken Grotesk', sans-serif; }
+  .f-space      { font-family: 'Space Grotesk', sans-serif; }
+  .f-familjen   { font-family: 'Familjen Grotesk', sans-serif; }
+  .f-cabinet    { font-family: 'Cabinet Grotesk', sans-serif; }
+</style>
+</head>
+<body>
+<h1>Tuwa v5 — typeface shootout</h1>
+<p class="sub">Same dashboard content in every candidate, on the draft v5 palette (v1 warmth pulled slightly cooler). Judging criteria: precise but not formal, alive but still instrument-grade. All fonts are free to bundle (OFL or Fontshare license). Regular 400 + Medium 500 only, per v1 type law.</p>
+
+<div class="grid" id="grid"></div>
+
+<script>
+const fonts = [
+  { cls: 'f-general',    name: 'General Sans',        tag: 'What ships today. The reference point — neutral, competent, and (your words) a little dull.', baseline: true },
+  { cls: 'f-instrument', name: 'Instrument Sans',     tag: 'Neo-grotesque built for product UI — precise skeleton, but sharp ink-trap details and open curves keep it awake. The name is a coincidence we can enjoy.' },
+  { cls: 'f-bricolage',  name: 'Bricolage Grotesque', tag: 'The liveliest of the set — visible personality in the a/g/y, editorial confidence. Character without becoming a display face.' },
+  { cls: 'f-hanken',     name: 'Hanken Grotesk',      tag: 'Warm humanist grotesk — friendlier rhythm and rounder apertures than DM/General Sans. Quiet charm rather than loud character.' },
+  { cls: 'f-space',      name: 'Space Grotesk',       tag: 'Technical character — quirky terminals and superb numerals. The most "instrument panel" of the candidates; risk: reads techy/trendy.' },
+  { cls: 'f-familjen',   name: 'Familjen Grotesk',    tag: 'Scandinavian warmth with subtle quirks in the joins — halfway between Hanken\'s warmth and Space\'s character.' },
+  { cls: 'f-cabinet',    name: 'Cabinet Grotesk',     tag: 'Confident grotesk with real personality in the caps and numerals — a stronger voice, still disciplined at text sizes.' },
+];
+const card = f => `
+<div class="card ${f.cls} ${f.baseline ? 'baseline' : ''}">
+  <div class="fontname">${f.name}</div>
+  <div class="fonttag">${f.tag}</div>
+  <div class="micro">Readiness · Mon Jul 21</div>
+  <div class="hero">82</div>
+  <div class="verdict">Full send — hit today's top sets as written.</div>
+  <div class="body">HRV 62 ms sits 8% above your 30-day baseline and last night's 7 h 42 m cleared Tuesday's sleep debt. Yesterday's court session landed in the strike zone.</div>
+  <hr class="rule">
+  <div class="metrics">
+    <div class="metric"><div class="label">HRV</div><div class="value">62 <span class="unit">ms</span></div></div>
+    <div class="metric"><div class="label">RHR</div><div class="value">47 <span class="unit">bpm</span></div></div>
+    <div class="metric"><div class="label">Sleep</div><div class="value">7:42</div></div>
+  </div>
+  <div class="zone">OPTIMAL · ACWR 1.12</div>
+  <div class="numerals">0123456789 · 184.5 kg · 3×5 @ RPE 8</div>
+</div>`;
+document.getElementById('grid').innerHTML = fonts.map(card).join('');
+</script>
+</body>
+</html>

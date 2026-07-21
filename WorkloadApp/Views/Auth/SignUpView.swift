@@ -51,8 +51,8 @@ struct SignUpView: View {
                 .padding(.top, Spacing.lg)
                 .padding(.bottom, Spacing.lg)
 
-                // Fields — the standard v3 field treatment (control-radius plate, hairline,
-                // accent focus feedback), stacked on the page plane instead of full-bleed rows.
+                // Fields — the standard field treatment (control-radius plate, hairline,
+                // ink focus feedback), stacked on the page plane instead of full-bleed rows.
                 VStack(alignment: .leading, spacing: Spacing.sm) {
                     InputField(label: "auth.field.name", placeholder: String(localized: "auth.field.namePlaceholder"), text: $displayName)
                         .textContentType(.name)
@@ -86,7 +86,6 @@ struct SignUpView: View {
                                         .foregroundStyle(selectedSport == sport ? ColorTokens.text1 : ColorTokens.text2)
                                     Text(sport.displayName)
                                         .font(.Tokens.micro)
-                                        .tracking(0.5)
                                         .foregroundStyle(selectedSport == sport ? ColorTokens.text1 : ColorTokens.text2)
                                 }
                                 .frame(maxWidth: .infinity)
@@ -118,7 +117,7 @@ struct SignUpView: View {
                         .padding(.top, Spacing.sm)
                 }
 
-                // Create account button — primary CTA is a filled accent pill (Accent Rule v3).
+                // Create account button — primary CTA is the ink-filled pill (v5 CTA Law; never accent).
                 PrimaryActionButton(
                     title: "auth.signup.heading",
                     isLoading: isLoading,
@@ -295,10 +294,10 @@ private enum SignUpSocialError: LocalizedError {
 
 // MARK: - Reusable input field components
 
-/// The standard v3 auth field: small caption label above a control-radius field plate
+/// The standard auth field: small caption label above a control-radius field plate
 /// (`CornerTokens.control`, 0.5pt hairline). Focus feedback mirrors `InstrumentTextField` —
-/// the border becomes a 1pt accent rule while editing (accent-as-live-state), settling
-/// via `Motion.state`.
+/// the INK hairline thickens to 1pt while editing (Accent Rule — accent never marks focus),
+/// settling via `Motion.state`.
 struct InputField: View {
     let label: LocalizedStringKey
     /// Verbatim placeholder (String, not LocalizedStringKey — a key would markdown-parse
@@ -332,7 +331,7 @@ struct InputField: View {
     }
 }
 
-/// Secure twin of `InputField` — same v3 field treatment, `SecureField` entry.
+/// Secure twin of `InputField` — same field treatment, `SecureField` entry.
 struct SecureInputField: View {
     let label: LocalizedStringKey
     /// Verbatim placeholder — see `InputField.placeholder`.

@@ -133,7 +133,7 @@ struct ClientDetailView: View {
             if let r = latestRecovery {
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     Text(String(format: "%.0f", r.recoveryScore))
-                        .font(.Tokens.dialValue)
+                        .font(.Tokens.displayAction)
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
                     Text(r.zone.displayName)

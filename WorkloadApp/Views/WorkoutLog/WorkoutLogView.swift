@@ -206,7 +206,7 @@ struct WorkoutLogView: View {
 
                         // Session history
                         if visibleSessions.isEmpty && importSuggestions.isEmpty {
-                            // v3 empty state: one quiet plate (card plane, instrument voice) —
+                            // Empty state: one quiet plate (card plane, the one v5 voice) —
                             // not a bare centered text stack.
                             SectionContainer {
                                 EmptyStateView(
@@ -676,8 +676,9 @@ private struct SessionFilterChip: View {
                 .padding(.vertical, Spacing.xs)
                 .overlay(alignment: .bottom) {
                     if isSelected {
-                        // v4: the active filter is marked by an INK underline (needle-style
-                        // placement, ink weight — the red index never marks selection).
+                        // The active filter is marked by an INK underline (v5: ink carries
+                        // chrome selection here; the accent is reserved for the hero score
+                        // and live-state marks).
                         Rectangle()
                             .fill(ColorTokens.text1)
                             .frame(height: 1.5)

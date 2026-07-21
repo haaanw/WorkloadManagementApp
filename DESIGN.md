@@ -1,6 +1,6 @@
 # Design System — Tuwa
 
-**v4 "Instrument" — Aluminum Panel, 2026-07-20** (amended **v4.1 polish round, 2026-07-20** — Console tab bar + the Five-Primitive Interaction Law, decisions D12–D15, demo `.planning/design-reference/tuwa-v4-polish-demos.html`). Created by /design-consultation 2026-03-21 · light-only v2 2026-06-17 · v3 "Ink & Grain" 2026-07-14 · **v4 "Instrument" treatment locked by user decision 2026-07-20** (orchestration `.planning/orchestration/2026-07-20-v4-instrument.md` D9–D11; picked mockup `.planning/design-reference/tuwa-instrument-round2.html`, column D "Aluminum Panel" — its CSS is tone ground truth).
+**v5 "Pavilion" — Warm Stone, 2026-07-21.** Created by /design-consultation 2026-03-21 · light-only v2 2026-06-17 · v3 "Ink & Grain" 2026-07-14 · v4 "Instrument" 2026-07-20–21 · **v5 return-to-basis locked by user decision 2026-07-21**: the v1 International Style foundation is the product's aesthetic ground truth; v2–v4.2 are treated as guidance layers, and only their ratified carry-overs survive (motion fabric, accent-as-live-state, soft corner scale, relief system). Font picked via 7-face shootout (`.design-explorations/v5-font-preview.html`).
 
 ## Product Context
 
@@ -11,233 +11,210 @@
 
 ## Aesthetic Direction
 
-- **Direction:** Tuwa Instrument ("Aluminum Panel") — the app is a precision measuring instrument, not an app that talks about measurement. References: **Braun** (Rams' control discipline), **Bang & Olufsen** (machined aluminum body, linear scale grammar), **1990s Contax** (black instrument panel with luminous readings). The body is cool aluminum; each screen carries at most ONE near-black instrument panel bearing the hero reading; numerals are the voice.
-- **Decoration level:** None. No textures, no shadows, no ornament. The v3 halftone signature is RETIRED. Hierarchy is achieved through material contrast (aluminum vs panel), tick-scale grammar, mono numerals, and spacing.
-- **Mood:** Calm mechanical authority. A camera top-plate, not a scoreboard. Tuwa never shouts; the needle just points.
+- **Direction:** International Style Minimalism, recovered from v1 — the visual language of a precision instrument rendered in warm stone, not cold aluminum. Mies van der Rohe's principle: structure IS the aesthetic; every element earns its place or it does not exist. The v4.2 machined relief survives, but the material it carves is warm — travertine and limestone, not anodized metal.
+- **Design references:** Barcelona Pavilion (Mies, 1929 — one precious material, used once, completely), Seagram Building, Braun (Rams' control discipline), Apple Health (restrained data presentation).
+- **Decoration level:** None. No textures, no shadows, no ornament. Hierarchy is achieved through proportion, spacing, type weight, and physical relief (raised/debossed surfaces).
+- **Mood:** Quiet confidence. Not aggressive or energetic (cf. Whoop's red, Strava's orange) — calm, authoritative, precise. A high-end chronograph in a warm room, not a scoreboard.
 
-## Typography — the Two-Voice Type Law (v4)
+**Retired with v4:** the black instrument panel, the red index, the mono dial voice, the aluminum palette, near-square geometry, micro-caps screen titles. The instrument *grammar* (tick scales, readout wells, detents) survives; the instrument *costume* does not.
 
-The app speaks in exactly two type voices:
+## Typography — the One-Voice Type Law (v5)
 
-1. **UI voice — General Sans** (Regular 400 + Medium 500 only, via the variable font's `wght` axis). All textual UI: titles, sections, body, labels, controls, chrome. Hierarchy through size and the single weight step. No bold, no italic.
-2. **Dial voice — IBM Plex Mono** (static Regular / Medium / SemiBold, OFL). ALL data numerals: scores, weights, metric values, deltas, tick labels, units. Reached ONLY via the `Font.Tokens.dial*` chokepoint. App-authored numerals/units only — never body copy, never user content. Monospace ⇒ tabular digits by construction.
+The app speaks in exactly **one type voice**: **Instrument Sans** (SIL OFL; static Regular 400 + Medium 500 only). All hierarchy through size and the single weight step — no bold, no italic, no semantic styles, no second face.
 
-**RETIRED (v3 → v4):** the Source Serif 4 display voice (`serifDisplay`, `displayScore`, `displayVerdict`) is deleted — tokens, chokepoint, and font files. The name `SourceSerif4` is a banned string app-wide (fence-enforced, inverted from the v3 chokepoint fence).
-
-**Case discipline (column D):**
-- **Screen titles = micro-caps, wide tracking** — 12.5–13pt Semibold-equivalent (General Sans Medium), letter-spacing 0.28–0.3em, ALL CAPS. NOT large title. (Stage 1″ restyles `ScreenHeader`.)
-- **Micro-labels** — 9.5–10pt, tracking ≥0.2em, caps, `--text-3` (`panelInk2` on the panel).
-- Content copy (reasons, explanations) stays sentence case in the UI voice.
+- **Numerals:** every data numeral applies `.monospacedDigit()` at the call site (v1 law restored). Instrument Sans carries tabular figures; the mono face is gone.
+- **RETIRED (v4 → v5):** the IBM Plex Mono dial voice — tokens (`dial*` retuned to Instrument Sans), font files, and registrations deleted. `IBMPlexMono` is a banned string app-wide (fence-inverted, same mechanism as the `SourceSerif4` ban, which also stays).
+- **Case discipline:** sentence case everywhere. Screen titles return to the v1 editorial style — 28pt Regular, sentence case, with the date/context line in micro-caps above. Micro-caps (+0.08em tracking, caps) exist ONLY at micro-label size. The v4 wide-tracked micro-caps titlebar is retired.
+- **CJK:** the Noto Sans SC cascade (PostScript names, `cascadeList`) is retained on all tokens.
 
 ### Type Scale
 
-| Role            | Size  | Face          | Weight | Token                     | Notes                                    |
-|-----------------|-------|---------------|--------|---------------------------|-------------------------------------------|
-| Dial hero       | 60pt  | IBM Plex Mono | 500    | `dialHero`                | The ONE hero reading per screen; −0.03em, line-height 0.95; `panelInk` on the panel |
-| Dial value      | 30pt  | IBM Plex Mono | 500    | `dialValue`               | Standing dial values (verdict weight etc); −0.02em |
-| Dial small      | 13pt  | IBM Plex Mono | 500    | `dialSmall`               | Inline data readings, metric rows, deltas |
-| Dial tick       | 9pt   | IBM Plex Mono | 400    | `dialTick`                | Tick-scale numerals only                  |
-| Page title      | 32pt  | General Sans  | 400    | `pageTitle`/`screenTitle` | Legacy role — Stage 1″ replaces with micro-caps titlebar |
-| Section head    | 19pt  | General Sans  | 500    | `sectionHead`             |                                           |
-| Body            | 17pt  | General Sans  | 400    | `body`                    | Line-height 1.55                          |
-| Label           | 15pt  | General Sans  | 400    | `label`                   |                                           |
-| Small label     | 13pt  | General Sans  | 400    | `smallLabel`              |                                           |
-| Micro / cap     | 12pt  | General Sans  | 400    | `micro`                   | Wide tracking, caps                       |
+| Role          | Size | Weight | Token                  | Notes                                        |
+|---------------|------|--------|------------------------|----------------------------------------------|
+| Hero score    | 64pt | 400    | `heroScore`            | Tabular, line-height 1, **`accent` color** — the one colored text element in the app |
+| Display value | 32pt | 400    | `displayAction`        | Verdict copy / standing values (`dialValue` aliases here at 30→32) |
+| Page title    | 28pt | 400    | `pageTitle`            | Sentence case (v1 restored; was 32/micro-caps) |
+| Section head  | 17pt | 500    | `sectionHead`          | v1 scale restored (was 19)                    |
+| Body          | 17pt | 400    | `body`                 | Line-height 1.55                              |
+| Label         | 15pt | 400    | `label`                |                                              |
+| Small label   | 13pt | 400    | `smallLabel`           |                                              |
+| Micro / cap   | 11pt | 400    | `micro`                | +0.08em tracking, caps (v1 restored; was 12)  |
+| Tab label     | 11pt | 500    | `tabLabel`             | Title case (v4.1 readability finding, kept)   |
+| Key label     | 11pt | 500    | `keyLabel`             | Decision-key cells; sentence case in v5       |
 
-SemiBold Plex Mono is bundled and registered for Stage-2″ use if the hero needs more presence at 60pt; default is Medium.
+Former `dial*` tokens survive as deprecated aliases onto this ramp (hero/display/small) so the sweep can migrate call sites file by file; they are deleted at the end of the v5 application pass.
 
 ### Font Loading (iOS)
 
-Bundle `GeneralSans-Variable.ttf`, `IBMPlexMono-{Regular,Medium,SemiBold}.ttf` (static faces), and `NotoSansSC-{Regular,Medium}.otf` in the Xcode project; register via `Info.plist` → `UIAppFonts`. Reference in SwiftUI via `FontTokens.swift` only. The mono's PostScript names (`IBMPlexMono-Regular` / `-Medium` / `-SemiBold`, runtime-verified via the DEBUG family dump 2026-07-20) live ONLY in `FontTokens.swift` — no other file may name the dial font (fence-enforced). CJK cascade to Noto Sans SC is retained on both voices (defensive on dial tokens — their content is numerals/units).
+Bundle `InstrumentSans-Regular.ttf` + `InstrumentSans-Medium.ttf` (static faces — the variable font is NOT used; the GeneralSans variable-font PS-name trap of 2026-07-17 is why) and `NotoSansSC-{Regular,Medium}.otf`. Register via `Info.plist` → `UIAppFonts`. Reference ONLY via `FontTokens.swift`; PostScript names live only there and must be runtime-verified via the DEBUG family dump before the pivot is declared rendered (past failure mode: font never rendered, fell back silently).
 
-Sources: https://www.fontshare.com/fonts/general-sans (ITF FFL) · IBM Plex Mono from github.com/IBM/plex via the google/fonts mirror (SIL OFL 1.1 — license bundled at `WorkloadApp/Resources/Fonts/IBMPlexMono-LICENSE.txt`).
+Source: https://fonts.google.com/specimen/Instrument+Sans (SIL OFL 1.1 — bundle the license at `WorkloadApp/Resources/Fonts/InstrumentSans-LICENSE.txt`). General Sans and IBM Plex Mono files/registrations are removed.
 
 ## Color
 
-### Light Mode — v4 Aluminum Panel (light-only unchanged)
+### Light Mode — v5 Warm Stone (light-only)
 
-Tuwa is intentionally light-only; the app forces light appearance. The v4 material model: a cool **aluminum body** carrying at most ONE near-black **instrument panel** per screen, with a single red **index** accent for marks.
+Tuwa is intentionally light-only; the app forces light appearance. The v5 material model: **one warm stone material** in ascending planes of light (the relief system needs raised = brighter), warm ink, and a single **travertine accent** — v1's palette pulled slightly cooler per user decision ("1, but slightly less warm").
 
-| Token               | Hex       | Usage                                                        |
-|---------------------|-----------|--------------------------------------------------------------|
-| `--bg`              | `#E9EAEB` | Aluminum base plane (flat token; a subtle vertical gradient is sanctioned ONLY on the scroll background, Stage 1″) |
-| `--surface`         | `#EFF0F1` | Inline strip / control plane                                 |
-| `--surface-el`      | `#F5F6F7` | Card plane (the v4 canonical card fill)                      |
-| `--surface-el-2`    | `#FAFBFB` | Brightest light plane — active/selected surfaces             |
-| `--divider`         | `#D0D2D5` | Hairline rules                                               |
-| `--divider-strong`  | `#C6C9CC` | Strong hairline — key-row containers, priority boundaries    |
-| `--text-1`          | `#17181A` | Ink (14.8:1 on base)                                         |
-| `--text-2`          | `#4A4D51` | Secondary (7.1:1)                                            |
-| `--text-3`          | `#85898E` | Tertiary / micro-caps (≥3:1 on card)                         |
-| `--disabled`        | `#9A9EA3` | Disabled-only glyphs — never information-carrying            |
-| `--panel`           | `#1E2022` | Panel fill (flat token; panel component renders the `#232527 → #1A1C1E` vertical gradient) |
-| `--panel-ink`       | `#F0F1F2` | Primary ink on panel (14.3:1)                                |
-| `--panel-ink-2`     | `#8B8F94` | Secondary ink on panel (5.0:1)                               |
-| `--panel-hairline`  | `#35373A` | Hairlines inside/around the panel                            |
-| `--index`           | `#D04234` | The red index — marks only (see Index Rule)                  |
-| `--zone-optimal`    | `#3F5A46` | Desaturated instrument green (6.3:1 base / 7.0:1 card)       |
-| `--zone-caution`    | `#6E5624` | Desaturated instrument amber (5.8:1 / 6.4:1)                 |
-| `--zone-danger`     | `#7E362E` | Desaturated instrument red — distinct from `--index` (7.1:1 / 7.9:1) |
-| `--zone-low`        | `#46525E` | Desaturated slate (6.6:1 / 7.4:1)                            |
+| Token              | Hex       | Usage                                                       |
+|--------------------|-----------|-------------------------------------------------------------|
+| `--bg`             | `#F0EFEC` | Stone base plane (page/scroll canvas)                       |
+| `--surface`        | `#F4F3F0` | Inline strip / control plane                                |
+| `--surface-el`     | `#F8F7F4` | Card plane (canonical card fill)                            |
+| `--surface-el-2`   | `#FCFBF9` | Brightest plane — raised tops, active/selected surfaces     |
+| `--divider`        | `#D6D3CD` | Hairline rules                                              |
+| `--divider-strong` | `#CCC9C2` | Strong hairline — key-row containers, priority boundaries   |
+| `--text-1`         | `#1B1A17` | Warm ink (≈15:1 on base)                                    |
+| `--text-2`         | `#57544E` | Secondary (≈6.5:1)                                          |
+| `--text-3`         | `#8B877F` | Tertiary / micro-caps (≥3:1 on card)                        |
+| `--disabled`       | `#A19D95` | Disabled-only glyphs — never information-carrying           |
+| `--accent`         | `#6F6759` | **Travertine.** Hero score + live-state only (Accent Rule)  |
+| `--well-top`       | `#E7E5E0` | Debossed well gradient, top                                 |
+| `--well-bottom`    | `#EDEBE6` | Debossed well gradient, bottom                              |
+| `--zone-optimal`   | `#3F5A46` | Desaturated green (contrast-verified 2026-07-20, retained)  |
+| `--zone-caution`   | `#6E5624` | Desaturated amber (retained)                                |
+| `--zone-danger`    | `#7E362E` | Desaturated red (retained)                                  |
+| `--zone-low`       | `#46525E` | Desaturated slate (retained)                                |
 
-Implementation: tokens are hardcoded light-only hex literals in `ColorTokens.swift` (no asset-catalog color sets). `accent` is retained as an alias of `index` so v2/v3 live-state call sites compile mid-pivot; Stage 1″/2″ migrates them to the Index Rule / ink grammar.
+Implementation: hardcoded light-only hex literals in `ColorTokens.swift`, no asset catalogs, no dark-mode branches. Charts retune to warm inks (ATL dark warm ink, CTL light warm ink, volume/sleep mid warm inks) keeping ONE muted supporting hue (`#4E7A74` desaturated teal) for the positive series (TSB/HRV). **Panel tokens (`panel`, `panelInk*`, `panelHairline`, gradients) and `index` are retired** — kept only as deprecated aliases during the sweep, deleted with it.
 
-### Panel Law (the v4 signature)
+### Accent Rule (v5 — the travertine law)
 
-The near-black panel is the emphasis surface — the two-tone drama of the design:
+`--accent` (`#6F6759`) is v1's "green marble slab in the Barcelona Pavilion" plus the v2 live-state carry-over. It may appear ONLY as:
 
-- **One panel per screen, maximum.** It carries the screen's ONE hero instrument reading: Home readiness, Log verdict header (if hero'd), Load ACWR.
-- Fill: the `#232527 → #1A1C1E` vertical gradient (panel component only; the flat `panel` token elsewhere). Border: 0.5pt `panelHairline`. Corners: `CornerTokens.panel` (5pt).
-- On-panel ink: `panelInk` primary, `panelInk2` micro-labels/units; tick scales use panel-tuned tick colors; zone band on panel renders in `panelInk`.
-- Everything else lives on aluminum cards (`surfaceEl`). A second dark surface on the same screen is a design error.
+1. **The hero readiness score** — the single colored text element in the app.
+2. **Live-state semantics (v2 carry-over):** progress fills, active/selected marks (the active-tab tick, selection dots), the live-recording dot, scale needles.
 
-### Index Rule (v4 accent law)
+Never decorative, never body/label text, never an icon tint at rest, never a CTA fill. The v4 red index is retired; every former index mark (needle, tab tick, recording dot) is now drawn in accent. Zone meaning is still carried by text label + zone color — never by the accent.
 
-`--index` (`#D04234`) is the single accent, and it may appear ONLY as an **index mark**:
+### Corner Law (v5 — soft precision, v3 scale restored)
 
-1. **Scale needles** — the 1.5px red needle on `TickScale` (linear scales, micro-scales).
-2. **The active-tab tick** — a 1.5pt red rule ABOVE the active tab label (needle grammar).
-3. **A live-recording dot** — the one live-session indicator.
+Every radius comes from `CornerTokens` — never a hand-typed literal:
 
-**Never a fill, never text, never an icon tint, never decorative.** The v3 accent-as-CTA-fill rule is RETIRED: CTAs are ink-filled key cells (`--text-1` fill, `panelInk` text), NOT red. Index marks are ≥1.5pt strokes/shapes, so text-contrast floors do not apply to them; `--index` must never carry text. Zone meaning is still carried by text label + zone color — never by the index.
+| Token                  | Value   | Applies to                                      |
+|------------------------|---------|-------------------------------------------------|
+| `CornerTokens.card`    | 12pt    | Cards, plates, grouped surfaces, sheets         |
+| `CornerTokens.control` | 8pt     | Inputs, cells, steppers, wells, small plates    |
+| `CornerTokens.pill`    | capsule | Chips, badges, and the primary CTA              |
 
-### Corner Law (v4 — near-square)
+`CornerTokens.panel` is deleted with the panel. Hairline borders stay (0.5pt); still NO shadows — elevation is plane + hairline + relief.
 
-Every radius comes from `CornerTokens` (`Utilities/CornerTokens.swift`) — never a hand-typed literal:
+### The Relief Law (v4.2 carry-over, re-materialized in stone)
 
-| Token                  | Value   | Applies to                                            |
-|------------------------|---------|-------------------------------------------------------|
-| `CornerTokens.card`    | 5pt     | Cards, plates, grouped surfaces, sheets               |
-| `CornerTokens.panel`   | 5pt     | The black instrument panel                            |
-| `CornerTokens.control` | 4pt     | Inputs, segmented cells, steppers, small plates       |
-| `CornerTokens.pill`    | capsule | **DEMOTED: chips/badges only.** Never CTAs.           |
+Every machined surface is either RAISED or DEBOSSED; flat is reserved for the base plane and text. The two chokepoint modifiers in CardStyle.swift — never hand-rolled:
 
-Hairline borders stay (0.5pt); still NO shadows — elevation remains plane + hairline.
+- **`.raised(cornerRadius:)`** — milled plate: `surfaceEl2→surfaceEl` vertical gradient, 1px `reliefHighlight` top line, `dividerStrong` hairline. Cards, option cells, keys, toggle knobs.
+- **`.debossed(cornerRadius:)`** — pocket: `wellTop→wellBottom` gradient, 1.5px `reliefShade` inner top edge, 1px `reliefHighlightSoft` bottom closing line, `dividerStrong` hairline. Readout wells, focused fields, option channels, toggle tracks.
+- Default radii are the v5 corner scale (card 12 / control 8). No `.shadow()` anywhere — relief is strokes + gradients only.
 
-### Key Row Law (butted keys — v4 CTA grammar)
+**Readout wells** carry over: every displayed value sits in a fixed-width debossed well — tabular value + micro-caps unit; digits change, the stone never resizes.
 
-Decision/action rows are **butted key rows**: flex cells of equal weight inside ONE container with a 0.5pt `dividerStrong` border, separated by interior 0.5pt hairlines — **no gaps, no pills**.
+**Press inverts relief** carries over: keys press in ~85ms (raised→pocket) and release on a ~300ms non-bouncy spring. The machined form system (InstrumentForm.swift — press-well rows, inline option bays, machined toggle, focus wells) carries over with v5 geometry (8pt wells/cells) and stone tokens; stock iOS `Menu` remains BANNED for settings/pickers.
 
-- **CTA key** = ink-filled cell (`--text-1` fill, `panelInk` text). NOT red — the index never fills.
-- Secondary keys = card fill (`surfaceEl`), ink text. Key labels: 10.5pt-class micro-caps, tracking ≈0.18em, Medium.
-- Equal visual weight between "act" and "keep plan" keys is the **nocebo guard** — the UI never pressures the athlete toward the modified option. This law is retained from v2/v3 and now has a physical grammar.
+### Hero Law (v5 — replaces the v4 Panel Law)
 
-### TickScale (the signature component — Stage 1″ builds it)
+The hero surface is a **raised light card**, not a black panel:
 
-`TickScale` replaces StrikeZoneBar's visuals (same data semantics + accessibility):
+- One hero card per screen, maximum, carrying the screen's one hero reading (Home readiness, Load ACWR) as `heroScore` in **accent** — v1's original signature.
+- Everything else reads in ink on the same stone. A dark surface anywhere is a design error; `panelStyle(` is banned by fence after the sweep.
 
-- Two-weight tick marks: minor 1px in the tick color, major 1.5px in the tick-major color.
-- Mono tick numerals (`dialTick`, 9pt).
-- Optional **zone band**: ink (`--text-1`) on light surfaces, `panelInk` on the panel.
-- **1.5px red needle** (`--index`) marking the current value.
-- Optional faint **ghost mark** (planned/previous value) at ~0.55 opacity of the numeral ink.
-- Tick colors on aluminum: `#4E5154` minor / `#6E7175` major / `#8B8F94` numerals (column D vars; Stage 1″ tokenizes as component-internal constants derived from ColorTokens).
+### TickScale (retained instrument grammar, re-inked)
 
-### Tab bar — Console (v4.1 D12)
+`TickScale` survives as the measured-value display grammar: two-weight tick marks in warm grays (minor/major derived from `text3`/`text2`), numerals in `text3` at the micro size, optional ink zone band, optional ghost mark — and the **needle is now 1.5px accent**. Detent haptics stay Home-hero-only. Needles never travel back through zero (v4.1 law kept).
 
-Text-only **title-case** labels (11pt Medium `keyLabel`, modest ~0.13em tracking, Latin only) on a flat opaque bar (`tabBarSurface`, 0.5pt `dividerStrong` top hairline). The v4.1 readability raise: 9pt all-caps `--disabled` → 11pt title-case, with inactive labels lifted to `--text-3`.
+### CTA & Key Row Law (v5)
 
-Selected state is a three-part **presence** grammar (not a font-weight change — see below): (1) the ink color step `--text-3` → `--text-1`; (2) a faint sliding **well** behind the active item — `--text-1` @5%, `CornerTokens.control` plate, inset off the bar edges, sliding between tabs on `Motion.state`; (3) the 1.5pt red **index tick** ABOVE the active label (needle grammar, Index Rule), which slides on the springy `Motion.tickSpring` — the one overshoot in the app. Per-item press-down: scale 0.94. No icons, no pill highlights.
-
-**Weight-shift caveat:** D12's mock shows a 500→600 shift on select, but General Sans is Regular/Medium-only and bold is banned — a same-size bump would be fake-bolding. Labels therefore stay Medium at both states and selection is carried by color + well + tick (the sanctioned "color+size, not fake bolding" substitute). A literal within-law weight shift (Regular→Medium) would need an 11pt-Regular tab token in `FontTokens.swift`; deferred. (InkTabBar architecture + a11y IDs unchanged.)
+- **Primary CTA:** ink-filled pill — `text1` fill, `surfaceEl` text, `Capsule()` geometry, `.raised` relief. One per screen at most. Never accent-filled.
+- **Decision rows keep the butted equal-weight grammar** inside a raised 12pt container with interior 0.5pt hairlines: the **nocebo guard** — "act" and "keep plan" carry equal visual weight, the UI never pressures the athlete toward the modified option. Key labels: `keyLabel` 11pt Medium, sentence case (micro-caps tracking retired).
 
 ### Zone Color Rule (retained)
 
-Zone colors are desaturated instrument variants — never vivid alarms. Zone state is communicated primarily through text labels ("Optimal" / "Caution" / "High Risk"); color is supplementary (label + optional colored border/strip, never color alone). All four zone tokens hold ≥4.5:1 on both light surfaces (verified 2026-07-20).
+Zone colors are desaturated — never vivid alarms. Zone state is communicated primarily through text labels ("Optimal" / "Caution" / "High Risk"); color is supplementary (label + optional colored border/strip, never color alone). All four zone tokens hold ≥4.5:1 on the stone surfaces.
 
 ### Contrast floors
 
-Primary text ≥13:1, secondary ≥4.5:1, micro-caps ≥3:1 (on their surface), panel ink ≥13:1, panel secondary ≥4.5:1. Pure `#FFFFFF`/`#000000` never used. `--index` and `--disabled` are exempt only because they never carry information-bearing text (index = marks; disabled = disabled).
+Primary text ≥13:1, secondary ≥4.5:1, micro-caps ≥3:1 on their surface. The 64pt accent hero holds ≥4.5:1 on the card plane (large-text floor is 3:1; verified at implementation). Pure `#FFFFFF`/`#000000` never used. `--disabled` is exempt only because it never carries information.
+
+### Tab bar — Console architecture, stone dress (v5)
+
+InkTabBar architecture and a11y IDs unchanged. Text-only title-case labels (11pt Medium, modest tracking) on a flat opaque bar (`tabBarSurface` `#ECEBE7`, 0.5pt `dividerStrong` top hairline). Selection = the three-part presence grammar: ink color step `text3→text1`, the faint sliding well (`text1` @5%, 8pt plate, `Motion.state`), and the 1.5pt **accent** tick above the active label sliding on `Motion.tickSpring` — still the ONE sanctioned overshoot in the app. Per-item press-down scale 0.94. No icons, no pill highlights.
 
 ## Spacing
 
 - **Base unit:** 8pt. Structural spacing must be multiples of 8pt; 4pt only as the sanctioned `baselinePair` micro-gap (micro-label → value).
-- Density: instrument-tight inside panels/cards, generous between sections.
+- Density: comfortable — v1's generous internal padding and deliberate vertical rhythm return; instrument-tight packing is retired with the panel.
 
-| Token | Value | Usage                                      |
-|-------|-------|--------------------------------------------|
-| xs    | 8pt   | Icon-label gaps, tight inline spacing      |
+| Token | Value | Usage                                          |
+|-------|-------|------------------------------------------------|
+| xs    | 8pt   | Icon-label gaps, tight inline spacing          |
 | sm    | 16pt  | Card internal padding (horizontal), small gaps |
-| md    | 24pt  | Card internal padding (vertical), standard gaps |
-| lg    | 32pt  | Section gaps                               |
-| xl    | 48pt  | Major section breaks                       |
-| 2xl   | 64pt  | Page-level breathing room                  |
+| md    | 24pt  | Card internal padding (vertical), standard gaps|
+| lg    | 32pt  | Section gaps                                   |
+| xl    | 48pt  | Major section breaks                           |
+| 2xl   | 64pt  | Page-level breathing room                      |
 
-Separator grammar retained: section break = 32pt gap + 19pt Medium header; row separator = 0.5pt hairline inset 16pt.
+Separator grammar retained: section break = 32pt gap + 17pt Medium header; row separator = 0.5pt hairline inset 16pt.
 
 ## Layout
 
 - Grid-disciplined, single scrollable canvas per tab; 16pt horizontal margins.
-- Screen top: micro-caps titlebar (title left, quiet action right) — not large-title chrome.
-- Home (top → bottom): titlebar → black readiness panel (micro-label · hero dial reading · zone label · TickScale) → metric rows on a card (label vs `dialSmall` value) → verdict card (`dialValue` + microscale + reason + key row) → tab bar.
+- Screen top (v1 restored): context line in micro-caps (date) above a 28pt sentence-case page title. `ScreenHeader` restyles; architecture stays.
+- Home (top → bottom): header → hero readiness card (micro-label · 64pt accent score · zone label · TickScale) → metric rows on a card → verdict card (display value in ink · reason · equal-weight key row) → tab bar.
+- Progressive disclosure (v1): surface = score + top reasons + recommendation; detail on tap; deep trends one more tap. The dashboard is a reading, not a data dump.
 
-## Motion (v4 — Emil Kowalski framework; governs Stage 3″)
+## Motion (v4.2 spring law — carried whole)
 
-Crisp + mechanical. Motion is a detent click, not a flourish.
+Motion is the one v2→v4.2 lineage that carries into v5 unchanged in substance: calm mechanics, no bounce, no flourish.
 
-- **Curve:** strong ease-out `cubic-bezier(0.23, 1, 0.32, 1)` for UI transitions. **No ease-in, ever.**
-- **Durations:** press feedback 100–160ms (scale 0.97); UI transitions 150–250ms; **never >300ms**. Frequent actions (tab switches) get near-instant treatment.
-- **Stagger:** 30–80ms steps.
-- **Springs:** ONLY for gesture-driven/momentum motion, damping ≈1.0 (no overshoot). State changes use the ease-out curve, not springs.
-- **Count-up:** the hero reading count-up stays but faster — ≤400ms.
-- **Haptics:** commit-only, plus **detent haptics** on scale/needle landings. Never decorative.
-- One motion language, one chokepoint: the `Motion` token enum (CardStyle.swift). Never a bare `withAnimation { }`, never a hand-typed duration at a call site. `reduceMotion` honored via `Motion.resolved(_:reduceMotion:)`. (Stage 3″ retunes the token values to this law; the token names and fence stay.)
+- **Non-bouncy springs** (interruptible, velocity-preserving) via the `Motion` token enum (CardStyle.swift) — the single chokepoint. Never a bare `withAnimation`, never a hand-typed curve/duration at a call site. `reduceMotion` honored via `Motion.resolved(_:reduceMotion:)`.
+- **No ease-in, ever.** No content passes through full invisibility during a transition (dip-crossfade banned); tab content hands off layered.
+- **Durations:** presses ~100ms in / ≤400ms settle; transitions ≤300ms; frequent actions near-instant. Stagger 30–80ms where used (not inside sheets).
+- **Count-up:** hero score count-up ≤400ms — v1's "one intentional moment of delight," now in accent.
+- **Haptics:** commit-only + limit/toggle detents (D13a) + Home hero count-up detents. Never decorative.
+- `Motion.tickSpring` remains the sole sanctioned overshoot (tab tick only).
 
-## The Five-Primitive Interaction Law (v4.1)
+## The Five-Primitive Interaction Law (carried from v4.1)
 
-Every touchable class in the app gets **exactly one defined response** — the feel vocabulary is a fixed set of five primitives, applied everywhere, never improvised per screen. This is what "interactive in every detail" means concretely. Carriers live in `CardStyle.swift`; call sites reference the styles/tokens, never raw curves. (Ratified by decision D13 with the adjustments below; demo `.planning/design-reference/tuwa-v4-polish-demos.html` §2.)
+Every touchable class has exactly one defined response; carriers live in `CardStyle.swift`, call sites reference styles/tokens only:
 
-1. **Key** — anything that *commits an action* (CTAs, key cells, tab items). Touch-down: **scale 0.97** + (for ink-filled keys) **brighten**, settling on `Motion.press` (120ms). Carrier: `.buttonStyle(.key)` (brighten) or `.buttonStyle(.pressable)` (dim, for light surfaces). Release always snappy.
-2. **Row** — anything that *navigates* (disclosure/list rows). Touch-down: a **background well** (`--text-1` @6%), **NO scale** (rows are surfaces, not buttons), on `Motion.rowWell` (~110ms). Carrier: `.buttonStyle(.rowWell)`.
-3. **Detent control** — anything with *discrete values* (toggles, steppers, segments, pickers). Mechanical snap; value swaps **digit-roll** subtly (~100ms, small travel — `Motion.digitRoll` + `.contentTransition(.numericText())`). **Fixed-width value cells:** a value container **never resizes** when the digit count changes — reserve width for the widest realistic reading (carrier: `DialValueCell`, hidden `widthTemplate`). **Haptics are reduced (D13a):** per-step taps are **silent**; a haptic fires ONLY at **min/max limits** (`Haptics.limit()`) and on **toggle flips** (`Haptics.tap()`), plus the Home hero count-up band detents.
-4. **Needle** — anything that *displays a measured value* (`TickScale`). Sweeps only on **real moments** (screen load / explicit re-measure); minor updates settle instantly under `Motion.state`. Value changes animate **current→new directly — never back through zero** (79→42 travels straight down); sweep-from-zero is allowed ONLY on genuine first appearance (the Home count-up). Detent haptics are **opt-in** and restricted to the Home hero (`TickScale(detents: true)`).
-5. **Surface** — sheets / expansions. **One-unit entrance** (the surface moves as a whole, origin-aware, interruptible, 200–250ms) — **no content stagger** (D13f; the v4.0 40ms row-stagger inside sheets is retired). Carrier: WS3's `SheetChrome` + `Motion.entrance`.
-
-Motion carriers added in v4.1: `Motion.rowWell`, `Motion.digitRoll`, and `Motion.tickSpring` (the ONE sanctioned overshoot — Console tab tick only). The `tickSpring` overshoot must appear nowhere else.
+1. **Key** (commits an action) — press-inversion relief (v4.2), release on the non-bouncy spring.
+2. **Row** (navigates) — background well (`text1` @6%), no scale, `Motion.rowWell`.
+3. **Detent control** (discrete values) — mechanical snap, subtle ~100ms digit-roll, fixed-width readout wells (value cells never resize with digit count), reduced haptics (limits + toggle flips only).
+4. **Needle** (displays a measured value) — sweeps on real moments only; travels current→new directly, never back through zero; sweep-from-zero only on genuine first appearance.
+5. **Surface** (sheets/expansions) — one-unit origin-aware entrance, 200–250ms, no content stagger.
 
 ## Implementation Rules for SwiftUI
 
-1. **Corners from `CornerTokens` only** (card 5 / panel 5 / control 4; pill = chips only). Hand-typed radius literals are fence failures.
-2. **No `.shadow()` anywhere.** Elevation = plane + hairline.
-3. **All data numerals use the `dial*` tokens** (tabular by construction). Non-dial numeric text keeps `.monospacedDigit()`.
-4. **Index Rule:** `ColorTokens.index` only as scale needles, the active-tab tick, and the live-recording dot. Never fill/text/decoration. (`accent` alias exists mid-pivot; do not add NEW `accent` usages.)
-5. **Panel Law:** at most one black panel per screen, hero reading only; everything else on aluminum cards.
+1. **Corners from `CornerTokens` only** (card 12 / control 8 / pill). Hand-typed radius literals are fence failures.
+2. **No `.shadow()` anywhere.** Elevation = plane + hairline + relief.
+3. **One type voice:** everything through `Font.Tokens.*` (Instrument Sans Regular/Medium). No `.system()`, no semantic styles. `IBMPlexMono` and `SourceSerif4` are banned strings app-wide. All data numerals apply `.monospacedDigit()`.
+4. **Accent Rule:** `ColorTokens.accent` only as the hero score text and live-state marks (progress fills, active/selected marks, tab tick, recording dot, needles). Never decorative, never CTA fill, never labels.
+5. **Hero Law:** at most one hero card per screen; hero reading in accent on a raised light card. No dark surfaces; `panelStyle(` is banned post-sweep.
 6. **Zone state = text label first**, color supplementary; never color alone.
 7. **Light-only** via `ColorTokens` semantic tokens; never hex literals in views; no dark-mode branches.
-8. **Typography via `Font.Tokens.*` only** — General Sans UI voice + IBM Plex Mono dial voice. No `.system()`, no semantic styles, and never name the mono outside `FontTokens.swift`. `SourceSerif4` is a banned string app-wide.
-9. **CTAs are butted key cells** (ink fill), never pills, never red.
+8. **Relief through `.raised` / `.debossed` only**; displayed values sit in fixed-width readout wells.
+9. **CTAs:** one ink-filled pill max per screen; decision rows are equal-weight butted cells (nocebo guard).
 10. **Spacing on the 8pt grid** (4pt `baselinePair` only).
-11. **Motion through `Motion` tokens only**, per the v4 motion law.
-12. **Interaction through the Five Primitives** (v4.1): every touchable uses its one defined response — `.key` / `.pressable` (Key), `.rowWell` (Row), detent controls with fixed-width `DialValueCell` value areas + reduced haptics, `TickScale` needles that never return to zero, one-unit sheet surfaces. Value cells that display data numerals never resize with digit count (reserve the widest reading).
+11. **Motion through `Motion` tokens only**, per the spring law; interaction through the Five Primitives.
 
-## v4.2 "Machined" amendment (2026-07-21 — decisions D16–D18)
+## Retired concepts (do not reintroduce)
 
-**The Relief Law.** Every machined surface is either RAISED or DEBOSSED; flat is reserved for the base plane and text. Implemented as the two chokepoint modifiers in CardStyle.swift — never hand-rolled:
-- **`.raised(cornerRadius:)`** — milled plate (tuning pick 1-B): `surfaceEl2→surfaceEl` vertical gradient, 1px `reliefHighlight` top line inside the shape, `dividerStrong` hairline. Cards, option cells, keys, toggle knobs.
-- **`.debossed(cornerRadius:)`** — pocket (pick 2-B): `wellTop→wellBottom` gradient, 1.5px `reliefShade` inner top edge, 1px `reliefHighlightSoft` bottom closing line, `dividerStrong` hairline. Readout wells, focused fields, option channels, toggle tracks.
-- No `.shadow()` anywhere — relief is strokes + gradients only; the no-shadow law holds.
+| Concept                                   | Status                                                        |
+|-------------------------------------------|---------------------------------------------------------------|
+| Source Serif 4 display voice (v3)         | DELETED; name banned by fence                                 |
+| Halftone signature (v3)                   | DELETED                                                       |
+| IBM Plex Mono dial voice (v4)             | DELETED (tokens, files, registrations); name banned by fence  |
+| Black instrument panel + Panel Law (v4)   | RETIRED — hero = raised light card, accent score              |
+| Red index `#D04234` (v4)                  | RETIRED — index marks are drawn in accent                     |
+| Aluminum cool-gray palette (v4)           | REPLACED by warm stone                                        |
+| Near-square 5/4pt corners (v4)            | REPLACED by 12/8/pill                                         |
+| Micro-caps wide-tracked screen titles (v4)| RETIRED — v1 editorial titles (28pt sentence case)            |
+| Micro-caps key labels (v4)                | RETIRED — sentence case keys                                  |
+| Dark-mode palette (v1)                    | Not carried — light-only stands (v2/v3 decision)              |
+| Accent-as-CTA-fill (v3)                   | Still retired — CTAs are ink-filled                           |
+| Stock iOS `Menu` for settings/pickers     | Still banned (v4.2)                                           |
 
-**Readout wells.** Every displayed value (form values, stepper counts, selections) sits in a fixed-width debossed well: mono value + micro-caps unit; digits change, the metal never resizes.
-
-**Press inverts relief (pick 4-A).** Keys press in ~85ms (raised→pocket: highlight dies, inner shade appears, 0.5px drop, brightness lift) and release on a ~300ms non-bouncy spring. This asymmetry + inversion is the app's press feel; scale-only presses are retired for keys.
-
-**Machined form system** (InstrumentForm.swift): 56pt press-well rows; drawn 1.5px tick-chevrons rotating on the spring; options expand INLINE as butted raised cells with drilled selection dots inside a debossed channel (pick 5-A) — stock iOS `Menu` is BANNED app-wide for settings/pickers; fields grow a debossed focus well + ink border; toggle = round polished knob (pick 3-B) in a debossed channel that turns ink when on, with an engraved index tick; destructive rows are quiet zone-danger text.
-
-**Spring motion law (D16).** Motion tokens move from fixed timing curves to NON-BOUNCY springs (interruptible, velocity-preserving). No content anywhere may pass through full invisibility during a transition (the dip-crossfade is banned); tab content hands off layered (incoming rises ~6px + fades over the outgoing). `tickSpring` remains the sole sanctioned overshoot. Durations stay in the premium-fast band (presses ~100ms in, settles ≤400ms, transitions ≤300ms).
-
-## Retired v3 concepts (do not reintroduce)
-
-| v3 concept                              | v4 status                                                    |
-|-----------------------------------------|--------------------------------------------------------------|
-| Source Serif 4 display voice            | DELETED (tokens, chokepoint, font files); name banned by fence |
-| Halftone signature (`HalftoneField`)    | DELETED (component + fence + call sites)                     |
-| Accent-as-fill CTA (blue pill)          | RETIRED — CTAs are ink-filled butted key cells               |
-| 12pt card / 8pt control corners         | Retuned to 5 / 4 (near-square)                               |
-| Pill CTAs (`Capsule` buttons)           | DEMOTED — capsule geometry for chips/badges only             |
-| Cool paper-blue palette + stone-blue accent | REPLACED by aluminum/panel palette + red index           |
-| Serif hero + accent-colored score       | Hero reading = `dialHero` mono in `panelInk` on the panel    |
-
-Retained from v2/v3: light-only, no shadows, 8pt grid, text-label-first zones, nocebo guard (equal-weight decision keys), hairline elevation grammar, InkTabBar/ScreenHeader architecture, Motion/Haptics chokepoints, fence-test enforcement.
+Retained lineage: light-only, no shadows, 8pt grid, text-label-first zones, nocebo guard, hairline elevation, InkTabBar/ScreenHeader architecture, Motion/Haptics chokepoints, relief system, readout wells, TickScale grammar, Five-Primitive interaction fabric, fence-test enforcement, Noto Sans SC cascade.
 
 ## Decisions Log
 
@@ -245,10 +222,9 @@ Retained from v2/v3: light-only, no shadows, 8pt grid, text-label-first zones, n
 |------------|--------------------------------------------------|-------------------------------------------------------------------------------------|
 | 2026-03-21 | International Style Minimalism aesthetic         | Differentiates from Whoop/Strava's aggressive energy coding                          |
 | 2026-03-21 | Zone colors desaturated to near-gray             | States communicated through labels, color supplementary — calm > alarm               |
-| 2026-05-11 | General Sans as the UI voice                     | Rationalist neo-grotesque — lining figures, small-size readability                   |
-| 2026-06-17 | Tuwa v2 — light ladder, live-state accent, Motion/Haptics chokepoints | Foundation grammar that v4 retains structurally                 |
+| 2026-06-17 | Tuwa v2 — light ladder, live-state accent, Motion/Haptics chokepoints | Foundation grammar retained through v5                          |
 | 2026-06-27 | Light-only direction confirmed                   | Light appearance is the only supported material expression                           |
-| 2026-07-14 | Tuwa v3 "Ink & Grain" — serif display, 12pt corners, halftone, accent pill CTA | Superseded by v4: on-device dogfood failed on aesthetics ("feels like a default app") |
-| 2026-07-20 | **Tuwa v4 "Instrument" (Aluminum Panel)** — Braun/B&O/Contax pivot | User decisions D9–D11: v1.6 dogfood failed on aesthetics; treatment picked via 2 mockup rounds (column D). Full pivot: serif + halftone + paper-blue palette retired; IBM Plex Mono dial voice, black panel hero, red index marks, near-square geometry, butted keys, TickScale grammar, Emil Kowalski motion law. Structural v1.6 work (rehost, InkTabBar, ScreenHeader, movement bank, fences) retained. |
-| 2026-07-21 | **v4.2 "Machined"** — Relief Law, readout wells, press-inversion, machined form system, spring motion refit | User decisions D16–D18 after v4.1 review ("subtle but not premium; components raw"): tuning-board picks 1-B milled relief / 2-B debossed wells / 3-B round machined toggle / 4-A press inversion / 5-A machined option cells; full spring refit (no-dip transitions, asymmetric press); stock iOS Menu banned; form system app-wide. Demos: `tuwa-v42-premium-demos.html`, `tuwa-v42-ultra-forms.html`, `tuwa-v42-tuning-board.html`. |
-| 2026-07-20 | **v4.1 polish round** — Console tab bar + Five-Primitive Interaction Law | User decisions D12–D15: Console tab bar (11pt title-case, sliding well + springy red tick, press-down 0.94); the five-primitive interaction fabric ratified with adjustments (reduced haptics, ~100ms subtle digit-roll, fixed-width dial value cells, needles never return to zero, sheet surfaces enter as one unit with no content stagger); layout recomposition across all tabs. Motion carriers `rowWell`/`digitRoll`/`tickSpring` added; `tickSpring` is the sole sanctioned overshoot. |
+| 2026-07-14 | Tuwa v3 "Ink & Grain"                            | Superseded: on-device dogfood failed on aesthetics                                   |
+| 2026-07-20 | Tuwa v4 "Instrument" (Aluminum Panel) + v4.1 polish | Superseded as costume; its machinery (relief, five primitives, spring motion, Console tab bar, TickScale) survives as v5 carry-overs |
+| 2026-07-21 | v4.2 "Machined" — Relief Law, readout wells, press-inversion, spring refit | Carried into v5 whole, re-materialized in stone                 |
+| 2026-07-21 | **Tuwa v5 "Pavilion" (Warm Stone) — return to v1 basis** | User decision (D19): v4 not a must-satisfied aesthetic; v1 International Style foundation restored and iterated with ratified carry-overs ONLY — motion fabric, accent-as-live-state, CornerTokens 12/8/pill, relief system. Light-only kept; palette = v1 warmth pulled slightly cooler (warm stone, travertine accent `#6F6759`). All bundled faces judged "too formal, a little dull"; **Instrument Sans** picked from a 7-face shootout as the single voice (One-Voice Type Law; Plex Mono dial voice retired). Panel/red-index/micro-caps-titles retired. |

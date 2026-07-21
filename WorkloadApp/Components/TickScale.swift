@@ -1,13 +1,14 @@
 import SwiftUI
 
-/// TickScale — the v4 "Instrument" signature component (DESIGN.md v4, mockup column D).
+/// TickScale — the retained instrument grammar, re-inked for DESIGN.md v5 "Pavilion".
 ///
 /// A linear measuring scale in the B&O grammar:
-/// - Two-weight tick marks: minor 1px (`tickMinor`) / major 1.5px (`tickMajor`).
-/// - Optional mono tick numerals (`Font.Tokens.dialTick`, 9pt) at the major ticks.
-/// - Optional zone band: ink on light surfaces, `panelInk` on the panel (theme-driven).
-/// - A 1.5px red index needle (`ColorTokens.index`) at the current value — one of the only
-///   sanctioned index-mark locations (Index Rule).
+/// - Two-weight tick marks in warm grays: minor 1px (`tickMinor`) / major 1.5px (`tickMajor`).
+/// - Optional tick numerals (`Font.Tokens.micro`, 11pt, `text3`-toned) at the major ticks;
+///   digits are tabular via `.monospacedDigit()` (v5 numeral law).
+/// - Optional ink zone band (theme-driven).
+/// - A 1.5px ACCENT needle (`ColorTokens.accent`, travertine) at the current value — a
+///   sanctioned live-state accent mark (Accent Rule).
 /// - Optional faint ghost mark (planned/previous value) at 0.55 opacity of the numeral ink.
 ///
 /// Two variants:
@@ -45,8 +46,7 @@ struct TickScale: View, Animatable {
 
     // MARK: Theme
 
-    /// Tick-scale colors for the two material contexts. All values route through
-    /// `ColorTokens` (column D mockup vars, tokenized in Stage 1″).
+    /// Tick-scale colors. All values route through `ColorTokens` (v5 warm grays).
     struct Theme {
         let tickMinor: Color
         let tickMajor: Color
@@ -56,7 +56,8 @@ struct TickScale: View, Animatable {
         /// The `.micro` variant's 1px baseline band.
         let baseline: Color
 
-        /// On aluminum/card surfaces: machined dark-gray ticks, INK zone band.
+        /// On the stone card surfaces: warm-gray ticks, INK zone band. The one v5 theme —
+        /// every surface is ink-on-stone (Hero Law: no dark surfaces).
         static let light = Theme(
             tickMinor: ColorTokens.tickMinor,
             tickMajor: ColorTokens.tickMajor,
@@ -64,16 +65,6 @@ struct TickScale: View, Animatable {
             zoneBand: ColorTokens.text1,
             ghost: ColorTokens.tickNumeral,
             baseline: ColorTokens.dividerStrong
-        )
-
-        /// On the black instrument panel: same ticks, `panelInk` zone band, panel grays.
-        static let panel = Theme(
-            tickMinor: ColorTokens.tickMinor,
-            tickMajor: ColorTokens.tickMajor,
-            numeral: ColorTokens.panelInk2,
-            zoneBand: ColorTokens.panelInk,
-            ghost: ColorTokens.panelInk2,
-            baseline: ColorTokens.panelHairline
         )
     }
 
@@ -90,7 +81,7 @@ struct TickScale: View, Animatable {
 
     /// The scale's domain, in the caller's units.
     let range: ClosedRange<Double>
-    /// The current reading — marked by the red index needle. `var` (not `let`) because the
+    /// The current reading — marked by the accent needle. `var` (not `let`) because the
     /// animation system writes interpolated values through `animatableData` each frame.
     var value: Double
     /// Optional zone band (e.g. today's productive band), in the caller's units.
@@ -102,7 +93,7 @@ struct TickScale: View, Animatable {
     /// Opt in to zone-band detent haptics (v4.1 D13: restricted to the Home hero). Default off
     /// — the verdict microscale and the Load ACWR scale render without haptics.
     var detents: Bool = false
-    /// Render mono numerals under the major ticks (`.scale` variant only).
+    /// Render tabular numerals under the major ticks (`.scale` variant only).
     var showsNumerals: Bool = true
     /// Major divisions across the range (4 → major ticks/numerals at 0/25/50/75/100%).
     var majorDivisions: Int = 4
@@ -153,7 +144,9 @@ struct TickScale: View, Animatable {
 
     private enum Metrics {
         // .scale — mockup linscale shifted +5 so the needle's overhang stays in-bounds.
-        static let scaleHeight: CGFloat = 36
+        // Height 40 (was 36): the v5 numerals grew 9pt → 11pt (`Font.Tokens.micro`), so the
+        // canvas reserves one more 4pt grid step below `numeralTop` so nothing clips.
+        static let scaleHeight: CGFloat = 40
         static let tickTop: CGFloat = 5
         static let tickHeight: CGFloat = 11
         static let scaleZoneHeight: CGFloat = 3
@@ -246,14 +239,15 @@ struct TickScale: View, Animatable {
             )
         }
 
-        // Mono numerals at the majors: first leading, last trailing, middle centered.
+        // Tabular numerals at the majors: first leading, last trailing, middle centered.
         if showsNumerals {
             let span = range.upperBound - range.lowerBound
             for i in 0...majors {
                 let unit = Double(i) / Double(majors)
                 let value = range.lowerBound + unit * span
                 let text = Text(verbatim: numeralText(value))
-                    .font(.Tokens.dialTick)
+                    .font(.Tokens.micro)
+                    .monospacedDigit()
                     .foregroundStyle(theme.numeral)
                 let resolved = context.resolve(text)
                 let textSize = resolved.measure(in: CGSize(width: w, height: Metrics.scaleHeight))
@@ -267,10 +261,10 @@ struct TickScale: View, Animatable {
             }
         }
 
-        // The red index needle — drawn last, over everything (Index Rule mark).
+        // The accent needle — drawn last, over everything (Accent Rule live-state mark).
         fill(
             CGRect(x: x(value, width: w) - Metrics.needleWidth / 2, y: Metrics.needleTop, width: Metrics.needleWidth, height: Metrics.needleHeight),
-            ColorTokens.index,
+            ColorTokens.accent,
             in: &context
         )
     }
@@ -305,10 +299,10 @@ struct TickScale: View, Animatable {
             )
         }
 
-        // The red index needle.
+        // The accent needle.
         fill(
             CGRect(x: x(value, width: w) - Metrics.needleWidth / 2, y: Metrics.microNeedleTop, width: Metrics.needleWidth, height: Metrics.microNeedleHeight),
-            ColorTokens.index,
+            ColorTokens.accent,
             in: &context
         )
     }

@@ -1,10 +1,10 @@
 import SwiftUI
 
 /// Segmented control for time range selection (D-01).
-/// v4 Key Row Law: butted segments — flex cells separated by interior 0.5pt hairlines
+/// v5 Key Row grammar: butted segments — flex cells separated by interior 0.5pt hairlines
 /// inside one `dividerStrong`-bordered container (`CornerTokens.control` corners).
-/// The selected segment is an INK-FILLED cell (`text1` fill, `panelInk` label) —
-/// never a red wash (Index Rule).
+/// The selected segment is an INK-FILLED cell (`text1` fill, `inkInverse` label) —
+/// never an accent wash (Accent Rule: accent never fills).
 struct TimeRangeSegmentedControl: View {
     @Binding var selected: TimeRange
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -20,7 +20,7 @@ struct TimeRangeSegmentedControl: View {
                     }
                 }
                 .font(selected == range ? .Tokens.smallLabelMedium : .Tokens.smallLabel)
-                .foregroundStyle(selected == range ? ColorTokens.panelInk : ColorTokens.text2)
+                .foregroundStyle(selected == range ? ColorTokens.inkInverse : ColorTokens.text2)
                 .frame(maxWidth: .infinity)
                 .padding(.vertical, Spacing.xs)
                 .background(selected == range ? ColorTokens.text1 : ColorTokens.surfaceEl)

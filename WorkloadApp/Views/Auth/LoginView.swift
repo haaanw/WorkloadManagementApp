@@ -56,8 +56,8 @@ struct LoginView: View {
                     .padding(.top, Spacing.xl)
                     .padding(.bottom, Spacing.xl)
 
-                    // Fields — the standard v3 field treatment (control-radius plate, hairline,
-                    // accent focus feedback), stacked on the page plane instead of full-bleed rows.
+                    // Fields — the standard field treatment (control-radius plate, hairline,
+                    // ink focus feedback), stacked on the page plane instead of full-bleed rows.
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         InputField(label: "auth.field.email", placeholder: "you@example.com", text: $email)
                             .textContentType(.emailAddress)
@@ -79,7 +79,7 @@ struct LoginView: View {
                             .padding(.top, Spacing.sm)
                     }
 
-                    // Sign in button — primary CTA is a filled accent pill (Accent Rule v3).
+                    // Sign in button — primary CTA is the ink-filled pill (v5 CTA Law; never accent).
                     PrimaryActionButton(
                         title: "auth.action.signIn",
                         isLoading: isLoading,

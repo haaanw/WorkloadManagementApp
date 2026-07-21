@@ -102,7 +102,7 @@ struct ExerciseDetailSheet: View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(label)
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .textCase(.uppercase)
                 .foregroundStyle(ColorTokens.text3)
             Text(value)

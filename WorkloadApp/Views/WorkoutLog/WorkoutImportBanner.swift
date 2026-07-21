@@ -12,7 +12,7 @@ struct WorkoutImportBanner: View {
         VStack(spacing: 0) {
             Text("import.watch.header")
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .foregroundStyle(ColorTokens.text3)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, Spacing.sm)

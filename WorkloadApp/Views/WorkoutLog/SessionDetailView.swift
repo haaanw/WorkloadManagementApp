@@ -143,7 +143,7 @@ struct ExerciseDetailCard: View {
                     .frame(width: 56, alignment: .trailing)
             }
             .font(.Tokens.micro)
-            .tracking(1.2)
+            .tracking(0.9)
             .foregroundStyle(ColorTokens.text3)
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)

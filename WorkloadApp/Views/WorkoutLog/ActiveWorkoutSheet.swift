@@ -976,7 +976,7 @@ struct ExerciseEntryCard: View {
             } else if entry.sets.first?.isFromHistory == true {
                 Text("exercise.label.prefilledFromLast")
                     .font(.Tokens.micro)
-                    .tracking(1.0)
+                    .tracking(0.9)
                     .foregroundStyle(ColorTokens.text3)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.bottom, Spacing.xs)
@@ -1076,7 +1076,7 @@ struct ExerciseEntryCard: View {
             }
         }
         .font(.Tokens.micro)
-        .tracking(1.2)
+        .tracking(0.9)
         .foregroundStyle(ColorTokens.text3)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xs)

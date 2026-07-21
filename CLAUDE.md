@@ -76,15 +76,18 @@ Always read `DESIGN.md` before making any visual or UI decisions.
 All font choices, colors, spacing, and aesthetic direction are defined there.
 Do not deviate from the design system without explicit user approval.
 
-Key constraints to enforce (DESIGN.md v3 "Ink & Grain", 2026-07-14):
-- **Corners come from `CornerTokens` only** — card 12pt / control 8pt / pill (`Capsule()`); the old 0pt-everywhere rule is retired; never a hand-typed radius literal
-- **No shadows** — remove any `.shadow()` modifiers; elevation is plane + hairline borders
-- **Two-voice type law** — General Sans (Regular + Medium) everywhere via `Font.Tokens.*`; Source Serif 4 ONLY via `Font.Tokens.displayScore` / `.displayVerdict` (hero readiness score + verdict headline, app-authored strings only, never user content); never `.system()` or semantic styles
-- **Accent Rule v3 (`ColorTokens.accent`)** — hero readiness score, verdict CTA fill (pill), the halftone signature, and v2 live-state semantics (progress fills, active/selected, emphasis top rule); never decorative
-- **Halftone texture only via `HalftoneField`** — hero plane only, at most one per screen
+Key constraints to enforce (DESIGN.md v5 "Pavilion" — Warm Stone, 2026-07-21):
+- **Corners come from `CornerTokens` only** — card 12pt / control 8pt / pill (`Capsule()`); never a hand-typed radius literal
+- **No shadows** — elevation is plane + hairline + the relief system (`.raised`/`.debossed` chokepoint modifiers only)
+- **One-Voice Type Law** — Instrument Sans (static Regular + Medium) everywhere via `Font.Tokens.*`; all data numerals add `.monospacedDigit()`; never `.system()` or semantic styles; `IBMPlexMono` and `SourceSerif4` are fence-banned strings
+- **Accent Rule v5 (`ColorTokens.accent`, travertine `#6F6759`)** — the hero readiness/ACWR score (the one colored text element) + live-state marks (progress fills, active/selected, tab tick, recording dot, needles); never decorative, never a CTA fill, never labels
+- **Hero Law** — heroes are RAISED LIGHT CARDS with the reading in accent; no dark surfaces anywhere (`panelStyle` is fence-banned)
+- **CTAs** — one ink-filled pill max per screen; decision rows are equal-weight butted cells (nocebo guard)
 - **All spacing must be multiples of 8pt** — no magic numbers (4pt only as the sanctioned `baselinePair` micro-gap)
+- **Case discipline** — sentence case everywhere; micro-caps only at micro size (≈0.9pt tracking)
 - **Zone states communicated through text labels + optional colored border** — never color alone
 - **Light-only appearance** via `ColorTokens` semantic tokens; never hardcode hex values in views; no dark-mode branches
+- **Motion via `Motion` tokens only** (non-bouncy springs, no ease-in, `tickSpring` overshoot reserved for the tab tick); interaction via the Five Primitives
 - In QA mode, flag any code that deviates from DESIGN.md
 
 <!-- GSD:project-start source:PROJECT.md -->
@@ -104,7 +107,7 @@ Key constraints to enforce (DESIGN.md v3 "Ink & Grain", 2026-07-14):
 - **HealthKit**: Read-only access, raw data must never leave device (only composite scores sync)
 - **Subscriptions**: RevenueCat handles StoreKit; API keys gitignored
 - **Backend**: Supabase PostgreSQL with RLS; no local fallback for sync
-- **Design**: Must follow DESIGN.md v3 "Ink & Grain" — CornerTokens (card 12 / control 8 / pill), no shadows, two-voice type (General Sans + Source Serif 4 display-only), 8pt grid, halftone on hero plane only
+- **Design**: Must follow DESIGN.md v5 "Pavilion" (Warm Stone) — CornerTokens (card 12 / control 8 / pill), no shadows (relief via `.raised`/`.debossed`), one-voice type (Instrument Sans), travertine accent (hero score + live-state only), 8pt grid, light-only
 <!-- GSD:project-end -->
 
 <!-- GSD:stack-start source:codebase/STACK.md -->
@@ -139,7 +142,8 @@ Key constraints to enforce (DESIGN.md v3 "Ink & Grain", 2026-07-14):
 - `PrivacyInfo.xcprivacy` - App Store Privacy Manifest
 - `SCREENSHOT_MODE` - DEBUG build flag that bypasses authentication and seeds mock data for automated screenshots (see `AppRouter.swift`)
 ## Fonts
-- `GeneralSans-Variable.ttf` (110.8 KB) - Variable font covering Regular (400) through Bold (700)
+- `InstrumentSans-Regular.ttf` + `InstrumentSans-Medium.ttf` (static faces, SIL OFL) — the one app voice (DESIGN.md v5)
+- `NotoSansSC-Regular.otf` + `NotoSansSC-Medium.otf` — CJK cascade fallback
 ## Platform Requirements
 - Xcode (latest, tested with iPhone 17 Pro Max simulator)
 - iOS 17+ SDK
@@ -265,9 +269,9 @@ Key constraints to enforce (DESIGN.md v3 "Ink & Grain", 2026-07-14):
 - All colors via `ColorTokens` enum (never hardcoded hex)
 - Semantic properties: `ColorTokens.text1`, `ColorTokens.zoneDanger`, `ColorTokens.accent`
 - Light-only appearance (ColorTokens forces light; no dark-mode branches)
-- Custom fonts only: `Font.Tokens.*` (General Sans Variable instrument voice + Source Serif 4 display voice)
+- Custom fonts only: `Font.Tokens.*` — Instrument Sans, the single voice (DESIGN.md v5 One-Voice Type Law)
 - No system fonts (`.system()`, `.headline`, etc.)
-- Font set: General Sans Regular + Medium everywhere; Source Serif 4 (400) only for `displayScore` / `displayVerdict` (DESIGN.md v3 Two-Voice Type Law)
+- Font set: Instrument Sans Regular + Medium everywhere (static faces); data numerals add `.monospacedDigit()`; Noto Sans SC CJK cascade
 <!-- GSD:conventions-end -->
 
 <!-- GSD:architecture-start source:ARCHITECTURE.md -->

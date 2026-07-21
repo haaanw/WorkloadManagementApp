@@ -211,8 +211,8 @@ struct MovementBankView: View {
     }
 
     /// Compact equipment facet — same `Menu` idiom as the Stage C picker
-    /// (28 values; a second chip row would be noise). Active filter wears
-    /// accent per the live/selected accent semantic.
+    /// (28 values; a second chip row would be noise). Active filter reads as
+    /// the brighter raised plane + ink label (selected state in stone, not accent).
     private var equipmentMenu: some View {
         Menu {
             Button {
@@ -511,7 +511,7 @@ struct MovementBankView: View {
 // MARK: - Scope control
 
 /// Segmented-style scope control per the design system (`CornerTokens.control`
-/// corners, hairline border, accent = selected per the live-state semantic —
+/// corners, hairline border, selected cell = ink fill with `inkInverse` label —
 /// same grammar as `TimeRangeSegmentedControl`).
 private struct BankScopeControl: View {
     @Binding var selection: BankScope
@@ -529,7 +529,7 @@ private struct BankScopeControl: View {
                 } label: {
                     Text(scope.titleKey)
                         .font(selection == scope ? .Tokens.labelMedium : .Tokens.label)
-                        .foregroundStyle(selection == scope ? ColorTokens.panelInk : ColorTokens.text2)
+                        .foregroundStyle(selection == scope ? ColorTokens.inkInverse : ColorTokens.text2)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, Spacing.xs)
                         .background(selection == scope ? ColorTokens.text1 : ColorTokens.surface)
@@ -744,7 +744,7 @@ private struct CatalogExerciseEditSheet: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Text("movementBank.section.defaults")
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .textCase(.uppercase)
                 .foregroundStyle(ColorTokens.text3)
             if let muscle = base.muscleGroup {
@@ -762,7 +762,7 @@ private struct CatalogExerciseEditSheet: View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(label)
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .textCase(.uppercase)
                 .foregroundStyle(ColorTokens.text3)
             Text(value)

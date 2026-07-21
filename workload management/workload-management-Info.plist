@@ -34,12 +34,10 @@
 	<string>586655911402-ms8o8g9m5623ecm64p1lckp372n34bds.apps.googleusercontent.com</string>
 	<key>UIAppFonts</key>
 	<array>
-		<string>GeneralSans-Variable.ttf</string>
+		<string>InstrumentSans-Regular.ttf</string>
+		<string>InstrumentSans-Medium.ttf</string>
 		<string>NotoSansSC-Regular.otf</string>
 		<string>NotoSansSC-Medium.otf</string>
-		<string>IBMPlexMono-Regular.ttf</string>
-		<string>IBMPlexMono-Medium.ttf</string>
-		<string>IBMPlexMono-SemiBold.ttf</string>
 	</array>
 	<key>UILaunchScreen</key>
 	<dict>

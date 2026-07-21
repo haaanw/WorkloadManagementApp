@@ -87,7 +87,7 @@ struct TrainingProfileSheet: View {
                 ScrollView {
                     VStack(spacing: 0) {
                         // REQUIRED section
-                    formSection(String(localized: "profile.trainingProfile.sectionRequired", defaultValue: "REQUIRED")) {
+                    formSection(String(localized: "profile.trainingProfile.sectionRequired", defaultValue: "Required")) {
 
                     pickerRow(
                         String(localized: "profile.trainingProfile.sessionsPerWeek", defaultValue: "Sessions per week"),
@@ -128,7 +128,7 @@ struct TrainingProfileSheet: View {
                     }
 
                     // OPTIONAL section
-                    formSection(String(localized: "profile.trainingProfile.sectionOptional", defaultValue: "OPTIONAL")) {
+                    formSection(String(localized: "profile.trainingProfile.sectionOptional", defaultValue: "Optional")) {
 
                     pickerRow(
                         String(localized: "profile.trainingProfile.trainingAge", defaultValue: "Training age"),
@@ -196,8 +196,8 @@ struct TrainingProfileSheet: View {
 
     // MARK: - Helper Views
 
-    /// Wraps a form section: 32pt break + 19pt header, then the rows on a single bordered card
-    /// plane (Tuwa v2 separation — each section reads as a distinct surface).
+    /// Wraps a form section: 32pt break + 17pt Medium sentence-case header, then the rows on a
+    /// single raised plate (each section reads as a distinct surface).
     @ViewBuilder
     private func formSection<Content: View>(
         _ title: String,

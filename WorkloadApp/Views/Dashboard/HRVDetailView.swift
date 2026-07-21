@@ -72,7 +72,7 @@ struct HRVDetailView: View {
                 VStack(alignment: .leading, spacing: 8) {
                     Text("hrv.detail.section.about")
                         .font(.Tokens.micro)
-                        .tracking(1.2)
+                        .tracking(0.9)
                         .foregroundStyle(ColorTokens.text3)
                     Text("hrv.detail.explanation")
                         .font(.Tokens.label)
@@ -92,7 +92,7 @@ struct HRVDetailView: View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(label)
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .foregroundStyle(ColorTokens.text3)
             HStack(alignment: .lastTextBaseline, spacing: Spacing.baselinePair) {
                 Text(value)

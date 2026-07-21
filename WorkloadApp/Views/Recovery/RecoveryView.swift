@@ -239,10 +239,11 @@ struct RecoveryScoreCard: View {
     }
 
     var body: some View {
-        // Demo §3 After, Panel-Law variant: Recovery has NO black panel (Home owns it). Its
-        // designed peak is the score readout on a raised light plane — baseline-aligned score
-        // + zone, then a compact TickScale placing the reading on a 0–100 track — with the
-        // wearable contributors demoted to a scannable metric grid below.
+        // v5 Hero Law: the hero accent reading lives on the Dashboard alone — Recovery's
+        // standing values render in ink. Its designed peak is the score readout on a raised
+        // light plane — baseline-aligned score + zone, then a compact TickScale placing the
+        // reading on a 0–100 track — with the wearable contributors demoted to a scannable
+        // metric grid below.
         VStack(alignment: .leading, spacing: Spacing.sm) {
             heroPlane
             if let recovery {
@@ -267,11 +268,11 @@ struct RecoveryScoreCard: View {
 
             if let recovery {
                 // Baseline readout: score dominant left, zone pinned to the trailing edge on
-                // the score's baseline. `dialValue` mono INK — red never carries text.
+                // the score's baseline. Display value in INK (one-voice, tabular figures) —
+                // accent is reserved for the Dashboard hero score.
                 HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                     Text("\(Int(recovery.recoveryScore))")
-                        .font(.Tokens.dialValue)
-                        .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.valueSize, em: Font.Tokens.Dial.valueTrackingEm))
+                        .font(.Tokens.displayAction)
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
                     Text("/ 100")
@@ -284,9 +285,9 @@ struct RecoveryScoreCard: View {
                     )
                 }
 
-                // The designed peak (no panel — Panel Law): a compact instrument scale placing
-                // the score on a 0–100 track with the current zone band and the red index
-                // needle. Recovery's instrument moment on the light plane.
+                // The designed peak: a compact instrument scale placing the score on a 0–100
+                // track with the current zone band and the accent needle (live-state mark).
+                // Recovery's instrument moment on the stone plane.
                 TickScale(
                     range: 0...100,
                     value: recovery.recoveryScore,
@@ -310,7 +311,8 @@ struct RecoveryScoreCard: View {
                             .foregroundStyle(ColorTokens.text2)
                         Spacer()
                         Text("\(Int(wellnessScore))/100")
-                            .font(.Tokens.dialSmall)
+                            .font(.Tokens.smallLabelMedium)
+                            .monospacedDigit()
                             .foregroundStyle(ColorTokens.text1)
                     }
 
@@ -332,8 +334,8 @@ struct RecoveryScoreCard: View {
     }
 
     /// The wearable contributors (HRV / RHR / Sleep) as the demo-§3 metric grid — scannable
-    /// dial readouts with unit superscripts, standalone below the hero plane so the cells read
-    /// as their own instruments rather than plate-in-plate. Each is conditional on its datum.
+    /// tabular readouts with unit superscripts, standalone below the hero plane so the cells
+    /// read as their own instruments rather than plate-in-plate. Each is conditional on its datum.
     @ViewBuilder
     private func metricGrid(for recovery: RecoverySnapshot) -> some View {
         let hasAny = recovery.hrvSDNN != nil || recovery.restingHR != nil || recovery.sleepDurationMinutes != nil
@@ -346,7 +348,7 @@ struct RecoveryScoreCard: View {
                     MetricCell(label: "RHR", value: "\(Int(rhr))", unit: "bpm")
                 }
                 if let sleep = recovery.sleepDurationMinutes {
-                    MetricCell(label: "SLEEP", value: Date.durationString(seconds: Int(sleep) * 60, locale: locale))
+                    MetricCell(label: "Sleep", value: Date.durationString(seconds: Int(sleep) * 60, locale: locale))
                 }
             }
         }
@@ -368,7 +370,8 @@ struct WellnessHistorySection: View {
                         .foregroundStyle(ColorTokens.text2)
                     Spacer()
                     Text("\(Int(checkIn.wellnessScore))/100")
-                        .font(.Tokens.dialSmall)
+                        .font(.Tokens.smallLabelMedium)
+                        .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
                 }
                 .padding(.horizontal, Spacing.sm)

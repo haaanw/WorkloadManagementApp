@@ -35,7 +35,7 @@ struct TemplatePreviewSheet: View {
                     ForEach(template.sortedGroups, id: \.id) { group in
                         Text(group.groupName.uppercased())
                             .font(.Tokens.micro)
-                            .tracking(1.2)
+                            .tracking(0.9)
                             .foregroundStyle(ColorTokens.text3)
                             .padding(.horizontal, Spacing.sm)
                             .padding(.top, Spacing.sm)

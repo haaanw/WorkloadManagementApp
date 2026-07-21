@@ -7,7 +7,7 @@ import SwiftUI
 /// emitted via `onAnswer`; the host records it locally (`SeanEllisStore`) and, on "very", routes into
 /// the existing RevenueCat paywall (the revealed WTP / card-on-file hop).
 ///
-/// DESIGN.md (hard, v3 "Ink & Grain"): corners from `CornerTokens` only (the three choices are
+/// DESIGN.md (hard, v5 "Pavilion"): corners from `CornerTokens` only (the three choices are
 /// rectangular control-corner keys), no shadows, `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`.
 /// The reserved hero accent is FORBIDDEN here. Calm, neutral copy — no guilt, no upsell language
 /// in the question itself. The three choices use ONE shared builder so they are provably equal
@@ -26,7 +26,7 @@ struct SeanEllisPromptSheet: View {
                 // Header label (micro-caps).
                 Text(String(localized: "seanEllis.title", defaultValue: "ONE QUESTION"))
                     .font(.Tokens.micro)
-                    .tracking(1.2)
+                    .tracking(0.9)
                     .foregroundStyle(ColorTokens.text3)
 
                 // The one neutral question.

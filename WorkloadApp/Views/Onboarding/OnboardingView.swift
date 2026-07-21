@@ -178,7 +178,7 @@ struct OnboardingView: View {
             // actually presents the system authorization sheet.
             switch container.healthKitService.connectionState {
             case .notRequested:
-                // Connect Health — shared accent-pill primary CTA (Accent Rule v3, Stage 4a).
+                // Connect Health — shared ink-filled pill primary CTA (v5 CTA Law; never accent).
                 PrimaryActionButton(title: "onboarding.healthkit.connect") {
                     Task {
                         try? await container.healthKitService.requestAuthorization()
@@ -259,7 +259,7 @@ struct OnboardingView: View {
         }
     }
 
-    /// Shared accent-pill primary CTA (Stage 4a — CTA grammar completion). Disabled state is
+    /// Shared ink-filled pill primary CTA (v5 CTA Law). Disabled state is
     /// the shared 50%-opacity treatment from `PrimaryActionButton`.
     private var continueButton: some View {
         PrimaryActionButton(title: continueLabelKey, isDisabled: !isContinueEnabled) {

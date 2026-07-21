@@ -6,7 +6,7 @@ import SwiftUI
 //
 // Everything here is strokes + gradients (the no-shadow law holds) and every value/motion goes
 // through ColorTokens / Font.Tokens / Spacing / CornerTokens / Motion. Six pieces:
-//   • ReadoutWell        — fixed-width debossed value pocket (mono value + micro-caps unit)
+//   • ReadoutWell        — fixed-width debossed value pocket (tabular value + micro-caps unit)
 //   • InstrumentFormRow  — 56pt label + trailing content row with a drawn tick-chevron
 //   • MachinedOptionCell — a raised option cell with a drilled selection dot
 //   • InlineOptionList / InlineMultiOptionList — the stock-`Menu` replacement (a debossed
@@ -15,7 +15,8 @@ import SwiftUI
 //   • MachinedToggleStyle — a round polished knob riding a debossed channel that turns ink
 //   • DestructiveFormRow — the quiet zone-danger row
 //
-// DESIGN.md v4.2 "Machined" amendment is the law; `tuwa-v42-ultra-forms.html` is the visual bar.
+// The form system carries into DESIGN.md v5 "Pavilion" whole, re-materialized in warm stone
+// (v5 geometry + stone tokens); stock iOS `Menu` stays BANNED for settings/pickers.
 
 // MARK: - Tick chevron (drawn 1.5px caret — never an SF Symbol)
 
@@ -47,10 +48,11 @@ struct TickChevron: View {
 
 // MARK: - Readout well (fixed-width debossed value pocket — DESIGN.md v4.2 Readout wells)
 
-/// Every displayed value sits in one of these: a debossed pocket holding a mono reading and an
-/// optional micro-caps unit. The value area reserves the widest realistic reading (`widthTemplate`)
-/// so digits change but the metal never resizes (v4.1 D13(c) carried into the well). Digit swaps
-/// roll subtly via `Motion.digitRoll`; pass `rolls: false` to snap.
+/// Every displayed value sits in one of these: a debossed pocket holding a tabular reading
+/// (`smallLabelMedium` + `.monospacedDigit()`, v5 numeral law) and an optional micro-caps unit.
+/// The value area reserves the widest realistic reading (`widthTemplate`) so digits change but
+/// the stone never resizes (v4.1 D13(c) carried into the well). Digit swaps roll subtly via
+/// `Motion.digitRoll`; pass `rolls: false` to snap.
 struct ReadoutWell: View {
     /// The live reading, already formatted ("5–6", "130.0", "Advanced").
     let value: String
@@ -58,7 +60,7 @@ struct ReadoutWell: View {
     var unit: String? = nil
     /// The widest reading this well will show — reserves the fixed width. Defaults to `value`.
     var widthTemplate: String? = nil
-    /// Text selections (General Sans) vs numeric readings (still monospacedDigit-safe).
+    /// Ink for set readings; `text3` for placeholders (both text selections and numerals).
     var color: Color = ColorTokens.text1
     var rolls: Bool = true
 
@@ -79,7 +81,7 @@ struct ReadoutWell: View {
                         value: value
                     )
             }
-            .font(.Tokens.dialSmall)
+            .font(.Tokens.smallLabelMedium)
             .monospacedDigit()
             if let unit {
                 Text(unit)
@@ -169,7 +171,7 @@ struct MachinedOptionCell: View {
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// The drilled dot: a 14pt ring that fills ink when selected (Index Rule — never red).
+    /// The drilled dot: a 14pt ring that fills ink when selected (ink, never a vivid alarm).
     private var dot: some View {
         Circle()
             .stroke(isSelected ? ColorTokens.text1 : ColorTokens.dividerStrong, lineWidth: 1.5)
@@ -438,7 +440,7 @@ struct InlineMultiOptionList<T: Hashable & Identifiable>: View {
 // MARK: - Form field (right-aligned text field with a debossed focus well)
 
 /// A machined text field: quiet and borderless at rest, growing a debossed focus well + 1pt ink
-/// border while editing (v4 Index Rule — red never marks focus). Right-aligned by default to sit
+/// border while editing (Accent Rule — accent never marks focus). Right-aligned by default to sit
 /// as the trailing value of a form row; pass `axis: .vertical` for multi-line notes.
 struct FormField: View {
     let placeholder: LocalizedStringKey
@@ -515,9 +517,10 @@ struct MachinedToggleStyle: ToggleStyle {
                     .frame(width: trackWidth, height: trackHeight)
                     .debossed(cornerRadius: CornerTokens.control)
 
-                // Engraved index tick — lights in the channel when on.
+                // Engraved tick — lights in the ink-filled channel when on (light-on-ink,
+                // the CTA-text tone).
                 Rectangle()
-                    .fill(ColorTokens.panelInk2)
+                    .fill(ColorTokens.inkInverse)
                     .frame(width: 1.5, height: 10)
                     .padding(.leading, Spacing.xs)
                     .opacity(configuration.isOn ? 0.9 : 0)

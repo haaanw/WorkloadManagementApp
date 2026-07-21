@@ -60,7 +60,7 @@ struct UpgradeSheet: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            // Drag handle — pill affordance (v3 Corner Law).
+            // Drag handle — pill affordance (Corner Law: pill).
             Capsule()
                 .fill(ColorTokens.text3.opacity(0.3))
                 .frame(width: Spacing.lg, height: Spacing.baselinePair)
@@ -157,7 +157,7 @@ struct UpgradeSheet: View {
                                 .foregroundStyle(ColorTokens.text2)
                                 .multilineTextAlignment(.center)
 
-                            // Shared accent-pill primary CTA (Stage 4a — CTA grammar completion).
+                            // Shared ink-filled pill primary CTA (v5 CTA Law; never accent).
                             PrimaryActionButton(title: "action.retry") {
                                 Task { await loadOffering() }
                             }
@@ -213,12 +213,12 @@ struct UpgradeSheet: View {
                 HStack(spacing: Spacing.xs) {
                     Text(title)
                         .font(.Tokens.micro)
-                        .tracking(1)
+                        .tracking(0.9)
                         .foregroundStyle(ColorTokens.text3)
                     if let badge {
                         Text(badge)
                             .font(.Tokens.micro)
-                            .tracking(0.8)
+                            .tracking(0.9)
                             .foregroundStyle(ColorTokens.text2)
                             .padding(.horizontal, Spacing.baselinePair)
                             .padding(.vertical, Spacing.baselinePair)

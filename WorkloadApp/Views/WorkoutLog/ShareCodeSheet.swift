@@ -78,9 +78,12 @@ struct ShareCodeSheet: View {
 
                 // Share code card
                 VStack(alignment: .leading, spacing: 0) {
+                    // Micro-caps caption over the code value (v5 case law: tracked caps
+                    // exist ONLY at the micro-label size).
                     Text("label.shareCode")
-                        .font(.Tokens.smallLabel)
-                        .tracking(1.2)
+                        .font(.Tokens.micro)
+                        .tracking(0.9)
+                        .textCase(.uppercase)
                         .foregroundStyle(ColorTokens.text3)
                         .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.sm)

@@ -22,7 +22,7 @@ struct WeeklySummaryCard: View {
                 HStack {
                     Text("weekly.summary.header")
                         .font(.Tokens.micro)
-                        .tracking(1.2)
+                        .tracking(0.9)
                         .foregroundStyle(ColorTokens.text3)
                     Spacer()
                     Image(systemName: "chevron.down")
@@ -45,7 +45,8 @@ struct WeeklySummaryCard: View {
                                 .foregroundStyle(ColorTokens.text2)
                                 .accessibilityHidden(true)
                             Text("\(streak)")
-                                .font(.Tokens.dialSmall)
+                                .font(.Tokens.smallLabelMedium)
+                                .monospacedDigit()
                                 .foregroundStyle(ColorTokens.text1)
                             Text("weekly.summary.streak.label")
                                 .font(.Tokens.label)
@@ -68,7 +69,7 @@ struct WeeklySummaryCard: View {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text("weekly.summary.metric.loadTrend")
                                 .font(.Tokens.micro)
-                                .tracking(1.2)
+                                .tracking(0.9)
                                 .foregroundStyle(ColorTokens.text3)
                             Text(summary.loadTrendDirection.rawValue.capitalized)
                                 .font(.Tokens.body)
@@ -83,7 +84,7 @@ struct WeeklySummaryCard: View {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text("weekly.summary.metric.zoneDistribution")
                                 .font(.Tokens.micro)
-                                .tracking(1.2)
+                                .tracking(0.9)
                                 .foregroundStyle(ColorTokens.text3)
                             HStack(spacing: Spacing.xs) {
                                 ForEach(sortedZones, id: \.self) { zone in
@@ -112,11 +113,12 @@ struct WeeklySummaryCard: View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
             Text(title)
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .foregroundStyle(ColorTokens.text3)
             HStack(spacing: Spacing.xs) {
                 Text(value)
-                    .font(.Tokens.dialSmall)
+                    .font(.Tokens.smallLabelMedium)
+                    .monospacedDigit()
                     .foregroundStyle(ColorTokens.text1)
                 DeltaIndicator(delta: delta)
             }

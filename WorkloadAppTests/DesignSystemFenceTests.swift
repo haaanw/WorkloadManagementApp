@@ -1,28 +1,29 @@
 import XCTest
 
-/// App-wide design-fence — DESIGN.md v4 "Instrument" (Aluminum Panel, 2026-07-20).
+/// App-wide design-fence — DESIGN.md v5 "Pavilion" (Warm Stone, 2026-07-21).
 ///
 /// Source-grep fences over the styled SwiftUI layer (`Views/`, `Components/`, `Utilities/`,
 /// plus the live SwiftUI app files in `App/`). The retired UIKit shell
 /// (`AppShell.swift` / `AppShellUIKitPrimitives.swift`) is excluded — it is scheduled for
 /// deletion after the pivot validates and must merely keep compiling.
 ///
-/// The v4 laws these enforce:
-/// 1. **Corner Law** — radii only via `CornerTokens` (card 5 / panel 5 / control 4;
-///    pill demoted to chips). Hand-typed radius literals are a fence failure.
-/// 2. **No shadows** — elevation stays plane + hairline, never blur.
+/// The v5 laws these enforce:
+/// 1. **Corner Law** — radii only via `CornerTokens` (card 12 / control 8 / pill).
+///    Hand-typed radius literals are a fence failure.
+/// 2. **No shadows** — elevation stays plane + hairline + relief, never blur.
 /// 3. **No hardcoded colors in views** — everything routes through `ColorTokens`.
-/// 4. **Two-Voice Type Law** — the dial voice's font name ("IBMPlexMono") lives ONLY in
-///    `FontTokens.swift` (the `dial*` tokens are the single chokepoint); no `.system(` fonts.
-///    The retired serif ("SourceSerif4") is BANNED app-wide — it must not reappear.
+/// 4. **One-Voice Type Law** — the app's face name ("InstrumentSans") lives ONLY in
+///    `FontTokens.swift`; no `.system(` fonts. The retired v3 serif ("SourceSerif4") and
+///    v4 mono dial voice ("IBMPlexMono") are BANNED app-wide — they must not reappear,
+///    and neither may the v4 black panel (`panelStyle(`) or the dial tokens.
 /// 5. **Spacing grid** — structural `spacing:` / bare `.padding(` literals of 4pt and above
 ///    must be multiples of 4 (8pt grid + the sanctioned 4pt `baselinePair`).
 /// 6. **Motion Law** — one motion language: every animation routes through the `Motion`
 ///    tokens in CardStyle.swift. Ad-hoc curve/duration literals and bare `withAnimation`
 ///    (SwiftUI's default spring) are fence failures.
 ///
-/// Retired v3 fences: the halftone fence was deleted with `HalftoneField` (v4 retires the
-/// texture); the serif-chokepoint fence inverted into the app-wide SourceSerif4 ban.
+/// Retired fences: halftone (deleted with v4); the v4 Panel Law one-panel-per-screen fence
+/// inverted into the app-wide panelStyle ban (v5 Hero Law: hero = raised light card).
 final class DesignSystemFenceTests: XCTestCase {
 
     // MARK: - Source enumeration
@@ -75,7 +76,7 @@ final class DesignSystemFenceTests: XCTestCase {
                 || text.contains(".cornerRadius(") {
                 XCTAssertTrue(
                     text.contains("CornerTokens"),
-                    "\(name) uses a corner radius without CornerTokens — hand-typed radii are banned (DESIGN.md v4 Corner Law: card 5 / panel 5 / control 4)"
+                    "\(name) uses a corner radius without CornerTokens — hand-typed radii are banned (DESIGN.md v5 Corner Law: card 12 / control 8 / pill)"
                 )
             }
         }
@@ -105,26 +106,36 @@ final class DesignSystemFenceTests: XCTestCase {
         }
     }
 
-    // MARK: - 4. Two-Voice Type Law: mono name only in FontTokens; serif banned; no .system( fonts
+    // MARK: - 4. One-Voice Type Law: face name only in FontTokens; retired voices banned
 
-    func test_monoFontName_onlyInFontTokens() throws {
+    func test_faceName_onlyInFontTokens() throws {
         for (name, text) in try fencedSources() {
             if name == "FontTokens.swift" { continue }
             XCTAssertFalse(
-                text.contains("IBMPlexMono"),
-                "\(name) names the dial font directly — IBM Plex Mono is reachable only via Font.Tokens.dial* (DESIGN.md v4 Two-Voice Type Law)"
+                text.contains("InstrumentSans"),
+                "\(name) names the app face directly — Instrument Sans is reachable only via Font.Tokens.* (DESIGN.md v5 One-Voice Type Law)"
             )
         }
     }
 
-    func test_sourceSerif_bannedAppWide() throws {
-        // Fence inversion (v4): the v3 serif display voice is RETIRED. The name must not
-        // reappear anywhere in the styled layer — including FontTokens.swift.
+    func test_retiredVoicesAndPanel_bannedAppWide() throws {
+        // Fence inversions: the v3 serif display voice (retired 2026-07-20), the v4 mono
+        // dial voice, and the v4 black panel (retired 2026-07-21 by DESIGN.md v5) must not
+        // reappear anywhere in the styled layer — including FontTokens/CardStyle.
+        let banned = [
+            ("SourceSerif4", "the serif display voice was retired by DESIGN.md v4 and stays banned in v5"),
+            ("IBMPlexMono", "the mono dial voice was retired by DESIGN.md v5 \"Pavilion\" (2026-07-21)"),
+            ("panelStyle(", "the black instrument panel was retired by the v5 Hero Law — heroes are raised light cards"),
+            ("Tokens.dial", "the dial tokens were retired by the v5 One-Voice Type Law — use the one-voice ramp + .monospacedDigit()"),
+            ("Tokens.Dial", "the v4 dial metrics enum is retired — the v5 ramp carries no custom tracking")
+        ]
         for (name, text) in try fencedSources() {
-            XCTAssertFalse(
-                text.contains("SourceSerif4"),
-                "\(name) references SourceSerif4 — the serif display voice was retired by DESIGN.md v4 \"Instrument\" (2026-07-20) and must not reappear"
-            )
+            for (token, why) in banned {
+                XCTAssertFalse(
+                    text.contains(token),
+                    "\(name) references \(token) — \(why)"
+                )
+            }
         }
     }
 
@@ -132,22 +143,7 @@ final class DesignSystemFenceTests: XCTestCase {
         for (name, text) in try fencedSources(subdirectories: ["Views", "Components"]) {
             XCTAssertFalse(
                 text.contains(".system("),
-                "\(name) contains .system( — all type goes through Font.Tokens.* (DESIGN.md v4)"
-            )
-        }
-    }
-
-    // MARK: - 4b. Panel Law: at most ONE black instrument panel per screen file
-
-    func test_panelLaw_atMostOnePanelStylePerViewFile() throws {
-        // DESIGN.md v4 Panel Law: the near-black panel carries the ONE hero instrument
-        // reading per screen — a second dark surface on the same screen is a design error.
-        // Enforced per screen file (mirrors the retired one-halftone-per-screen fence).
-        for (name, text) in try fencedSources(subdirectories: ["Views"]) {
-            let count = text.components(separatedBy: "panelStyle(").count - 1
-            XCTAssertLessThanOrEqual(
-                count, 1,
-                "\(name) applies panelStyle( \(count) times — at most ONE black instrument panel per screen (DESIGN.md v4 Panel Law)"
+                "\(name) contains .system( — all type goes through Font.Tokens.* (DESIGN.md v5)"
             )
         }
     }

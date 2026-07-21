@@ -13,7 +13,7 @@ import SwiftData
 /// so Phase 27 can fuse the log per-muscle against the muscle taxonomy. The row is written
 /// through the local-only `SorenessLogRepository` — it never syncs.
 ///
-/// DESIGN contract: corners via `CornerTokens` (v3 Corner Law), no shadows, 8pt grid, `Font.Tokens.*` +
+/// DESIGN contract: corners via `CornerTokens` (v5 Corner Law), no shadows, 8pt grid, `Font.Tokens.*` +
 /// `ColorTokens.*`, and the limited-training Toggle uses the neutral design toggle style.
 struct NiggleLogSheet: View {
     @Environment(\.dismiss) private var dismiss
@@ -126,7 +126,7 @@ struct NiggleLogSheet: View {
                     } label: {
                         Text(type.displayName)
                             .font(selectedType == type ? .Tokens.labelMedium : .Tokens.label)
-                            .foregroundStyle(selectedType == type ? ColorTokens.panelInk : ColorTokens.text2)
+                            .foregroundStyle(selectedType == type ? ColorTokens.inkInverse : ColorTokens.text2)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, Spacing.sm)
                             .background(selectedType == type ? ColorTokens.text1 : ColorTokens.surface)

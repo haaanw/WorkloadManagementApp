@@ -45,7 +45,7 @@ struct SocialLoginButtons: View {
                 }
                 .signInWithAppleButtonStyle(.black)
                 .frame(height: 48)
-                // v4 Corner Law: near-square control corners — pills are demoted to chips.
+                // Corner Law (v5): control corners from CornerTokens.
                 .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
 
                 // Google Sign-In button — secondary CTA: hairline-bordered rectangular key

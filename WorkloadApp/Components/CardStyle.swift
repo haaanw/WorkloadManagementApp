@@ -7,11 +7,11 @@ import UIKit
 /// these instead of hand-rolling background + overlay + animation per screen.
 ///
 /// Hard constraints (enforced here so call sites can't drift):
-/// - Corners come from `CornerTokens` only (DESIGN.md v4 "Instrument"): grouped surfaces
-///   (plates, rails, cards) wear `CornerTokens.card` (5pt), the black instrument panel wears
-///   `CornerTokens.panel` (5pt), controls wear `CornerTokens.control` (4pt); CTAs are butted
-///   key cells (`KeyRow`) or rectangular keys — never pills. Never a hand-typed radius literal.
-/// - No shadows — elevation is plane (aluminum card / black panel) + 0.5pt hairline border only.
+/// - Corners come from `CornerTokens` only (DESIGN.md v5 "Pavilion"): grouped surfaces
+///   (plates, rails, cards) wear `CornerTokens.card` (12pt), controls wear
+///   `CornerTokens.control` (8pt), and the ONE primary CTA per screen is an ink-filled
+///   `Capsule()` (`CornerTokens.pill`). Never a hand-typed radius literal.
+/// - No shadows — elevation is plane (stone card planes) + 0.5pt hairline border + relief only.
 /// - Structural spacing on the 8pt grid, with a single 4pt `baselinePair` typography gap.
 /// - Motion goes through the `Motion` tokens — never a bare `withAnimation { }` (which falls
 ///   back to SwiftUI's default spring) and never a hand-typed duration literal.
@@ -89,10 +89,10 @@ enum Motion {
     /// `.contentTransition(.numericText())` in `DialValueCell` and the controls.
     static let digitRoll = snap(0.12)
     /// The ONE sanctioned overshoot curve in the whole app — the Console tab tick's springy
-    /// throw only (v4.1 D12). cubic-bezier(0.3, 1.15, 0.4, 1): the y2 > 1 control point is
-    /// the slight overshoot that makes the red index "settle" onto the newly-selected tab
-    /// like a thrown needle. NOT a general motion personality — every other transition stays
-    /// on a non-bouncy spring. Reserved for `InkTabBar`'s active-tab tick.
+    /// throw only (v4.1 D12, kept in v5). cubic-bezier(0.3, 1.15, 0.4, 1): the y2 > 1 control
+    /// point is the slight overshoot that makes the accent tick "settle" onto the
+    /// newly-selected tab like a thrown needle. NOT a general motion personality — every other
+    /// transition stays on a non-bouncy spring. Reserved for `InkTabBar`'s active-tab tick.
     static let tickSpring = Animation.timingCurve(0.3, 1.15, 0.4, 1, duration: 0.22)
     /// Quick state settle — toggles, selection, needle position, the tab well glide, value
     /// swaps. Non-bouncy spring, ≤250ms perceived; interruptible so a rapid re-select blends.
@@ -397,56 +397,12 @@ extension View {
     }
 }
 
-// MARK: - Panel plane (the v4 signature — DESIGN.md Panel Law)
-
-/// The black instrument panel — the ONE hero surface per screen (Home readiness, Load ACWR,
-/// Log verdict header if hero'd). Vertical `panelGradientTop → panelGradientBottom` gradient,
-/// `CornerTokens.panel` corners, 0.5pt `panelHairline` border, NO shadow. Content inherits
-/// `panelInk` as its default foreground so on-panel children read correctly without per-view
-/// color plumbing (micro-labels/units opt into `panelInk2` explicitly).
-///
-/// Panel Law (fence-enforced): at most ONE `panelStyle(` call per file under Views/ —
-/// a second dark surface on the same screen is a design error.
-struct PanelStyle: ViewModifier {
-    var horizontalPadding: CGFloat = Spacing.sm
-    var verticalPadding: CGFloat = Spacing.sm
-
-    func body(content: Content) -> some View {
-        content
-            .frame(maxWidth: .infinity, alignment: .leading)
-            .padding(.horizontal, horizontalPadding)
-            .padding(.vertical, verticalPadding)
-            .foregroundStyle(ColorTokens.panelInk)
-            .background(
-                LinearGradient(
-                    colors: [ColorTokens.panelGradientTop, ColorTokens.panelGradientBottom],
-                    startPoint: .top,
-                    endPoint: .bottom
-                ),
-                in: RoundedRectangle(cornerRadius: CornerTokens.panel)
-            )
-            .overlay(RoundedRectangle(cornerRadius: CornerTokens.panel).stroke(ColorTokens.panelHairline, lineWidth: 0.5))
-    }
-}
-
-extension View {
-    /// Apply the black instrument panel plane (gradient fill + `panelHairline` border +
-    /// `panelInk` default foreground). Max ONE per screen — hero reading only (Panel Law).
-    func panelStyle(
-        horizontalPadding: CGFloat = Spacing.sm,
-        verticalPadding: CGFloat = Spacing.sm
-    ) -> some View {
-        modifier(PanelStyle(horizontalPadding: horizontalPadding, verticalPadding: verticalPadding))
-    }
-}
-
 // MARK: - Emphasis card
 
 /// The emphasis card: a slightly raised light surface (a selected card, the screen's primary
-/// decision surface when it is NOT the hero panel). `surfaceEl2` plane + the stronger
-/// `dividerStrong` border. No shadow — same as `CardStyle`. (v4 "Instrument": the 2pt accent
-/// top rule is DELETED — a red decorative rule violates the Index Rule; the black `panelStyle`
-/// is the hero plane now, and emphasis is just "slightly raised".)
+/// decision surface). `surfaceEl2` plane + the stronger `dividerStrong` border. No shadow —
+/// same as `CardStyle`. No decorative accent rule (Accent Rule: accent is the hero score and
+/// live-state marks only); emphasis is just "slightly raised".
 struct EmphasisCardStyle: ViewModifier {
     var horizontalPadding: CGFloat = Spacing.sm
     var verticalPadding: CGFloat = Spacing.md
@@ -476,9 +432,10 @@ extension View {
 
 // MARK: - Relief (DESIGN.md v4.2 "Machined" — Relief Law)
 
-/// RAISED — the milled plate (tuning-board pick 1-B): vertical `surfaceEl2→surfaceEl`
-/// gradient, `dividerStrong` outer hairline, and a 1px top-highlight line INSIDE the shape
-/// (the milled aluminum edge). No `.shadow()` — relief is strokes + gradients only, so the
+/// RAISED — the milled plate (tuning-board pick 1-B, re-materialized in stone for v5):
+/// vertical `surfaceEl2→surfaceEl` gradient, `dividerStrong` outer hairline, and a 1px
+/// top-highlight line INSIDE the shape (the cut stone edge). No `.shadow()` — relief is
+/// strokes + gradients only, so the
 /// no-shadow law holds. Every machined surface in the app is either `.raised` or `.debossed`;
 /// flat is reserved for the base plane and text.
 struct RaisedStyle: ViewModifier {
@@ -613,29 +570,36 @@ struct SectionHeader: View {
     }
 }
 
-// MARK: - Screen header (v4 instrument titlebar — micro-caps, not large-title chrome)
+// MARK: - Screen header (v5 editorial header — v1 style restored)
 
-/// The in-content screen titlebar: UPPERCASE micro-caps title (13pt Medium `screenTitle`,
-/// ~0.28em tracking, `--text-1`) with a quiet trailing action slot (10pt Medium
-/// `headerAction`, `--text-2`, uppercase) on its baseline — a camera top-plate engraving,
-/// not a large title (DESIGN.md v4 case discipline; replaces the v3 32pt editorial title).
-/// The uppercase transform is rendering-level (`.textCase(.uppercase)`) so localized title
-/// strings stay untouched; tracking is locale-aware (Chinese gets none — case/tracking are
-/// Latin-only typography). Same API and IDs as the Stage-4a header; spacing unchanged
-/// (8pt above, 24pt below, on the grid).
+/// The in-content screen header (DESIGN.md v5 "Pavilion" / v1 editorial style): an optional
+/// context/date line in micro-caps (11pt `micro`, uppercase, ~0.9pt tracking, `--text-3`)
+/// ABOVE the sentence-case title (28pt Regular `screenTitle`, `--text-1`), with a quiet
+/// trailing action slot (10pt Medium `headerAction`, `--text-2`, micro-caps) on the title
+/// baseline. The v4 wide-tracked micro-caps titlebar is retired: the title itself carries
+/// NO case transform and NO tracking. Micro-caps case/tracking on the context line and
+/// action slot are locale-aware (Chinese gets none — they are Latin-only typography).
+/// Same API and IDs as the Stage-4a header (`context:` is additive, defaulted); spacing
+/// unchanged (8pt above, 24pt below, on the grid).
 struct ScreenHeader<Trailing: View>: View {
     let title: LocalizedStringKey
+    var context: LocalizedStringKey?
     @ViewBuilder var trailing: Trailing
 
     @Environment(\.locale) private var locale
 
-    init(title: LocalizedStringKey, @ViewBuilder trailing: () -> Trailing) {
+    init(
+        title: LocalizedStringKey,
+        context: LocalizedStringKey? = nil,
+        @ViewBuilder trailing: () -> Trailing
+    ) {
         self.title = title
+        self.context = context
         self.trailing = trailing()
     }
 
-    init(title: LocalizedStringKey) where Trailing == EmptyView {
-        self.init(title: title) { EmptyView() }
+    init(title: LocalizedStringKey, context: LocalizedStringKey? = nil) where Trailing == EmptyView {
+        self.init(title: title, context: context) { EmptyView() }
     }
 
     private var isLatinLocale: Bool {
@@ -643,18 +607,26 @@ struct ScreenHeader<Trailing: View>: View {
     }
 
     var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
-            Text(title)
-                .font(.Tokens.screenTitle)
-                .tracking(isLatinLocale ? 3.6 : 0)
-                .textCase(.uppercase)
-                .foregroundStyle(ColorTokens.text1)
-            Spacer(minLength: 0)
-            trailing
-                .font(.Tokens.headerAction)
-                .textCase(.uppercase)
-                .foregroundStyle(ColorTokens.text2)
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+            if let context {
+                Text(context)
+                    .font(.Tokens.micro)
+                    .tracking(isLatinLocale ? 0.9 : 0)
+                    .textCase(.uppercase)
+                    .foregroundStyle(ColorTokens.text3)
+            }
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
+                Text(title)
+                    .font(.Tokens.screenTitle)
+                    .foregroundStyle(ColorTokens.text1)
+                Spacer(minLength: 0)
+                trailing
+                    .font(.Tokens.headerAction)
+                    .textCase(.uppercase)
+                    .foregroundStyle(ColorTokens.text2)
+            }
         }
+        .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, Spacing.sm)
         .padding(.top, Spacing.xs)
         .padding(.bottom, Spacing.md)
@@ -734,37 +706,34 @@ extension ToggleStyle where Self == DesignToggleStyle {
     static var design: DesignToggleStyle { DesignToggleStyle() }
 }
 
-// MARK: - Key grammar (v4 Key Row Law — butted keys, no pills)
+// MARK: - Key grammar (v5 CTA & Key Row Law — butted decision cells)
 
-/// Locale-aware micro-caps key label: `keyLabel` (11pt Medium), uppercase, ~0.18em tracking
-/// on Latin locales (Chinese has no case; wide tracking is wrong there — same rule as
-/// ZoneBadge). Shared by `KeyRow`, `PrimaryActionButton`, `SecondaryActionButton` so every
-/// key in the app is provably the same instrument engraving.
+/// The shared key/CTA label: `keyLabel` (11pt Medium), sentence case (DESIGN.md v5 — the
+/// v4 micro-caps case transform and wide tracking are retired). Shared by `KeyRow`,
+/// `PrimaryActionButton`, `SecondaryActionButton` so every key in the app is provably the
+/// same engraving.
 private struct KeyCellLabel: View {
-    @Environment(\.locale) private var locale
     let title: LocalizedStringKey
 
     var body: some View {
         Text(title)
             .font(.Tokens.keyLabel)
-            .tracking(locale.language.languageCode?.identifier == "zh" ? 0 : 2)
-            .textCase(.uppercase)
             .lineLimit(1)
     }
 }
 
-/// Butted key row — the v4 decision/action grammar (DESIGN.md Key Row Law): flex cells of
-/// equal weight inside ONE container with a 0.5pt `dividerStrong` border, separated by
-/// interior 0.5pt hairlines — no gaps, no pills. Outer corners `CornerTokens.control`.
-/// The CTA key is an ink-filled cell (`text1` fill, `panelInk` label) — NOT red (the index
-/// never fills). Equal visual weight between cells is the nocebo guard: identical size,
-/// type, and press treatment; only the fill differs, and only when a role is explicit.
+/// Butted key row — the decision grammar (DESIGN.md v5 CTA & Key Row Law): flex cells of
+/// equal weight inside ONE `CornerTokens.card` container with a 0.5pt `dividerStrong`
+/// border, separated by interior 0.5pt hairlines — no gaps. The CTA key is an ink-filled
+/// cell (`text1` fill, `inkInverse` label) — never accent (the accent never fills a CTA).
+/// Equal visual weight between cells is the nocebo guard: identical size, type, and press
+/// treatment; only the fill differs, and only when a role is explicit.
 struct KeyRow: View {
     struct Key: Identifiable {
         enum Role {
             /// Card-filled cell (`surfaceEl`), ink label.
             case standard
-            /// Ink-filled CTA cell (`text1` fill, `panelInk` label).
+            /// Ink-filled CTA cell (`text1` fill, `inkInverse` label).
             case cta
         }
 
@@ -795,8 +764,8 @@ struct KeyRow: View {
             }
         }
         .frame(minHeight: 44)
-        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
-        .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
     }
 
     private func cell(_ key: Key) -> some View {
@@ -805,7 +774,7 @@ struct KeyRow: View {
             key.action()
         } label: {
             KeyCellLabel(title: key.title)
-                .foregroundStyle(key.role == .cta ? ColorTokens.panelInk : ColorTokens.text1)
+                .foregroundStyle(key.role == .cta ? ColorTokens.inkInverse : ColorTokens.text1)
                 .frame(maxWidth: .infinity, minHeight: 44)
                 .padding(.horizontal, Spacing.xs)
                 .background(key.role == .cta ? ColorTokens.text1 : ColorTokens.surfaceEl)
@@ -820,9 +789,10 @@ struct KeyRow: View {
 
 // MARK: - Controls
 
-/// Primary CTA — v4 Key Row Law: an INK-FILLED rectangle (`text1` fill, `panelInk`
-/// micro-caps label, `CornerTokens.control` corners). NOT a pill, NOT accent-filled —
-/// the red index never fills (Index Rule).
+/// Primary CTA — v5 CTA Law: the ONE ink-filled PILL per screen (`text1` fill, `inkInverse`
+/// sentence-case label, `Capsule()` geometry — `CornerTokens.pill`). Never accent-filled
+/// (the accent never fills a CTA), and it keeps the `.raised` relief + press-inversion feel
+/// via the pill-shaped relief key press.
 struct PrimaryActionButton: View {
     let title: LocalizedStringKey
     var isLoading: Bool = false
@@ -837,24 +807,37 @@ struct PrimaryActionButton: View {
             HStack(spacing: Spacing.xs) {
                 if isLoading {
                     ProgressView()
-                        .tint(ColorTokens.panelInk)
+                        .tint(ColorTokens.inkInverse)
                 }
                 KeyCellLabel(title: title)
             }
-            .foregroundStyle(ColorTokens.panelInk)
+            .foregroundStyle(ColorTokens.inkInverse)
             .frame(maxWidth: .infinity, minHeight: 44)
             .padding(.horizontal, Spacing.sm)
-            .background(ColorTokens.text1, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+            .background(ColorTokens.text1, in: Capsule())
+            .overlay(
+                // The raised-plate top highlight, tracked to the pill silhouette — the
+                // `.raised` milled edge over the ink fill (relief = strokes only, no shadow).
+                Capsule()
+                    .inset(by: 0.75)
+                    .stroke(
+                        LinearGradient(
+                            colors: [ColorTokens.reliefHighlightSoft, .clear],
+                            startPoint: .top, endPoint: .center
+                        ),
+                        lineWidth: 1
+                    )
+            )
         }
         // The canonical Key (pick 4-A): the ink face lifts + sinks into a pocket under the
         // finger, fast bite / sprung return — relief inversion, not scale.
-        .buttonStyle(.reliefKey)
+        .buttonStyle(.reliefKeyPill)
         .disabled(isDisabled || isLoading)
         .opacity(isDisabled ? 0.5 : 1)
     }
 }
 
-/// Secondary CTA — a hairline-bordered rectangle (card fill, ink micro-caps label,
+/// Secondary CTA — a hairline-bordered rectangle (card fill, ink sentence-case label,
 /// `CornerTokens.control` corners); never a pill, never accent.
 struct SecondaryActionButton: View {
     let title: LocalizedStringKey
@@ -873,7 +856,7 @@ struct SecondaryActionButton: View {
                 .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.control))
                 .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
         }
-        // Relief-inversion press (pick 4-A): the aluminum key sinks into a pocket, no scale.
+        // Relief-inversion press (pick 4-A): the stone key sinks into a pocket, no scale.
         .buttonStyle(.reliefPress)
         .disabled(isDisabled)
         .opacity(isDisabled ? 0.5 : 1)
@@ -991,7 +974,7 @@ struct InstrumentTextField: View {
     @FocusState private var isFocused: Bool
 
     /// Focus feedback mirrors SharpTextFieldStyle: the INK hairline thickens to 1pt while
-    /// editing (v4 Index Rule — red never marks focus), settling via `Motion.state`.
+    /// editing (Accent Rule — accent never marks focus), settling via `Motion.state`.
     /// Error keeps priority.
     private var borderColor: Color {
         if isError { return ColorTokens.statusCritical }
@@ -1033,12 +1016,13 @@ struct StatusBadge: View {
 
 // MARK: - Dial value cell (fixed-width instrument reading — v4.1 D13(c))
 
-/// A dial-voice reading whose container NEVER resizes as the digit count changes (v4.1
-/// D13(c): "fixed-width dial value cells — a value container never resizes when digit count
+/// A tabular reading whose container NEVER resizes as the digit count changes (v4.1
+/// D13(c): "fixed-width value cells — a value container never resizes when digit count
 /// changes; reserve width for the widest realistic reading"). A hidden `widthTemplate` (the
 /// widest reading the cell will ever show, e.g. `"888.8"`, `"100"`) reserves the width; the
-/// live `text` is drawn over it at `alignment`. Because the dial voice is monospaced, the
-/// template width equals any same-length reading exactly.
+/// live `text` is drawn over it at `alignment`. Because both texts apply
+/// `.monospacedDigit()` (the v5 numeral law), the template width equals any same-length
+/// reading exactly.
 ///
 /// Digit changes roll subtly via `.contentTransition(.numericText())` on `Motion.digitRoll`
 /// (~100ms, small travel — D13(b)); pass `rolls: false` for readings that should snap. Under
@@ -1049,7 +1033,7 @@ struct DialValueCell: View {
     let text: String
     /// The widest realistic reading this cell will show — reserves the fixed width.
     let widthTemplate: String
-    var font: Font = .Tokens.dialSmall
+    var font: Font = .Tokens.smallLabelMedium
     var color: Color = ColorTokens.text1
     /// Where the reading sits inside the reserved cell (trailing for right-aligned columns).
     var alignment: Alignment = .trailing
@@ -1308,44 +1292,57 @@ extension ButtonStyle where Self == RowWellButtonStyle {
 /// presses are retired (pick 4-A); this replaces `.pressable`/`.key` on the app's real keys.
 ///
 /// Deliberately an OVERLAY, not a background-owner: the pocket is a tint-neutral
-/// shade+highlight pair (no opaque fill), so it inverts the relief correctly over BOTH an
-/// aluminum key and an ink-filled CTA without the style needing to know the resting fill. Keys
+/// shade+highlight pair (no opaque fill), so it inverts the relief correctly over BOTH a
+/// stone key and an ink-filled CTA without the style needing to know the resting fill. Keys
 /// keep drawing their own resting face; only the press treatment lives here. Pass the key's own
 /// `cornerRadius` so the pocket edges track the key corners (0 for a butted `KeyRow` cell that
-/// the row already clips).
+/// the row already clips), or set `isPill` for the v5 primary-CTA capsule.
 struct ReliefPressButtonStyle: ButtonStyle {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     var cornerRadius: CGFloat = CornerTokens.control
+    /// true → the pocket edges track a `Capsule()` (`CornerTokens.pill` — the v5 ink-filled
+    /// primary CTA) instead of a rounded rectangle.
+    var isPill: Bool = false
     /// Additive brightness on press — the "lit under the finger" lift (pick 4-A). Ink keys sit
-    /// dark so they lift more to register; aluminum keys need only a hair.
+    /// dark so they lift more to register; stone keys need only a hair.
     var pressedBrightness: Double = 0.03
+
+    /// The pocket: a dark cut along the top inner edge + a soft lit line along the bottom
+    /// inner edge — the exact inner-edge pair `DebossedStyle` draws, minus the opaque fill
+    /// and outer border, so it reads as "recessed" over any face colour.
+    private func pocket<S: InsettableShape>(_ shape: S) -> some View {
+        shape
+            .inset(by: 0.75)
+            .stroke(
+                LinearGradient(colors: [ColorTokens.reliefShade, .clear], startPoint: .top, endPoint: .center),
+                lineWidth: 1.5
+            )
+            .overlay(
+                shape
+                    .inset(by: 0.75)
+                    .stroke(
+                        LinearGradient(colors: [.clear, ColorTokens.reliefHighlightSoft], startPoint: .center, endPoint: .bottom),
+                        lineWidth: 1
+                    )
+            )
+    }
 
     func makeBody(configuration: Configuration) -> some View {
         let pressed = configuration.isPressed
         return configuration.label
             .brightness(pressed ? pressedBrightness : 0)
             .overlay {
-                // The pocket: a dark cut along the top inner edge + a soft lit line along the
-                // bottom inner edge — the exact inner-edge pair `DebossedStyle` draws, minus the
-                // opaque fill and outer border, so it reads as "recessed" over any face colour.
-                RoundedRectangle(cornerRadius: cornerRadius)
-                    .inset(by: 0.75)
-                    .stroke(
-                        LinearGradient(colors: [ColorTokens.reliefShade, .clear], startPoint: .top, endPoint: .center),
-                        lineWidth: 1.5
-                    )
-                    .overlay(
-                        RoundedRectangle(cornerRadius: cornerRadius)
-                            .inset(by: 0.75)
-                            .stroke(
-                                LinearGradient(colors: [.clear, ColorTokens.reliefHighlightSoft], startPoint: .center, endPoint: .bottom),
-                                lineWidth: 1
-                            )
-                    )
-                    .opacity(pressed ? 1 : 0)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
+                Group {
+                    if isPill {
+                        pocket(Capsule())
+                    } else {
+                        pocket(RoundedRectangle(cornerRadius: cornerRadius))
+                    }
+                }
+                .opacity(pressed ? 1 : 0)
+                .allowsHitTesting(false)
+                .accessibilityHidden(true)
             }
             // The key sinks into the pocket. Sub-pixel, but it sells the depression.
             .offset(y: pressed ? 0.5 : 0)
@@ -1358,7 +1355,7 @@ struct ReliefPressButtonStyle: ButtonStyle {
 }
 
 extension ButtonStyle where Self == ReliefPressButtonStyle {
-    /// Relief-inversion press for an ALUMINUM key (standard key cell, secondary action) — a
+    /// Relief-inversion press for a STONE key (standard key cell, secondary action) — a
     /// hair of brightness lift. Pass the key's corner radius (0 for a butted `KeyRow` cell).
     static var reliefPress: ReliefPressButtonStyle { ReliefPressButtonStyle() }
     static func reliefPress(cornerRadius: CGFloat) -> ReliefPressButtonStyle {
@@ -1369,6 +1366,11 @@ extension ButtonStyle where Self == ReliefPressButtonStyle {
     static var reliefKey: ReliefPressButtonStyle { ReliefPressButtonStyle(pressedBrightness: 0.10) }
     static func reliefKey(cornerRadius: CGFloat) -> ReliefPressButtonStyle {
         ReliefPressButtonStyle(cornerRadius: cornerRadius, pressedBrightness: 0.10)
+    }
+    /// Relief-inversion press for the v5 PRIMARY CTA PILL — the ink-filled `Capsule()`
+    /// (`CornerTokens.pill`); the pocket edges track the capsule silhouette.
+    static var reliefKeyPill: ReliefPressButtonStyle {
+        ReliefPressButtonStyle(isPill: true, pressedBrightness: 0.10)
     }
 }
 

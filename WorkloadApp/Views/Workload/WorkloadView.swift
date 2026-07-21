@@ -96,7 +96,7 @@ struct WorkloadView: View {
                         .entranceReveal()
                         .accessibilityIdentifier("workload.acwr")
 
-                    // ATL / CTL / TSB — demo §3 metric grid: three individually-planed dial
+                    // ATL / CTL / TSB — metric grid: three individually-planed metric
                     // cells with their descriptor on the delta line, scannable in one fixation.
                     HStack(alignment: .top, spacing: Spacing.xs) {
                         MetricCell(
@@ -267,45 +267,46 @@ struct WorkloadView: View {
 
 // MARK: - ACWR Display
 
-/// v4 "Instrument": the Load screen's hero reading — ACWR on THE one black instrument
-/// panel (Panel Law): micro-caps label in `panelInk2`, `dialHero` mono ratio in `panelInk`,
-/// zone state as a caps TEXT label (never color alone), and a full-width `TickScale`
-/// 0–2.0 with the 0.8–1.3 productive band (ACWRZone.classify) and the red index needle
-/// at today's ratio.
+/// v5 "Pavilion": the Load screen's hero reading — ACWR on the screen's one raised light
+/// hero card (Hero Law): micro-caps label in `text3`, the ratio in `heroScore` accent
+/// (the hero reading is the single accent-colored text on this screen), zone state as a
+/// caps TEXT label in its zone color (never color alone), and a full-width `TickScale`
+/// 0–2.0 with the 0.8–1.3 productive band (ACWRZone.classify) and the accent needle at
+/// today's ratio.
 struct ACWRGaugeCard: View {
     let snapshot: WorkloadSnapshot?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    /// The productive ACWR band (ACWRZone.classify: optimal = 0.8..<1.3) — the zone band
-    /// rendered on the panel scale.
+    /// The productive ACWR band (ACWRZone.classify: optimal = 0.8..<1.3) — the ink zone
+    /// band rendered on the tick scale.
     private static let optimalBand: ClosedRange<Double> = 0.8...1.3
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("workload.section.acwr")
                 .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.panelInk2)
+                .tracking(0.9)
+                .foregroundStyle(ColorTokens.text3)
 
             Spacer().frame(height: Spacing.sm)
 
             if let snapshot {
-                // Baseline-aligned readout (demo §3 After): the ratio dominates the left, the
-                // zone label pinned to the trailing edge on its baseline — same grammar as Home.
+                // Baseline-aligned readout: the ratio dominates the left, the zone label
+                // pinned to the trailing edge on its baseline — same grammar as Home.
                 HStack(alignment: .lastTextBaseline, spacing: Spacing.sm) {
                     Text(String(format: "%.2f", snapshot.acwr))
-                        .font(.Tokens.dialHero)
-                        .tracking(Font.Tokens.Dial.tracking(for: Font.Tokens.Dial.heroSize, em: Font.Tokens.Dial.heroTrackingEm))
+                        .font(.Tokens.heroScore)
                         .monospacedDigit()
-                        .foregroundStyle(ColorTokens.panelInk)
+                        .foregroundStyle(ColorTokens.accent)
                     Spacer(minLength: Spacing.sm)
-                    // Zone state as a caps TEXT label (never color alone).
+                    // Zone state as a caps TEXT label in its zone color (text first,
+                    // color supplementary — never color alone).
                     Text(snapshot.zone.displayName)
                         .font(.Tokens.micro)
-                        .tracking(1.2)
+                        .tracking(0.9)
                         .textCase(.uppercase)
-                        .foregroundStyle(ColorTokens.panelInk)
+                        .foregroundStyle(ColorTokens.acwrZoneColor(snapshot.zone))
                 }
 
                 Spacer().frame(height: Spacing.sm)
@@ -315,7 +316,7 @@ struct ACWRGaugeCard: View {
                     value: snapshot.acwr,
                     zone: Self.optimalBand,
                     variant: .scale,
-                    theme: .panel,
+                    theme: .light,
                     numeralText: { String(format: "%.1f", $0) },
                     accessibilityLabel: Text(verbatim: "\(String(format: "%.2f", snapshot.acwr)) · \(snapshot.zone.displayName)")
                 )
@@ -325,10 +326,13 @@ struct ACWRGaugeCard: View {
             } else {
                 Text("workload.empty.body")
                     .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.panelInk2)
+                    .foregroundStyle(ColorTokens.text3)
             }
         }
-        .panelStyle(verticalPadding: Spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.sm)
+        .raised(cornerRadius: CornerTokens.card)
     }
 }
 

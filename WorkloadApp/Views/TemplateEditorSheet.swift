@@ -85,7 +85,7 @@ struct TemplateEditorSheet: View {
                     // Schedule picker
                     Text("template.label.schedule")
                         .font(.Tokens.micro)
-                        .tracking(1.2)
+                        .tracking(0.9)
                         .textCase(.uppercase)
                         .foregroundStyle(ColorTokens.text3)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -121,7 +121,7 @@ struct TemplateEditorSheet: View {
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text1)
                     }
-                    .tint(ColorTokens.zoneCaution)
+                    .toggleStyle(.design)
                     .padding(.horizontal, 16)
                     .padding(.vertical, 8)
 
@@ -391,7 +391,7 @@ struct TemplateExerciseCard: View {
             // Set headers — adapt to exercise category
             setHeaderRow
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .foregroundStyle(ColorTokens.text3)
                 .padding(.horizontal, 16)
                 .padding(.vertical, 4)

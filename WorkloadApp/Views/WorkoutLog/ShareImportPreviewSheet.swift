@@ -43,9 +43,11 @@ struct ShareImportPreviewSheet: View {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
                         // Banner
+                        // Micro-caps overline (v5 case law: tracked caps only at micro size).
                         Text("template.label.shared")
-                            .font(.Tokens.smallLabel)
-                            .tracking(1.2)
+                            .font(.Tokens.micro)
+                            .tracking(0.9)
+                            .textCase(.uppercase)
                             .foregroundStyle(ColorTokens.text3)
                             .padding(.horizontal, 16)
                             .padding(.top, 16)
@@ -78,9 +80,11 @@ struct ShareImportPreviewSheet: View {
 
                         // Exercise groups
                         ForEach(previewGroups.sorted(by: { $0.orderIndex < $1.orderIndex }), id: \.id) { group in
+                            // Group headers share the micro-caps grammar used by
+                            // TemplatePreviewSheet / PrescribedWorkoutCard.
                             Text(group.groupName.uppercased())
-                                .font(.Tokens.smallLabel)
-                                .tracking(1.2)
+                                .font(.Tokens.micro)
+                                .tracking(0.9)
                                 .foregroundStyle(ColorTokens.text3)
                                 .padding(.horizontal, 16)
                                 .padding(.top, 16)

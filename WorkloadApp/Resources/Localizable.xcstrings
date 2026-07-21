@@ -5515,7 +5515,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manage Tags"
+            "value" : "Manage tags"
           }
         },
         "zh-Hans" : {
@@ -5719,7 +5719,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Morning Check-in"
+            "value" : "Morning check-in"
           }
         },
         "zh-Hans" : {
@@ -9715,7 +9715,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "OPTIONAL"
+            "value" : "Optional"
           }
         },
         "zh-Hans" : {
@@ -9732,7 +9732,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "REQUIRED"
+            "value" : "Required"
           }
         },
         "zh-Hans" : {
@@ -11114,7 +11114,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Morning Check-in"
+            "value" : "Morning check-in"
           }
         },
         "zh-Hans" : {
@@ -12954,7 +12954,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Manage Tags"
+            "value" : "Manage tags"
           }
         },
         "zh-Hans" : {
@@ -15693,7 +15693,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Load & Progress"
+            "value" : "Load & progress"
           }
         },
         "zh-Hans" : {
@@ -16135,7 +16135,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Workout Log"
+            "value" : "Workout log"
           }
         },
         "zh-Hans" : {
@@ -16237,7 +16237,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Workout Log"
+            "value" : "Workout log"
           }
         },
         "zh-Hans" : {

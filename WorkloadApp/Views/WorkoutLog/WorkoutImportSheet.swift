@@ -178,7 +178,8 @@ struct WorkoutImportSheet: View {
                         Text(tab.displayName)
                             .font(.Tokens.label)
                     }
-                    // v4: the active segment is marked in INK (Index Rule — never red).
+                    // The active segment is marked in INK (v5 Accent Rule: the accent
+                    // never marks chrome selection here).
                     .foregroundStyle(selectedTab == tab ? ColorTokens.text1 : ColorTokens.text2)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, Spacing.sm)

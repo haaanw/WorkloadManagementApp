@@ -414,8 +414,8 @@ struct ProfileView: View {
 
     // MARK: - Helpers
 
-    /// Wraps a top-level grouped section: 32pt break + 19pt header, then the rows on a single
-    /// bordered card plane (Tuwa v2 separation — each section reads as a distinct surface).
+    /// Wraps a top-level grouped section: 32pt break + ruled micro-caps header, then the rows on
+    /// a single raised plate (each section reads as a distinct surface).
     @ViewBuilder
     private func profileSection<Content: View>(
         _ header: LocalizedStringKey,

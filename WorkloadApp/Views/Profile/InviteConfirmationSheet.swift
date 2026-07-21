@@ -38,14 +38,14 @@ struct InviteConfirmationSheet: View {
                         .padding(.top, 64)
                         .transition(.opacity)
                 } else if let resolved {
-                    // v3 sheet scaffold: the invite summary sits on a card plane
-                    // (CornerTokens.card via cardStyle), the confirm action is the filled
-                    // accent pill CTA, cancel stays quiet — no full-bleed hairline scaffold.
+                    // v5 sheet scaffold: the invite summary sits on a card plane
+                    // (CornerTokens.card via cardStyle), the confirm action is the ink-filled
+                    // pill CTA (never accent), cancel stays quiet — no full-bleed hairline scaffold.
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             Text(mode == .athleteAccepting ? "COACH REQUEST" : "LINK ATHLETE")
                                 .font(.Tokens.micro)
-                                .tracking(1.2)
+                                .tracking(0.9)
                                 .foregroundStyle(ColorTokens.text3)
                             Text(resolved.otherPartyName)
                                 .font(.Tokens.pageTitle)

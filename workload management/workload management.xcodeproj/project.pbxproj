@@ -127,12 +127,10 @@
 		6285C7C42FB02E4300067723 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6285C7C32FB02E4300067723 /* GoogleSignIn */; };
 		62F32C972F7167E000B6135F /* FontTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C962F7167E000B6135F /* FontTokens.swift */; };
 		62F32C992F7167EA00B6135F /* ReasoningEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C982F7167EA00B6135F /* ReasoningEngine.swift */; };
-		62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */; };
 		2303010100000000000000B1 /* NotoSansSC-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2303010100000000000000B2 /* NotoSansSC-Regular.otf */; };
 		2303020100000000000000B1 /* NotoSansSC-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2303020100000000000000B2 /* NotoSansSC-Medium.otf */; };
-		2308010100000000000000B1 /* IBMPlexMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2308010100000000000000B2 /* IBMPlexMono-Regular.ttf */; };
-		2308020100000000000000B1 /* IBMPlexMono-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2308020100000000000000B2 /* IBMPlexMono-Medium.ttf */; };
-		2308030100000000000000B1 /* IBMPlexMono-SemiBold.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2308030100000000000000B2 /* IBMPlexMono-SemiBold.ttf */; };
+		2309010100000000000000B1 /* InstrumentSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2309010100000000000000B2 /* InstrumentSans-Regular.ttf */; };
+		2309020100000000000000B1 /* InstrumentSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2309020100000000000000B2 /* InstrumentSans-Medium.ttf */; };
 		2307020100000000000000B1 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
 		2307050100000000000000B1 /* InkTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307050100000000000000B2 /* InkTabBar.swift */; };
 		2307060100000000000000B1 /* TickScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307060100000000000000B2 /* TickScale.swift */; };
@@ -346,14 +344,12 @@
 		627EC19B2F76917500B89262 /* MockDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataSeeder.swift; sourceTree = "<group>"; };
 		62F32C962F7167E000B6135F /* FontTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FontTokens.swift; sourceTree = "<group>"; };
 		62F32C982F7167EA00B6135F /* ReasoningEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasoningEngine.swift; sourceTree = "<group>"; };
-		62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "GeneralSans-Variable.ttf"; sourceTree = "<group>"; };
 		2303010100000000000000B2 /* NotoSansSC-Regular.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Regular.otf"; sourceTree = "<group>"; };
 		2303020100000000000000B2 /* NotoSansSC-Medium.otf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "NotoSansSC-Medium.otf"; sourceTree = "<group>"; };
 		2303030100000000000000B2 /* NotoSansSC-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "NotoSansSC-LICENSE.txt"; sourceTree = "<group>"; };
-		2308010100000000000000B2 /* IBMPlexMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Regular.ttf"; sourceTree = "<group>"; };
-		2308020100000000000000B2 /* IBMPlexMono-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-Medium.ttf"; sourceTree = "<group>"; };
-		2308030100000000000000B2 /* IBMPlexMono-SemiBold.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "IBMPlexMono-SemiBold.ttf"; sourceTree = "<group>"; };
-		2308040100000000000000B2 /* IBMPlexMono-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "IBMPlexMono-LICENSE.txt"; sourceTree = "<group>"; };
+		2309010100000000000000B2 /* InstrumentSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InstrumentSans-Regular.ttf"; sourceTree = "<group>"; };
+		2309020100000000000000B2 /* InstrumentSans-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InstrumentSans-Medium.ttf"; sourceTree = "<group>"; };
+		2309030100000000000000B2 /* InstrumentSans-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "InstrumentSans-LICENSE.txt"; sourceTree = "<group>"; };
 		2307020100000000000000B2 /* CornerTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerTokens.swift; sourceTree = "<group>"; };
 		2307050100000000000000B2 /* InkTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InkTabBar.swift; sourceTree = "<group>"; };
 		2307060100000000000000B2 /* TickScale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickScale.swift; sourceTree = "<group>"; };
@@ -591,7 +587,6 @@
 			isa = PBXGroup;
 			children = (
 				62F32DF65C7F3C5307D700B6 /* Assets.xcassets */,
-				62F32C9A2F71685800B6135F /* GeneralSans-Variable.ttf */,
 				62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */,
 				2301030100000000000000A2 /* Localizable.xcstrings */,
 				2301040100000000000000A2 /* InfoPlist.xcstrings */,
@@ -607,10 +602,9 @@
 				2303010100000000000000B2 /* NotoSansSC-Regular.otf */,
 				2303020100000000000000B2 /* NotoSansSC-Medium.otf */,
 				2303030100000000000000B2 /* NotoSansSC-LICENSE.txt */,
-				2308010100000000000000B2 /* IBMPlexMono-Regular.ttf */,
-				2308020100000000000000B2 /* IBMPlexMono-Medium.ttf */,
-				2308030100000000000000B2 /* IBMPlexMono-SemiBold.ttf */,
-				2308040100000000000000B2 /* IBMPlexMono-LICENSE.txt */,
+				2309010100000000000000B2 /* InstrumentSans-Regular.ttf */,
+				2309020100000000000000B2 /* InstrumentSans-Medium.ttf */,
+				2309030100000000000000B2 /* InstrumentSans-LICENSE.txt */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -1000,12 +994,10 @@
 			buildActionMask = 2147483647;
 			files = (
 				62F32D6D64E26B3830FD00B6 /* Assets.xcassets in Resources */,
-				62F32C9C2F71685800B6135F /* GeneralSans-Variable.ttf in Resources */,
 				2303010100000000000000B1 /* NotoSansSC-Regular.otf in Resources */,
 				2303020100000000000000B1 /* NotoSansSC-Medium.otf in Resources */,
-				2308010100000000000000B1 /* IBMPlexMono-Regular.ttf in Resources */,
-				2308020100000000000000B1 /* IBMPlexMono-Medium.ttf in Resources */,
-				2308030100000000000000B1 /* IBMPlexMono-SemiBold.ttf in Resources */,
+				2309010100000000000000B1 /* InstrumentSans-Regular.ttf in Resources */,
+				2309020100000000000000B1 /* InstrumentSans-Medium.ttf in Resources */,
 				62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */,
 				2301030100000000000000A1 /* Localizable.xcstrings in Resources */,
 				2301040100000000000000A1 /* InfoPlist.xcstrings in Resources */,

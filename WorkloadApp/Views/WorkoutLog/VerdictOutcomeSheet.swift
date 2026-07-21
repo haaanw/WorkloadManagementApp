@@ -27,7 +27,7 @@ struct VerdictOutcomeSheet: View {
                 // Header label (micro-caps).
                 Text(String(localized: "verdictOutcome.title", defaultValue: "LOOKING BACK"))
                     .font(.Tokens.micro)
-                    .tracking(1.2)
+                    .tracking(0.9)
                     .foregroundStyle(ColorTokens.text3)
 
                 // Quiet context: the planned→adjusted number + the reason (read-only).

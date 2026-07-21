@@ -1,9 +1,9 @@
 import SwiftUI
 
-/// Phase 28, Wave 4 — FLAGGED "method updated" dual-run surface, restyled to v3 restraint
-/// (Stage 4a): one quiet instrument-voice line on a standard plate, with the previous/updated
-/// comparison behind an expandable disclosure. No accent, no emphasis plane — this is an
-/// administrative note, not a decision moment.
+/// Phase 28, Wave 4 — FLAGGED "method updated" dual-run surface, restyled to design-system
+/// restraint (Stage 4a): one quiet label-voice line on a standard plate, with the
+/// previous/updated comparison behind an expandable disclosure. No accent, no emphasis
+/// plane — this is an administrative note, not a decision moment.
 ///
 /// Renders only when `PRSDualRunSurface.dualRunMessage(...)` returns non-nil (i.e. the master
 /// flag `PRSActivation.isEnabled` is ON). With the flag OFF (default), the parent passes

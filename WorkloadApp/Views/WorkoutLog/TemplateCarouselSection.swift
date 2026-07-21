@@ -236,9 +236,9 @@ struct TemplateCarouselSection: View {
             }
             .padding(Spacing.sm)
             .frame(height: 160)
-            // v4: the centered (active) card lifts to the emphasis plane — surfaceEl2 +
-            // the stronger hairline ONLY (the v2 red top band is deleted; the index never
-            // decorates — Index Rule).
+            // The centered (active) card lifts to the emphasis plane — surfaceEl2 + the
+            // stronger hairline ONLY (v5 Accent Rule: the accent never decorates; the old
+            // colored top band stays deleted).
             .background(isCentered ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
             .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
             .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(isCentered ? ColorTokens.dividerStrong : ColorTokens.divider, lineWidth: 0.5))
@@ -248,7 +248,7 @@ struct TemplateCarouselSection: View {
                    suggestion.template.id == template.id {
                     Text(suggestion.isRecoveryAdjusted ? "template.label.recoveryAdjusted" : "template.label.suggested")
                         .font(.Tokens.micro)
-                        .tracking(1.2)
+                        .tracking(0.9)
                         .textCase(.uppercase)
                         .foregroundStyle(ColorTokens.text2)
                         .padding(.horizontal, Spacing.xs)

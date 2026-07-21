@@ -1,8 +1,8 @@
 import SwiftUI
 
 /// Reusable metric display tile used across Workload and Session detail views.
-/// v4 "Instrument": the value is a data numeral, so it renders in the dial voice
-/// (`dialSmall` — IBM Plex Mono, tabular by construction).
+/// v5 "Pavilion": the value is a data numeral, so it renders in the one voice with
+/// tabular figures (`smallLabelMedium` + `.monospacedDigit()`, v5 numeral law).
 struct MetricTile: View {
     let title: String
     let value: String
@@ -16,7 +16,8 @@ struct MetricTile: View {
                 .tracking(1.2)
                 .foregroundStyle(ColorTokens.text3)
             Text(value)
-                .font(.Tokens.dialSmall)
+                .font(.Tokens.smallLabelMedium)
+                .monospacedDigit()
                 .foregroundStyle(color)
             if let subtitle {
                 Text(subtitle)
@@ -28,10 +29,10 @@ struct MetricTile: View {
     }
 }
 
-/// Hairline-bordered text-first chip communicating zone state (v4 "Instrument": near-square
-/// `CornerTokens.control` corners — the pill silhouette is retired for zone chips). Zone
-/// color appears as TEXT + border only, never as a fill; the text label is always the
-/// primary information (color supplementary — never color alone).
+/// Hairline-bordered text-first chip communicating zone state (v5 Corner Law: chips and
+/// badges wear the pill — `Capsule()`, `CornerTokens.pill`). Zone color appears as TEXT +
+/// border only, never as a fill; the text label is always the primary information (color
+/// supplementary — never color alone).
 ///
 /// zh-Hans typography: per 23-UI-SPEC, Chinese has no case and looser tracking is wrong.
 /// Apply textCase(.uppercase) and tracking(1.2) only when the env locale is English.
@@ -51,7 +52,7 @@ struct ZoneBadge: View {
             .padding(.vertical, 4)
             .foregroundStyle(color)
             .overlay(
-                RoundedRectangle(cornerRadius: CornerTokens.control).stroke(color, lineWidth: 0.5)
+                Capsule().stroke(color, lineWidth: 0.5)
             )
     }
 }

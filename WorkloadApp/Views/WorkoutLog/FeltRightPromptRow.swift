@@ -29,7 +29,7 @@ struct FeltRightPromptRow: View {
             // Micro-caps header — this is about YESTERDAY, never today.
             Text(String(localized: "feltRight.header", defaultValue: "YESTERDAY'S CALL"))
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .foregroundStyle(ColorTokens.text3)
 
             // Quiet one-line context: the differing number + the composed reason (read-only).

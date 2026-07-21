@@ -10,7 +10,7 @@ struct SyncStatusView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
-                // Section header: 19pt Medium sectionHead per DESIGN.md separator grammar.
+                // Section header: 17pt Medium sectionHead per DESIGN.md separator grammar.
                 SectionHeader(title: "profile.sync.statusTitle")
                     .padding(.top, Spacing.md)
                     .padding(.bottom, Spacing.sm)

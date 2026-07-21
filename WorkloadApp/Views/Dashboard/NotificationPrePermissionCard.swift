@@ -11,7 +11,7 @@ struct NotificationPrePermissionCard: View {
         VStack(alignment: .leading, spacing: 0) {
             Text("notificationCard.title")
                 .font(.Tokens.micro)
-                .tracking(1.2)
+                .tracking(0.9)
                 .foregroundStyle(ColorTokens.text3)
                 .padding(.bottom, Spacing.xs)
 
