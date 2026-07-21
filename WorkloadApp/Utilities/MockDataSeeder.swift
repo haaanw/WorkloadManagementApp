@@ -250,7 +250,10 @@ enum MockDataSeeder {
         working.adjustedTargetWeightKg = 130
         working.adjustedTargetRPE = 7
         working.adjustedBackoffSetCut = 1
-        working.verdictReason = "Recent court work loaded your legs — microdose before the match."
+        working.verdictReason = String(
+            localized: "mock.verdictReason",
+            defaultValue: "Recent court work loaded your legs — microdose before the match."
+        )
         VerdictDecisionApplier.applyAccept(to: working, appliedAt: .now)
 
         squat.sets = [warmup, working, backoff]

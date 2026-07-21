@@ -5520,6 +5520,23 @@
     "min" : {
 
     },
+    "mock.verdictReason" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recent court work loaded your legs — microdose before the match."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "近期球场训练让腿部负荷偏高——赛前进行微剂量调整。"
+          }
+        }
+      }
+    },
     "morning.action.manageTags" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -10093,6 +10110,12 @@
             "state" : "new",
             "value" : "Tuwa now reads your daily readiness and accumulated training strain together. During this transition we show both your previous and updated guidance."
           }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa 现在会同时结合每日准备度与累积训练负担给出建议。过渡期内会同时展示更新前后的两种指导。"
+          }
         }
       }
     },
@@ -10101,8 +10124,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Previous"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新前"
           }
         }
       }
@@ -10112,8 +10141,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Guidance method updated"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指导方式已更新"
           }
         }
       }
@@ -10123,8 +10158,14 @@
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "new",
+            "state" : "translated",
             "value" : "Updated"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "更新后"
           }
         }
       }

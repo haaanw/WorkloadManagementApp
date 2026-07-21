@@ -31,6 +31,14 @@ final class ScreenshotTests: XCTestCase {
 
     private func launchApp(arguments: [String], waitForTabBar: Bool = true) {
         app.launchArguments = arguments
+        // Localized capture: pass TEST_RUNNER_SCREENSHOT_LANG=zh-Hans to xcodebuild to shoot
+        // the zh-Hans App Store set (xcodebuild forwards TEST_RUNNER_-prefixed vars here).
+        if let lang = ProcessInfo.processInfo.environment["SCREENSHOT_LANG"], !lang.isEmpty {
+            app.launchArguments += ["-AppleLanguages", "(\(lang))"]
+            if lang == "zh-Hans" {
+                app.launchArguments += ["-AppleLocale", "zh_CN"]
+            }
+        }
         app.launch()
         if waitForTabBar {
             XCTAssertTrue(
