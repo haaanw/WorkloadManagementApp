@@ -30,7 +30,7 @@ enum AthleteTab: String, CaseIterable, Identifiable, Hashable {
     }
 
     func titleText(locale: Locale) -> String {
-        UIKitStrings.localized(localizationKey, locale: locale)
+        LocalePinnedStrings.localized(localizationKey, locale: locale)
     }
 
     var systemImage: String {
@@ -65,7 +65,7 @@ enum CoachTab: String, CaseIterable, Identifiable, Hashable {
     }
 
     func titleText(locale: Locale) -> String {
-        UIKitStrings.localized(localizationKey, locale: locale)
+        LocalePinnedStrings.localized(localizationKey, locale: locale)
     }
 
     var systemImage: String {
@@ -1052,19 +1052,19 @@ struct ActiveWorkoutAlertState: Equatable {
 
     static func unsavedChanges(locale: Locale) -> ActiveWorkoutAlertState {
         ActiveWorkoutAlertState(
-            title: UIKitStrings.localized(
+            title: LocalePinnedStrings.localized(
                 "workout.unsaved.title",
                 defaultValue: "Unsaved workout",
                 locale: locale
             ),
-            message: UIKitStrings.localized(
+            message: LocalePinnedStrings.localized(
                 "workout.unsaved.message",
                 defaultValue: "Your changes have not been saved. Keep editing or discard this workout.",
                 locale: locale
             ),
             actions: [
                 Action(
-                    title: UIKitStrings.localized(
+                    title: LocalePinnedStrings.localized(
                         "action.keepEditing",
                         defaultValue: "Keep Editing",
                         locale: locale
@@ -1072,7 +1072,7 @@ struct ActiveWorkoutAlertState: Equatable {
                     role: .cancel
                 ),
                 Action(
-                    title: UIKitStrings.localized(
+                    title: LocalePinnedStrings.localized(
                         "action.discardChanges",
                         defaultValue: "Discard Changes",
                         locale: locale
@@ -1085,19 +1085,19 @@ struct ActiveWorkoutAlertState: Equatable {
 
     static func noCompletedSets(locale: Locale) -> ActiveWorkoutAlertState {
         ActiveWorkoutAlertState(
-            title: UIKitStrings.localized(
+            title: LocalePinnedStrings.localized(
                 "workout.save.noDone.title",
                 defaultValue: "No sets marked done",
                 locale: locale
             ),
-            message: UIKitStrings.localized(
+            message: LocalePinnedStrings.localized(
                 "workout.save.noDone.message",
                 defaultValue: "Nothing will be logged. Mark sets done to record them, or discard this session?",
                 locale: locale
             ),
             actions: [
                 Action(
-                    title: UIKitStrings.localized(
+                    title: LocalePinnedStrings.localized(
                         "action.cancel",
                         defaultValue: "Cancel",
                         locale: locale
@@ -1105,7 +1105,7 @@ struct ActiveWorkoutAlertState: Equatable {
                     role: .cancel
                 ),
                 Action(
-                    title: UIKitStrings.localized(
+                    title: LocalePinnedStrings.localized(
                         "workout.save.noDone.discard",
                         defaultValue: "Discard session",
                         locale: locale
@@ -1118,7 +1118,7 @@ struct ActiveWorkoutAlertState: Equatable {
 
     static func saveFailure(errorDescription: String, locale: Locale) -> ActiveWorkoutAlertState {
         ActiveWorkoutAlertState(
-            title: UIKitStrings.localized(
+            title: LocalePinnedStrings.localized(
                 "workout.save.failed.title",
                 defaultValue: "Could not save session",
                 locale: locale
@@ -1126,7 +1126,7 @@ struct ActiveWorkoutAlertState: Equatable {
             message: errorDescription,
             actions: [
                 Action(
-                    title: UIKitStrings.localized(
+                    title: LocalePinnedStrings.localized(
                         "action.ok",
                         defaultValue: "OK",
                         locale: locale
@@ -1553,16 +1553,16 @@ struct ProfileOverviewViewState: Equatable {
         locale: Locale
     ) -> ProfileOverviewViewState {
         ProfileOverviewViewState(
-            heroKicker: UIKitStrings.localized("profile.nav.title", locale: locale),
-            athleteName: athlete?.displayName ?? UIKitStrings.localized("profile.section.athlete", locale: locale),
-            contextText: "\(athlete.map { sportDisplayName($0.sportType, locale: locale) } ?? UIKitStrings.localized("profile.section.training", locale: locale)) · \(UIKitStrings.localized("profile.context.athlete", locale: locale))",
+            heroKicker: LocalePinnedStrings.localized("profile.nav.title", locale: locale),
+            athleteName: athlete?.displayName ?? LocalePinnedStrings.localized("profile.section.athlete", locale: locale),
+            contextText: "\(athlete.map { sportDisplayName($0.sportType, locale: locale) } ?? LocalePinnedStrings.localized("profile.section.training", locale: locale)) · \(LocalePinnedStrings.localized("profile.context.athlete", locale: locale))",
             showsCoachContext: athlete?.isCoach == true && athlete?.isCoachOnly == false,
             coachModeTrailing: isCoachEntitled
-                ? UIKitStrings.localized("profile.context.open", locale: locale)
-                : UIKitStrings.localized("profile.subscription.coach", locale: locale),
+                ? LocalePinnedStrings.localized("profile.context.open", locale: locale)
+                : LocalePinnedStrings.localized("profile.subscription.coach", locale: locale),
             syncStatusText: hasSyncFailure
-                ? UIKitStrings.localized("profile.sync.issues", locale: locale)
-                : UIKitStrings.localized("profile.sync.allSynced", locale: locale),
+                ? LocalePinnedStrings.localized("profile.sync.issues", locale: locale)
+                : LocalePinnedStrings.localized("profile.sync.allSynced", locale: locale),
             languageText: locale.language.languageCode?.identifier == "zh" ? "中文" : "English",
             subscriptionText: subscriptionText(
                 isCoachEntitled: isCoachEntitled,
@@ -1578,30 +1578,30 @@ struct ProfileOverviewViewState: Equatable {
         locale: Locale
     ) -> String {
         if isCoachEntitled {
-            return UIKitStrings.localized("profile.subscription.coach", locale: locale)
+            return LocalePinnedStrings.localized("profile.subscription.coach", locale: locale)
         }
         if isProEntitled {
-            return UIKitStrings.localized("profile.subscription.athletePro", locale: locale)
+            return LocalePinnedStrings.localized("profile.subscription.athletePro", locale: locale)
         }
-        return UIKitStrings.localized("profile.subscription.free", locale: locale)
+        return LocalePinnedStrings.localized("profile.subscription.free", locale: locale)
     }
 
     private static func sportDisplayName(_ sport: SportType, locale: Locale) -> String {
         switch sport {
         case .lifting:
-            return UIKitStrings.localized("sport.lifting", defaultValue: "Lifting", locale: locale)
+            return LocalePinnedStrings.localized("sport.lifting", defaultValue: "Lifting", locale: locale)
         case .running:
-            return UIKitStrings.localized("sport.running", defaultValue: "Running", locale: locale)
+            return LocalePinnedStrings.localized("sport.running", defaultValue: "Running", locale: locale)
         case .cycling:
-            return UIKitStrings.localized("sport.cycling", defaultValue: "Cycling", locale: locale)
+            return LocalePinnedStrings.localized("sport.cycling", defaultValue: "Cycling", locale: locale)
         case .teamSport:
-            return UIKitStrings.localized("sport.teamSport", defaultValue: "Team Sport", locale: locale)
+            return LocalePinnedStrings.localized("sport.teamSport", defaultValue: "Team Sport", locale: locale)
         case .crossfit:
-            return UIKitStrings.localized("sport.crossfit", defaultValue: "CrossFit", locale: locale)
+            return LocalePinnedStrings.localized("sport.crossfit", defaultValue: "CrossFit", locale: locale)
         case .swimming:
-            return UIKitStrings.localized("sport.swimming", defaultValue: "Swimming", locale: locale)
+            return LocalePinnedStrings.localized("sport.swimming", defaultValue: "Swimming", locale: locale)
         case .custom:
-            return UIKitStrings.localized("sport.custom", defaultValue: "Custom", locale: locale)
+            return LocalePinnedStrings.localized("sport.custom", defaultValue: "Custom", locale: locale)
         }
     }
 }

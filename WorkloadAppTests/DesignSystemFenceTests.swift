@@ -3,9 +3,8 @@ import XCTest
 /// App-wide design-fence — DESIGN.md v5 "Pavilion" (Warm Stone, 2026-07-21).
 ///
 /// Source-grep fences over the styled SwiftUI layer (`Views/`, `Components/`, `Utilities/`,
-/// plus the live SwiftUI app files in `App/`). The retired UIKit shell
-/// (`AppShell.swift` / `AppShellUIKitPrimitives.swift`) is excluded — it is scheduled for
-/// deletion after the pivot validates and must merely keep compiling.
+/// plus the live SwiftUI app files in `App/`). The retired UIKit shell was deleted in the
+/// v1.6 launch cleanup (2026-07-21) — no exclusions remain.
 ///
 /// The v5 laws these enforce:
 /// 1. **Corner Law** — radii only via `CornerTokens` (card 12 / control 8 / pill).
@@ -28,10 +27,7 @@ final class DesignSystemFenceTests: XCTestCase {
 
     // MARK: - Source enumeration
 
-    private static let excludedFiles: Set<String> = [
-        "AppShell.swift",               // retired UIKit shell — do not touch, deleted post-v1.6
-        "AppShellUIKitPrimitives.swift" // retired UIKit shell — do not touch, deleted post-v1.6
-    ]
+    private static let excludedFiles: Set<String> = []
 
     private func appRoot() -> URL {
         URL(fileURLWithPath: #filePath)

@@ -299,7 +299,7 @@ enum SubscriptionTier: String, CaseIterable {
     }
 
     func headline(locale: Locale) -> String {
-        UIKitStrings.localized(headlineKey, locale: locale)
+        LocalePinnedStrings.localized(headlineKey, locale: locale)
     }
 
     private var headlineKey: String.LocalizationValue {
@@ -316,7 +316,7 @@ enum SubscriptionTier: String, CaseIterable {
     }
 
     func subtitle(locale: Locale) -> String {
-        UIKitStrings.localized(subtitleKey, locale: locale)
+        LocalePinnedStrings.localized(subtitleKey, locale: locale)
     }
 
     private var subtitleKey: String.LocalizationValue {
@@ -333,7 +333,7 @@ enum SubscriptionTier: String, CaseIterable {
     }
 
     func features(locale: Locale) -> [String] {
-        featureKeys.map { UIKitStrings.localized($0, locale: locale) }
+        featureKeys.map { LocalePinnedStrings.localized($0, locale: locale) }
     }
 
     private var featureKeys: [String.LocalizationValue] {
@@ -391,7 +391,7 @@ enum SubscriptionTier: String, CaseIterable {
     }
 
     func annualSavingsBadge(locale: Locale) -> String {
-        UIKitStrings.localized(annualSavingsBadgeKey, locale: locale)
+        LocalePinnedStrings.localized(annualSavingsBadgeKey, locale: locale)
     }
 
     private var annualSavingsBadgeKey: String.LocalizationValue {

@@ -13,8 +13,6 @@
 		1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000A2 /* FinishWorkoutSheet.swift */; };
 		1101010100000000000000B1 /* ToastBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000B2 /* ToastBanner.swift */; };
 		A50100020000000000000001 /* AppShellContracts.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50100010000000000000001 /* AppShellContracts.swift */; };
-		A50200020000000000000001 /* AppShellUIKitPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50200010000000000000001 /* AppShellUIKitPrimitives.swift */; };
-		A50000020000000000000001 /* AppShell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A50000010000000000000001 /* AppShell.swift */; };
 		CD0501010000000000000001 /* CardStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0501010000000000000002 /* CardStyle.swift */; };
 		CD0601010000000000000001 /* SetStepper.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0601010000000000000002 /* SetStepper.swift */; };
 		CD0701010000000000000001 /* PRBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0701010000000000000002 /* PRBanner.swift */; };
@@ -132,6 +130,7 @@
 		2309010100000000000000B1 /* InstrumentSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2309010100000000000000B2 /* InstrumentSans-Regular.ttf */; };
 		2309020100000000000000B1 /* InstrumentSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2309020100000000000000B2 /* InstrumentSans-Medium.ttf */; };
 		2307020100000000000000B1 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
+		230A010100000000000000B1 /* LocalePinnedStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230A010100000000000000B2 /* LocalePinnedStrings.swift */; };
 		2307050100000000000000B1 /* InkTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307050100000000000000B2 /* InkTabBar.swift */; };
 		2307060100000000000000B1 /* TickScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307060100000000000000B2 /* TickScale.swift */; };
 		2307090100000000000000B1 /* LayoutPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307090100000000000000B2 /* LayoutPrimitives.swift */; };
@@ -256,8 +255,6 @@
 		62324BE02F66CB0E00A9C2BE /* AppContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppContainer.swift; sourceTree = "<group>"; };
 		62324BE12F66CB0E00A9C2BE /* AppRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppRouter.swift; sourceTree = "<group>"; };
 		A50100010000000000000001 /* AppShellContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellContracts.swift; sourceTree = "<group>"; };
-		A50200010000000000000001 /* AppShellUIKitPrimitives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellUIKitPrimitives.swift; sourceTree = "<group>"; };
-		A50000010000000000000001 /* AppShell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShell.swift; sourceTree = "<group>"; };
 		62324BE22F66CB0E00A9C2BE /* WorkloadApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadApp.swift; sourceTree = "<group>"; };
 		62324BE42F66CB0E00A9C2BE /* HRVTrendChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVTrendChart.swift; sourceTree = "<group>"; };
 		62324BE52F66CB0E00A9C2BE /* MetricTile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MetricTile.swift; sourceTree = "<group>"; };
@@ -351,6 +348,7 @@
 		2309020100000000000000B2 /* InstrumentSans-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InstrumentSans-Medium.ttf"; sourceTree = "<group>"; };
 		2309030100000000000000B2 /* InstrumentSans-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "InstrumentSans-LICENSE.txt"; sourceTree = "<group>"; };
 		2307020100000000000000B2 /* CornerTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerTokens.swift; sourceTree = "<group>"; };
+		230A010100000000000000B2 /* LocalePinnedStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalePinnedStrings.swift; sourceTree = "<group>"; };
 		2307050100000000000000B2 /* InkTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InkTabBar.swift; sourceTree = "<group>"; };
 		2307060100000000000000B2 /* TickScale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TickScale.swift; sourceTree = "<group>"; };
 		2307090100000000000000B2 /* LayoutPrimitives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LayoutPrimitives.swift; sourceTree = "<group>"; };
@@ -489,8 +487,6 @@
 				62324BE02F66CB0E00A9C2BE /* AppContainer.swift */,
 				62324BE12F66CB0E00A9C2BE /* AppRouter.swift */,
 				A50100010000000000000001 /* AppShellContracts.swift */,
-				A50200010000000000000001 /* AppShellUIKitPrimitives.swift */,
-				A50000010000000000000001 /* AppShell.swift */,
 				62324BE22F66CB0E00A9C2BE /* WorkloadApp.swift */,
 			);
 			path = App;
@@ -679,6 +675,7 @@
 				62F32C962F7167E000B6135F /* FontTokens.swift */,
 				62324C042F66CB0E00A9C2BE /* ColorTokens.swift */,
 				2307020100000000000000B2 /* CornerTokens.swift */,
+				230A010100000000000000B2 /* LocalePinnedStrings.swift */,
 				62324C052F66CB0E00A9C2BE /* DateHelpers.swift */,
 				62324C062F66CB0E00A9C2BE /* WeightFormatter.swift */,
 				AB10000000000000000000A1 /* SetSuggestion.swift */,
@@ -1070,8 +1067,6 @@
 				1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */,
 				1101010100000000000000B1 /* ToastBanner.swift in Sources */,
 				A50100020000000000000001 /* AppShellContracts.swift in Sources */,
-				A50200020000000000000001 /* AppShellUIKitPrimitives.swift in Sources */,
-				A50000020000000000000001 /* AppShell.swift in Sources */,
 				CD0501010000000000000001 /* CardStyle.swift in Sources */,
 				CD0601010000000000000001 /* SetStepper.swift in Sources */,
 			CD0701010000000000000001 /* PRBanner.swift in Sources */,
@@ -1094,6 +1089,7 @@
 				62324C372F66CB0E00A9C2BE /* RecoveryPipeline.swift in Sources */,
 				62F32C972F7167E000B6135F /* FontTokens.swift in Sources */,
 				2307020100000000000000B1 /* CornerTokens.swift in Sources */,
+				230A010100000000000000B1 /* LocalePinnedStrings.swift in Sources */,
 				2307050100000000000000B1 /* InkTabBar.swift in Sources */,
 				2307060100000000000000B1 /* TickScale.swift in Sources */,
 				2307090100000000000000B1 /* LayoutPrimitives.swift in Sources */,
@@ -1368,7 +1364,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "workload management/workload management.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 9XTU7KMJ4J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1384,7 +1380,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tonus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
@@ -1404,7 +1400,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_ENTITLEMENTS = "workload management/workload management.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 14;
+				CURRENT_PROJECT_VERSION = 15;
 				DEVELOPMENT_TEAM = 9XTU7KMJ4J;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
@@ -1420,7 +1416,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.6;
 				PRODUCT_BUNDLE_IDENTIFIER = com.tonus.app;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;

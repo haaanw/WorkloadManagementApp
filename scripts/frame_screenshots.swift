@@ -7,12 +7,12 @@
 //   swift scripts/frame_screenshots.swift <input_dir> <output_dir>
 //
 // Takes raw simulator screenshots and composites them with:
-// - Headline text overlay (General Sans Medium)
-// - Flat rectangular device frame (no rounded corners, no shadows)
-// - Background matching the app's light mode aesthetic
+// - Headline text overlay (Instrument Sans Medium)
+// - Hairline device frame with 12pt-equivalent soft corners, no shadows
+// - Background matching the app's v5 "Pavilion" warm stone palette
 //
-// Per DESIGN.md: 0pt border radius, no shadows, General Sans Medium,
-// International Style Minimalism.
+// Per DESIGN.md v5: CornerTokens card 12pt, no shadows, Instrument Sans one voice,
+// International Style Minimalism in warm stone.
 
 import AppKit
 import CoreGraphics
@@ -85,17 +85,18 @@ let zhHansCopy: [String: FrameCopy] = [
     )
 ]
 
-/// Design tokens from DESIGN.md (light mode).
-let bgColor = NSColor(red: 0xEC/255.0, green: 0xEE/255.0, blue: 0xF1/255.0, alpha: 1.0) // --bg
-let textColor = NSColor(red: 0x14/255.0, green: 0x17/255.0, blue: 0x1A/255.0, alpha: 1.0) // --text-1
-let dividerColor = NSColor(red: 0xC0/255.0, green: 0xC5/255.0, blue: 0xCB/255.0, alpha: 1.0) // --divider
+/// Design tokens from DESIGN.md v5 "Pavilion" (warm stone, light-only).
+let bgColor = NSColor(red: 0xF0/255.0, green: 0xEF/255.0, blue: 0xEC/255.0, alpha: 1.0) // --bg
+let textColor = NSColor(red: 0x1B/255.0, green: 0x1A/255.0, blue: 0x17/255.0, alpha: 1.0) // --text-1
+let dividerColor = NSColor(red: 0xD6/255.0, green: 0xD3/255.0, blue: 0xCD/255.0, alpha: 1.0) // --divider
 
 // MARK: - Font Loading
 
-/// Load General Sans Medium from the project's font bundle.
-func loadGeneralSansMedium() -> CTFont? {
+/// Load Instrument Sans Medium from the project's font bundle (static face; PS name
+/// resolves directly — verified 2026-07-21).
+func loadInstrumentSansMedium() -> CTFont? {
     let fontPaths = [
-        "WorkloadApp/Resources/GeneralSans-Variable.ttf"
+        "WorkloadApp/Resources/Fonts/InstrumentSans-Medium.ttf"
     ]
 
     for path in fontPaths {
@@ -103,7 +104,7 @@ func loadGeneralSansMedium() -> CTFont? {
         if FileManager.default.fileExists(atPath: url.path) {
             var error: Unmanaged<CFError>?
             if CTFontManagerRegisterFontsForURL(url as CFURL, .process, &error) {
-                if let font = CTFontCreateWithName("GeneralSans-Medium" as CFString, 48, nil) as CTFont? {
+                if let font = CTFontCreateWithName("InstrumentSans-Medium" as CFString, 48, nil) as CTFont? {
                     return font
                 }
             }
@@ -111,14 +112,14 @@ func loadGeneralSansMedium() -> CTFont? {
     }
 
     // Fallback: try system font registration
-    let font = CTFontCreateWithName("GeneralSans-Medium" as CFString, 48, nil)
+    let font = CTFontCreateWithName("InstrumentSans-Medium" as CFString, 48, nil)
     let fontName = CTFontCopyPostScriptName(font) as String
-    if fontName.contains("GeneralSans") {
+    if fontName.contains("InstrumentSans") {
         return font
     }
 
     // Final fallback: use Helvetica Neue Medium (similar geometric sans)
-    print("Warning: General Sans Medium not found, using Helvetica Neue Medium as fallback")
+    print("Warning: Instrument Sans Medium not found, using Helvetica Neue Medium as fallback")
     return CTFontCreateWithName("HelveticaNeue-Medium" as CFString, 48, nil)
 }
 
@@ -233,18 +234,21 @@ func frameScreenshot(
     context.setFillColor(bgColor.cgColor)
     context.fill(CGRect(x: 0, y: 0, width: width, height: height))
 
-    // Draw device frame border (rectangle, no rounded corners per DESIGN.md)
+    // Draw device frame border (12pt-equivalent soft corners per DESIGN.md v5 Corner Law)
+    let cornerRadius = 12.0 * scale
     let frameRect = CGRect(
         x: sidePadding,
         y: bottomPadding,
         width: width - 2 * sidePadding,
         height: screenshotHeight + 2 * frameBorderWidth
     )
+    let framePath = CGPath(roundedRect: frameRect, cornerWidth: cornerRadius, cornerHeight: cornerRadius, transform: nil)
     context.setStrokeColor(dividerColor.cgColor)
     context.setLineWidth(frameBorderWidth)
-    context.stroke(frameRect)
+    context.addPath(framePath)
+    context.strokePath()
 
-    // Draw screenshot inside frame
+    // Draw screenshot inside frame, clipped to the soft corners
     if let cgImage = image.cgImage(forProposedRect: nil, context: nil, hints: nil) {
         let drawRect = CGRect(
             x: screenshotX,
@@ -252,7 +256,12 @@ func frameScreenshot(
             width: screenshotWidth,
             height: screenshotHeight
         )
+        let clipRadius = max(cornerRadius - frameBorderWidth, 0)
+        context.saveGState()
+        context.addPath(CGPath(roundedRect: drawRect, cornerWidth: clipRadius, cornerHeight: clipRadius, transform: nil))
+        context.clip()
         context.draw(cgImage, in: drawRect)
+        context.restoreGState()
     }
 
     // Draw headline + subline text (centered)
@@ -303,7 +312,7 @@ func main() {
     )
 
     // Load font
-    guard let baseFont = loadGeneralSansMedium() else {
+    guard let baseFont = loadInstrumentSansMedium() else {
         print("Error: could not load any suitable font")
         exit(1)
     }

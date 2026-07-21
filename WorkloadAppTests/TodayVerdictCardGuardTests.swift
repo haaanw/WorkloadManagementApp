@@ -83,12 +83,3 @@ final class TodayVerdictCardGuardTests: XCTestCase {
         }
     }
 }
-
-final class UIKitDesignPrimitiveTests: XCTestCase {
-
-    func test_microText_uppercasesLatinButPreservesChinese() {
-        XCTAssertEqual(UIKitDesign.microText("Cross-signal read"), "CROSS-SIGNAL READ")
-        XCTAssertEqual(UIKitDesign.microText("选择语言"), "选择语言")
-        XCTAssertEqual(UIKitDesign.microText("恢复 HRV"), "恢复 HRV")
-    }
-}
