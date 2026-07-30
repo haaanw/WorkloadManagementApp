@@ -136,9 +136,13 @@ extension Font {
         /// 13pt Medium — component emphasis
         static let smallLabelMedium = cascaded(size: 13, weight: .medium)
 
-        /// 11pt — micro labels, all-caps (v1 scale restored). Apply .tracking(≈0.08em → 0.9)
-        /// and .textCase(.uppercase) at the call site.
-        static let micro       = cascaded(size: 11, weight: .regular)
+        /// 12pt — micro labels, all-caps. Apply .tracking(≈0.9) and .textCase(.uppercase)
+        /// at the call site (0.9 ≈ 0.075em at 12pt — the law says ≈, call sites stay).
+        /// Raised 11→12pt (v6.2, HAN 2026-07-30): tracked caps at 11pt were the smallest
+        /// working-voice text on screen and read as too small on device — this token draws
+        /// the HRV TREND / LOAD TREND section heads. 12pt keeps it below smallLabel (13pt),
+        /// so the ramp's steps survive.
+        static let micro       = cascaded(size: 12, weight: .regular)
 
     }
 
