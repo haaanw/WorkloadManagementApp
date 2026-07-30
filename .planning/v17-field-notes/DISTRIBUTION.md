@@ -204,4 +204,113 @@ convention) but never push — HAN publishes. Verify with npm run build + npx as
 report to .planning/v17-field-notes/status-e.md.
 ```
 
-### Session F / G — prompts issued by the orchestrator when Wave 3 opens (scope above).
+### Wave 3 kickoff prompts (opened 2026-07-30, HAN's go)
+
+Wave 3 runs five lanes: F, G, H, P (punch list), T (Dynamic Type). Two rules learned in
+Wave 2, binding on every lane: (1) **never run the full test suite** — three concurrent
+xcodebuild runs starved each other and killed all three lanes; build your own target
+(`xcodebuild build`) or run a single targeted test at most, and the orchestrator
+verifies serially at the gate; (2) commits are the orchestrator's only.
+
+File ownership (disjoint; a needed change outside your list goes in your status file):
+- **F:** `scripts/frame_screenshots.swift`, screenshot output dirs. No app source.
+- **G:** `docs/*.html` (content frozen, tokens/type only), `tuwa-website/public/og/*`,
+  `design-system/templates/pitch-deck` output, email template (new file under
+  `design-system/templates/`). No app source.
+- **H:** `Views/Dashboard/SleepDetailView.swift`, `HRVDetailView.swift`, new detail-view
+  files, chart components (`HRVTrendChart`, `SleepTrendChart`, `LoadTrendChartView`),
+  **`.pbxproj` (H is the sole Wave 3 toucher — back it up first)**, xcstrings additions.
+- **P:** `ActiveWorkoutSheet`, `ExercisePickerView`, `TemplatePickerSheet`,
+  `RadialPicker`, `ScreenHeader`, `StatusBadge`, `WeeklySummaryCard`/`WeeklyZoneBadge`,
+  Session B's four files, zh screenshot capture. NOT the chart components (H's).
+- **T:** `FontTokens.swift` only (plus DESIGN.md Dynamic Type section) — everyone reads
+  it, only T writes it.
+
+#### Session F
+
+```
+You are Session F (App Store screenshots) for Tuwa v1.7 "Field Notes", branch
+v1.7-field-notes. Read /Users/hanwen/dev/Tonus/design-system/SKILL.md, readme.md,
+guidelines/, then .planning/v17-field-notes/DISTRIBUTION.md (scope = Session F + the
+Wave 3 rules). Restyle the scripts/frame_screenshots.swift pipeline output with Field
+Notes framing + Fragment Mono annotations (stone plane frames, mono annotation strip,
+metric-hue accents); regenerate en + zh-Hans sets. You may run ScreenshotTests (it is
+one target, allowed) with -derivedDataPath ~/.tonus-dd-claude-f. Do NOT commit; do NOT
+touch app source — if a capture exposes an app defect, report it in
+.planning/v17-field-notes/status-f.md. Note: if lanes H/P later change a captured
+surface, the pipeline re-runs — build it so re-running is one command.
+```
+
+#### Session G
+
+```
+You are Session G (brand batch) for Tuwa v1.7 "Field Notes", branch v1.7-field-notes.
+Read /Users/hanwen/dev/Tonus/design-system/SKILL.md, readme.md, tokens/, templates/,
+then .planning/v17-field-notes/DISTRIBUTION.md (scope = Session G + Wave 3 rules).
+Four deliverables: (1) docs/privacy.html, support.html, terms.html — Field Notes
+tokens/type ONLY, byte-identical text content (these are legal pages); (2) regenerate
+tuwa-website/public/og/* in Field Notes (stone plane, mono annotation strip, metric-hue
+accent); (3) pitch deck from design-system/templates/pitch-deck — real market figures
+come from docs/market-intelligence/, flag any placeholder you cannot ground; (4) a
+transactional-email HTML template (stone surfaces, ink pill CTA) as a new file in
+design-system/templates/email/. Do NOT commit. Report to
+.planning/v17-field-notes/status-g.md.
+```
+
+#### Session H
+
+```
+You are Session H (rich chart detail views) for Tuwa v1.7 "Field Notes", branch
+v1.7-field-notes. Read /Users/hanwen/dev/Tonus/design-system/SKILL.md, readme.md,
+guidelines/, ui_kits/ios-app/, then DESIGN.md (v6.2) and
+.planning/v17-field-notes/DISTRIBUTION.md (scope = "Session H" in Wave 3 + the Wave 3
+rules). The model: glance charts stay exactly as they are; the zoomed detail views
+(SleepDetailView / HRVDetailView mounts) become the rich analytical surface — for
+sleep: 6h boundary, 7.5h recommended baseline, restored three-swatch zone legend (3
+orphaned xcstrings keys exist), day scrub/selection with a selected-day annotation
+readout, expandable explanations, full annotation register. Reconcile the glance 7h
+target with the physiology bands (propose; HAN decides). PHASE 1: write a per-chart
+spec to .planning/v17-field-notes/spec-h-charts.md and STOP for HAN approval. PHASE 2
+(after approval): build. You own .pbxproj this wave — back it up before editing. Build
+with -derivedDataPath ~/.tonus-dd-claude-h; never run the full suite; do NOT commit.
+Report to .planning/v17-field-notes/status-h.md.
+```
+
+#### Session P
+
+```
+You are Session P (punch list) for Tuwa v1.7 "Field Notes", branch v1.7-field-notes.
+Read DESIGN.md (v6.2), .planning/v17-field-notes/DISTRIBUTION.md (Wave 3 rules +
+your file list), and .planning/v17-field-notes/status-orchestrator-wave2.md (your work
+items live in its "Open items" section). Items: (1) re-inspect Session B's four
+untouched files (transcript lost — verify v6 adoption is complete or finish it);
+(2) C's leftovers: ActiveWorkoutSheet remaining regions, ExercisePickerView region,
+TemplatePickerSheet off-token spacing; (3) D's leftovers: RadialPicker =="en" idiom →
+isLatin; (4) REQ-D2: ScreenHeader.context unconditional uppercase (zh violation, fix
+at source); (5) REQ-D3: StatusBadge — determine dead or alive, then card-plane
+treatment or removal request; (6) WeeklyZoneBadge card-plane check; (7) zh-Hans visual
+pass: capture zh screenshots of all five tabs + key sheets to
+.planning/v17-field-notes/zh-pass/ for HAN review. Do NOT touch chart components
+(Session H owns them). Build with -derivedDataPath ~/.tonus-dd-claude-p; never run the
+full suite; do NOT commit. Report to .planning/v17-field-notes/status-p.md.
+```
+
+#### Session T
+
+```
+You are Session T (Dynamic Type) for Tuwa v1.7 "Field Notes", branch v1.7-field-notes.
+Read DESIGN.md (v6.2), WorkloadApp/Utilities/FontTokens.swift, and
+.planning/v17-field-notes/DISTRIBUTION.md (Wave 3 rules). Goal: the app currently
+ignores the iOS system text-size setting; convert Font.Tokens to scale with it
+(.custom(_:size:relativeTo:) with sensible textStyle mappings) so the whole ramp
+follows Dynamic Type with hierarchy preserved. Decisions to propose in your status
+file BEFORE implementing: which textStyle each token maps to; whether/how the
+annotation voice scales (the ≤12pt law is a design law — propose how it interacts
+with accessibility sizes rather than silently breaking either); whether to cap at an
+accessibility size to protect layouts. Then implement FontTokens.swift ONLY — do not
+sweep call sites this wave. At the default (Large) setting every size must be
+byte-identical to today: verify by building and confirming no visual change at
+default. Stress-screenshot 2-3 screens at XL/AX sizes for HAN. Build with
+-derivedDataPath ~/.tonus-dd-claude-t; never run the full suite; do NOT commit.
+Report to .planning/v17-field-notes/status-t.md.
+```
