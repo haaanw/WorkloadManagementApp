@@ -6,6 +6,10 @@ struct SpikeAlertBanner: View {
     let alert: WorkloadCalculator.SpikeAlert
     let onDismiss: () -> Void
 
+    // Locale-correct string lookup for the `AnnotationLabel`s below: the app pins its language
+    // via `.environment(\.locale, …)`, which `String(localized:)` does not observe.
+    @Environment(\.locale) private var locale
+
     private var borderColor: Color {
         switch alert.severity {
         case .high: ColorTokens.zoneDanger
@@ -22,10 +26,11 @@ struct SpikeAlertBanner: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(severityLabel)
-                .font(.Tokens.micro)
-                .tracking(0.88)
-                .foregroundStyle(borderColor)
+            // v6: the severity key is a machine-flavoured state key → annotation voice. The
+            // message below is a sentence, so it stays working voice. Zone-coloured annotation
+            // below 24pt is legal here because `attentionBannerStyle` fills a card plane.
+            AnnotationLabel(severityLabel, color: borderColor)
+                .annotationReveal(index: 0)
 
             Text(String(format: String(localized: "spike.alert.message", defaultValue: "This session's load was %@x your 28-day average. Consider extra recovery."), String(format: "%.1f", alert.ratio)))
                 .font(.Tokens.smallLabel)
@@ -37,23 +42,21 @@ struct SpikeAlertBanner: View {
                     Text(String(format: "%.0f", alert.sessionTSS))
                         .font(.Tokens.smallLabelMedium)
                         .monospacedDigit()
+                        .foregroundStyle(ColorTokens.text1)
                 } icon: {
-                    Text("spike.alert.label.session")
-                        .font(.Tokens.micro)
-                        .tracking(0.88)
+                    AnnotationLabel(LocalePinnedStrings.localized("spike.alert.label.session", locale: locale))
+                        .annotationReveal(index: 1)
                 }
-                .foregroundStyle(ColorTokens.text1)
 
                 Label {
                     Text(String(format: "%.0f", alert.averageTSS))
                         .font(.Tokens.smallLabelMedium)
                         .monospacedDigit()
+                        .foregroundStyle(ColorTokens.text2)
                 } icon: {
-                    Text("spike.alert.label.average")
-                        .font(.Tokens.micro)
-                        .tracking(0.88)
+                    AnnotationLabel(LocalePinnedStrings.localized("spike.alert.label.average", locale: locale))
+                        .annotationReveal(index: 2)
                 }
-                .foregroundStyle(ColorTokens.text2)
             }
         }
         .attentionBannerStyle(ruleColor: borderColor)

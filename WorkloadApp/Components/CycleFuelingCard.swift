@@ -10,6 +10,11 @@ import SwiftUI
 struct CycleFuelingCard: View {
     let phase: CyclePhase
 
+    // `AnnotationLabel` takes a `String`; `LocalePinnedStrings` (not `String(localized:)`) is
+    // the locale-correct route, because the app pins its language through the SwiftUI
+    // environment rather than the process locale.
+    @Environment(\.locale) private var locale
+
     private var isLuteal: Bool {
         phase == .earlyLuteal || phase == .lateLuteal
     }
@@ -25,10 +30,10 @@ struct CycleFuelingCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Text("cycle.fueling.title")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
+            // v6: the card's key is marginalia; the guidance lines below stay working voice
+            // (they are sentences, which the annotation voice never speaks).
+            AnnotationLabel(LocalePinnedStrings.localized("cycle.fueling.title", locale: locale))
+                .annotationReveal(index: 0)
 
             VStack(alignment: .leading, spacing: 8) {
                 ForEach(Array(lines.enumerated()), id: \.offset) { _, key in

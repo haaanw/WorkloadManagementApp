@@ -10,13 +10,17 @@ import SwiftUI
 struct REDSAttentionBanner: View {
     let onDismiss: () -> Void
 
+    // Locale-correct lookup for the annotation below (the app pins language through the
+    // SwiftUI environment, which `String(localized:)` does not observe).
+    @Environment(\.locale) private var locale
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text("cycle.reds.title")
-                    .font(.Tokens.micro)
-                    .tracking(0.88)
-                    .foregroundStyle(ColorTokens.zoneCaution)
+                // v6: state key → annotation voice. `zoneCaution` clears 4.5:1 on every stone
+                // plane (5.05:1 on the base), so it is legal on this banner's `surface` fill.
+                AnnotationLabel(LocalePinnedStrings.localized("cycle.reds.title", locale: locale), color: ColorTokens.zoneCaution)
+                    .annotationReveal(index: 0)
 
                 Spacer()
 

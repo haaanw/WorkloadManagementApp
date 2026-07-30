@@ -42,9 +42,10 @@ struct TooltipBubble: View {
             Text(value)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
-            Text(dateLabel)
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text2)
+            // v6: a timestamp is annotation. No `.annotationReveal` here on purpose — this
+            // bubble is a transient drag overlay, not a settling surface, so a 340ms
+            // settle-then-label delay would read as lag.
+            AnnotationLabel(dateLabel, size: .small, color: ColorTokens.text2)
         }
         .padding(.horizontal, Spacing.xs)
         .padding(.vertical, Spacing.baselinePair)

@@ -2,6 +2,16 @@ import SwiftUI
 import Charts
 
 /// 28-day HRV trend line chart with 7-day baseline rule mark.
+///
+/// v6 "Field Notes" chart grammar: the series takes its **metric hue** — HRV is recovery
+/// physiology, so `ColorTokens.metricRecovery` (teal) — drawn at 1.5pt; grid lines are
+/// `chartGrid` hairlines; axis labels and the baseline callout are in the **annotation voice**
+/// at `annoSmall` (10pt). Marks are unrestricted by the contrast rule (3:1 graphical floor), and
+/// a hue is a mark or a series here — never a fill or a wash.
+///
+/// The raw `Font.Tokens.annoSmall` token appears below only inside `AxisValueLabel`, where
+/// Swift Charts cannot host an arbitrary `View`; everywhere a View fits, `AnnotationLabel` is
+/// the route so the uppercase/tracking/CJK law stays in one place.
 struct HRVTrendChart: View {
     @Environment(\.locale) private var locale
     let data: [(date: Date, value: Double)]
@@ -26,7 +36,8 @@ struct HRVTrendChart: View {
                         x: .value("Date", data[i].date),
                         y: .value("HRV", data[i].value)
                     )
-                    .foregroundStyle(ColorTokens.chartHRV)
+                    .foregroundStyle(ColorTokens.metricRecovery)
+                    .lineStyle(StrokeStyle(lineWidth: 1.5))
                     .symbol(Circle())
                     .symbolSize(20)
                 }
@@ -36,14 +47,49 @@ struct HRVTrendChart: View {
                         .foregroundStyle(ColorTokens.text3)
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
                         .annotation(position: .top, alignment: .trailing) {
-                            Text(String(format: String(localized: "hrv.chart.annotation", defaultValue: "7d avg: %d ms"), Int(baseline)))
-                                .font(.Tokens.micro)
-                                .foregroundStyle(ColorTokens.text3)
+                            AnnotationLabel(
+                                String(format: String(localized: "hrv.chart.annotation", defaultValue: "7d avg: %d ms"), Int(baseline)),
+                                size: .small
+                            )
+                            .annotationReveal()
                         }
                 }
             }
             .frame(height: 184)
-            .chartYAxisLabel("ms")
+            // Axis labels host `AnnotationLabel` rather than taking `.font(.Tokens.annoSmall)` on a
+            // bare `AxisValueLabel()`. The font token alone buys the Fragment Mono FACE but not the
+            // uppercase transform, the tracking, or the zh-Hans guard — those live in the primitive
+            // (DESIGN.md rule 3: applied by the token/modifier, never the call site). A bare
+            // `AxisValueLabel()` therefore rendered "Jul 5" while the Load screen's charts rendered
+            // "JUL 5", so the same axis spoke in two cases on adjacent tabs. Hosting the primitive
+            // costs an explicit format string, which is also what keeps the label localized.
+            .chartXAxis {
+                AxisMarks { value in
+                    AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
+                    AxisTick().foregroundStyle(ColorTokens.divider)
+                    AxisValueLabel {
+                        if let date = value.as(Date.self) {
+                            AnnotationLabel(
+                                date.formatted(.dateTime.month(.abbreviated).day().locale(locale)),
+                                size: .small
+                            )
+                        }
+                    }
+                }
+            }
+            .chartYAxis {
+                AxisMarks { value in
+                    AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
+                    AxisValueLabel {
+                        if let milliseconds = value.as(Double.self) {
+                            AnnotationLabel(String(format: "%.0f", milliseconds), size: .small)
+                        }
+                    }
+                }
+            }
+            .chartYAxisLabel(position: .leading, alignment: .center) {
+                AnnotationLabel("ms", size: .small)
+            }
             .id(locale)
             .entranceReveal()
         }

@@ -546,16 +546,23 @@ struct ImportRPESheet: View {
                     Text(suggestion.name)
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
+                    // v6: timestamp + duration + unitized distance — the annotation voice.
                     HStack(spacing: Spacing.xs) {
-                        Text(suggestion.date.relativeString(locale: locale))
-                        Text(Date.durationString(seconds: suggestion.durationSeconds, locale: locale))
+                        AnnotationLabel(
+                            suggestion.date.relativeString(locale: locale),
+                            color: ColorTokens.text2
+                        )
+                        AnnotationLabel(
+                            Date.durationString(seconds: suggestion.durationSeconds, locale: locale),
+                            color: ColorTokens.text2
+                        )
                         if let dist = suggestion.distanceMeters {
-                            Text(String(format: "%.1f km", dist / 1000))
+                            AnnotationLabel(
+                                String(format: "%.1f km", dist / 1000),
+                                color: ColorTokens.text2
+                            )
                         }
                     }
-                    .font(.Tokens.label)
-                    .monospacedDigit()
-                    .foregroundStyle(ColorTokens.text2)
                 }
 
                 VStack(spacing: Spacing.xs) {
@@ -568,10 +575,11 @@ struct ImportRPESheet: View {
                         .foregroundStyle(ColorTokens.text1)
                     Slider(value: $rpe, in: 1...10, step: 1)
                         .tint(ColorTokens.text2)
+                    // Scale end labels — axis labels on an instrument, so the annotation voice (v6).
                     HStack {
-                        Text("workoutLog.rpe.easy").font(.Tokens.label).foregroundStyle(ColorTokens.text3)
+                        AnnotationLabel(key: "workoutLog.rpe.easy", size: .small)
                         Spacer()
-                        Text("workoutLog.rpe.maximal").font(.Tokens.label).foregroundStyle(ColorTokens.text3)
+                        AnnotationLabel(key: "workoutLog.rpe.maximal", size: .small)
                     }
                 }
 
@@ -610,23 +618,31 @@ struct SessionRow: View {
                 Text(session.sessionName ?? session.sportType.displayName)
                     .font(.Tokens.bodyMedium)
                     .foregroundStyle(ColorTokens.text1)
+                // v6: the meta line is pure marginalia — a duration, a unitized volume and an
+                // RPE key. Annotation voice, on `text2` (rule 7: annotation the athlete reads
+                // for real takes the stronger ink, not the `text3` default).
                 HStack(spacing: Spacing.xs) {
-                    Text(Date.durationString(seconds: session.durationSeconds, locale: locale))
+                    AnnotationLabel(
+                        Date.durationString(seconds: session.durationSeconds, locale: locale),
+                        color: ColorTokens.text2
+                    )
                     if session.totalVolume > 0 {
-                        Text(String(format: "%.0f kg", session.totalVolume))
+                        AnnotationLabel(
+                            String(format: "%.0f kg", session.totalVolume),
+                            color: ColorTokens.text2
+                        )
                     }
                     if let rpe = session.sessionRPE {
-                        Text(String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)))
+                        AnnotationLabel(
+                            String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)),
+                            color: ColorTokens.text2
+                        )
                     }
                 }
-                .font(.Tokens.smallLabel)
-                .monospacedDigit()
-                .foregroundStyle(ColorTokens.text2)
             }
             Spacer()
-            Text(session.sessionDate.relativeString(locale: locale))
-                .font(.Tokens.smallLabel)
-                .foregroundStyle(ColorTokens.text3)
+            // A timestamp — annotation's canonical content.
+            AnnotationLabel(session.sessionDate.relativeString(locale: locale))
         }
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.sm)

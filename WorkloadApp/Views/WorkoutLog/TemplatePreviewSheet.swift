@@ -33,10 +33,8 @@ struct TemplatePreviewSheet: View {
 
                     // Exercise list by group
                     ForEach(template.sortedGroups, id: \.id) { group in
-                        Text(group.groupName.uppercased())
-                            .font(.Tokens.micro)
-                            .tracking(0.9)
-                            .foregroundStyle(ColorTokens.text3)
+                        // Group key — annotation (v6); the primitive owns case + the CJK guard.
+                        AnnotationLabel(group.groupName)
                             .padding(.horizontal, Spacing.sm)
                             .padding(.top, Spacing.sm)
                             .padding(.bottom, Spacing.baselinePair)
@@ -47,10 +45,8 @@ struct TemplatePreviewSheet: View {
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
-                                Text(setSummary(exercise))
-                                    .font(.Tokens.label)
-                                    .foregroundStyle(ColorTokens.text2)
-                                    .monospacedDigit()
+                                // The set spec is a unitized machine string — annotation (v6).
+                                AnnotationLabel(setSummary(exercise), color: ColorTokens.text2)
                             }
                             .padding(.horizontal, Spacing.sm)
                             .padding(.vertical, Spacing.xs)

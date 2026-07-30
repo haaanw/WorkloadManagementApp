@@ -14,9 +14,12 @@ struct DataSufficiencyRing: View {
             ZStack {
                 Circle()
                     .stroke(ColorTokens.divider, lineWidth: 2)
+                // A sufficiency arc IS a progress fill, which is travertine's exclusive
+                // territory under the Reading Color Rule (accent owns live-state marks). The
+                // design system's own `SufficiencyRing` draws the arc in `--accent` too.
                 Circle()
                     .trim(from: 0, to: progress)
-                    .stroke(ColorTokens.text1, lineWidth: 2)
+                    .stroke(ColorTokens.accent, lineWidth: 2)
                     .rotationEffect(.degrees(-90))
             }
             .frame(width: 24, height: 24)

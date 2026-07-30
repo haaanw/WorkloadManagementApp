@@ -126,14 +126,14 @@ struct TemplatePickerSheet: View {
                     .lineLimit(2)
                     .multilineTextAlignment(.leading)
 
-                Text(String(format: String(localized: "template.exerciseCount", defaultValue: "%d exercises"), exercises.count))
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text2)
+                // A count and a timestamp — marginalia, so the annotation voice (v6).
+                AnnotationLabel(
+                    String(format: String(localized: "template.exerciseCount", defaultValue: "%d exercises"), exercises.count),
+                    color: ColorTokens.text2
+                )
 
                 if let lastUsed = lastUsedText {
-                    Text(lastUsed)
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
+                    AnnotationLabel(lastUsed, color: ColorTokens.text2)
                 }
             }
             .frame(maxWidth: .infinity, alignment: .leading)

@@ -25,15 +25,19 @@ import SwiftUI
 /// cell fills its share of the row via `maxWidth: .infinity`. A cell therefore never resizes
 /// when its digit count changes — 58 and 148 occupy the same box — so a re-measure never
 /// reflows the grid.
+///
+/// v6 "Field Notes": the cell's two marginalia — the metric key (`label`) and the unit — moved
+/// to the **annotation voice** via `AnnotationLabel`, arriving on the 40ms-staggered
+/// `.annotationReveal` choreography after the plate settles. The value stays in the working
+/// voice: a reading is something the app *says*. `valueColor` is the metric-hue channel; since
+/// the cell plants itself on a `dataPlate` (a `surfaceEl` card plane), a hue-coloured value is
+/// always on the plane DESIGN.md rule 7 requires.
 struct MetricCell<Accessory: View>: View {
     let label: String
     let value: String
     var unit: String?
     var valueColor: Color
     private let accessory: Accessory
-
-    @Environment(\.locale) private var locale
-    private var isLatin: Bool { locale.language.languageCode?.identifier != "zh" }
 
     init(
         label: String,
@@ -51,12 +55,9 @@ struct MetricCell<Accessory: View>: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text(label)
-                .font(.Tokens.micro)
-                .tracking(isLatin ? 1.2 : 0)
-                .textCase(isLatin ? .uppercase : nil)
-                .foregroundStyle(ColorTokens.text3)
+            AnnotationLabel(label)
                 .lineLimit(1)
+                .annotationReveal(index: 0)
 
             Spacer().frame(height: Spacing.xs)
 
@@ -68,10 +69,9 @@ struct MetricCell<Accessory: View>: View {
                     .lineLimit(1)
                     .minimumScaleFactor(0.6)
                 if let unit {
-                    Text(unit)
-                        .font(.Tokens.micro)
-                        .foregroundStyle(ColorTokens.text3)
+                    AnnotationLabel(unit, size: .small)
                         .lineLimit(1)
+                        .annotationReveal(index: 1)
                 }
             }
 
@@ -82,20 +82,23 @@ struct MetricCell<Accessory: View>: View {
     }
 }
 
-/// The default metric-cell accessory: the demo's quiet delta line (`−3% vs base`). Renders
-/// nothing when `text` is nil, so a cell with no delta collapses to label + value cleanly.
-/// Mixed copy (numerals + words) at the micro size — one voice (v5), no special numeral face.
+/// The default metric-cell accessory: the quiet delta / descriptor line (`ACUTE · 7-DAY`,
+/// `▲ +4`). Renders nothing when `text` is nil, so a cell with no delta collapses to label +
+/// value cleanly.
+///
+/// v6 "Field Notes": this is the **annotation voice**. Callers must pass terse marginalia —
+/// a delta, a unit window, a one-word state key. Never a sentence: the annotation voice
+/// annotates, it never speaks (DESIGN.md rule 9).
 struct MetricDeltaLine: View {
     let text: String?
 
     var body: some View {
         if let text {
             Spacer().frame(height: Spacing.baselinePair)
-            Text(text)
-                .font(.Tokens.micro)
-                .foregroundStyle(ColorTokens.text3)
+            AnnotationLabel(text, size: .small)
                 .lineLimit(1)
                 .minimumScaleFactor(0.7)
+                .annotationReveal(index: 2)
         }
     }
 }

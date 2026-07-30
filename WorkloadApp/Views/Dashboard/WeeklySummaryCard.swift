@@ -20,10 +20,10 @@ struct WeeklySummaryCard: View {
                 }
             } label: {
                 HStack {
-                    Text("weekly.summary.header")
-                        .font(.Tokens.micro)
-                        .tracking(0.9)
-                        .foregroundStyle(ColorTokens.text3)
+                    // A period stamp ("THIS WEEK") is marginalia, not a headline —
+                    // annotation voice (DESIGN.md v6: timestamps and cycle position).
+                    AnnotationLabel(key: "weekly.summary.header", size: .small)
+                        .annotationReveal()
                     Spacer()
                     Image(systemName: "chevron.down")
                         .font(.Tokens.micro)
@@ -58,34 +58,30 @@ struct WeeklySummaryCard: View {
 
                     // Row 1: Sessions + Volume (2-column)
                     HStack(spacing: Spacing.sm) {
-                        metricCell(title: String(localized: "weekly.summary.metric.sessions", defaultValue: "SESSIONS"), value: "\(summary.sessionCount)", delta: summary.sessionCountDelta)
-                        metricCell(title: String(localized: "weekly.summary.metric.volume", defaultValue: "VOLUME"), value: String(format: "%.0f", summary.totalVolume), delta: summary.volumeDelta)
+                        metricCell(index: 1, title: String(localized: "weekly.summary.metric.sessions", defaultValue: "SESSIONS"), value: "\(summary.sessionCount)", delta: summary.sessionCountDelta)
+                        metricCell(index: 2, title: String(localized: "weekly.summary.metric.volume", defaultValue: "VOLUME"), value: String(format: "%.0f", summary.totalVolume), delta: summary.volumeDelta)
                     }
                     .padding(.horizontal, Spacing.sm)
 
                     // Row 2: Avg Recovery + Load Trend (2-column)
                     HStack(spacing: Spacing.sm) {
-                        metricCell(title: String(localized: "weekly.summary.metric.avgRecovery", defaultValue: "AVG RECOVERY"), value: String(format: "%.0f", summary.avgRecoveryScore), delta: summary.recoveryDelta)
+                        metricCell(index: 3, title: String(localized: "weekly.summary.metric.avgRecovery", defaultValue: "AVG RECOVERY"), value: String(format: "%.0f", summary.avgRecoveryScore), delta: summary.recoveryDelta)
                         VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text("weekly.summary.metric.loadTrend")
-                                .font(.Tokens.micro)
-                                .tracking(0.9)
-                                .foregroundStyle(ColorTokens.text3)
+                            AnnotationLabel(key: "weekly.summary.metric.loadTrend", size: .small)
+                                .annotationReveal(index: 4)
                             Text(summary.loadTrendDirection.rawValue.capitalized)
                                 .font(.Tokens.body)
                                 .foregroundStyle(ColorTokens.text1)
                         }
                         .frame(maxWidth: .infinity, alignment: .leading)
                     }
-                    .padding(.horizontal, 16)
+                    .padding(.horizontal, Spacing.sm)
 
                     // Row 3: ACWR Zone Distribution
                     if !summary.acwrZoneDistribution.isEmpty {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text("weekly.summary.metric.zoneDistribution")
-                                .font(.Tokens.micro)
-                                .tracking(0.9)
-                                .foregroundStyle(ColorTokens.text3)
+                            AnnotationLabel(key: "weekly.summary.metric.zoneDistribution", size: .small)
+                                .annotationReveal(index: 5)
                             HStack(spacing: Spacing.xs) {
                                 ForEach(sortedZones, id: \.self) { zone in
                                     WeeklyZoneBadge(zone: zone, count: summary.acwrZoneDistribution[zone, default: 0])
@@ -109,12 +105,13 @@ struct WeeklySummaryCard: View {
         return order.filter { summary.acwrZoneDistribution[$0, default: 0] > 0 }
     }
 
-    private func metricCell(title: String, value: String, delta: Double) -> some View {
+    /// A weekly metric key + reading. The key is a machine label (annotation voice); the
+    /// reading stays working-voice with tabular digits, and the delta comes from the shared
+    /// `DeltaIndicator` (Session D owns its restyle — this lane consumes it).
+    private func metricCell(index: Int, title: String, value: String, delta: Double) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text(title)
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .foregroundStyle(ColorTokens.text3)
+            AnnotationLabel(title, size: .small)
+                .annotationReveal(index: index)
             HStack(spacing: Spacing.xs) {
                 Text(value)
                     .font(.Tokens.smallLabelMedium)

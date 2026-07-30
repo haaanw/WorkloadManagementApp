@@ -18,8 +18,14 @@ import SwiftUI
 ///  - Keep-my-plan is one tap, no confirmation nag, no guilt copy (SC3).
 ///  - Confidence is shown quietly and separately when present (SC4).
 ///
-/// DESIGN.md v5 "Pavilion" (hard): corners via `CornerTokens`, no shadows, the one
-/// Instrument Sans voice via `Font.Tokens.*`, 8pt grid, light-only via `ColorTokens`.
+/// DESIGN.md v6 "Field Notes" (hard): corners via `CornerTokens`, no shadows, 8pt grid, light-only
+/// via `ColorTokens`, and the **Two-Voice Type Law** — the working voice (Instrument Sans via
+/// `Font.Tokens.*`) says the verdict sentence, today's number and the decision keys; the annotation
+/// voice (`AnnotationLabel`, ≤12pt Fragment Mono) carries ONLY the marginalia: the header stamp,
+/// the state key, the signed "from planned" delta and the strike-zone caption. The reason line,
+/// the confidence note and every key label stay in the working voice — annotation never speaks a
+/// sentence. No metric hue appears here: this card's number is a lift target, not one of the five
+/// metrics, so it stays ink (the screen's colored reading belongs to the Load tab's ACWR hero).
 /// The verdict value renders in INK (`displayAction` + `.monospacedDigit()`, `text1`) —
 /// it is NOT the hero readiness score, so it never wears the accent.
 /// Tuwa v5: this is the screen's primary decision surface, so it sits on the emphasis plane
@@ -52,21 +58,19 @@ struct TodayVerdictCard: View {
 
             // 1. Header label (micro-caps, mockup D: "TODAY'S PLAN · <EXERCISE>" — NOT a
             //    readiness number). The verdict state rides the same line as a TEXT label.
+            // v6 "Field Notes": this header line is a machine stamp, not speech — both ends move
+            // to the ANNOTATION voice (uppercase + tracking + the CJK guard are owned by
+            // `AnnotationLabel`, never by this call site). Both stay 12pt mono so the two ends
+            // still read as one rule.
             HStack(alignment: .firstTextBaseline) {
-                Text(verbatim: "\(String(localized: "verdictCard.title", defaultValue: "TODAY'S PLAN")) · \(display.headlineExerciseName)")
-                    .font(.Tokens.micro)
-                    .tracking(0.9)
-                    .textCase(.uppercase)
-                    .foregroundStyle(ColorTokens.text3)
+                AnnotationLabel("\(String(localized: "verdictCard.title", defaultValue: "TODAY'S PLAN")) · \(display.headlineExerciseName)")
+                    .annotationReveal()
                 Spacer()
                 // Verdict state as a TEXT LABEL (the primary state channel — never color alone).
-                // Micro-caps to optically align with the header label on the same baseline —
-                // matched cap-heights, so the two ends of the header line read as one rule.
-                Text(stateLabel)
-                    .font(.Tokens.micro)
-                    .tracking(0.9)
-                    .textCase(.uppercase)
-                    .foregroundStyle(ColorTokens.text2)
+                // `text2` rather than the annotation default `text3`: v6 rule 7 puts annotation
+                // the athlete must not miss on the stronger ink.
+                AnnotationLabel(stateLabel, color: ColorTokens.text2)
+                    .annotationReveal(index: 1)
             }
 
             // 2. Action-on-the-plan hero — NUMBER-LED with a strike-zone bar (lead with today's
@@ -80,10 +84,10 @@ struct TodayVerdictCard: View {
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)
                     if display.hasAdjustment {
-                        Text(fromPlannedCaption)
-                            .font(.Tokens.smallLabelMedium)
-                            .monospacedDigit()
-                            .foregroundStyle(ColorTokens.text3)
+                        // A signed reference to the planned number is a DELTA — marginalia, so
+                        // the annotation voice (v6). Tabular digits come from the primitive.
+                        AnnotationLabel(fromPlannedCaption)
+                            .annotationReveal(index: 2)
                     }
                 }
 
@@ -102,10 +106,10 @@ struct TodayVerdictCard: View {
                     .frame(height: 28)
                     .padding(.top, Spacing.baselinePair)
                     .accessibilityIdentifier("workoutLog.verdict.strikeZone")
-                    Text(zoneCaption)
-                        .font(.Tokens.micro)
-                        .tracking(0.9)
-                        .foregroundStyle(ColorTokens.text3)
+                    // The strike-zone bar's caption is an axis-style label under an instrument —
+                    // annotation voice (v6).
+                    AnnotationLabel(zoneCaption)
+                        .annotationReveal(index: 3)
                 }
             }
 

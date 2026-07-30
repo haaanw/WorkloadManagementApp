@@ -6,6 +6,10 @@ struct SyncStatusView: View {
     private let store = SyncTimestampStore.shared
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    /// `AnnotationLabel` takes a `String`, so the sync stamps below resolve through
+    /// `LocalePinnedStrings` — the app pins its language via `.environment(\.locale, …)`, which
+    /// `String(localized:)` does not observe.
+    @Environment(\.locale) private var locale
 
     var body: some View {
         ScrollView {
@@ -59,18 +63,32 @@ struct SyncStatusView: View {
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text1)
 
+                // v6 "Field Notes": a sync stamp is a timestamp — textbook marginalia, so it
+                // takes the annotation voice. `text2` rather than the `text3` default because
+                // this is information the athlete may need to act on. The entity name above
+                // stays working voice, and the trailing server error stays working voice too:
+                // it is prose, and the annotation voice never speaks sentences.
                 if hasFailed, let error = store.lastErrors[entity] {
-                    Text(String(format: String(localized: "sync.status.failed", defaultValue: "Failed %@"), Self.relativeFormatter.localizedString(for: error.timestamp, relativeTo: Date())))
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.text2)
+                    AnnotationLabel(
+                        String(format: String(localized: "sync.status.failed", defaultValue: "Failed %@"), Self.relativeFormatter.localizedString(for: error.timestamp, relativeTo: Date())),
+                        size: .small,
+                        color: ColorTokens.text2
+                    )
+                    .annotationReveal()
                 } else if let date = lastSync {
-                    Text(Self.relativeFormatter.localizedString(for: date, relativeTo: Date()))
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.text2)
+                    AnnotationLabel(
+                        Self.relativeFormatter.localizedString(for: date, relativeTo: Date()),
+                        size: .small,
+                        color: ColorTokens.text2
+                    )
+                    .annotationReveal()
                 } else {
-                    Text("profile.sync.neverSynced")
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.text2)
+                    AnnotationLabel(
+                        LocalePinnedStrings.localized("profile.sync.neverSynced", locale: locale),
+                        size: .small,
+                        color: ColorTokens.text2
+                    )
+                    .annotationReveal()
                 }
             }
 

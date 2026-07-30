@@ -42,15 +42,10 @@ struct ShareImportPreviewSheet: View {
                 ZStack(alignment: .bottom) {
                 ScrollView {
                     VStack(alignment: .leading, spacing: 0) {
-                        // Banner
-                        // Micro-caps overline (v5 case law: tracked caps only at micro size).
-                        Text("template.label.shared")
-                            .font(.Tokens.micro)
-                            .tracking(0.9)
-                            .textCase(.uppercase)
-                            .foregroundStyle(ColorTokens.text3)
-                            .padding(.horizontal, 16)
-                            .padding(.top, 16)
+                        // Banner overline — a provenance stamp, so the annotation voice (v6).
+                        AnnotationLabel(key: "template.label.shared")
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.top, Spacing.sm)
 
                         // Template name
                         Text(payload.template_name)
@@ -80,15 +75,14 @@ struct ShareImportPreviewSheet: View {
 
                         // Exercise groups
                         ForEach(previewGroups.sorted(by: { $0.orderIndex < $1.orderIndex }), id: \.id) { group in
-                            // Group headers share the micro-caps grammar used by
-                            // TemplatePreviewSheet / PrescribedWorkoutCard.
-                            Text(group.groupName.uppercased())
-                                .font(.Tokens.micro)
-                                .tracking(0.9)
-                                .foregroundStyle(ColorTokens.text3)
-                                .padding(.horizontal, 16)
-                                .padding(.top, 16)
-                                .padding(.bottom, 8)
+                            // Group keys share the annotation grammar used by
+                            // TemplatePreviewSheet / PrescribedWorkoutCard (v6). The manual
+                            // `.uppercased()` is gone — the primitive owns case AND skips it
+                            // for CJK, which the call site could not.
+                            AnnotationLabel(group.groupName)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.top, Spacing.sm)
+                                .padding(.bottom, Spacing.xs)
 
                             ForEach(group.sortedExercises, id: \.id) { exercise in
                                 HStack(spacing: Spacing.xs) {

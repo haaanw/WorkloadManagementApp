@@ -336,28 +336,23 @@ struct ExercisePickerView: View {
                     Text(exercise.name)
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
+                    // Taxonomy tag line (muscle · equipment · custom) — marginalia with the
+                    // sanctioned `·` separator, so the annotation voice (v6).
                     HStack(spacing: Spacing.xs) {
                         if let muscle = exercise.muscleGroup {
-                            Text(muscle.displayName)
-                                .foregroundStyle(ColorTokens.text2)
+                            AnnotationLabel(muscle.displayName, color: ColorTokens.text2)
                         } else {
-                            Text(exercise.category.displayName)
-                                .foregroundStyle(ColorTokens.text2)
+                            AnnotationLabel(exercise.category.displayName, color: ColorTokens.text2)
                         }
                         if let equipment = exercise.equipment {
-                            Text("·")
-                                .foregroundStyle(ColorTokens.text3)
-                            Text(equipment.capitalized)
-                                .foregroundStyle(ColorTokens.text3)
+                            AnnotationLabel("\u{00B7}")
+                            AnnotationLabel(equipment)
                         }
                         if exercise.isCustom {
-                            Text("·")
-                                .foregroundStyle(ColorTokens.text3)
-                            Text("sport.custom")
-                                .foregroundStyle(ColorTokens.text3)
+                            AnnotationLabel("\u{00B7}")
+                            AnnotationLabel(key: "sport.custom")
                         }
                     }
-                    .font(.Tokens.label)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .contentShape(Rectangle())

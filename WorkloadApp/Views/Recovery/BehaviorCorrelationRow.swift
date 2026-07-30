@@ -26,9 +26,13 @@ struct BehaviorCorrelationRow: View {
                 Text(String(format: String(localized: "behavior.impact.suffix", defaultValue: "Recovery %@ on tagged days"), "\(impactPercentage >= 0 ? "+" : "")\(String(format: "%.0f", impactPercentage))%"))
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                Text(String(format: String(localized: "behavior.sample.count", defaultValue: "%d days with, %d days without"), sampleCountWith, sampleCountWithout))
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text2)
+                // Sample provenance for the claim above — marginalia, annotation voice
+                // (DESIGN.md v6). The impact sentence itself stays working voice.
+                AnnotationLabel(
+                    String(format: String(localized: "behavior.sample.count", defaultValue: "%d days with, %d days without"), sampleCountWith, sampleCountWithout),
+                    size: .small
+                )
+                    .annotationReveal()
             }
             Spacer()
             Text("\(impactPercentage >= 0 ? "+" : "")\(String(format: "%.0f", impactPercentage))%")

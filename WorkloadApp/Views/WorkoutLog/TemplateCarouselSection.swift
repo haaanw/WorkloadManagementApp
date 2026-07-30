@@ -228,9 +228,11 @@ struct TemplateCarouselSection: View {
                     Spacer()
 
                     if let lastUsed = template.lastUsedAt {
-                        Text(String(format: String(localized: "template.lastUsed", defaultValue: "Last used %@"), lastUsed.formatted(.relative(presentation: .named))))
-                            .font(.Tokens.micro)
-                            .foregroundStyle(ColorTokens.text3)
+                        // A timestamp stamp — annotation (v6).
+                        AnnotationLabel(
+                            String(format: String(localized: "template.lastUsed", defaultValue: "Last used %@"), lastUsed.formatted(.relative(presentation: .named))),
+                            size: .small
+                        )
                     }
                 }
             }
@@ -364,11 +366,12 @@ struct TemplateCarouselSection: View {
         return HStack(spacing: Spacing.xs) {
             ForEach(Array(days.enumerated()), id: \.offset) { index, initial in
                 let isoDay = index + 1  // 1=Mon...7=Sun
-                Text(initial)
-                    .font(.Tokens.micro)
-                    .foregroundStyle(scheduledDays.contains(isoDay)
-                        ? ColorTokens.text1
-                        : ColorTokens.text3)
+                // A weekday scale strip — instrument marginalia, so the annotation voice (v6);
+                // the mono face also makes the seven initials align on a fixed pitch.
+                AnnotationLabel(
+                    initial,
+                    color: scheduledDays.contains(isoDay) ? ColorTokens.text1 : ColorTokens.text3
+                )
             }
         }
     }

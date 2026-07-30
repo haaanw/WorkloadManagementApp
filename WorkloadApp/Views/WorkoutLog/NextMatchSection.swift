@@ -91,10 +91,9 @@ struct NextMatchSection: View {
                     .font(.Tokens.bodyMedium)
                     .monospacedDigit()
                     .foregroundStyle(ColorTokens.text1)
-                Text(date.shortString(locale: locale))
-                    .font(.Tokens.smallLabel)
-                    .monospacedDigit()
-                    .foregroundStyle(ColorTokens.text2)
+                // The match date itself is a timestamp — annotation (v6). The days-out line
+                // above stays the working voice: it is a phrase the app SAYS, not marginalia.
+                AnnotationLabel(date.shortString(locale: locale), color: ColorTokens.text2)
             }
             Spacer()
             Button {

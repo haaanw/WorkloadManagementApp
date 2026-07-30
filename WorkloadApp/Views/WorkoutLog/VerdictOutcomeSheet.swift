@@ -24,11 +24,9 @@ struct VerdictOutcomeSheet: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: Spacing.md) {
 
-                // Header label (micro-caps).
-                Text(String(localized: "verdictOutcome.title", defaultValue: "LOOKING BACK"))
-                    .font(.Tokens.micro)
-                    .tracking(0.9)
-                    .foregroundStyle(ColorTokens.text3)
+                // Header stamp — marginalia, so the annotation voice (v6).
+                AnnotationLabel(String(localized: "verdictOutcome.title", defaultValue: "LOOKING BACK"))
+                    .annotationReveal()
 
                 // Quiet context: the planned→adjusted number + the reason (read-only).
                 VStack(alignment: .leading, spacing: Spacing.xs) {

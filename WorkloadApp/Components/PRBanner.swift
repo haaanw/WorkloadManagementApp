@@ -7,13 +7,19 @@ struct PRBanner: View {
     let prs: [PersonalRecord]
     let onDismiss: () -> Void
 
+    @Environment(\.locale) private var locale
+    private var isLatinLocale: Bool { locale.language.languageCode?.identifier != "zh" }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(prs.count > 1
                 ? String(localized: "workout.pr.title.plural", defaultValue: "New PRs!")
                 : String(localized: "workout.pr.title.single", defaultValue: "New PR!"))
+                // Working voice, deliberately: this is a sentence the app says to the athlete,
+                // and the annotation voice never speaks. CJK guard added — added tracking harms
+                // Chinese (the transform was previously unconditional).
                 .font(.Tokens.micro)
-                .tracking(0.88)
+                .tracking(isLatinLocale ? 0.88 : 0)
                 .foregroundStyle(ColorTokens.zoneOptimal)
 
             ForEach(prs, id: \.id) { pr in
@@ -25,10 +31,13 @@ struct PRBanner: View {
 
                     Spacer(minLength: 8)
 
-                    Text("\(pr.recordType.displayName): \(String(format: "%.1f", pr.value))")
-                        .font(.Tokens.smallLabelMedium)
-                        .monospacedDigit()
-                        .foregroundStyle(ColorTokens.text2)
+                    // v6: a `KEY: VALUE` readout is the archetypal annotation. The banner title
+                    // above stays working voice — it is a sentence the app says to the athlete.
+                    AnnotationLabel(
+                        "\(pr.recordType.displayName): \(String(format: "%.1f", pr.value))",
+                        color: ColorTokens.text2
+                    )
+                    .annotationReveal(index: 0)
                 }
             }
         }

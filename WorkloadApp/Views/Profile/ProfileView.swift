@@ -284,14 +284,22 @@ struct ProfileView: View {
                                     .font(.Tokens.body)
                                     .foregroundStyle(ColorTokens.text1)
                                 Spacer()
+                                // v6: a sync state is a machine status stamp → annotation voice.
+                                // The row label stays working voice. `zoneCaution` clears 4.5:1
+                                // on every stone plane, and this section is a raised card plane
+                                // anyway (DESIGN.md rule 7).
                                 if SyncTimestampStore.shared.hasAnyFailure {
-                                    Text("profile.sync.issues")
-                                        .font(.Tokens.label)
-                                        .foregroundStyle(ColorTokens.zoneCaution)
+                                    AnnotationLabel(
+                                        LocalePinnedStrings.localized("profile.sync.issues", locale: locale),
+                                        color: ColorTokens.zoneCaution
+                                    )
+                                    .annotationReveal()
                                 } else {
-                                    Text("profile.sync.allSynced")
-                                        .font(.Tokens.label)
-                                        .foregroundStyle(ColorTokens.text2)
+                                    AnnotationLabel(
+                                        LocalePinnedStrings.localized("profile.sync.allSynced", locale: locale),
+                                        color: ColorTokens.text2
+                                    )
+                                    .annotationReveal()
                                 }
                                 Image(systemName: "chevron.right")
                                     .font(.Tokens.micro)

@@ -43,10 +43,11 @@ struct FatigueAttentionBanner: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
             HStack(spacing: 8) {
-                Text(zoneLabel)
-                    .font(.Tokens.micro)
-                    .tracking(0.88)
-                    .foregroundStyle(borderColor)
+                // v6: the zone key is a machine-flavoured state key → annotation voice; the
+                // index below it is a reading, so it stays working voice. The banner plane is a
+                // card, so zone-coloured text below 24pt is legal (DESIGN.md rule 7).
+                AnnotationLabel(zoneLabel, color: borderColor)
+                    .annotationReveal(index: 0)
 
                 Spacer()
 

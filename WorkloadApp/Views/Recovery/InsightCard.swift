@@ -1,6 +1,10 @@
 import SwiftUI
 
 /// Natural language fatigue pattern insight card.
+///
+/// The insight itself is something the app SAYS, so it stays in the working voice. Its sample
+/// size is the provenance footnote on that claim — marginalia, so it renders in the annotation
+/// voice (DESIGN.md v6).
 struct InsightCard: View {
     let text: String           // "Recovery typically drops 8 points 2 days after high-volume sessions"
     let sampleSize: Int        // Number of occurrences
@@ -10,9 +14,11 @@ struct InsightCard: View {
             Text(text)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
-            Text(String(format: String(localized: "insight.sample.suffix", defaultValue: "Based on %d occurrences"), sampleSize))
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text2)
+            AnnotationLabel(
+                String(format: String(localized: "insight.sample.suffix", defaultValue: "Based on %d occurrences"), sampleSize),
+                size: .small
+            )
+                .annotationReveal()
         }
         .cardStyle()
     }

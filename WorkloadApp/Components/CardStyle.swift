@@ -585,13 +585,30 @@ enum AnnotationSize {
 /// CJK and tracking harms it) — decided here, per the established `isLatin` idiom, so no call
 /// site has to remember.
 struct AnnotationLabel: View {
-    private let text: String
+    /// The annotation's content, held **as authored** rather than pre-resolved, because the two
+    /// forms resolve their language differently and only one of them live-switches.
+    ///
+    /// `AppRouter` pins the app's language with `.environment(\.locale, localeManager.activeLocale)`,
+    /// so a `Text(LocalizedStringKey)` follows the user's in-app language choice immediately, while
+    /// a `String` resolved at the call site by `String(localized:)` reads the **process** locale and
+    /// keeps the launch language until the app restarts. Flattening a key with `String(localized:)`
+    /// to satisfy this initializer is therefore a live-switching regression, not a formality —
+    /// which is why `init(key:)` exists and why the localized-string path is the documented one.
+    private enum Content {
+        case literal(String)
+        case key(LocalizedStringKey)
+    }
+
+    private let content: Content
     private let size: AnnotationSize
     private let color: Color
 
     @Environment(\.locale) private var locale
     private var isLatin: Bool { locale.language.languageCode?.identifier != "zh" }
 
+    /// For annotation content that is **not** a localizable key: machine keys (`ACWR`, `ATL`),
+    /// glyphs (`▲`, `●`, `├─`), and strings already interpolated from data (`62 MS`, `+4`).
+    ///
     /// - Parameters:
     ///   - text: the annotation content. Terse and machine-flavored; never a sentence.
     ///   - size: `.standard` (12pt) or `.small` (10pt, axes/timestamps).
@@ -599,13 +616,37 @@ struct AnnotationLabel: View {
     ///     athlete must not miss uses `text2` or a metric hue on a card plane — and `text3`
     ///     annotation must never sit on a debossed well (2.84:1, below the contrast floor).
     init(_ text: String, size: AnnotationSize = .standard, color: Color = ColorTokens.text3) {
-        self.text = text
+        self.content = .literal(text)
         self.size = size
         self.color = color
     }
 
+    /// For annotation content that **is** a localizable key — the path that observes the app's
+    /// pinned locale and so survives an in-app language switch. Prefer this over
+    /// `AnnotationLabel(String(localized: "…"))` for every string in `Localizable.xcstrings`.
+    ///
+    /// The label is explicit (`key:`) on purpose: with an unlabeled overload, a bare string
+    /// literal would resolve to `String` (the default literal type) and silently render the raw
+    /// key text instead of its translation.
+    init(key: LocalizedStringKey, size: AnnotationSize = .standard, color: Color = ColorTokens.text3) {
+        self.content = .key(key)
+        self.size = size
+        self.color = color
+    }
+
+    /// The unstyled label, built from whichever form the caller authored. Both branches then take
+    /// the identical annotation law below, so the voice cannot diverge between them.
+    private var label: Text {
+        switch content {
+        case .literal(let string):
+            return Text(string)
+        case .key(let key):
+            return Text(key)
+        }
+    }
+
     var body: some View {
-        Text(text)
+        label
             .font(size.font)
             .monospacedDigit()
             .tracking(isLatin ? size.tracking : 0)

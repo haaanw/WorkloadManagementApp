@@ -78,13 +78,10 @@ struct ShareCodeSheet: View {
 
                 // Share code card
                 VStack(alignment: .leading, spacing: 0) {
-                    // Micro-caps caption over the code value (v5 case law: tracked caps
-                    // exist ONLY at the micro-label size).
-                    Text("label.shareCode")
-                        .font(.Tokens.micro)
-                        .tracking(0.9)
-                        .textCase(.uppercase)
-                        .foregroundStyle(ColorTokens.text3)
+                    // Caption over the code value — a machine key, so the annotation voice (v6).
+                    // The CODE itself stays in the working voice at `body`: annotation caps at
+                    // 12pt and a share code has to be read aloud and typed by a second person.
+                    AnnotationLabel(key: "label.shareCode")
                         .padding(.horizontal, Spacing.sm)
                         .padding(.top, Spacing.sm)
 

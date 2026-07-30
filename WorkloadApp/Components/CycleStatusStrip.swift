@@ -10,6 +10,12 @@ import SwiftUI
 struct CycleStatusStrip: View {
     let snapshot: MenstrualCycleSnapshot
 
+    // `AnnotationLabel` takes a plain `String`, and `String(localized:)` resolves against the
+    // PROCESS locale — which would silently break in-app language switching (the app pins its
+    // language via `.environment(\.locale, …)`, not the process locale). `LocalePinnedStrings`
+    // is the established locale-correct route; see `AppShellContracts`.
+    @Environment(\.locale) private var locale
+
     /// D-03 / D-04 interpretation gate — mirrors the Phase 18 engine gate so the displayed
     /// phase interpretation is consistent with the same-phase baseline that was actually applied.
     private var showsPhase: Bool {
@@ -36,18 +42,17 @@ struct CycleStatusStrip: View {
 
     var body: some View {
         HStack(alignment: .firstTextBaseline, spacing: 8) {
-            Text("cycle.indicator.label")
-                .font(.Tokens.micro)
-                .tracking(1.2)
-                .foregroundStyle(ColorTokens.text3)
+            // v6: a cycle-position strip is the canonical annotation stamp (DESIGN.md names
+            // "cycle position" — `D-028` — as annotation), so the key and the day counter are
+            // marginalia. The phase name stays in the working voice: it is a word the app says.
+            AnnotationLabel(LocalePinnedStrings.localized("cycle.indicator.label", locale: locale))
+                .annotationReveal(index: 0)
 
             Spacer()
 
             if let dayText {
-                Text(dayText)
-                    .font(.Tokens.labelMedium)
-                    .monospacedDigit()
-                    .foregroundStyle(ColorTokens.text1)
+                AnnotationLabel(dayText, color: ColorTokens.text1)
+                    .annotationReveal(index: 1)
             }
 
             if let phaseName {

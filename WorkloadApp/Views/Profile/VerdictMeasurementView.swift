@@ -163,10 +163,14 @@ struct VerdictMeasurementView: View {
                 Text(label)
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
+                // v6 "Field Notes": the context line is a machine-flavoured count
+                // ("5 RATED · 2 MISSED" — already written in the sanctioned `·` grammar), so it
+                // takes the annotation voice. The row label above and the reading on the right
+                // stay working voice. `text2`, not `text3`: this is the denominator that makes
+                // the reading honest.
                 if let context {
-                    Text(verbatim: context)
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.text2)
+                    AnnotationLabel(context, size: .small, color: ColorTokens.text2)
+                        .annotationReveal()
                 }
             }
             Spacer()

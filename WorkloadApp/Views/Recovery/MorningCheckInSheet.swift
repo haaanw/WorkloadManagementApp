@@ -172,10 +172,15 @@ struct MorningCheckInSheet: View {
                             .font(.Tokens.sectionHead)
                             .foregroundStyle(ColorTokens.text1)
                         Spacer()
+                        // v6 contrast rule: zone-colored text below 24pt may sit only on a CARD
+                        // plane, and a ReadoutWell is a DEBOSSED well (v6's re-tuned
+                        // `zone-optimal` measures 4.01:1 there — below the 4.5:1 small-text
+                        // floor). This preview also carried its state by COLOR ALONE, with no
+                        // zone label anywhere near it, which the nocebo guard forbids. Inking
+                        // the reading fixes both: the number is the information.
                         ReadoutWell(
                             value: "\(Int(wellnessScore))/100",
-                            widthTemplate: "100/100",
-                            color: wellnessScoreColor
+                            widthTemplate: "100/100"
                         )
                     }
                     .padding(.horizontal, 16)
@@ -201,10 +206,6 @@ struct MorningCheckInSheet: View {
                 modelContext: modelContext
             )
         }
-    }
-
-    private var wellnessScoreColor: Color {
-        wellnessScore >= 67 ? ColorTokens.zoneOptimal : wellnessScore >= 34 ? ColorTokens.zoneCaution : ColorTokens.zoneDanger
     }
 
     /// Seed sliders + active behavior tags from today's check-in (editing today) or, failing that,
@@ -327,7 +328,11 @@ struct WellnessSlider: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
                 Spacer()
-                ReadoutWell(value: "\(value)/5", widthTemplate: "5/5", color: scoreColor)
+                // Reading inked, not zone-tinted: a ReadoutWell is a debossed well, and v6's
+                // re-tuned zone colors fall below the 4.5:1 small-text floor there (see the
+                // score preview above). The segment bar below keeps the zone color — marks are
+                // unrestricted by the contrast rule — so the state channel is intact.
+                ReadoutWell(value: "\(value)/5", widthTemplate: "5/5")
             }
 
             HStack(spacing: 8) {

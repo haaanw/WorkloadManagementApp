@@ -251,9 +251,13 @@ struct OnboardingView: View {
 
     private var dotIndicators: some View {
         HStack(spacing: 8) {
+            // v6 Reading Color Rule: the active step dot is an active/selected mark, which is
+            // travertine's exclusive territory. Marks are unrestricted by the contrast rule
+            // (3:1 graphical floor), and this is Onboarding's one live-state mark — the rest of
+            // the flow is prose and CTAs, which take no annotation and no colour.
             ForEach(0..<4, id: \.self) { index in
                 Circle()
-                    .fill(index == currentStep ? ColorTokens.text1 : ColorTokens.divider)
+                    .fill(index == currentStep ? ColorTokens.accent : ColorTokens.divider)
                     .frame(width: 8, height: 8)
             }
         }

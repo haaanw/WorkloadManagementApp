@@ -14,14 +14,12 @@ struct PrescribedWorkoutCard: View {
                         .font(.Tokens.sectionHead)
                         .foregroundStyle(ColorTokens.text1)
 
-                    Text(prescription.scheduledDate.formatted(date: .abbreviated, time: .omitted))
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text3)
+                    // A timestamp — annotation (v6).
+                    AnnotationLabel(prescription.scheduledDate.formatted(date: .abbreviated, time: .omitted))
                 }
                 Spacer()
-                Text(prescription.sessionType.displayName)
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text2)
+                // A session-type tag — marginalia, not speech.
+                AnnotationLabel(prescription.sessionType.displayName, color: ColorTokens.text2)
             }
             .padding(.horizontal, Spacing.sm)
             .padding(.top, Spacing.sm)
@@ -40,10 +38,9 @@ struct PrescribedWorkoutCard: View {
 
             // Exercise summary by group
             ForEach(prescription.sortedGroups, id: \.id) { group in
-                Text(group.groupName.uppercased())
-                    .font(.Tokens.micro)
-                    .tracking(0.9)
-                    .foregroundStyle(ColorTokens.text3)
+                // Group key — annotation. The manual `.uppercased()` is gone: the primitive owns
+                // the case transform AND skips it for CJK, which the call site could not.
+                AnnotationLabel(group.groupName)
                     .padding(.horizontal, Spacing.sm)
                     .padding(.top, Spacing.xs)
                     .padding(.bottom, Spacing.baselinePair)
@@ -54,10 +51,8 @@ struct PrescribedWorkoutCard: View {
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text1)
                         Spacer()
-                        Text(setSummary(exercise))
-                            .font(.Tokens.label)
-                            .foregroundStyle(ColorTokens.text3)
-                            .monospacedDigit()
+                        // The set spec ("3 × 5 @ 100KG") is a unitized machine string — annotation.
+                        AnnotationLabel(setSummary(exercise))
                     }
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.baselinePair)

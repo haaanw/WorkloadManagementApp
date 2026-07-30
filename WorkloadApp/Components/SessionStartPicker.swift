@@ -135,6 +135,8 @@ struct SessionStartPicker: View {
     @Binding var matchTier: MatchTier?
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
+    private var isLatinLocale: Bool { locale.language.languageCode?.identifier != "zh" }
     @State private var basketballChoice: BasketballSessionChoice
     @State private var otherSport: SportType
     @State private var isAdjustExpanded = false
@@ -347,14 +349,18 @@ struct SessionStartPicker: View {
         }
     }
 
+    /// A picker's group label. This stays in the WORKING voice on purpose: DESIGN.md rule 9
+    /// bars the annotation voice from form-field labels. Only the CJK guard is fixed here — the
+    /// case transform and tracking were previously applied unconditionally, which is a
+    /// zh-Hans violation (Chinese takes no case transform and no added tracking).
     private func microLabel(
         _ key: StaticString,
         _ fallback: String.LocalizationValue
     ) -> some View {
         Text(String(localized: key, defaultValue: fallback))
             .font(.Tokens.micro)
-            .tracking(1.2)
-            .textCase(.uppercase)
+            .tracking(isLatinLocale ? 1.2 : 0)
+            .textCase(isLatinLocale ? .uppercase : nil)
             .foregroundStyle(ColorTokens.text3)
     }
 
@@ -434,13 +440,17 @@ struct SessionStartPicker: View {
 struct MatchTierPicker: View {
     @Binding var selection: MatchTier?
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
+    private var isLatinLocale: Bool { locale.language.languageCode?.identifier != "zh" }
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
+            // Working voice, not annotation: this is a form-field label (DESIGN.md rule 9).
+            // CJK guard added — case/tracking were previously unconditional.
             Text(String(localized: "matchTier.picker.title", defaultValue: "Match tier"))
                 .font(.Tokens.micro)
-                .tracking(1.2)
-                .textCase(.uppercase)
+                .tracking(isLatinLocale ? 1.2 : 0)
+                .textCase(isLatinLocale ? .uppercase : nil)
                 .foregroundStyle(ColorTokens.text3)
 
             HStack(spacing: Spacing.xs) {

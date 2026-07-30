@@ -958,9 +958,8 @@ struct ExerciseEntryCard: View {
                     .foregroundStyle(ColorTokens.text1)
                 Spacer()
                 if let muscle = entry.muscleGroup {
-                    Text(muscle.displayName)
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
+                    // A taxonomy tag beside the movement name — marginalia (v6).
+                    AnnotationLabel(muscle.displayName, color: ColorTokens.text2)
                 }
             }
             .padding(.horizontal, Spacing.sm)
@@ -974,10 +973,8 @@ struct ExerciseEntryCard: View {
                     .padding(.horizontal, Spacing.sm)
                     .padding(.bottom, Spacing.xs)
             } else if entry.sets.first?.isFromHistory == true {
-                Text("exercise.label.prefilledFromLast")
-                    .font(.Tokens.micro)
-                    .tracking(0.9)
-                    .foregroundStyle(ColorTokens.text3)
+                // A provenance stamp ("prefilled from last") — marginalia (v6).
+                AnnotationLabel(key: "exercise.label.prefilledFromLast")
                     .padding(.horizontal, Spacing.sm)
                     .padding(.bottom, Spacing.xs)
             }
@@ -990,13 +987,27 @@ struct ExerciseEntryCard: View {
             // behind a per-row "+ RPE" chip (fast path = weight + reps only).
             switch inputMode {
             case .weightReps:
-                setHeaderRow(columns: [("table.header.set", 32), ("table.header.weight", 0), ("table.header.reps", 0)])
+                setHeaderRow(columns: [
+                    (String(localized: "table.header.set"), 32),
+                    (String(localized: "table.header.weight"), 0),
+                    (String(localized: "table.header.reps"), 0)
+                ])
             case .repsOnly:
-                setHeaderRow(columns: [("table.header.set", 32), ("table.header.reps", 0)])
+                setHeaderRow(columns: [
+                    (String(localized: "table.header.set"), 32),
+                    (String(localized: "table.header.reps"), 0)
+                ])
             case .distanceDuration:
-                setHeaderRow(columns: [("table.header.set", 32), ("table.header.dist", 0), ("table.header.time", 0)])
+                setHeaderRow(columns: [
+                    (String(localized: "table.header.set"), 32),
+                    (String(localized: "table.header.dist"), 0),
+                    (String(localized: "table.header.time"), 0)
+                ])
             case .durationOnly:
-                setHeaderRow(columns: [("table.header.set", 32), ("table.header.timeMin", 0)])
+                setHeaderRow(columns: [
+                    (String(localized: "table.header.set"), 32),
+                    (String(localized: "table.header.timeMin"), 0)
+                ])
             }
 
             ForEach($entry.sets) { $set in
@@ -1065,19 +1076,20 @@ struct ExerciseEntryCard: View {
         .background(ColorTokens.surfaceEl)
     }
 
-    private func setHeaderRow(columns: [(LocalizedStringKey, CGFloat)]) -> some View {
+    /// Column headers for the set table — axis labels for a column of readings, so the ANNOTATION
+    /// voice at the axis size (v6). The tuple carries a resolved `String` rather than a
+    /// `LocalizedStringKey` because `AnnotationLabel` takes a String; call sites resolve with
+    /// `String(localized:)`, the file's established idiom.
+    private func setHeaderRow(columns: [(String, CGFloat)]) -> some View {
         HStack {
             ForEach(Array(columns.enumerated()), id: \.offset) { _, col in
                 if col.1 > 0 {
-                    Text(col.0).frame(width: col.1)
+                    AnnotationLabel(col.0, size: .small).frame(width: col.1)
                 } else {
-                    Text(col.0).frame(maxWidth: .infinity)
+                    AnnotationLabel(col.0, size: .small).frame(maxWidth: .infinity)
                 }
             }
         }
-        .font(.Tokens.micro)
-        .tracking(0.9)
-        .foregroundStyle(ColorTokens.text3)
         .padding(.horizontal, Spacing.sm)
         .padding(.vertical, Spacing.xs)
     }
@@ -1315,9 +1327,10 @@ struct SetEntryRow: View {
                     .monospacedDigit()
                     .foregroundStyle(ColorTokens.text2)
                 if set.isWarmup {
-                    Text("set.warmup.label")
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.text3)
+                    // A flag on the reading, not speech — annotation (v6). The set index and the
+                    // summary itself stay in the working voice: they are the row's DATA, and the
+                    // annotation layer is marginalia around data, never the data.
+                    AnnotationLabel(String(localized: "set.warmup.label", defaultValue: "Warmup"))
                 }
                 Spacer()
                 Image(systemName: "checkmark")

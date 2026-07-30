@@ -83,28 +83,25 @@ struct ExerciseDetailSheet: View {
     private var metadataPlate: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             if let targetText {
-                metadataRow("exercise.detail.target", targetText)
+                metadataRow(String(localized: "exercise.detail.target"), targetText)
             }
             if let secondaryText {
-                metadataRow("exercise.detail.secondaryMuscles", secondaryText)
+                metadataRow(String(localized: "exercise.detail.secondaryMuscles"), secondaryText)
             }
             if let equipmentText {
-                metadataRow("exercise.detail.equipment", equipmentText)
+                metadataRow(String(localized: "exercise.detail.equipment"), equipmentText)
             }
-            metadataRow("exercise.detail.category", exercise.category.displayName)
+            metadataRow(String(localized: "exercise.detail.category"), exercise.category.displayName)
         }
         .dataPlate()
     }
 
-    /// Micro-caps caption + value pair (the sanctioned inline metric-caption use
-    /// of micro-caps; `baselinePair` is the sanctioned 4pt label→value gap).
-    private func metadataRow(_ label: LocalizedStringKey, _ value: String) -> some View {
+    /// Annotation caption + working-voice value pair (v6): the caption is a machine key, so it
+    /// renders through `AnnotationLabel`; `baselinePair` is the sanctioned 4pt label→value gap.
+    /// The caption is resolved with `String(localized:)` because the primitive takes a `String`.
+    private func metadataRow(_ label: String, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-            Text(label)
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .textCase(.uppercase)
-                .foregroundStyle(ColorTokens.text3)
+            AnnotationLabel(label)
             Text(value)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
@@ -114,10 +111,8 @@ struct ExerciseDetailSheet: View {
 
     private func stepRow(number: Int, text: String) -> some View {
         HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
-            Text("\(number)")
-                .font(.Tokens.labelMedium)
-                .monospacedDigit()
-                .foregroundStyle(ColorTokens.text3)
+            // Step ordinal — a machine index, so annotation (v6).
+            AnnotationLabel("\(number)")
                 .frame(width: Spacing.md, alignment: .trailing)
             Text(text)
                 .font(.Tokens.body)

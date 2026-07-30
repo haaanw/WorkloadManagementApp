@@ -267,12 +267,14 @@ struct WorkloadView: View {
 
 // MARK: - ACWR Display
 
-/// v5 "Pavilion": the Load screen's hero reading — ACWR on the screen's one raised light
-/// hero card (Hero Law): micro-caps label in `text3`, the ratio in `heroScore` accent
-/// (the hero reading is the single accent-colored text on this screen), zone state as a
-/// caps TEXT label in its zone color (never color alone), and a full-width `TickScale`
-/// 0–2.0 with the 0.8–1.3 productive band (ACWRZone.classify) and the accent needle at
-/// today's ratio.
+/// v5 "Pavilion" + v6 "Field Notes": the Load screen's hero reading — ACWR on the screen's one
+/// raised light hero card (Hero Law): micro-caps label in `text3`, the ratio in `heroScore`
+/// wearing **`metricLoad`** (v6 Reading Color Rule — the hero reading takes its own metric's hue;
+/// ACWR is the training-load metric, so ochre. This supersedes v5's travertine hero: `accent` now
+/// owns live-state marks exclusively, which is why the TickScale NEEDLE below stays accent).
+/// It remains the single colored text element on this screen. Zone state is a caps TEXT label in
+/// its zone color (never color alone), and a full-width `TickScale` 0–2.0 carries the 0.8–1.3
+/// productive band (ACWRZone.classify) with the accent needle at today's ratio.
 struct ACWRGaugeCard: View {
     let snapshot: WorkloadSnapshot?
 
@@ -284,10 +286,24 @@ struct ACWRGaugeCard: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
-            Text("workload.section.acwr")
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .foregroundStyle(ColorTokens.text3)
+            // v6: the hero card's metric key is marginalia, not speech — the annotation voice.
+            // `AnnotationLabel` owns the case transform, the +0.05em tracking and the CJK guard,
+            // so the key resolves through `String(localized:)` (the primitive takes a String).
+            //
+            // The key wears `metricLoad` + a `●` state dot, matching this card's own specimen in
+            // `design-system/ui_kits/ios-app/LoadScreen.jsx` (`ACWR ●` in `--metric-load`).
+            // DESIGN.md's Reading Color Rule sanctions exactly this ("metric-hue annotation — a
+            // `● READINESS` key"), and rule 7 is satisfied because the key sits on a RAISED CARD
+            // plane (metricLoad = 4.82:1 there, vs 4.49:1 on the base plane).
+            HStack(spacing: Spacing.baselinePair) {
+                AnnotationLabel(
+                    String(localized: "workload.section.acwr"),
+                    color: ColorTokens.metricLoad
+                )
+                AnnotationLabel("\u{25CF}", color: ColorTokens.metricLoad)
+                    .accessibilityHidden(true)
+            }
+            .annotationReveal()
 
             Spacer().frame(height: Spacing.sm)
 
@@ -298,15 +314,18 @@ struct ACWRGaugeCard: View {
                     Text(String(format: "%.2f", snapshot.acwr))
                         .font(.Tokens.heroScore)
                         .monospacedDigit()
-                        .foregroundStyle(ColorTokens.accent)
+                        .foregroundStyle(ColorTokens.metricLoad)
                     Spacer(minLength: Spacing.sm)
-                    // Zone state as a caps TEXT label in its zone color (text first,
-                    // color supplementary — never color alone).
-                    Text(snapshot.zone.displayName)
-                        .font(.Tokens.micro)
-                        .tracking(0.9)
-                        .textCase(.uppercase)
-                        .foregroundStyle(ColorTokens.acwrZoneColor(snapshot.zone))
+                    // Zone state as a TEXT LABEL in its zone color (text first, color
+                    // supplementary — never color alone, nocebo guard unchanged). v6 moves it to
+                    // the annotation voice, matching the reference specimen's mono zone label
+                    // beside the hero. Sits on a RAISED CARD plane, which is where rule 7
+                    // requires sub-24pt zone-colored text to live.
+                    AnnotationLabel(
+                        snapshot.zone.displayName,
+                        color: ColorTokens.acwrZoneColor(snapshot.zone)
+                    )
+                    .annotationReveal(index: 1)
                 }
 
                 Spacer().frame(height: Spacing.sm)
@@ -338,6 +357,17 @@ struct ACWRGaugeCard: View {
 
 // MARK: - Load Trend Chart
 
+/// DESIGN.md v6 "Field Notes" — the load trend chart carries two series with a METRIC IDENTITY,
+/// so each takes its hue: **ATL (acute load) → `metricStrain`** (rust) and
+/// **CTL (chronic load) → `metricLoad`** (ochre). TSB is a derived balance with no metric identity
+/// of its own, so its area keeps the identity-less warm-ink `chartTSB` token — which also keeps v6's
+/// hard prohibition intact: a metric hue is never an area fill.
+///
+/// Grid hairlines are `chartGrid`; axis value labels render in the annotation voice (10pt Fragment
+/// Mono via `AnnotationLabel`). The mono series key under the plot is the design system's own chart
+/// grammar (`design-system/guidelines/charts.card.html` labels its series in mono): the DOT carries
+/// the hue (a state dot — a sanctioned mark) while the key text stays `text3`, so the screen still
+/// has exactly one colored text element (the ACWR hero).
 struct LoadTrendChartView: View {
     @Environment(\.locale) private var locale
     let snapshots: [WorkloadSnapshot]
@@ -347,17 +377,27 @@ struct LoadTrendChartView: View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Chart {
                 ForEach(snapshots, id: \.id) { snapshot in
+                    // `series:` is load-bearing, not decoration. Swift Charts groups marks into
+                    // series, and two `LineMark`s sharing the same x-values with NO series
+                    // discriminator collapse into ONE series — so Charts connected ATL→CTL→ATL→CTL
+                    // and drew a single zigzag in whichever style won, with the CTL line rendering
+                    // nowhere. That predates v6 (it shipped with the warm-ink `chartATL`/`chartCTL`
+                    // pair, where two near-identical inks made the artifact easy to miss); v6's
+                    // distinct rust/ochre hues plus the series key below made it visible. Naming
+                    // the series is what makes the two-hue mapping actually true on screen.
                     LineMark(
                         x: .value("Date", snapshot.snapshotDate),
-                        y: .value("ATL", snapshot.acuteLoad)
+                        y: .value("ATL", snapshot.acuteLoad),
+                        series: .value("Series", "ATL")
                     )
-                    .foregroundStyle(ColorTokens.chartATL)
+                    .foregroundStyle(ColorTokens.metricStrain)
 
                     LineMark(
                         x: .value("Date", snapshot.snapshotDate),
-                        y: .value("CTL", snapshot.chronicLoad)
+                        y: .value("CTL", snapshot.chronicLoad),
+                        series: .value("Series", "CTL")
                     )
-                    .foregroundStyle(ColorTokens.chartCTL)
+                    .foregroundStyle(ColorTokens.metricLoad)
 
                     AreaMark(
                         x: .value("Date", snapshot.snapshotDate),
@@ -368,6 +408,30 @@ struct LoadTrendChartView: View {
             }
             .frame(height: 160)
             .chartLegend(position: .bottom)
+            .chartXAxis {
+                AxisMarks { value in
+                    AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
+                    AxisTick().foregroundStyle(ColorTokens.chartGrid)
+                    AxisValueLabel {
+                        if let date = value.as(Date.self) {
+                            AnnotationLabel(
+                                date.formatted(.dateTime.month(.abbreviated).day().locale(locale)),
+                                size: .small
+                            )
+                        }
+                    }
+                }
+            }
+            .chartYAxis {
+                AxisMarks { value in
+                    AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
+                    AxisValueLabel {
+                        if let load = value.as(Double.self) {
+                            AnnotationLabel(String(format: "%.0f", load), size: .small)
+                        }
+                    }
+                }
+            }
             .id(locale)
             .entranceReveal()
             .chartOverlay { proxy in
@@ -386,7 +450,27 @@ struct LoadTrendChartView: View {
                     )
                 }
             }
+
+            // Mono series key. ATL/CTL/TSB are the same untranslated scientific abbreviations the
+            // metric grid above already prints verbatim, so this adds no new localizable copy.
+            HStack(spacing: Spacing.sm) {
+                seriesKey(glyph: "\u{25CF}", color: ColorTokens.metricStrain, label: "ATL", index: 0)
+                seriesKey(glyph: "\u{25CF}", color: ColorTokens.metricLoad, label: "CTL", index: 1)
+                seriesKey(glyph: "\u{2592}", color: ColorTokens.chartTSB, label: "TSB", index: 2)
+                Spacer(minLength: 0)
+            }
         }
+    }
+
+    /// One series-key cell: a hue-bearing state dot (`●`) or fill glyph (`▒`) plus its `text3`
+    /// abbreviation, both in the annotation voice, revealed on the v6 choreography.
+    private func seriesKey(glyph: String, color: Color, label: String, index: Int) -> some View {
+        HStack(spacing: Spacing.baselinePair) {
+            AnnotationLabel(glyph, size: .small, color: color)
+                .accessibilityHidden(true)
+            AnnotationLabel(label, size: .small)
+        }
+        .annotationReveal(index: index)
     }
 }
 
@@ -414,10 +498,13 @@ struct PRHistorySection: View {
                             .monospacedDigit()
                             .foregroundStyle(ColorTokens.text1)
                         if let improvement = pr.improvement {
-                            Text(String(format: "+%.1f", improvement))
-                                .font(.Tokens.label)
-                                .monospacedDigit()
-                                .foregroundStyle(ColorTokens.zoneOptimal)
+                            // v6: a signed delta is marginalia — the annotation voice. It keeps
+                            // its zone color and sits on a CARD plane, which is where rule 7
+                            // requires sub-24pt zone-colored text to live.
+                            AnnotationLabel(
+                                String(format: "+%.1f", improvement),
+                                color: ColorTokens.zoneOptimal
+                            )
                         }
                     }
                 }

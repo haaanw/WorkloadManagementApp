@@ -84,11 +84,14 @@ struct ReadoutWell: View {
             .font(.Tokens.smallLabelMedium)
             .monospacedDigit()
             if let unit {
-                Text(unit)
-                    .font(.Tokens.micro)
-                    .textCase(.uppercase)
-                    .tracking(0.8)
-                    .foregroundStyle(ColorTokens.text3)
+                // v6: a unit is annotation, and the design system's own `ReadoutWell` renders it
+                // in the mono face. `text2`, not the annotation default `text3` — this label sits
+                // inside a DEBOSSED well, where `text3` measures 2.84:1 and DESIGN.md rule 7
+                // therefore forbids it (a pre-existing v5 contrast miss, fixed here).
+                //
+                // No `.annotationReveal`: a well is a live control whose unit must be legible the
+                // instant the row exists, not 340ms after it.
+                AnnotationLabel(unit, size: .small, color: ColorTokens.text2)
             }
         }
         .padding(.horizontal, Spacing.sm)

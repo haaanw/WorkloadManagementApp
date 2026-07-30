@@ -239,8 +239,10 @@ struct RecoveryScoreCard: View {
     }
 
     var body: some View {
-        // v5 Hero Law: the hero accent reading lives on the Dashboard alone — Recovery's
-        // standing values render in ink. Its designed peak is the score readout on a raised
+        // Hero Law + Reading Color Rule v6: this screen's ONE hero reading is the recovery
+        // score, so it takes the readiness hue (DESIGN.md maps `metric-readiness` to
+        // "readiness / recovery score"). Everything else on the screen stays in ink — one
+        // colored text element per screen. Its designed peak is the score readout on a raised
         // light plane — baseline-aligned score + zone, then a compact TickScale placing the
         // reading on a 0–100 track — with the wearable contributors demoted to a scannable
         // metric grid below.
@@ -268,16 +270,16 @@ struct RecoveryScoreCard: View {
 
             if let recovery {
                 // Baseline readout: score dominant left, zone pinned to the trailing edge on
-                // the score's baseline. Display value in INK (one-voice, tabular figures) —
-                // accent is reserved for the Dashboard hero score.
+                // the score's baseline. The reading takes its metric's hue (readiness green) —
+                // legal on any plane at 32pt, and this is a raised card plane anyway. The
+                // "/ 100" denominator is marginalia, so it moves to the annotation voice.
                 HStack(alignment: .lastTextBaseline, spacing: Spacing.xs) {
                     Text("\(Int(recovery.recoveryScore))")
                         .font(.Tokens.displayAction)
                         .monospacedDigit()
-                        .foregroundStyle(ColorTokens.text1)
-                    Text("/ 100")
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
+                        .foregroundStyle(ColorTokens.metricReadiness)
+                    AnnotationLabel("/ 100", color: ColorTokens.text2)
+                        .annotationReveal()
                     Spacer(minLength: Spacing.sm)
                     ZoneBadge(
                         label: recovery.zone.displayName,

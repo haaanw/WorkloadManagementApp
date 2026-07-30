@@ -9,6 +9,10 @@ struct SocialLoginButtons: View {
     let onAppleCredential: (ASAuthorizationAppleIDCredential) -> Void
     let onGoogleTap: () -> Void
 
+    /// Locale-correct lookup for the annotation below (`String(localized:)` reads the process
+    /// locale, not the environment locale the app pins its language with).
+    @Environment(\.locale) private var locale
+
     var body: some View {
         VStack(spacing: 0) {
             // OR divider
@@ -16,9 +20,11 @@ struct SocialLoginButtons: View {
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
-                Text("auth.divider.or")
-                    .font(.Tokens.body)
-                    .foregroundStyle(ColorTokens.text3)
+                // v6: the one annotation on this screen. "OR" set between two hairlines is a
+                // separator mark, not something the app says — and at `body` (17pt) it read as
+                // copy. Everything else here is prose and CTAs, which stay working voice.
+                AnnotationLabel(LocalePinnedStrings.localized("auth.divider.or", locale: locale))
+                    .annotationReveal()
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)

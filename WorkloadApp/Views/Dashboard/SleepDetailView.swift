@@ -16,7 +16,7 @@ struct SleepDetailView: View {
         ScrollView {
             VStack(spacing: 0) {
                 // Header
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("sleep.detail.header.title")
                         .font(.Tokens.pageTitle)
                         .foregroundStyle(ColorTokens.text1)
@@ -25,17 +25,29 @@ struct SleepDetailView: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.top, 32)
-                .padding(.bottom, 24)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.lg)
+                .padding(.bottom, Spacing.md)
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                 // Stats row
                 HStack(spacing: 0) {
-                    statCell(label: String(localized: "sleep.detail.label.lastNight", defaultValue: "LAST NIGHT"), value: lastNight.map { sleepString($0) } ?? "—")
+                    statCell(
+                        index: 0,
+                        label: String(localized: "sleep.detail.label.lastNight", defaultValue: "LAST NIGHT"),
+                        value: lastNight.map { sleepString($0) } ?? "—",
+                        // Reading Color Rule v6: this screen reports sleep, so its principal
+                        // reading takes the sleep hue (indigo). The 7-day baseline stays ink —
+                        // one colored reading per screen. Card plane, 6.03:1.
+                        valueColor: lastNight != nil ? ColorTokens.metricSleep : ColorTokens.text1
+                    )
                     Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
-                    statCell(label: String(localized: "detail.label.sevenDayAvg", defaultValue: "7-DAY AVG"), value: sevenDayAvgMinutes.map { sleepString($0) } ?? "—")
+                    statCell(
+                        index: 1,
+                        label: String(localized: "detail.label.sevenDayAvg", defaultValue: "7-DAY AVG"),
+                        value: sevenDayAvgMinutes.map { sleepString($0) } ?? "—"
+                    )
                 }
                 // v2: the lifted stats band sits on the elevated plane (widened ladder), bounded
                 // top/bottom by the full-width section hairlines.
@@ -45,13 +57,13 @@ struct SleepDetailView: View {
 
                 // Chart
                 SleepTrendChart(recoverySnapshots: snapshots)
-                    .padding(.horizontal, 16)
-                    .padding(.vertical, 24)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.md)
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
-                // Explanation
-                VStack(alignment: .leading, spacing: 8) {
+                // Explanation. The eyebrow is a section head the app SAYS — working voice.
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     Text("sleep.detail.section.about")
                         .font(.Tokens.micro)
                         .tracking(0.9)
@@ -61,8 +73,8 @@ struct SleepDetailView: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.sm)
             }
         }
         .background(ColorTokens.background)
@@ -76,16 +88,20 @@ struct SleepDetailView: View {
         return m > 0 ? "\(h)h \(m)m" : "\(h)h"
     }
 
-    private func statCell(label: String, value: String) -> some View {
+    /// One stat cell: a machine key in the annotation voice above a working-voice reading.
+    private func statCell(
+        index: Int,
+        label: String,
+        value: String,
+        valueColor: Color = ColorTokens.text1
+    ) -> some View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-            Text(label)
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .foregroundStyle(ColorTokens.text3)
+            AnnotationLabel(label, size: .small)
+                .annotationReveal(index: index)
             Text(value)
                 .font(.Tokens.label)
                 .monospacedDigit()
-                .foregroundStyle(ColorTokens.text1)
+                .foregroundStyle(valueColor)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, Spacing.sm)

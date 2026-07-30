@@ -33,7 +33,9 @@ struct SheetHeaderButton: View {
             Text(title)
                 .font(.Tokens.headerAction)
                 .tracking(isLatinLocale ? 0.8 : 0)
-                .textCase(.uppercase)
+                // v6/zh guard: CJK has no case, so the transform is Latin-only — the same
+                // condition that already gated tracking (this was previously unconditional).
+                .textCase(isLatinLocale ? .uppercase : nil)
                 .foregroundStyle(emphasis ? ColorTokens.text1 : ColorTokens.text2)
                 .frame(minHeight: 44)
                 .contentShape(Rectangle())

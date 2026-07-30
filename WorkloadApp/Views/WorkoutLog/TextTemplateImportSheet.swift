@@ -99,10 +99,9 @@ struct TextTemplateImportSheet: View {
                                                 .font(.Tokens.body)
                                                 .foregroundStyle(ColorTokens.text2)
                                             Spacer()
-                                            Text(exercise.summary)
-                                                .font(.Tokens.label)
-                                                .monospacedDigit()
-                                                .foregroundStyle(ColorTokens.text3)
+                                            // Parsed set spec — a unitized machine string, so
+                                            // the annotation voice (v6).
+                                            AnnotationLabel(exercise.summary)
                                         }
                                     }
                                 }

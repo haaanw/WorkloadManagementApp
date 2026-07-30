@@ -1,11 +1,12 @@
 import SwiftUI
 
-/// TickScale — the retained instrument grammar, re-inked for DESIGN.md v5 "Pavilion".
+/// TickScale — the retained instrument grammar, re-inked for DESIGN.md v5 "Pavilion" and
+/// re-lettered for v6 "Field Notes" (scale numerals are annotation, not working voice).
 ///
 /// A linear measuring scale in the B&O grammar:
 /// - Two-weight tick marks in warm grays: minor 1px (`tickMinor`) / major 1.5px (`tickMajor`).
-/// - Optional tick numerals (`Font.Tokens.micro`, 11pt, `text3`-toned) at the major ticks;
-///   digits are tabular via `.monospacedDigit()` (v5 numeral law).
+/// - Optional tick numerals (`Font.Tokens.annoSmall`, 10pt Fragment Mono, `text3`-toned) at the
+///   major ticks; digits are tabular via `.monospacedDigit()` (v6 numeral law).
 /// - Optional ink zone band (theme-driven).
 /// - A 1.5px ACCENT needle (`ColorTokens.accent`, travertine) at the current value — a
 ///   sanctioned live-state accent mark (Accent Rule).
@@ -245,8 +246,13 @@ struct TickScale: View, Animatable {
             for i in 0...majors {
                 let unit = Double(i) / Double(majors)
                 let value = range.lowerBound + unit * span
+                // v6: tick numerals moved from `micro` (11pt working voice) to the annotation
+                // voice at `annoSmall` (10pt) — a scale numeral is an axis label, i.e.
+                // marginalia. The raw token is used rather than `AnnotationLabel` because a
+                // `Canvas` resolves a `Text`, not an arbitrary `View`; the label is digits only,
+                // so the uppercase/tracking/CJK law the primitive carries has nothing to do here.
                 let text = Text(verbatim: numeralText(value))
-                    .font(.Tokens.micro)
+                    .font(.Tokens.annoSmall)
                     .monospacedDigit()
                     .foregroundStyle(theme.numeral)
                 let resolved = context.resolve(text)

@@ -43,10 +43,11 @@ struct InviteConfirmationSheet: View {
                     // pill CTA (never accent), cancel stays quiet — no full-bleed hairline scaffold.
                     VStack(alignment: .leading, spacing: Spacing.md) {
                         VStack(alignment: .leading, spacing: Spacing.xs) {
-                            Text(mode == .athleteAccepting ? "COACH REQUEST" : "LINK ATHLETE")
-                                .font(.Tokens.micro)
-                                .tracking(0.9)
-                                .foregroundStyle(ColorTokens.text3)
+                            // v6: the kicker above the title is a context key, not something the
+                            // app says — annotation voice. Strings kept byte-identical (already
+                            // uppercase, so the primitive's transform is a no-op).
+                            AnnotationLabel(mode == .athleteAccepting ? "COACH REQUEST" : "LINK ATHLETE")
+                                .annotationReveal(index: 0)
                             Text(resolved.otherPartyName)
                                 .font(.Tokens.pageTitle)
                                 .foregroundStyle(ColorTokens.text1)

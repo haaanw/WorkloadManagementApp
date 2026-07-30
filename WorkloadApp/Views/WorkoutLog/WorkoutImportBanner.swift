@@ -10,10 +10,8 @@ struct WorkoutImportBanner: View {
 
     var body: some View {
         VStack(spacing: 0) {
-            Text("import.watch.header")
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .foregroundStyle(ColorTokens.text3)
+            // Banner stamp — marginalia, so the annotation voice (v6).
+            AnnotationLabel(key: "import.watch.header")
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.horizontal, Spacing.sm)
                 .padding(.top, Spacing.xs)
@@ -53,16 +51,20 @@ private struct ImportSuggestionRow: View {
                 Text(suggestion.name)
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text1)
-                HStack(spacing: 8) {
-                    Text(suggestion.date.relativeString(locale: locale))
-                    Text(Date.durationString(seconds: suggestion.durationSeconds, locale: locale))
+                // Timestamp + duration + unitized energy — marginalia (v6).
+                HStack(spacing: Spacing.xs) {
+                    AnnotationLabel(
+                        suggestion.date.relativeString(locale: locale),
+                        color: ColorTokens.text2
+                    )
+                    AnnotationLabel(
+                        Date.durationString(seconds: suggestion.durationSeconds, locale: locale),
+                        color: ColorTokens.text2
+                    )
                     if let cal = suggestion.activeCalories {
-                        Text("\(Int(cal)) kcal")
+                        AnnotationLabel("\(Int(cal)) kcal", color: ColorTokens.text2)
                     }
                 }
-                .font(.Tokens.label)
-                .monospacedDigit()
-                .foregroundStyle(ColorTokens.text2)
             }
 
             Spacer()

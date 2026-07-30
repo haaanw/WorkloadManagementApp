@@ -23,11 +23,11 @@ struct SeanEllisPromptSheet: View {
         NavigationStack {
             VStack(alignment: .leading, spacing: Spacing.md) {
 
-                // Header label (micro-caps).
-                Text(String(localized: "seanEllis.title", defaultValue: "ONE QUESTION"))
-                    .font(.Tokens.micro)
-                    .tracking(0.9)
-                    .foregroundStyle(ColorTokens.text3)
+                // v6: the kicker is a context key → annotation voice. The question below it, the
+                // three choices, and the skip action all stay working voice — they are what the
+                // app SAYS, and the annotation voice never speaks a sentence or labels a control.
+                AnnotationLabel(String(localized: "seanEllis.title", defaultValue: "ONE QUESTION"))
+                    .annotationReveal(index: 0)
 
                 // The one neutral question.
                 Text(String(localized: "seanEllis.question",

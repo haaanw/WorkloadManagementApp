@@ -12,7 +12,7 @@ struct SessionDetailView: View {
                 // distinct surface lifted off the page (Tuwa v2 separation).
                 VStack(spacing: 0) {
                 // Session header
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: Spacing.xs) {
                     HStack {
                         Image(systemName: session.sportType.systemImage)
                             .foregroundStyle(ColorTokens.text2)
@@ -20,13 +20,15 @@ struct SessionDetailView: View {
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text2)
                         Spacer()
-                        Text(session.sessionDate.relativeString(locale: locale))
-                            .font(.Tokens.label)
-                            .foregroundStyle(ColorTokens.text2)
+                        // A timestamp — annotation's canonical content (v6).
+                        AnnotationLabel(
+                            session.sessionDate.relativeString(locale: locale),
+                            color: ColorTokens.text2
+                        )
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.vertical, 16)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.vertical, Spacing.sm)
 
                 Rectangle()
                     .fill(ColorTokens.divider)
@@ -117,9 +119,8 @@ struct ExerciseDetailCard: View {
                     .foregroundStyle(ColorTokens.text1)
                 Spacer()
                 if let muscle = entry.muscleGroup {
-                    Text(muscle.displayName)
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
+                    // A taxonomy tag beside the movement name — marginalia (v6).
+                    AnnotationLabel(muscle.displayName, color: ColorTokens.text2)
                 }
             }
             .padding(.horizontal, Spacing.sm)
@@ -129,22 +130,20 @@ struct ExerciseDetailCard: View {
                 .fill(ColorTokens.divider)
                 .frame(height: 0.5)
 
-            // Column headers
+            // Column headers — axis labels for a table of readings, so the ANNOTATION voice at
+            // the axis size (v6). Case, tracking and the CJK guard belong to `AnnotationLabel`.
             HStack {
-                Text("table.header.set")
+                AnnotationLabel(key: "table.header.set", size: .small)
                     .frame(width: 32, alignment: .leading)
-                Text("table.header.weight")
+                AnnotationLabel(key: "table.header.weight", size: .small)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                Text("table.header.reps")
+                AnnotationLabel(key: "table.header.reps", size: .small)
                     .frame(width: 48, alignment: .leading)
-                Text("table.header.rpe")
+                AnnotationLabel(key: "table.header.rpe", size: .small)
                     .frame(width: 40, alignment: .trailing)
-                Text("table.header.volume")
+                AnnotationLabel(key: "table.header.volume", size: .small)
                     .frame(width: 56, alignment: .trailing)
             }
-            .font(.Tokens.micro)
-            .tracking(0.9)
-            .foregroundStyle(ColorTokens.text3)
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
 

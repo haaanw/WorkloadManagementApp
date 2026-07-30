@@ -163,10 +163,15 @@ struct NiggleLogSheet: View {
                         .foregroundStyle(ColorTokens.text2)
                 }
                 Spacer()
+                // v6 contrast rule: zone-colored text below 24pt may sit only on a CARD plane,
+                // and this row sits directly on the sheet's `background` base plane (v6's
+                // re-tuned `zone-optimal` measures 4.39:1 there — below the 4.5:1 small-text
+                // floor). The reading inks; the segment bar below keeps the zone color, and
+                // marks are unrestricted, so no state channel is lost.
                 Text("\(severity)/10")
                     .font(.Tokens.sectionHead)
                     .monospacedDigit()
-                    .foregroundStyle(severityColor)
+                    .foregroundStyle(ColorTokens.text1)
             }
 
             HStack(spacing: 4) {

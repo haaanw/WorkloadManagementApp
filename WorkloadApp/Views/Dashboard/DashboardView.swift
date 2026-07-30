@@ -350,18 +350,25 @@ struct HeroReadinessCard: View {
     }
 
     var body: some View {
-        // v5 "Pavilion" Hero Law: the readiness reading lives on THE one raised light hero
-        // card on Home — micro-caps label, 64pt `heroScore` reading in `accent` (the one
-        // colored text element in the app), zone as a TEXT label in its zone color, and a
-        // full-width TickScale 0–100 with the ink zone band and the accent needle at the
-        // score. Supporting matter (factor rows, periodization, recommendation) stays
-        // demoted onto a quiet card below.
+        // Hero Law (v5, recolored by v6): the readiness reading lives on THE one raised light
+        // hero card on Home — an ANNOTATION stamp ("READINESS · TUE 21 JUL") in the readiness
+        // hue, the 64pt `heroScore` reading in `metricReadiness` (Reading Color Rule v6: the
+        // hero takes its metric's hue; travertine keeps live-state marks), zone as a TEXT label
+        // in its zone color, and a full-width TickScale 0–100 with the ink zone band and the
+        // accent needle at the score. Supporting matter (reason tree, periodization,
+        // recommendation) stays demoted onto a quiet card below.
         VStack(alignment: .leading, spacing: 0) {
             VStack(alignment: .leading, spacing: 0) {
-                Text(String(format: String(localized: "dashboard.hero.readinessLabel"), dateLabel))
-                    .font(.Tokens.micro)
-                    .tracking(0.9)
-                    .foregroundStyle(ColorTokens.text3)
+                // The screen's context stamp is marginalia, not speech — mono, uppercase,
+                // tracked, tabular, CJK-guarded, all inside `AnnotationLabel`. Carries the
+                // readiness hue because it keys the reading beneath it (DESIGN.md v6 Reading
+                // Color Rule, metric-hue annotation); legal below 24pt because the raised hero
+                // is a CARD plane (4.71:1).
+                AnnotationLabel(
+                    String(format: String(localized: "dashboard.hero.readinessLabel"), dateLabel),
+                    color: ColorTokens.metricReadiness
+                )
+                    .annotationReveal()
                     .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: viewModel.hasRealData)
 
                 Spacer().frame(height: Spacing.sm)
@@ -380,8 +387,11 @@ struct HeroReadinessCard: View {
                             .font(.Tokens.heroScore)
                             .monospacedDigit()
                             .contentTransition(.numericText())
-                            // Accent Rule v5: the hero score is THE one colored text element.
-                            .foregroundStyle(ColorTokens.accent)
+                            // Reading Color Rule v6: the hero reading is THE one colored text
+                            // element and takes ITS OWN metric's hue — readiness is verdant
+                            // green. (v5 gave this to travertine; travertine now owns
+                            // live-state marks exclusively, e.g. the TickScale needle below.)
+                            .foregroundStyle(ColorTokens.metricReadiness)
                         Spacer(minLength: Spacing.sm)
                         // Zone state text-first, in its zone color (never color alone —
                         // the label carries the meaning; the color is supplementary).
@@ -441,9 +451,10 @@ struct HeroReadinessCard: View {
     private var supportingCard: some View {
         VStack(alignment: .leading, spacing: 0) {
                 if viewModel.hasRealData && !viewModel.reasoningFactors.isEmpty {
+                    let factors = Array(viewModel.reasoningFactors.prefix(2))
                     VStack(alignment: .leading, spacing: Spacing.sm) {
-                        ForEach(Array(viewModel.reasoningFactors.prefix(2).enumerated()), id: \.offset) { _, factor in
-                            factorRow(factor)
+                        ForEach(Array(factors.enumerated()), id: \.offset) { index, factor in
+                            factorRow(factor, index: index, isLast: index == factors.count - 1)
                         }
                     }
 
@@ -492,19 +503,24 @@ struct HeroReadinessCard: View {
         }
     }
 
+    /// One branch of the readiness reason tree. The factor NAME stays in the working voice (it
+    /// is a label the app says, and the row navigates); its measured delta is **marginalia** —
+    /// mono, uppercase, box-drawing-prefixed (`├─` / `└─`), so the two rows read as the
+    /// verdict's why (DESIGN.md v6 annotation layer + glyph set). The direction color is legal
+    /// below 24pt because the supporting card is a CARD plane.
     @ViewBuilder
-    private func factorRow(_ factor: ReasoningEngine.Factor) -> some View {
+    private func factorRow(_ factor: ReasoningEngine.Factor, index: Int, isLast: Bool) -> some View {
         let content = HStack(spacing: 0) {
             // Tight label→value pairing (baselinePair) — supporting rows stay compact under the score.
             VStack(alignment: .leading, spacing: Spacing.baselinePair) {
                 Text(factor.label)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)
-                // Data reading — one-voice ramp, tabular digits (v5 numeral law).
-                Text(factor.deltaText)
-                    .font(.Tokens.smallLabelMedium)
-                    .monospacedDigit()
-                    .foregroundStyle(factorColor(factor.direction))
+                AnnotationLabel(
+                    "\(isLast ? "└─" : "├─") \(factor.deltaText)",
+                    color: factorColor(factor.direction)
+                )
+                    .annotationReveal(index: index)
             }
             Spacer()
             if trendDestination(for: factor) != nil {
@@ -669,11 +685,14 @@ struct TrainingLoadSection: View {
                         .fill(ColorTokens.divider)
                         .frame(height: 1)
                         .overlay(alignment: .leading) {
-                            // Accent Rule v5: this measured-load fill stays INK — the accent
-                            // is reserved for the hero score and live-state marks. Zone
-                            // classification is still communicated via the ZoneBadge text above.
+                            // Reading Color Rule v6: a progress fill is a LIVE-STATE MARK, and
+                            // live-state is travertine's exclusive territory now that the hero
+                            // reading has moved to its metric hue. (Under v5 this fill was inked
+                            // because accent was spent on the hero score — that reservation is
+                            // gone.) Marks are unrestricted by the contrast rule; zone
+                            // classification still reads from the ZoneBadge text above.
                             Rectangle()
-                                .fill(ColorTokens.text1)
+                                .fill(ColorTokens.accent)
                                 .frame(width: geo.size.width * min(viewModel.acwr / 2.0, 1.0), height: 1)
                         }
                 }
@@ -681,22 +700,28 @@ struct TrainingLoadSection: View {
             }
 
             HStack(spacing: Spacing.md) {
+                // Stagger indices run left→right so the four machine keys label themselves in
+                // reading order after the card settles (v6 annotation choreography).
                 LoadStatCell(
+                    index: 0,
                     label: "ACWR",
                     value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%.2f", viewModel.acwr),
                     isEstimated: viewModel.isColdStartActive
                 )
                 LoadStatCell(
+                    index: 1,
                     label: "ATL",
                     value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%.0f", viewModel.atl),
                     isEstimated: viewModel.isColdStartActive
                 )
                 LoadStatCell(
+                    index: 2,
                     label: "CTL",
                     value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%.0f", viewModel.ctl),
                     isEstimated: viewModel.isColdStartActive
                 )
                 LoadStatCell(
+                    index: 3,
                     label: "TSB",
                     value: viewModel.acwrZone == .noData && !viewModel.isColdStartActive ? "---" : String(format: "%+.0f", viewModel.tsb),
                     isEstimated: viewModel.isColdStartActive
@@ -708,27 +733,29 @@ struct TrainingLoadSection: View {
     }
 }
 
+/// One load key + its reading. `ACWR` / `ATL` / `CTL` / `TSB` are machine keys and the
+/// estimated flag is a machine qualifier — both are marginalia, so both go through
+/// `AnnotationLabel` at `annoSmall`. The reading itself is what the app *says*, so it stays in
+/// the working voice with tabular digits.
 struct LoadStatCell: View {
+    /// Stagger position of this cell's annotation within the load card (v6 choreography).
+    var index: Int = 0
     let label: String
     let value: String
     var isEstimated: Bool = false
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text(label)
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .foregroundStyle(ColorTokens.text3)
+            AnnotationLabel(label, size: .small)
+                .annotationReveal(index: index)
             // Load reading — tabular digits at the small emphasis size (v5 numeral law).
             Text(value)
                 .font(.Tokens.smallLabelMedium)
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text1)
             if isEstimated {
-                Text("dashboard.label.estimated")
-                    .font(.Tokens.micro)
-                    .tracking(0.9)
-                    .foregroundStyle(ColorTokens.text3)
+                AnnotationLabel(key: "dashboard.label.estimated", size: .small)
+                    .annotationReveal(index: index)
             }
         }
         .accessibilityElement(children: .combine)
@@ -771,10 +798,13 @@ struct RecentSessionsSection: View {
                             }
                             Spacer()
                             if let rpe = session.sessionRPE {
-                                Text(String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)))
-                                    .font(.Tokens.smallLabelMedium)
-                                    .monospacedDigit()
-                                    .foregroundStyle(ColorTokens.text2)
+                                // `RPE 7` — a machine key carrying a value, i.e. marginalia in
+                                // the margin of the row (DESIGN.md v6 annotation layer).
+                                AnnotationLabel(
+                                    String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)),
+                                    color: ColorTokens.text2
+                                )
+                                    .annotationReveal(index: index)
                             }
                         }
                         .padding(.horizontal, Spacing.sm)

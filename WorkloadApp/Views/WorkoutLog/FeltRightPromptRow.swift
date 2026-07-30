@@ -26,11 +26,10 @@ struct FeltRightPromptRow: View {
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
 
-            // Micro-caps header — this is about YESTERDAY, never today.
-            Text(String(localized: "feltRight.header", defaultValue: "YESTERDAY'S CALL"))
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .foregroundStyle(ColorTokens.text3)
+            // Card stamp — this is about YESTERDAY, never today. v6: a stamp is marginalia, so
+            // the annotation voice (case/tracking/CJK guard owned by the primitive).
+            AnnotationLabel(String(localized: "feltRight.header", defaultValue: "YESTERDAY'S CALL"))
+                .annotationReveal()
 
             // Quiet one-line context: the differing number + the composed reason (read-only).
             numberLine

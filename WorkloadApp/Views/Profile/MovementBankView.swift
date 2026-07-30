@@ -59,6 +59,9 @@ private struct BankSections: Equatable {
 struct MovementBankView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    /// Locale-correct string lookup for the annotation labels below (`String(localized:)` reads
+    /// the process locale, not the environment locale the app pins its language with).
+    @Environment(\.locale) private var locale
     @Query private var customExercises: [CustomExercise]
     @Query private var overrides: [ExerciseOverride]
     @Query private var athletes: [Athlete]
@@ -286,7 +289,10 @@ struct MovementBankView: View {
     }
 
     /// State badge as a TEXT label (design law: state never by color alone).
-    private func badgeKey(for item: BankItem) -> LocalizedStringKey? {
+    /// The row's state badge. Returns `String.LocalizationValue` rather than
+    /// `LocalizedStringKey` because v6 renders it through `AnnotationLabel`, which consumes a
+    /// resolved `String`.
+    private func badgeKey(for item: BankItem) -> String.LocalizationValue? {
         if scope == .hidden { return "movementBank.badge.hidden" }
         if item.base.isCustom { return "movementBank.badge.custom" }
         if item.isEdited { return "movementBank.badge.edited" }
@@ -326,10 +332,14 @@ struct MovementBankView: View {
                 }
                 .frame(maxWidth: .infinity, alignment: .leading)
 
+                // v6: a row state badge ("HIDDEN" / "CUSTOM" / "EDITED") is a machine-flavoured
+                // state key, so it takes the annotation voice. The exercise name and its
+                // category/equipment line above stay working voice.
                 if let badge = badgeKey(for: item) {
-                    Text(badge)
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.text2)
+                    AnnotationLabel(
+                        LocalePinnedStrings.localized(badge, locale: locale),
+                        color: ColorTokens.text2
+                    )
                 }
                 Image(systemName: "chevron.right")
                     .font(.Tokens.micro)
@@ -660,6 +670,10 @@ private struct CustomExerciseEditSheet: View {
 private struct CatalogExerciseEditSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
+    /// `AnnotationLabel` takes a `String`, so the metadata keys below resolve through
+    /// `LocalePinnedStrings` — the app pins its language via `.environment(\.locale, …)`, which
+    /// `String(localized:)` does not observe.
+    @Environment(\.locale) private var locale
 
     /// Pre-override definition — the catalog defaults.
     private let base: ExerciseDefinition
@@ -738,15 +752,17 @@ private struct CatalogExerciseEditSheet: View {
 
     // MARK: Rows
 
-    /// Catalog defaults as micro-caps caption/value pairs (Stage C metadata
-    /// plate grammar) so the athlete sees what "Reset to Default" restores.
+    /// Catalog defaults as annotation caption/value pairs (Stage C metadata plate grammar) so
+    /// the athlete sees what "Reset to Default" restores.
+    ///
+    /// v6 "Field Notes": these captions are metadata keys — marginalia — so they take the
+    /// annotation voice, which also moves the uppercase/tracking/CJK rules out of the call site.
+    /// The values stay working voice. The plate is a `dataPlate` (card plane), so DESIGN.md
+    /// rule 7 is satisfied.
     private var defaultsPlate: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
-            Text("movementBank.section.defaults")
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .textCase(.uppercase)
-                .foregroundStyle(ColorTokens.text3)
+            AnnotationLabel(LocalePinnedStrings.localized("movementBank.section.defaults", locale: locale))
+                .annotationReveal(index: 0)
             if let muscle = base.muscleGroup {
                 metadataRow("exercise.detail.target", muscle.displayName)
             }
@@ -758,13 +774,12 @@ private struct CatalogExerciseEditSheet: View {
         .dataPlate()
     }
 
-    private func metadataRow(_ label: LocalizedStringKey, _ value: String) -> some View {
+    /// The key takes `String.LocalizationValue` rather than `LocalizedStringKey` because the
+    /// annotation primitive consumes a resolved `String`; call sites still pass a bare literal.
+    private func metadataRow(_ label: String.LocalizationValue, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-            Text(label)
-                .font(.Tokens.micro)
-                .tracking(0.9)
-                .textCase(.uppercase)
-                .foregroundStyle(ColorTokens.text3)
+            AnnotationLabel(LocalePinnedStrings.localized(label, locale: locale))
+                .annotationReveal(index: 1)
             Text(value)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)
