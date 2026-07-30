@@ -1,0 +1,17 @@
+/* Tuwa — spacing, radii, borders. 8pt grid; 4pt only as the baseline-pair micro gap. */
+:root{
+--space-pair:4px;  /* micro-label → value ONLY */
+--space-xs:8px;
+--space-sm:16px;
+--space-md:24px;
+--space-lg:32px;
+--space-xl:48px;
+--space-2xl:64px;
+/* Corner law: cards 12 / controls 8 / pill. Nothing else. */
+--radius-card:12px;
+--radius-control:8px;
+--radius-pill:999px;
+/* Elevation = plane + hairline + relief. NO shadows anywhere. */
+--hairline:0.5px;
+--shadow-none:none;
+}

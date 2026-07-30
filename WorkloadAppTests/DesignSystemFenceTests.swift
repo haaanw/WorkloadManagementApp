@@ -1,6 +1,6 @@
 import XCTest
 
-/// App-wide design-fence — DESIGN.md v5 "Pavilion" (Warm Stone, 2026-07-21).
+/// App-wide design-fence — DESIGN.md v6 "Field Notes" (2026-07-30), an overlay on v5 "Pavilion".
 ///
 /// Source-grep fences over the styled SwiftUI layer (`Views/`, `Components/`, `Utilities/`,
 /// plus the live SwiftUI app files in `App/`). The retired UIKit shell was deleted in the
@@ -20,6 +20,16 @@ import XCTest
 /// 6. **Motion Law** — one motion language: every animation routes through the `Motion`
 ///    tokens in CardStyle.swift. Ad-hoc curve/duration literals and bare `withAnimation`
 ///    (SwiftUI's default spring) are fence failures.
+///
+/// The v6 laws added on top (fences 7–8):
+/// 7. **Metric identities** — the five icon-derived hues exist, carry the exact
+///    `design-system/tokens/colors.css` values, and are a CLOSED set; the retired v5 near-gray
+///    zone values are gone.
+/// 8. **Two-Voice Type Law** — Fragment Mono is sanctioned for ANNOTATION ONLY: the face name
+///    lives only in `FontTokens.swift`, the ≤12pt cap is enforced by clamping rather than by
+///    documentation, annotation choreography has exactly one implementation, and the Alpino
+///    display face is banned in the app (marketing/slides only). `IBMPlexMono` and
+///    `SourceSerif4` stay banned by fence 4 — a mono above 12pt is still the retired v4 mistake.
 ///
 /// Retired fences: halftone (deleted with v4); the v4 Panel Law one-panel-per-screen fence
 /// inverted into the app-wide panelStyle ban (v5 Hero Law: hero = raised light card).
@@ -221,6 +231,169 @@ final class DesignSystemFenceTests: XCTestCase {
                     "\(name) contains a bare `withAnimation` — pass a Motion token (Motion.resolved(Motion.state, reduceMotion:)) instead (DESIGN.md Motion Law)"
                 )
             }
+        }
+    }
+
+    // MARK: - 7. v6 "Field Notes": metric hues are the only new colors
+
+    func test_metricHueTokens_existAndAreComplete() throws {
+        // The five icon-derived metric identities (DESIGN.md v6). Each metric owns its hue, so a
+        // legend is never needed — and the set is CLOSED: adding a sixth is a design decision,
+        // not a token addition. Values must match `design-system/tokens/colors.css` exactly.
+        // Full enumeration, then filter — `fencedSources` carries a >50-file sanity guard that a
+        // single-subdirectory call would trip.
+        let colorTokens = try fencedSources()
+            .first { $0.name == "ColorTokens.swift" }
+        let text = try XCTUnwrap(colorTokens?.text, "ColorTokens.swift not found in the fenced sources")
+
+        let requiredHues = [
+            ("metricReadiness", "0x2E7D4F"),
+            ("metricRecovery",  "0x1D7189"),
+            ("metricSleep",     "0x52589E"),
+            ("metricStrain",    "0xA8442D"),
+            ("metricLoad",      "0x8A6810")
+        ]
+        for (token, hex) in requiredHues {
+            XCTAssertTrue(
+                text.contains("static let \(token)"),
+                "ColorTokens is missing the v6 metric hue `\(token)` (DESIGN.md v6 metric identities)"
+            )
+            XCTAssertTrue(
+                text.contains(hex),
+                "ColorTokens.\(token) must be \(hex) — the value in design-system/tokens/colors.css"
+            )
+        }
+
+        // The set is closed: exactly five `metric*` tokens, no more.
+        let metricDeclarations = try NSRegularExpression(pattern: #"static let (metric[A-Za-z]+)\s*="#)
+        let range = NSRange(text.startIndex..., in: text)
+        var found: Set<String> = []
+        metricDeclarations.enumerateMatches(in: text, range: range) { match, _, _ in
+            guard let match, let r = Range(match.range(at: 1), in: text) else { return }
+            found.insert(String(text[r]))
+        }
+        // `metricHues` is the canonical array, not a sixth hue.
+        found.remove("metricHues")
+        XCTAssertEqual(
+            found, Set(requiredHues.map(\.0)),
+            "The v6 metric-hue set is closed at five. Unexpected/missing metric tokens: \(found.symmetricDifference(Set(requiredHues.map(\.0)))) — adding a hue is a design change (DESIGN.md v6)"
+        )
+    }
+
+    func test_retunedZoneColors_matchV6() throws {
+        // v6 re-tuned all four zone colors for gym-floor legibility. The v5 near-gray values are
+        // retired and must not linger. The label-first Zone Color Rule is unchanged and is
+        // enforced separately (TodayVerdictCardGuardTests) — this fence only pins the values.
+        // Full enumeration, then filter — `fencedSources` carries a >50-file sanity guard that a
+        // single-subdirectory call would trip.
+        let colorTokens = try fencedSources()
+            .first { $0.name == "ColorTokens.swift" }
+        let text = try XCTUnwrap(colorTokens?.text, "ColorTokens.swift not found in the fenced sources")
+
+        for hex in ["0x2E7D4F", "0x8A5C08", "0x9E3428", "0x52589E"] {
+            XCTAssertTrue(text.contains(hex), "ColorTokens is missing the v6 zone value \(hex)")
+        }
+        for retired in ["0x3F5A46", "0x6E5624", "0x7E362E", "0x46525E"] {
+            XCTAssertFalse(
+                text.contains(retired),
+                "ColorTokens still carries the retired v5 zone value \(retired) — v6 re-tuned the zone palette"
+            )
+        }
+    }
+
+    // MARK: - 8. v6: Fragment Mono is sanctioned for ANNOTATION ONLY
+
+    func test_annotationFace_reachableOnlyViaFontTokens() throws {
+        // Same law as the working voice: the face name is a FontTokens-only literal. Everywhere
+        // else reaches Fragment Mono through `Font.Tokens.anno` / `.annoSmall` (or, preferably,
+        // the `AnnotationLabel` primitive), never by name.
+        for (name, text) in try fencedSources() {
+            if name == "FontTokens.swift" { continue }
+            XCTAssertFalse(
+                text.contains("FragmentMono"),
+                "\(name) names the annotation face directly — Fragment Mono is reachable only via Font.Tokens.anno / .annoSmall (DESIGN.md v6 Two-Voice Type Law)"
+            )
+        }
+    }
+
+    func test_annotationSizeCap_isEnforcedAndNotBypassed() throws {
+        // The ≤12pt cap is the whole difference between v6's annotation layer and the RETIRED v4
+        // mono dial voice (a mono at 30–64pt). It must be enforced by clamping inside the
+        // chokepoint — not merely documented — so no future token can raise it.
+        let fontTokens = try fencedSources()
+            .first { $0.name == "FontTokens.swift" }
+        let text = try XCTUnwrap(fontTokens?.text, "FontTokens.swift not found in the fenced sources")
+
+        XCTAssertTrue(
+            text.contains("annoSizeCap"),
+            "FontTokens must declare `annoSizeCap` — the v6 annotation size ceiling"
+        )
+        XCTAssertTrue(
+            text.contains("annoSizeCap: CGFloat = 12"),
+            "The v6 annotation cap must be 12pt (DESIGN.md v6: Fragment Mono never renders above 12pt)"
+        )
+        XCTAssertTrue(
+            text.contains("min(size, Tokens.annoSizeCap)"),
+            "`annoCascaded` must CLAMP to annoSizeCap, not just document it — a larger request has to be unrepresentable, which is what keeps the retired v4 dial-voice mistake out (DESIGN.md v6)"
+        )
+
+        // Only the two sanctioned annotation tokens may exist, at exactly 12pt and 10pt.
+        XCTAssertTrue(text.contains("static let anno = annoCascaded(size: 12)"),
+                      "Font.Tokens.anno must be Fragment Mono at 12pt")
+        XCTAssertTrue(text.contains("static let annoSmall = annoCascaded(size: 10)"),
+                      "Font.Tokens.annoSmall must be Fragment Mono at 10pt")
+
+        let annoCalls = try NSRegularExpression(pattern: #"annoCascaded\(size:\s*(\d+)\)"#)
+        let range = NSRange(text.startIndex..., in: text)
+        annoCalls.enumerateMatches(in: text, range: range) { match, _, _ in
+            guard let match, let r = Range(match.range(at: 1), in: text),
+                  let size = Int(text[r]) else { return }
+            XCTAssertLessThanOrEqual(
+                size, 12,
+                "FontTokens builds an annotation font at \(size)pt — above the 12pt v6 cap (DESIGN.md v6)"
+            )
+        }
+    }
+
+    func test_annotationChoreography_hasOneImplementation() throws {
+        // v6's staggered annotation reveal is a chokepoint primitive, like Motion itself. If a
+        // screen hand-rolls a delayed opacity stagger, the 40ms grammar drifts per surface — the
+        // exact failure the primitive exists to prevent.
+        let cardStyle = try fencedSources()
+            .first { $0.name == "CardStyle.swift" }
+        let text = try XCTUnwrap(cardStyle?.text, "CardStyle.swift not found in the fenced sources")
+
+        XCTAssertTrue(
+            text.contains("func annotationReveal("),
+            "CardStyle.swift must define the `.annotationReveal(index:)` primitive (DESIGN.md v6 annotation choreography)"
+        )
+        XCTAssertTrue(
+            text.contains("static let anno = snap(0.18)"),
+            "Motion must carry the v6 `anno` token (180ms, --dur-anno) so the annotation fade is not a call-site literal"
+        )
+        XCTAssertTrue(
+            text.contains("Motion.annoSurfaceSettle"),
+            "The annotation reveal must delay past `Motion.annoSurfaceSettle` — labels arrive AFTER the surface settles (DESIGN.md v6)"
+        )
+
+        // Nobody outside the chokepoint may define their own annotation stagger modifier.
+        for (name, source) in try fencedSources() {
+            if name == "CardStyle.swift" { continue }
+            XCTAssertFalse(
+                source.contains("AnnotationRevealModifier"),
+                "\(name) defines or references the private annotation-reveal modifier — consume `.annotationReveal(index:)` instead (DESIGN.md v6)"
+            )
+        }
+    }
+
+    func test_alpinoDisplayFace_bannedInApp() throws {
+        // Alpino is the v6 DISPLAY voice — marketing surfaces and slides only. It is not bundled
+        // in the app target and must never be referenced from app code (readme.md: "never app UI").
+        for (name, text) in try fencedSources() {
+            XCTAssertFalse(
+                text.contains("Alpino"),
+                "\(name) references Alpino — the display face is marketing/slides only and is banned in the app (DESIGN.md v6)"
+            )
         }
     }
 

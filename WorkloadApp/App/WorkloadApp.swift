@@ -25,6 +25,10 @@ struct WorkloadApp: App {
 
         let hasPrimaryFace = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("instrument sans") })
         let hasNotoSansSC = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("noto sans sc") })
+        // v6 "Field Notes": the annotation voice. A missing annotation face degrades to the
+        // system monospaced font (FontTokens.annoCascaded), which reads as *almost* right —
+        // exactly the silent-fallback class this assertion exists to catch.
+        let hasAnnotationFace = UIFont.familyNames.contains(where: { $0.localizedCaseInsensitiveContains("fragment mono") })
 
         // Assert the exact PostScript names FontTokens requires (list owned by the chokepoint —
         // Font.Tokens.requiredPostScriptNames — so font-name literals stay in FontTokens.swift).
@@ -36,7 +40,9 @@ struct WorkloadApp: App {
         // names iOS resolves for the bundled families. Descriptors in FontTokens.swift MUST
         // use these exact PostScript names (RESEARCH Pitfall 3 / phase-14 lesson).
         print("Noto family fonts: \(UIFont.fontNames(forFamilyName: "Noto Sans SC"))")
-        for family in UIFont.familyNames where family.localizedCaseInsensitiveContains("instrument") {
+        for family in UIFont.familyNames
+        where family.localizedCaseInsensitiveContains("instrument")
+            || family.localizedCaseInsensitiveContains("fragment") {
             print("\(family) family fonts: \(UIFont.fontNames(forFamilyName: family))")
         }
 
@@ -44,6 +50,9 @@ struct WorkloadApp: App {
             // Non-fatal: fonts aren't bundled into the test host; just log.
             if !hasPrimaryFace {
                 print("[font-check] Instrument Sans not found (test host — non-fatal).")
+            }
+            if !hasAnnotationFace {
+                print("[font-check] Fragment Mono not found (test host — non-fatal).")
             }
             if !hasNotoSansSC {
                 print("[font-check] Noto Sans SC not registered (test host — non-fatal).")
@@ -55,6 +64,10 @@ struct WorkloadApp: App {
             assert(
                 hasPrimaryFace,
                 "Instrument Sans not found. Add the two static Instrument Sans TTFs (see Font.Tokens.requiredPostScriptNames) and their UIAppFonts entries."
+            )
+            assert(
+                hasAnnotationFace,
+                "Fragment Mono not found. Add the static Fragment Mono TTF (see Font.Tokens.requiredPostScriptNames) and its UIAppFonts entry — the v6 annotation layer silently degrades to the system mono without it."
             )
             assert(
                 hasNotoSansSC,

@@ -129,6 +129,7 @@
 		2303020100000000000000B1 /* NotoSansSC-Medium.otf in Resources */ = {isa = PBXBuildFile; fileRef = 2303020100000000000000B2 /* NotoSansSC-Medium.otf */; };
 		2309010100000000000000B1 /* InstrumentSans-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2309010100000000000000B2 /* InstrumentSans-Regular.ttf */; };
 		2309020100000000000000B1 /* InstrumentSans-Medium.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 2309020100000000000000B2 /* InstrumentSans-Medium.ttf */; };
+		230B010100000000000000B1 /* FragmentMono-Regular.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 230B010100000000000000B2 /* FragmentMono-Regular.ttf */; };
 		2307020100000000000000B1 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
 		230A010100000000000000B1 /* LocalePinnedStrings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 230A010100000000000000B2 /* LocalePinnedStrings.swift */; };
 		2307050100000000000000B1 /* InkTabBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307050100000000000000B2 /* InkTabBar.swift */; };
@@ -347,6 +348,8 @@
 		2309010100000000000000B2 /* InstrumentSans-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InstrumentSans-Regular.ttf"; sourceTree = "<group>"; };
 		2309020100000000000000B2 /* InstrumentSans-Medium.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "InstrumentSans-Medium.ttf"; sourceTree = "<group>"; };
 		2309030100000000000000B2 /* InstrumentSans-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "InstrumentSans-LICENSE.txt"; sourceTree = "<group>"; };
+		230B010100000000000000B2 /* FragmentMono-Regular.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = "FragmentMono-Regular.ttf"; sourceTree = "<group>"; };
+		230B020100000000000000B2 /* FragmentMono-LICENSE.txt */ = {isa = PBXFileReference; lastKnownFileType = text; path = "FragmentMono-LICENSE.txt"; sourceTree = "<group>"; };
 		2307020100000000000000B2 /* CornerTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CornerTokens.swift; sourceTree = "<group>"; };
 		230A010100000000000000B2 /* LocalePinnedStrings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LocalePinnedStrings.swift; sourceTree = "<group>"; };
 		2307050100000000000000B2 /* InkTabBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InkTabBar.swift; sourceTree = "<group>"; };
@@ -601,6 +604,8 @@
 				2309010100000000000000B2 /* InstrumentSans-Regular.ttf */,
 				2309020100000000000000B2 /* InstrumentSans-Medium.ttf */,
 				2309030100000000000000B2 /* InstrumentSans-LICENSE.txt */,
+				230B010100000000000000B2 /* FragmentMono-Regular.ttf */,
+				230B020100000000000000B2 /* FragmentMono-LICENSE.txt */,
 			);
 			path = Fonts;
 			sourceTree = "<group>";
@@ -995,6 +1000,7 @@
 				2303020100000000000000B1 /* NotoSansSC-Medium.otf in Resources */,
 				2309010100000000000000B1 /* InstrumentSans-Regular.ttf in Resources */,
 				2309020100000000000000B1 /* InstrumentSans-Medium.ttf in Resources */,
+				230B010100000000000000B1 /* FragmentMono-Regular.ttf in Resources */,
 				62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */,
 				2301030100000000000000A1 /* Localizable.xcstrings in Resources */,
 				2301040100000000000000A1 /* InfoPlist.xcstrings in Resources */,

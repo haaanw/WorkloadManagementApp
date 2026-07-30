@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Lottie & Lenis — what they add</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+body{margin:0;background:var(--bg);color:var(--text-1);font-family:var(--font-sans);font-size:var(--text-body);line-height:var(--leading-body)}
+a{color:var(--text-1)}a:hover{color:var(--accent)}
+.anno{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
+.wrap{max-width:1152px;margin:0 auto;padding:0 24px}
+h1,h2{font-family:var(--font-display);font-weight:650;letter-spacing:-0.02em;line-height:1.05;margin:0}
+.kick{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.card{background:var(--surface-el);border:0.5px solid var(--divider);border-radius:12px}
+.sec{padding:88px 0}
+.toggle{display:inline-flex;border:0.5px solid var(--divider-strong);border-radius:999px;overflow:hidden;font-size:13px;font-weight:500;cursor:pointer;user-select:none}
+.toggle span{padding:9px 22px}
+.toggle .on{background:var(--cta-fill);color:var(--ink-inverse)}
+.spacer{padding:64px 0;border-top:0.5px solid var(--divider)}
+.spacer .n{font-size:44px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums}
+</style></head><body>
+
+<header style="position:sticky;top:0;background:var(--bg);border-bottom:0.5px solid var(--divider);z-index:9">
+<div class="wrap" style="display:flex;align-items:center;justify-content:space-between;height:64px">
+<span style="display:flex;align-items:center;gap:10px"><img src="../../assets/icon-512.png" width="28" height="28" alt=""><span style="font-size:19px;font-weight:500">Tuwa</span><span class="anno" style="margin-left:8px">MOTION ADD-ONS DEMO</span></span>
+<div class="toggle" id="lenisToggle" role="switch" aria-checked="true" tabindex="0"><span class="on" id="tOn">Lenis on</span><span id="tOff">Native</span></div>
+</div>
+</header>
+
+<section class="sec">
+<div class="wrap">
+<div class="kick">01 · LENIS — SMOOTH SCROLL</div>
+<h1 style="font-size:clamp(40px,5vw,64px)">Feel the difference.<br>Scroll this page.</h1>
+<p style="max-width:620px;color:var(--text-2);margin:24px 0 8px">Lenis replaces the browser's stepped wheel scrolling with an inertial, eased glide — the page keeps drifting briefly after you stop, and every scroll-driven animation (reveals, scrubs, count-ups) reads as continuous instead of jumping in wheel-notch increments. Flip the toggle in the header while scrolling to compare.</p>
+<p class="anno">TRACKPADS ALREADY SCROLL SMOOTHLY — THE DIFFERENCE IS BIGGEST ON A MOUSE WHEEL · REDUCED-MOTION USERS GET NATIVE SCROLL</p>
+</div>
+</section>
+
+<div class="wrap">
+<div class="spacer"><div class="anno" style="margin-bottom:8px">SCROLL SPECIMEN · 1/4</div><div class="n" data-reveal="">Notice how motion between sections eases in and out —</div></div>
+<div class="spacer"><div class="anno" style="margin-bottom:8px">SCROLL SPECIMEN · 2/4</div><div class="n">— instead of arriving in hard wheel-notch steps.</div></div>
+<div class="spacer"><div class="anno" style="margin-bottom:8px">SCROLL SPECIMEN · 3/4</div><div class="n">Scroll-scrubbed scenes (the strike-zone bar) benefit most:</div></div>
+<div class="spacer"><div class="anno" style="margin-bottom:8px">SCROLL SPECIMEN · 4/4</div><div class="n">the needle glides instead of ticking.</div></div>
+</div>
+
+<section class="sec" style="background:var(--surface);border-top:0.5px solid var(--divider);border-bottom:0.5px solid var(--divider)">
+<div class="wrap">
+<div class="kick">02 · LOTTIE — VECTOR MICRO-ANIMATIONS</div>
+<h2 style="font-size:clamp(32px,4vw,44px)">The two animations your site ships</h2>
+<p style="max-width:620px;color:var(--text-2);margin:20px 0 40px">Lottie plays designer-authored vector animations from small JSON files — crisp at any size, ~few KB each. On tuwa.app they run only while on screen and freeze to a single frame for reduced-motion users. These are the actual files from the live site.</p>
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:32px">
+<div class="card" style="padding:28px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="anno">NEEDLE-SWEEP.JSON</span><button class="anno" id="btnNeedle" style="background:none;border:0.5px solid var(--divider-strong);border-radius:999px;padding:5px 14px;cursor:pointer;color:var(--text-2)">pause</button></div>
+<div id="lotNeedle" style="height:220px;margin-top:16px"></div>
+<p style="font-size:13px;color:var(--text-2);margin:12px 0 0">Used in the hero — the readiness needle sweeping its tick rail.</p>
+</div>
+<div class="card" style="padding:28px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="anno">VERDICT-TICK.JSON</span><button class="anno" id="btnTick" style="background:none;border:0.5px solid var(--divider-strong);border-radius:999px;padding:5px 14px;cursor:pointer;color:var(--text-2)">pause</button></div>
+<div id="lotTick" style="height:220px;margin-top:16px"></div>
+<p style="font-size:13px;color:var(--text-2);margin:12px 0 0">Used on the verdict card — the go / modify / hold tick confirming.</p>
+</div>
+</div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap" style="max-width:720px">
+<div class="kick">03 · VERDICT</div>
+<h2 style="font-size:clamp(28px,3vw,36px)">Worth porting?</h2>
+<p style="color:var(--text-2);margin:20px 0">Both are self-hosted files copied from your site — no npm, no build. Lenis is one script + 4 lines; Lottie needs the player plus a JSON per animation. If the glide and the two micro-animations feel right here, I can wire both into the homepage kit the same way the live site does.</p>
+</div>
+</section>
+
+<script src="../../assets/vendor/lenis.min.js"></script>
+<script src="../../assets/vendor/lottie.min.js"></script>
+<script>
+(function(){'use strict';
+var RM=false;try{RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+/* Lenis */
+var lenis=null,tOn=document.getElementById('tOn'),tOff=document.getElementById('tOff'),tg=document.getElementById('lenisToggle');
+function startLenis(){if(lenis||RM||typeof Lenis==='undefined')return;lenis=new Lenis({duration:1.1});function raf(t){if(!lenis)return;lenis.raf(t);requestAnimationFrame(raf);}requestAnimationFrame(raf);}
+function stopLenis(){if(!lenis)return;lenis.destroy();lenis=null;}
+function setUI(on){tOn.classList.toggle('on',on);tOff.classList.toggle('on',!on);tg.setAttribute('aria-checked',on?'true':'false');}
+tg.addEventListener('click',function(){if(lenis){stopLenis();setUI(false);}else{startLenis();setUI(!!lenis);}});
+if(!RM){startLenis();}setUI(!!lenis);
+/* Lottie */
+function mount(id,btnId){var el=document.getElementById(id),btn=document.getElementById(btnId);
+if(!window.lottie||!el)return;
+var anim=lottie.loadAnimation({container:el,renderer:'svg',loop:true,autoplay:false,path:'../../assets/lottie/'+(id==='lotNeedle'?'needle-sweep.json':'verdict-tick.json')});
+if(RM){anim.addEventListener('DOMLoaded',function(){try{anim.goToAndStop(Math.floor(anim.totalFrames*0.55),true);}catch(e){}});btn.style.display='none';return;}
+var playing=true;anim.play();
+btn.addEventListener('click',function(){playing=!playing;if(playing){anim.play();btn.textContent='pause';}else{anim.pause();btn.textContent='play';}});
+var io=new IntersectionObserver(function(es){es.forEach(function(en){try{if(en.isIntersecting&&playing)anim.play();else anim.pause();}catch(e){}});},{threshold:0.1});
+io.observe(el);}
+mount('lotNeedle','btnNeedle');mount('lotTick','btnTick');
+})();
+</script>
+</body></html>

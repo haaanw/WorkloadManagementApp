@@ -1,0 +1,15 @@
+/* Tuwa — motion tokens. Non-bouncy, interruptible; no ease-in ever; no dip-to-invisible.
+   Web translation of the app spring law. Annotation layer: mono labels fade in staggered
+   ~40ms AFTER the surface settles ("the card exists, then the scientist labels it"). */
+:root{
+--ease:cubic-bezier(0.22,1,0.36,1); /* @kind other */ /* ease-out spring feel */
+--ease-exit:cubic-bezier(0.4,0,1,1); /* @kind other */
+--dur-press:100ms; /* @kind other */
+--dur-state:220ms; /* @kind other */
+--dur-screen:260ms; /* @kind other */
+--dur-entrance:340ms; /* @kind other */
+--dur-countup:400ms; /* @kind other */
+--dur-anno:180ms; /* @kind other */
+--anno-stagger:40ms; /* @kind other */
+--rise:6px;
+}

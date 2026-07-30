@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Motion iterations — Tuwa website</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+body{margin:0;background:var(--bg);color:var(--text-1);font-family:var(--font-sans);font-size:var(--text-body);line-height:var(--leading-body)}
+a{color:var(--text-1)}a:hover{color:var(--accent)}
+.anno{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
+.wrap{max-width:1152px;margin:0 auto;padding:0 24px}
+h1,h2{font-family:var(--font-display);font-weight:650;letter-spacing:-0.02em;line-height:1.05;margin:0}
+.kick{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.card{background:var(--surface-el);border:0.5px solid var(--divider);border-radius:12px}
+.sec{padding:88px 0}
+.phone{background:#1F2225;border-radius:30px;padding:9px 7px;width:250px}
+.phone img{display:block;width:100%;border-radius:23px}
+/* 01 sticky showcase */
+#showWrap{min-height:280vh}
+.show-sticky{position:sticky;top:0;min-height:100vh;display:flex;align-items:center}
+.show-grid{display:grid;grid-template-columns:1fr auto;gap:64px;align-items:center;width:100%}
+.rail{position:relative;width:2px;background:var(--divider);align-self:stretch;margin-right:24px}
+#railFill{position:absolute;inset:0;background:var(--text-1);transform:scaleY(0);transform-origin:top}
+.stepRow{display:flex}
+.steps{display:flex;flex-direction:column;gap:36px;flex:1}
+.step h3{margin:0 0 6px;font-size:19px;font-weight:500}
+.step p{margin:0;font-size:14px;color:var(--text-2);max-width:420px}
+.step{opacity:.32;transition:opacity .4s var(--ease)}
+.step.active{opacity:1}
+.plates{position:relative;width:250px;height:520px}
+.shot{position:absolute;inset:0;opacity:0;transform:translateY(28px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+.shot.active{opacity:1;transform:none}
+.shot.prev{opacity:0;transform:translateY(-28px)}
+/* 02 fan */
+.fan{position:relative;height:560px;display:flex;justify-content:center;align-items:center}
+.fan .phone{position:absolute;transition:none}
+.fan .f0{transform:rotate(calc(-10deg * var(--p,0))) translateX(calc(-240px * var(--p,0)))}
+.fan .f1{z-index:2}
+.fan .f2{transform:rotate(calc(10deg * var(--p,0))) translateX(calc(240px * var(--p,0)))}
+/* 03 ghosts */
+.ghostSec{position:relative;overflow:hidden}
+.ghost{position:absolute;font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--text-1);opacity:.05;font-size:200px;letter-spacing:-0.04em;pointer-events:none;user-select:none}
+/* 04 chart draw */
+.chartCard{padding:28px}
+#spark path.line{stroke-dasharray:1;stroke-dashoffset:1}
+</style></head><body>
+
+<header style="position:sticky;top:0;background:var(--bg);border-bottom:0.5px solid var(--divider);z-index:9">
+<div class="wrap" style="display:flex;align-items:center;justify-content:space-between;height:64px">
+<span style="display:flex;align-items:center;gap:10px"><img src="../../assets/icon-512.png" width="28" height="28" alt=""><span style="font-size:19px;font-weight:500">Tuwa</span><span class="anno" style="margin-left:8px">MOTION ITERATIONS · 4 SCENES</span></span>
+<a href="motion-addons-demo.html" class="anno">← LOTTIE &amp; LENIS DEMO</a>
+</div>
+</header>
+
+<section class="sec" style="padding-bottom:40px">
+<div class="wrap">
+<div class="kick">SCROLL TO PLAY EACH SCENE</div>
+<h1 style="font-size:clamp(36px,4.5vw,56px)">Four more ways to move.</h1>
+<p style="max-width:620px;color:var(--text-2);margin:20px 0 0">Scenes 01–03 are ports of your live site's remaining motion (sticky showcase, fanned spread, ghost drift); 04 is a new Field Notes idea — charts that draw themselves. All reduced-motion guarded.</p>
+</div>
+</section>
+
+<section id="showWrap" style="background:var(--surface);border-top:0.5px solid var(--divider);border-bottom:0.5px solid var(--divider)">
+<div class="show-sticky"><div class="wrap show-grid">
+<div class="stepRow">
+<div class="rail"><div id="railFill"></div></div>
+<div class="steps">
+<div class="kick" style="margin-bottom:0">01 · STICKY SHOWCASE — SCROLL STEPS THROUGH THE PRODUCT</div>
+<div class="step active"><h3>Start with the verdict</h3><p>Go, modify, or hold — this morning's physiology turned into one decision.</p></div>
+<div class="step"><h3>Stay in the strike zone</h3><p>Acute-to-chronic load held inside the band where adaptation outpaces injury risk.</p></div>
+<div class="step"><h3>See the load trend</h3><p>One fatigue budget across sport skill, strength and conditioning — 28 days out.</p></div>
+</div></div>
+<div class="plates">
+<div class="shot active phone"><img src="../../assets/screens/verdict.png" alt="Verdict screen"></div>
+<div class="shot phone"><img src="../../assets/screens/strike-zone.png" alt="Strike zone screen"></div>
+<div class="shot phone"><img src="../../assets/screens/workload.png" alt="Workload screen"></div>
+</div>
+</div></div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<div class="kick">02 · FANNED SPREAD — SCREENS OPEN LIKE DEALT CARDS</div>
+<h2 style="font-size:clamp(28px,3.5vw,40px)">The whole system, one gesture</h2>
+</div>
+<div class="fan" data-spread="">
+<div class="phone f0"><img src="../../assets/screens/recovery.png" alt="Recovery screen"></div>
+<div class="phone f1"><img src="../../assets/screens/dashboard.png" alt="Dashboard screen"></div>
+<div class="phone f2"><img src="../../assets/screens/active-workout.png" alt="Active workout screen"></div>
+</div>
+</section>
+
+<section class="sec ghostSec" style="background:var(--surface);border-top:0.5px solid var(--divider);border-bottom:0.5px solid var(--divider)">
+<div class="ghost" data-ghost="" style="top:-40px;left:2%">82</div>
+<div class="ghost" data-ghost="" style="bottom:-60px;right:4%;font-size:160px">1.23</div>
+<div class="ghost" data-ghost="" style="top:30%;right:28%;font-size:110px">62MS</div>
+<div class="wrap" style="position:relative;text-align:center;max-width:820px;padding:72px 24px">
+<div class="kick" style="margin-bottom:24px">03 · GHOST NUMERALS — DATA DRIFTS BEHIND THE COPY</div>
+<div style="font-family:var(--font-display);font-weight:450;font-size:clamp(26px,3vw,34px);line-height:1.25">"The back room of a pro team — plan, physiology, and a decision — for athletes who coach themselves."</div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<div class="kick">04 · SELF-DRAWING CHARTS — NEW, FIELD NOTES NATIVE</div>
+<h2 style="font-size:clamp(28px,3.5vw,40px)">The line arrives like a pen stroke</h2>
+<p style="max-width:620px;color:var(--text-2);margin:20px 0 32px">On entry the HRV line draws left-to-right over 900&nbsp;ms, the dashed baseline fades in after, and the "now" dot pops last. Same grammar as the app's charts — ink line, dashed baseline, mono axis.</p>
+<div class="card chartCard">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="anno">HRV · 28 DAYS</span><span class="anno" style="color:var(--metric-recovery)">62 MS +4 · AT BASELINE</span></div>
+<svg id="spark" viewBox="0 0 800 180" style="width:100%;height:auto;margin-top:16px" role="img" aria-label="HRV trend over 28 days, currently 62 milliseconds, at baseline">
+<line x1="0" y1="90" x2="800" y2="90" stroke="var(--divider-strong)" stroke-width="1" stroke-dasharray="4 5" id="baseline" opacity="0"></line>
+<path class="line" d="M0,120 C40,116 70,128 110,122 C150,116 180,96 220,100 C260,104 290,132 330,126 C370,120 400,84 440,80 C480,76 510,98 550,92 C590,86 620,64 660,60 C700,56 740,72 780,66" fill="none" stroke="var(--metric-recovery)" stroke-width="2" pathLength="1"></path>
+<circle id="nowDot" cx="780" cy="66" r="5" fill="none" stroke="var(--metric-recovery)" stroke-width="2" opacity="0"></circle>
+</svg>
+<div style="display:flex;justify-content:space-between;margin-top:8px" class="anno"><span>D-28</span><span>D-21</span><span>D-14</span><span>D-7</span><span>TODAY</span></div>
+</div>
+</div>
+</section>
+
+<section class="sec" style="padding-top:0">
+<div class="wrap" style="max-width:720px">
+<div class="kick">NOTES</div>
+<p style="color:var(--text-2);margin:0">01–03 come straight from your live homeMotion engine, so porting them into the homepage kit is drop-in. 04 would slot into the methodology section. Tell me which scenes make the cut.</p>
+</div>
+</section>
+
+<script>
+(function(){'use strict';
+var RM=false;try{RM=window.matchMedia('(prefers-reduced-motion: reduce)').matches;}catch(e){}
+if(RM){document.querySelectorAll('.step,.shot').forEach(function(el,i){el.classList.add('active');});
+ document.querySelectorAll('[data-spread]').forEach(function(el){el.style.setProperty('--p','1');});
+ var b=document.getElementById('baseline'),d=document.getElementById('nowDot'),p=document.querySelector('#spark path.line');
+ if(b)b.setAttribute('opacity','1');if(d)d.setAttribute('opacity','1');if(p)p.style.strokeDashoffset='0';
+ return;}
+var vh=window.innerHeight||800;
+window.addEventListener('resize',function(){vh=window.innerHeight||800;});
+var clamp01=function(x){return x<0?0:x>1?1:x;};
+/* 01 sticky showcase */
+var showWrap=document.getElementById('showWrap'),railFill=document.getElementById('railFill');
+var plates=Array.prototype.slice.call(showWrap.querySelectorAll('.shot'));
+var steps=Array.prototype.slice.call(showWrap.querySelectorAll('.step'));
+var cur=-1,lastP=-1;
+/* 02 fans + 03 ghosts */
+var spreads=Array.prototype.slice.call(document.querySelectorAll('[data-spread]'));
+var ghosts=Array.prototype.slice.call(document.querySelectorAll('[data-ghost]'));
+/* 04 chart draw */
+var sparkCard=document.getElementById('spark'),line=sparkCard.querySelector('path.line'),
+ baseline=document.getElementById('baseline'),nowDot=document.getElementById('nowDot'),drawn=false;
+var cio=new IntersectionObserver(function(es){es.forEach(function(en){
+ if(!en.isIntersecting||drawn)return;drawn=true;cio.disconnect();
+ line.style.transition='stroke-dashoffset .9s cubic-bezier(.22,1,.36,1)';
+ requestAnimationFrame(function(){line.style.strokeDashoffset='0';});
+ setTimeout(function(){baseline.style.transition='opacity .4s';baseline.setAttribute('opacity','1');},700);
+ setTimeout(function(){nowDot.style.transition='opacity .3s';nowDot.setAttribute('opacity','1');},1000);
+});},{threshold:0.4});
+cio.observe(sparkCard);
+function frame(){
+ var r=showWrap.getBoundingClientRect(),span=r.height-vh;
+ var p=span<=0?(r.top<0?1:0):clamp01(-r.top/span);
+ if(Math.abs(p-lastP)>0.0004){lastP=p;
+  railFill.style.transform='scaleY('+p.toFixed(4)+')';
+  var idx=Math.min(2,Math.floor(p*3));
+  if(idx!==cur){cur=idx;
+   plates.forEach(function(pl,i){pl.classList.toggle('active',i===idx);pl.classList.toggle('prev',i<idx);});
+   steps.forEach(function(st,i){st.classList.toggle('active',i===idx);});}}
+ var i,rr,raw,eased,off;
+ for(i=0;i<spreads.length;i++){rr=spreads[i].getBoundingClientRect();
+  if(rr.bottom<-80||rr.top>vh+80)continue;
+  raw=(vh*0.92-rr.top)/(vh*0.55);eased=1-Math.pow(1-clamp01(raw),3);
+  spreads[i].style.setProperty('--p',eased.toFixed(4));}
+ for(i=0;i<ghosts.length;i++){rr=ghosts[i].getBoundingClientRect();
+  if(rr.bottom<-200||rr.top>vh+200)continue;
+  off=(rr.top+rr.height/2-vh/2)*-0.08;
+  ghosts[i].style.transform='translateY('+off.toFixed(1)+'px)';}
+ requestAnimationFrame(frame);}
+requestAnimationFrame(frame);
+})();
+</script>
+</body></html>

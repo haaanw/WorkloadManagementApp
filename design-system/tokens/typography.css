@@ -1,0 +1,37 @@
+/* Tuwa "Field Notes" — type tokens. One working voice (Instrument Sans 400/500), a mono annotation
+   layer (Fragment Mono, NEVER above 12px), a display voice (Alpino — marketing/slides only).
+   All hierarchy through size + the single weight step. Sentence case everywhere.
+   Every data numeral: tabular figures (font-variant-numeric: tabular-nums). */
+:root{
+/* App ramp (px = pt) */
+--text-hero:64px;        /* hero score — the one colored text element (accent or metric hue) */
+--text-display:32px;     /* verdict copy / standing values */
+--text-page-title:28px;  /* sentence case, 400 */
+--text-section-head:17px;/* 500 */
+--text-body:17px;
+--text-label:15px;
+--text-small:13px;
+--text-micro:11px;       /* micro-caps: uppercase +0.08em — Latin only */
+--text-key:11px;         /* key/CTA labels, 500, sentence case */
+--text-tab:11px;         /* tab labels, 500, title case */
+/* Mono annotation layer — marginalia, not headline */
+--anno:12px;             /* standard annotation */
+--anno-sm:10px;          /* axis labels, timestamps */
+/* Marketing/display ramp */
+--text-display-xl:clamp(56px,7vw,96px);
+--text-heading:clamp(32px,4vw,40px);
+--text-lede:19px;
+/* Line heights */
+--leading-tight:1.1;
+--leading-heading:1.2;
+--leading-body:1.55;
+--leading-anno:1.7;
+/* Tracking */
+--tracking-display:-0.02em;
+--tracking-heading:-0.01em;
+--tracking-caps:0.08em;
+/* Weights — 400/500 only in the sans; Alpino may use 450–700 */
+--weight-regular:400;
+--weight-medium:500;
+--weight-display:650;
+}

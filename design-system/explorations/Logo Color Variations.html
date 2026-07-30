@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><meta name="design_doc_mode" content="canvas"><title>Logo color variations</title>
+<link rel="stylesheet" href="../styles.css">
+<style>
+body{margin:0;font-family:var(--font-sans);color:var(--text-1)}
+a{color:var(--text-1)}a:hover{color:var(--accent)}
+.frame{position:absolute;width:340px;background:var(--surface-el-2);border:0.5px solid var(--divider);border-radius:12px;overflow:hidden}
+.badge{position:absolute;top:12px;left:12px;font-family:var(--font-mono);font-size:11px;letter-spacing:.06em;text-transform:uppercase;background:var(--cta-fill);color:var(--ink-inverse);border-radius:999px;padding:3px 10px;z-index:2}
+.tiles{display:grid;grid-template-columns:1fr 1fr}
+.tile{display:flex;align-items:center;justify-content:center;height:200px}
+.tile img{width:128px;height:128px}
+.tile.light{background:var(--bg)}
+.tile.dark{background:#1B1A17}
+.meta{padding:16px;border-top:0.5px solid var(--divider)}
+.meta h3{margin:0 0 4px;font-size:15px;font-weight:500}
+.meta p{margin:0 0 10px;font-size:12px;color:var(--text-2);line-height:1.5}
+.chips{display:flex;gap:6px}
+.chips span{width:20px;height:20px;border-radius:6px;border:0.5px solid rgba(0,0,0,.12)}
+.note{position:absolute;font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
+</style></head><body>
+<div class="note" style="left:40px;top:24px">LOGO × METRIC IDENTITIES — 4 RECOLORS OF THE APP ICON · EACH SHOWN ON STONE + INK</div>
+
+<div class="frame" style="left:40px;top:64px">
+<span class="badge" style="background:var(--surface);color:var(--text-2);border:0.5px solid var(--divider-strong)">current</span>
+<div class="tiles"><div class="tile light"><img src="../assets/icon-512.png" alt="Current Tuwa icon"></div><div class="tile dark"><img src="../assets/icon-512.png" alt=""></div></div>
+<div class="meta"><h3>Current icon</h3><p>The shipped five-ellipse athlete. Muted, low mutual contrast — the reason for this experiment.</p>
+<div class="chips"><span style="background:#305038"></span><span style="background:#286880"></span><span style="background:#384858"></span><span style="background:#683838"></span><span style="background:#505028"></span></div></div>
+</div>
+
+<div class="frame" style="left:420px;top:64px">
+<span class="badge">1a</span>
+<div class="tiles"><div class="tile light"><img src="../assets/logo-experiments/icon-metric.png" alt="Icon in exact metric identity hues"></div><div class="tile dark"><img src="../assets/logo-experiments/icon-metric.png" alt=""></div></div>
+<div class="meta"><h3>Metric identities, exact</h3><p>Each ellipse takes its metric's token verbatim: verdant readiness, teal HRV, indigo sleep, rust strain, ochre load. Icon and data language become one system.</p>
+<div class="chips"><span style="background:#2E7D4F"></span><span style="background:#1D7189"></span><span style="background:#52589E"></span><span style="background:#A8442D"></span><span style="background:#8A6810"></span></div></div>
+</div>
+
+<div class="frame" style="left:800px;top:64px">
+<span class="badge">1b</span>
+<div class="tiles"><div class="tile light"><img src="../assets/logo-experiments/icon-metric-bright.png" alt="Icon in brightened metric hues"></div><div class="tile dark"><img src="../assets/logo-experiments/icon-metric-bright.png" alt=""></div></div>
+<div class="meta"><h3>Metric identities, brightened</h3><p>Same five hues pushed +1 step in chroma and lightness for icon duty — tokens are tuned for text on stone; icons can afford more saturation. Strongest shelf presence.</p>
+<div class="chips"><span style="background:#31955C"></span><span style="background:#1F8CAB"></span><span style="background:#616AC4"></span><span style="background:#C2532F"></span><span style="background:#A87F0F"></span></div></div>
+</div>
+
+<div class="frame" style="left:1180px;top:64px">
+<span class="badge">1c</span>
+<div class="tiles"><div class="tile light"><img src="../assets/logo-experiments/icon-ink-verdant.png" alt="Icon in ink grays with one verdant ellipse"></div><div class="tile dark"><img src="../assets/logo-experiments/icon-ink-verdant.png" alt=""></div></div>
+<div class="meta"><h3>Ink + verdant</h3><p>Everything drops to the ink/travertine ramp except the lead ellipse in readiness green — the "go" signal as the brand. Quietest, most Field Notes.</p>
+<div class="chips"><span style="background:#2E7D4F"></span><span style="background:#57544E"></span><span style="background:#6F6759"></span><span style="background:#8B877F"></span><span style="background:#33312C"></span></div></div>
+</div>
+
+<div class="frame" style="left:1560px;top:64px">
+<span class="badge">1d</span>
+<div class="tiles"><div class="tile light"><img src="../assets/logo-experiments/icon-contrast-boost.png" alt="Icon with current hues contrast-boosted"></div><div class="tile dark"><img src="../assets/logo-experiments/icon-contrast-boost.png" alt=""></div></div>
+<div class="meta"><h3>Current hues, contrast-boosted</h3><p>Keeps today's character; every family gets more saturation and lightness spread so the ellipses separate. Safest change — nobody notices, everything reads better.</p>
+<div class="chips"><span style="background:#356247"></span><span style="background:#20789B"></span><span style="background:#415872"></span><span style="background:#8F4141"></span><span style="background:#64642B"></span></div></div>
+</div>
+
+<div class="note" style="left:40px;top:620px">IN-CONTEXT: HEADER LOCKUP AT 28PX + HOME-SCREEN TILE AT 60PX</div>
+<div class="frame" style="left:40px;top:656px;width:1860px">
+<div style="display:grid;grid-template-columns:repeat(5,1fr)">
+<div style="padding:24px;border-right:0.5px solid var(--divider)"><div class="note" style="position:static;margin-bottom:14px">CURRENT</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px"><img src="../assets/icon-512.png" width="28" height="28" alt=""><span style="font-size:19px;font-weight:500">Tuwa</span></div><div style="width:60px;height:60px;border-radius:14px;background:#FCFBF9;border:0.5px solid var(--divider);display:flex;align-items:center;justify-content:center"><img src="../assets/icon-512.png" width="44" height="44" alt=""></div></div>
+<div style="padding:24px;border-right:0.5px solid var(--divider)"><div class="note" style="position:static;margin-bottom:14px">1A</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px"><img src="../assets/logo-experiments/icon-metric.png" width="28" height="28" alt=""><span style="font-size:19px;font-weight:500">Tuwa</span></div><div style="width:60px;height:60px;border-radius:14px;background:#FCFBF9;border:0.5px solid var(--divider);display:flex;align-items:center;justify-content:center"><img src="../assets/logo-experiments/icon-metric.png" width="44" height="44" alt=""></div></div>
+<div style="padding:24px;border-right:0.5px solid var(--divider)"><div class="note" style="position:static;margin-bottom:14px">1B</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px"><img src="../assets/logo-experiments/icon-metric-bright.png" width="28" height="28" alt=""><span style="font-size:19px;font-weight:500">Tuwa</span></div><div style="width:60px;height:60px;border-radius:14px;background:#FCFBF9;border:0.5px solid var(--divider);display:flex;align-items:center;justify-content:center"><img src="../assets/logo-experiments/icon-metric-bright.png" width="44" height="44" alt=""></div></div>
+<div style="padding:24px;border-right:0.5px solid var(--divider)"><div class="note" style="position:static;margin-bottom:14px">1C</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px"><img src="../assets/logo-experiments/icon-ink-verdant.png" width="28" height="28" alt=""><span style="font-size:19px;font-weight:500">Tuwa</span></div><div style="width:60px;height:60px;border-radius:14px;background:#FCFBF9;border:0.5px solid var(--divider);display:flex;align-items:center;justify-content:center"><img src="../assets/logo-experiments/icon-ink-verdant.png" width="44" height="44" alt=""></div></div>
+<div style="padding:24px"><div class="note" style="position:static;margin-bottom:14px">1D</div><div style="display:flex;align-items:center;gap:10px;margin-bottom:20px"><img src="../assets/logo-experiments/icon-contrast-boost.png" width="28" height="28" alt=""><span style="font-size:19px;font-weight:500">Tuwa</span></div><div style="width:60px;height:60px;border-radius:14px;background:#FCFBF9;border:0.5px solid var(--divider);display:flex;align-items:center;justify-content:center"><img src="../assets/logo-experiments/icon-contrast-boost.png" width="44" height="44" alt=""></div></div>
+</div>
+</div>
+</body></html>

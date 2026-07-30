@@ -2,19 +2,31 @@ import SwiftUI
 import UIKit
 import CoreText
 
-/// Type scale for the app — the DESIGN.md v5 "Pavilion" One-Voice Type Law:
+/// Type scale for the app — the DESIGN.md v6 "Field Notes" **Two-Voice Type Law**:
 ///
-/// - **One voice:** Instrument Sans (static Regular 400 + Medium 500 faces), with a
-///   UIFontDescriptor cascade fallback to Noto Sans SC for CJK glyphs. All hierarchy is
-///   achieved through size and the single weight step — no bold, no italic, no semantic
-///   styles, no second face.
-/// - **Numerals:** Instrument Sans carries the `tnum` feature; every data numeral applies
-///   `.monospacedDigit()` at the call site (v1 law restored).
+/// Two faces, strictly disjoint jobs. The split is by *function*, not by taste:
+///
+/// - **Working voice — Instrument Sans** (static Regular 400 + Medium 500): everything the app
+///   *says*. Titles, body, labels, values, CTAs, tab labels. All hierarchy through size and the
+///   single weight step — no bold, no italic, no semantic styles.
+/// - **Annotation voice — Fragment Mono** (Regular only), via `anno` (12pt) / `annoSmall` (10pt)
+///   and the `.annotation()` modifier: everything the app *annotates*. Units, deltas,
+///   timestamps, axis labels, reason trees, machine keys. **≤12pt hard cap** (see
+///   `annoSizeCap`). It annotates; it never speaks a sentence, a headline, or a CTA label.
+///
+/// Both faces carry a UIFontDescriptor cascade fallback to Noto Sans SC for CJK glyphs —
+/// Noto is a fallback, not a third voice.
+///
+/// - **Numerals:** both faces carry tabular figures; every data numeral applies
+///   `.monospacedDigit()` at the call site.
 ///
 /// RETIRED voices (do not reintroduce; names are fence-banned app-wide):
 /// - v3 serif display voice (Source Serif 4) — retired 2026-07-20.
-/// - v4 mono dial voice (IBM Plex Mono) — retired 2026-07-21 with v5; data numerals use
-///   the one-voice ramp + .monospacedDigit().
+/// - v4 mono **dial** voice (IBM Plex Mono) — retired 2026-07-21. Note the distinction from
+///   v6's annotation layer: the dial voice was a mono at 30–64pt DISPLAY size. A mono above
+///   12pt is still a violation; `annoCascaded` clamps to make it unrepresentable.
+/// - **Alpino** (the display face in `design-system/fonts/`) is marketing/slides ONLY and is
+///   fence-banned in the app.
 ///
 /// Usage: `.font(.Tokens.body)` or `.font(Font.Tokens.heroScore)`
 ///
@@ -40,9 +52,30 @@ extension Font {
         static let requiredPostScriptNames = [
             "InstrumentSans-Regular",
             "InstrumentSans-Medium",
+            "FragmentMono-Regular",
             "NotoSansSC-Regular",
             "NotoSansSC-Medium"
         ]
+
+        // MARK: - Annotation voice (DESIGN.md v6 "Field Notes")
+
+        /// The HARD size cap on the annotation voice: Fragment Mono may never render above
+        /// 12pt. Enforced in `annoCascaded` by clamping, so no call site — and no future token
+        /// — can raise it. v4's mistake was a mono at DISPLAY size (the retired IBM Plex Mono
+        /// dial voice, 30–64pt); v6's mono is marginalia and nothing else.
+        static let annoSizeCap: CGFloat = 12
+
+        /// 12pt Fragment Mono — the standard annotation size. Units, deltas, timestamps,
+        /// machine keys, reason trees.
+        ///
+        /// Prefer the `.annotation()` view modifier over setting this font directly: the
+        /// modifier also applies the uppercase transform, the +0.05em tracking, and the
+        /// locale guard (zh-Hans takes neither), which are part of the annotation law rather
+        /// than a call-site choice.
+        static let anno = annoCascaded(size: 12)
+
+        /// 10pt Fragment Mono — chart axis labels and timestamps, the small annotation size.
+        static let annoSmall = annoCascaded(size: 10)
 
         /// 64pt — the hero readiness score: the ONE colored text element in the app
         /// (rendered in `ColorTokens.accent`). Apply .monospacedDigit() at the call site.
@@ -131,5 +164,36 @@ extension Font {
                 ]
             ])
         return Font(UIFont(descriptor: descriptor, size: size))
+    }
+
+    /// Construct an ANNOTATION font: Fragment Mono primary, Noto Sans SC cascade fallback.
+    ///
+    /// The DESIGN.md v6 ≤12pt cap is enforced HERE by clamping, not documented at call sites —
+    /// `Font.Tokens.annoSizeCap` is the ceiling and a larger request is silently reduced to it
+    /// rather than honored. That makes "a mono at display size" unrepresentable in the type
+    /// system's only route to the face, which is the point: the retired v4 dial voice was
+    /// exactly that mistake.
+    ///
+    /// Fragment Mono ships a single Regular face (no Medium) — correct for annotation, which
+    /// carries no weight hierarchy. PostScript name `FragmentMono-Regular`, a static face
+    /// (verified via name-table dump 2026-07-30: no `fvar`, so no variable-font PS-name trap).
+    private static func annoCascaded(size: CGFloat) -> Font {
+        let cappedSize = min(size, Tokens.annoSizeCap)
+        let primaryName = "FragmentMono-Regular"
+        let cjkName     = "NotoSansSC-Regular"
+
+        guard UIFont(name: primaryName, size: cappedSize) != nil else {
+            // Not registered (missing from bundle / Info.plist) — degrade honestly to the
+            // system monospaced face rather than letting a bad descriptor pick one silently.
+            return Font(UIFont.monospacedSystemFont(ofSize: cappedSize, weight: .regular))
+        }
+
+        let descriptor = UIFontDescriptor(name: primaryName, size: cappedSize)
+            .addingAttributes([
+                UIFontDescriptor.AttributeName.cascadeList: [
+                    UIFontDescriptor(fontAttributes: [.name: cjkName])
+                ]
+            ])
+        return Font(UIFont(descriptor: descriptor, size: cappedSize))
     }
 }

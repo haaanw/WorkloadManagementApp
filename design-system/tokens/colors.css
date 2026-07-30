@@ -1,0 +1,49 @@
+/* Tuwa "Field Notes" — color tokens. Warm stone material + ink, travertine accent (live-state only),
+   the app icon's five hues as metric identities, desaturated zone colors (label-first, never color alone). */
+:root{
+/* Stone planes — ascending light (relief: raised = brighter) */
+--bg:#F0EFEC;
+--surface:#F4F3F0;
+--surface-el:#F8F7F4;
+--surface-el-2:#FCFBF9;
+--divider:#D6D3CD;
+--divider-strong:#CCC9C2;
+--well-top:#E7E5E0;
+--well-bottom:#EDEBE6;
+--relief-highlight:#FFFFFE;
+--relief-shade:#DBD8D2;
+/* Ink ramp */
+--text-1:#1B1A17;
+--text-2:#57544E;
+--text-3:#8B877F;
+--disabled:#A19D95;
+--ink-inverse:#F4F3F0;
+/* Accent — travertine. Hero reading + live-state marks ONLY. Never CTA fill, never labels. */
+--accent:#6F6759;
+/* Metric identities — derived from the app icon's five hue families, re-tuned 2026-07-28 for mutual distinguishability (wide hue spread, varied lightness). Each metric owns its hue. */
+--metric-readiness:#2E7D4F; /* verdant green */
+--metric-recovery:#1D7189;  /* teal — HRV */
+--metric-sleep:#52589E;     /* indigo */
+--metric-strain:#A8442D;    /* rust */
+--metric-load:#8A6810;      /* ochre */
+/* Zone colors — desaturated, ≥4.5:1 on stone. Text label first; color supplementary. */
+--zone-optimal:#2E7D4F;
+--zone-caution:#8A5C08;
+--zone-danger:#9E3428;
+--zone-low:#52589E;
+/* Charts */
+--chart-positive:#4E7A74;
+--chart-grid:#E4E2DC;
+/* Semantic aliases */
+--surface-card:var(--surface-el);
+--surface-raised:var(--surface-el-2);
+--text-body:var(--text-1);
+--text-secondary:var(--text-2);
+--text-anno:var(--text-3);
+--border-hairline:var(--divider);
+--border-strong:var(--divider-strong);
+--cta-fill:var(--text-1);
+--cta-ink:var(--ink-inverse);
+--focus-ring:var(--accent);
+--destructive:var(--zone-danger);
+}

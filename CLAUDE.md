@@ -2,6 +2,21 @@
 
 Athlete workload management iOS app built with SwiftUI + SwiftData. Tracks training load (ACWR), recovery scoring, autoregulation recommendations, and personal records.
 
+## Pair mode — READ FIRST if `.pair/` exists
+
+Two peer agents (CLAUDE = Claude Code, CODEX = Codex CLI) work this repo
+concurrently. If `.pair/` exists, **read `.pair/PROTOCOL.md` in full before
+touching anything** — it governs file ownership, build paths, and git rights,
+and it outranks your defaults. Load-bearing rules: `.pbxproj` is CLAUDE-only;
+CLAUDE is the sole committer in this repo; CLAUDE builds with
+`-derivedDataPath ~/.tonus-dd-claude`; `tuwa-website/` belongs to CODEX; no
+outward-facing actions (push, App Store Connect, publishing) without HAN's
+explicit go.
+
+`CLAUDE.md` and `AGENTS.md` are hand-synced twins. Any project-wide fact you
+change lands in **both**, same turn — drift means the two agents reason from
+different premises.
+
 ## Architecture
 
 **Layer stack:**
@@ -43,7 +58,8 @@ Athlete workload management iOS app built with SwiftUI + SwiftData. Tracks train
 - **Phase 3 (coach+athlete multi-user): RETIRED** — coach mode DROPPED as of v1.6 (user decision 2026-07-18): the app is **athlete-only**. Coach UI is unreachable (Views/Coach/ compiles but is unmounted; will be deleted with the retired UIKit shell after v1.6 validates). Coach @Model classes (CoachAthleteRelationship, PrescribedWorkout) are retained for data/schema compatibility only. Do NOT build or port coach surfaces.
 - **Phase 4 (subscriptions): Complete** — RevenueCat two-tier (Athlete Pro + Coach), all features gated
 - **Phase 5 (App Store readiness): In progress** — legal pages done, screenshots in progress
-- **v1.6 "Ink & Grain" (UI polish + rehost): Machine-complete 2026-07-18** — SwiftUI tree is the live app, DESIGN.md v3 applied app-wide, custom InkTabBar, full suite green (782 tests). Awaiting on-device dogfood → version bump → shell deletion.
+- **v1.6 "Ink & Grain" (UI polish + rehost): Machine-complete 2026-07-18** — SwiftUI tree is the live app, DESIGN.md v3 applied app-wide, custom InkTabBar, full suite green. Awaiting on-device dogfood → version bump → shell deletion.
+- **v1.7 "Field Notes" (v6 design system): IN PROGRESS 2026-07-30** — on branch `v1.7-field-notes` (NOT `main` — v1.6 build 17 is in App Store review and `main` stays hotfix-clean). Multi-session rollout; plan + lane briefs in `.planning/v17-field-notes/DISTRIBUTION.md`. Canonical design system: `design-system/` (in-repo, versioned).
 - **Movement Bank: Complete 2026-07-18** — 1,324-exercise preset catalog (`Resources/ExerciseCatalog.json`, MIT data from hasaneyldrm/exercises-dataset; Gym visual GIFs NOT licensed — data-only, never bundle the media). `ExerciseCatalogStore` (decode + search index), `ExerciseOverride` @Model (local-only hide/remap, purged on sign-out/account-deletion), search-first `ExercisePickerView`, `MovementBankView` in Profile (add/modify/hide entries). Exercise identity = name string; legacy curated names win dedupe so history/PRs stay continuous. Regenerate catalog: `scripts/generate_exercise_catalog.py`.
 
 ## Auth
@@ -76,21 +92,26 @@ Always read `DESIGN.md` before making any visual or UI decisions.
 All font choices, colors, spacing, and aesthetic direction are defined there.
 Do not deviate from the design system without explicit user approval.
 
-Key constraints to enforce (DESIGN.md v5 "Pavilion" — Warm Stone, 2026-07-21):
+The v6 design system's canonical source is **`design-system/`** in this repo (`SKILL.md` → `readme.md` → `tokens/` → `guidelines/`). `DESIGN.md` is its iOS-binding restatement.
+
+Key constraints to enforce (DESIGN.md v6 "Field Notes" — 2026-07-30, an **overlay on v5 "Pavilion"**):
 - **Corners come from `CornerTokens` only** — card 12pt / control 8pt / pill (`Capsule()`); never a hand-typed radius literal
 - **No shadows** — elevation is plane + hairline + the relief system (`.raised`/`.debossed` chokepoint modifiers only)
-- **One-Voice Type Law** — Instrument Sans (static Regular + Medium) everywhere via `Font.Tokens.*`; all data numerals add `.monospacedDigit()`; never `.system()` or semantic styles; `IBMPlexMono` and `SourceSerif4` are fence-banned strings
-- **Accent Rule v5 (`ColorTokens.accent`, travertine `#6F6759`)** — the hero readiness/ACWR score (the one colored text element) + live-state marks (progress fills, active/selected, tab tick, recording dot, needles); never decorative, never a CTA fill, never labels
-- **Hero Law** — heroes are RAISED LIGHT CARDS with the reading in accent; no dark surfaces anywhere (`panelStyle` is fence-banned)
+- **Two-Voice Type Law (v6)** — two faces with strictly disjoint jobs: **Instrument Sans** (Regular + Medium) for everything the app *says*, via `Font.Tokens.*`; **Fragment Mono** for everything it *annotates*, via `Font.Tokens.anno` (12pt) / `.annoSmall` (10pt) ONLY — **≤12pt hard cap, uppercase + tracking applied by the token/modifier, never the call site**. All data numerals add `.monospacedDigit()`; never `.system()` or semantic styles. `IBMPlexMono`, `SourceSerif4`, and `Alpino` are fence-banned strings (Alpino is marketing/slides only); `FragmentMono` appears only in `FontTokens.swift`
+- **Annotation is marginalia** — units, deltas, timestamps, axis labels, reason trees (`├─ └─`), machine keys (`HRV_BASELINE: TRUE`). **Never a sentence, headline, CTA, or tab label.** Unicode glyph set (`▲▼ ● ○ ├─ └─ ▁▂▃ ░▒ ·`), no icon font, no emoji ever. zh-Hans gets no case transform and no added tracking
+- **Five metric hues (v6)** — `metric-readiness` `#2E7D4F` / `metric-recovery` `#1D7189` / `metric-sleep` `#52589E` / `metric-strain` `#A8442D` / `metric-load` `#8A6810`. Each metric owns its hue. Usable as series lines, state dots, "now" markers, and hero readings; **never as a plane fill, card background, CTA fill, or decorative tint.** These five are the only colors v6 adds
+- **Reading Color Rule v6 (supersedes the v5 Accent Rule)** — the hero reading takes **its metric's hue**; `ColorTokens.accent` (travertine `#6F6759`) owns **live-state marks exclusively** (progress fills, active/selected, tab tick, recording dot, needles) plus hero readings with no metric identity. Still one colored text element per screen; never decorative, never a CTA fill, never labels
+- **Contrast rule** — metric-hue/zone-colored text below 24pt lives on **card planes** only (all nine clear 4.5:1 there; `zone-optimal` is 4.39:1 on the base plane); hero readings ≥32pt on any plane; marks on any plane; annotation defaults to `text3` and never sits on a well
+- **Hero Law** — heroes are RAISED LIGHT CARDS; no dark surfaces anywhere (`panelStyle` is fence-banned)
 - **CTAs** — one ink-filled pill max per screen; decision rows are equal-weight butted cells (nocebo guard)
 - **All spacing must be multiples of 8pt** — no magic numbers (4pt only as the sanctioned `baselinePair` micro-gap)
-- **Case discipline** — sentence case everywhere; micro-caps only at micro size (≈0.9pt tracking)
-- **Zone states communicated through text labels + optional colored border** — never color alone
+- **Case discipline** — sentence case everywhere in the working voice; micro-caps only at micro size (≈0.9pt tracking). The annotation voice is always uppercase (Latin only) — that is its own law, not an exception
+- **Zone states communicated through text labels + optional colored border** — never color alone. v6 re-tuned the four zone colors (`optimal #2E7D4F` / `caution #8A5C08` / `danger #9E3428` / `low #52589E`); badges are text + hairline capsule, never a fill
 - **Light-only appearance** via `ColorTokens` semantic tokens; never hardcode hex values in views; no dark-mode branches
 - **Motion via `Motion` tokens only** (non-bouncy springs, no ease-in, `tickSpring` overshoot reserved for the tab tick); interaction via the Five Primitives
+- **Annotation choreography (v6)** — mono labels fade in **40ms-staggered after the surface settles**, via the single `.annotationReveal(index:)` primitive in `CardStyle.swift`. Never reimplemented per screen
 - In QA mode, flag any code that deviates from DESIGN.md
 
-<!-- GSD:project-start source:PROJECT.md -->
 ## Project
 
 **Tuwa** — official product name. (Faros, Tonus, Tutrice are all dead/abandoned names; never use them in user-facing copy. Bundle ID remains `com.tonus.app`. Repo dir is still `Tonus/` for historical reasons.)
@@ -107,10 +128,7 @@ Key constraints to enforce (DESIGN.md v5 "Pavilion" — Warm Stone, 2026-07-21):
 - **HealthKit**: Read-only access, raw data must never leave device (only composite scores sync)
 - **Subscriptions**: RevenueCat handles StoreKit; API keys gitignored
 - **Backend**: Supabase PostgreSQL with RLS; no local fallback for sync
-- **Design**: Must follow DESIGN.md v5 "Pavilion" (Warm Stone) — CornerTokens (card 12 / control 8 / pill), no shadows (relief via `.raised`/`.debossed`), one-voice type (Instrument Sans), travertine accent (hero score + live-state only), 8pt grid, light-only
-<!-- GSD:project-end -->
-
-<!-- GSD:stack-start source:codebase/STACK.md -->
+- **Design**: Must follow DESIGN.md v6 "Field Notes" (overlay on v5 Pavilion; canonical source `design-system/`) — CornerTokens (card 12 / control 8 / pill), no shadows (relief via `.raised`/`.debossed`), two-voice type (Instrument Sans speaks / Fragment Mono annotates at ≤12pt), five metric hues with the hero reading in its metric's hue, travertine accent for live-state only, 8pt grid, light-only
 ## Technology Stack
 
 ## Languages
@@ -142,7 +160,8 @@ Key constraints to enforce (DESIGN.md v5 "Pavilion" — Warm Stone, 2026-07-21):
 - `PrivacyInfo.xcprivacy` - App Store Privacy Manifest
 - `SCREENSHOT_MODE` - DEBUG build flag that bypasses authentication and seeds mock data for automated screenshots (see `AppRouter.swift`)
 ## Fonts
-- `InstrumentSans-Regular.ttf` + `InstrumentSans-Medium.ttf` (static faces, SIL OFL) — the one app voice (DESIGN.md v5)
+- `InstrumentSans-Regular.ttf` + `InstrumentSans-Medium.ttf` (static faces, SIL OFL) — the working voice (DESIGN.md v6)
+- `FragmentMono-Regular.ttf` (SIL OFL, Wei Huang) — the annotation voice, ≤12pt marginalia only (v6)
 - `NotoSansSC-Regular.otf` + `NotoSansSC-Medium.otf` — CJK cascade fallback
 ## Platform Requirements
 - Xcode (latest, tested with iPhone 17 Pro Max simulator)
@@ -155,9 +174,6 @@ Key constraints to enforce (DESIGN.md v5 "Pavilion" — Warm Stone, 2026-07-21):
 - Supabase PostgreSQL backend (always available, no local fallback)
 - RevenueCat cloud configuration (subscription offerings must be configured in dashboard)
 - Apple Health app or compatible wearable (Apple Watch, Oura, Whoop, Garmin) for HealthKit data
-<!-- GSD:stack-end -->
-
-<!-- GSD:conventions-start source:CONVENTIONS.md -->
 ## Conventions
 
 ## Naming Patterns
@@ -267,14 +283,11 @@ Key constraints to enforce (DESIGN.md v5 "Pavilion" — Warm Stone, 2026-07-21):
 - @Query used for direct SwiftData reads when ViewModel not needed
 - Example from LoginView: `@State private var email = ""`
 - All colors via `ColorTokens` enum (never hardcoded hex)
-- Semantic properties: `ColorTokens.text1`, `ColorTokens.zoneDanger`, `ColorTokens.accent`
+- Semantic properties: `ColorTokens.text1`, `ColorTokens.zoneDanger`, `ColorTokens.accent`, `ColorTokens.metricReadiness`
 - Light-only appearance (ColorTokens forces light; no dark-mode branches)
-- Custom fonts only: `Font.Tokens.*` — Instrument Sans, the single voice (DESIGN.md v5 One-Voice Type Law)
+- Custom fonts only: `Font.Tokens.*` — two voices with disjoint jobs (DESIGN.md v6 Two-Voice Type Law)
 - No system fonts (`.system()`, `.headline`, etc.)
-- Font set: Instrument Sans Regular + Medium everywhere (static faces); data numerals add `.monospacedDigit()`; Noto Sans SC CJK cascade
-<!-- GSD:conventions-end -->
-
-<!-- GSD:architecture-start source:ARCHITECTURE.md -->
+- Font set: Instrument Sans Regular + Medium for all working copy (static faces); Fragment Mono via `Font.Tokens.anno`/`.annoSmall` for marginalia only (≤12pt); data numerals add `.monospacedDigit()`; Noto Sans SC CJK cascade on both faces
 ## Architecture
 
 ## Pattern Overview
@@ -366,30 +379,6 @@ Key constraints to enforce (DESIGN.md v5 "Pavilion" — Warm Stone, 2026-07-21):
 - **Session spike detection:** Returns nil if insufficient prior data (< 3 sessions), UI renders conditional UI
 - **Zombie accounts:** If auth session exists but no Athlete row in Supabase, auto sign-out (resilience in AppRouter)
 ## Cross-Cutting Concerns
-<!-- GSD:architecture-end -->
-
-<!-- GSD:skills-start source:skills/ -->
 ## Project Skills
 
 No project skills found. Add skills to any of: `.claude/skills/`, `.agents/skills/`, `.cursor/skills/`, or `.github/skills/` with a `SKILL.md` index file.
-<!-- GSD:skills-end -->
-
-<!-- GSD:workflow-start source:GSD defaults -->
-## GSD Workflow Enforcement
-
-Before using Edit, Write, or other file-changing tools, start work through a GSD command so planning artifacts and execution context stay in sync.
-
-Use these entry points:
-- `/gsd-quick` for small fixes, doc updates, and ad-hoc tasks
-- `/gsd-debug` for investigation and bug fixing
-- `/gsd-execute-phase` for planned phase work
-
-Do not make direct repo edits outside a GSD workflow unless the user explicitly asks to bypass it.
-<!-- GSD:workflow-end -->
-
-<!-- GSD:profile-start -->
-## Developer Profile
-
-> Profile not yet configured. Run `/gsd-profile-user` to generate your developer profile.
-> This section is managed by `generate-claude-profile` -- do not edit manually.
-<!-- GSD:profile-end -->

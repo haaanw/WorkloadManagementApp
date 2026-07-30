@@ -1,0 +1,14 @@
+/* Tuwa — webfonts. Three voices max: Instrument Sans (UI), Fragment Mono (annotation), Alpino (display).
+   Noto Sans SC is not a voice — it is the CJK cascade fallback. */
+@import url('https://fonts.googleapis.com/css2?family=Fragment+Mono&display=swap');
+@font-face{font-family:'Instrument Sans';src:url('../assets/fonts/InstrumentSans-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Instrument Sans';src:url('../assets/fonts/InstrumentSans-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'Noto Sans SC';src:url('../assets/fonts/NotoSansSC-Regular.otf') format('opentype');font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:'Noto Sans SC';src:url('../assets/fonts/NotoSansSC-Medium.otf') format('opentype');font-weight:500;font-style:normal;font-display:swap}
+@font-face{font-family:'Alpino';src:url('../fonts/Alpino-Variable.ttf') format('truetype');font-weight:100 900;font-style:normal;font-display:swap}
+:root{
+--font-sans:'Instrument Sans','Noto Sans SC',system-ui,sans-serif;
+--font-mono:'Fragment Mono',ui-monospace,monospace;
+--font-display:'Alpino','Instrument Sans',sans-serif;
+--font-cjk:'Noto Sans SC','Instrument Sans',system-ui,sans-serif;
+}

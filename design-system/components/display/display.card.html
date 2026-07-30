@@ -1,0 +1,25 @@
+<!-- @dsCard group="Components" viewport="700x560" name="Display" subtitle="Card · MetricRow · MetricTile · ZoneBadge · TagChip · DeltaIndicator · AttentionBanner · Toast" -->
+<!DOCTYPE html><html><head><meta charset="utf-8"><link rel="stylesheet" href="../../styles.css">
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+<script src="../../_ds_bundle.js"></script>
+<style>body{margin:0;background:var(--bg);font-family:var(--font-sans);padding:16px 20px}.lbl{font-family:var(--font-mono);font-size:10px;color:var(--text-3);text-transform:uppercase;margin:0 0 8px}</style></head>
+<body><div id="root"></div>
+<script type="text/babel">
+const {Card,MetricRow,MetricTile,ZoneBadge,TagChip,DeltaIndicator,AttentionBanner,Toast}=window.DesignSystem_cf6e68;
+ReactDOM.createRoot(document.getElementById('root')).render(<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'18px 24px'}}>
+<div><div className="lbl">CARD + METRIC ROWS</div>
+<Card padding="4px 16px"><MetricRow label="HRV" value="62" unit="ms" delta={4} hue="var(--metric-recovery)"/><MetricRow label="Sleep" value="7.6" unit="h" delta={0} hue="var(--metric-sleep)"/><MetricRow label="Load ratio" value="1.12" unit="acwr" delta={-1} hue="var(--metric-load)" last/></Card></div>
+<div><div className="lbl">METRIC TILES</div>
+<div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:10}}><MetricTile title="Volume" value="12,480" subtitle="KG·REP WK31" color="var(--metric-load)"/><MetricTile title="Sessions" value="5" subtitle="THIS WEEK"/></div></div>
+<div><div className="lbl">ZONE BADGES + CHIPS</div>
+<div style={{display:'flex',gap:8,flexWrap:'wrap',alignItems:'center'}}><ZoneBadge zone="optimal" label="Optimal"/><ZoneBadge zone="caution" label="Caution"/><ZoneBadge zone="danger" label="High risk"/><TagChip label="Caffeine"/><TagChip label="Poor sleep" selected/></div></div>
+<div><div className="lbl">DELTAS + TOAST</div>
+<div style={{display:'flex',gap:14,alignItems:'center',flexWrap:'wrap'}}><DeltaIndicator delta={4}/><DeltaIndicator delta={1}/><DeltaIndicator delta={0}/><DeltaIndicator delta={-6}/><Toast message="Session saved"/></div></div>
+<div style={{gridColumn:'1/-1'}}><div className="lbl">ATTENTION BANNERS</div>
+<div style={{display:'grid',gap:10}}>
+<AttentionBanner zone="caution" title="Load spike" message="Weekly load is 32% above your 4-week average." action="Review workload" onDismiss={()=>{}}/>
+<AttentionBanner zone="optimal" title="New PR — back squat" message="140 kg × 3 at RPE 8." /></div></div>
+</div>);
+</script></body></html>

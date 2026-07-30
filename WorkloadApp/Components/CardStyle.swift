@@ -6,8 +6,21 @@ import UIKit
 /// "Card Pattern", and "Motion". Every grouped surface and every interaction is built from
 /// these instead of hand-rolling background + overlay + animation per screen.
 ///
+/// v6 "Field Notes" additions (2026-07-30) — the annotation layer's two primitives live here,
+/// beside Motion, because this file is the primitives chokepoint:
+/// - `AnnotationLabel` — the mono marginalia label. Owns the uppercase transform, +0.05em
+///   tracking, tertiary ink, tabular digits, and the CJK guard, so a call site cannot violate
+///   the annotation law by passing the wrong modifiers.
+/// - `.annotationReveal(index:)` — the 40ms-staggered reveal that fires AFTER the surface
+///   settles. The single implementation; Wave-2 screens consume it and never reimplement it.
+///
+/// The card/relief surfaces below needed no v6 edit: they read `ColorTokens` semantically, and
+/// v6's card spec (`surface-el` fill, 0.5pt `divider` hairline, 12pt radius, 16/24 padding) plus
+/// its emphasis spec (`surface-el-2` + `divider-strong`) are byte-for-byte what they already
+/// draw. The v6 palette reaches them through the token layer.
+///
 /// Hard constraints (enforced here so call sites can't drift):
-/// - Corners come from `CornerTokens` only (DESIGN.md v5 "Pavilion"): grouped surfaces
+/// - Corners come from `CornerTokens` only (DESIGN.md v6, unchanged from v5): grouped surfaces
 ///   (plates, rails, cards) wear `CornerTokens.card` (12pt), controls wear
 ///   `CornerTokens.control` (8pt), and the ONE primary CTA per screen is an ink-filled
 ///   `Capsule()` (`CornerTokens.pill`). Never a hand-typed radius literal.
@@ -113,8 +126,17 @@ enum Motion {
     /// A non-bouncy spring so the digits and the needle decelerate onto the reading together.
     static let scoreCountUp = snap(0.40)
     /// Section choreography step — law: stagger 30–80ms. Kept here so screens never
-    /// inline timing literals.
+    /// inline timing literals. Also the v6 annotation stagger (`--anno-stagger: 40ms`) — the
+    /// two are the same 40ms step by design, not by coincidence.
     static let staggerStep: Double = 0.04
+    /// v6 "Field Notes" annotation fade (`--dur-anno: 180ms`) — the mono marginalia settling in
+    /// AFTER the surface it labels. Deliberately shorter than `entrance`: the card is the event,
+    /// the label is the footnote. Consumed only by `AnnotationRevealModifier`.
+    static let anno = snap(0.18)
+    /// The delay before annotation choreography begins — the surface must SETTLE first
+    /// ("the card exists, then the scientist labels it"). Matches `entrance`'s perceived
+    /// duration so labels never race the plane they annotate.
+    static let annoSurfaceSettle: Double = 0.34
     /// Long lists stop staggering after this many steps so useful rows never wait seconds to appear.
     static let maxStaggerSteps = 8
     /// The rise distance for the entrance reveal and the tab handoff — content glides up this
@@ -514,6 +536,127 @@ extension View {
     /// Debossed pocket (Relief Law). See `DebossedStyle`.
     func debossed(cornerRadius: CGFloat = CornerTokens.control) -> some View {
         modifier(DebossedStyle(cornerRadius: cornerRadius))
+    }
+}
+
+// MARK: - Annotation layer (DESIGN.md v6 "Field Notes")
+
+/// The two sanctioned annotation sizes. There is no third, and no way to ask for a larger one:
+/// `Font.Tokens.annoCascaded` clamps at `annoSizeCap` (12pt).
+enum AnnotationSize {
+    /// 12pt — the standard marginalia size: units, deltas, machine keys, reason trees.
+    case standard
+    /// 10pt — axis labels and timestamps.
+    case small
+
+    var font: Font {
+        switch self {
+        case .standard: .Tokens.anno
+        case .small:    .Tokens.annoSmall
+        }
+    }
+
+    /// +0.05em, resolved to points (DESIGN.md v6; `HANDOFF.md` and the distribution plan both
+    /// specify 0.05em — the `guidelines/*.card.html` specimens' .04em is illustrative).
+    var tracking: CGFloat {
+        switch self {
+        case .standard: 12 * 0.05  // 0.6pt
+        case .small:    10 * 0.05  // 0.5pt
+        }
+    }
+}
+
+/// **The annotation primitive.** A single mono marginalia label — the visible signature of v6.
+///
+/// Use this instead of hand-assembling `Text(...).font(.Tokens.anno)`: the uppercase transform,
+/// the +0.05em tracking, the tertiary ink, tabular digits, and the CJK guard are all part of the
+/// annotation LAW, not call-site choices. Passing a string is the whole API surface, which is
+/// what makes the law unviolatable.
+///
+/// **What belongs here:** units (`62 MS`), deltas (`+4`, `▲`), timestamps and cycle position
+/// (`MON 07.28 · WK 31`, `D-028`), axis labels, machine keys (`HRV_BASELINE: TRUE`), reason-tree
+/// rows (`├─ HRV AT BASELINE`).
+///
+/// **What does NOT:** anything the app *says*. Body copy, verdict sentences, headlines, CTA
+/// labels, tab labels, screen titles. The annotation voice annotates; it never speaks a
+/// sentence. A sentence in mono is a design-law failure, not a style choice.
+///
+/// **i18n:** zh-Hans takes NO case transform and NO added tracking (uppercase is meaningless for
+/// CJK and tracking harms it) — decided here, per the established `isLatin` idiom, so no call
+/// site has to remember.
+struct AnnotationLabel: View {
+    private let text: String
+    private let size: AnnotationSize
+    private let color: Color
+
+    @Environment(\.locale) private var locale
+    private var isLatin: Bool { locale.language.languageCode?.identifier != "zh" }
+
+    /// - Parameters:
+    ///   - text: the annotation content. Terse and machine-flavored; never a sentence.
+    ///   - size: `.standard` (12pt) or `.small` (10pt, axes/timestamps).
+    ///   - color: defaults to `text3`. Per DESIGN.md rule 7, annotation carrying information the
+    ///     athlete must not miss uses `text2` or a metric hue on a card plane — and `text3`
+    ///     annotation must never sit on a debossed well (2.84:1, below the contrast floor).
+    init(_ text: String, size: AnnotationSize = .standard, color: Color = ColorTokens.text3) {
+        self.text = text
+        self.size = size
+        self.color = color
+    }
+
+    var body: some View {
+        Text(text)
+            .font(size.font)
+            .monospacedDigit()
+            .tracking(isLatin ? size.tracking : 0)
+            .textCase(isLatin ? .uppercase : nil)
+            .foregroundStyle(color)
+    }
+}
+
+/// **The annotation choreography primitive** — the one implementation of v6's staggered
+/// marginalia reveal. Wave-2 screens consume this; nobody reimplements a stagger per screen.
+///
+/// The grammar: the surface settles first, THEN its labels arrive, 40ms apart — "the card exists,
+/// then the scientist labels it". Riding `Motion.anno` (a 180ms non-bouncy spring) keeps it on
+/// the existing spring law: no ease-in, no bounce, and the label fades from a floor of zero
+/// opacity only because it has no prior state to preserve (the no-dip-to-invisible ban governs
+/// content *transitions*, not first appearance).
+///
+/// `index` is the label's position in its group, so a reason tree reveals top-to-bottom. Stagger
+/// is capped by `Motion.maxStaggerSteps` so a long annotation list never waits seconds.
+///
+/// Reduced Motion shows annotation immediately — no transform, no delayed work, no timer.
+private struct AnnotationRevealModifier: ViewModifier {
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @State private var isVisible = false
+
+    let index: Int
+    let enabled: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .opacity(isVisible ? 1 : 0)
+            .onAppear {
+                guard !isVisible else { return }
+                guard enabled, !reduceMotion else {
+                    isVisible = true
+                    return
+                }
+                let staggerIndex = min(index, Motion.maxStaggerSteps)
+                let delay = Motion.annoSurfaceSettle + Double(staggerIndex) * Motion.staggerStep
+                withAnimation(Motion.anno.delay(delay)) {
+                    isVisible = true
+                }
+            }
+    }
+}
+
+extension View {
+    /// Reveal mono annotation on the v6 choreography: after the surface settles, 40ms-staggered
+    /// by `index`. See `AnnotationRevealModifier`. Honors Reduce Motion.
+    func annotationReveal(index: Int = 0, enabled: Bool = true) -> some View {
+        modifier(AnnotationRevealModifier(index: index, enabled: enabled))
     }
 }
 

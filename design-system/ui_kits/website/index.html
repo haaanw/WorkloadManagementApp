@@ -1,0 +1,197 @@
+<!-- @dsCard group="Website" viewport="1280x800" name="tuwa.app homepage" subtitle="Marketing homepage in Field Notes — Alpino display, mono annotations" -->
+<!DOCTYPE html>
+<html><head><meta charset="utf-8"><title>Tuwa — Stay in your strike zone</title>
+<link rel="stylesheet" href="../../styles.css">
+<style>
+body{margin:0;background:var(--bg);color:var(--text-1);font-family:var(--font-sans);font-size:var(--text-body);line-height:var(--leading-body)}
+a{color:var(--text-1);text-decoration:none;transition:color 150ms var(--ease)}a:hover{color:var(--accent)}
+.anno{font-family:var(--font-mono);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-3)}
+.wrap{max-width:1152px;margin:0 auto;padding:0 24px}
+.pill{display:inline-block;background:var(--cta-fill);color:var(--cta-ink) !important;border-radius:var(--radius-pill);padding:8px 24px;font-size:var(--text-label);font-weight:500}
+.pill:hover{color:var(--cta-ink)}
+.sec{padding:96px 0}
+h1,h2{font-family:var(--font-display);font-weight:650;letter-spacing:-0.02em;line-height:1.05;margin:0}
+.kick{font-family:var(--font-mono);font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:16px}
+.card{background:var(--surface-el);border:var(--hairline) solid var(--divider);border-radius:var(--radius-card)}
+.step{padding:20px 0;border-top:var(--hairline) solid var(--divider)}
+html.motion [data-reveal]{opacity:0;transform:translateY(18px);transition:opacity .6s var(--ease),transform .6s var(--ease)}
+html.motion [data-reveal].in{opacity:1;transform:none}
+.hline{display:block;overflow:hidden}.hline span{display:block}
+html.motion .hline span{transform:translateY(110%);transition:transform .7s cubic-bezier(.22,1,.36,1)}
+html.motion .hline:nth-child(2) span{transition-delay:80ms}html.motion .hline:nth-child(3) span{transition-delay:160ms}
+html.motion .played .hline span{transform:none}
+#zoneWrap{min-height:220vh}.zone-sticky{position:sticky;top:0;min-height:100vh;display:flex;flex-direction:column;justify-content:center;padding:48px 0}
+#showWrap{min-height:280vh}
+.show-sticky{position:sticky;top:0;min-height:100vh;display:flex;align-items:center}
+.show-grid{display:grid;grid-template-columns:1fr auto;gap:64px;align-items:center;width:100%}
+.stepRow{display:flex;margin-top:36px}
+.rail{position:relative;width:2px;background:var(--divider);margin-right:24px}
+#railFill{position:absolute;inset:0;background:var(--text-1);transform:scaleY(0);transform-origin:top}
+.steps{display:flex;flex-direction:column;gap:32px;flex:1}
+.sstep h3{margin:0 0 6px;font-size:19px;font-weight:500}
+.sstep p{margin:0;font-size:14px;color:var(--text-2);max-width:420px}
+html.motion .sstep{opacity:.32;transition:opacity .4s var(--ease)}
+html.motion .sstep.active{opacity:1}
+.plates{position:relative;width:250px;height:520px}
+.shot{position:absolute;inset:0;opacity:0}
+.shot.active{opacity:1}
+html.motion .shot{transform:translateY(28px);transition:opacity .5s var(--ease),transform .5s var(--ease)}
+html.motion .shot.active{transform:none}
+html.motion .shot.prev{opacity:0;transform:translateY(-28px)}
+.fan{position:relative;height:560px;display:flex;justify-content:center;align-items:center}
+.fan .phone{position:absolute}
+.fan .f0{transform:rotate(calc(-10deg * var(--p,0))) translateX(calc(-240px * var(--p,0)))}
+.fan .f1{z-index:2}
+.fan .f2{transform:rotate(calc(10deg * var(--p,0))) translateX(calc(240px * var(--p,0)))}
+html:not(.motion) [data-spread]{--p:1}
+.ghostSec{position:relative;overflow:hidden}
+.ghost{position:absolute;font-family:var(--font-mono);font-variant-numeric:tabular-nums;color:var(--text-1);opacity:.05;font-size:200px;letter-spacing:-0.04em;pointer-events:none;user-select:none}
+#spark path.line{stroke-dasharray:1;stroke-dashoffset:1}
+html:not(.motion) #spark path.line{stroke-dashoffset:0}
+html:not(.motion) #baseline,html:not(.motion) #nowDot{opacity:1}
+.phone{background:#1F2225;border-radius:34px;padding:10px 8px;width:300px}
+.phone img{display:block;width:100%;border-radius:26px}
+</style></head><body>
+<header style="position:sticky;top:0;background:var(--bg);border-bottom:0.5px solid var(--divider);z-index:9">
+<div class="wrap" style="display:flex;align-items:center;justify-content:space-between;height:64px">
+<a href="#" style="display:flex;align-items:center;gap:10px"><img src="../../assets/icon-512.png" width="28" height="28" alt=""><span style="font-size:19px;font-weight:500;letter-spacing:-0.01em">Tuwa</span></a>
+<nav style="display:flex;gap:32px;align-items:center;font-size:var(--text-label)">
+<a href="#verdict">Features</a><a href="#zone">Methodology</a><a href="#privacy">Privacy</a><a href="#" class="pill">Get Tuwa</a>
+</nav></div>
+</header>
+
+<section class="sec" style="padding-top:112px">
+<div class="wrap" style="display:grid;grid-template-columns:1fr auto;gap:64px;align-items:center">
+<div>
+<div class="anno" style="margin-bottom:20px">TUWA // SPORTS-SCIENCE BACK ROOM · READINESS <span id="heroScore">82</span> ● GO</div>
+<h1 id="heroLines" style="font-size:clamp(56px,7vw,88px)"><span class="hline"><span>Your plan.</span></span><span class="hline"><span>Made safe</span></span><span class="hline"><span>and optimal.</span></span></h1>
+<p style="max-width:560px;color:var(--text-2);font-size:var(--text-lede);margin:24px 0 8px">Tuwa reads your body — HRV, sleep, resting heart rate, training history — and modulates the plan you authored: today's numbers, a go / modify / hold verdict, and where your load is trending. It never writes your program.</p>
+<p class="anno">BUILT FOR ATHLETES WHO TRAIN SPORT SKILL AND STRENGTH IN PARALLEL</p>
+<div style="display:flex;align-items:center;gap:20px;margin-top:32px">
+<a href="#" style="display:inline-block"><img src="../../assets/app-store-badge.svg" height="44" alt="Download on the App Store"></a>
+<span class="anno">IOS 17+ · IPHONE</span></div>
+</div>
+<div class="phone"><img src="../../assets/screens/dashboard.png" alt="Tuwa Today screen showing a readiness verdict and recovery signals"></div>
+</div>
+</section>
+
+<section id="verdict">
+<div id="showWrap"><div class="show-sticky"><div class="wrap show-grid">
+<div>
+<div class="kick">01 · TODAY</div>
+<h2 style="font-size:clamp(32px,4vw,44px)">One decision, every day</h2>
+<p style="color:var(--text-2);margin:20px 0 0;max-width:460px">Every session starts with a verdict: go, modify, or hold. Tuwa turns this morning's physiology and yesterday's load into concrete number adjustments — drop the top set five percent, cap the conditioning piece, or take the microdose option and keep the pattern without the cost.</p>
+<div class="stepRow">
+<div class="rail"><div id="railFill"></div></div>
+<div class="steps">
+<div class="sstep active"><h3>The verdict</h3><p>Go, modify or hold — with the exact number changes for today's session.</p></div>
+<div class="sstep"><h3>The strike zone</h3><p>A live view of your acute-to-chronic workload ratio, held inside the band where adaptation outpaces injury risk.</p></div>
+<div class="sstep"><h3>The load trend</h3><p>One fatigue budget across sport skill, strength and conditioning.</p></div>
+</div></div>
+</div>
+<div class="plates">
+<div class="shot active"><div class="phone" style="width:250px;border-radius:30px;padding:9px 7px"><img src="../../assets/screens/verdict.png" style="border-radius:23px" alt="Verdict screen: proceed as planned with exact number changes"></div></div>
+<div class="shot"><div class="phone" style="width:250px;border-radius:30px;padding:9px 7px"><img src="../../assets/screens/strike-zone.png" style="border-radius:23px" alt="Strike zone screen: acute-to-chronic workload ratio"></div></div>
+<div class="shot"><div class="phone" style="width:250px;border-radius:30px;padding:9px 7px"><img src="../../assets/screens/workload.png" style="border-radius:23px" alt="Workload screen: one fatigue budget, 28-day forecast"></div></div>
+</div>
+</div></div></div>
+</section>
+
+<section id="zone" style="background:var(--surface);border-top:0.5px solid var(--divider);border-bottom:0.5px solid var(--divider)">
+<div id="zoneWrap"><div class="zone-sticky">
+<div class="wrap">
+<div class="kick">02 · TRAINING LOAD</div>
+<h2 style="font-size:clamp(32px,4vw,44px)">One fatigue budget</h2>
+<p style="max-width:640px;color:var(--text-2);margin:20px 0 40px">Sport skill, strength, and conditioning drain the same tank. Tuwa tracks them as one load — acute against chronic — and keeps the ratio inside the strike zone. When the trend points at overreach, you see it days before you feel it.</p>
+<div class="card" style="padding:28px;background:var(--surface-el)">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="anno">ACUTE : CHRONIC WORKLOAD RATIO</span><span class="anno" style="font-variant-numeric:tabular-nums" id="zoneChip">NOW 1.23</span></div>
+<div style="position:relative;height:40px;margin-top:16px" id="zoneBar">
+<div style="position:absolute;inset:14px 0;display:flex">
+<div style="width:40%;background:var(--well-top)"></div>
+<div style="width:25%;background:var(--zone-optimal);opacity:.18"></div>
+<div style="width:10%;background:var(--zone-caution);opacity:.18"></div>
+<div style="flex:1;background:var(--zone-danger);opacity:.14"></div>
+</div>
+<div id="zoneFill" style="position:absolute;inset:14px 0;background:var(--accent);opacity:.12;transform:scaleX(.615);transform-origin:left"></div>
+<div id="zoneNeedle" style="position:absolute;left:61.5%;top:6px;width:1.5px;height:28px;background:var(--accent)"></div>
+<div style="position:absolute;bottom:-6px;left:0;right:0;display:flex;justify-content:space-between" class="anno"><span>0.0</span><span>0.8</span><span>1.3</span><span>1.5</span><span>2.0</span></div>
+</div>
+<div style="display:flex;gap:24px;flex-wrap:wrap;margin-top:36px" class="anno">
+<span>UNDER 0.8 — UNDERTRAINING</span><span style="color:var(--zone-optimal)">0.8–1.3 — STRIKE ZONE</span><span style="color:var(--zone-caution)">1.3–1.5 — CAUTION</span><span style="color:var(--zone-danger)">OVER 1.5 — DANGER</span></div>
+<div id="zoneLabel" style="margin-top:20px;font-size:17px;font-weight:500;color:var(--zone-optimal)">In the strike zone</div>
+</div>
+<p class="anno" style="margin-top:16px">ZONE NAMES ARE ALWAYS WRITTEN OUT — COLOUR IS SUPPLEMENTARY, NEVER THE MESSAGE</p>
+</div>
+</div></div>
+</section>
+
+<section class="sec">
+<div class="wrap" style="text-align:center">
+<div class="kick">03 · THE SYSTEM</div>
+<h2 style="font-size:clamp(32px,4vw,44px)">The whole system, one gesture</h2>
+</div>
+<div class="fan" data-spread="">
+<div class="phone f0" style="width:250px;border-radius:30px;padding:9px 7px"><img src="../../assets/screens/recovery.png" style="border-radius:23px" alt="Recovery screen"></div>
+<div class="phone f1" style="width:250px;border-radius:30px;padding:9px 7px"><img src="../../assets/screens/dashboard.png" style="border-radius:23px" alt="Dashboard screen"></div>
+<div class="phone f2" style="width:250px;border-radius:30px;padding:9px 7px"><img src="../../assets/screens/active-workout.png" style="border-radius:23px" alt="Active workout screen"></div>
+</div>
+</section>
+
+<section class="sec" style="padding-top:0">
+<div class="wrap" style="display:grid;grid-template-columns:repeat(3,1fr);gap:48px;text-align:center">
+<div data-reveal=""><div style="font-size:56px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums" data-count="1324" data-comma="1">1,324</div><div class="anno">EXERCISES IN THE MOVEMENT BANK</div></div>
+<div data-reveal=""><div style="font-size:56px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums" data-count="1">1</div><div class="anno">READINESS, SCORED EVERY MORNING</div></div>
+<div data-reveal=""><div style="font-size:56px;letter-spacing:-0.02em;font-variant-numeric:tabular-nums" data-count="28">28</div><div class="anno">DAYS OF LOAD FORECAST</div></div>
+</div>
+</section>
+
+<section class="sec">
+<div class="wrap">
+<div class="kick">04 · RECOVERY</div>
+<h2 style="font-size:clamp(32px,4vw,44px)">Your baselines, drawn daily</h2>
+<p style="max-width:620px;color:var(--text-2);margin:20px 0 32px">Every metric is scored against your own rolling baseline — not population norms. The line below is 28 days of HRV arriving the way the app draws it.</p>
+<div class="card" style="padding:28px">
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span class="anno">HRV · 28 DAYS</span><span class="anno" style="color:var(--metric-recovery)">62 MS +4 · AT BASELINE</span></div>
+<svg id="spark" viewBox="0 0 800 180" style="width:100%;height:auto;margin-top:16px" role="img" aria-label="HRV trend over 28 days, currently 62 milliseconds, at baseline">
+<line x1="0" y1="90" x2="800" y2="90" stroke="var(--divider-strong)" stroke-width="1" stroke-dasharray="4 5" id="baseline" opacity="0"></line>
+<path class="line" d="M0,120 C40,116 70,128 110,122 C150,116 180,96 220,100 C260,104 290,132 330,126 C370,120 400,84 440,80 C480,76 510,98 550,92 C590,86 620,64 660,60 C700,56 740,72 780,66" fill="none" stroke="var(--metric-recovery)" stroke-width="2" pathLength="1"></path>
+<circle id="nowDot" cx="780" cy="66" r="5" fill="none" stroke="var(--metric-recovery)" stroke-width="2" opacity="0"></circle>
+</svg>
+<div style="display:flex;justify-content:space-between;margin-top:8px" class="anno"><span>D-28</span><span>D-21</span><span>D-14</span><span>D-7</span><span>TODAY</span></div>
+</div>
+</div>
+</section>
+
+<section class="sec ghostSec" style="padding-top:64px;padding-bottom:64px">
+<div class="ghost" data-ghost="" style="top:-40px;left:2%">82</div>
+<div class="ghost" data-ghost="" style="bottom:-60px;right:4%;font-size:160px">1.23</div>
+<div class="ghost" data-ghost="" style="top:30%;right:28%;font-size:110px">62MS</div>
+<div class="wrap" style="position:relative;text-align:center;max-width:820px">
+<div style="font-family:var(--font-display);font-weight:450;font-size:clamp(26px,3vw,34px);line-height:1.25">"The back room of a pro team — plan, physiology, and a decision — for athletes who coach themselves."</div>
+</div>
+</section>
+
+<section class="sec" id="privacy" style="background:var(--surface);border-top:0.5px solid var(--divider)">
+<div class="wrap" style="display:grid;grid-template-columns:1fr 1fr;gap:64px;align-items:center">
+<div data-reveal="">
+<div class="kick">05 · PRIVACY</div>
+<h2 style="font-size:clamp(32px,4vw,44px)">Your data stays on your phone</h2>
+<p style="color:var(--text-2);margin:20px 0">Tuwa reads HealthKit — it never writes to it — and raw health data never leaves the device. Only composite scores sync.</p>
+<div style="font-family:var(--font-mono);font-size:11px;line-height:2;color:var(--text-2)">├─ HEALTHKIT ACCESS IS READ-ONLY<br>├─ RAW HRV / SLEEP / HR SAMPLES STAY ON-DEVICE<br>├─ ONLY COMPOSITE SCORES SYNC<br>└─ REQUIRES IOS 17 OR LATER</div>
+<div style="display:flex;align-items:center;gap:20px;margin-top:32px">
+<a href="#"><img src="../../assets/app-store-badge.svg" height="44" alt="Download on the App Store"></a>
+<span class="anno">YOUR PLAN, MADE SAFE AND OPTIMAL</span></div>
+</div>
+<div class="phone" style="justify-self:center" data-reveal=""><img src="../../assets/screens/recovery.png" alt="Tuwa recovery screen: HRV and sleep trends against personal baselines"></div>
+</div>
+</section>
+
+<footer style="border-top:0.5px solid var(--divider)">
+<div class="wrap" style="display:flex;justify-content:space-between;align-items:center;padding:32px 24px;flex-wrap:wrap;gap:16px">
+<span style="display:flex;align-items:center;gap:10px"><img src="../../assets/icon-512.png" width="22" height="22" alt=""><span style="font-weight:500">Tuwa</span></span>
+<nav style="display:flex;gap:24px;font-size:var(--text-small);color:var(--text-2)"><a href="#" style="color:var(--text-2)">Methodology</a><a href="#" style="color:var(--text-2)">Support</a><a href="#" style="color:var(--text-2)">Privacy</a><a href="#" style="color:var(--text-2)">Terms</a></nav>
+<span class="anno">© 2026 TUWA · EN · FR · 中文</span>
+</div>
+</footer>
+<script src="motion.js"></script>
+</body></html>
