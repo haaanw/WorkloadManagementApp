@@ -8,9 +8,10 @@ import SwiftUI
 /// no emoji, ever), and the glyph plus the signed number means the direction is never carried
 /// by colour alone.
 ///
-/// Colour follows the design system's `DeltaIndicator` reference: favourable → `zoneOptimal`,
-/// unfavourable → `zoneCaution`, flat → `text3`. Caution rather than danger is deliberate — a
-/// week-over-week dip is not an alarm, and the brand voice is "never alarmist, never punitive".
+/// Colour: favourable → `zoneOptimal`, unfavourable → `zoneDanger`, flat → `text3`.
+/// Wave 2 softened unfavourable to `zoneCaution`; HAN reverted that on review (2026-07-30) —
+/// an unfavourable delta reads as what it is. The glyph + signed number still carry the
+/// direction, so colour is never the sole channel (nocebo guard intact).
 ///
 /// **Contrast:** zone-coloured text below 24pt must sit on a card plane (DESIGN.md rule 7).
 /// This mark is designed for the inside of a card; do not place it on the bare scroll canvas.
@@ -35,7 +36,7 @@ struct DeltaIndicator: View {
 
     private var color: Color {
         if isFlat { return ColorTokens.text3 }
-        return isUp == goodIsUp ? ColorTokens.zoneOptimal : ColorTokens.zoneCaution
+        return isUp == goodIsUp ? ColorTokens.zoneOptimal : ColorTokens.zoneDanger
     }
 
     var body: some View {

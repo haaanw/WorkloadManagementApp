@@ -124,6 +124,23 @@ website build clean + legal routes byte-diffed for content parity.
   orchestrator supplies real ones from `docs/market-intelligence/`), transactional email
   template. Nothing here gates the release.
 
+- **Session H — rich chart detail views (glance/zoom split).** HAN direction 2026-07-30.
+  The two-tier model: **glance charts** (the trend cards on Dashboard / Recovery / Load)
+  stay exactly as they now are — clean, minimal, reference keys above the plot, no
+  legend. **Zoomed detail views** (existing `HRVDetailView` / `SleepDetailView` are the
+  mount points) become the rich analytical surface: for sleep, the 6 h boundary and the
+  7.5 h recommended baseline plus the restored three-swatch zone legend (the 3
+  unreferenced xcstrings keys from Wave 2 still exist for exactly this); day
+  scrub/selection via `chartOverlay` gesture with a selected-day annotation readout;
+  expandable explanations; the full Field Notes annotation register (reason trees,
+  machine keys) — the detail view is where the annotation voice earns its keep; a rich
+  breakdown of the recovery condition. Reconcile the glance chart's 7 h target with the
+  6 h / 7.5 h physiology bands (proposed frame: target = athlete-facing goal line, bands
+  = physiology; session proposes, HAN decides). All inside v6 law: Five-Primitive
+  interaction, Motion tokens, zone-coloured text on card planes only. Sequence: written
+  per-chart spec against `design-system/guidelines/` first → HAN approves → build.
+  Gate: HAN visual review on simulator.
+
 Explicitly deferred: product videos / App Store previews (Remotion), watchOS/widgets.
 
 ## Orchestrator protocol (this session)
