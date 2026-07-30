@@ -10,9 +10,11 @@ import Charts
 /// describes marks that no longer exist. The sufficiency threshold survives where it always
 /// carried the most weight, as the dashed 7 h target rule and its annotation callout.
 ///
-/// Grid lines are `chartGrid` hairlines; axis labels and the target callout are in the
-/// **annotation voice** at `annoSmall` (10pt). The raw `Font.Tokens.annoSmall` token appears
-/// only inside `AxisValueLabel`, where Swift Charts cannot host an arbitrary `View`.
+/// Grid lines are `chartGrid` hairlines; axis labels and the target key are in the
+/// **annotation voice** at `annoSmall` (11pt), all of them via `AnnotationLabel` so the
+/// uppercase/tracking/CJK law lives in one place. The target key is rendered **above the plot**
+/// rather than as an in-plot mark annotation: pinned to the rule it sat on top of the bars and
+/// neither could be read (v6.1, HAN 2026-07-30).
 struct SleepTrendChart: View {
     @Environment(\.locale) private var locale
     let recoverySnapshots: [RecoverySnapshot]
@@ -38,56 +40,61 @@ struct SleepTrendChart: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .padding(.vertical, 24)
         } else {
-            Chart {
-                ForEach(sleepData.indices, id: \.self) { i in
-                    BarMark(
-                        x: .value("Date", sleepData[i].date, unit: .day),
-                        y: .value("Hours", sleepData[i].hours)
-                    )
-                    .foregroundStyle(ColorTokens.metricSleep)
-                }
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                // The target key sits ABOVE the plot, not pinned to the rule inside it. Anchored to
+                // the rule at `.top`/`.trailing` it landed on the bars, and a label drawn over the
+                // data it describes is the one place marginalia must never go. The dashed rule
+                // still marks 7 h on the plot; the key states what the rule is.
+                AnnotationLabel(
+                    LocalePinnedStrings.localized("sleep.chart.annotation", locale: locale),
+                    size: .small
+                )
+                .annotationReveal()
 
-                RuleMark(y: .value("Target", 7))
-                    .foregroundStyle(ColorTokens.text3)
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
-                    .annotation(position: .top, alignment: .trailing) {
-                        AnnotationLabel(
-                            LocalePinnedStrings.localized("sleep.chart.annotation", locale: locale),
-                            size: .small
+                Chart {
+                    ForEach(sleepData.indices, id: \.self) { i in
+                        BarMark(
+                            x: .value("Date", sleepData[i].date, unit: .day),
+                            y: .value("Hours", sleepData[i].hours)
                         )
-                        .annotationReveal()
+                        .foregroundStyle(ColorTokens.metricSleep)
                     }
-            }
-            .frame(height: 160)
-            // Axis labels host `AnnotationLabel` for the same reason as `HRVTrendChart`: the font
-            // token alone gives the mono face but not the uppercase, tracking, or zh-Hans guard,
-            // which DESIGN.md rule 3 requires come from the modifier rather than the call site.
-            .chartXAxis {
-                AxisMarks { value in
-                    AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
-                    AxisTick().foregroundStyle(ColorTokens.divider)
-                    AxisValueLabel {
-                        if let date = value.as(Date.self) {
-                            AnnotationLabel(
-                                date.formatted(.dateTime.month(.abbreviated).day().locale(locale)),
-                                size: .small
-                            )
+
+                    RuleMark(y: .value("Target", 7))
+                        .foregroundStyle(ColorTokens.text3)
+                        .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
+                }
+                .frame(height: 160)
+                // Axis labels host `AnnotationLabel` for the same reason as `HRVTrendChart`: the font
+                // token alone gives the mono face but not the uppercase, tracking, or zh-Hans guard,
+                // which DESIGN.md rule 3 requires come from the modifier rather than the call site.
+                .chartXAxis {
+                    AxisMarks { value in
+                        AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
+                        AxisTick().foregroundStyle(ColorTokens.divider)
+                        AxisValueLabel {
+                            if let date = value.as(Date.self) {
+                                AnnotationLabel(
+                                    date.formatted(.dateTime.month(.abbreviated).day().locale(locale)),
+                                    size: .small
+                                )
+                            }
                         }
                     }
                 }
-            }
-            .chartYAxis {
-                AxisMarks { value in
-                    AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
-                    AxisValueLabel {
-                        if let hours = value.as(Double.self) {
-                            AnnotationLabel(String(format: "%.0f", hours), size: .small)
+                .chartYAxis {
+                    AxisMarks { value in
+                        AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
+                        AxisValueLabel {
+                            if let hours = value.as(Double.self) {
+                                AnnotationLabel(String(format: "%.0f", hours), size: .small)
+                            }
                         }
                     }
                 }
-            }
-            .chartYAxisLabel(position: .leading, alignment: .center) {
-                AnnotationLabel("hours", size: .small)
+                .chartYAxisLabel(position: .leading, alignment: .center) {
+                    AnnotationLabel("hours", size: .small)
+                }
             }
             .id(locale)
             .entranceReveal()

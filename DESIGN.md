@@ -56,7 +56,7 @@ v5's One-Voice Law is **amended, narrowly**. The app now speaks in exactly **two
 
 | Role          | Size | Weight | Token                  | Notes                                        |
 |---------------|------|--------|------------------------|----------------------------------------------|
-| Hero reading  | 64pt | 400    | `heroScore`            | Tabular, line-height 1 — **the one colored text element** (metric hue or accent; see the Reading Color Rule) |
+| Hero reading  | 64pt | 400    | `heroScore`            | Tabular, line-height 1 — colored by its metric's hue, or accent when it has no metric identity (see the Reading Color Rule) |
 | Display value | 32pt | 400    | `displayAction`        | Verdict copy / standing values                |
 | Page title    | 28pt | 400    | `pageTitle`            | Sentence case                                 |
 | Section head  | 17pt | 500    | `sectionHead`          |                                              |
@@ -67,7 +67,7 @@ v5's One-Voice Law is **amended, narrowly**. The app now speaks in exactly **two
 | Tab label     | 11pt | 500    | `tabLabel`             | Title case                                    |
 | Key label     | 11pt | 500    | `keyLabel`             | Decision-key cells; sentence case             |
 | **Annotation**    | **12pt** | 400 | **`anno`**         | **Fragment Mono, uppercase, +0.05em — the standard marginalia size** |
-| **Annotation sm** | **10pt** | 400 | **`annoSmall`**    | **Fragment Mono, uppercase, +0.05em — axis labels, timestamps** |
+| **Annotation sm** | **11pt** | 400 | **`annoSmall`**    | **Fragment Mono, uppercase, +0.05em — axis labels, timestamps.** Raised 10→11pt (v6.1, HAN 2026-07-30): mono uppercase is the densest text in the app and 10pt read as too small on device. 11pt matches `micro`, keeps the ≤12pt cap, and stays one step below `anno` so the two sizes remain distinguishable |
 
 The 12pt annotation cap is enforced at the token, not the call site: `anno`/`annoSmall` are the only routes to Fragment Mono, and a fence test asserts no larger mono size exists.
 
@@ -185,7 +185,11 @@ v5 gave the hero score to travertine. v6 gives it to the metric — because a me
 1. **Live-state marks** — progress fills, active/selected marks, the active-tab tick, the live-recording dot, scale needles. This is accent's exclusive territory; a metric hue never takes a live-state mark.
 2. **A hero reading that has no metric identity** (a composite or unlabeled standing value).
 
-**Neither may ever be:** decorative, a CTA fill, body or label text, or an icon tint at rest. The primary CTA stays ink-filled. There is still at most **one colored text element per screen** — the hero reading.
+**Neither may ever be:** decorative, a CTA fill, body or label text, or an icon tint at rest. The primary CTA stays ink-filled.
+
+**No count cap (v6.1 — HAN, 2026-07-30).** The former rule "at most one colored text element per screen — the hero reading" is **removed**. It was unworkable and self-contradictory: it forbade the metric-hue annotation key that this same section sanctions, and it was contradicted by the design system's own iOS specimen — `ui_kits/ios-app/LoadScreen.jsx:14-19` renders `ACWR ●`, the `1.23` reading, and `LOAD STEADY` as three colored elements on one card. Adoption had already diverged on it (Home carried three, Recovery one), which is the signal that the rule was wrong rather than that the screens were.
+
+What governs instead is **identity, not arithmetic**: a colored text element must name the metric or zone whose hue it wears, hue must never be the only carrier of meaning (rule 6), and it must clear the contrast floors below. Restraint comes from how few elements legitimately *have* a hue identity — not from a quota. A hue applied to something that does not own it is still a violation; three keyed elements are not.
 
 ### Contrast floors (measured, v6)
 
@@ -296,7 +300,7 @@ Annotation is **not** a sixth primitive — it is not touchable. It is choreogra
 1. **Corners from `CornerTokens` only** (card 12 / control 8 / pill). Hand-typed radius literals are fence failures.
 2. **No `.shadow()` anywhere.** Elevation = plane + hairline + relief (`.raised`/`.debossed` only).
 3. **Two voices, disjoint jobs:** working copy via `Font.Tokens.*` (Instrument Sans); marginalia via `Font.Tokens.anno` / `.annoSmall` (Fragment Mono, ≤12pt, uppercase+tracking applied by the token/modifier, not the call site). No `.system(`, no semantic styles. `IBMPlexMono`, `SourceSerif4`, and `Alpino` are banned strings app-wide. `FragmentMono` appears only in `FontTokens.swift`. All data numerals apply `.monospacedDigit()`.
-4. **Reading Color Rule:** hero readings take their metric's hue; `ColorTokens.accent` owns live-state marks (progress fills, active/selected, tab tick, recording dot, needles) and identity-less hero readings. Metric hues never fill a surface. One colored text element per screen.
+4. **Reading Color Rule:** hero readings take their metric's hue; `ColorTokens.accent` owns live-state marks (progress fills, active/selected, tab tick, recording dot, needles) and identity-less hero readings. Metric hues never fill a surface. A colored text element must name the metric or zone whose hue it wears — there is **no cap on how many** do (v6.1).
 5. **Hero Law:** at most one hero card per screen; raised light card. No dark surfaces; `panelStyle(` banned.
 6. **Zone state = text label first**, color supplementary; never color alone. Zone badges are text + hairline capsule, never a fill.
 7. **Contrast:** metric-hue/zone text below 24pt only on card planes; hero readings any plane; marks any plane; annotation defaults to `text3` and never sits on a well.
@@ -340,6 +344,7 @@ Retained lineage: light-only, no shadows, 8pt grid, text-label-first zones, noce
 | 2026-07-21 | Tuwa v5 "Pavilion" (Warm Stone) — return to v1 basis | User decision (D19): v1 International Style foundation restored with ratified carry-overs ONLY. Instrument Sans picked from a 7-face shootout as the single voice; panel/red-index/micro-caps-titles retired. |
 | 2026-07-28 | Metric hues re-tuned for mutual contrast         | Five icon-derived hue families spread wide in hue and lightness so a metric is identifiable without a legend |
 | **2026-07-30** | **Tuwa v6 "Field Notes" — overlay on v5, direction 1c** | The stone stays; a scientist's marginalia is engraved on it. Four changes only: five metric hues, re-tuned zone colors, a Fragment Mono annotation layer capped at 12pt, and 40ms-staggered annotation choreography. One-Voice becomes Two-Voice with strictly disjoint jobs (working voice speaks, annotation voice annotates). The hero reading moves from travertine to its metric's hue (Reading Color Rule); accent keeps live-state exclusively. Alpino is display-only and banned in-app. Every v5 law not in that list is unchanged and still binding. |
+| **2026-07-30** | **v6.1 — readability corrections after the first on-device look (HAN)** | Three changes, all from watching v6 run rather than from reading it. (1) **The "one colored text element per screen" cap is removed** — it forbade the metric-hue annotation key this file sanctions and was contradicted by `ui_kits/ios-app/LoadScreen.jsx`, which renders three colored elements on one card. Replaced by identity: a colored element must name the metric or zone whose hue it wears, with no quota. (2) **`annoSmall` 10pt → 11pt** — mono uppercase at +0.05em is the densest text the app renders and 10pt was too small on device. (3) **Chart reference-line keys move out of the plot area** — `HRVTrendChart`'s 7-day baseline and `SleepTrendChart`'s 7 h target were pinned to their rule marks at `.top`/`.trailing`, landing on the series and bars respectively, so label and data obscured each other. Marginalia belongs in the margin: the key now sits above the plot and the dashed rule carries the position. |
 
 ### v6 open reconciliations (recorded, resolved as stated above)
 

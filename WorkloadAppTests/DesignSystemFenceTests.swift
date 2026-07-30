@@ -337,11 +337,14 @@ final class DesignSystemFenceTests: XCTestCase {
             "`annoCascaded` must CLAMP to annoSizeCap, not just document it — a larger request has to be unrepresentable, which is what keeps the retired v4 dial-voice mistake out (DESIGN.md v6)"
         )
 
-        // Only the two sanctioned annotation tokens may exist, at exactly 12pt and 10pt.
+        // Only the two sanctioned annotation tokens may exist, at exactly 12pt and 11pt.
+        // `annoSmall` was 10pt through v6.0 and was raised to 11pt in v6.1 (HAN, 2026-07-30) for
+        // on-device readability — mono uppercase is the densest text in the app. The ≤12pt cap
+        // below is the law; these two assertions pin the sanctioned sizes within it.
         XCTAssertTrue(text.contains("static let anno = annoCascaded(size: 12)"),
                       "Font.Tokens.anno must be Fragment Mono at 12pt")
-        XCTAssertTrue(text.contains("static let annoSmall = annoCascaded(size: 10)"),
-                      "Font.Tokens.annoSmall must be Fragment Mono at 10pt")
+        XCTAssertTrue(text.contains("static let annoSmall = annoCascaded(size: 11)"),
+                      "Font.Tokens.annoSmall must be Fragment Mono at 11pt (v6.1; was 10pt)")
 
         let annoCalls = try NSRegularExpression(pattern: #"annoCascaded\(size:\s*(\d+)\)"#)
         let range = NSRange(text.startIndex..., in: text)

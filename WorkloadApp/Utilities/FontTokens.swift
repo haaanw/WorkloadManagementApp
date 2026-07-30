@@ -74,8 +74,13 @@ extension Font {
         /// than a call-site choice.
         static let anno = annoCascaded(size: 12)
 
-        /// 10pt Fragment Mono — chart axis labels and timestamps, the small annotation size.
-        static let annoSmall = annoCascaded(size: 10)
+        /// 11pt Fragment Mono — chart axis labels and timestamps, the small annotation size.
+        ///
+        /// Raised from 10pt to 11pt (v6.1, HAN 2026-07-30): Fragment Mono uppercase with +0.05em
+        /// tracking is the densest text the app renders, and at 10pt it read as too small on
+        /// device. 11pt is the same size as `micro`, remains a step below `anno` (12pt) so the two
+        /// annotation sizes stay distinguishable, and is still under `annoSizeCap`.
+        static let annoSmall = annoCascaded(size: 11)
 
         /// 64pt — the hero readiness score: the ONE colored text element in the app
         /// (rendered in `ColorTokens.accent`). Apply .monospacedDigit() at the call site.
