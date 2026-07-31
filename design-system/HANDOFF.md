@@ -14,7 +14,7 @@ The app is already on v5 "Pavilion"; v6 is an overlay, not a rebuild. Order of w
 
 ## Part 1b — Website (Tonus/tuwa-website, Astro)
 
-1. **Tokens.** Replace the custom-property block in `src/styles/global.css` with `tokens/*.css` values (names map 1:1 by intent). Self-host Fragment Mono (it is CDN-imported in `tokens/fonts.css` — the one outstanding caveat).
+1. **Tokens.** Replace the custom-property block in `src/styles/global.css` with `tokens/*.css` values (names map 1:1 by intent). Fragment Mono is already **self-hosted** — `tokens/fonts.css` declares an `@font-face` pointing at `assets/fonts/FragmentMono-Regular.ttf` (SIL OFL 1.1, licence beside the file). The Google Fonts `@import` that used to sit there was removed 2026-07-31 because it broke the no-CDN law; copy the TTF into the site's own `public/fonts/` and rewrite the `src:` URL — **do not restore the `@import`**.
 2. **Homepage.** `ui_kits/website/index.html` is the reference build; `motion.js` maps scene-for-scene onto your existing `homeMotion.ts` (hero scrub, showcase, zone scrub, fans, ghosts already exist there — the self-drawing chart in section 04 is the one new scene to add). Lottie/Lenis: keep as-is on the site; assessed here as nice-to-have.
 3. **Alpino** stays marketing-only; wire `--font-display` and the display ramp from `tokens/typography.css`.
 
@@ -25,7 +25,7 @@ The app is already on v5 "Pavilion"; v6 is an overlay, not a rebuild. Order of w
 - **App Store screenshots** — restyle the `scripts/frame_screenshots.swift` pipeline output with Field Notes framing + mono annotations (you localize en/zh already).
 - **Pitch/investor decks** — `templates/pitch-deck` is ready; swap placeholder market figures.
 - **Docs pages** (`docs/privacy.html`, support, terms) — apply tokens + type ramp for brand continuity.
-- **OG / social images** (`public/og/*`) — regenerate in Field Notes (stone plane, mono annotation strip, metric hue accent).
-- **Transactional email** (receipts, onboarding) — stone surfaces + ink pill CTA; I can build an HTML email template on request.
+- **OG / social images** (`public/og/*`) — **DONE (2026-07-31)**. `templates/og/generate_og.py` renders the four feature cards in en/zh/fr at 1200×630, deterministic and offline (fonts read from the repo). Remaining: the zh/fr `ogImage` props in `tuwa-website/src/pages/{zh,fr}/features/*.astro` still point at the English cards, and `og-default.png` is not yet regenerated.
+- **Transactional email** (receipts, onboarding) — **DONE (2026-07-31)**: `templates/email/transactional.html`, table-based, all styles inline, no external assets. en only; not localised and not wired to a sender.
 - **Product videos / App Store previews** — this is where Remotion actually fits; the motion grammar card defines the timing vocabulary.
 - **Future surfaces** — watchOS complications (metric hues + mono numerals are made for this), widgets, blog/MDX article styles.

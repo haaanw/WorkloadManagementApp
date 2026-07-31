@@ -26,7 +26,7 @@ struct SeanEllisPromptSheet: View {
                 // v6: the kicker is a context key → annotation voice. The question below it, the
                 // three choices, and the skip action all stay working voice — they are what the
                 // app SAYS, and the annotation voice never speaks a sentence or labels a control.
-                AnnotationLabel(String(localized: "seanEllis.title", defaultValue: "ONE QUESTION"))
+                AnnotationLabel(key: "seanEllis.title")
                     .annotationReveal(index: 0)
 
                 // The one neutral question.

@@ -63,7 +63,11 @@ struct TodayVerdictCard: View {
             // `AnnotationLabel`, never by this call site). Both stay 12pt mono so the two ends
             // still read as one rule.
             HStack(alignment: .firstTextBaseline) {
-                AnnotationLabel("\(String(localized: "verdictCard.title", defaultValue: "TODAY'S PLAN")) · \(display.headlineExerciseName)")
+                // Locale-pinned, not `String(localized:)`: the latter reads the PROCESS locale
+                // while the app pins its language via `.environment(\.locale)`, so an in-app
+                // language switch would leave this stamp in the launch language. The key path
+                // can't be used here — the title is interpolated with a dynamic exercise name.
+                AnnotationLabel("\(LocalePinnedStrings.localized("verdictCard.title", defaultValue: "TODAY'S PLAN", locale: locale)) · \(display.headlineExerciseName)")
                     .annotationReveal()
                 Spacer()
                 // Verdict state as a TEXT LABEL (the primary state channel — never color alone).

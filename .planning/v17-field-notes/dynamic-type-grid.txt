@@ -1,0 +1,32 @@
+=== DYNAMIC TYPE GRID (measured, iOS 26.1) ===
+TOKEN            base  style        XS         S          M          L(default) XL         XXL        XXXL       AX1        AX2        AX3        AX4        AX5        
+heroScore        64    Title0       59.0       61.0       62.0       64.0       67.0       72.0       75.0       81.0       89.0       95.0       103.0      109.0      
+displayAction    32    Title1       29.0       30.0       31.0       32.0       34.0       36.0       39.0       43.0       48.0       54.0       57.0       64.0       
+pageTitle        28    Title1       26.0       26.0       27.0       28.0       30.0       31.0       34.0       38.0       42.0       47.0       50.0       56.0       
+sectionHead      17    Body         15.0       15.0       16.0       17.0       19.0       20.0       22.0       26.0       31.0       37.0       43.0       48.0       
+body             17    Body         15.0       15.0       16.0       17.0       19.0       20.0       22.0       26.0       31.0       37.0       43.0       48.0       
+bodyMedium       17    Body         15.0       15.0       16.0       17.0       19.0       20.0       22.0       26.0       31.0       37.0       43.0       48.0       
+label            15    Body         13.0       14.0       14.0       15.0       16.0       18.0       20.0       23.0       27.0       33.0       38.0       42.0       
+labelMedium      15    Body         13.0       14.0       14.0       15.0       16.0       18.0       20.0       23.0       27.0       33.0       38.0       42.0       
+smallLabel       13    Body         11.0       12.0       12.0       13.0       14.0       15.0       17.0       20.0       24.0       28.0       33.0       37.0       
+smallLabelMedium 13    Body         11.0       12.0       12.0       13.0       14.0       15.0       17.0       20.0       24.0       28.0       33.0       37.0       
+micro            12    Body         10.0       11.0       11.0       12.0       13.0       14.0       16.0       19.0       22.0       26.0       31.0       34.0       
+keyLabel         11    Body         10.0       10.0       11.0       11.0       12.0       13.0       15.0       17.0       20.0       24.0       28.0       31.0       
+tabLabel         11    Body         10.0       10.0       11.0       11.0       12.0       13.0       15.0       17.0       20.0       24.0       28.0       31.0       
+headerAction     10    Body         9.0        9.0        10.0       10.0       11.0       12.0       13.0       15.0       18.0       22.0       25.0       28.0       
+anno             12    Body         10.0       11.0       11.0       12.0       13.0       14.0       16.0       19.0       22.0       26.0       31.0       34.0       
+annoSmall        11    Body         10.0       10.0       11.0       11.0       12.0       13.0       15.0       17.0       20.0       24.0       28.0       31.0       
+
+RUNG COLLISIONS (rounding ties across DIFFERENT base sizes):
+  XS: micro==keyLabel @10.0pt
+  XS: micro==tabLabel @10.0pt
+  XS: micro==annoSmall @10.0pt
+  XS: anno==keyLabel @10.0pt
+  XS: anno==tabLabel @10.0pt
+  XS: anno==annoSmall @10.0pt
+  M: micro==keyLabel @11.0pt
+  M: micro==tabLabel @11.0pt
+  M: micro==annoSmall @11.0pt
+  M: anno==keyLabel @11.0pt
+  M: anno==tabLabel @11.0pt
+  M: anno==annoSmall @11.0pt

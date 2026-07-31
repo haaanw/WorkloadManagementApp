@@ -29,6 +29,12 @@ struct RecoveryView: View {
         scopedWellnessCheckIns.first { Calendar.current.isDateInToday($0.date) }
     }
 
+    /// The 28-day window (oldest first) both the glance chart and the detail screen read, so the
+    /// card the athlete taps and the screen it opens can never show different nights.
+    private var sleepWindow: [RecoverySnapshot] {
+        Array(scopedRecoverySnapshots.prefix(28).reversed())
+    }
+
     private var todayRecovery: RecoverySnapshot? {
         scopedRecoverySnapshots.first { Calendar.current.isDateInToday($0.date) }
     }
@@ -58,17 +64,34 @@ struct RecoveryView: View {
                         .entranceReveal(index: 1)
                         .accessibilityIdentifier("recovery.scoreCard")
 
+                    // The glance charts now reach their zoomed detail screens. Until v1.7 Wave 3
+                    // the ONLY route into either detail view was a Dashboard factor row, so the
+                    // screen that actually shows both trends could not open either of them.
+                    // Primitive 2 (Row): a well on press, no scale — these are surfaces that
+                    // navigate, not keys that commit.
+                    // The 16pt page margin is applied to the LINK, not to its label. `RowWellButtonStyle`
+                    // draws the well behind `configuration.label`, so padding inside the label made the
+                    // well 32pt wider than the card it highlights — two grey bands down either side of
+                    // the chart on press. Outside the link, the well's rect is the card's rect.
                     RuledSection(header: "recovery.section.hrvTrend") {
-                        HRVTrendChart(data: viewModel.hrvHistory)
-                            .cardStyle()
-                            .padding(.horizontal, Spacing.sm)
+                        NavigationLink(value: TrendDestination.hrv) {
+                            HRVTrendChart(data: viewModel.hrvHistory)
+                                .cardStyle()
+                        }
+                        .buttonStyle(.rowWell(cornerRadius: CornerTokens.card))
+                        .padding(.horizontal, Spacing.sm)
+                        .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
                     }
                     .entranceReveal(index: 2)
 
                     RuledSection(header: "recovery.section.sleepTrend") {
-                        SleepTrendChart(recoverySnapshots: Array(scopedRecoverySnapshots.prefix(28).reversed()))
-                            .cardStyle()
-                            .padding(.horizontal, Spacing.sm)
+                        NavigationLink(value: TrendDestination.sleep) {
+                            SleepTrendChart(recoverySnapshots: sleepWindow)
+                                .cardStyle()
+                        }
+                        .buttonStyle(.rowWell(cornerRadius: CornerTokens.card))
+                        .padding(.horizontal, Spacing.sm)
+                        .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
                     }
                     .entranceReveal(index: 3)
 
@@ -162,6 +185,14 @@ struct RecoveryView: View {
                 MorningCheckInSheet(onSaved: {
                     Task { await onCheckInSaved() }
                 })
+            }
+            // Same destination enum Home routes on, so the two tabs land on the same screens with
+            // the same inputs rather than growing a second, divergent pair of routes.
+            .navigationDestination(for: TrendDestination.self) { destination in
+                switch destination {
+                case .hrv:   HRVDetailView(data: viewModel.hrvHistory)
+                case .sleep: SleepDetailView(snapshots: sleepWindow)
+                }
             }
             .task {
                 await loadData()

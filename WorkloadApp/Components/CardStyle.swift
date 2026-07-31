@@ -795,8 +795,14 @@ struct ScreenHeader<Trailing: View>: View {
             if let context {
                 Text(context)
                     .font(.Tokens.micro)
+                    // REQ-D2 (Session D, fixed in Wave 3): both the tracking AND the case
+                    // transform are Latin-only typography. The case transform was applied
+                    // unconditionally, so zh-Hans took a meaningless `.uppercase` — the
+                    // violation the docstring above already claimed did not exist. Latent
+                    // today (no caller passes `context:`), which is precisely why it had to be
+                    // fixed before a caller arrives rather than after.
                     .tracking(isLatinLocale ? 0.9 : 0)
-                    .textCase(.uppercase)
+                    .textCase(isLatinLocale ? .uppercase : nil)
                     .foregroundStyle(ColorTokens.text3)
             }
             HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
@@ -806,7 +812,10 @@ struct ScreenHeader<Trailing: View>: View {
                 Spacer(minLength: 0)
                 trailing
                     .font(.Tokens.headerAction)
-                    .textCase(.uppercase)
+                    // Same defect class as the context line above, same struct, and NOT
+                    // latent — Home and Load both pass a trailing action today, so zh-Hans
+                    // has been shipping an uppercase transform on Chinese action labels.
+                    .textCase(isLatinLocale ? .uppercase : nil)
                     .foregroundStyle(ColorTokens.text2)
             }
         }
@@ -1183,20 +1192,14 @@ struct InstrumentTextField: View {
     }
 }
 
-struct StatusBadge: View {
-    let label: String
-    var color: Color = ColorTokens.statusNeutral
-
-    var body: some View {
-        Text(label)
-            .font(.Tokens.micro)
-            .tracking(1.2)
-            .foregroundStyle(color)
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xs)
-            .overlay(Capsule().stroke(color, lineWidth: 0.5))
-    }
-}
+// `StatusBadge` was deleted in v1.7 Wave 3 (Round 3). It had exactly one grep hit across
+// `WorkloadApp/`, `WorkloadAppTests/` and `ScreenshotTests/` — its own declaration — and it was
+// three v6 violations at once sitting in the primitives file, where a reader looks for the
+// pattern to copy: unguarded `.tracking(1.2)` (no `isLatin` check, so CJK got Latin
+// letter-spacing), no backing plane (its `color:` text sat on whatever plane it was dropped on,
+// with no card-plane guarantee), and a bare `color:` parameter with no requirement that a text
+// label carry the state (rule 6). `ZoneBadge` (`MetricTile.swift`) is the living badge and
+// carries its own `surfaceEl2` capsule.
 
 // MARK: - Dial value cell (fixed-width instrument reading — v4.1 D13(c))
 

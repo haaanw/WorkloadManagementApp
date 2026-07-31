@@ -1,0 +1,216 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xmlns:v="urn:schemas-microsoft-com:vml" xmlns:o="urn:schemas-microsoft-com:office:office" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="x-apple-disable-message-reformatting" />
+<meta name="color-scheme" content="light" />
+<meta name="supported-color-schemes" content="light" />
+<title>{{subject}}</title>
+<!--[if mso]>
+<xml><o:OfficeDocumentSettings><o:PixelsPerInch>96</o:PixelsPerInch></o:OfficeDocumentSettings></xml>
+<![endif]-->
+<style type="text/css">
+  /* Progressive-enhancement only. Every rule that matters is ALSO inline below,
+     because Gmail strips <style> in the clipped/forwarded view. */
+  body, table, td, a { -webkit-text-size-adjust: 100%; -ms-text-size-adjust: 100%; }
+  table, td { mso-table-lspace: 0pt; mso-table-rspace: 0pt; }
+  img { -ms-interpolation-mode: bicubic; border: 0; outline: none; text-decoration: none; }
+  a { color: #1B1A17; }
+  /* Tuwa is light-only (DESIGN.md v6.2). Ask clients not to invert. */
+  :root { color-scheme: light; supported-color-schemes: light; }
+  @media (max-width: 620px) {
+    .tw-shell { width: 100% !important; }
+    .tw-pad { padding-left: 24px !important; padding-right: 24px !important; }
+    .tw-h1 { font-size: 26px !important; }
+    .tw-card { border-radius: 0 !important; border-left: 0 !important; border-right: 0 !important; }
+  }
+</style>
+</head>
+
+<!--
+  Tuwa "Field Notes" (DESIGN.md v6.2) — transactional email template.
+  Session G, v1.7 Wave 3. New file; nothing here is wired to a sender yet.
+
+  HOW TO USE
+    Replace every {{token}}. Tokens: subject, preheader, eyebrow, headline, body_1,
+    body_2, cta_label, cta_url, readout_value, readout_hue, readout_key,
+    footer_reason, unsubscribe_url, support_url.
+
+    Delete the readout block (marked READOUT) for messages with no reading to show.
+
+    {{readout_hue}} IS THE READING'S COLOUR and there is no default — the hue is a
+    token precisely so a sleep email cannot ship in readiness green. It is set on
+    ONE line: the readout <td> inside the READOUT block (the 44px `{{readout_value}}`
+    cell). Substitute exactly one of:
+        readiness  #2E7D4F     recovery  #1D7189     sleep   #52589E
+        strain     #A8442D     load      #8A6810
+        no metric identity (streak, session count, price) → accent #6F6759
+    and make {{readout_key}} NAME that same metric ("READINESS · TODAY",
+    "SLEEP · LAST NIGHT"). A colour whose key does not name its metric is a law
+    violation, not a decoration. Never use these hues anywhere else in the email —
+    not on the card, not on the CTA, not on a rule.
+
+    {{footer_reason}} is the mono machine line. Newlines collapse in HTML, so a reason
+    tree must be substituted with explicit breaks:
+        ├─ SLEEP_DEBT: 1.4H<br />└─ HRV_BASELINE: TRUE
+
+  CONSTRUCTION RULES OBSERVED
+    - Table-based layout, fixed 600px shell, every style inline. Survives Outlook
+      (Word engine), Gmail (strips <style> and <head> in some views), Apple Mail.
+    - NO external assets: no webfonts, no CDN, no remote images, no background
+      images. The mark is drawn with type, not an <img>, so nothing depends on
+      "download images" being on. (If a logo image is later required, host it on
+      tuwa.app and give it width/height + alt.)
+    - NO shadows. Elevation is plane + 1px hairline only. Email clients cannot
+      render the relief gradient reliably, so relief is deliberately omitted rather
+      than faked with a shadow.
+    - Two-voice type with EMAIL-SAFE stacks (webfonts do not load in Outlook, and
+      loading them from a CDN would break the no-CDN law): the working voice falls
+      back to Helvetica/Arial, the annotation voice to the system monospace stack.
+      Instrument Sans / Fragment Mono are named first for the clients that happen
+      to have them locally.
+    - Fragment Mono annotation: uppercase, ~11-12px, +0.05em, marginalia only —
+      the eyebrow, the readout key, and the footer machine line. Never the headline,
+      never the CTA, never a sentence.
+    - ONE ink-filled pill CTA. Ink #1B1A17 fill, #F4F3F0 text. Never accent-filled.
+      Outlook gets a VML roundrect so the pill shape survives.
+    - Corners 12 (card) / pill (CTA). 8pt grid throughout. Sentence case.
+-->
+
+<body style="margin:0; padding:0; background-color:#F0EFEC; color-scheme:light;">
+
+  <!-- Preheader: the inbox preview line. Kept out of the visible render. -->
+  <div style="display:none; font-size:1px; line-height:1px; max-height:0; max-width:0; opacity:0; overflow:hidden; mso-hide:all;">
+    {{preheader}}&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;&nbsp;&zwnj;
+  </div>
+
+  <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="background-color:#F0EFEC; border-collapse:collapse;">
+    <tr>
+      <td align="center" style="padding:32px 16px;">
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="600" class="tw-shell" style="width:600px; max-width:600px; border-collapse:collapse;">
+
+          <!-- ── Masthead: wordmark + annotation strip ─────────────────── -->
+          <tr>
+            <td class="tw-pad" style="padding:0 8px 16px 8px;">
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                <tr>
+                  <td align="left" style="font-family:'Instrument Sans',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:17px; font-weight:500; color:#1B1A17; line-height:24px;">Tuwa</td>
+                  <td align="right" style="font-family:'Fragment Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'Courier New',monospace; font-size:11px; letter-spacing:0.05em; color:#8B877F; line-height:24px; text-transform:uppercase;">{{eyebrow}}</td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Card: raised light stone plane, hairline, 12px corner ── -->
+          <tr>
+            <td class="tw-card" style="background-color:#F8F7F4; border:1px solid #D6D3CD; border-radius:12px;">
+
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+
+                <tr>
+                  <td class="tw-pad" style="padding:40px 40px 0 40px;">
+                    <h1 class="tw-h1" style="margin:0; font-family:'Instrument Sans',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:28px; font-weight:400; line-height:34px; letter-spacing:-0.3px; color:#1B1A17;">{{headline}}</h1>
+                  </td>
+                </tr>
+
+                <tr>
+                  <td class="tw-pad" style="padding:16px 40px 0 40px; font-family:'Instrument Sans',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:17px; line-height:26px; color:#1B1A17;">
+                    {{body_1}}
+                  </td>
+                </tr>
+
+                <!-- ── READOUT (optional) — a debossed well, flattened to a
+                     flat plane + hairline because email cannot do relief.
+                     The reading wears its metric's hue via {{readout_hue}}; the
+                     key NAMES that metric. See HOW TO USE for the five permitted
+                     values. The key is #57544E (text2), NOT #8B877F (text3):
+                     text3 measures 3.00:1 on this #EDEBE6 well plane, at the 3:1
+                     micro floor. DESIGN.md v6.2 — "never text3 on a well".
+                     Delete this whole <tr> when there is no reading. -->
+                <tr>
+                  <td class="tw-pad" style="padding:24px 40px 0 40px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse; background-color:#EDEBE6; border:1px solid #CCC9C2; border-radius:12px;">
+                      <tr>
+                        <td align="center" style="padding:24px 24px 8px 24px; font-family:'Instrument Sans',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:44px; font-weight:500; line-height:48px; color:{{readout_hue}};">{{readout_value}}</td>
+                      </tr>
+                      <tr>
+                        <td align="center" style="padding:0 24px 24px 24px; font-family:'Fragment Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'Courier New',monospace; font-size:11px; letter-spacing:0.05em; line-height:16px; color:#57544E; text-transform:uppercase;">{{readout_key}}</td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <!-- ── /READOUT ─────────────────────────────────────────── -->
+
+                <tr>
+                  <td class="tw-pad" style="padding:24px 40px 0 40px; font-family:'Instrument Sans',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:17px; line-height:26px; color:#57544E;">
+                    {{body_2}}
+                  </td>
+                </tr>
+
+                <!-- ── CTA: the one ink-filled pill. Never accent-filled. ── -->
+                <tr>
+                  <td class="tw-pad" style="padding:32px 40px 0 40px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border-collapse:collapse;">
+                      <tr>
+                        <td align="center" bgcolor="#1B1A17" style="background-color:#1B1A17; border-radius:999px;">
+                          <!--[if mso]>
+                          <v:roundrect xmlns:v="urn:schemas-microsoft-com:vml" xmlns:w="urn:schemas-microsoft-com:office:word" href="{{cta_url}}" style="height:52px;v-text-anchor:middle;width:240px;" arcsize="50%" stroke="f" fillcolor="#1B1A17">
+                            <w:anchorlock/>
+                            <center style="color:#F4F3F0;font-family:Helvetica,Arial,sans-serif;font-size:17px;font-weight:500;">{{cta_label}}</center>
+                          </v:roundrect>
+                          <![endif]-->
+                          <!--[if !mso]><!-- -->
+                          <a href="{{cta_url}}" style="display:inline-block; padding:16px 32px; font-family:'Instrument Sans',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:17px; font-weight:500; line-height:20px; color:#F4F3F0; text-decoration:none; border-radius:999px; background-color:#1B1A17;">{{cta_label}}</a>
+                          <!--<![endif]-->
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Hairline rule, inset to the 8pt grid -->
+                <tr>
+                  <td class="tw-pad" style="padding:40px 40px 0 40px;">
+                    <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="border-collapse:collapse;">
+                      <tr><td height="1" style="height:1px; line-height:1px; font-size:1px; background-color:#D6D3CD;">&nbsp;</td></tr>
+                    </table>
+                  </td>
+                </tr>
+
+                <!-- Annotation footer inside the card: machine line, marginalia only -->
+                <tr>
+                  <td class="tw-pad" style="padding:16px 40px 32px 40px; font-family:'Fragment Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,'Courier New',monospace; font-size:11px; letter-spacing:0.05em; line-height:18px; color:#8B877F; text-transform:uppercase;">
+                    {{footer_reason}}
+                  </td>
+                </tr>
+
+              </table>
+            </td>
+          </tr>
+
+          <!-- ── Outside the card: legal / preferences ─────────────────── -->
+          <tr>
+            <td class="tw-pad" style="padding:24px 8px 0 8px; font-family:'Instrument Sans',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px; line-height:20px; color:#8B877F;">
+              You are receiving this because you have a Tuwa account.<br />
+              <a href="{{support_url}}" style="color:#57544E; text-decoration:underline;">Support</a>
+              &nbsp;·&nbsp;
+              <a href="{{unsubscribe_url}}" style="color:#57544E; text-decoration:underline;">Email preferences</a>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="tw-pad" style="padding:16px 8px 8px 8px; font-family:'Instrument Sans',-apple-system,'Helvetica Neue',Helvetica,Arial,sans-serif; font-size:13px; line-height:20px; color:#A19D95;">
+              Tuwa is not medical advice. Consult a qualified healthcare professional before making decisions about your health or training.
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

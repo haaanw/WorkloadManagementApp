@@ -121,8 +121,13 @@ struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Elemen
         voiceOverEnabled || reduceMotion
     }
 
-    private var isEnglish: Bool {
-        locale.language.languageCode?.identifier == "en"
+    /// Micro-caps case + tracking are LATIN typography, not English typography. The old
+    /// `== "en"` test wrongly stripped both from French, which wants them exactly as much as
+    /// English does; only CJK must be excluded. This is the same `isLatin` idiom used by
+    /// `AnnotationLabel`, `ZoneBadge`, `MetricCell`, and `RuledSectionHeader` — Wave 2 (Session D)
+    /// converted the others and left this one behind.
+    private var isLatin: Bool {
+        locale.language.languageCode?.identifier != "zh"
     }
 
     var body: some View {
@@ -146,8 +151,8 @@ struct RadialPicker<Option: RadialSelectable>: View where Option.AllCases.Elemen
         HStack(spacing: 8) {
             Text(title)
                 .font(.Tokens.micro)
-                .tracking(isEnglish ? 1.2 : 0)
-                .textCase(isEnglish ? .uppercase : nil)
+                .tracking(isLatin ? 1.2 : 0)
+                .textCase(isLatin ? .uppercase : nil)
                 .foregroundStyle(ColorTokens.text3)
             Spacer(minLength: 8)
             Image(systemName: selection.radialIcon)

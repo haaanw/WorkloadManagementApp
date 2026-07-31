@@ -85,7 +85,10 @@ enum MockDataSeeder {
             let phase = Double((dayOffset + 28) % 7)
             let baseHRV = 48.0 + phase
             let baseRHR = 58.0 - min(phase, 3)
-            let baseSleep = 420.0 + phase * 6
+            // Centred ABOVE the 7.5 h target (450 min), not on the old 7 h one: this seed feeds
+            // the App Store screenshot run, and a 420-min floor showed a permanently
+            // under-target athlete in the marketing set. 456–492 min = 7.6–8.2 h.
+            let baseSleep = 456.0 + phase * 6
 
             let snapshot = RecoverySnapshot(
                 date: date,

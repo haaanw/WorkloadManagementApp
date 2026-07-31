@@ -8,7 +8,7 @@ import Charts
 /// point of the hue system — "each metric owns a hue, legends become unnecessary" — and it is
 /// why the old three-swatch duration legend is gone: with one hue in the plot a colour key
 /// describes marks that no longer exist. The sufficiency threshold survives where it always
-/// carried the most weight, as the dashed 7 h target rule and its annotation callout.
+/// carried the most weight, as the dashed 7.5 h target rule and its annotation callout.
 ///
 /// Grid lines are `chartGrid` hairlines; axis labels and the target key are in the
 /// **annotation voice** at `annoSmall` (11pt), all of them via `AnnotationLabel` so the
@@ -44,7 +44,7 @@ struct SleepTrendChart: View {
                 // The target key sits ABOVE the plot, not pinned to the rule inside it. Anchored to
                 // the rule at `.top`/`.trailing` it landed on the bars, and a label drawn over the
                 // data it describes is the one place marginalia must never go. The dashed rule
-                // still marks 7 h on the plot; the key states what the rule is.
+                // still marks 7.5 h on the plot; the key states what the rule is.
                 AnnotationLabel(
                     LocalePinnedStrings.localized("sleep.chart.annotation", locale: locale),
                     size: .small
@@ -60,7 +60,13 @@ struct SleepTrendChart: View {
                         .foregroundStyle(ColorTokens.metricSleep)
                     }
 
-                    RuleMark(y: .value("Target", 7))
+                    // 7.5 h, not 7 (HAN, 2026-07-31 — the target moved app-wide). Read from
+                    // `RecoveryScoreEngine.sleepTargetHours` rather than typed here so the line
+                    // the athlete sees and the knee the engine scores against cannot drift apart.
+                    // This is the ONLY change to this frozen glance component: same colour
+                    // (`text3`), same dash, same everything else — and the detail chart draws the
+                    // same rule in the same `text3` so one target does not wear two colours.
+                    RuleMark(y: .value("Target", RecoveryScoreEngine.sleepTargetHours))
                         .foregroundStyle(ColorTokens.text3)
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
                 }

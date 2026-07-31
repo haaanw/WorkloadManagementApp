@@ -62,16 +62,24 @@ struct ReasoningEngine {
             ))
         }
 
-        // Sleep — target is 420 min (7 hours)
+        // Sleep — measured against the app-wide target, `RecoveryScoreEngine.sleepTargetHours`
+        // (7.5 h, HAN 2026-07-31; previously a hard-typed 420 min here). Reading the constant
+        // rather than a literal is what keeps this row and `SleepDetailView` — which the Dashboard
+        // row navigates INTO — from reporting the same night against two different references.
+        //
+        // The copy names the target too: "above/below average" named neither the athlete's
+        // baseline nor the target, so a 435-min night read "15 min above average" on Home and sat
+        // below the target one tap later.
         if let sleep = input.sleepMinutes {
-            let delta = sleep - 420
+            let targetMinutes = RecoveryScoreEngine.sleepTargetHours * 60
+            let delta = sleep - targetMinutes
             let abs = Swift.abs(delta)
             let direction: Factor.Direction = delta >= 30 ? .positive : delta <= -30 ? .negative : .neutral
             let text: String
             if delta >= 0 {
-                text = String(localized: "delta.minAboveAverage", defaultValue: "\(Int(delta)) min above average")
+                text = String(localized: "delta.minAboveTarget", defaultValue: "\(Int(delta)) min above target")
             } else {
-                text = String(localized: "delta.minBelowAverage", defaultValue: "\(Int(abs)) min below average")
+                text = String(localized: "delta.minBelowTarget", defaultValue: "\(Int(abs)) min below target")
             }
             factors.append(Factor(
                 label: String(localized: "factor.sleepDuration", defaultValue: "Sleep Duration"),
@@ -110,9 +118,9 @@ struct ReasoningEngine {
     }
 
     /// Inputs to the decision explanation: the Readiness factors + Strain-Risk ranked factors + the
-    /// resulting recommendation. `personalSleepBaselineMinutes` (when available) replaces the legacy
-    /// fixed 7h target ONLY inside this new explanation (research §2.7); the legacy `summarize` is
-    /// untouched.
+    /// resulting recommendation. `personalSleepBaselineMinutes` (when available) replaces the
+    /// fixed app-wide target ONLY inside this new explanation (research §2.7); `summarize` is
+    /// untouched and keeps reading `RecoveryScoreEngine.sleepTargetHours`.
     struct DecisionInput {
         let readiness: ReadinessFusionEngine.ReadinessResult
         let strainRisk: StrainRiskEngine.StrainRiskResult
@@ -174,7 +182,7 @@ struct ReasoningEngine {
         }
 
         // Sleep debt vs PERSONAL baseline if available (research §2.7), else no extra line.
-        // (We only ADD a personalized line; we never read the legacy fixed 7h target here.)
+        // (We only ADD a personalized line; we never read the fixed app-wide target here.)
         if let baseline = input.personalSleepBaselineMinutes, baseline > 0 {
             // A sleep readiness factor already encodes deviation; this line names the personal target
             // explicitly for the explanation only.

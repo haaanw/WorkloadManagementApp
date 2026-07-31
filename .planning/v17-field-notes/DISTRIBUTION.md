@@ -314,3 +314,53 @@ default. Stress-screenshot 2-3 screens at XL/AX sizes for HAN. Build with
 -derivedDataPath ~/.tonus-dd-claude-t; never run the full suite; do NOT commit.
 Report to .planning/v17-field-notes/status-t.md.
 ```
+
+## Wave 3 — HAN rulings (2026-07-31, after Round 1)
+
+Round 1 delivered all five lanes with no git write (HEAD `8742629`); five adversarial
+reviewers returned `needs-work` with file:line evidence. Orchestrator suite run:
+`** TEST SUCCEEDED **`, 0 failures. These rulings bind Round 2.
+
+1. **Sleep target = 6 h floor + 7.5 h target, APP-WIDE.** Overrules Session H's
+   evidence-based counter-proposal (6 h + 7 h). Scope of the change: the glance
+   `SleepTrendChart` rule moves 7 h → 7.5 h (the freeze is lifted for this value only);
+   the three legend keys become `<6H` / `6–7.5H` / `7.5H+` in en **and** zh-Hans; the
+   shipped `sleep.detail.explanation` string is rewritten in both locales; **and
+   `RecoveryScoreEngine.sleepDurationToScore`'s 70-point knee moves 7 h → 7.5 h** so the
+   score cannot disagree with the line. This last part is an algorithm change and needs
+   its own test update and verification.
+2. **Dynamic Type: brief amended by HAN's delegation.** The brief's
+   `Font.custom(_:size:relativeTo:)` prescription is **withdrawn** — it cannot carry the
+   `UIFontDescriptor` that pins the Noto Sans SC cascade, and losing that is a zh-Hans
+   regression. Route is now `UIFontMetrics(forTextStyle:).scaledFont(for:)`, **hard-gated
+   on proving SwiftUI reflows on a live content-size change**. If that proof fails, stop
+   and escalate — do not fall back to `Font.custom`.
+3. **The ≤12pt annotation cap becomes a SPECIFICATION cap.** "Fragment Mono is specified
+   at ≤12pt at the default content size and scales on the working voice's curve." The
+   `min(size, annoSizeCap)` clamp stays and clamps the **base** size, so no token may
+   declare >12pt. DESIGN.md, `FontTokens.swift` and the fence rationale get reworded.
+4. **`docs/*.html` become canonical redirects to tuwa.app.** They are NOT dead: build 17's
+   paywall (`UpgradeSheet.swift:184-189`) links to them, and `docs/terms.html` is already
+   missing "11. Apple App Store terms" — the exact section the build-17 rejection was
+   about. Redirecting removes the drift class rather than patching this instance.
+
+## Wave 3 — HAN rulings, round 2 (2026-07-31)
+
+5. **Dynamic Type is DROPPED from v1.7.** Lane T's hard gate failed as written: `UIFontMetrics`
+   reads the process-wide content size category and creates no SwiftUI environment dependency,
+   so on a live text-size change only views that read `\.dynamicTypeSize` themselves re-render.
+   Measured result (`.planning/v17-field-notes/dynamic-type-shots/`): `InkTabBar` reflowed while
+   the surrounding type did not — an internally inconsistent screen, i.e. **worse than today's
+   consistent non-adoption**. HAN's call: drop it. Reverted to HEAD: `FontTokens.swift`,
+   `InkTabBar.swift`, `TickScale.swift`, `DesignSystemFenceTests.swift`, `DESIGN.md` (so the
+   design system stays at v6.2, NOT v6.3). **Kept as the record for a future dedicated wave:**
+   `spec-t-dynamic-type.md`, `status-t.md`, `dynamic-type-grid.txt`, `dynamic-type-shots/`.
+   The measured finding worth carrying forward: iOS's text-style curves are not mutually
+   monotone (`.caption2` floors at 11pt then jumps +4pt at XL), so a per-token style mapping
+   inverts the ramp — three curves is the shape that works. The next attempt should use the
+   `.tokenFont()` modifier reading `@Environment(\.dynamicTypeSize)` (sweeps ~492 call sites).
+6. **All three `docs/*.html` redirects ship** — HAN reaffirmed after seeing the counter-evidence
+   that tuwa.app/privacy (March 27) lacks the Data Sharing section `docs/privacy.html` (June 5)
+   carries, and tuwa.app/support has no account-deletion answer. Filed to CODEX as content gaps
+   to close on the website: port Data Sharing into `src/i18n/locales/{en,zh,fr}/privacy.ts` and
+   bump `lastUpdated`; add an account-deletion FAQ to the support page (App Review 5.1.1(v)).

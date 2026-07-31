@@ -58,14 +58,14 @@ struct WeeklySummaryCard: View {
 
                     // Row 1: Sessions + Volume (2-column)
                     HStack(spacing: Spacing.sm) {
-                        metricCell(index: 1, title: String(localized: "weekly.summary.metric.sessions", defaultValue: "SESSIONS"), value: "\(summary.sessionCount)", delta: summary.sessionCountDelta)
-                        metricCell(index: 2, title: String(localized: "weekly.summary.metric.volume", defaultValue: "VOLUME"), value: String(format: "%.0f", summary.totalVolume), delta: summary.volumeDelta)
+                        metricCell(index: 1, title: "weekly.summary.metric.sessions", value: "\(summary.sessionCount)", delta: summary.sessionCountDelta)
+                        metricCell(index: 2, title: "weekly.summary.metric.volume", value: String(format: "%.0f", summary.totalVolume), delta: summary.volumeDelta)
                     }
                     .padding(.horizontal, Spacing.sm)
 
                     // Row 2: Avg Recovery + Load Trend (2-column)
                     HStack(spacing: Spacing.sm) {
-                        metricCell(index: 3, title: String(localized: "weekly.summary.metric.avgRecovery", defaultValue: "AVG RECOVERY"), value: String(format: "%.0f", summary.avgRecoveryScore), delta: summary.recoveryDelta)
+                        metricCell(index: 3, title: "weekly.summary.metric.avgRecovery", value: String(format: "%.0f", summary.avgRecoveryScore), delta: summary.recoveryDelta)
                         VStack(alignment: .leading, spacing: Spacing.xs) {
                             AnnotationLabel(key: "weekly.summary.metric.loadTrend", size: .small)
                                 .annotationReveal(index: 4)
@@ -108,9 +108,14 @@ struct WeeklySummaryCard: View {
     /// A weekly metric key + reading. The key is a machine label (annotation voice); the
     /// reading stays working-voice with tabular digits, and the delta comes from the shared
     /// `DeltaIndicator` (Session D owns its restyle — this lane consumes it).
-    private func metricCell(index: Int, title: String, value: String, delta: Double) -> some View {
+    ///
+    /// `title` is a `LocalizedStringKey` on the `AnnotationLabel(key:)` path, not a call-site
+    /// `String(localized:)`: the literal path reads the **process** locale and keeps the launch
+    /// language until restart, so these three keys stayed English after an in-app switch while
+    /// the two sibling keys in this same card (`key:`) switched immediately.
+    private func metricCell(index: Int, title: LocalizedStringKey, value: String, delta: Double) -> some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            AnnotationLabel(title, size: .small)
+            AnnotationLabel(key: title, size: .small)
                 .annotationReveal(index: index)
             HStack(spacing: Spacing.xs) {
                 Text(value)
@@ -126,25 +131,55 @@ struct WeeklySummaryCard: View {
 
 // MARK: - Zone Distribution Badge
 
-/// Inline zone badge for weekly distribution display.
+/// Inline zone badge for weekly distribution display — the same object `ZoneBadge` is, so it
+/// wears the same engraving (Wave 3, REQ from the Wave 2 record).
+///
+/// Three things changed from the pre-v6 version, all of them law rather than taste:
+///
+/// 1. **Card-plane backing.** It filled itself with `background` (the BASE plane), where
+///    `zone-optimal` measures 4.39:1 and `metric-load` 4.49:1 — under the 4.5:1 small-text floor
+///    (DESIGN.md:201; those two are the only sub-floor pairs. `zone-caution` #8A5C08 on #F0EFEC
+///    is ≈5.05:1 — an earlier revision of this comment mis-attributed the 4.49:1 figure to it).
+///    `ZoneBadge` solves this by carrying its own `surfaceEl2` capsule instead
+///    of trusting the plane beneath it (all nine v6 colors clear 4.5:1 there); this now does the
+///    same, so the badge is legal wherever it is dropped rather than legal by luck.
+/// 2. **The zone name takes its zone's color, and the hairline follows it** — the badge grammar
+///    in DESIGN.md v6 is text + hairline capsule, never a fill. State is still carried by the
+///    LABEL first (`Optimal` / `Caution`); the hue is supplementary, never the only channel
+///    (rule 6). Previously the chip was uniform `text2`, so four adjacent zones read identically
+///    and the distribution had no state channel at all.
+/// 3. **Micro-caps at micro size**, Latin-only (`isLatin`) — 15pt `label` was a size step above
+///    every other badge in the app. Tracking is **0.9**, the value DESIGN.md:66 and
+///    `FontTokens.swift:139` both specify for `micro`; `ZoneBadge` (`MetricTile.swift:75`) still
+///    carries a hand-typed 1.2, which is a pre-existing deviation in a file this lane does not
+///    own. Copying it here to "match" would have propagated the deviation, so this badge follows
+///    the token and `ZoneBadge` is left flagged rather than quietly diverged from.
+///
+/// The count stays a working-voice tabular numeral in ink: it is the chip's DATA, and annotation
+/// is marginalia, not the reading it annotates.
 private struct WeeklyZoneBadge: View {
+    @Environment(\.locale) private var locale
     let zone: ACWRZone
     let count: Int
 
+    private var isLatin: Bool { locale.language.languageCode?.identifier != "zh" }
+
     var body: some View {
-        HStack(spacing: Spacing.xs) {
+        HStack(spacing: Spacing.baselinePair) {
             Text(zone.displayName)
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text2)
+                .font(.Tokens.micro)
+                .tracking(isLatin ? 0.9 : 0)
+                .textCase(isLatin ? .uppercase : nil)
+                .foregroundStyle(ColorTokens.acwrZoneColor(zone))
             Text("\(count)")
-                .font(.Tokens.label)
+                .font(.Tokens.micro)
                 .monospacedDigit()
                 .foregroundStyle(ColorTokens.text1)
         }
-        .padding(.horizontal, Spacing.xs)
-        .padding(.vertical, Spacing.xs)
+        .padding(.horizontal, isLatin ? Spacing.xs : Spacing.sm)
+        .padding(.vertical, Spacing.baselinePair)
         // v3 Corner Law: chips are pills.
-        .background(ColorTokens.background, in: Capsule())
-        .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+        .background(ColorTokens.surfaceEl2, in: Capsule())
+        .overlay(Capsule().stroke(ColorTokens.acwrZoneColor(zone), lineWidth: 0.5))
     }
 }

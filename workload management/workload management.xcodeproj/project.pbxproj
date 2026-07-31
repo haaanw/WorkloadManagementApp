@@ -151,6 +151,9 @@
 		AA0202020000000000000001 /* WorkloadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000001 /* WorkloadViewModel.swift */; };
 		AA0202020000000000000002 /* TimeRangeSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */; };
 		AA0202020000000000000003 /* ChartTooltipOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000003 /* ChartTooltipOverlay.swift */; };
+		DD0301020000000000000003 /* HRVDetailChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0301010000000000000003 /* HRVDetailChart.swift */; };
+		DD0301020000000000000002 /* SleepDetailChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0301010000000000000002 /* SleepDetailChart.swift */; };
+		DD0301020000000000000001 /* ChartDetailPrimitives.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0301010000000000000001 /* ChartDetailPrimitives.swift */; };
 		AA0202020000000000000004 /* RecoveryLoadChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000004 /* RecoveryLoadChart.swift */; };
 		AA0901010000000000000001 /* ColdStartEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0901010000000000000002 /* ColdStartEngine.swift */; };
 		AA10010100000000000001 /* TrainingProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA10010100000000000002 /* TrainingProfileRepository.swift */; };
@@ -372,6 +375,9 @@
 		AA0202010000000000000001 /* WorkloadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadViewModel.swift; sourceTree = "<group>"; };
 		AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeRangeSegmentedControl.swift; sourceTree = "<group>"; };
 		AA0202010000000000000003 /* ChartTooltipOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartTooltipOverlay.swift; sourceTree = "<group>"; };
+		DD0301010000000000000003 /* HRVDetailChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailChart.swift; sourceTree = "<group>"; };
+		DD0301010000000000000002 /* SleepDetailChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailChart.swift; sourceTree = "<group>"; };
+		DD0301010000000000000001 /* ChartDetailPrimitives.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartDetailPrimitives.swift; sourceTree = "<group>"; };
 		AA0202010000000000000004 /* RecoveryLoadChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryLoadChart.swift; sourceTree = "<group>"; };
 		AA0901010000000000000002 /* ColdStartEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColdStartEngine.swift; sourceTree = "<group>"; };
 		AA10010100000000000002 /* TrainingProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingProfileRepository.swift; sourceTree = "<group>"; };
@@ -521,6 +527,9 @@
 				AA0201010000000000000002 /* StalenessWarningBadge.swift */,
 				AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */,
 				AA0202010000000000000003 /* ChartTooltipOverlay.swift */,
+				DD0301010000000000000003 /* HRVDetailChart.swift */,
+				DD0301010000000000000002 /* SleepDetailChart.swift */,
+				DD0301010000000000000001 /* ChartDetailPrimitives.swift */,
 				EE2102010000000000000001 /* RadialPicker.swift */,
 				A60A00010000000000000001 /* SessionStartPicker.swift */,
 			);
@@ -1148,6 +1157,9 @@
 				AA0202020000000000000001 /* WorkloadViewModel.swift in Sources */,
 				AA0202020000000000000002 /* TimeRangeSegmentedControl.swift in Sources */,
 				AA0202020000000000000003 /* ChartTooltipOverlay.swift in Sources */,
+				DD0301020000000000000003 /* HRVDetailChart.swift in Sources */,
+				DD0301020000000000000002 /* SleepDetailChart.swift in Sources */,
+				DD0301020000000000000001 /* ChartDetailPrimitives.swift in Sources */,
 				AA0202020000000000000004 /* RecoveryLoadChart.swift in Sources */,
 				62324C4B2F66CB0E00A9C2BE /* ColorTokens.swift in Sources */,
 				62324C4C2F66CB0E00A9C2BE /* WorkoutPipeline.swift in Sources */,

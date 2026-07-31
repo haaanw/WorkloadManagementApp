@@ -6,11 +6,18 @@ struct WelcomeActionCard: View {
     let onLogWorkout: () -> Void
     let onWellnessCheckIn: () -> Void
 
+    // Micro-caps are Latin-only typography (DESIGN.md v6: "micro-caps only at micro size,
+    // Latin locales only"; zh-Hans takes no case transform and no added tracking). The
+    // eyebrow below applied 0.9pt tracking unconditionally, so Chinese was being tracked.
+    @Environment(\.locale) private var locale
+    private var isLatin: Bool { locale.language.languageCode?.identifier != "zh" }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text("welcome.card.header")
                 .font(.Tokens.micro)
-                .tracking(0.9)
+                .tracking(isLatin ? 0.9 : 0)
+                .textCase(isLatin ? .uppercase : nil)
                 .foregroundStyle(ColorTokens.text3)
                 .padding(.bottom, Spacing.xs)
 

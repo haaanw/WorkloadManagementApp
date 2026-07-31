@@ -988,25 +988,25 @@ struct ExerciseEntryCard: View {
             switch inputMode {
             case .weightReps:
                 setHeaderRow(columns: [
-                    (String(localized: "table.header.set"), 32),
-                    (String(localized: "table.header.weight"), 0),
-                    (String(localized: "table.header.reps"), 0)
+                    ("table.header.set", 32),
+                    ("table.header.weight", 0),
+                    ("table.header.reps", 0)
                 ])
             case .repsOnly:
                 setHeaderRow(columns: [
-                    (String(localized: "table.header.set"), 32),
-                    (String(localized: "table.header.reps"), 0)
+                    ("table.header.set", 32),
+                    ("table.header.reps", 0)
                 ])
             case .distanceDuration:
                 setHeaderRow(columns: [
-                    (String(localized: "table.header.set"), 32),
-                    (String(localized: "table.header.dist"), 0),
-                    (String(localized: "table.header.time"), 0)
+                    ("table.header.set", 32),
+                    ("table.header.dist", 0),
+                    ("table.header.time", 0)
                 ])
             case .durationOnly:
                 setHeaderRow(columns: [
-                    (String(localized: "table.header.set"), 32),
-                    (String(localized: "table.header.timeMin"), 0)
+                    ("table.header.set", 32),
+                    ("table.header.timeMin", 0)
                 ])
             }
 
@@ -1077,16 +1077,22 @@ struct ExerciseEntryCard: View {
     }
 
     /// Column headers for the set table — axis labels for a column of readings, so the ANNOTATION
-    /// voice at the axis size (v6). The tuple carries a resolved `String` rather than a
-    /// `LocalizedStringKey` because `AnnotationLabel` takes a String; call sites resolve with
-    /// `String(localized:)`, the file's established idiom.
-    private func setHeaderRow(columns: [(String, CGFloat)]) -> some View {
+    /// voice at the axis size (v6).
+    ///
+    /// The tuple carries a `LocalizedStringKey` again (Wave 3). Wave 2 changed it to a resolved
+    /// `String` only because `AnnotationLabel` had no key initializer, which pushed all four call
+    /// sites onto `String(localized:)` — and that reads the PROCESS locale, while the app pins its
+    /// language with `.environment(\.locale, localeManager.activeLocale)` in `AppRouter`. These
+    /// four headers had therefore stopped following an in-app language switch. `AnnotationLabel`
+    /// gained `init(key:)` during Wave 2 verification precisely to undo this class of regression;
+    /// this helper is one of the sites that was still holding the flattened form.
+    private func setHeaderRow(columns: [(LocalizedStringKey, CGFloat)]) -> some View {
         HStack {
             ForEach(Array(columns.enumerated()), id: \.offset) { _, col in
                 if col.1 > 0 {
-                    AnnotationLabel(col.0, size: .small).frame(width: col.1)
+                    AnnotationLabel(key: col.0, size: .small).frame(width: col.1)
                 } else {
-                    AnnotationLabel(col.0, size: .small).frame(maxWidth: .infinity)
+                    AnnotationLabel(key: col.0, size: .small).frame(maxWidth: .infinity)
                 }
             }
         }
@@ -1171,10 +1177,15 @@ struct SetEntryRow: View {
         }
     }
 
-    private var suggestionIcon: String {
+    /// Direction mark for the progression suggestion, drawn from v6's sanctioned annotation glyph
+    /// set (`▲ △ ▼ ▽` deltas, `=` for hold) rather than an SF Symbol. The row it labels is
+    /// marginalia, so it renders in Fragment Mono — and an SF Symbol inside a mono annotation
+    /// would put two faces on one 12pt line for no gain. SF Symbols remain correct everywhere
+    /// they are actual UI glyphs (`chevron.right`, the done checkmark); this one was a delta.
+    private var suggestionGlyph: String {
         switch progressionType {
-        case .increase: return "arrow.up"
-        default: return "arrow.right"
+        case .increase: return "▲"
+        default: return "="
         }
     }
 
@@ -1330,7 +1341,7 @@ struct SetEntryRow: View {
                     // A flag on the reading, not speech — annotation (v6). The set index and the
                     // summary itself stay in the working voice: they are the row's DATA, and the
                     // annotation layer is marginalia around data, never the data.
-                    AnnotationLabel(String(localized: "set.warmup.label", defaultValue: "Warmup"))
+                    AnnotationLabel(key: "set.warmup.label")
                 }
                 Spacer()
                 Image(systemName: "checkmark")
@@ -1599,17 +1610,23 @@ struct SetEntryRow: View {
             .padding(.trailing, Spacing.sm)
             .padding(.bottom, Spacing.xs)
 
-            // Progression suggestion label (Pro users only)
+            // Progression suggestion (Pro). SPLIT VOICES, deliberately: the direction mark is a
+            // delta from v6's sanctioned glyph set, so it is annotation; the suggestion itself is
+            // an imperative the app SPEAKS ("maintain 80kg" / "保持 80kg"), so it is working
+            // voice. Wave 2 put the whole line through `AnnotationLabel`, which rendered a
+            // localized sentence as uppercase mono — DESIGN.md rule 9, "annotation is marginalia
+            // … never a sentence". The a11y label keeps the spoken form.
             if let text = suggestionText {
                 HStack(spacing: Spacing.xs) {
-                    Image(systemName: suggestionIcon)
-                        .imageScale(.small)
+                    AnnotationLabel(suggestionGlyph)
+                        .accessibilityHidden(true)
                     Text(text)
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text3)
                 }
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text3)
                 .padding(.horizontal, Spacing.xl)
                 .padding(.bottom, Spacing.xs)
+                .accessibilityElement(children: .combine)
                 .accessibilityLabel(String(format: String(localized: "set.suggestion.accessibility", defaultValue: "Suggested: %@"), text))
             }
         }

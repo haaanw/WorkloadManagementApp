@@ -83,25 +83,29 @@ struct ExerciseDetailSheet: View {
     private var metadataPlate: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             if let targetText {
-                metadataRow(String(localized: "exercise.detail.target"), targetText)
+                metadataRow("exercise.detail.target", targetText)
             }
             if let secondaryText {
-                metadataRow(String(localized: "exercise.detail.secondaryMuscles"), secondaryText)
+                metadataRow("exercise.detail.secondaryMuscles", secondaryText)
             }
             if let equipmentText {
-                metadataRow(String(localized: "exercise.detail.equipment"), equipmentText)
+                metadataRow("exercise.detail.equipment", equipmentText)
             }
-            metadataRow(String(localized: "exercise.detail.category"), exercise.category.displayName)
+            metadataRow("exercise.detail.category", exercise.category.displayName)
         }
         .dataPlate()
     }
 
     /// Annotation caption + working-voice value pair (v6): the caption is a machine key, so it
     /// renders through `AnnotationLabel`; `baselinePair` is the sanctioned 4pt label→value gap.
-    /// The caption is resolved with `String(localized:)` because the primitive takes a `String`.
-    private func metadataRow(_ label: String, _ value: String) -> some View {
+    ///
+    /// The caption travels as a `LocalizedStringKey` on the `AnnotationLabel(key:)` path. A
+    /// call-site `String(localized:)` resolves against the **process** locale and so keeps the
+    /// launch language until the app restarts, while the sheet's other copy follows the app's
+    /// pinned locale immediately — a half-translated sheet after an in-app language switch.
+    private func metadataRow(_ label: LocalizedStringKey, _ value: String) -> some View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-            AnnotationLabel(label)
+            AnnotationLabel(key: label)
             Text(value)
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text1)

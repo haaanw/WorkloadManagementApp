@@ -45,12 +45,12 @@ struct TemplatePickerSheet: View {
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
                             .frame(maxWidth: .infinity)
-                            .padding(.vertical, 16)
+                            .padding(.vertical, Spacing.sm)
                     }
                     .buttonStyle(.pressable)
                     .accessibilityIdentifier("templatePicker.startBlank")
-                    .padding(.horizontal, 16)
-                    .padding(.top, 16)
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.top, Spacing.sm)
                 }
             }
             .background(ColorTokens.surfaceEl)
@@ -62,7 +62,7 @@ struct TemplatePickerSheet: View {
     // MARK: - Empty State
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
+        VStack(spacing: Spacing.sm) {
             Text("empty.noTemplates")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
@@ -84,22 +84,22 @@ struct TemplatePickerSheet: View {
             }
             .buttonStyle(.pressable)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.md)
         .frame(maxWidth: .infinity)
     }
 
     // MARK: - Template Grid
 
     private var templateGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible(), spacing: 16), GridItem(.flexible(), spacing: 16)], spacing: 16) {
+        LazyVGrid(columns: [GridItem(.flexible(), spacing: Spacing.sm), GridItem(.flexible(), spacing: Spacing.sm)], spacing: Spacing.sm) {
             ForEach(templates, id: \.id) { template in
                 templateCard(template)
                     .accessibilityIdentifier("templatePicker.template")
             }
         }
-        .padding(.horizontal, 16)
-        .padding(.top, 16)
+        .padding(.horizontal, Spacing.sm)
+        .padding(.top, Spacing.sm)
     }
 
     // MARK: - Template Card
@@ -115,7 +115,7 @@ struct TemplatePickerSheet: View {
             dismiss()
             onSelectTemplate(template)
         } label: {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
                 Image(systemName: template.sportType.systemImage)
                     .font(.Tokens.label)
                     .foregroundStyle(ColorTokens.text2)

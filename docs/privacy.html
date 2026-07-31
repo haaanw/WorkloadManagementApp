@@ -3,98 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Privacy Policy — Tuwa</title>
+  <title>Privacy policy &mdash; Tuwa</title>
+
+  <!-- CANONICAL REDIRECT. Do NOT restore legal prose to this file.
+       Ruling: HAN, 2026-07-31 (.planning/v17-field-notes/DISTRIBUTION.md, "Wave 3 — HAN rulings" #4).
+
+       This path is LOAD-BEARING and must not be renamed or deleted:
+         - WorkloadApp/Views/Subscription/UpgradeSheet.swift opens
+           haaanw.github.io/WorkloadManagementApp/privacy.html from the shipping paywall
+           (build 17, in App Store review — it cannot be changed).
+         - AppStoreMetadata.md records these GitHub Pages URLs as live.
+
+       It used to hold a SECOND copy of the legal text, which had already drifted from the
+       canonical one: this file's Terms carried 11 sections dated 2026-06-05 while
+       tuwa-website/src/pages/terms.astro carried 12, including "11. Apple App Store terms"
+       — the exact EULA section the build-17 App Store rejection was about. One legal text
+       now exists, at https://tuwa.app/privacy/; this file only points at it.
+
+       NO JAVASCRIPT. The redirect is <meta http-equiv="refresh" content="0"> plus
+       <link rel="canonical">, with a real <a> in the visible fallback for user agents that
+       suppress meta-refresh. content="0" is instant, which is the WCAG 2.2 SC 2.2.1
+       exemption — never use a non-zero delay here.
+
+       Design: DESIGN.md v6.2 "Field Notes". Warm stone plane, ink ramp, 8pt grid,
+       corner law 12/8/pill, 0.5px hairlines, NO shadows (the inset rule is the relief
+       highlight), light-only, sentence case, one ink-filled pill CTA.
+       No CDN, no remote asset, no webfont: the Fragment Mono annotation voice cannot be
+       self-hosted from this directory without adding font binaries outside this lane's
+       ownership, and the mono voice may not be faked with a system monospace, so these
+       pages carry no marginalia at all. -->
+
+  <meta http-equiv="refresh" content="0; url=https://tuwa.app/privacy/">
+  <link rel="canonical" href="https://tuwa.app/privacy/">
+  <meta name="robots" content="noindex, follow">
   <style>
+    /* Tokens transcribed from design-system/tokens/{colors,spacing,typography}.css
+       and the type ramp in design-system/readme.md (VISUAL FOUNDATIONS -> Type):
+       64 hero / 32 display / 28 page title / 17 section-500 / 17 body / 15 label / 13 small.
+       Motion values are the design system's documented state band
+       (guidelines/motion.card.html: state <=250ms, cubic-bezier(0.22,1,0.36,1)). */
+    :root {
+      --bg: #F0EFEC;
+      --surface-el: #F8F7F4;
+      --surface-el-2: #FCFBF9;
+      --divider: #D6D3CD;
+      --divider-strong: #CCC9C2;
+      --relief-highlight: #FFFFFE;
+      --text-1: #1B1A17;
+      --text-2: #57544E;
+      --text-3: #8B877F;
+      --ink-inverse: #F4F3F0;
+      --accent: #6F6759;
+
+      --space-xs: 8px; --space-sm: 16px; --space-md: 24px;
+      --space-lg: 32px; --space-xl: 48px; --space-2xl: 64px;
+
+      --radius-card: 12px; --radius-control: 8px; --radius-pill: 999px;
+      --hairline: 0.5px;
+
+      --text-title: 28px; --text-body: 17px; --text-label: 15px; --text-small: 13px;
+      --leading-heading: 1.2; --leading-body: 1.55;
+      --tracking-heading: -0.01em;
+      --weight-regular: 400; --weight-medium: 500;
+
+      --duration-state: 250ms;
+      --ease-state: cubic-bezier(0.22, 1, 0.36, 1);
+
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1d1d1f; background: #fff; padding: 40px 24px; max-width: 680px; margin: 0 auto; }
-    h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
-    h2 { font-size: 18px; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
-    h3 { font-size: 15px; font-weight: 600; margin-top: 20px; margin-bottom: 8px; }
-    p, li { font-size: 15px; margin-bottom: 12px; }
-    ul { padding-left: 20px; }
-    a { color: #1d1d1f; }
-    .updated { font-size: 14px; color: #6e6e73; margin-bottom: 32px; }
-    .nav { font-size: 13px; color: #6e6e73; margin-bottom: 24px; }
-    .nav a { color: #6e6e73; text-decoration: none; margin-right: 16px; }
-    .nav a:hover { text-decoration: underline; }
+    html { color-scheme: light; background: var(--bg); }
+    body {
+      font-family: var(--font-sans);
+      font-size: var(--text-body); line-height: var(--leading-body);
+      color: var(--text-1); background: var(--bg);
+      min-height: 100vh;
+      /* minmax(0,1fr) so the track can shrink below the card's min-content width —
+         a plain flex/grid centre overflows the viewport on narrow phones. */
+      display: grid; grid-template-columns: minmax(0, 1fr);
+      align-content: center; justify-items: center;
+      padding: var(--space-lg) var(--space-sm);
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Raised light card: plane + hairline + 1px relief highlight. Never a shadow. */
+    main {
+      width: 100%; max-width: 520px;
+      background: linear-gradient(var(--surface-el-2), var(--surface-el));
+      border: var(--hairline) solid var(--divider);
+      border-radius: var(--radius-card);
+      box-shadow: inset 0 1px 0 var(--relief-highlight);
+      padding: var(--space-xl) var(--space-lg);
+    }
+    h1 {
+      font-size: var(--text-title); font-weight: var(--weight-regular);
+      line-height: var(--leading-heading); letter-spacing: var(--tracking-heading);
+      margin-bottom: var(--space-xs);
+    }
+    .lede { color: var(--text-2); margin-bottom: var(--space-md); }
+    /* text-2, not text-3: this is a sentence at 15px, not marginalia, and text-3
+       (#8B877F) does not clear 4.5:1 on the card plane. */
+    .destination {
+      font-size: var(--text-label); color: var(--text-2);
+      border-top: var(--hairline) solid var(--divider);
+      padding-top: var(--space-sm); margin-bottom: var(--space-md);
+    }
+    /* The one ink-filled pill CTA on this page. Never accent-filled. */
+    .cta {
+      display: inline-block;
+      background: var(--text-1); color: var(--ink-inverse);
+      font-size: var(--text-body); font-weight: var(--weight-medium);
+      text-decoration: none;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-pill);
+      transition: background var(--duration-state) var(--ease-state);
+    }
+    .cta:hover { background: var(--accent); }
+    .cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    nav {
+      margin-top: var(--space-lg);
+      padding-top: var(--space-sm);
+      border-top: var(--hairline) solid var(--divider);
+      font-size: var(--text-small); color: var(--text-2);
+    }
+    nav a {
+      color: var(--text-2); text-decoration: none; margin-right: var(--space-sm);
+      transition: color var(--duration-state) var(--ease-state);
+    }
+    nav a:hover { color: var(--text-1); }
+    nav a:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 2px;
+      border-radius: var(--radius-control);
+    }
+    @media (max-width: 640px) {
+      main { padding: var(--space-lg) var(--space-md); }
+    }
   </style>
 </head>
 <body>
-  <div class="nav">
-    <a href="privacy.html">Privacy</a>
-    <a href="terms.html">Terms</a>
-    <a href="support.html">Support</a>
-  </div>
-
-  <h1>Privacy Policy</h1>
-  <p class="updated">Last updated: June 5, 2026</p>
-
-  <p>Tuwa ("the app") is developed by Hanwen Ma. This policy explains what data the app collects, how it is used, and your rights.</p>
-
-  <h2>What Data We Collect</h2>
-
-  <h3>Data you provide</h3>
-  <ul>
-    <li><strong>Account information:</strong> Email address and display name (used for authentication and account sync)</li>
-    <li><strong>Workout logs:</strong> Exercises, sets, reps, weights, RPE, session duration, and notes you enter</li>
-    <li><strong>Wellness check-ins:</strong> Self-reported sleep quality, soreness, energy, and stress ratings</li>
-  </ul>
-
-  <h3>Data from HealthKit (read-only)</h3>
-  <ul>
-    <li>Heart rate variability (HRV)</li>
-    <li>Resting heart rate</li>
-    <li>Sleep duration</li>
-    <li>Body temperature</li>
-    <li>VO2 Max</li>
-    <li>Workout heart rate</li>
-  </ul>
-  <p>Tuwa <strong>never writes</strong> data to HealthKit. HealthKit access is optional and requires your explicit permission.</p>
-
-  <h3>Data we compute</h3>
-  <p>Recovery scores, training load metrics, training stress, readiness guidance, and personal records are calculated on your device from the data above.</p>
-
-  <h2>How Data Is Stored</h2>
-  <ul>
-    <li><strong>On your device:</strong> All data is stored locally using SwiftData. The app works fully offline.</li>
-    <li><strong>In the cloud:</strong> Composite scores (recovery score, workload snapshots, wellness ratings, workout session headers, and personal records) sync to Supabase (hosted on AWS) for account backup and multi-device access.</li>
-    <li><strong>Raw HealthKit data is never uploaded.</strong> Only computed scores derived from HealthKit data are synced.</li>
-  </ul>
-
-  <h2>Data Sharing</h2>
-  <p>Tuwa does not share your training or recovery data with coaches, other users, advertisers, or data brokers. If future sharing features are added, they will require your explicit consent.</p>
-
-  <h2>Third-Party Services</h2>
-  <ul>
-    <li><strong>Supabase</strong> (authentication and cloud sync): <a href="https://supabase.com/privacy">supabase.com/privacy</a></li>
-    <li><strong>RevenueCat</strong> (subscription management): <a href="https://www.revenuecat.com/privacy">revenuecat.com/privacy</a></li>
-  </ul>
-  <p>We do not use any advertising networks, analytics trackers, or third-party data brokers.</p>
-
-  <h2>Data Retention and Deletion</h2>
-  <p>Your data is retained as long as your account exists. To delete all your data:</p>
-  <ol>
-    <li>Go to Profile &rarr; Sign Out in the app</li>
-    <li>Contact us at the email below to request full account and data deletion from our servers</li>
-  </ol>
-  <p>Upon deletion, all your data — including workout logs, recovery scores, training load snapshots, and personal records — is permanently removed from our servers.</p>
-
-  <h2>Your Rights</h2>
-  <p>You have the right to:</p>
-  <ul>
-    <li>Access the data we store about you</li>
-    <li>Request correction of inaccurate data</li>
-    <li>Request deletion of your account and all associated data</li>
-    <li>Withdraw HealthKit permissions at any time via iOS Settings &rarr; Privacy &amp; Security &rarr; Health</li>
-  </ul>
-
-  <h2>Children</h2>
-  <p>Tuwa is not directed at children under 13. We do not knowingly collect data from children.</p>
-
-  <h2>Changes to This Policy</h2>
-  <p>We may update this policy from time to time. Changes will be posted to this page with an updated date.</p>
-
-  <h2>Contact</h2>
-  <p>For privacy questions or data deletion requests:<br><strong>Email:</strong> <a href="mailto:hanwenma09@gmail.com">hanwenma09@gmail.com</a></p>
+  <main>
+    <h1>Privacy policy</h1>
+    <p class="lede">Tuwa&rsquo;s privacy policy has moved to tuwa.app. That page is the only current version; this address forwards to it.</p>
+    <p class="destination">If you are not redirected automatically, follow the link below.</p>
+    <a class="cta" href="https://tuwa.app/privacy/">Read the privacy policy</a>
+    <nav>
+      <a href="https://tuwa.app/privacy/">Privacy policy</a>
+      <a href="https://tuwa.app/terms/">Terms of service</a>
+      <a href="https://tuwa.app/support/">Support</a>
+    </nav>
+  </main>
 </body>
 </html>

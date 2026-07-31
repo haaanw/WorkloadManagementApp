@@ -3,55 +3,153 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Support — Tuwa</title>
+  <title>Support &mdash; Tuwa</title>
+
+  <!-- CANONICAL REDIRECT. Do NOT restore legal prose to this file.
+       Ruling: HAN, 2026-07-31 (.planning/v17-field-notes/DISTRIBUTION.md, "Wave 3 — HAN rulings" #4).
+
+       This path is LOAD-BEARING and must not be renamed or deleted:
+         - WorkloadApp/Views/Subscription/UpgradeSheet.swift opens
+           haaanw.github.io/WorkloadManagementApp/support.html from the shipping paywall
+           (build 17, in App Store review — it cannot be changed).
+         - AppStoreMetadata.md records these GitHub Pages URLs as live.
+
+       It used to hold a SECOND copy of the legal text, which had already drifted from the
+       canonical one: this file's Terms carried 11 sections dated 2026-06-05 while
+       tuwa-website/src/pages/terms.astro carried 12, including "11. Apple App Store terms"
+       — the exact EULA section the build-17 App Store rejection was about. One legal text
+       now exists, at https://tuwa.app/support/; this file only points at it.
+
+       NO JAVASCRIPT. The redirect is <meta http-equiv="refresh" content="0"> plus
+       <link rel="canonical">, with a real <a> in the visible fallback for user agents that
+       suppress meta-refresh. content="0" is instant, which is the WCAG 2.2 SC 2.2.1
+       exemption — never use a non-zero delay here.
+
+       Design: DESIGN.md v6.2 "Field Notes". Warm stone plane, ink ramp, 8pt grid,
+       corner law 12/8/pill, 0.5px hairlines, NO shadows (the inset rule is the relief
+       highlight), light-only, sentence case, one ink-filled pill CTA.
+       No CDN, no remote asset, no webfont: the Fragment Mono annotation voice cannot be
+       self-hosted from this directory without adding font binaries outside this lane's
+       ownership, and the mono voice may not be faked with a system monospace, so these
+       pages carry no marginalia at all. -->
+
+  <meta http-equiv="refresh" content="0; url=https://tuwa.app/support/">
+  <link rel="canonical" href="https://tuwa.app/support/">
+  <meta name="robots" content="noindex, follow">
   <style>
+    /* Tokens transcribed from design-system/tokens/{colors,spacing,typography}.css
+       and the type ramp in design-system/readme.md (VISUAL FOUNDATIONS -> Type):
+       64 hero / 32 display / 28 page title / 17 section-500 / 17 body / 15 label / 13 small.
+       Motion values are the design system's documented state band
+       (guidelines/motion.card.html: state <=250ms, cubic-bezier(0.22,1,0.36,1)). */
+    :root {
+      --bg: #F0EFEC;
+      --surface-el: #F8F7F4;
+      --surface-el-2: #FCFBF9;
+      --divider: #D6D3CD;
+      --divider-strong: #CCC9C2;
+      --relief-highlight: #FFFFFE;
+      --text-1: #1B1A17;
+      --text-2: #57544E;
+      --text-3: #8B877F;
+      --ink-inverse: #F4F3F0;
+      --accent: #6F6759;
+
+      --space-xs: 8px; --space-sm: 16px; --space-md: 24px;
+      --space-lg: 32px; --space-xl: 48px; --space-2xl: 64px;
+
+      --radius-card: 12px; --radius-control: 8px; --radius-pill: 999px;
+      --hairline: 0.5px;
+
+      --text-title: 28px; --text-body: 17px; --text-label: 15px; --text-small: 13px;
+      --leading-heading: 1.2; --leading-body: 1.55;
+      --tracking-heading: -0.01em;
+      --weight-regular: 400; --weight-medium: 500;
+
+      --duration-state: 250ms;
+      --ease-state: cubic-bezier(0.22, 1, 0.36, 1);
+
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    }
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif; line-height: 1.6; color: #1d1d1f; background: #fff; padding: 40px 24px; max-width: 680px; margin: 0 auto; }
-    h1 { font-size: 28px; font-weight: 600; margin-bottom: 8px; }
-    h2 { font-size: 18px; font-weight: 600; margin-top: 32px; margin-bottom: 12px; }
-    p, li { font-size: 15px; margin-bottom: 12px; }
-    ul { padding-left: 20px; }
-    a { color: #1d1d1f; }
-    .subtitle { font-size: 14px; color: #6e6e73; margin-bottom: 32px; }
-    .nav { font-size: 13px; color: #6e6e73; margin-bottom: 24px; }
-    .nav a { color: #6e6e73; text-decoration: none; margin-right: 16px; }
-    .nav a:hover { text-decoration: underline; }
-    .contact-box { background: #f5f5f7; padding: 24px; margin-top: 16px; }
+    html { color-scheme: light; background: var(--bg); }
+    body {
+      font-family: var(--font-sans);
+      font-size: var(--text-body); line-height: var(--leading-body);
+      color: var(--text-1); background: var(--bg);
+      min-height: 100vh;
+      /* minmax(0,1fr) so the track can shrink below the card's min-content width —
+         a plain flex/grid centre overflows the viewport on narrow phones. */
+      display: grid; grid-template-columns: minmax(0, 1fr);
+      align-content: center; justify-items: center;
+      padding: var(--space-lg) var(--space-sm);
+      -webkit-font-smoothing: antialiased;
+    }
+    /* Raised light card: plane + hairline + 1px relief highlight. Never a shadow. */
+    main {
+      width: 100%; max-width: 520px;
+      background: linear-gradient(var(--surface-el-2), var(--surface-el));
+      border: var(--hairline) solid var(--divider);
+      border-radius: var(--radius-card);
+      box-shadow: inset 0 1px 0 var(--relief-highlight);
+      padding: var(--space-xl) var(--space-lg);
+    }
+    h1 {
+      font-size: var(--text-title); font-weight: var(--weight-regular);
+      line-height: var(--leading-heading); letter-spacing: var(--tracking-heading);
+      margin-bottom: var(--space-xs);
+    }
+    .lede { color: var(--text-2); margin-bottom: var(--space-md); }
+    /* text-2, not text-3: this is a sentence at 15px, not marginalia, and text-3
+       (#8B877F) does not clear 4.5:1 on the card plane. */
+    .destination {
+      font-size: var(--text-label); color: var(--text-2);
+      border-top: var(--hairline) solid var(--divider);
+      padding-top: var(--space-sm); margin-bottom: var(--space-md);
+    }
+    /* The one ink-filled pill CTA on this page. Never accent-filled. */
+    .cta {
+      display: inline-block;
+      background: var(--text-1); color: var(--ink-inverse);
+      font-size: var(--text-body); font-weight: var(--weight-medium);
+      text-decoration: none;
+      padding: var(--space-sm) var(--space-md);
+      border-radius: var(--radius-pill);
+      transition: background var(--duration-state) var(--ease-state);
+    }
+    .cta:hover { background: var(--accent); }
+    .cta:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+    nav {
+      margin-top: var(--space-lg);
+      padding-top: var(--space-sm);
+      border-top: var(--hairline) solid var(--divider);
+      font-size: var(--text-small); color: var(--text-2);
+    }
+    nav a {
+      color: var(--text-2); text-decoration: none; margin-right: var(--space-sm);
+      transition: color var(--duration-state) var(--ease-state);
+    }
+    nav a:hover { color: var(--text-1); }
+    nav a:focus-visible {
+      outline: 2px solid var(--accent); outline-offset: 2px;
+      border-radius: var(--radius-control);
+    }
+    @media (max-width: 640px) {
+      main { padding: var(--space-lg) var(--space-md); }
+    }
   </style>
 </head>
 <body>
-  <div class="nav">
-    <a href="privacy.html">Privacy</a>
-    <a href="terms.html">Terms</a>
-    <a href="support.html">Support</a>
-  </div>
-
-  <h1>Support</h1>
-  <p class="subtitle">Tuwa — Adaptive Strength Training</p>
-
-  <h2>Contact Us</h2>
-  <p>For bug reports, feature requests, account issues, or general questions:</p>
-
-  <div class="contact-box">
-    <p><strong>Email:</strong> <a href="mailto:hanwenma09@gmail.com">hanwenma09@gmail.com</a></p>
-    <p>We typically respond within 48 hours.</p>
-  </div>
-
-  <h2>Common Questions</h2>
-
-  <h2>How do I cancel my subscription?</h2>
-  <p>Go to your device's <strong>Settings &gt; Apple ID &gt; Subscriptions</strong> and select Tuwa to manage or cancel. Cancellation takes effect at the end of your current billing period.</p>
-
-  <h2>How do I connect HealthKit?</h2>
-  <p>Open Tuwa, go to <strong>Profile &gt; HealthKit Permissions</strong>, and tap <strong>Authorize HealthKit Access</strong>. Tuwa reads HRV, resting heart rate, sleep, and other metrics from Apple Watch, Whoop, Oura, and Garmin via HealthKit.</p>
-
-  <h2>How do templates help me plan future workouts?</h2>
-  <p>Use <strong>Log &gt; +</strong> to start from a saved template, or open <strong>My Programs</strong> from the Log screen to create and edit templates. Templates make repeated sessions faster to run while still letting you adjust volume and exercises based on recovery and recent training history.</p>
-
-  <h2>How do I delete my account?</h2>
-  <p>Sign out in the app via <strong>Profile &gt; Sign Out</strong>, then email us at <a href="mailto:hanwenma09@gmail.com">hanwenma09@gmail.com</a> to request full data deletion from our servers.</p>
-
-  <h2>My recovery score seems wrong</h2>
-  <p>The recovery score is calculated from HRV, resting heart rate, sleep duration, and your wellness check-in. If data seems off, check that your wearable synced to Apple Health recently. The score improves in accuracy after 7+ days of data.</p>
+  <main>
+    <h1>Support</h1>
+    <p class="lede">Tuwa&rsquo;s support page has moved to tuwa.app, where the FAQ and the contact address are kept up to date; this address forwards to it.</p>
+    <p class="destination">If you are not redirected automatically, follow the link below.</p>
+    <a class="cta" href="https://tuwa.app/support/">Go to support</a>
+    <nav>
+      <a href="https://tuwa.app/privacy/">Privacy policy</a>
+      <a href="https://tuwa.app/terms/">Terms of service</a>
+      <a href="https://tuwa.app/support/">Support</a>
+    </nav>
+  </main>
 </body>
 </html>

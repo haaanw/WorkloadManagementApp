@@ -28,7 +28,7 @@ struct FeltRightPromptRow: View {
 
             // Card stamp — this is about YESTERDAY, never today. v6: a stamp is marginalia, so
             // the annotation voice (case/tracking/CJK guard owned by the primitive).
-            AnnotationLabel(String(localized: "feltRight.header", defaultValue: "YESTERDAY'S CALL"))
+            AnnotationLabel(key: "feltRight.header")
                 .annotationReveal()
 
             // Quiet one-line context: the differing number + the composed reason (read-only).

@@ -9,74 +9,186 @@
 <x-dc>
 <!-- @template name="Tuwa deck" description="Investor/product deck in the Field Notes language — stone slides, mono annotations, metric hues" -->
 <helmet><script src="./ds-base.js"></script></helmet>
+<!--
+  Tuwa pitch deck — Field Notes (DESIGN.md v6.2), rebuilt 2026-07-30 (Session G, v1.7 Wave 3).
+
+  FIGURE PROVENANCE. Every number on slides 03, 04 and 06 is traceable to
+  docs/market-intelligence/. Numbers carry an inline mono source line. The three
+  figures the previous version of this template asserted — "64M self-coached hybrid
+  athletes (US+EU)", "$4.8B recovery-tech spend 2026", "31% train through known
+  injury risk" — have NO source anywhere in the intelligence pack and have been
+  removed rather than reprinted. Do not restore them without a citation.
+
+  Tuwa has no traction figures (users, revenue, retention) in any repo source, so
+  this deck asserts none. Add a traction slide only when real numbers exist.
+
+  DESIGN LAW APPLIED
+  - Stone planes only; no dark slides (Hero Law — the previous dark quote slide is
+    now a light stone slide).
+  - No shadows. Elevation = plane + 0.5px hairline + relief gradient + 1px highlight.
+  - Fragment Mono ≤12px, uppercase, +0.05em, ONLY as marginalia — every slide's
+    actual claim is in the working (Instrument Sans) or display (Alpino) voice.
+  - Alpino 650 is the display voice; marketing and slides only, never app UI.
+  - Metric hues appear only where a real metric is named, under TWO distinct
+    licences, both in use here:
+      * Rule 2 (sub-24pt hue needs a card plane, >=4.5:1) — slide 05's 11px
+        `READINESS ●` key on the Tuwa column's raised card: #2E7D4F measures
+        4.88:1 on surface-el2 and 4.71:1 on surface-el.
+      * Rule 1 (hero readings >=32pt may take a metric hue on any plane) —
+        slide 07's five feature cards, whose 56px readings each wear their own
+        metric's hue. Their annotation keys stay text-3; the hue is on the
+        reading, not on the key.
+    Never a plane fill, a CTA, or a decorative tint. Travertine accent #6F6759 is
+    licensed for live-state marks and for ONE identity-less hero reading per slide
+    — it appears exactly once in this deck, on slide 03's $33.6B. Comparative
+    figures (the five competitor prices, the two secondary market numbers) and
+    every annotation label are ink: text-1 / text-2 / text-3.
+  - Corners 12 / 8 / pill. 8pt grid. Sentence case in the working voice.
+  - One ink-filled pill CTA maximum per slide (only slide 08 has one).
+-->
 <div style="display:flex;flex-direction:column;gap:24px;background:#DAD8D2;padding:24px">
 
+<!-- ─────────────────────────────────────────────────────────── 01 Title -->
 <section data-screen-label="01 Title" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
-<div style="display:flex;justify-content:space-between;font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F"><span>TUWA // INVESTOR DECK</span><span>2026-07 · CONFIDENTIAL</span></div>
-<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:28px">
+<div style="display:flex;justify-content:space-between;font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F"><span>TUWA // INVESTOR DECK</span><span>CONFIDENTIAL</span></div>
+<div style="flex:1;display:flex;flex-direction:column;justify-content:center;gap:32px">
 <img src="../../assets/icon-512.png" alt="Tuwa" style="width:96px;height:96px">
 <div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:88px;line-height:1.02;letter-spacing:-0.02em">Your plan.<br>Made safe and optimal.</div>
-<div style="font-size:22px;color:#57544E;max-width:760px">The sports-science back room for self-coached athletes.</div>
+<div style="font-size:22px;line-height:1.55;color:#57544E;max-width:760px">The sports-science back room for self-coached athletes.</div>
 </div>
-<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:19px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F">01</span></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:19px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">01</span></div>
 </section>
 
-<section data-screen-label="02 Section" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
-<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#6F6759">02 · THE PROBLEM</div>
+<!-- ─────────────────────────────────────────────────────── 02 The problem -->
+<section data-screen-label="02 Problem" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F">02 · THE PROBLEM</div>
 <div>
-<div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:72px;line-height:1.05;letter-spacing:-0.02em;max-width:980px">Self-coached athletes guess. Guessing gets them hurt.</div>
-<div style="font-family:'Fragment Mono',monospace;font-size:13px;line-height:2;color:#57544E;margin-top:40px">├─ NO SPORTS-SCIENCE STAFF<br>├─ WEARABLES SCORE THE BODY, NOT THE PLAN<br>└─ INJURY = MONTHS OF LOST PROGRESS</div>
+<div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:72px;line-height:1.05;letter-spacing:-0.02em;max-width:1000px">Self-coached athletes guess at the one decision that matters.</div>
+<div style="display:flex;gap:24px;margin-top:48px">
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px">
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">NO STAFF</div>
+<div style="font-size:19px;line-height:1.5;color:#1B1A17;margin-top:8px">No coach, no physio, no sports scientist — and a plan they wrote themselves.</div>
 </div>
-<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F">02</span></div>
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px">
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">NO PLAN CONTEXT</div>
+<div style="font-size:19px;line-height:1.5;color:#1B1A17;margin-top:8px">Wearables score the body. None of them read the session you intended to run.</div>
+</div>
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px">
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">THE COST</div>
+<div style="font-size:19px;line-height:1.5;color:#1B1A17;margin-top:8px">One bad week compounds into months of lost progress.</div>
+</div>
+</div>
+</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">02</span></div>
 </section>
 
-<section data-screen-label="03 Big stat" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
-<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#6F6759">03 · THE MARKET</div>
+<!-- ──────────────────────────────────────────────────────── 03 The market -->
+<section data-screen-label="03 Market" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F">03 · THE MARKET</div>
 <div style="display:flex;gap:64px;align-items:flex-end">
 <div>
-<div style="font-size:200px;line-height:1;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;color:#2E6B80">64M</div>
-<div style="font-family:'Fragment Mono',monospace;font-size:13px;letter-spacing:0.05em;color:#57544E;margin-top:16px">SELF-COACHED HYBRID ATHLETES · US + EU</div>
+<div style="font-size:184px;line-height:1;letter-spacing:-0.03em;font-variant-numeric:tabular-nums;color:#6F6759">$33.6B</div>
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#57544E;margin-top:16px">GLOBAL FITNESS APPS MARKET · PROJECTED 2033</div>
 </div>
-<div style="flex:1;border-left:1px solid #CCC9C2;padding-left:48px;display:flex;flex-direction:column;gap:24px;padding-bottom:12px">
-<div><div style="font-size:44px;font-variant-numeric:tabular-nums;color:#3F5A46">$4.8B</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F;margin-top:4px">RECOVERY-TECH SPEND, 2026</div></div>
-<div><div style="font-size:44px;font-variant-numeric:tabular-nums;color:#743B36">31%</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F;margin-top:4px">TRAIN THROUGH KNOWN INJURY RISK</div></div>
+<div style="flex:1;border-left:1px solid #CCC9C2;padding-left:48px;display:flex;flex-direction:column;gap:32px;padding-bottom:8px">
+<div><div style="font-size:44px;font-variant-numeric:tabular-nums;color:#57544E">$12.12B</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:4px">SAME MARKET, 2025</div></div>
+<div><div style="font-size:44px;font-variant-numeric:tabular-nums;color:#57544E">13.40%</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:4px">CAGR, 2025 → 2033</div></div>
+<div style="font-size:17px;line-height:1.5;color:#57544E">North America holds the largest revenue share; iOS holds the largest platform share.</div>
 </div>
 </div>
-<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F">03</span></div>
+<div>
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;line-height:1.9;letter-spacing:0.05em;color:#8B877F">├─ ACSM 2026 TRENDS: WEARABLE TECH #1 · STRENGTH TRAINING #7 · DATA-DRIVEN TECH #8<br>└─ SOURCE: GRAND VIEW RESEARCH, FITNESS APPS MARKET · ACSM 2026 FITNESS TRENDS</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:24px"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">03</span></div>
+</div>
 </section>
 
-<section data-screen-label="04 Comparison" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
-<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#6F6759">04 · POSITIONING</div>
-<div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:52px;letter-spacing:-0.02em;margin:24px 0 40px">They score your body. Tuwa decides your session.</div>
+<!-- ─────────────────────────────────────────────── 04 The price ceiling -->
+<section data-screen-label="04 Price anchors" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F">04 · THE PRICE FIELD</div>
+<div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:52px;letter-spacing:-0.02em;margin:24px 0 8px">A crowded shelf with a wide-open middle.</div>
+<div style="font-size:19px;line-height:1.5;color:#57544E;max-width:900px">Recovery scores are cheap. Owning the programme is expensive. Nothing in between reads a plan you wrote and adjusts it.</div>
+<div style="flex:1"></div>
+<div style="display:flex;align-items:stretch;gap:16px;margin-top:48px">
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px"><div style="font-size:32px;font-variant-numeric:tabular-nums;color:#1B1A17">$29.99</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:4px">ATHLYTIC · /YR</div><div style="font-size:15px;line-height:1.45;color:#57544E;margin-top:8px">A recovery score</div></div>
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px"><div style="font-size:32px;font-variant-numeric:tabular-nums;color:#1B1A17">$99.99</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:4px">BEVEL PRO · /YR</div><div style="font-size:15px;line-height:1.45;color:#57544E;margin-top:8px">All-in-one health AI</div></div>
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px"><div style="font-size:32px;font-variant-numeric:tabular-nums;color:#1B1A17">$134.99</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:4px">TRAININGPEAKS · /YR</div><div style="font-size:15px;line-height:1.45;color:#57544E;margin-top:8px">A platform, plus literacy</div></div>
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px"><div style="font-size:32px;font-variant-numeric:tabular-nums;color:#1B1A17">$199</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:4px">WHOOP · FROM /YR</div><div style="font-size:15px;line-height:1.45;color:#57544E;margin-top:8px">Hardware you must buy</div></div>
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px"><div style="font-size:32px;font-variant-numeric:tabular-nums;color:#1B1A17">$299.99</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:4px">RP HYPERTROPHY · /YR</div><div style="font-size:15px;line-height:1.45;color:#57544E;margin-top:8px">Their programme, not yours</div></div>
+</div>
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:24px">└─ SOURCE: DOCS/MARKET-INTELLIGENCE/COMPETITOR-INDEX.MD · VENDOR + APP STORE PRICING</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:16px"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">04</span></div>
+</section>
+
+<!-- ────────────────────────────────────────────────────── 05 Positioning -->
+<section data-screen-label="05 Positioning" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F">05 · POSITIONING</div>
+<div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:52px;letter-spacing:-0.02em;margin:24px 0 48px">They score your body. Tuwa decides your session.</div>
 <div style="flex:1;display:flex;gap:24px">
 <div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:32px">
-<div style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F">WEARABLE DASHBOARDS</div>
-<div style="font-family:'Fragment Mono',monospace;font-size:14px;line-height:2.4;color:#57544E;margin-top:20px">├─ A BODY SCORE<br>├─ POPULATION BASELINES<br>├─ INTERPRETATION HOMEWORK<br>└─ NO PLAN CONTEXT</div>
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">WEARABLE DASHBOARDS</div>
+<div style="font-size:19px;line-height:2;color:#57544E;margin-top:24px">A body score<br>Population baselines<br>Interpretation homework<br>No plan context</div>
 </div>
 <div style="flex:1;background:linear-gradient(#FCFBF9,#F8F7F4);border:0.5px solid #CCC9C2;border-radius:12px;padding:32px;box-shadow:inset 0 1px 0 #FFFFFE">
-<div style="font-family:'Fragment Mono',monospace;font-size:11px;color:#3F5A46">TUWA ●</div>
-<div style="font-family:'Fragment Mono',monospace;font-size:14px;line-height:2.4;color:#1B1A17;margin-top:20px">├─ A SESSION VERDICT: GO / MODIFY / HOLD<br>├─ YOUR OWN ROLLING BASELINES<br>├─ EXACT NUMBER ADJUSTMENTS<br>└─ YOUR PLAN, NEVER OVERWRITTEN</div>
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#2E7D4F">READINESS ● TUWA</div>
+<div style="font-size:19px;line-height:2;color:#1B1A17;margin-top:24px">A session verdict: go, modify, or hold<br>Your own rolling baselines<br>Exact number adjustments<br>Your plan, never overwritten</div>
 </div>
 </div>
-<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:32px"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F">04</span></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:32px"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">05</span></div>
 </section>
 
-<section data-screen-label="05 Quote" style="width:1280px;height:720px;background:#1B1A17;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Instrument Sans',sans-serif;color:#F4F3F0">
-<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F">05 · WHY NOW</div>
-<div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:450;font-size:56px;line-height:1.15;letter-spacing:-0.01em;max-width:1020px">"The back room of a pro team — plan, physiology, and a decision — for athletes who coach themselves."</div>
-<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:500;color:#F4F3F0">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F">05</span></div>
+<!-- ───────────────────────────────────────────────────────── 06 Why now -->
+<section data-screen-label="06 Why now" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F">06 · WHY NOW</div>
+<div>
+<div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:52px;line-height:1.1;letter-spacing:-0.02em;max-width:1020px">The pieces are consolidating. The decision layer still is not built.</div>
+<div style="display:flex;gap:24px;margin-top:48px">
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px">
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">2026-07-22</div>
+<div style="font-size:19px;line-height:1.5;margin-top:8px">Garmin acquired TrainingPeaks and TrainHeroic — plan, coaching and wearable physiology under one owner.</div>
+<div style="font-size:17px;line-height:1.5;color:#57544E;margin-top:16px">No integrated product has been announced or shipped.</div>
+</div>
+<div style="flex:1;background:#F8F7F4;border:0.5px solid #D6D3CD;border-radius:12px;padding:24px">
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">STILL UNSHIPPED</div>
+<div style="font-size:19px;line-height:1.5;margin-top:8px">Accept a user-authored plan, fuse it with recovery and cross-modal load, suggest a bounded change to today's session.</div>
+<div style="font-size:17px;line-height:1.5;color:#57544E;margin-top:16px">No reviewed competitor ships this. The window is open, not permanent.</div>
+</div>
+</div>
+</div>
+<div>
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">└─ SOURCE: DOCS/MARKET-INTELLIGENCE/COMMODITIZATION-CLOCK-2026-07-26.MD</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:24px"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">06</span></div>
+</div>
 </section>
 
-<section data-screen-label="06 Close" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
-<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#6F6759">06 · ASK</div>
+<!-- ────────────────────────────────────────────────── 07 What ships today -->
+<section data-screen-label="07 Product" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F">07 · WHAT SHIPS TODAY</div>
+<div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:52px;letter-spacing:-0.02em;margin:24px 0 8px">Five signals. One verdict. Your plan intact.</div>
+<div style="font-size:19px;line-height:1.5;color:#57544E;max-width:900px">Live on the App Store for iOS 17+. HealthKit is read-only; raw health data never leaves the device.</div>
+<div style="flex:1;display:flex;align-items:center;gap:16px;margin-top:32px">
+<div style="flex:1;background:linear-gradient(#FCFBF9,#F8F7F4);border:0.5px solid #D6D3CD;border-radius:12px;padding:24px;box-shadow:inset 0 1px 0 #FFFFFE"><div style="font-size:56px;line-height:1;font-variant-numeric:tabular-nums;color:#2E7D4F">82</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:8px">READINESS ● TODAY</div></div>
+<div style="flex:1;background:linear-gradient(#FCFBF9,#F8F7F4);border:0.5px solid #D6D3CD;border-radius:12px;padding:24px;box-shadow:inset 0 1px 0 #FFFFFE"><div style="font-size:56px;line-height:1;font-variant-numeric:tabular-nums;color:#1D7189">+4</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:8px">RECOVERY ● HRV DELTA</div></div>
+<div style="flex:1;background:linear-gradient(#FCFBF9,#F8F7F4);border:0.5px solid #D6D3CD;border-radius:12px;padding:24px;box-shadow:inset 0 1px 0 #FFFFFE"><div style="font-size:56px;line-height:1;font-variant-numeric:tabular-nums;color:#52589E">7.6</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:8px">SLEEP ● HOURS</div></div>
+<div style="flex:1;background:linear-gradient(#FCFBF9,#F8F7F4);border:0.5px solid #D6D3CD;border-radius:12px;padding:24px;box-shadow:inset 0 1px 0 #FFFFFE"><div style="font-size:56px;line-height:1;font-variant-numeric:tabular-nums;color:#A8442D">8</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:8px">STRAIN ● RPE CAP</div></div>
+<div style="flex:1;background:linear-gradient(#FCFBF9,#F8F7F4);border:0.5px solid #D6D3CD;border-radius:12px;padding:24px;box-shadow:inset 0 1px 0 #FFFFFE"><div style="font-size:56px;line-height:1;font-variant-numeric:tabular-nums;color:#8A6810">1.12</div><div style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F;margin-top:8px">LOAD ● ACWR</div></div>
+</div>
+<div style="font-family:'Fragment Mono',monospace;font-size:11px;line-height:1.9;letter-spacing:0.05em;color:#8B877F;margin-top:24px">├─ 1,324-EXERCISE MOVEMENT BANK · SEARCH-FIRST PICKER<br>└─ ACWR STRIKE ZONE 0.80–1.30 · ONE FATIGUE BUDGET ACROSS SKILL, STRENGTH, CONDITIONING</div>
+<div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:16px"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">07</span></div>
+</section>
+
+<!-- ───────────────────────────────────────────────────────────── 08 Ask -->
+<section data-screen-label="08 Ask" style="width:1280px;height:720px;background:#F0EFEC;border:1px solid #D6D3CD;box-sizing:border-box;padding:72px 88px;display:flex;flex-direction:column;justify-content:space-between;font-family:'Instrument Sans',sans-serif;color:#1B1A17">
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#8B877F">08 · ASK</div>
 <div style="display:flex;align-items:center;gap:48px">
 <img src="../../assets/icon-512.png" alt="" style="width:120px;height:120px">
 <div>
 <div style="font-family:'Alpino','Instrument Sans',sans-serif;font-weight:650;font-size:72px;letter-spacing:-0.02em">Stay in the strike zone.</div>
-<div style="font-family:'Fragment Mono',monospace;font-size:13px;color:#57544E;margin-top:20px">HELLO@TUWA.APP · TUWA.APP</div>
+<div style="font-size:22px;line-height:1.55;color:#57544E;margin-top:16px;max-width:720px">We are looking for design partners among self-coached basketball players who strength-train.</div>
+<a href="mailto:hello@tuwa.app" style="display:inline-block;margin-top:32px;background:#1B1A17;color:#F4F3F0;font-size:17px;font-weight:500;text-decoration:none;padding:16px 32px;border-radius:999px">Talk to us</a>
+<div style="font-family:'Fragment Mono',monospace;font-size:12px;letter-spacing:0.05em;color:#57544E;margin-top:24px">HELLO@TUWA.APP · TUWA.APP</div>
 </div>
 </div>
-<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;color:#8B877F">06</span></div>
+<div style="display:flex;justify-content:space-between;align-items:baseline"><span style="font-size:15px;font-weight:500">Tuwa</span><span style="font-family:'Fragment Mono',monospace;font-size:11px;letter-spacing:0.05em;color:#8B877F">08</span></div>
 </section>
 
 </div>

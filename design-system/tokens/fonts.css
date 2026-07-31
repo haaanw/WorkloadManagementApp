@@ -1,6 +1,10 @@
 /* Tuwa — webfonts. Three voices max: Instrument Sans (UI), Fragment Mono (annotation), Alpino (display).
    Noto Sans SC is not a voice — it is the CJK cascade fallback. */
-@import url('https://fonts.googleapis.com/css2?family=Fragment+Mono&display=swap');
+/* Fragment Mono is SELF-HOSTED (SIL OFL 1.1, Wei Huang — licence beside the file).
+   It was a Google Fonts @import until 2026-07-31, which broke the no-CDN law for every
+   surface that loads this file and left the annotation face unverifiable offline.
+   Do not restore the @import. */
+@font-face{font-family:'Fragment Mono';src:url('../assets/fonts/FragmentMono-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'Instrument Sans';src:url('../assets/fonts/InstrumentSans-Regular.ttf') format('truetype');font-weight:400;font-style:normal;font-display:swap}
 @font-face{font-family:'Instrument Sans';src:url('../assets/fonts/InstrumentSans-Medium.ttf') format('truetype');font-weight:500;font-style:normal;font-display:swap}
 @font-face{font-family:'Noto Sans SC';src:url('../assets/fonts/NotoSansSC-Regular.otf') format('opentype');font-weight:400;font-style:normal;font-display:swap}

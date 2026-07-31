@@ -87,8 +87,21 @@ final class RecoveryScoreEngineTests: XCTestCase {
 
     // MARK: - Sleep scoring
 
-    func test_sevenHourSleep_scoreAround70() {
-        let input = RecoveryScoreEngine.RecoveryInput(
+    /// The 70-point knee. It moved 7 h → 7.5 h when the sleep target moved app-wide
+    /// (HAN, 2026-07-31), so this pins 450 min rather than 420 — and pins 420 explicitly BELOW
+    /// the knee, because "the curve still crosses 70 somewhere" is not what the target means.
+    func test_sevenAndAHalfHourSleep_isTheSeventyPointKnee() {
+        let atTarget = RecoveryScoreEngine.RecoveryInput(
+            hrvSDNN: nil,
+            restingHR: nil,
+            sleepDurationMinutes: 450,
+            wellnessScore: nil,
+            hrvBaseline: nil,
+            restingHRBaseline: nil
+        )
+        XCTAssertEqual(RecoveryScoreEngine.compute(input: atTarget).score, 70, accuracy: 0.001)
+
+        let belowTarget = RecoveryScoreEngine.RecoveryInput(
             hrvSDNN: nil,
             restingHR: nil,
             sleepDurationMinutes: 420,
@@ -96,8 +109,29 @@ final class RecoveryScoreEngineTests: XCTestCase {
             hrvBaseline: nil,
             restingHRBaseline: nil
         )
-        let result = RecoveryScoreEngine.compute(input: input)
-        XCTAssertEqual(result.score, 70, accuracy: 5.0)
+        XCTAssertEqual(RecoveryScoreEngine.compute(input: belowTarget).score, 60, accuracy: 0.001)
+    }
+
+    /// Every anchor of the curve, so a future tuning pass cannot slide it without a test
+    /// noticing. HAN moved ONE of them (the 70-point knee, 7 h → 7.5 h); the 8 h = 90 anchor is
+    /// asserted here precisely because it was NOT ordered moved and a Round-2 edit had dropped it.
+    func test_sleepCurve_anchors() {
+        XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(300), 10, accuracy: 0.001)   // 5h
+        XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(360), 40, accuracy: 0.001)   // 6h
+        XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(450), 70, accuracy: 0.001)   // 7.5h
+        XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(480), 90, accuracy: 0.001)   // 8h
+        XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(540), 100, accuracy: 0.001)  // 9h
+        XCTAssertEqual(RecoveryScoreEngine.sleepTargetHours, 7.5, accuracy: 0.001)
+        XCTAssertEqual(RecoveryScoreEngine.sleepDeficitFloorHours, 6, accuracy: 0.001)
+
+        // Monotonic across the whole domain — the 20 / 40 / 10 pts-h segmenting above the floor
+        // is a shape question for HAN, but a non-monotonic sleep score would be a bug.
+        var previous = -1.0
+        for minutes in stride(from: 240.0, through: 600.0, by: 5.0) {
+            let score = RecoveryScoreEngine.sleepDurationToScore(minutes)
+            XCTAssertGreaterThanOrEqual(score, previous, "sleep curve dipped at \(minutes) min")
+            previous = score
+        }
     }
 
     func test_shortSleep_lowScore() {

@@ -136,7 +136,7 @@ final class ReasoningEngineTests: XCTestCase {
             rawRHR: nil,
             hrvBaseline: nil,
             rhrBaseline: nil,
-            sleepMinutes: 330, // 5.5h = 90 min below 7h target
+            sleepMinutes: 360, // 6h = 90 min below the 7.5h target
             daysSinceRest: 0
         )
         let factors = ReasoningEngine.summarize(input: input)
@@ -144,24 +144,44 @@ final class ReasoningEngineTests: XCTestCase {
 
         XCTAssertEqual(sleep?.direction, .negative)
         XCTAssertEqual(sleep?.impact, 1.0)
-        XCTAssertTrue(sleep?.deltaText.contains("below average") == true)
+        // The MAGNITUDE, not just the sign: the old assertion only checked `.negative`, which
+        // stayed true while the factor was still measuring against a stale 7 h reference.
+        XCTAssertEqual(sleep?.deltaText, "90 min below target")
     }
 
-    func test_sleep_onTarget_neutralDirection() {
-        let input = ReasoningEngine.Input(
-            recoveryResult: makeResult(sleep: 70),
-            workloadSnapshot: nil,
-            rawHRV: nil,
-            rawRHR: nil,
-            hrvBaseline: nil,
-            rhrBaseline: nil,
-            sleepMinutes: 420,
-            daysSinceRest: 0
-        )
-        let factors = ReasoningEngine.summarize(input: input)
-        let sleep = factors.first(where: { $0.label == "Sleep Duration" })
+    /// Pins the reference this factor measures against to the app-wide sleep target, because the
+    /// Dashboard row this Factor draws navigates INTO `SleepDetailView` — which reports the same
+    /// night against `RecoveryScoreEngine.sleepTargetHours`. A 435-min night used to read
+    /// "15 min above average" here and sit below target one tap later.
+    func test_sleep_referenceIsTheAppWideTarget() {
+        func sleepFactor(minutes: Double) -> ReasoningEngine.Factor? {
+            let input = ReasoningEngine.Input(
+                recoveryResult: makeResult(sleep: 70),
+                workloadSnapshot: nil,
+                rawHRV: nil,
+                rawRHR: nil,
+                hrvBaseline: nil,
+                rhrBaseline: nil,
+                sleepMinutes: minutes,
+                daysSinceRest: 0
+            )
+            return ReasoningEngine.summarize(input: input)
+                .first(where: { $0.label == "Sleep Duration" })
+        }
 
-        XCTAssertEqual(sleep?.direction, .neutral)
+        // Exactly on target: zero delta, and the copy names the target rather than an "average".
+        let onTarget = sleepFactor(minutes: RecoveryScoreEngine.sleepTargetHours * 60)
+        XCTAssertEqual(onTarget?.direction, .neutral)
+        XCTAssertEqual(onTarget?.deltaText, "0 min above target")
+
+        // The night that exposed the half-migration: 7h15m is BELOW the 7.5 h target.
+        let sevenFifteen = sleepFactor(minutes: 435)
+        XCTAssertEqual(sevenFifteen?.deltaText, "15 min below target")
+
+        // The old 7 h reference is now 30 min short — enough to tip the direction negative.
+        let sevenHours = sleepFactor(minutes: 420)
+        XCTAssertEqual(sevenHours?.deltaText, "30 min below target")
+        XCTAssertEqual(sevenHours?.direction, .negative)
     }
 
     // MARK: - Training Streak Factor

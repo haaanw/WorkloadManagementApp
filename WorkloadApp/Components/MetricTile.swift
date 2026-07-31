@@ -72,7 +72,10 @@ struct ZoneBadge: View {
     var body: some View {
         Text(label)
             .font(.Tokens.micro)
-            .tracking(isLatin ? 1.2 : 0)
+            // 0.9, not 1.2: DESIGN.md:66 and FontTokens' `micro` both specify ≈0.9pt tracking.
+            // 1.2 was this badge's own invention and had already been copied into
+            // WeeklyZoneBadge; both are now on the spec value.
+            .tracking(isLatin ? 0.9 : 0)
             .textCase(isLatin ? .uppercase : nil)
             .padding(.horizontal, isLatin ? 8 : 16)
             .padding(.vertical, 4)

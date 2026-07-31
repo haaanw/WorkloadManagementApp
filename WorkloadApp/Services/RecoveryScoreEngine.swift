@@ -122,7 +122,7 @@ struct RecoveryScoreEngine {
             components.append((score, rhrWeight))
         }
 
-        // Sleep component: based on duration (target: 420 min = 7 hours)
+        // Sleep component: based on duration (target: 450 min = 7.5 hours — `sleepTargetHours`)
         if let sleepMin = input.sleepDurationMinutes {
             let score = clampScore(sleepDurationToScore(sleepMin))
             sleepScore = score
@@ -220,15 +220,47 @@ struct RecoveryScoreEngine {
         return 20.0 + (adjustedRatio - 0.7) * (80.0 / 0.5)
     }
 
-    /// Sleep duration to score: <5h = 10, 6h = 40, 7h = 70, 8h = 90, 9h+ = 100
-    private static func sleepDurationToScore(_ minutes: Double) -> Double {
+    // MARK: - The sleep target (one source, app-wide)
+
+    /// The hours below which sleep pulls recovery down steeply — the deficit floor the sleep
+    /// charts draw as their lower rule.
+    static let sleepDeficitFloorHours: Double = 6
+
+    /// **The sleep target, 7.5 h (HAN, 2026-07-31).**
+    ///
+    /// Previously 7 h. It is declared here, beside the curve it is the knee of, because the
+    /// number appears in three places that must never disagree: this scoring curve, the target
+    /// rule both sleep charts draw, and the explanation copy. A chart that marks 7.5 h while the
+    /// engine scores 7 h as green is the app contradicting itself in two adjacent glyphs — so the
+    /// charts read the constant rather than hard-typing a literal.
+    static let sleepTargetHours: Double = 7.5
+
+    /// Sleep duration to score: <5h = 10, 6h = 40, **7.5h = 70**, 8h = 90, 9h+ = 100.
+    ///
+    /// **Only the 70-point knee moved (7 h → 7.5 h).** Every other anchor HAN did not rule on —
+    /// 5 h = 10, 6 h = 40, 8 h = 90, 9 h+ = 100 — is unchanged, so an athlete's score for a given
+    /// night moves only where the target change actually implies it.
+    ///
+    /// The arithmetic HAN should know about, stated rather than silently absorbed: with 6 h
+    /// pinned at 40 and the knee now at 7.5 h, the segment below the knee flattens from 30 to
+    /// **20 pts/h**, while holding 8 h = 90 makes the half-hour above the knee worth **40 pts/h**.
+    /// The pre-v1.7 curve had monotonically diminishing returns (30 / 20 / 10 pts/h across
+    /// 6–7 / 7–8 / 8–9 h); it now reads 20 / 40 / 10. Restoring diminishing returns instead would
+    /// require dropping 8 h to 80 — an unordered score cut for well-slept athletes, which is the
+    /// larger change of the two. If HAN prefers the smooth shape over the anchor, the one-line
+    /// alternative is `case sleepTargetHours..<9: return 70 + (hours - 7.5) * 20`.
+    ///
+    /// Non-private since v1.7 Wave 3 so the sleep detail screen can report the sleep component's
+    /// contribution without duplicating the curve. Two copies of a scoring function drift; the
+    /// view would silently disagree with the engine after any tuning.
+    static func sleepDurationToScore(_ minutes: Double) -> Double {
         let hours = minutes / 60.0
         switch hours {
         case ..<5: return 10
-        case 5..<6: return 10 + (hours - 5) * 30  // 10-40
-        case 6..<7: return 40 + (hours - 6) * 30  // 40-70
-        case 7..<8: return 70 + (hours - 7) * 20  // 70-90
-        case 8..<9: return 90 + (hours - 8) * 10  // 90-100
+        case 5..<sleepDeficitFloorHours: return 10 + (hours - 5) * 30                 // 10-40
+        case sleepDeficitFloorHours..<sleepTargetHours: return 40 + (hours - 6) * 20  // 40-70
+        case sleepTargetHours..<8: return 70 + (hours - sleepTargetHours) * 40        // 70-90
+        case 8..<9: return 90 + (hours - 8) * 10                                      // 90-100
         default: return 100
         }
     }

@@ -25,7 +25,7 @@ struct VerdictOutcomeSheet: View {
             VStack(alignment: .leading, spacing: Spacing.md) {
 
                 // Header stamp — marginalia, so the annotation voice (v6).
-                AnnotationLabel(String(localized: "verdictOutcome.title", defaultValue: "LOOKING BACK"))
+                AnnotationLabel(key: "verdictOutcome.title")
                     .annotationReveal()
 
                 // Quiet context: the planned→adjusted number + the reason (read-only).
