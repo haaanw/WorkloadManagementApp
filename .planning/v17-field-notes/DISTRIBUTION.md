@@ -158,27 +158,41 @@ every string ports through i18n); no-CDN law (vendored Lottie/Lenis exist at
 `design-system/assets/vendor/`); legal routes + [...seoGeo] pages untouched;
 reduced-motion guard on every scene; `npm run build` + `npx astro check` clean.
 
-PHASE 1 (gate): map current homepage components (HeroScrub, VocabMarquee, StickyShowcase,
-StrikeZoneScrub, StatsBand, RecoveryQuote, LoggingFan, PrivacyClose) onto demo sections;
-propose keep/drop/merge for each current section with no demo counterpart; write the map
-to `.planning/v17-field-notes/spec-w-homepage.md`; STOP for HAN approval.
-PHASE 2 (after approval): build section-for-section against the demo; scene timings from
-`motion.js` are the reference implementation, ported into the site's TS motion setup.
+**HAN clarifications (2026-08-01), binding:**
+1. **Demo-first, zero commits.** Session W builds a standalone visual demo, NOT repo
+   changes. No commit lands in tuwa-website (or anywhere) for this work. HAN compares the
+   demo against the live site, orders refinements, and iterates. Only after HAN locks the
+   direction does anyone scope the real Astro port (a later, separate brief).
+2. **The kit demo is the layout basis, not a contract.** Adapt content dynamically to what
+   the product is NOW. Explicitly invited: a science/methodology section presenting the
+   sleep-score algorithm's uniqueness (context-conditional, personalized-need, open
+   hypothesis registry — `.planning/v17-field-notes/research-sleep-score.md` §9–§10).
+   HARD RAIL: the engine is not built; every claim follows the §10 ladder — present it as
+   transparent methodology under development, never as a live or validated feature.
 
-### Session W kickoff prompt
+Demo mechanics: self-contained HTML (the kit's own form) in
+`tuwa-website/.design-explorations/website-v2-demo/` (untracked scratch space, precedent:
+v16-motion-demos). Real Tuwa copy, vendored assets copied in (no CDN), reduced-motion
+guarded, viewable by `open`ing the file or a local server. Deliver beside it a
+side-by-side comparison (demo screenshots vs live tuwa.app captures, section by section).
+
+### Session W kickoff prompt (demo-first revision)
 
 ```
-You are Session W (website homepage rebuild) for Tuwa, working in tuwa-website/ (its own
-repo, currently LIVE at tuwa.app — deploys fire on push, so NEVER push; commits are fine).
-First append a CLAIM to .pair/claude.md per .pair/PROTOCOL.md §4 naming
-src/pages/index.astro, src/components/home/, src/scripts/*Motion*, src/i18n/locales/*.
+You are Session W (homepage demo) for Tuwa. Your deliverable is a STANDALONE VISUAL DEMO —
+you make ZERO git commits anywhere, and you never push (tuwa.app deploys on push and is
+live). Build in tuwa-website/.design-explorations/website-v2-demo/ (untracked scratch).
 Read /Users/hanwen/dev/Tonus/design-system/SKILL.md, readme.md, tokens/, then
 ui_kits/website/index.html + motion.js + motion-iterations.html + motion-addons-demo.html
-(your layout authority), then .planning/v17-field-notes/DISTRIBUTION.md section
-"Post-1.7 — Session W" (constraints + the two-phase gate bind you). PHASE 1: write the
-section map to .planning/v17-field-notes/spec-w-homepage.md and STOP for HAN approval.
-Report to .planning/v17-field-notes/status-w.md with real build output. Do not touch
-legal routes, [...seoGeo], or the app repo.
+(your layout basis), then .planning/v17-field-notes/DISTRIBUTION.md section "Post-1.7 —
+Session W" including HAN's 2026-08-01 clarifications (they bind you), and
+.planning/v17-field-notes/research-sleep-score.md §9-§10 (for the algorithm section's
+content and its claim rails). Build the demo with the kit's structure adapted to the
+current product; include the algorithm/science section under the §10 claim ladder; use
+real copy from the live site where sections map. Then produce a section-by-section
+side-by-side (demo vs live tuwa.app screenshots) into the same folder and STOP for HAN's
+review. Report to .planning/v17-field-notes/status-w.md. Do not touch app-repo source,
+website src/, or legal routes.
 ```
 
 ## Orchestrator protocol (this session)
