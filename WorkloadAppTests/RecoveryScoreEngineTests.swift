@@ -113,19 +113,21 @@ final class RecoveryScoreEngineTests: XCTestCase {
     }
 
     /// Every anchor of the curve, so a future tuning pass cannot slide it without a test
-    /// noticing. HAN moved ONE of them (the 70-point knee, 7 h → 7.5 h); the 8 h = 90 anchor is
-    /// asserted here precisely because it was NOT ordered moved and a Round-2 edit had dropped it.
+    /// noticing. HAN's smooth-shape ruling (2026-07-31): constant 20 pts/h above the 6 h floor
+    /// through 9 h, so 8 h = 80 (the old 90 anchor was deliberately dropped — the kink it made
+    /// at 7.5 h was worth 40 pts/h, double the segment before it).
     func test_sleepCurve_anchors() {
         XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(300), 10, accuracy: 0.001)   // 5h
         XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(360), 40, accuracy: 0.001)   // 6h
         XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(450), 70, accuracy: 0.001)   // 7.5h
-        XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(480), 90, accuracy: 0.001)   // 8h
+        XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(480), 80, accuracy: 0.001)   // 8h — smooth
+        XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(510), 90, accuracy: 0.001)   // 8.5h
         XCTAssertEqual(RecoveryScoreEngine.sleepDurationToScore(540), 100, accuracy: 0.001)  // 9h
         XCTAssertEqual(RecoveryScoreEngine.sleepTargetHours, 7.5, accuracy: 0.001)
         XCTAssertEqual(RecoveryScoreEngine.sleepDeficitFloorHours, 6, accuracy: 0.001)
 
-        // Monotonic across the whole domain — the 20 / 40 / 10 pts-h segmenting above the floor
-        // is a shape question for HAN, but a non-monotonic sleep score would be a bug.
+        // Monotonic across the whole domain — the slope ladder is a shape question for HAN,
+        // but a non-monotonic sleep score would be a bug.
         var previous = -1.0
         for minutes in stride(from: 240.0, through: 600.0, by: 5.0) {
             let score = RecoveryScoreEngine.sleepDurationToScore(minutes)

@@ -235,20 +235,16 @@ struct RecoveryScoreEngine {
     /// charts read the constant rather than hard-typing a literal.
     static let sleepTargetHours: Double = 7.5
 
-    /// Sleep duration to score: <5h = 10, 6h = 40, **7.5h = 70**, 8h = 90, 9h+ = 100.
+    /// Sleep duration to score: <5h = 10, 6h = 40, **7.5h = 70**, 8h = 80, 9h+ = 100.
     ///
-    /// **Only the 70-point knee moved (7 h → 7.5 h).** Every other anchor HAN did not rule on —
-    /// 5 h = 10, 6 h = 40, 8 h = 90, 9 h+ = 100 — is unchanged, so an athlete's score for a given
-    /// night moves only where the target change actually implies it.
-    ///
-    /// The arithmetic HAN should know about, stated rather than silently absorbed: with 6 h
-    /// pinned at 40 and the knee now at 7.5 h, the segment below the knee flattens from 30 to
-    /// **20 pts/h**, while holding 8 h = 90 makes the half-hour above the knee worth **40 pts/h**.
-    /// The pre-v1.7 curve had monotonically diminishing returns (30 / 20 / 10 pts/h across
-    /// 6–7 / 7–8 / 8–9 h); it now reads 20 / 40 / 10. Restoring diminishing returns instead would
-    /// require dropping 8 h to 80 — an unordered score cut for well-slept athletes, which is the
-    /// larger change of the two. If HAN prefers the smooth shape over the anchor, the one-line
-    /// alternative is `case sleepTargetHours..<9: return 70 + (hours - 7.5) * 20`.
+    /// **Smoothed on HAN's ruling (2026-07-31).** Moving the knee to 7.5 h while holding the old
+    /// 8 h = 90 anchor made the half-hour past the target worth 40 pts/h — double the hour before
+    /// it. HAN chose the smooth shape over the anchor: above 6 h the slope is a constant
+    /// 20 pts/h through 9 h, so 8 h now scores **80** (was 90). One-time, explainable shift for
+    /// well-slept athletes ("v1.7 scores against a 7.5 h target"); no odd incentive spike.
+    /// This whole curve is an interim: sleep score v2 (stage-aware, personalized need —
+    /// `.planning/v17-field-notes/research-sleep-score.md`) replaces it and keeps this exact
+    /// function as its duration-only degradation tier.
     ///
     /// Non-private since v1.7 Wave 3 so the sleep detail screen can report the sleep component's
     /// contribution without duplicating the curve. Two copies of a scoring function drift; the
@@ -259,8 +255,7 @@ struct RecoveryScoreEngine {
         case ..<5: return 10
         case 5..<sleepDeficitFloorHours: return 10 + (hours - 5) * 30                 // 10-40
         case sleepDeficitFloorHours..<sleepTargetHours: return 40 + (hours - 6) * 20  // 40-70
-        case sleepTargetHours..<8: return 70 + (hours - sleepTargetHours) * 40        // 70-90
-        case 8..<9: return 90 + (hours - 8) * 10                                      // 90-100
+        case sleepTargetHours..<9: return 70 + (hours - sleepTargetHours) * 20        // 70-100
         default: return 100
         }
     }

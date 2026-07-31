@@ -352,16 +352,25 @@ treat "the weights are right" as an unsupported claim, today and after the dogfo
 
 ## 7. Open questions for HAN
 
-1. **Score inflation.** v2 scores a need-met night at 100 where v1 scored 7.5 h at 70. Do we
-   (a) accept higher recovery scores app-wide, (b) drop the sleep weight below 0.25, or
-   (c) re-anchor the duration curve so need-met ≈ 85? This changes every zone boundary
-   downstream and must be decided before implementation, not after.
-2. **Do stage minutes sync?** `sleepDurationMinutes` already goes to Supabase. Are per-stage
-   minutes "raw HealthKit data" (→ device-local) or a derived composite (→ syncable)? My
-   default is device-local.
-3. **Does the athlete get told their target moved, and where?** Silent personalization is
-   the least alarming but least trustworthy; a Profile line is inspectable but invites
-   "why is it 8.1 h?" Which side of the nocebo guard does this fall on?
+1. **Score inflation — ANSWERED (HAN, 2026-07-31): option (c), re-anchor, with calibrated
+   strictness.** HAN's reasoning, recorded: Apple's sleep score hands out 99/100 for any
+   long, unbroken night, and those nights do not reliably match his waking subjective
+   energy — that inflation is the failure mode to avoid. But the score must stay
+   encouraging, never stressful. Implementation directive: need-met on duration alone
+   lands ≈ 85, not 100; the last ~15 points are earned by the quality components
+   (continuity, stages at/above own baseline, regularity), so 100 means a genuinely
+   excellent night, not merely a long one. Zone boundaries re-checked under the new
+   distribution during the shadow dual-run.
+2. **Do stage minutes sync? — ANSWERED (HAN, 2026-07-31): device-local.** Stage minutes
+   are treated as raw-adjacent HealthKit data; only the composite sleep score syncs.
+3. **Target-move transparency — ANSWERED (HAN, 2026-07-31): silent.** The learned need is
+   not announced when it moves. (It may still be *inspectable* somewhere quiet if a later
+   ruling wants it; announcing is what is ruled out.)
+
+**Device-coverage ruling (HAN, 2026-07-31):** no Whoop or Garmin hardware is available for
+the stages-in-HealthKit check. v2 targets **Apple Watch + Oura** users first; the
+Whoop/Garmin tier verification is a future-version item. Tier C (duration+timing) remains
+the designed fallback for those sources whenever they arrive.
 4. **Should need respond to the *plan*, not just yesterday?** Tuwa knows tomorrow is a
    match. Whoop cannot do this. Pre-load the need the night before a match tier? Defensible
    product wedge, zero direct evidence.

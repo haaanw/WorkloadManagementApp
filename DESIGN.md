@@ -85,7 +85,7 @@ The 12pt annotation cap is enforced at the token, not the call site: `anno`/`ann
 |---|---|
 | `▲ △ ▼ ▽` | Deltas / direction |
 | `● ○` | State dots (filled = live, open = crosshair marker) |
-| `├─ └─` | Reason trees |
+| `├─ └─` | Reason trees. Known + accepted (HAN, 2026-07-31): these box-drawing glyphs are absent from Fragment Mono and render via silent cascade to a fallback face — the tree metaphor outweighs voice purity here; do not "fix" to middots |
 | `▁▂▃▄▅▆▇█` | Spark bars |
 | `░ ▒` | Fills / sufficiency |
 | `·` | Separator |
