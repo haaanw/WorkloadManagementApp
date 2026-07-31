@@ -143,6 +143,44 @@ website build clean + legal routes byte-diffed for content parity.
 
 Explicitly deferred: product videos / App Store previews (Remotion), watchOS/widgets.
 
+## Post-1.7 — Session W: website homepage rebuild to the ui_kit layout
+
+HAN direction 2026-07-31: Wave 2's website lane replaced tokens but kept the old layout.
+HAN wants the LAYOUT of `design-system/ui_kits/website/index.html` (+ `motion.js`,
+`motion-iterations.html`, `motion-addons-demo.html`). Demo structure, in order: line-reveal
+hero ("Your plan. Made safe and optimal.", hero score count-up) → "One decision, every
+day" (verdict) → "One fatigue budget" (zone, surface band) → "The whole system, one
+gesture" (showcase) → "Your baselines, drawn daily" (self-drawing chart) → ghost-numerals
+band → "Your data stays on your phone" (privacy, surface band) → footer.
+
+Constraints: Astro + i18n stays (en/zh/fr through the locale files — the demo is en-only,
+every string ports through i18n); no-CDN law (vendored Lottie/Lenis exist at
+`design-system/assets/vendor/`); legal routes + [...seoGeo] pages untouched;
+reduced-motion guard on every scene; `npm run build` + `npx astro check` clean.
+
+PHASE 1 (gate): map current homepage components (HeroScrub, VocabMarquee, StickyShowcase,
+StrikeZoneScrub, StatsBand, RecoveryQuote, LoggingFan, PrivacyClose) onto demo sections;
+propose keep/drop/merge for each current section with no demo counterpart; write the map
+to `.planning/v17-field-notes/spec-w-homepage.md`; STOP for HAN approval.
+PHASE 2 (after approval): build section-for-section against the demo; scene timings from
+`motion.js` are the reference implementation, ported into the site's TS motion setup.
+
+### Session W kickoff prompt
+
+```
+You are Session W (website homepage rebuild) for Tuwa, working in tuwa-website/ (its own
+repo, currently LIVE at tuwa.app — deploys fire on push, so NEVER push; commits are fine).
+First append a CLAIM to .pair/claude.md per .pair/PROTOCOL.md §4 naming
+src/pages/index.astro, src/components/home/, src/scripts/*Motion*, src/i18n/locales/*.
+Read /Users/hanwen/dev/Tonus/design-system/SKILL.md, readme.md, tokens/, then
+ui_kits/website/index.html + motion.js + motion-iterations.html + motion-addons-demo.html
+(your layout authority), then .planning/v17-field-notes/DISTRIBUTION.md section
+"Post-1.7 — Session W" (constraints + the two-phase gate bind you). PHASE 1: write the
+section map to .planning/v17-field-notes/spec-w-homepage.md and STOP for HAN approval.
+Report to .planning/v17-field-notes/status-w.md with real build output. Do not touch
+legal routes, [...seoGeo], or the app repo.
+```
+
 ## Orchestrator protocol (this session)
 
 Per wave: (1) issue prompts; (2) poll `status-*.md`; (3) on each DONE, independently
