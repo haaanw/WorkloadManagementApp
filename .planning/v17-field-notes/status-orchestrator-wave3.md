@@ -107,10 +107,41 @@ xcodebuild test -scheme "workload management" \
   -destination 'platform=iOS Simulator,name=iPhone 17 Pro Max' \
   -derivedDataPath ~/.tonus-dd-claude -only-testing:WorkloadAppTests
 ```
-→ `** TEST SUCCEEDED **`, **762 passed / 0 failed**, **17/17 design-system fence cases green** —
-exact parity with the Wave 1 and Wave 2 baselines, correct for a wave that adds no tests to that
-count. (An earlier run of mine was piped through `tail -60`, which truncated my own evidence; it
-was re-run with a full log rather than quoting a number I could not show.)
+→ `** TEST SUCCEEDED **`, **763 passed / 0 failed**, **17/17 design-system fence cases green**.
+
+**Correction, recorded because the number was already published.** The first two runs of this
+wave reported **762**, and I described that as "exact parity with the Wave 1 and Wave 2
+baselines". A later run in the same DerivedData reported **763**, and diffing the executed test
+sets showed the difference is
+`SessionStartMapperTests.testSelectionRederivationAfterTemplateHydration()` — a test that has
+existed since commit `045a944`. It did not execute in the earlier runs because the incremental
+test binary in `~/.tonus-dd-claude` was stale; edits that forced a deeper rebuild picked it up.
+So **762 was an under-count, and the Wave 2 baseline it "matched" was very likely stale in the
+same way**. No test failed in any run — the correction is to the evidence, not to the result.
+The lesson generalises: *a test count from an incremental build is not proof of coverage.*
+
+**Settled by a clean-DerivedData run** (`~/.tonus-dd-clean`, built from scratch), which is the
+authoritative figure and additionally proves the three new components' `.pbxproj` registration
+from scratch rather than from cache:
+
+| Run | Passed | Failed | Fence |
+|---|---|---|---|
+| **clean DerivedData** | **763** | 0 | 17/17 |
+| incremental, after a deep rebuild | 763 | 0 | 17/17 |
+| the two earlier incremental runs | 762 | 0 | 17/17 |
+
+**Three of my own measurement errors, recorded because each one produced a number I published:**
+1. A run piped through `tail -60` truncated my own log, so the count could not be shown. Re-run
+   with a full log.
+2. A stale incremental test binary omitted one test case; I read 762 as "parity with baseline"
+   when it was an under-count.
+3. Counting with `^Test case '…'` under-reported the clean run by one, because interleaved
+   xcodebuild output had eaten the leading `Test ` on a line. A tolerant `case '…' (passed|failed)`
+   match reconciles all four runs.
+
+None of the three changed the outcome — nothing ever failed — but all three were cases of the
+measurement, not the software, being wrong. Worth remembering: on this project the log is a
+noisy channel, and a count is a claim that needs the same scrutiny as any other.
 
 **`.pbxproj`:** each of the three new components carries the full four-part registration
 (PBXBuildFile, PBXFileReference, group child, Sources phase), and all three compiled in a
@@ -142,6 +173,63 @@ interpolation.**
 - Three same-class defects left in unowned files: `InviteConfirmationSheet.swift:49`
   (hard-coded English on a retired coach surface), plus lane-G carry-overs G-3/G-4/G-6/G-7/G-8.
 - `og-default.png` is still on the old design and is referenced by 10+ website pages.
+
+## The zh-Hans pass, finally done — and what it found
+
+Captured both locales via `ScreenshotTests` (`TEST_RUNNER_SCREENSHOT_LANG=zh-Hans`), extracted
+with `xcresulttool export attachments`, and **looked at the screens**. It found a defect class,
+not just instances:
+
+**The annotation voice's uppercase transform hides hard-coded English.** A literal renders
+`ACUTE · 7-DAY` in en and reads as deliberate design; zh-Hans suppresses the transform by law,
+so the same literal renders `Acute · 7-day` — raw English in title case beside Chinese copy.
+The rule that protects Chinese typography is what exposes the bug, and only in the locale
+nobody was checking. Anything hard-coded is therefore invisible in en review by construction.
+
+Fixed in `95a9740`, each verified on a re-captured screen: `Sleep` → 睡眠; the sleep tile's
+value un-truncated from `7小时36…` to `7小时36分钟` (a zh duration is ~2× the width of its Latin
+twin and `minimumScaleFactor(0.6)` had no room); the Load descriptors → 急性 · 7天 /
+慢性 · 28天 / 状态良好 / 疲劳; the sleep chart axis `hours` → 小时.
+
+Confirmed working in Chinese: the Dashboard reason tree reads `高于目标 6 分钟` — HAN's sleep
+ruling, translated, measured against 450 min, with no case transform and no added tracking.
+
+**Also verified against the font binary, not the docs:** `├` `└` `─` (U+251C/2514/2500) are
+**absent from Fragment Mono**, yet they render on the Dashboard — via silent cascade to another
+face. The reason tree, the verdict's own "why", is not drawn in the annotation voice. `● ○ · ▲ ▼`
+are present. Open for HAN.
+
+## The finding the fence tests structurally cannot make: off-palette PURE WHITE
+
+Sampling pixels across the captured set (rather than reading source) found three screens
+rendering on `#FFFFFF` — **not a `ColorTokens` value at all**; the palette's lightest plane is
+`surfaceEl2` `#FCFBF9`:
+
+| Screen | white coverage |
+|---|---|
+| `MovementBankView` | **59.8%** |
+| `ExercisePickerView` | **37.9%** |
+| `WorkoutLogView` (and both App Store hero plates, same screen) | 9.0% |
+
+Two causes:
+1. **`WorkoutLogView`** — `ScreenHeader` and the filter rail live in a `VStack` whose only
+   background was on the `ScrollView` *inside* it, so ~90pt of the tab fell through to the
+   system default. The four sibling tab roots all set it correctly.
+2. **The two `List` screens** — both already applied `.background(ColorTokens.background)`, but
+   **a `List` paints its own system backing on top, so that line was inert.** It needs
+   `.scrollContentBackground(.hidden)` first. Swept every `List` in the app; all now covered.
+
+**Why three waves of review missed it:** `DesignSystemFenceTests` scans *source* for hardcoded
+colours, shadows, radius literals and banned faces. Every one of these files passes — there is
+no offending literal to find. The violation exists only in *rendered output*. A source fence
+cannot catch a missing background, and no wave had looked at a screenshot.
+
+Both are pre-existing (Movement Bank shipped this way in v1.6), not Wave 3 regressions.
+
+**Worth encoding:** a rendered-pixel check ("no pixel equals `#FFFFFF`" / "every large flat
+region is a `ColorTokens` value") would have caught all three, and belongs alongside the source
+fences. The same reasoning applies to lane G's independently-discovered `text3`-on-a-well
+contrast defect, which also appeared twice after being fixed once.
 
 ## Deliberately not done
 

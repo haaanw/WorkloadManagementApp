@@ -278,6 +278,10 @@ struct ExercisePickerView: View {
             }
         }
         .listStyle(.plain)
+        // See MovementBankView: a plain List paints its own PURE WHITE system backing in light
+        // mode, so the stone plane behind it never showed. ~38% of this screen was off-palette.
+        .scrollContentBackground(.hidden)
+        .background(ColorTokens.background)
     }
 
     /// Non-sticky in-list section header (19pt Medium per the separator grammar).
@@ -287,6 +291,7 @@ struct ExercisePickerView: View {
             .foregroundStyle(ColorTokens.text1)
             .padding(.top, Spacing.sm)
             .listRowSeparator(.hidden)
+            .listRowBackground(Color.clear)
     }
 
     private var instantAddRow: some View {
@@ -321,6 +326,7 @@ struct ExercisePickerView: View {
         Text("empty.noExercises")
             .font(.Tokens.body)
             .foregroundStyle(ColorTokens.text2)
+            .listRowBackground(Color.clear)
     }
 
     /// One exercise row: tapping the row selects (as before); the trailing info
@@ -380,6 +386,10 @@ struct ExercisePickerView: View {
                 }
             }
         }
+        // Each List ROW paints its own system background (pure white in light mode), which
+        // `.scrollContentBackground(.hidden)` does not touch — that only hides the List's
+        // container backing. Both are needed for the stone plane to show.
+        .listRowBackground(Color.clear)
     }
 
     // MARK: - Section computation (debounced, one place)
@@ -737,6 +747,8 @@ struct MuscleGroupSelector: View {
             }
         }
         .listStyle(.plain)
+        // `.background` alone is inert behind a List's own system backing — it needs the hide.
+        .scrollContentBackground(.hidden)
         .background(ColorTokens.background)
         .navigationTitle("exercise.nav.muscleGroup")
         .navigationBarTitleDisplayMode(.inline)

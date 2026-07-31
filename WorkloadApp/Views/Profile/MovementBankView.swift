@@ -279,6 +279,7 @@ struct MovementBankView: View {
                 Text(scope == .hidden ? "movementBank.empty.hidden" : "empty.noExercises")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text2)
+                    .listRowBackground(Color.clear)
             } else {
                 ForEach(sections.items) { item in
                     bankRow(item)
@@ -286,6 +287,12 @@ struct MovementBankView: View {
             }
         }
         .listStyle(.plain)
+        // A plain List still paints its own system background, which is PURE WHITE in light
+        // mode — off-palette, and it covered ~60% of this screen while the header above it sat
+        // on stone. The enclosing `.background(ColorTokens.background)` could never show
+        // through until the List's own backing is hidden.
+        .scrollContentBackground(.hidden)
+        .background(ColorTokens.background)
     }
 
     /// State badge as a TEXT label (design law: state never by color alone).
@@ -373,6 +380,10 @@ struct MovementBankView: View {
                 }
             }
         }
+        // Each List ROW paints its own system background (pure white in light mode);
+        // `.scrollContentBackground(.hidden)` only hides the List's container backing, so both
+        // are required before the stone plane behind the List can show through.
+        .listRowBackground(Color.clear)
     }
 
     // MARK: - Section computation (debounced, one place — Stage C approach)

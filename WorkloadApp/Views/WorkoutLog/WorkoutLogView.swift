@@ -255,6 +255,12 @@ struct WorkoutLogView: View {
                 .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
                 .background(ColorTokens.background)
             }
+            // On the VStack, not just the ScrollView inside it: the ScrollView carried the
+            // stone plane but the ScreenHeader and filter rail above it did not, so ~90pt of
+            // the Log tab rendered on the system's default PURE WHITE — off-palette, and the
+            // only non-stone surface in the app. Found by sampling a screenshot, not by
+            // reading the code; the four sibling tab roots all set this correctly.
+            .background(ColorTokens.background)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: UUID.self) { sessionId in
                 if let session = sessions.first(where: { $0.id == sessionId }) {
