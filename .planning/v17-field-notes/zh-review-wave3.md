@@ -16,31 +16,31 @@ Agent translations, not a native reviewer's. Mark any line to change; the key is
    - ZH: ● 当前
 5. `hrv.chart.annotation.band`
    - EN: 7d avg: %1$d ms · ±1SD %2$d–%3$d
-   - ZH: 7 天平均：%1$d ms · ±1SD %2$d–%3$d
+   - ZH: 7 日平均：%1$d ms · ±1SD %2$d–%3$d
 6. `hrv.detail.about.baseline.body`
    - EN: Absolute HRV varies enormously between people — 30 ms can be excellent for one athlete and poor for another. Tuwa compares you only against your own rolling 7-day average, so the number that matters is the deviation, not the reading.
-   - ZH: 不同人的心率变异性绝对值差异极大——30 ms 对一位运动员可能很好，对另一位则偏低。Tuwa 只将你与自己 7 天滚动平均值比较，所以真正重要的是偏离幅度，而不是读数本身。
+   - ZH: 不同人的心率变异性绝对值差异极大——30 ms 对一个运动员可能很好，对一个普通人就可能偏低。Tuwa 只将你与自己的 7 天滚动平均值比较，所以真正重要的是偏离幅度，而不是数据本身的高低。
 7. `hrv.detail.about.baseline.title`
    - EN: Why your baseline is personal
-   - ZH: 为什么基线因人而异
+   - ZH: 为什么基准线因人而异
 8. `hrv.detail.about.deviation.body`
    - EN: A single reading below baseline is usually noise — alcohol, a late meal, a bad night. Two or three in a row alongside a raised resting heart rate is the pattern that means fatigue, and that is what your readiness score is already weighing.
-   - ZH: 单次低于基线的读数通常只是噪声——饮酒、晚餐过晚、睡得不好。连续两三次并伴随静息心率升高，才是提示疲劳的模式，而这正是你的准备度评分已经在权衡的内容。
+   - ZH: 单次低于基准线的读数通常只是噪音——饮酒、晚餐吃太晚、睡得不好。连续两三次且伴随静息心率升高，才是提示疲劳的模式，而这正是你的恢复度评分在监测的内容。
 9. `hrv.detail.about.deviation.title`
    - EN: What a deviation means
-   - ZH: 偏离基线意味着什么
+   - ZH: 偏离基准线意味着什么
 10. `hrv.detail.about.measures.title`
    - EN: What HRV measures
-   - ZH: 心率变异性测量什么
+   - ZH: 心率变异性是在测量什么
 11. `hrv.detail.delta.vsAvg`
    - EN: %@ vs 7-day avg
    - ZH: %@ 相对 7 天平均
 12. `hrv.detail.readout.vsBase`
    - EN: %1$@ %2$+.1f%% vs base
-   - ZH: %1$@ 相对基线 %2$+.1f%%
+   - ZH: %1$@ 相对基准线 %2$+.1f%%
 13. `hrv.detail.section.condition`
    - EN: HRV condition
-   - ZH: 心率变异性状况
+   - ZH: 心率变异性详情
 14. `metric.label.sleep`
    - EN: Sleep
    - ZH: 睡眠
@@ -61,7 +61,7 @@ Agent translations, not a native reviewer's. Mark any line to change; the key is
    - ZH: 睡眠如何影响你的评分
 19. `sleep.detail.about.sixHour.body`
    - EN: Below 6 hours, sleep pulls your recovery score down steeply — each lost hour costs about half again what it costs above 6 hours. One short night is recoverable; three in a week is a pattern worth acting on.
-   - ZH: 低于 6 小时，睡眠会显著拉低你的恢复评分——每少睡一小时的代价约是 6 小时以上区间的一倍半。偶尔一晚睡眠不足可以补回；一周内出现三次则是值得处理的模式。
+   - ZH: 低于 6 小时，睡眠会显著拉低你的恢复评分——每少睡一小时的评分代价约是 6 小时以上区间的一倍半。偶尔一晚睡眠不足可以补回；一周内出现三次则是需要注意的情况。
 20. `sleep.detail.about.sixHour.title`
    - EN: What the 6-hour line means
    - ZH: 6 小时线的含义

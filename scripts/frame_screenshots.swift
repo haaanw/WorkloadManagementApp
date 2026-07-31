@@ -641,7 +641,14 @@ func annotation(
     precondition(points <= 12.0, "Annotation voice is capped at 12pt (DESIGN.md v6 Two-Voice Type Law)")
     let size = points * scale
 
-    let body = isLatin ? text.uppercased() : text
+    // HAN's marketing-plate ruling (2026-07-31), narrowing the round-2 language gate: on a
+    // zh-Hans plate, a PURE-LATIN annotation (machine keys, `● readiness`, `tuwa · 04/09`)
+    // takes the uppercase transform and tracking after all — lowercase English beside
+    // polished Chinese store copy reads as a typo, not as typography. Strings containing
+    // any CJK still take no transform and no tracking (that law protects Chinese glyphs
+    // and is unchanged — in the frames AND in the app, which keeps its locale gate).
+    let takesTransform = isLatin || !containsCJK(text)
+    let body = takesTransform ? text.uppercased() : text
 
     let mono = loadFont("FragmentMono-Regular", size: size)
     let cjkFont = loadFont("NotoSansSC-Regular", size: size)
@@ -655,7 +662,7 @@ func annotation(
         .foregroundColor: color,
         .paragraphStyle: paragraph
     ]
-    if isLatin {
+    if takesTransform {
         attributes[.kern] = size * 0.05   // +0.05em tracking, the annotation law
     }
 
