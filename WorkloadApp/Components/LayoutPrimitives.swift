@@ -67,7 +67,11 @@ struct MetricCell<Accessory: View>: View {
                     .monospacedDigit()
                     .foregroundStyle(valueColor)
                     .lineLimit(1)
-                    .minimumScaleFactor(0.6)
+                    // 0.5, not 0.6: a zh-Hans duration is far wider than its Latin twin
+                    // ("7小时36分钟" vs "7h 36m") and was truncating to "7小时36…" in the
+                    // Recovery sleep tile. A reading that renders smaller is legible; a
+                    // reading that renders as an ellipsis is not a reading.
+                    .minimumScaleFactor(0.5)
                 if let unit {
                     AnnotationLabel(unit, size: .small)
                         .lineLimit(1)

@@ -381,7 +381,13 @@ struct RecoveryScoreCard: View {
                     MetricCell(label: "RHR", value: "\(Int(rhr))", unit: "bpm")
                 }
                 if let sleep = recovery.sleepDurationMinutes {
-                    MetricCell(label: "Sleep", value: Date.durationString(seconds: Int(sleep) * 60, locale: locale))
+                    // `HRV` and `RHR` stay literal — they are machine acronyms in both locales.
+                    // "Sleep" is an English word and was rendering untranslated beside them in
+                    // zh-Hans, so it takes a key.
+                    MetricCell(
+                        label: LocalePinnedStrings.localized("metric.label.sleep", locale: locale),
+                        value: Date.durationString(seconds: Int(sleep) * 60, locale: locale)
+                    )
                 }
             }
         }

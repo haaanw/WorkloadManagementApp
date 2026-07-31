@@ -99,7 +99,9 @@ struct SleepTrendChart: View {
                     }
                 }
                 .chartYAxisLabel(position: .leading, alignment: .center) {
-                    AnnotationLabel("hours", size: .small)
+                    // `hours` is a word, not a machine unit like `ms` — it takes the key path
+                    // so zh-Hans reads 小时. (Matches SleepDetailChart.)
+                    AnnotationLabel(key: "chart.axis.hours", size: .small)
                 }
             }
             .id(locale)

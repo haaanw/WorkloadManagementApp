@@ -12,6 +12,9 @@ struct WorkloadView: View {
     @Query private var athletes: [Athlete]
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
+    /// The app pins its language via `.environment(\.locale)`, so locale-dependent copy must
+    /// resolve against THIS value rather than the process locale.
+    @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var showUpgrade = false
     @State private var showExportOptions = false
@@ -99,20 +102,30 @@ struct WorkloadView: View {
                     // ATL / CTL / TSB — metric grid: three individually-planed metric
                     // cells with their descriptor on the delta line, scannable in one fixation.
                     HStack(alignment: .top, spacing: Spacing.xs) {
+                        // ATL/CTL/TSB stay literal — machine acronyms in both locales. The
+                        // descriptors are English WORDS and were hard-coded: en hid that behind
+                        // the annotation voice's uppercase transform ("ACUTE · 7-DAY" reads as
+                        // designed), while zh-Hans suppresses the transform by law and so
+                        // rendered the raw "Acute · 7-day" beside Chinese copy.
                         MetricCell(
                             label: "ATL",
                             value: String(format: "%.0f", latestSnapshot?.acuteLoad ?? 0),
-                            delta: "Acute \u{00B7} 7-day"
+                            delta: LocalePinnedStrings.localized("workload.metric.atl.detail", locale: locale)
                         )
                         MetricCell(
                             label: "CTL",
                             value: String(format: "%.0f", latestSnapshot?.chronicLoad ?? 0),
-                            delta: "Chronic \u{00B7} 28-day"
+                            delta: LocalePinnedStrings.localized("workload.metric.ctl.detail", locale: locale)
                         )
                         MetricCell(
                             label: "TSB",
                             value: String(format: "%+.0f", latestSnapshot?.tsb ?? 0),
-                            delta: latestSnapshot.map { $0.tsb >= 0 ? "Fresh" : "Fatigued" } ?? "\u{2014}"
+                            delta: latestSnapshot.map {
+                                LocalePinnedStrings.localized(
+                                    $0.tsb >= 0 ? "workload.metric.tsb.fresh" : "workload.metric.tsb.fatigued",
+                                    locale: locale
+                                )
+                            } ?? "\u{2014}"
                         )
                     }
                     .padding(.horizontal, Spacing.sm)
