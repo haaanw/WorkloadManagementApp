@@ -372,6 +372,21 @@ treat "the weights are right" as an unsupported claim, today and after the dogfo
    different endpoint from everything else in the recovery score.
 7. **Naps.** Whoop credits them. HealthKit will report daytime `asleep` samples. Count
    toward TST, count at a discount, or ignore?
+8. **Does a scenario profile ever surface to the athlete?** §9 stores it for audit. Showing
+   it ("scored against a hard training day") is honest and explains score movement; naming
+   `CHRONIC_IRREGULAR` to a user is a nocebo grenade. My default: neutral one-liner for
+   load/pressure profiles, silence for the circadian ones.
+9. **Freeze need learning during CHRONIC_IRREGULAR?** I propose yes (§9.3) — the
+   unconstrained-night estimator's assumptions are violated. Cost: the athletes who most
+   need a personalized target are the ones who stop getting one.
+10. **Which load signal drives HIGH_STRAIN_DAY** — session TSS, cross-modal fatigue, or
+    HealthKit active energy? TSS misses a 12-hour tournament day with no logged session;
+    active energy catches it but is noisy and device-dependent.
+11. **How many profiles may stack on one night?** I cap the *effect* (§9.4) rather than the
+    count. An alternative is strict priority (one profile wins). Priority is more auditable;
+    stacking is more truthful.
+12. **Is the algorithm published?** §10 argues transparency is the marketing asset. That
+    means publishing weights competitors can copy. HAN's call.
 
 ---
 
@@ -384,3 +399,197 @@ treat "the weights are right" as an unsupported claim, today and after the dogfo
   **On-device check required; it decides which tier is the common case.**
 - Oura's component weights — proprietary, never published.
 - The "+9% shooting" figure from Mah 2011 — read the paper before printing it anywhere.
+- Borbély's Process S time constants (build-up/decay) — I read abstract-level summaries and
+  the reappraisal's framing, **not** the parameter values. §9 therefore uses Process S as a
+  *shape* argument (pressure rises with wake, dissipates with sleep) and never implements
+  the equation.
+- Any quantitative link from prior-day energy expenditure to *how many minutes of extra
+  sleep are needed*. I found none. The strain credit is an assumption in both Whoop's model
+  and ours.
+- App Store Review Guidelines wording on health claims (§10 flags copy review; I did not
+  fetch the guideline text this session).
+
+---
+
+## 9. Context-conditional scoring (HAN direction, 2026-07-31)
+
+HAN's ruling: the same night of sleep does not mean the same thing in every state. Weights
+(and which components deserve authority) shift with the state the athlete entered sleep in.
+**One mechanism, different proportions** — profiles are *adjustments over the §5 base
+weights*, never parallel scoring systems.
+
+### 9.1 Formal foundations
+
+- **Two-process model (Process S / Process C).** Borbély, Daan, Wirz-Justice, Deboer,
+  *J Sleep Res* 25(2):131–143, 2016 (reappraisal of the 1982 model). Process S — homeostatic
+  sleep pressure — **accumulates during wakefulness and dissipates during sleep**, and is
+  explicitly described as "sleep debt"; slow-wave activity is its EEG marker. It interacts
+  with the circadian Process C. https://onlinelibrary.wiley.com/doi/10.1111/jsr.12371,
+  https://pubmed.ncbi.nlm.nih.gov/26762182/ — **grade A** for the framework. **I did not
+  read the time constants**, so we use the *shape* (longer wake → higher pressure → more
+  sleep needed, deep sleep front-loaded) and never the equation. This is the formal basis
+  for HAN's scenario 1.
+- **Extended wake produces SWS/REM rebound.** Recovery sleep after deprivation shows
+  increased slow-wave density/amplitude/slope, and REM rebound magnitude tracks the extent
+  of prior deprivation. https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0043224,
+  https://www.ncbi.nlm.nih.gov/books/NBK560713/ — **grade B** (PLOS study is a controlled
+  lab protocol; StatPearls is a textbook chapter). Consequence: **after long wake, a normal
+  deep% is not neutral — expected deep is elevated, so failing to rebound is the signal.**
+- **Exercise nudges architecture, weakly.** Kredlow et al., *J Behav Med* 38:427–449, 2015,
+  meta-analysis of 66 studies: acute exercise has *small* beneficial effects on TST, latency,
+  efficiency and SWS, and a moderate effect on WASO.
+  https://link.springer.com/article/10.1007/s10865-015-9617-6 — **grade A, small effects.**
+  Evening-exercise meta-analysis (*Sports Med* 2019): SWS +1.3 percentage points vs control.
+  https://link.springer.com/article/10.1007/s40279-018-1015-0 — **grade A, tiny effect.**
+- **Training load → sleep *need* is NOT established.** A combat-athlete case report found
+  trivial, non-significant relationships between daily training load and sleep
+  characteristics. https://pmc.ncbi.nlm.nih.gov/articles/PMC9887639/ — **grade C**, but it is
+  the closest direct test I found, and it is null. **The strain credit (§4) and the
+  HIGH_STRAIN_DAY profile are hypotheses, not evidence.** Whoop asserts the same link with
+  no published validation; we should not inherit their confidence.
+- **Acute circadian disruption is worse than the adapted state.** First-night-shift studies:
+  the nocturnal decline in visual selective attention and the increase in attentional lapses
+  are **most pronounced on the first night** versus subsequent nights.
+  https://journals.plos.org/plosone/article?id=10.1371/journal.pone.0001233,
+  https://www.ncbi.nlm.nih.gov/pmc/articles/PMC6420632/ — **grade B**. This validates HAN's
+  scenario 3 as a *distinct state*, not merely a worse version of scenario 4.
+- **Chronic misalignment = social jetlag.** Wittmann & Roenneberg, *Chronobiol Int* 23(1–2),
+  2006: social jetlag = difference in **sleep midpoint** between work and free days —
+  which is exactly the quantity we can compute from HealthKit.
+  https://www.tandfonline.com/doi/abs/10.1080/07420520500545979; health-risk review,
+  *Nutrients* 13(12):4543, 2021, https://pubmed.ncbi.nlm.nih.gov/34960096/ — **grade A/B for
+  the construct and its health associations; no evidence tying it to next-day athletic
+  readiness.**
+- **Naps.** The sleep-intervention review reports 20–90 min naps improve performance after a
+  normal night and restore decrements after partial restriction
+  (https://www.ncbi.nlm.nih.gov/pmc/articles/PMC10354314/) — **grade B**. Nothing supports
+  1:1 substitution of nap minutes for night minutes, which is what Whoop's "− naps" implies.
+
+### 9.2 The nightly state vector
+
+Computed by the pipeline from data Tuwa already has; passed into the pure engine.
+
+| Field | Source | Notes |
+|---|---|---|
+| `priorWakeHours` | previous sleep session `endDate` → this session `startDate` | Direct Process-S proxy. Needs the previous night's session, so it is nil on first run. |
+| `priorWakeZ` | vs athlete's own 28-night median prior-wake | Absolute thresholds are wrong for a night-owl student. |
+| `midpointSD14` | `BaselineState.midpointBuffer`, trailing 14 nights | Regularity state; also the §5 regularity input. |
+| `midpointDeviation` | tonight's midpoint − trailing median midpoint | Social-jetlag quantity (Roenneberg's definition). |
+| `daysSinceRhythmBreak` | nights since last \|deviation\| > max(2×SD, 90 min) | Separates acute from chronic. |
+| `irregularStreak` | consecutive days with `midpointSD14` above the entry threshold | Chronic state with hysteresis. |
+| `sleepDebt7` | Σ max(0, need_i − TST_i), trailing 7 nights, capped 6 h | Van Dongen 2003 basis. |
+| `priorDayLoadZ` | session TSS / cross-modal load vs 28-day mean | Existing Tuwa data. |
+| `priorDayActiveEnergyZ` | HealthKit `activeEnergyBurned` vs 28-day mean | Catches unlogged load (tournament days). |
+| `napMinutes` | daytime `asleep` samples since last main sleep | HealthKit already exposes these. |
+| `stagesAvailable`, `sourceStable`, `nightsOfHistory` | sleep samples + bundle IDs | Feeds tier + confidence (§5.2). |
+
+All of it is arithmetic over ≤90 local rows. No network, no new permissions beyond
+`activeEnergyBurned` read.
+
+### 9.3 Scenario profiles (adjustments to §5 base weights)
+
+Base: duration 0.50 / continuity 0.15 / deep 0.10 / REM 0.10 / regularity 0.15.
+
+| Profile | Trigger | Weight deltas | Need delta | Status |
+|---|---|---|---|---|
+| **BASELINE** | none of the below | — | — | n/a |
+| **HIGH_PRESSURE** | `priorWakeHours ≥ 18` or `priorWakeZ ≥ +1.5` | duration +0.05, deep +0.04, regularity −0.07, REM −0.02 | +6 min per hour of wake above 16 h, cap +45 min | **EVIDENCE-BACKED** (Borbély 2016; SWS-rebound literature) for direction; magnitudes = H-02 |
+| **HIGH_STRAIN_DAY** | `priorDayLoadZ ≥ +1` or `activeEnergyZ ≥ +1` | duration +0.02, deep +0.03, regularity −0.05 | +0…30 min | **HYPOTHESIS** (H-03) — Kredlow's SWS effect is small; load→need is null in the only direct test found |
+| **ACUTE_SHIFT** | `\|midpointDeviation\| > 2 h` **and** prior `midpointSD14 < 60 min` **and** `daysSinceRhythmBreak ≤ 2` | regularity −0.10, continuity +0.05, duration +0.05, deep −0.03, REM −0.03; **stage components capped at half authority** | +0 (pressure handled by HIGH_PRESSURE if it stacks) | **EVIDENCE-BACKED** that the first disrupted night is uniquely impaired (first-night-shift studies); **HYPOTHESIS** that de-weighting regularity is the right response (H-05) |
+| **CHRONIC_IRREGULAR** | `midpointSD14 > 75 min` on ≥10 of 14 nights (exit at <50 min for 5 consecutive nights) | regularity +0.07, duration −0.05, deep −0.02, REM −0.02 | none; **need learning FROZEN** | **HYPOTHESIS** (H-06); construct and health risk are evidenced (Roenneberg, Windred), the weighting is not |
+| **DEBT_CARRY** | `sleepDebt7 ≥ 3 h` | duration +0.08, all others −0.02 | +0…30 min (§4 debt credit) | **EVIDENCE-BACKED** direction (Van Dongen 2003: deficits accumulate, hours are what repay them); magnitude = H-07 |
+| **NAP_DAY** | `napMinutes ≥ 20` | none | −50% of nap minutes, cap −45 min | **HYPOTHESIS** (H-08); naps help performance (grade B) but 1:1 substitution is unsupported |
+
+Rationale threads worth stating explicitly, because they are the non-obvious part:
+- **Why deep goes *up* after long wake or hard load, not down.** Rebound is expected, so the
+  measurement is more informative in exactly those states — a night that should have
+  rebounded and didn't is a real signal. In BASELINE, nightly deep noise mostly reflects
+  staging error (κ ≈ 0.4–0.5).
+- **Why REM and deep go *down* under CHRONIC_IRREGULAR and ACUTE_SHIFT.** REM proportion is
+  circadian-phase-gated; stage percentages measured at wildly different clock phases are not
+  comparable to a personal baseline built from stable-phase nights. Scoring them anyway
+  would be measuring the clock, not the recovery.
+- **Why regularity goes *down* on the acutely-shifted night.** The athlete already loses
+  points on duration and continuity that night. Penalizing regularity too is triple-counting
+  one event — and it is the state where the app is most likely to nag someone who flew to a
+  tournament. Nocebo guard, expressed as arithmetic.
+
+### 9.4 Composition rules
+
+1. Profiles are detected independently and **may stack**, except ACUTE_SHIFT and
+   CHRONIC_IRREGULAR, which are mutually exclusive (acute wins for its ≤2 nights).
+2. Deltas are summed, each weight clamped to **[0.05, 0.60]**, then renormalized to 1.0 over
+   the components available in the active tier (§5.2). A component dropped by tier never
+   receives a delta.
+3. Total need adjustment from all sources (strain + debt + pressure − nap) stays inside the
+   §4 cap: `need_base ≤ need_tonight ≤ min(need_base + 60 min, 10 h)`.
+4. Every state entry/exit has hysteresis except ACUTE_SHIFT, which is single-night by
+   definition.
+5. The active profile set, the state vector, and the final weights are **stored on the
+   snapshot** — a score no one can reconstruct after the fact is not auditable, and this
+   engine is going to be argued about.
+6. Profiles never change the *tier* and never invent components. Mechanism stays one.
+
+### 9.5 Hypothesis registry (living artifact)
+
+Rule: **anything in the engine that is not backed by a cited source lives here as a row with
+a falsification test.** No unregistered assumption ships. This table is maintained in this
+file, reviewed at every release that touches the sleep engine, and each row moves through
+`HYPOTHESIS → SUPPORTED(n=1) → SUPPORTED(cohort) → REVISED → RETIRED`.
+
+| ID | Claim | Status | Basis | How it gets validated / revised |
+|---|---|---|---|---|
+| H-01 | Base weights 0.50/0.15/0.10/0.10/0.15 are near-optimal | HYPOTHESIS | Argued from evidence *quality*, not fitted | Shadow run: per-component partial correlation with next-day sleep-free readiness; refit when ≥200 nights exist across ≥20 users |
+| H-02 | Need rises ~6 min per hour of wake above 16 h, cap 45 min | HYPOTHESIS | Process S shape (grade A) without published constants | Compare readiness after long-wake nights that did vs didn't reach the raised need; if no difference, flatten to 0 |
+| H-03 | A hard training day raises sleep need by up to 30 min | HYPOTHESIS | Kredlow (small architecture effects); direct load→need test is null | Regress next-day readiness on (TST − need) split by load tertile; if the interaction is absent, delete the strain credit — including from §4 |
+| H-04 | Deep/REM scored vs the athlete's own same-source EWMA beats population norms | HYPOTHESIS | κ 0.21–0.53 implies device-specific bias (grade A) | Compare both formulations in shadow; also compare across a deliberate device switch |
+| H-05 | De-weighting regularity on the acute-shift night is correct | HYPOTHESIS | Impairment on first disrupted night is evidenced; the *response* is not | If acute-shift nights show readiness *worse* than the score implies across ≥10 events, the de-weighting is too generous |
+| H-06 | Under chronic irregularity, regularity deserves more weight and stages less | HYPOTHESIS | Social-jetlag health associations (grade A/B); no readiness evidence | Within-athlete: does midpoint SD predict next-day readiness at all? If not, move regularity out of the score entirely (see §7 Q6) |
+| H-07 | When in ≥3 h debt, hours dominate architecture | HYPOTHESIS-leaning-evidence | Van Dongen 2003 (grade A) supports hours mattering; the weight shift is ours | Check whether stage components retain any predictive power inside debt states |
+| H-08 | A nap offsets 50% of its minutes against nightly need | HYPOTHESIS | Naps aid performance (grade B); substitution ratio unknown | Compare readiness on nap+short-night vs no-nap+equal-total nights |
+| H-09 | Personalized need beats the fixed 7.5 h target | HYPOTHESIS | Walsh 2021 consensus recommends individualization (grade A) but does not prove a method | §6 criterion 4 + head-to-head correlation vs fixed target |
+| H-10 | Athletes are not harmed (nocebo) by seeing a moved target or a profile label | HYPOTHESIS | None — pure product judgement | Dogfood report + any support signal; revert to silent if it reads as alarming |
+
+Registry hygiene: every row cites either a source or "none"; a row that cannot name the
+measurement that would change it does not belong in the engine.
+
+---
+
+## 10. Marketing significance
+
+HAN designates this as a flagship differentiator for tuwa.app, the App Store page, and
+social. The differentiator that is *actually* true today is **not** "we measure sleep better"
+— our staging comes from the same wrist sensors as everyone's, at κ ≈ 0.4–0.5. It is:
+
+1. **The target is yours and it is inspectable.** Whoop's Sleep Need is a black box; Oura's
+   weights are proprietary. We can publish ours.
+2. **The score knows what the night has to do.** Scoring 7 h the same way after an 18-hour
+   day, after a match, and after a normal Tuesday is what every competitor does.
+3. **It never leaves the phone.** Composite scores only.
+
+**Claim ladder — what is honestly sayable at each stage.**
+
+| Stage | Sayable | Never sayable |
+|---|---|---|
+| **A. Shadow (not user-facing)** | Mechanism and design only: "learns your sleep target from your own nights", "weights the night by the state you entered it in". Describe, never assert benefit. | Any performance, recovery, or accuracy claim. Any "validated". Any before/after numbers. |
+| **B. Live, n=1 dogfood passed** | "Adapts to your prior wakefulness, training load, and sleep regularity." Name the inputs. Publish the weights and the hypothesis registry — the registry *is* the credibility asset. | "Proven", "clinically validated", "improves performance", anything implying n>1. Citing Mah's basketball results as if they were our users' results. |
+| **C. Population-validated (≥200 nights, ≥20 athletes, pre-registered)** | Aggregate findings, stated with n and effect size, and stated as association. | Causal or medical claims; injury-prevention claims; sleep-disorder claims. |
+
+**Hard rails for any copy, at every stage:**
+- No medical, diagnostic, or injury-prevention claims. The Milewski/meta-analysis injury
+  associations justify our *design*; they must never appear as "Tuwa reduces injury risk".
+  (Also: run health-claim copy against App Store Review Guidelines §1.4.1 before submitting —
+  I did not fetch the guideline text, so treat this as a to-check, not a citation.)
+- No stage-accuracy implications. If we show deep/REM we say they come from the athlete's
+  device and are compared to their own history — which is exactly why it works despite the
+  sensors.
+- Citations in marketing point to papers, and describe what the paper found, not what we
+  hope users infer.
+- The nocebo guard extends to marketing: no fear framing ("you're wrecking your recovery"),
+  no sleep-debt shaming. The engine's voice and the brand's voice must match, or the
+  in-app restraint reads as a bug.
+
+The strongest available position, and the one I'd argue for: **publish the algorithm and the
+hypothesis registry.** "Here is what we believe, here is our evidence, here is what would
+prove us wrong" is a claim no competitor can copy without also giving up their black box —
+and it is the only marketing that stays true while the weights are still hypotheses.
