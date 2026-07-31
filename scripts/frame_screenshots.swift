@@ -312,7 +312,7 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
     ],
     "zh-Hans": [
         "VerdictMicrodose": FrameCopy(
-            headline: "比赛前，先 microdose",
+            headline: "比赛前，先做微量训练来找到状态",
             subline: "封顶 top set，跳过 back-off。"
         ),
         "StrikeZone": FrameCopy(

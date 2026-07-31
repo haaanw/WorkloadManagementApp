@@ -1114,7 +1114,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "28天滚动平均"
+            "value" : "28日滚动平均"
           }
         }
       }
@@ -2404,7 +2404,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "7 天平均"
+            "value" : "7 日平均"
           }
         }
       }
@@ -4138,7 +4138,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "7 天平均：%d ms"
+            "value" : "7 日平均：%d ms"
           }
         }
       }
@@ -4189,7 +4189,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不同人的心率变异性绝对值差异极大——30 ms 对一个运动员可能很好，对一个普通人就可能偏低。Tuwa 只将你与自己的 7 天滚动平均值比较，所以真正重要的是偏离幅度，而不是数据本身的高低。"
+            "value" : "不同人的心率变异性绝对值差异极大——30 ms 对一个运动员可能很好，对一个普通人就可能偏低。Tuwa 只将你与自己的 7 日滚动平均值比较，所以真正重要的是偏离幅度，而不是数据本身的高低。"
           }
         }
       }
@@ -4223,7 +4223,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "单次低于基准线的读数通常只是噪音——饮酒、晚餐吃太晚、睡得不好。连续两三次且伴随静息心率升高，才是提示疲劳的模式，而这正是你的恢复度评分在监测的内容。"
+            "value" : "单次低于基准线的读数通常只是噪音——饮酒、晚餐吃太晚、睡得不好。连续两三次且伴随静息心率升高，才是提示疲劳的模式，而这正是你的准备度评分在监测的内容。"
           }
         }
       }
@@ -4274,7 +4274,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%@ 相对 7 天平均"
+            "value" : "%@ 相对 7 日平均"
           }
         }
       }
@@ -4291,7 +4291,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "心率变异性（SDNN）测量心跳间的变化。数值越高表示自主神经恢复越好。虚线显示您的 7 天滚动平均值。"
+            "value" : "心率变异性（SDNN）测量心跳间的变化。数值越高表示自主神经恢复越好。虚线显示您的 7 日滚动平均值。"
           }
         }
       }
@@ -4308,7 +4308,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "28 天心率变异性"
+            "value" : "28 日心率变异性"
           }
         }
       }
@@ -12475,7 +12475,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "28 天睡眠时长"
+            "value" : "28 日睡眠时长"
           }
         }
       }
@@ -12526,7 +12526,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "7 天平均"
+            "value" : "7 日平均"
           }
         }
       }
@@ -12713,7 +12713,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "此训练课次的负荷是您 28 天平均值的 %@倍。考虑额外恢复。"
+            "value" : "此训练课次的负荷是您 28 日平均值的 %@倍。考虑额外恢复。"
           }
         }
       }
@@ -16092,7 +16092,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "急性 · 7天"
+            "value" : "急性 · 7日"
           }
         }
       }
@@ -16109,7 +16109,7 @@
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "慢性 · 28天"
+            "value" : "慢性 · 28日"
           }
         }
       }
