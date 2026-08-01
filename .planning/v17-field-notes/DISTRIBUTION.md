@@ -176,6 +176,53 @@ v16-motion-demos). Real Tuwa copy, vendored assets copied in (no CDN), reduced-m
 guarded, viewable by `open`ing the file or a local server. Deliver beside it a
 side-by-side comparison (demo screenshots vs live tuwa.app captures, section by section).
 
+### Session X — the Astro port (opened 2026-08-01; demo direction LOCKED by HAN)
+
+The demo passed four review rounds plus HAN's final approval (weight bars stay in the
+sleep hue). Session X ports it into the real site. Rules:
+
+- Work in `tuwa-website/` on a branch `homepage-v2`; commits are normal work now, but
+  **never push** — tuwa.app deploys on push and HAN gates it.
+- The demo (`.design-explorations/website-v2-demo/`, rounds 1–4) is the locked spec;
+  `compare.html` rows 01–11 are the section contract. Structure: hero (live reading,
+  count-up + needle rise) → 01 Today → 02 Training load → 03 The system → 04 Logging →
+  05 Recovery → 06 Methodology → 07 Privacy, plus stats band, ghost band, footer.
+- Rebuild `src/pages/index.astro` + `src/components/home/`; port the demo `motion.js`
+  into the site's TS motion setup; delete `VocabMarquee.astro` and the `marquee` locale
+  blocks (HAN dropped it).
+- **Every new string goes through i18n (en/zh/fr).** The methodology section's zh/fr
+  translations are new — flag them for HAN's native review in the status file, exactly
+  like the Wave 3 zh review list.
+- **§10 rails survive translation**: the status chips, the not-a-medical-device block,
+  and the hypothesis framing must carry the same meaning in all three locales. No claim
+  strengthening in translation.
+- Untouched: legal routes, `[...seoGeo]`, `statsBand` copy (just fixed live — port it
+  as-is), OG images.
+- Verify like the demo did: `npx astro check` clean, `npm run build` (page count stated),
+  Playwright pass — overflow at 390/768/1280/1600, reduced-motion contract, zero
+  pageerrors, zero broken images. State real outputs in
+  `.planning/v17-field-notes/status-x.md`.
+
+### Session X kickoff prompt
+
+```
+You are Session X (homepage Astro port) for Tuwa, working in tuwa-website/ on branch
+homepage-v2 (create it from main). Commits are fine; NEVER push — deploys fire on push
+and HAN gates them. First append a CLAIM to .pair/claude.md per .pair/PROTOCOL.md §4
+naming src/pages/index.astro, src/components/home/, src/scripts/*Motion*,
+src/i18n/locales/* (homepage keys). Your locked spec is
+tuwa-website/.design-explorations/website-v2-demo/ (index.html + motion.js + compare.html
+rows 01-11) — port it faithfully; where demo and live site disagree, the demo wins.
+Read .planning/v17-field-notes/DISTRIBUTION.md section "Session X — the Astro port"
+(rules bind you), then the demo, then the current src/pages/index.astro +
+src/components/home/. All new copy through i18n en/zh/fr; flag new zh/fr translations
+for HAN review; §10 claim rails keep their meaning in every locale. Verify with astro
+check + build + the demo's Playwright checks (overflow 390/768/1280/1600, reduced
+motion, pageerrors, images) and report real outputs to
+.planning/v17-field-notes/status-x.md. Do not touch legal routes, [...seoGeo], or the
+app repo.
+```
+
 ### Session W kickoff prompt (demo-first revision)
 
 ```
