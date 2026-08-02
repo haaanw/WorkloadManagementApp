@@ -74,6 +74,8 @@ struct SleepStateBuilder {
         var lastSleepEndDate: Date?
         /// Monotonic once-per-day fold cutoff (W-1 idempotency).
         var lastFoldedDate: Date?
+        /// Trailing ≤28 valid prior-wake spans in hours — the §9.2 `priorWakeZ` input (H-34).
+        var priorWakeBuffer: [Double]
 
         init(
             deepMu: Double? = nil,
@@ -94,7 +96,8 @@ struct SleepStateBuilder {
             nightsOfHistory: Int = 0,
             previousProfilesRaw: [String] = [],
             lastSleepEndDate: Date? = nil,
-            lastFoldedDate: Date? = nil
+            lastFoldedDate: Date? = nil,
+            priorWakeBuffer: [Double] = []
         ) {
             self.deepMu = deepMu
             self.deepCount = deepCount
@@ -115,6 +118,27 @@ struct SleepStateBuilder {
             self.previousProfilesRaw = previousProfilesRaw
             self.lastSleepEndDate = lastSleepEndDate
             self.lastFoldedDate = lastFoldedDate
+            self.priorWakeBuffer = priorWakeBuffer
+        }
+    }
+
+    // MARK: - Nap candidate (Phase S3, H-35)
+
+    /// One non-main clustered sleep session from `fetchLastNightSleepDetail`'s window — a
+    /// potential nap. Defined here (the consumer of the contract) so the selection rule
+    /// (`napMinutes`) stays pure and testable without HealthKit types.
+    struct NapCandidate {
+        /// First asleep sample start of the candidate session.
+        let start: Date
+        /// Last asleep sample end of the candidate session.
+        let end: Date
+        /// Unioned asleep minutes of the candidate session.
+        let asleepMinutes: Double
+
+        init(start: Date, end: Date, asleepMinutes: Double) {
+            self.start = start
+            self.end = end
+            self.asleepMinutes = asleepMinutes
         }
     }
 
@@ -224,6 +248,36 @@ struct SleepStateBuilder {
     /// fold — the complete night folds on a later run the same day. H-26.
     static let sessionCompleteHoldMinutes: Double = 120.0
 
+    // MARK: - Phase S3 pass-through constants (closing H-33)
+
+    /// §9.2's own window: `priorWakeZ` is scored against the athlete's 28-night prior-wake
+    /// history.
+    static let priorWakeBufferLength: Int = 28
+    /// Minimum buffered spans before `priorWakeZ` is computable — below it (or when the
+    /// buffer's MAD is zero) the z reads nil and the HIGH_PRESSURE z-arm never fires.
+    /// Mirrors `madMinValid` ("no fabricated dispersion"). H-34.
+    static let priorWakeMinNightsForZ: Int = 5
+    /// Minimum asleep minutes for a non-main session to count as a nap. Mirrors §9.3's
+    /// NAP_DAY trigger (`napMinutes ≥ 20`) so a sub-trigger doze never even enters the
+    /// sum. H-35.
+    static let napMinimumMinutes: Double = 20.0
+    /// Staleness bound on the carried `lastSleepEndDate` (H-41). After a missed-fold day
+    /// the stored end belongs to a night BEFORE the unfolded one: the unfolded previous
+    /// night then sits inside the widened gap and would read as a ~400-min "nap", and the
+    /// prior-wake span (~39.5 h, inside H-22's 48 h) is a fold-gap artifact, not a vigil.
+    /// A `lastSleepEndDate` more than 24 h before tonight's session start therefore reads
+    /// as MISSING for the nap sum (→ 0, unknown) and for the H-34 buffer push (no push) —
+    /// H-22's gap-not-vigil spirit. The `makeInput` scoring read keeps H-22's own 48 h
+    /// bound (that row's kill test governs it).
+    static let lastSleepEndStalenessMaxHours: Double = 24.0
+    /// §9.2's window for both prior-day z's: yesterday's total vs the trailing 28 days
+    /// before it.
+    static let priorDayWindowDays: Int = 28
+    /// Minimum days with an observed active-energy sum inside the trailing window before
+    /// `priorDayActiveEnergyZ` is computable (a watch not worn most days has no
+    /// distribution to score against). H-37.
+    static let energyZMinPresentDays: Int = 21
+
     // MARK: - Fold guards (session identity + completeness)
 
     /// Whether the pipeline may fold this night into `state` at clock time `now`.
@@ -272,11 +326,12 @@ struct SleepStateBuilder {
     /// Assemble the engine's `SleepInput` from the PRE-fold state plus tonight's raw night.
     /// No field of `state` reflects tonight — score-then-fold, like `BaselineEngine.score`.
     ///
-    /// `priorDayLoadZ` / `priorDayActiveEnergyZ` / `napMinutes` (and `priorWakeZ`) are
-    /// pass-throughs the pipeline may supply when it has them; in Phase S2 they default
-    /// to absent, so HIGH_STRAIN_DAY, NAP_DAY, and HIGH_PRESSURE's z-arm simply never
-    /// fire (a nil z never fires — the engine's own rule). This scope cut is registered:
-    /// the shadow analysis must not read those profiles' absence as evidence (H-33).
+    /// `priorDayLoadZ` / `priorDayActiveEnergyZ` / `napMinutes` are pass-throughs the S3
+    /// pipeline computes (`priorDayLoadZ(dailyTSS:…)` / `priorDayEnergyZ(dailyEnergy:…)` /
+    /// `napMinutes(candidates:…)`) and supplies here; `priorWakeZ` is computed internally
+    /// from the carried 28-night buffer (H-34). The S2 scope cut that left them absent is
+    /// CLOSED (H-33) — but a nil z still never fires a trigger (the engine's own rule), so
+    /// a caller without the data degrades exactly as S2 did.
     static func makeInput(
         state: State,
         night: Night,
@@ -286,13 +341,15 @@ struct SleepStateBuilder {
         calendar: Calendar
     ) -> SleepScoreEngine.SleepInput {
         // Prior wake span (Process-S proxy). Outside (0, 48 h] = data gap → nil (H-22).
-        var priorWakeHours: Double?
-        if let lastEnd = state.lastSleepEndDate {
-            let hours = night.sessionStart.timeIntervalSince(lastEnd) / 3600.0
-            if hours > 0, hours <= priorWakeMaxHours {
-                priorWakeHours = hours
-            }
-        }
+        let priorWakeHours = validPriorWakeHours(
+            lastSleepEnd: state.lastSleepEndDate,
+            sessionStart: night.sessionStart
+        )
+        // priorWakeZ (H-34, closing H-33): robust z of tonight's span against the PRE-fold
+        // 28-night buffer. nil below `priorWakeMinNightsForZ` buffered spans or when the
+        // buffer's MAD is zero (a perfectly regular sleeper has no dispersion to score
+        // against — the HIGH_PRESSURE hours-arm still fires).
+        let priorWakeZ = priorWakeHours.flatMap { robustZ($0, buffer: state.priorWakeBuffer) }
 
         // Midpoint statistics from the PRE-fold buffer (≥ midpointMinNights or nil, H-23;
         // the prequential pre-/post-fold SD split is a registered judgment, H-31).
@@ -337,7 +394,7 @@ struct SleepStateBuilder {
 
         let stateVector = SleepScoreEngine.SleepStateVector(
             priorWakeHours: priorWakeHours,
-            priorWakeZ: nil,  // needs a 28-night wake-history buffer — not carried in S2
+            priorWakeZ: priorWakeZ,
             midpointSD14Minutes: sd14,
             midpointDeviationMinutes: deviation,
             daysSinceRhythmBreak: daysSinceRhythmBreak,
@@ -499,6 +556,23 @@ struct SleepStateBuilder {
         next.tstBuffer = pushCapped(next.tstBuffer, night.tstMinutes, cap: tstBufferLength)
         next.nightsOfHistory += 1
 
+        // S3 (H-34): push tonight's H-22-valid prior-wake span into the 28-night buffer.
+        // Uses the PRE-fold `state.lastSleepEndDate` — the same span `makeInput` scored.
+        // H-41 staleness gate: a span past `lastSleepEndStalenessMaxHours` means a
+        // missed-fold day sits between the stored end and tonight — a fold-gap artifact
+        // (~39.5 h), not a real wake span. It reads as missing and never enters the
+        // buffer (a single 39.5 h push would drag the 28-night median/MAD for a month).
+        if let wake = validPriorWakeHours(
+            lastSleepEnd: state.lastSleepEndDate,
+            sessionStart: night.sessionStart
+        ), wake <= lastSleepEndStalenessMaxHours {
+            next.priorWakeBuffer = pushCapped(
+                next.priorWakeBuffer,
+                wake,
+                cap: priorWakeBufferLength
+            )
+        }
+
         // 6. §4 need learning. FROZEN while CHRONIC_IRREGULAR is latched (§7 Q9); frozen
         //    weeks do not stamp `needUpdatedAt`, so the first unfrozen due night updates.
         //    `needFrozen` tracks ONLY the chronic freeze (SPEC-8 ruling — see the State
@@ -545,6 +619,124 @@ struct SleepStateBuilder {
         next.lastSleepEndDate = night.sessionEnd
         next.lastFoldedDate = day
         return next
+    }
+
+    // MARK: - Pass-through inputs (Phase S3, closing H-33)
+
+    /// The H-22-validated prior-wake span in hours: `sessionStart − lastSleepEnd`, readable
+    /// only inside (0, `priorWakeMaxHours`]. nil = data gap (or no previous night), never a
+    /// vigil. Shared by `makeInput` (scoring) and `fold` (the H-34 buffer push) so the two
+    /// can never disagree.
+    static func validPriorWakeHours(lastSleepEnd: Date?, sessionStart: Date) -> Double? {
+        guard let lastSleepEnd else { return nil }
+        let hours = sessionStart.timeIntervalSince(lastSleepEnd) / 3600.0
+        guard hours > 0, hours <= priorWakeMaxHours else { return nil }
+        return hours
+    }
+
+    /// Robust z of `x` against a buffer: `(x − median) / (madScaleK × MAD)` — §9.2 names
+    /// the 28-night MEDIAN as the reference, so the scale is the matching robust one
+    /// (`BaselineEngine`'s MAD → σ constant), not a mean/SD pair one outlier can drag.
+    /// nil below `priorWakeMinNightsForZ` values or when the MAD is zero. H-34.
+    static func robustZ(_ x: Double, buffer: [Double]) -> Double? {
+        guard buffer.count >= priorWakeMinNightsForZ else { return nil }
+        let med = BaselineEngine.median(buffer)
+        let mad = BaselineEngine.median(buffer.map { abs($0 - med) })
+        guard mad > 0 else { return nil }
+        return (x - med) / (BaselineEngine.BaselineConstants.madScaleK * mad)
+    }
+
+    /// Nap minutes for tonight's engine input (H-35): the sum of asleep minutes over the
+    /// fetch window's non-main clustered sessions that (a) lie strictly between the previous
+    /// main sleep's end and tonight's session start — §9.2's "daytime asleep samples since
+    /// last main sleep" — and (b) individually reach `napMinimumMinutes` (§9.3's own NAP_DAY
+    /// trigger, so a sub-trigger doze never enters the sum). With no known previous sleep
+    /// end a candidate is indistinguishable from an unfolded previous night, so the value
+    /// reads 0 (absent — it never fires NAP_DAY). The same reasoning gates a STALE end
+    /// (H-41): a `lastSleepEnd` more than `lastSleepEndStalenessMaxHours` before the main
+    /// session start means a missed-fold day sits in between, and the "candidates" in
+    /// that gap are the unfolded previous night — the value reads 0 (unknown).
+    static func napMinutes(
+        candidates: [NapCandidate],
+        mainSessionStart: Date,
+        lastSleepEnd: Date?
+    ) -> Double {
+        guard let lastSleepEnd else { return 0 }
+        let gapHours = mainSessionStart.timeIntervalSince(lastSleepEnd) / 3600.0
+        guard gapHours <= lastSleepEndStalenessMaxHours else { return 0 }
+        return candidates
+            .filter {
+                $0.asleepMinutes >= napMinimumMinutes
+                    && $0.start > lastSleepEnd
+                    && $0.end <= mainSessionStart
+            }
+            .reduce(0) { $0 + $1.asleepMinutes }
+    }
+
+    /// z of the prior day's (wake day − 1) session-TSS sum against the trailing
+    /// `priorDayWindowDays` calendar days before it, ZERO-FILLED — a rest day is a genuine
+    /// 0-load observation in an athlete's daily-load distribution (H-36). Requires the
+    /// observed session history to COVER the whole window (`earliestSessionDay` at or before
+    /// its first day): zero-filling days the athlete was not even logging yet would
+    /// fabricate a distribution. nil on no coverage or zero variance. `dailyTSS` is keyed by
+    /// start-of-day.
+    static func priorDayLoadZ(
+        dailyTSS: [Date: Double],
+        wakeDay: Date,
+        earliestSessionDay: Date?,
+        calendar: Calendar
+    ) -> Double? {
+        guard let priorDay = calendar.date(byAdding: .day, value: -1, to: wakeDay),
+              let windowStart = calendar.date(
+                  byAdding: .day, value: -priorDayWindowDays, to: priorDay
+              ),
+              let earliest = earliestSessionDay,
+              earliest <= windowStart else { return nil }
+        var window: [Double] = []
+        for offset in 1...priorDayWindowDays {
+            guard let day = calendar.date(byAdding: .day, value: -offset, to: priorDay) else {
+                continue
+            }
+            window.append(dailyTSS[calendar.startOfDay(for: day)] ?? 0)
+        }
+        let x = dailyTSS[calendar.startOfDay(for: priorDay)] ?? 0
+        return sampleZ(x, window: window)
+    }
+
+    /// z of the prior day's HealthKit active-energy daily sum against the PRESENT days of
+    /// the trailing window (H-37). A day with no recorded sum is MISSING (watch off), never
+    /// zero-filled; below `energyZMinPresentDays` present days — or when the prior day
+    /// itself has no sum, or the variance is zero — the z reads nil. `dailyEnergy` is keyed
+    /// by start-of-day.
+    static func priorDayEnergyZ(
+        dailyEnergy: [Date: Double],
+        wakeDay: Date,
+        calendar: Calendar
+    ) -> Double? {
+        guard let priorDay = calendar.date(byAdding: .day, value: -1, to: wakeDay),
+              let x = dailyEnergy[calendar.startOfDay(for: priorDay)] else { return nil }
+        var window: [Double] = []
+        for offset in 1...priorDayWindowDays {
+            guard let day = calendar.date(byAdding: .day, value: -offset, to: priorDay) else {
+                continue
+            }
+            if let value = dailyEnergy[calendar.startOfDay(for: day)] {
+                window.append(value)
+            }
+        }
+        guard window.count >= energyZMinPresentDays else { return nil }
+        return sampleZ(x, window: window)
+    }
+
+    /// Plain sample z: `(x − mean) / SD(n−1)`. nil when the window is degenerate (fewer
+    /// than 2 values, or SD ≤ 0).
+    static func sampleZ(_ x: Double, window: [Double]) -> Double? {
+        guard window.count >= 2 else { return nil }
+        let mean = window.reduce(0, +) / Double(window.count)
+        let sumSquares = window.reduce(0) { $0 + ($1 - mean) * ($1 - mean) }
+        let sd = (sumSquares / Double(window.count - 1)).squareRoot()
+        guard sd > 0 else { return nil }
+        return (x - mean) / sd
     }
 
     // MARK: - Statistics helpers

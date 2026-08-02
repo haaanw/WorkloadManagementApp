@@ -148,6 +148,12 @@ final class BaselineState {
     /// Monotonic once-per-day fold cutoff, mirroring the `*LastBucketedDate` fields (§2.4
     /// idempotency): the pipeline folds only when the wake day is strictly after this.
     var sleepV2LastFoldedDate: Date? = nil
+    /// Trailing ≤28 valid prior-wake spans in HOURS (the §9.2 `priorWakeZ` input, Phase S3 —
+    /// H-34). Only spans inside the H-22 sanity window (0, 48 h] are pushed; the buffer is a
+    /// rolling drop-oldest ring like `sleepV2MidpointBuffer`. Additive NON-optional field
+    /// with an inline `[]` default (not nullable) — the inline default is what makes the
+    /// lightweight migration safe.
+    var sleepV2PriorWakeBuffer: [Double] = []
 
     /// Memberwise init that ZERO-inits every accumulator (cold state). The engine (Plan 02) fills
     /// these in as folds arrive.

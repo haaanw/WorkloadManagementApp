@@ -285,6 +285,12 @@ final class HealthKitService {
         /// pick is deterministic — a nondeterministic flip would trigger a full §4
         /// source reset).
         let dominantSourceID: String?
+        /// The dominant source's NON-main clustered sessions in the fetch window (each
+        /// reduced to start / end / unioned asleep minutes) — the H-35 nap candidates
+        /// (Phase S3, closing H-33). Which of them count as naps is decided by the pure
+        /// `SleepStateBuilder.napMinutes(candidates:mainSessionStart:lastSleepEnd:)`, not
+        /// here.
+        let napCandidates: [SleepStateBuilder.NapCandidate]
     }
 
     /// Fetch last night's per-stage sleep detail for the sleep-v2 shadow fold.
@@ -372,6 +378,22 @@ final class HealthKitService {
         let sessionStart = firstInterval.start
         let sessionEnd = session.map(\.end).max()!
 
+        // Nap candidates (H-35): every clustered session EXCEPT the chosen main one,
+        // reduced to start / end / unioned asleep minutes. The nap selection rule lives in
+        // `SleepStateBuilder.napMinutes` (pure, testable) — this fetch only reports what
+        // the window contained.
+        let napCandidates: [SleepStateBuilder.NapCandidate] = sessions.dropLast().compactMap {
+            cluster in
+            guard let first = cluster.first, let end = cluster.map(\.end).max() else {
+                return nil
+            }
+            return SleepStateBuilder.NapCandidate(
+                start: first.start,
+                end: end,
+                asleepMinutes: SleepSessionMath.unionMinutes(cluster)
+            )
+        }
+
         // A sample belongs to the chosen session by overlap with its asleep span. Earlier
         // sessions' samples end > 90 min before `sessionStart`, so they never overlap.
         func overlapsSession(_ sample: HKCategorySample) -> Bool {
@@ -420,8 +442,55 @@ final class HealthKitService {
             inBedMinutes: inBed,
             sessionStart: sessionStart,
             sessionEnd: sessionEnd,
-            dominantSourceID: dominantID
+            dominantSourceID: dominantID,
+            napCandidates: napCandidates
         )
+    }
+
+    // MARK: - Active energy (sleep v2, Phase S3 — H-37)
+
+    /// Daily `activeEnergyBurned` sums (kilocalories) for the trailing `days` days, keyed by
+    /// start-of-day. The `priorDayActiveEnergyZ` input (H-37, closing H-33): §9.2 names
+    /// active energy as the load signal that catches an unlogged tournament day.
+    ///
+    /// Read-only, and the type is ALREADY in `readTypes` (`.activeEnergyBurned`) — no new
+    /// permission scope. Uses a statistics-collection descriptor (daily `.cumulativeSum`
+    /// buckets computed by HealthKit) rather than fetching thousands of raw samples to sum
+    /// client-side. Days with no samples are simply ABSENT from the dictionary — the caller
+    /// must not read absence as zero (a watch left on the charger is missing data, not a
+    /// rest day).
+    func fetchDailyActiveEnergyByDay(days: Int) async throws -> [Date: Double] {
+        let calendar = Calendar.current
+        let now = Date.now
+        let anchor = calendar.startOfDay(for: now)
+        guard let start = calendar.date(byAdding: .day, value: -days, to: anchor) else {
+            return [:]
+        }
+
+        let predicate = HKQuery.predicateForSamples(
+            withStart: start,
+            end: now,
+            options: .strictStartDate
+        )
+        let descriptor = HKStatisticsCollectionQueryDescriptor(
+            predicate: .quantitySample(
+                type: HKQuantityType(.activeEnergyBurned),
+                predicate: predicate
+            ),
+            options: .cumulativeSum,
+            anchorDate: anchor,
+            intervalComponents: DateComponents(day: 1)
+        )
+
+        let collection = try await descriptor.result(for: store)
+        var byDay: [Date: Double] = [:]
+        collection.enumerateStatistics(from: start, to: now) { statistics, _ in
+            if let sum = statistics.sumQuantity() {
+                byDay[calendar.startOfDay(for: statistics.startDate)] =
+                    sum.doubleValue(for: .kilocalorie())
+            }
+        }
+        return byDay
     }
 
     // MARK: - Workout Heart Rate (for TRIMP)
