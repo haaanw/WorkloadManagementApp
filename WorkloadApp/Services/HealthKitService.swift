@@ -248,6 +248,182 @@ final class HealthKitService {
         return totalSeconds / 60.0
     }
 
+    // MARK: - Sleep stages (sleep v2, Phase S2)
+
+    /// One night's per-stage sleep detail, reduced to scalars for the sleep-v2 shadow path
+    /// (research-sleep-score.md §3). **Raw stage data never leaves the device** — this value
+    /// flows only into `BaselineState`'s local sleep-v2 carrier and the engine input; it has
+    /// no Codable conformance and must never appear in `SyncService`.
+    ///
+    /// All scalars describe **one session**: the most recent gap-clustered session of the
+    /// dominant source (H-25) — never the whole fetch window, which can span two nights
+    /// plus naps when the pipeline runs late.
+    struct LastNightSleepDetail {
+        /// Total sleep minutes = deep + REM + core + unspecified (dominant source, chosen
+        /// session only; per-stage intervals are unioned before summing so overlapping
+        /// same-source samples never double-count).
+        let tstMinutes: Double
+        /// Deep minutes; nil when the dominant source wrote no staged samples.
+        let deepMinutes: Double?
+        /// REM minutes; nil when the dominant source wrote no staged samples.
+        let remMinutes: Double?
+        /// Core (light) minutes; nil when unstaged.
+        let coreMinutes: Double?
+        /// Awake-after-onset minutes; nil when the source reports no awake samples and
+        /// does not stage (an unstaged source's wakings are simply unknown).
+        let awakeMinutes: Double?
+        /// The opportunity window in minutes: the dominant source's explicit `inBed`
+        /// samples overlapping the chosen session when present, else the span of the
+        /// session's asleep+awake samples (H-24).
+        let inBedMinutes: Double?
+        /// First asleep sample start of the chosen session (dominant source).
+        let sessionStart: Date
+        /// Last asleep sample end of the chosen session (dominant source).
+        let sessionEnd: Date
+        /// Bundle id of the dominant source — the one writing the most asleep samples
+        /// (ties broken by asleep minutes, then by the bundle id string itself so the
+        /// pick is deterministic — a nondeterministic flip would trigger a full §4
+        /// source reset).
+        let dominantSourceID: String?
+    }
+
+    /// Fetch last night's per-stage sleep detail for the sleep-v2 shadow fold.
+    ///
+    /// Same window and query pattern as `fetchLastNightSleep()` (start of yesterday → now,
+    /// `HKSampleQueryDescriptor`), but:
+    /// - samples are grouped by writing source, and ONLY the dominant source's samples are
+    ///   aggregated — mixing sources double-counts overlapping sessions (iPhone + Watch both
+    ///   write) and breaks the same-source baseline discipline (H-04);
+    /// - the dominant source's asleep samples are **clustered into sessions by gap** —
+    ///   a gap > `SleepSessionMath.sessionGapMinutes` (90, H-25) starts a new session —
+    ///   and only the MOST RECENT session is reduced. Without this, the up-to-~32 h window
+    ///   merges two post-midnight nights (run at 08:00) and daytime naps into one "night"
+    ///   with a garbage TST and midpoint;
+    /// - per-stage minutes union their intervals before summing, so overlapping same-source
+    ///   samples (re-binned or duplicated writes) never double-count;
+    /// - `asleepUnspecified` counts toward TST (a stage-less source — the §3 Whoop/manual
+    ///   case — must still produce a Tier-C/D night; the v1 fetch ignores it deliberately
+    ///   and is left untouched);
+    /// - per-stage minutes are nil, not 0, when the source did not stage.
+    ///
+    /// Returns nil when no asleep samples exist in the window (Tier E — no night).
+    func fetchLastNightSleepDetail() async throws -> LastNightSleepDetail? {
+        let type = HKCategoryType(.sleepAnalysis)
+        let calendar = Calendar.current
+        let now = Date.now
+        let startOfToday = calendar.startOfDay(for: now)
+        let startOfYesterday = calendar.date(byAdding: .day, value: -1, to: startOfToday)!
+
+        let predicate = HKQuery.predicateForSamples(
+            withStart: startOfYesterday,
+            end: now,
+            options: .strictStartDate
+        )
+
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.categorySample(type: type, predicate: predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate)]
+        )
+
+        let samples = try await descriptor.result(for: store)
+
+        func stage(_ sample: HKCategorySample) -> HKCategoryValueSleepAnalysis? {
+            HKCategoryValueSleepAnalysis(rawValue: sample.value)
+        }
+        func isAsleep(_ sample: HKCategorySample) -> Bool {
+            switch stage(sample) {
+            case .asleepCore, .asleepDeep, .asleepREM, .asleepUnspecified: return true
+            default: return false
+            }
+        }
+
+        let asleepSamples = samples.filter(isAsleep)
+        guard !asleepSamples.isEmpty else { return nil }
+
+        // Dominant source: most asleep samples; ties broken by total asleep seconds, then
+        // by the bundle id string itself (F5) — the pick must be deterministic because a
+        // flip triggers a full §4 source reset.
+        var bySource: [String: (count: Int, seconds: Double)] = [:]
+        for sample in asleepSamples {
+            let id = sample.sourceRevision.source.bundleIdentifier
+            var entry = bySource[id] ?? (0, 0)
+            entry.count += 1
+            entry.seconds += sample.endDate.timeIntervalSince(sample.startDate)
+            bySource[id] = entry
+        }
+        let dominantID = bySource.max { lhs, rhs in
+            (lhs.value.count, lhs.value.seconds, lhs.key) < (rhs.value.count, rhs.value.seconds, rhs.key)
+        }?.key
+
+        let dominantSamples = samples.filter {
+            $0.sourceRevision.source.bundleIdentifier == dominantID
+        }
+        let dominantAsleep = dominantSamples.filter(isAsleep)
+        guard !dominantAsleep.isEmpty else { return nil }
+
+        // Session clustering (H-25): a gap > 90 min between the dominant source's asleep
+        // samples starts a new session; only the MOST RECENT session is last night.
+        let asleepIntervals = dominantAsleep.map { DateInterval(start: $0.startDate, end: $0.endDate) }
+        let sessions = SleepSessionMath.sessionClusters(
+            asleepIntervals,
+            gapMinutes: SleepSessionMath.sessionGapMinutes
+        )
+        guard let session = sessions.last, let firstInterval = session.first else { return nil }
+        let sessionStart = firstInterval.start
+        let sessionEnd = session.map(\.end).max()!
+
+        // A sample belongs to the chosen session by overlap with its asleep span. Earlier
+        // sessions' samples end > 90 min before `sessionStart`, so they never overlap.
+        func overlapsSession(_ sample: HKCategorySample) -> Bool {
+            sample.startDate < sessionEnd && sample.endDate > sessionStart
+        }
+
+        // Per-stage minutes: union the stage's intervals before summing (F6) — same-source
+        // overlapping samples (re-binned or duplicated writes) must count once.
+        func minutes(of value: HKCategoryValueSleepAnalysis) -> Double {
+            SleepSessionMath.unionMinutes(
+                dominantSamples
+                    .filter { stage($0) == value && overlapsSession($0) }
+                    .map { DateInterval(start: $0.startDate, end: $0.endDate) }
+            )
+        }
+
+        let deep = minutes(of: .asleepDeep)
+        let rem = minutes(of: .asleepREM)
+        let core = minutes(of: .asleepCore)
+        let unspecified = minutes(of: .asleepUnspecified)
+        let awake = minutes(of: .awake)
+        let inBedSum = minutes(of: .inBed)
+
+        let tst = deep + rem + core + unspecified
+        guard tst > 0 else { return nil }
+        let hasStages = (deep + rem + core) > 0
+
+        // Opportunity window (H-24): explicit inBed samples (session-overlapping) when the
+        // dominant source wrote them; else the first-to-last span of the session's
+        // asleep+awake samples (a staged source's session span includes the wakings, which
+        // is the honest in-bed window a watch gives us — Apple Watch stages but rarely
+        // writes `inBed`; the iPhone's cross-source `inBed` is deliberately NOT borrowed).
+        let sessionSamples = dominantSamples.filter { stage($0) != .inBed && overlapsSession($0) }
+        let spanStart = sessionSamples.map(\.startDate).min() ?? sessionStart
+        let spanEnd = sessionSamples.map(\.endDate).max() ?? sessionEnd
+        let inBed: Double? = inBedSum > 0
+            ? inBedSum
+            : spanEnd.timeIntervalSince(spanStart) / 60.0
+
+        return LastNightSleepDetail(
+            tstMinutes: tst,
+            deepMinutes: hasStages ? deep : nil,
+            remMinutes: hasStages ? rem : nil,
+            coreMinutes: hasStages ? core : nil,
+            awakeMinutes: (hasStages || awake > 0) ? awake : nil,
+            inBedMinutes: inBed,
+            sessionStart: sessionStart,
+            sessionEnd: sessionEnd,
+            dominantSourceID: dominantID
+        )
+    }
+
     // MARK: - Workout Heart Rate (for TRIMP)
 
     /// Fetch heart rate samples during a specific time range (for TRIMP calculation)
@@ -409,5 +585,63 @@ final class HealthKitService {
             sortDescriptors: [SortDescriptor(\.startDate)]
         )
         return try await descriptor.result(for: store)
+    }
+}
+
+// MARK: - Sleep session interval math (sleep v2, Phase S2)
+
+/// Pure interval arithmetic for `fetchLastNightSleepDetail` — file-level and nonisolated
+/// (no HealthKit types) so the pure-math test suite can drive it directly, the
+/// `SleepStateBuilder` discipline.
+enum SleepSessionMath {
+
+    /// H-25: a gap of MORE than 90 minutes between the dominant source's consecutive
+    /// asleep samples starts a new sleep session (two nights and naps must never merge
+    /// into one Night); a gap of exactly 90 minutes still bridges.
+    static let sessionGapMinutes: Double = 90.0
+
+    /// Cluster asleep-sample intervals into sessions. Intervals are sorted by start; a new
+    /// session begins when an interval starts more than `gapMinutes` after the running
+    /// end of the current session. Sessions are returned in chronological order — the
+    /// caller takes `.last` as the most recent (last night).
+    static func sessionClusters(
+        _ intervals: [DateInterval],
+        gapMinutes: Double
+    ) -> [[DateInterval]] {
+        guard !intervals.isEmpty else { return [] }
+        let sorted = intervals.sorted { $0.start < $1.start }
+        var clusters: [[DateInterval]] = [[sorted[0]]]
+        var runningEnd = sorted[0].end
+        for interval in sorted.dropFirst() {
+            if interval.start.timeIntervalSince(runningEnd) > gapMinutes * 60.0 {
+                clusters.append([interval])
+                runningEnd = interval.end
+            } else {
+                clusters[clusters.count - 1].append(interval)
+                runningEnd = max(runningEnd, interval.end)
+            }
+        }
+        return clusters
+    }
+
+    /// Total minutes covered by the UNION of the intervals (F6): same-source overlapping
+    /// samples (re-binned or duplicated writes) count each minute once, never twice.
+    static func unionMinutes(_ intervals: [DateInterval]) -> Double {
+        guard !intervals.isEmpty else { return 0 }
+        let sorted = intervals.sorted { $0.start < $1.start }
+        var total: TimeInterval = 0
+        var currentStart = sorted[0].start
+        var currentEnd = sorted[0].end
+        for interval in sorted.dropFirst() {
+            if interval.start <= currentEnd {
+                currentEnd = max(currentEnd, interval.end)
+            } else {
+                total += currentEnd.timeIntervalSince(currentStart)
+                currentStart = interval.start
+                currentEnd = interval.end
+            }
+        }
+        total += currentEnd.timeIntervalSince(currentStart)
+        return total / 60.0
     }
 }

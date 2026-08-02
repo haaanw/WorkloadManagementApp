@@ -79,6 +79,7 @@
 		DD2601010000000000000001 /* BaselineState.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2601000000000000000001 /* BaselineState.swift */; };
 		DD2602010000000000000001 /* BaselineEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2602000000000000000001 /* BaselineEngine.swift */; };
 		DD2701010000000000000001 /* SleepScoreEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2701000000000000000001 /* SleepScoreEngine.swift */; };
+		DD2702010000000000000001 /* SleepStateBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2702000000000000000001 /* SleepStateBuilder.swift */; };
 		DD2603010000000000000001 /* DayBucketer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2603000000000000000001 /* DayBucketer.swift */; };
 		DD2502010000000000000001 /* SorenessLogRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2502000000000000000001 /* SorenessLogRepository.swift */; };
 		AE4502020000000000000001 /* VerdictEventRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4502010000000000000001 /* VerdictEventRepository.swift */; };
@@ -283,6 +284,7 @@
 		DD2601000000000000000001 /* BaselineState.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineState.swift; sourceTree = "<group>"; };
 		DD2602000000000000000001 /* BaselineEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineEngine.swift; sourceTree = "<group>"; };
 		DD2701000000000000000001 /* SleepScoreEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScoreEngine.swift; sourceTree = "<group>"; };
+		DD2702000000000000000001 /* SleepStateBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepStateBuilder.swift; sourceTree = "<group>"; };
 		DD2603000000000000000001 /* DayBucketer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayBucketer.swift; sourceTree = "<group>"; };
 		DD2025000000000000000001 /* ShadowMetrics.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowMetrics.swift; sourceTree = "<group>"; };
 		DD2002000000000000000001 /* ShadowPredictor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShadowPredictor.swift; sourceTree = "<group>"; };
@@ -636,6 +638,7 @@
 				DD2603000000000000000001 /* DayBucketer.swift */,
 				62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */,
 				DD2701000000000000000001 /* SleepScoreEngine.swift */,
+				DD2702000000000000000001 /* SleepStateBuilder.swift */,
 				DD2002000000000000000001 /* ShadowPredictor.swift */,
 				DD2003000000000000000001 /* CycleModifierGate.swift */,
 				DD2005000000000000000001 /* ShadowAnalyticsService.swift */,
@@ -1136,6 +1139,7 @@
 				DD2603010000000000000001 /* DayBucketer.swift in Sources */,
 				62324C3D2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift in Sources */,
 				DD2701010000000000000001 /* SleepScoreEngine.swift in Sources */,
+				DD2702010000000000000001 /* SleepStateBuilder.swift in Sources */,
 				627EC1892F75904200B89262 /* PrescribedWorkout.swift in Sources */,
 				627EC18A2F75904200B89262 /* WorkoutTemplate.swift in Sources */,
 				62324C3E2F66CB0E00A9C2BE /* RecoverySnapshot.swift in Sources */,

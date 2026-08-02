@@ -84,6 +84,71 @@ final class BaselineState {
     var sleepCvLevelRaw: String
     var sleepConfidence: Double
 
+    // MARK: - Sleep v2 sub-state (Phase S2 — research-sleep-score.md §4, §9.2)
+    //
+    // Same rules as the sub-states above: flattened `sleepV2`-prefixed scalars, NO Codable,
+    // NO math in the model — `SleepStateBuilder` (the stateless folder) does every update on
+    // a value mirror and the pipeline writes the result back. Every field is Optional or has
+    // an inline default so SwiftData lightweight migration succeeds on existing stores.
+    // Local-only like the rest of this model: raw stage minutes and timing history NEVER
+    // sync (the type stays absent from SyncService.swift — grep-gated by
+    // BaselineStateModelTests.test_baselineState_isAbsentFromSyncService).
+
+    /// EWMA baseline of nightly deep-sleep minutes, **same-source only** (H-04). nil = no
+    /// fold yet since the last source reset (§4 reset-on-discontinuity).
+    var sleepV2DeepMu: Double? = nil
+    /// Count of deep-minute folds into `sleepV2DeepMu` since the last source reset. Below
+    /// the H-21 minimum the baseline carries no scoring authority.
+    var sleepV2DeepCount: Int = 0
+    /// EWMA baseline of nightly REM minutes, same-source only (H-04). nil = no fold yet.
+    var sleepV2RemMu: Double? = nil
+    /// Count of REM folds into `sleepV2RemMu` since the last source reset.
+    var sleepV2RemCount: Int = 0
+    /// Bundle id of the dominant sleep source the stage baselines are keyed to. A change
+    /// here restarts the stage baselines and re-gates need learning (§4 reset rule).
+    var sleepV2DominantSourceID: String? = nil
+    /// Nights folded since the dominant source last changed; nil = no change ever observed.
+    /// Below the H-20 window the engine input reads `isSourceStable == false` (H-15).
+    var sleepV2NightsSinceSourceChange: Int? = nil
+    /// Trailing ≤14 sleep midpoints, minutes relative to the wake-day midnight (negative =
+    /// before midnight). The §9.2 `midpointSD14` / `midpointDeviation` input, kept as a
+    /// rolling buffer like the `*MadBuffer` fields above.
+    var sleepV2MidpointBuffer: [Double] = []
+    /// Trailing ≤14 per-night irregularity flags (1.0 = that night's midpoint SD14 exceeded
+    /// the §9.3 chronic entry threshold of 75 min; 0.0 otherwise). Sum = the §9.2
+    /// `irregularNightsIn14` counter the CHRONIC_IRREGULAR entry rule reads.
+    var sleepV2IrregularFlags14: [Double] = []
+    /// Nights since the last rhythm break (|midpoint deviation| > max(2×SD14, 90 min),
+    /// §9.2); nil = no break observed yet. Feeds `daysSinceRhythmBreak` (ACUTE_SHIFT).
+    var sleepV2NightsSinceRhythmBreak: Int? = nil
+    /// Consecutive nights with midpoint SD14 below the §9.3 chronic EXIT threshold (50 min).
+    /// The §9.2 `nightsBelowChronicExitSD` counter behind the 5-night exit run.
+    var sleepV2NightsBelowChronicExitSD: Int = 0
+    /// Trailing ≤7 nightly deficits `max(0, need_tonight − TST)` in minutes (§4 debt
+    /// credit input; the sum, capped at 6 h, is §9.2's `sleepDebt7`).
+    var sleepV2DeficitBuffer7: [Double] = []
+    /// Trailing ≤90 nightly TST minutes — the §4 need estimator's input (H-19). Cleared on
+    /// a dominant-source change so the 28-night gate re-runs on the new source's data.
+    var sleepV2TSTBuffer: [Double] = []
+    /// Learned personal sleep need in minutes, bounded [390, 570] (§4). nil = the
+    /// personalization gate has not opened → the engine scores against the 7.5 h cold start.
+    var sleepV2NeedBaseMinutes: Double? = nil
+    /// Date of the last weekly need recompute (§4 cadence: weekly, never nightly).
+    var sleepV2NeedUpdatedAt: Date? = nil
+    /// True while need learning is FROZEN by a latched CHRONIC_IRREGULAR state (§7 Q9).
+    /// Stored for audit; the builder recomputes it from each night's latch.
+    var sleepV2NeedFrozen: Bool = false
+    /// Total nights folded into this sub-state (tier gate + confidence input, §5.2).
+    var sleepV2NightsOfHistory: Int = 0
+    /// Last night's LATCHED profile set, raw `SleepProfile` strings — handed back to the
+    /// engine as `previousProfiles` so every §9.4 rule-4 entry/exit hysteresis works.
+    var sleepV2PreviousProfilesRaw: [String] = []
+    /// End of the previous main-sleep session — the §9.2 `priorWakeHours` input.
+    var sleepV2LastSleepEndDate: Date? = nil
+    /// Monotonic once-per-day fold cutoff, mirroring the `*LastBucketedDate` fields (§2.4
+    /// idempotency): the pipeline folds only when the wake day is strictly after this.
+    var sleepV2LastFoldedDate: Date? = nil
+
     /// Memberwise init that ZERO-inits every accumulator (cold state). The engine (Plan 02) fills
     /// these in as folds arrive.
     init(id: UUID = UUID(), athlete: Athlete? = nil) {

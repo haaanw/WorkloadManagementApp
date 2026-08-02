@@ -8,9 +8,10 @@ import XCTest
 ///
 ///  1. `RecoveryScoreEngine.computeBaseline` still exists with its trailing 7-day-mean body
 ///     (`.suffix(7)`) — the flat 7-day mean remains the LIVE recovery baseline source.
-///  2. The live recovery path (`RecoveryPipeline`) references NONE of the new substrate types
-///     (`BaselineEngine` / `DayBucketer` / `BaselineState`) — the substrate is parallel/gated OFF
-///     this phase (D-01, substrate-only).
+///  2. The live recovery path (`RecoveryPipeline` EXCLUDING the sleep-v2 shadow section —
+///     see the S2 amendment on `testSubstrateNotWiredLive`) references NONE of the new
+///     substrate types (`BaselineEngine` / `DayBucketer` / `BaselineState`) — the substrate
+///     never drives the live recovery score (D-01; sleep-v2 shadow-only rule).
 ///  3. `BaselineEngine` references neither `RecoveryScoreEngine` nor `RecoveryPipeline` as a
 ///     real code symbol — the engine is standalone (re-asserts Plan-02's fence consumer-side).
 ///
@@ -90,13 +91,41 @@ final class BaselineTierFenceTests: XCTestCase {
 
     // MARK: - 2. Substrate is NOT wired into the live recovery path
 
+    /// **Amended for sleep-v2 Phase S2 (2026-08-02).** The fence's premise is unchanged:
+    /// *the baseline substrate must not drive the live recovery score.* S2 legitimately
+    /// added a shadow-only fold (`runSleepV2Shadow` + its two mapping helpers, the last
+    /// section of `RecoveryPipeline.swift`) that reads and writes `BaselineState` — but the
+    /// shadow runs AFTER the live snapshot upsert, never feeds `RecoveryScoreEngine`, and
+    /// per the shadow-only rule (PLAN Phase S2: "computed in shadow: recorded, never
+    /// driving") may reference the substrate. So the fence is NARROWED, not deleted: the
+    /// substrate symbols must be absent from the pipeline source EXCLUDING that shadow
+    /// section — i.e. from everything before `runSleepV2Shadow`'s declaration, which
+    /// contains the whole live compute path (`run(...)` steps 1–5). The split marker's
+    /// existence is itself asserted, so renaming or moving the shadow entry point fails the
+    /// fence loudly instead of silently widening it.
     func testSubstrateNotWiredLive() {
-        let code = strippingComments(readSource("WorkloadApp/Services/RecoveryPipeline.swift"))
-        XCTAssertFalse(code.isEmpty, "RecoveryPipeline.swift must be readable for the fence to hold")
+        let raw = readSource("WorkloadApp/Services/RecoveryPipeline.swift")
+        XCTAssertFalse(raw.isEmpty, "RecoveryPipeline.swift must be readable for the fence to hold")
+
+        // The shadow section (the sleep-v2 fold + its mappers) is the file's final section,
+        // opened by this declaration. Everything before it is the live recovery path.
+        let shadowMarker = "private static func runSleepV2Shadow"
+        guard let markerRange = raw.range(of: shadowMarker) else {
+            XCTFail(
+                "TIER-FENCE: shadow marker '\(shadowMarker)' not found in RecoveryPipeline — "
+                + "if the sleep-v2 shadow was renamed/removed, re-point (or re-widen) this fence"
+            )
+            return
+        }
+        let livePath = strippingComments(String(raw[..<markerRange.lowerBound]))
+        XCTAssertFalse(livePath.isEmpty, "Live-path slice must be non-empty for the fence to hold")
+
         for substrate in ["BaselineEngine", "DayBucketer", "BaselineState"] {
             XCTAssertFalse(
-                code.contains(substrate),
-                "TIER-FENCE BREACH: RecoveryPipeline (live recovery path) now references \(substrate) — the substrate must stay gated OFF this phase"
+                livePath.contains(substrate),
+                "TIER-FENCE BREACH: RecoveryPipeline's LIVE recovery path (everything before "
+                + "runSleepV2Shadow) now references \(substrate) — the substrate may appear "
+                + "only inside the sleep-v2 shadow section (shadow-only rule)"
             )
         }
     }
