@@ -558,9 +558,41 @@ file, reviewed at every release that touches the sleep engine, and each row move
 | H-08 | A nap offsets 50% of its minutes against nightly need | HYPOTHESIS | Naps aid performance (grade B); substitution ratio unknown | Compare readiness on nap+short-night vs no-nap+equal-total nights |
 | H-09 | Personalized need beats the fixed 7.5 h target | HYPOTHESIS | Walsh 2021 consensus recommends individualization (grade A) but does not prove a method | §6 criterion 4 + head-to-head correlation vs fixed target |
 | H-10 | Athletes are not harmed (nocebo) by seeing a moved target or a profile label | HYPOTHESIS | None — pure product judgement | Dogfood report + any support signal; revert to silent if it reads as alarming |
+| H-11 | The stage curve's met point is q = 1.00 → 85 and its excellent point q ≥ 1.30 → 100 (0.85 → 80), not §5.1's published q ≥ 1.00 → 100 / 0.85 → 85 | HYPOTHESIS | None — engine-side consequence of the Q1 ruling: at §5.1's anchors a night that merely met every baseline scores 100 raw, so the §7-Q1 composition would push a typical night far past its stated ≈85 landing, and "stages at or above own baseline" (Q1) would have nothing left to earn | Shadow: distribution of nightly q per athlete per source. If q ≥ 1.30 is unreachable (<2% of nights) the excellent anchor moves to the observed 90th percentile; if at-baseline nights systematically out-run HAN's felt-right rating, the met point is too generous. **§10 publishes these numbers — the divergence from §5.1 is published with them. Wants HAN's signature.** |
+| H-12 | The Q1 re-anchor constants — duration ceiling 85, quality met anchor 85, quality headroom gain 2.0 — put a need-met typical night at ≈85 and a wholly excellent Tier-A night at exactly 100 | HYPOTHESIS | None — a derivation from HAN's Q1 ruling (§7 Q1), not a measurement. The gain is the largest single lever on the composite: at 1.0 the practical ceiling is 92.5, at 2.0 it is 100 | Shadow: the v2 score distribution against HAN's felt-right ratings. If 100 never occurs in ≥60 nights, or the modal night sits above 90, the gain is retuned and this row is REVISED. The 85 landing is directly checkable against the same log |
+| H-13 | Hysteresis hold bands (pressure 18 h → hold 17 h, z 1.5 → 1.25; strain z 1.0 → 0.75; debt 180 → 150 min; nap 20 → 15 min) stop state chatter without changing what the states mean | HYPOTHESIS | None — §9.4 rule 4 mandates hysteresis on every state but ACUTE_SHIFT and names no bands | Shadow: count state entries/exits per 30 nights. More than one flip per two nights on any state = band too narrow; a state that never exits over 30 nights once its signal has fallen = band too wide |
+| H-14 | The strain credit saturates at z = +2, so §9.3's trigger point (z = +1) is worth half the 30-min cap | HYPOTHESIS | None — chosen. §4 caps the credit and §9.3 gives the band, neither gives the shape | Falls out of H-03's test: regress next-day readiness on (TST − need) split by load tertile. If the interaction is absent the credit dies with H-03; if present but flat in z, the ramp becomes a step at the trigger |
+| H-15 | A changed dominant sleep source halves confidence rather than blocking the score | HYPOTHESIS | None — §5.2 names source stability as a confidence factor and gives it no weight; §4's reset-on-discontinuity rule is the evidence that a source change is a real discontinuity (device bias, κ 0.21–0.53) | Shadow: compare v2-vs-readiness correlation on the 14 nights after a source change against matched stable nights. If it is unchanged, the multiplier goes to 1.0; if the score is frankly wrong there, the tier should drop instead of the confidence |
 
 Registry hygiene: every row cites either a source or "none"; a row that cannot name the
 measurement that would change it does not belong in the engine.
+
+**Engine-side rulings on internal spec conflicts (S1, pending HAN's signature).** These are
+not hypotheses — they are places where two sections of this document disagree and the code
+had to pick. Recorded here so the pick is visible, not buried in a comment.
+
+1. **§9.4 rule 2's weight ceiling versus §5.2's Tier C table.** Rule 2 clamps every weight to
+   [0.05, 0.60]; §5.2 states Tier C duration = 0.75. Taken literally, rule 2 silently
+   overrules the tier and lands duration at 0.706 after renormalization. Ruling: the ceiling
+   never cuts *below* the tier's own base weight, so deltas still cannot push Tier A duration
+   past 0.60 and Tier C's stated 0.75 survives the clamp. Renormalization still moves the
+   final number when a delta fires (Tier C + DEBT_CARRY emits 0.765 / 0.235).
+2. **§5.2 has no row for a stage-less source that still reports an in-bed span.** §3 says
+   manual and iPhone-only entries write `inBed`; §5.2's Tier C row covers "duration + timing
+   only". Ruling: continuity enters Tier C at its own §5.1 weight of 0.15 and the set
+   renormalizes (§5 preamble). Discarding a measured efficiency — the input §5.1 calls the
+   most reliably measured of the five — because the watch did not stage is worse than the
+   alternative. With no continuity denominator the tier is exactly §5.2's 0.75 / 0.25.
+3. **The tier is a data grade, not a baseline-convergence grade.** §5.2's column is "Data
+   present", so a not-yet-converged stage EWMA drops the stage component and renormalizes
+   (§5 preamble); it does not demote the night. §5.2's Tier D "duration only" clause is
+   implemented as "no component but duration is scorable".
+4. **§4's credits are unconditional.** §4 writes `need_tonight = clamp(need_base +
+   strainCredit + debtCredit, …)` with no trigger, and §9.3's need-delta column points back
+   at §4. The engine therefore computes every credit from its continuous formula on every
+   night; the §9.3 profiles govern the *weights* only. Gating the credits on the triggers
+   made §4's formulas step functions (one minute of trailing deficit was worth 30 minutes of
+   need and ~10 points of score).
 
 ---
 
