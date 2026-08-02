@@ -1,7 +1,9 @@
 import Foundation
 
 /// Sleep score v2 — the pure scoring engine (research doc `research-sleep-score.md`,
-/// §5 components/ladder, §9 context-conditional profiles, §9.5 hypothesis registry).
+/// §5 components/ladder, §9 context-conditional profiles, §9.5 hypothesis registry;
+/// composition per the council ruling `.planning/sleep-v2/council-composition-ruling.md`,
+/// 2026-08-02).
 ///
 /// Contract, mirroring `BaselineEngine`:
 /// - pure struct, static methods only, no stored state;
@@ -15,25 +17,30 @@ import Foundation
 ///    sleep in (§9.3).
 /// 3. `needTonightMinutes(...)` turns `need_base` plus the profile credits into the number
 ///    the duration component is scored against (§4).
-/// 4. Each component is scored on its own piecewise-linear curve (§5.1).
-/// 5. `composeWeights(...)` stacks the profile deltas, clamps, and renormalizes (§9.4).
-/// 6. The weighted sum is taken with the Q1 re-anchor applied (see `durationCeiling`).
+/// 4. Each component is scored on its own piecewise-linear curve (§5.1, met-anchored at 80).
+/// 5. `composePoints(...)` applies the profile point transfers to the 20-point quality pool.
+/// 6. The two-part composition is taken (see below).
 ///
-/// **The Q1 re-anchor (HAN, 2026-07-31).** Duration alone tops out at 85; the last ~15
-/// points are earned by the quality components. A plain weighted mean cannot express both
-/// "duration caps at 85" and "an excellent night reaches 100" — 0.50·85 + 0.50·100 = 92.5.
-/// So a quality component's *excess above its own met anchor* (85) is amplified by
-/// `qualityHeadroomGain` during composition. A need-met, everything-typical night lands
-/// ≈85; a night that is also excellent on continuity, regularity and both stages lands
-/// exactly 100; and no amount of extra hours alone ever moves past 85.
+/// **The council composition (H-16, ruling 2026-08-02, superseding S1's H-12 headroom).**
+/// HAN's 80/20 rule, visible in the arithmetic rather than derivable from it:
 ///
-/// The re-anchor is exact only where all five components are scored (Tiers A and B). With
-/// fewer quality components there is less headroom to earn, so the reachable maximum falls
-/// — 92.5 on a duration+timing Tier C, ~95 on a Tier C that also has a continuity
-/// denominator. That is the honest consequence of scoring less evidence, and it is pinned
-/// by test. **Tier D is exempt by contract**: PLAN requires bit-identity with today's
-/// duration-only curve, which reaches 100 on a long night. The tier is stored per night, so
-/// the shadow analysis segments on it rather than comparing across the seam.
+///     score = 0.80 × D  +  Σ pᵢ × clamp((Cᵢ − 80) / 20, −1, +1)
+///
+/// where D is the 0–100 duration-vs-need curve (so duration contributes exactly 0–80),
+/// Cᵢ is each quality component's 0–100 curve value, and pᵢ is its point allocation
+/// (continuity 8 / regularity 5 / deep 3.5 / REM 3.5 — a 20-point pool). Every quality
+/// curve shares one semantic zero: **80 = the athlete's own normal.** A met-everything
+/// night lands exactly 80 ("hours get you to 80"); quality visibly earns — or, signed,
+/// loses — the last 20. The symmetric ±1 clamp bounds the downside at −20 total, so a
+/// need-met night with catastrophic quality floors at 60 (the nocebo guard).
+///
+/// **Quality points never renormalize over missing components** (epistemic-cap principle):
+/// an absent component contributes zero, positive or negative — missing evidence cannot
+/// testify. The tier maxima therefore fall out with no new constants: Tier A 100 ·
+/// Tier B 92 (no in-bed span, so no continuity) · Tier C 85 timing-only, 93 with
+/// continuity (H-17). **Tier D is exempt by contract**: PLAN requires bit-identity with
+/// today's duration-only curve, which reaches 100 on a long night. The tier is stored per
+/// night, so the shadow analysis segments on it rather than comparing across the seam.
 struct SleepScoreEngine {
 
     // MARK: - Tier
@@ -48,11 +55,15 @@ struct SleepScoreEngine {
     /// shadow log against §5.2 must see the letter the table names. Same reasoning for
     /// `SleepProfile`'s SNAKE_CASE.
     enum SleepTier: String, CaseIterable {
-        /// Stages + timing + in-bed span. All five components.
+        /// Stages + timing + in-bed span. All five components. Max 100.
         case a = "A"
-        /// Stages, no in-bed span. Continuity from WASO; same weights as A.
+        /// Stages, no in-bed span. **Continuity carries no authority here** (council
+        /// ruling 2026-08-02: without the true opportunity window there is no honest
+        /// efficiency denominator — §5.2's original "continuity from WASO" is superseded).
+        /// Max 92 (H-17).
         case b = "B"
-        /// Duration + timing only. Duration 0.75 / regularity 0.25; stages omitted.
+        /// Duration + timing only; stages omitted. 85 timing-only, 93 when the source
+        /// also reports an in-bed span (§3: manual and iPhone-only entries write `inBed`).
         case c = "C"
         /// Duration only, or fewer than `minNightsForV2` nights of history.
         /// **Bit-identical to `RecoveryScoreEngine.sleepDurationToScore`.**
@@ -71,8 +82,8 @@ struct SleepScoreEngine {
         case deep
         case rem
 
-        /// Duration is the only component the Q1 re-anchor pins; the other four carry the
-        /// headroom that makes 100 reachable.
+        /// Duration owns the fixed 0.80 share of the composition; the four quality
+        /// components carry the 20-point pool (H-16).
         var isQuality: Bool { self != .duration }
     }
 
@@ -91,25 +102,25 @@ struct SleepScoreEngine {
         case napDay = "NAP_DAY"
     }
 
-    // MARK: - Weights value object
+    // MARK: - Quality points value object
 
-    /// One weight per component, carried unchanged from the base table through the profile
-    /// deltas, the clamp and the renormalization, so every stage is independently testable.
-    struct SleepWeights: Equatable {
-        var duration: Double = 0
+    /// One point allocation per quality component, carried unchanged from the base pool
+    /// through the profile transfers, the acute stage cap and the zero floor, so every
+    /// stage is independently testable. Duration carries no points — its 0.80 share is
+    /// fixed by H-16 and no profile may touch it — so the subscript reads 0 for
+    /// `.duration` and ignores writes to it.
+    struct QualityPoints: Equatable {
         var continuity: Double = 0
         var regularity: Double = 0
         var deep: Double = 0
         var rem: Double = 0
 
         init(
-            duration: Double = 0,
             continuity: Double = 0,
             regularity: Double = 0,
             deep: Double = 0,
             rem: Double = 0
         ) {
-            self.duration = duration
             self.continuity = continuity
             self.regularity = regularity
             self.deep = deep
@@ -119,7 +130,7 @@ struct SleepScoreEngine {
         subscript(component: SleepComponent) -> Double {
             get {
                 switch component {
-                case .duration: return duration
+                case .duration: return 0
                 case .continuity: return continuity
                 case .regularity: return regularity
                 case .deep: return deep
@@ -128,7 +139,7 @@ struct SleepScoreEngine {
             }
             set {
                 switch component {
-                case .duration: duration = newValue
+                case .duration: break
                 case .continuity: continuity = newValue
                 case .regularity: regularity = newValue
                 case .deep: deep = newValue
@@ -137,12 +148,15 @@ struct SleepScoreEngine {
             }
         }
 
-        /// Sum of all five weights. 1.0 after renormalization on tiers A–D, 0 on Tier E.
+        /// Sum of the four quality allocations. 20 on an unprofiled full Tier A night;
+        /// **never renormalized** — a smaller pool is the honest consequence of missing
+        /// evidence or a profile transfer, not an error to correct.
         var total: Double {
-            duration + continuity + regularity + deep + rem
+            continuity + regularity + deep + rem
         }
 
-        /// The components that carry any authority tonight.
+        /// The quality components that carry any authority tonight. Duration is never
+        /// listed — its share is fixed, not pooled.
         var availableComponents: [SleepComponent] {
             SleepComponent.allCases.filter { self[$0] > 0 }
         }
@@ -242,9 +256,12 @@ struct SleepScoreEngine {
         let deepMinutes: Double?
         /// REM minutes for the night.
         let remMinutes: Double?
-        /// Awake-after-sleep-onset minutes. Continuity's fallback denominator.
+        /// Awake-after-sleep-onset minutes. **Measured and stored for audit (§9.4 rule 5),
+        /// but carries no scoring authority** since the council ruling 2026-08-02: an
+        /// efficiency computed against TST + WASO is not the true opportunity window, so
+        /// continuity scores only against `inBedMinutes` (which is why Tier B tops at 92).
         let awakeMinutes: Double?
-        /// In-bed span in minutes. Continuity's preferred denominator.
+        /// In-bed span in minutes. Continuity's only denominator (see `awakeMinutes`).
         let inBedMinutes: Double?
         /// EWMA of deep minutes **from the same source** (H-04).
         let deepBaselineMinutes: Double?
@@ -316,11 +333,13 @@ struct SleepScoreEngine {
         /// `RecoveryScoreEngine.compute` already treats a nil sleep duration).
         let score: Double?
         let tier: SleepTier
-        /// RAW curve values, 0–100, **before** the quality headroom is applied — so they
-        /// stay comparable across nights and tiers, and storable.
+        /// RAW curve values, 0–100, **before** the H-16 point conversion — so they stay
+        /// comparable across nights and tiers, and storable. Duration's raw value is the
+        /// unscaled D of the composition.
         let componentScores: [SleepComponent: Double]
-        /// Final weights, post-renormalization.
-        let weights: SleepWeights
+        /// The final quality point vector actually applied: post-transfer, post-acute-cap,
+        /// zeroed where a component is unavailable. Never renormalized.
+        let points: QualityPoints
         /// Canonical order; `[.baseline]` when nothing fired. This is the *reported* set —
         /// §9.4 rule 1's acute-wins exclusivity has already been applied to it.
         let activeProfiles: [SleepProfile]
@@ -338,63 +357,63 @@ struct SleepScoreEngine {
     /// One point of a piecewise-linear curve table. Tables are declared ascending in `x`.
     typealias Anchor = (x: Double, y: Double)
 
-    // MARK: - Base weights (§5.1)
+    // MARK: - The council composition (H-16)
 
-    // H-01: the base weights are priors argued from evidence *quality*, not fitted values.
-    // A founder dogfood can falsify them but cannot calibrate them (§6, "honest limit of n=1").
-    private static let durationWeight: Double = 0.50
-    private static let continuityWeight: Double = 0.15
-    private static let regularityWeight: Double = 0.15
-    private static let deepWeight: Double = 0.10        // H-01, H-04
-    private static let remWeight: Double = 0.10         // H-01, H-04
+    // H-16 covers the five constants below plus the ±1 clamp in `qualityContribution`:
+    // together they are the whole composition, replacing S1's H-12 plateau + met-anchor +
+    // headroom-gain machinery (H-12 RETIRED, superseded by the council ruling 2026-08-02).
+    // They are the ruling's constants of record, so they are internal, not private: the
+    // tests assert each by name and a silent retune fails loudly.
 
-    /// Tier C weights, taken literally from the §5.2 table rather than renormalizing
-    /// 0.50/0.15 — §6 criterion 5 warns Tier C may be the *modal* path, so these are a
-    /// deliberate choice, not a byproduct.
-    private static let tierCDurationWeight: Double = 0.75
-    private static let tierCRegularityWeight: Double = 0.25
+    /// Duration's fixed share of the composite: `0.80 × D` with D on 0–100, so duration
+    /// alone contributes exactly 0–80 and "hours get you to 80" is visible arithmetic,
+    /// not a derived plateau. H-16.
+    static let durationShare: Double = 0.80
 
-    // MARK: - The Q1 re-anchor
+    /// The quality point allocations — a 20-point pool. Continuity leads at 8 (Chinoy:
+    /// sleep/wake detection is the honest wearable signal; Leeder: athletes are
+    /// systematically fragmented); regularity 5 (Windred 2024 is a mortality endpoint and
+    /// cannot fund more — the council's registry-hygiene ruling); the stages split the
+    /// rest (κ 0.21–0.53 caps stage authority). H-16.
+    static let continuityPoints: Double = 8.0
+    static let regularityPoints: Double = 5.0
+    static let deepPoints: Double = 3.5
+    static let remPoints: Double = 3.5
 
-    // H-12 covers all three constants below: they are the whole implementation of HAN's Q1
-    // ruling, and `qualityHeadroomGain` is the largest single lever on the composite score.
-    // Registered in §9.5 with the falsification test that would move them.
+    /// The shared met anchor: every quality curve's "met the athlete's own normal" point
+    /// reads exactly this, so met quality adds exactly zero. H-16.
+    static let qualityMetAnchor: Double = 80.0
 
-    /// Duration alone can never score above this (§7 Q1; PLAN "duration-only tops out ≈85
-    /// … 100 is never merely long"). The §5.1 duration table is scaled by
-    /// `durationCeiling / 100`. H-12.
-    ///
-    /// Internal, not private, on purpose: it is the milestone's contracted number and the
-    /// test asserts it by name, so a silent retune fails loudly. Every other tunable here is
-    /// private, matching `RecoveryScoreEngine`'s encapsulation.
-    static let durationCeiling: Double = 85.0
+    /// The band a quality component's excursion is measured against: full points at
+    /// met + 20 (curve value 100), full negative points at met − 20 or below (the ±1
+    /// clamp — sub-baseline quality SUBTRACTS, but the downside is bounded at −20 total,
+    /// so a need-met night with catastrophic quality floors at 60). H-16.
+    static let qualityBandWidth: Double = 20.0
 
-    /// The score a quality component earns for "met the athlete's own normal". Only the
-    /// excess above this is amplified. H-12.
-    private static let qualityMetAnchor: Double = 85.0
+    // MARK: - Component curves (§5.1, met-anchored at 80)
 
-    /// Multiplies a quality component's excess above `qualityMetAnchor` during composition.
-    /// Derived, not guessed: with duration pinned at 85 and total quality weight 0.50,
-    /// a gain of 2.0 puts a wholly-excellent Tier-A night on exactly 100.0 while a wholly
-    /// typical night stays at ≈85. Setting it to 1.0 reverts to a 92.5 practical ceiling.
-    /// H-12.
-    private static let qualityHeadroomGain: Double = 2.0
-
-    // MARK: - Component curves (§5.1)
-
-    /// §5.1 verbatim, on r = TST ÷ need_tonight. Scaled by `durationCeiling / 100` at use,
-    /// so the post-scale anchors are 8.5 / 27.2 / 46.75 / 57.8 / 68.0 / 76.5 / 85.0.
+    /// §5.1 verbatim, on r = TST ÷ need_tonight, unscaled 0–100. The composition takes
+    /// `durationShare ×` this, so the old `durationCeiling` scaling is gone (H-16).
     private static let durationAnchors: [Anchor] = [
         (0.60, 10), (0.70, 32), (0.80, 55), (0.85, 68), (0.90, 80), (0.95, 90), (1.00, 100)
     ]
 
-    /// §5.1 verbatim, on efficiency. Deliberately athlete-shifted (Leeder: pooled athlete
-    /// SE ≈ 86%), so 85% reads 80 — not a failure.
+    /// §5.1 verbatim, on efficiency. **Re-anchor audit (council ruling, point 3):** the
+    /// athlete-normal met point was already at 85% → 80 (deliberately athlete-shifted;
+    /// Leeder: pooled athlete SE ≈ 86%, so 85% is "your normal", not a failure) — under
+    /// the shared met anchor of 80 the curve is numerically unchanged, and its
+    /// sub-normal anchors (80% → 62, 75% → 45, ≤65% → 20) stay athlete-shifted as
+    /// published. Shape kept.
     private static let continuityAnchors: [Anchor] = [
         (0.65, 20), (0.75, 45), (0.80, 62), (0.85, 80), (0.88, 90), (0.92, 100)
     ]
 
     /// §5.1 verbatim, on the trailing-14-night midpoint SD in minutes. H-06.
+    /// **Re-anchor audit (council ruling, point 3):** the normal met point is a 60-minute
+    /// midpoint SD → 80 — already so in the published table (SD 60 sits between the
+    /// acute-shift stability gate at <60 and the chronic entry at >75, i.e. an ordinary
+    /// athlete fortnight), so the curve is numerically unchanged and its sub-normal
+    /// anchors (90 → 62, ≥120 → 45) are preserved. Shape kept.
     private static let regularityAnchors: [Anchor] = [
         (30, 100), (45, 90), (60, 80), (90, 62), (120, 45)
     ]
@@ -404,38 +423,32 @@ struct SleepScoreEngine {
     private static let regularityFloor: Double = 45.0
 
     /// On q = tonight ÷ the athlete's own same-source EWMA. H-04 for the formulation,
-    /// **H-11 for these anchor values** — §9.5 carries the row and the falsification test.
+    /// **H-11 (REVISED by the council ruling 2026-08-02) for these anchor values.**
     ///
-    /// **Deviation from §5.1's published curve**, registered rather than merely commented:
-    /// §5.1 tops the curve at q ≥ 1.00 → 100 and puts 85 at q = 0.85, which leaves "stages
-    /// *at or above* own baseline" (§7 Q1) no headroom to earn anything — a night that met
-    /// every baseline would score 100 raw, and the Q1 composition would then push a merely
-    /// typical night well past its 85 landing. The met point therefore moves to q = 1.00 →
-    /// 85 (the same met anchor every quality component uses), an excellent anchor is added at
-    /// q ≥ 1.30 → 100, and the 0.85 anchor drops to 80 so the curve stays strictly
-    /// increasing. The sub-baseline anchors and the floor are §5.1 unchanged. §10 commits to
-    /// publishing these numbers, so the divergence is stated in §9.5, not hidden here.
+    /// Re-anchor audit: the met point moves from S1's q = 1.00 → 85 to q = 1.00 → **80**
+    /// (the shared met anchor — met must add exactly zero; met-at-85 would silently hand
+    /// back a free 5 points), the 0.85 anchor drops 80 → **75** so the curve stays
+    /// strictly increasing, and the excellent anchor q ≥ 1.30 → 100 is unchanged. The
+    /// sub-baseline anchors (0.40 → 45, 0.55 → 55, 0.70 → 70) and the 45 floor are §5.1
+    /// unchanged. §10 publishes these numbers; the registry row carries the
+    /// reachability kill test (<2% of nights at q ≥ 1.30 moves the excellent anchor).
     private static let stageAnchors: [Anchor] = [
-        (0.40, 45), (0.55, 55), (0.70, 70), (0.85, 80), (1.00, 85), (1.30, 100)
+        (0.40, 45), (0.55, 55), (0.70, 70), (0.85, 75), (1.00, 80), (1.30, 100)
     ]
 
     /// One noisy staging night must not crater the score (κ 0.21–0.53). §5.1. H-04.
     private static let stageFloor: Double = 45.0
 
-    // MARK: - Weight composition bounds (§9.4 rule 2)
-
-    private static let weightFloor: Double = 0.05
-    private static let weightCeiling: Double = 0.60
-
-    // MARK: - Profile triggers and deltas (§9.3)
+    // MARK: - Profile triggers (§9.3)
 
     // §9.4 rule 4 — "every state entry/exit has hysteresis except ACUTE_SHIFT, which is
     // single-night by definition." Each persistent state below therefore has an ENTRY
     // threshold and a lower HOLD threshold: a state that is already latched survives until
     // the signal falls under the hold band, so a signal hovering on the entry line cannot
-    // flip the weights on and off night after night. The hold bands are H-13.
+    // flip the weights on and off night after night. The hold bands are H-13, kept exactly
+    // as S1 shipped them — the council ruling touches the composition, not the latch.
     //
-    // Hysteresis is anti-chatter, not anti-cliff: it does not remove the step in the weights
+    // Hysteresis is anti-chatter, not anti-cliff: it does not remove the step in the points
     // at first entry. The *score* discontinuity §9.4 rule 3's need arithmetic used to carry
     // is removed separately, by `needTonightMinutes` computing §4's credits from their
     // continuous formulas for every night instead of gating them on a trigger.
@@ -469,8 +482,10 @@ struct SleepScoreEngine {
     private static let acuteShiftDeviationMinutes: Double = 120.0
     private static let acuteShiftPriorSDMinutes: Double = 60.0
     private static let acuteShiftMaxDaysSinceBreak: Int = 2
-    /// "Stage components capped at half authority" (§9.3) = half of the tier's BASE deep and
-    /// REM weight, applied after the deltas and before the clamp. H-05.
+    /// "Stage components capped at half authority" (§9.3), translated by the council
+    /// ruling (point 5 / H-18): the stage components' POINTS are halved for that night —
+    /// 3.5 → 1.75 each — applied as a cap against the tier's base points after the
+    /// transfers. H-05.
     private static let acuteShiftStageAuthorityFactor: Double = 0.5  // H-05
 
     // CHRONIC_IRREGULAR — construct and health risk are evidenced (Roenneberg, Windred);
@@ -481,7 +496,7 @@ struct SleepScoreEngine {
     private static let chronicExitConsecutiveNights: Int = 5
 
     // DEBT_CARRY — direction evidence-backed (Van Dongen 2003: deficits accumulate and
-    // hours are what repay them); the magnitude of the weight shift is H-07.
+    // hours are what repay them); the magnitude of the point shift is H-07.
     private static let debtCarryThresholdMinutes: Double = 180.0
     private static let debtCarryHoldMinutes: Double = 150.0  // H-13
     private static let debtCreditFraction: Double = 0.30     // H-07
@@ -555,7 +570,7 @@ struct SleepScoreEngine {
                 score: nil,
                 tier: .e,
                 componentScores: [:],
-                weights: SleepWeights(),
+                points: QualityPoints(),
                 activeProfiles: profiles,
                 latchedProfiles: latched,
                 needTonightMinutes: nil,
@@ -564,8 +579,8 @@ struct SleepScoreEngine {
             )
         }
 
-        // Tier D — the frozen compatibility path. The 85 ceiling, the profile deltas and
-        // the need arithmetic are all bypassed: PLAN requires bit-identity with today's
+        // Tier D — the frozen compatibility path. The composition, the profile transfers
+        // and the need arithmetic are all bypassed: PLAN requires bit-identity with today's
         // curve, and that outranks internal consistency across the tier seam.
         if resolvedTier == .d {
             let legacy = tierDScore(tstMinutes: tst)
@@ -573,7 +588,7 @@ struct SleepScoreEngine {
                 score: legacy,
                 tier: .d,
                 componentScores: [.duration: legacy],
-                weights: SleepWeights(duration: 1.0),
+                points: QualityPoints(),
                 activeProfiles: profiles,
                 latchedProfiles: latched,
                 needTonightMinutes: nil,
@@ -596,7 +611,6 @@ struct SleepScoreEngine {
         raw[.duration] = durationScore(tstMinutes: tst, needMinutes: need.minutes)
         if let continuity = continuityScore(
             tstMinutes: tst,
-            awakeMinutes: input.awakeMinutes,
             inBedMinutes: input.inBedMinutes
         ) {
             raw[.continuity] = continuity
@@ -617,27 +631,30 @@ struct SleepScoreEngine {
             raw[.rem] = rem
         }
 
-        // A component is available only if the tier grants it weight AND it is scorable.
-        let base = baseWeights(for: resolvedTier)
-        let available = Set(SleepComponent.allCases.filter { base[$0] > 0 && raw[$0] != nil })
-        let componentScores = raw.filter { available.contains($0.key) }
+        // A quality component is available only if the tier grants it points AND it is
+        // scorable tonight. An unavailable component contributes ZERO — positive or
+        // negative — and the pool is never renormalized over what remains (H-16/H-17:
+        // missing evidence cannot testify).
+        let base = basePoints(for: resolvedTier)
+        let available = Set(
+            SleepComponent.allCases.filter { $0.isQuality && base[$0] > 0 && raw[$0] != nil }
+        )
+        let componentScores = raw.filter { $0.key == .duration || available.contains($0.key) }
 
-        let weights = composeWeights(base: base, profiles: profiles, available: available)
+        let points = composePoints(base: base, profiles: profiles, available: available)
 
-        // The Q1 re-anchor: duration enters at its raw (already ceilinged) value; the four
-        // quality components enter with their excess above the met anchor amplified.
-        var total = 0.0
-        for component in SleepComponent.allCases {
-            guard let value = componentScores[component] else { continue }
-            let contribution = component.isQuality ? applyQualityHeadroom(value) : value
-            total += weights[component] * contribution
+        // The council composition (H-16):
+        // score = 0.80 × D + Σ pᵢ × clamp((Cᵢ − 80) / 20, −1, +1).
+        var total = durationShare * raw[.duration]!
+        for component in SleepComponent.allCases where available.contains(component) {
+            total += points[component] * qualityContribution(componentScores[component]!)
         }
 
         return SleepResult(
             score: clampScore(total),
             tier: resolvedTier,
             componentScores: componentScores,
-            weights: weights,
+            points: points,
             activeProfiles: profiles,
             latchedProfiles: latched,
             needTonightMinutes: need.minutes,
@@ -645,7 +662,7 @@ struct SleepScoreEngine {
             confidence: confidence(
                 nightsOfHistory: input.state.nightsOfHistory,
                 isSourceStable: input.state.isSourceStable,
-                availableComponentCount: available.count
+                availableComponentCount: available.count + 1
             )
         )
     }
@@ -656,18 +673,16 @@ struct SleepScoreEngine {
     ///
     /// **The tier names the data grade, never the state of a personal baseline.** §5.2's
     /// column is "Data present". A stage EWMA that has not converged yet is not missing
-    /// data — it is an unscorable component, and §5's preamble already says what to do with
-    /// one: drop it and renormalize over the components that remain. Demoting the night
-    /// instead would take the *continuity* component down with it (Tier C grants stages no
-    /// weight and, before this rule, no continuity either), discarding a measured 90%
-    /// efficiency — the input §5.1 calls the most reliably measured of the five (Chinoy:
-    /// sleep/wake good, stages poor). The tier is therefore chosen from data presence, and
-    /// scorability is settled per component in `compute`.
+    /// data — it is an unscorable component, and the composition already says what to do
+    /// with one: it contributes zero (H-16). Demoting the night instead would take the
+    /// *continuity* component down with it, discarding a measured efficiency — the input
+    /// §5.1 calls the most reliably measured of the five (Chinoy: sleep/wake good, stages
+    /// poor). The tier is therefore chosen from data presence, and scorability is settled
+    /// per component in `compute`.
     ///
     /// The tier is a data grade, so it does not promise that every component in its §5.2 row
-    /// scored: a Tier A night with no 14-night midpoint buffer has no regularity component,
-    /// and a Tier B night whose source reports neither in-bed nor WASO has no continuity
-    /// component. What actually carried authority is `SleepResult.weights` (and its
+    /// scored: a Tier A night with no 14-night midpoint buffer has no regularity component.
+    /// What actually carried authority is `SleepResult.points` (and its
     /// `availableComponents`), stored per night with the state vector and the profiles —
     /// which is exactly the §9.4 rule-5 audit record, so nothing is unreconstructable.
     ///
@@ -678,6 +693,10 @@ struct SleepScoreEngine {
     /// need of 7.5 h ("no change for new users"), and Tier D fires on the row's other two
     /// clauses: fewer than `minNightsForV2` nights of history, or "duration only" — no
     /// component but duration is scorable.
+    ///
+    /// **Council-ruling consequence (2026-08-02):** continuity requires the in-bed span
+    /// (see `SleepInput.awakeMinutes`), so a stage-less source that reports WASO but no
+    /// in-bed span and no timing is now genuinely duration-only — Tier D.
     static func tier(for input: SleepInput) -> SleepTier {
         // The Tier-E test precedes the override: `SleepInput.tstMinutes` promises that a nil
         // or non-positive TST is Tier E, and an override picks a rung of the ladder rather
@@ -694,14 +713,13 @@ struct SleepScoreEngine {
         let hasInBedWindow = (input.inBedMinutes ?? 0) >= tst
 
         // What is actually scorable tonight — only used to detect the duration-only floor.
-        // Stage scorability implies the source veto: a tier that grants stages no weight
+        // Stage scorability implies the source veto: a tier that grants stages no points
         // cannot be what keeps a night off the duration-only floor.
         let stagesScorable = hasStages
             && stageScore(minutes: input.deepMinutes, baselineMinutes: input.deepBaselineMinutes) != nil
             && stageScore(minutes: input.remMinutes, baselineMinutes: input.remBaselineMinutes) != nil
         let continuityScorable = continuityScore(
             tstMinutes: tst,
-            awakeMinutes: input.awakeMinutes,
             inBedMinutes: input.inBedMinutes
         ) != nil
         let regularityScorable = input.state.midpointSD14Minutes != nil
@@ -710,40 +728,38 @@ struct SleepScoreEngine {
         // machinery has nothing to add and the frozen curve is the honest answer.
         if !stagesScorable && !continuityScorable && !regularityScorable { return .d }
 
-        // Tier A wants the true opportunity window; Tier B falls back to WASO.
+        // Tier A wants the true opportunity window; without it stages still score but
+        // continuity cannot (Tier B, max 92 — H-17).
         if hasStages { return hasInBedWindow ? .a : .b }
         return .c
     }
 
-    /// The §5.1 / §5.2 base weight table for a tier, before any profile delta.
-    static func baseWeights(for tier: SleepTier) -> SleepWeights {
+    /// The base quality point pool for a tier, before any profile transfer (H-16).
+    ///
+    /// Tier B lists continuity at its full 8 in principle but the component can never
+    /// score there (no in-bed window), so the pool is stated per tier to keep the stage
+    /// veto explicit: Tier C grants the stage components no points even when a vetoed
+    /// source smuggles stage minutes in. Duration is not in the pool — its 0.80 share is
+    /// fixed and no tier or profile touches it.
+    static func basePoints(for tier: SleepTier) -> QualityPoints {
         switch tier {
         case .a, .b:
-            return SleepWeights(
-                duration: durationWeight,
-                continuity: continuityWeight,
-                regularity: regularityWeight,
-                deep: deepWeight,
-                rem: remWeight
+            return QualityPoints(
+                continuity: continuityPoints,
+                regularity: regularityPoints,
+                deep: deepPoints,
+                rem: remPoints
             )
         case .c:
-            // §5.2 states Tier C as duration 0.75 + regularity 0.25 for a source that gives
-            // "duration + timing only". A stage-less source can still report an in-bed span
-            // or WASO (§3: manual and iPhone-only entries write `inBed`), and §5.2 has no
-            // row for that case. Continuity therefore enters at its own §5.1 weight and the
-            // set renormalizes (§5 preamble), preserving §5.2's 3:1 duration-to-regularity
-            // ratio while refusing to throw a measured efficiency away. When there is no
-            // continuity denominator the component is unscorable, drops out, and the tier is
-            // exactly §5.2's 0.75 / 0.25.
-            return SleepWeights(
-                duration: tierCDurationWeight,
-                continuity: continuityWeight,
-                regularity: tierCRegularityWeight
+            // Stage-less tier: stages get no authority. Continuity and regularity keep
+            // their full allocations, so the maxima fall out as 85 timing-only and 93
+            // with an in-bed span (H-17) — no renormalization, no new constants.
+            return QualityPoints(
+                continuity: continuityPoints,
+                regularity: regularityPoints
             )
-        case .d:
-            return SleepWeights(duration: 1.0)
-        case .e:
-            return SleepWeights()
+        case .d, .e:
+            return QualityPoints()
         }
     }
 
@@ -754,7 +770,7 @@ struct SleepScoreEngine {
     /// Triggers are evaluated independently against non-nil fields only — a nil z never
     /// fires and is never read as zero. Every persistent state honors §9.4 rule 4: a state
     /// already present in `previousProfiles` stays on until its signal drops below the hold
-    /// band, so a signal sitting on the entry line cannot flip the weights night after
+    /// band, so a signal sitting on the entry line cannot flip the points night after
     /// night. ACUTE_SHIFT is the rule's own stated exception — it is single-night by
     /// definition, so it is re-decided from tonight's facts alone.
     ///
@@ -829,8 +845,8 @@ struct SleepScoreEngine {
     }
 
     /// The reported profile set: `latchedProfiles` with §9.4 rule 1's exclusivity applied,
-    /// in canonical order, `[.baseline]` when nothing fired. This is what carries the weight
-    /// deltas and what the snapshot shows a human.
+    /// in canonical order, `[.baseline]` when nothing fired. This is what carries the point
+    /// transfers and what the snapshot shows a human.
     static func reportedProfiles(latched: Set<SleepProfile>) -> [SleepProfile] {
         var reported = latched
         if reported.contains(.acuteShift) { reported.remove(.chronicIrregular) }
@@ -848,101 +864,110 @@ struct SleepScoreEngine {
         )
     }
 
-    /// The §9.3 weight deltas a profile contributes. BASELINE and NAP_DAY contribute none.
-    static func weightDeltas(for profile: SleepProfile) -> SleepWeights {
+    /// The point transfers a profile contributes within the 20-point quality pool (H-18).
+    /// BASELINE and NAP_DAY contribute none; ACUTE_SHIFT's stage treatment is the
+    /// half-authority cap in `composePoints`, not a transfer.
+    ///
+    /// **Translation of §9.3's weight deltas (council ruling, point 5).** The quality-side
+    /// weight pool was 0.50 and maps onto the 20-point pool, so 1 weight unit = 40 points;
+    /// each profile's quality deltas are scaled by exactly ×40, preserving its internal
+    /// ratios. Duration-side deltas are DROPPED as double-counting — §4's need credits
+    /// already move the same lever, and duration's 0.80 share is fixed (H-16).
+    ///
+    ///   | Profile           | §9.3 quality weight deltas              | ×40 point transfers          |
+    ///   |-------------------|-----------------------------------------|------------------------------|
+    ///   | HIGH_PRESSURE     | deep +0.04, reg −0.07, REM −0.02        | deep +1.6, reg −2.8, REM −0.8|
+    ///   |                   | (duration +0.05 dropped)                |                              |
+    ///   | HIGH_STRAIN_DAY   | deep +0.03, reg −0.05                   | deep +1.2, reg −2.0          |
+    ///   |                   | (duration +0.02 dropped)                |                              |
+    ///   | ACUTE_SHIFT       | cont +0.05, reg −0.10                   | cont +2.0, reg −4.0          |
+    ///   |                   | (duration +0.05 dropped; stage −0.03s   | (stages: capped at 1.75 each |
+    ///   |                   | subsumed by the half-authority cap,     | in `composePoints` — the cap |
+    ///   |                   | which always bound in S1 too)           | is the whole stage response) |
+    ///   | CHRONIC_IRREGULAR | reg +0.07, deep −0.02, REM −0.02        | reg +2.8, deep −0.8, REM −0.8|
+    ///   |                   | (duration −0.05 dropped)                |                              |
+    ///   | DEBT_CARRY        | cont/reg/deep/REM −0.02 each            | −0.8 each                    |
+    ///   |                   | (duration +0.08 dropped)                |                              |
+    ///   | NAP_DAY, BASELINE | none                                    | none                         |
+    static func pointTransfers(for profile: SleepProfile) -> QualityPoints {
         switch profile {
         case .baseline, .napDay:
-            return SleepWeights()
+            return QualityPoints()
         case .highPressure:
             // H-02 magnitudes. Deep goes UP: after long wake a rebound is expected, so a
             // night that should have rebounded and did not is a real signal.
-            return SleepWeights(duration: 0.05, regularity: -0.07, deep: 0.04, rem: -0.02)
+            return QualityPoints(regularity: -2.8, deep: 1.6, rem: -0.8)
         case .highStrainDay:
             // H-03 magnitudes.
-            return SleepWeights(duration: 0.02, regularity: -0.05, deep: 0.03)
+            return QualityPoints(regularity: -2.0, deep: 1.2)
         case .acuteShift:
             // H-05. Regularity goes DOWN: the athlete already loses duration and continuity
             // points that night, and penalizing regularity too is triple-counting one event.
-            return SleepWeights(
-                duration: 0.05,
-                continuity: 0.05,
-                regularity: -0.10,
-                deep: -0.03,
-                rem: -0.03
-            )
+            // The stage response is the half-authority cap in `composePoints`.
+            return QualityPoints(continuity: 2.0, regularity: -4.0)
         case .chronicIrregular:
             // H-06. Stages go DOWN: REM proportion is circadian-phase-gated, so stages
             // measured at wildly different clock phases would be measuring the clock.
-            return SleepWeights(duration: -0.05, regularity: 0.07, deep: -0.02, rem: -0.02)
+            return QualityPoints(regularity: 2.8, deep: -0.8, rem: -0.8)
         case .debtCarry:
-            // H-07. Hours dominate architecture inside a deficit.
-            return SleepWeights(
-                duration: 0.08,
-                continuity: -0.02,
-                regularity: -0.02,
-                deep: -0.02,
-                rem: -0.02
-            )
+            // H-07. Hours dominate architecture inside a deficit; the duration side of
+            // that is carried by §4's debt credit, so here every quality component just
+            // cedes authority evenly.
+            return QualityPoints(continuity: -0.8, regularity: -0.8, deep: -0.8, rem: -0.8)
         }
     }
 
-    // MARK: - Weight composition (§9.4 rule 2)
+    // MARK: - Point composition (H-16 / H-18)
 
-    /// Stack the profile deltas onto the base weights, then clamp and renormalize.
+    /// Apply the profile point transfers to the tier's base pool.
     ///
-    /// Order is load-bearing: deltas apply only to components the tier granted (a dropped
-    /// component never receives a delta), then ACUTE_SHIFT's half-authority stage cap is
-    /// measured against the tier's BASE stage weight, then each available weight is clamped
-    /// to [`weightFloor`, `weightCeiling`], then the available weights are renormalized to 1.
-    static func composeWeights(
-        base: SleepWeights,
+    /// Order is load-bearing: a component that is unavailable tonight holds zero points
+    /// and never receives a transfer (missing evidence cannot testify, and cannot absorb
+    /// authority either); then the transfers stack; then ACUTE_SHIFT's half-authority
+    /// stage cap is measured against the tier's BASE stage points; then each point
+    /// allocation is floored at zero — negative points would invert a component's meaning,
+    /// turning better-than-normal quality into a penalty. **There is no renormalization**:
+    /// the pool total moves with the transfers and with availability, and that movement is
+    /// the honest record (stored on the snapshot per §9.4 rule 5).
+    static func composePoints(
+        base: QualityPoints,
         profiles: [SleepProfile],
         available: Set<SleepComponent>
-    ) -> SleepWeights {
-        var weights = SleepWeights()
-        for component in available { weights[component] = base[component] }
+    ) -> QualityPoints {
+        let qualityComponents = SleepComponent.allCases.filter { $0.isQuality }
+
+        var points = QualityPoints()
+        for component in qualityComponents where available.contains(component) {
+            points[component] = base[component]
+        }
 
         for profile in profiles {
-            let deltas = weightDeltas(for: profile)
-            for component in available {
-                weights[component] += deltas[component]
+            let transfers = pointTransfers(for: profile)
+            for component in qualityComponents where available.contains(component) {
+                points[component] += transfers[component]
             }
         }
 
         if profiles.contains(.acuteShift) {
             for component in [SleepComponent.deep, .rem] where available.contains(component) {
                 let cap = base[component] * acuteShiftStageAuthorityFactor
-                weights[component] = min(weights[component], cap)
+                points[component] = min(points[component], cap)
             }
         }
 
-        // §9.4 rule 2's [0.05, 0.60] band is written against the §5.1 base table, whose
-        // largest weight is 0.50 — it bounds how far *deltas* may push a component. Tier C
-        // states duration = 0.75 explicitly (§5.2), so a literal 0.60 ceiling would silently
-        // overrule the tier's own stated behaviour and land it at 0.706 after
-        // renormalization. The ceiling therefore never cuts below the tier's base weight:
-        // deltas still cannot push Tier A duration past 0.60, and Tier C's duration weight
-        // is never cut below its stated 0.75 *before* renormalization.
-        //
-        // Stated precisely, because the earlier wording ("Tier C keeps its 0.75") was false:
-        // renormalization still moves the final number whenever a delta fires. Tier C with
-        // DEBT_CARRY and no continuity denominator emits 0.7653 / 0.2347, not 0.75 / 0.25 —
-        // the deviation buys the tier's ratio, not a frozen weight. Both values are pinned
-        // by test. This is a §5.2-versus-§9.4 conflict resolved on the code side; it is
-        // logged in §9.5's ruling notes and still wants HAN's signature.
-        for component in available {
-            let ceiling = max(weightCeiling, base[component])
-            weights[component] = clamp(weights[component], weightFloor, ceiling)
+        for component in qualityComponents where available.contains(component) {
+            points[component] = max(0, points[component])
         }
+        return points
+    }
 
-        let total = weights.total
-        guard total > 0 else {
-            let share = available.isEmpty ? 0 : 1.0 / Double(available.count)
-            for component in available { weights[component] = share }
-            return weights
-        }
-        for component in available { weights[component] /= total }
-        return weights
+    /// The clamped excursion factor of one quality component (H-16):
+    /// `clamp((raw − 80) / 20, −1, +1)`. Met quality contributes exactly zero; excellent
+    /// (curve value 100) earns the component's full points; sub-baseline quality SUBTRACTS,
+    /// bounded at the component's full negative points — the symmetric clamp is the nocebo
+    /// guard that keeps a need-met catastrophic night at 60, never lower.
+    static func qualityContribution(_ raw: Double) -> Double {
+        clamp((raw - qualityMetAnchor) / qualityBandWidth, -1.0, 1.0)
     }
 
     // MARK: - Nightly need (§4, §9.4 rule 3)
@@ -960,8 +985,9 @@ struct SleepScoreEngine {
     /// credit is treated the same way: §9.3 writes it as "+6 min per hour of wake above
     /// 16 h", and honoring it only from 18 h upward would jump 12 minutes at the trigger.
     ///
-    /// The profiles still decide the *weights* (§9.3), and they are still latched with
-    /// hysteresis (§9.4 rule 4). What they no longer do is switch the need arithmetic on.
+    /// The profiles still decide the *points* (§9.3 as translated by H-18), and they are
+    /// still latched with hysteresis (§9.4 rule 4). What they no longer do is switch the
+    /// need arithmetic on.
     ///
     /// §9.4 rule 3 clamps the total to `need_base ≤ need_tonight ≤ min(need_base + 60, 10 h)`.
     /// The lower bound is `need_base` itself, so the nap debit can only offset positive
@@ -1019,32 +1045,28 @@ struct SleepScoreEngine {
 
     // MARK: - Component curves
 
-    /// Duration vs need (§5.1), re-anchored so the plateau is `durationCeiling` (§7 Q1).
-    /// Flat below r = 0.60 and flat at the ceiling for every r ≥ 1.00, however long the night.
+    /// Duration vs need (§5.1), unscaled 0–100 — this is the D of the H-16 composition,
+    /// so duration's contribution to the composite is `durationShare ×` this, capping at
+    /// exactly 80. Flat below r = 0.60 and flat at 100 for every r ≥ 1.00, however long
+    /// the night.
     static func durationScore(tstMinutes: Double, needMinutes: Double) -> Double {
-        guard needMinutes > 0 else { return durationAnchors[0].y * (durationCeiling / 100.0) }
+        guard needMinutes > 0 else { return durationAnchors[0].y }
         let ratio = tstMinutes / needMinutes
-        return piecewise(ratio, durationAnchors) * (durationCeiling / 100.0)
+        return piecewise(ratio, durationAnchors)
     }
 
-    /// Continuity (§5.1). The in-bed span is the truer opportunity window and is preferred
-    /// whenever it is present and at least as long as TST; otherwise TST + WASO. A shorter
-    /// in-bed span than TST is a re-binning artifact (§3), not an efficiency above 100%.
-    /// Nil when neither denominator exists — the component then drops out.
+    /// Continuity (§5.1). **In-bed span only** (council ruling 2026-08-02): efficiency is
+    /// TST over the true opportunity window, and without that window there is no honest
+    /// denominator — TST ÷ (TST + WASO) measured the staging stream against itself, which
+    /// is why Tier B carries no continuity and tops at 92 (H-17). A shorter in-bed span
+    /// than TST is a re-binning artifact (§3), not an efficiency above 100%; the component
+    /// then drops out rather than lying. Nil when it drops.
     static func continuityScore(
         tstMinutes: Double,
-        awakeMinutes: Double?,
         inBedMinutes: Double?
     ) -> Double? {
-        let denominator: Double
-        if let inBed = inBedMinutes, inBed >= tstMinutes, inBed > 0 {
-            denominator = inBed
-        } else if let awake = awakeMinutes, tstMinutes + awake > 0 {
-            denominator = tstMinutes + awake
-        } else {
-            return nil
-        }
-        return piecewise(tstMinutes / denominator, continuityAnchors)
+        guard let inBed = inBedMinutes, inBed >= tstMinutes, inBed > 0 else { return nil }
+        return piecewise(tstMinutes / inBed, continuityAnchors)
     }
 
     /// Regularity (§5.1) on the trailing-14-night midpoint SD in minutes. H-06.
@@ -1107,13 +1129,6 @@ struct SleepScoreEngine {
             }
         }
         return last.y
-    }
-
-    /// The Q1 headroom: a quality component that merely met the athlete's own normal
-    /// contributes its raw value; only the excess above the met anchor is amplified.
-    private static func applyQualityHeadroom(_ raw: Double) -> Double {
-        guard raw > qualityMetAnchor else { return raw }
-        return qualityMetAnchor + (raw - qualityMetAnchor) * qualityHeadroomGain
     }
 
     private static func clampScore(_ score: Double) -> Double {

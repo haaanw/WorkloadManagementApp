@@ -246,27 +246,44 @@ state. The target is presented as *what your body has been asking for*, not a de
 Pure function, tier-selected, weights renormalized over available components exactly as
 `RecoveryScoreEngine.compute` already does for missing inputs.
 
-### 5.1 Components and starting weights (Tier A — stages available)
+### 5.1 Components and composition (Tier A — stages available)
 
-| Component | Weight | Input | Athlete rationale |
+**Composition council-ruled 2026-08-02** (`.planning/sleep-v2/council-composition-ruling.md`;
+H-16 in §9.5) — supersedes this section's original weighted-mean table. HAN's 80/20 rule
+is stated directly in the arithmetic:
+
+`score = 0.80 × D + Σ pᵢ × clamp((Cᵢ − 80) / 20, −1, +1)`
+
+where D is the duration-vs-need curve (0–100, so duration contributes exactly 0–80),
+Cᵢ is each quality component's 0–100 curve value with **met/normal anchored at 80**, and
+pᵢ is its point allocation from a 20-point pool. Signed: sub-baseline quality SUBTRACTS,
+bounded at −20 total by the ±1 clamp (need-met with catastrophic quality floors at 60).
+Quality points never renormalize over missing components (H-17): an absent component
+contributes zero, either direction.
+
+| Component | Points | Input | Athlete rationale |
 |---|---|---|---|
-| Duration vs need | **0.50** | TST ÷ `need_tonight` | Only component with direct athlete outcome evidence (Mah, Milewski, Van Dongen). Everything else is mechanism or vendor convention. |
-| Continuity (efficiency/WASO) | **0.15** | TST ÷ (TST + WASO), or ÷ inBed when present | Athletes are *systematically* fragmented (Leeder). Fragmentation is measured far more reliably than staging (Chinoy: sleep/wake good, stages poor). |
-| Deep vs own baseline | **0.10** | deep min ÷ EWMA(deep min, same source) | SWS↔GH is grade-A physiology; nightly predictive value is unproven and κ is moderate. Small weight is the honest weight. |
-| REM vs own baseline | **0.10** | REM min ÷ EWMA(REM min, same source) | Motor consolidation is real; *which stage* is contested. Same reasoning. |
-| Regularity/timing | **0.15** | SD of sleep midpoint over trailing 14 nights | Windred 2024 is strong but for mortality, not next-day readiness; and evening basketball makes timing behaviourally actionable. |
+| Duration vs need | **0.80 × D** (fixed share, not pooled) | TST ÷ `need_tonight` | Only component with direct athlete outcome evidence (Mah, Milewski, Van Dongen). Everything else is mechanism or vendor convention. |
+| Continuity (efficiency) | **8** | TST ÷ inBed (the true opportunity window; WASO alone carries no authority — council ruling) | Athletes are *systematically* fragmented (Leeder). Fragmentation is measured far more reliably than staging (Chinoy: sleep/wake good, stages poor). |
+| Regularity/timing | **5** | SD of sleep midpoint over trailing 14 nights | Windred 2024 is strong but for *mortality*, not next-day readiness — it cannot fund more than 5 (the council's registry-hygiene ruling); evening basketball makes timing behaviourally actionable. |
+| Deep vs own baseline | **3.5** | deep min ÷ EWMA(deep min, same source) | SWS↔GH is grade-A physiology; nightly predictive value is unproven and κ is moderate. Small allocation is the honest allocation. |
+| REM vs own baseline | **3.5** | REM min ÷ EWMA(REM min, same source) | Motor consolidation is real; *which stage* is contested. Same reasoning. |
 
-Anchors (all tunable constants, no literals in views):
+Anchors (all tunable constants, no literals in views; every quality curve's met/normal
+point reads 80 — the shared met anchor, so met quality adds exactly zero):
 - **Duration** on ratio r = TST/need: r ≥ 1.00 → 100; 0.95 → 90; 0.90 → 80; 0.85 → 68;
   0.80 → 55; 0.70 → 32; ≤0.60 → 10. Piecewise-linear between anchors, monotone.
-- **Continuity**: ≥92% → 100; 88% → 90; 85% → 80; 80% → 62; 75% → 45; ≤65% → 20.
-  Deliberately shifted down from the general-adult 85% "good" line because athlete pooled
-  SE is ~86% (Deconstructing athletes' sleep) — 85% must not read as a failure.
-- **Deep / REM** on ratio q = tonight ÷ personal EWMA: q ≥ 1.0 → 100; 0.85 → 85;
+- **Continuity**: ≥92% → 100; 88% → 90; 85% → 80 (the met anchor — athlete-normal, not a
+  failure); 80% → 62; 75% → 45; ≤65% → 20. Deliberately shifted down from the
+  general-adult 85% "good" line because athlete pooled SE is ~86% (Deconstructing
+  athletes' sleep).
+- **Deep / REM** on ratio q = tonight ÷ personal EWMA (re-anchored per H-11 REVISED,
+  council ruling 2026-08-02): q ≥ 1.30 → 100; **1.00 → 80** (the met anchor); 0.85 → 75;
   0.70 → 70; 0.55 → 55; ≤0.4 → 45. **Floored at 45** — one noisy staging night must not
   be able to crater the score, and there is no evidence supporting a harsher penalty.
-- **Regularity** on midpoint SD: ≤30 min → 100; 45 → 90; 60 → 80; 90 → 62; ≥120 → 45.
-  Floored at 45 for the same reason (health-endpoint evidence, not readiness evidence).
+- **Regularity** on midpoint SD: ≤30 min → 100; 45 → 90; 60 → 80 (the met anchor — an
+  ordinary athlete fortnight); 90 → 62; ≥120 → 45. Floored at 45 for the same reason
+  (health-endpoint evidence, not readiness evidence).
 
 **Calibration warning, load-bearing:** under these anchors, hitting your need scores the
 duration component 100, whereas today 7.5 h scores 70. The v2 sleep component will run
@@ -280,7 +297,7 @@ it is Open Question 1.**
 | Tier | Data present | Behaviour |
 |---|---|---|
 | A | Stages + timing (+ inBed) | All 5 components, weights as above. |
-| B | Stages, no `inBed` | Continuity from WASO stage samples; same weights. |
+| B | Stages, no `inBed` | Continuity carries no authority (council ruling 2026-08-02: no in-bed span = no honest efficiency denominator; the original "continuity from WASO" is superseded). Max 92 (H-17). |
 | C | Duration + timing only (`asleepUnspecified`; likely Whoop/Garmin/manual) | Duration 0.75 + regularity 0.25, renormalized. Stage components omitted, not zeroed. |
 | D | Duration only, <7 nights history, or need not yet personalized | **Exactly today's `sleepDurationToScore` curve against 7.5 h.** Bit-identical fallback. |
 | E | No sleep data | Component omitted, weights redistributed — today's behaviour, unchanged. |
@@ -558,8 +575,11 @@ file, reviewed at every release that touches the sleep engine, and each row move
 | H-08 | A nap offsets 50% of its minutes against nightly need | HYPOTHESIS | Naps aid performance (grade B); substitution ratio unknown | Compare readiness on nap+short-night vs no-nap+equal-total nights |
 | H-09 | Personalized need beats the fixed 7.5 h target | HYPOTHESIS | Walsh 2021 consensus recommends individualization (grade A) but does not prove a method | §6 criterion 4 + head-to-head correlation vs fixed target |
 | H-10 | Athletes are not harmed (nocebo) by seeing a moved target or a profile label | HYPOTHESIS | None — pure product judgement | Dogfood report + any support signal; revert to silent if it reads as alarming |
-| H-11 | The stage curve's met point is q = 1.00 → 85 and its excellent point q ≥ 1.30 → 100 (0.85 → 80), not §5.1's published q ≥ 1.00 → 100 / 0.85 → 85 | HYPOTHESIS | None — engine-side consequence of the Q1 ruling: at §5.1's anchors a night that merely met every baseline scores 100 raw, so the §7-Q1 composition would push a typical night far past its stated ≈85 landing, and "stages at or above own baseline" (Q1) would have nothing left to earn | Shadow: distribution of nightly q per athlete per source. If q ≥ 1.30 is unreachable (<2% of nights) the excellent anchor moves to the observed 90th percentile; if at-baseline nights systematically out-run HAN's felt-right rating, the met point is too generous. **§10 publishes these numbers — the divergence from §5.1 is published with them. Wants HAN's signature.** |
-| H-12 | The Q1 re-anchor constants — duration ceiling 85, quality met anchor 85, quality headroom gain 2.0 — put a need-met typical night at ≈85 and a wholly excellent Tier-A night at exactly 100 | HYPOTHESIS | None — a derivation from HAN's Q1 ruling (§7 Q1), not a measurement. The gain is the largest single lever on the composite: at 1.0 the practical ceiling is 92.5, at 2.0 it is 100 | Shadow: the v2 score distribution against HAN's felt-right ratings. If 100 never occurs in ≥60 nights, or the modal night sits above 90, the gain is retuned and this row is REVISED. The 85 landing is directly checkable against the same log |
+| H-11 | The stage curve's met point is q = 1.00 → **80** (the shared met anchor) and its excellent point q ≥ 1.30 → 100, with the 0.85 anchor at **75** — not §5.1's original q ≥ 1.00 → 100 / 0.85 → 85 | **REVISED** (council ruling 2026-08-02: stage met point 85 → 80 so met adds exactly zero under H-16; excellent q ≥ 1.30 → 100 unchanged; 0.85 anchor → 75; sub-baseline anchors and the 45 floor unchanged) | Engine-side consequence of HAN's 80/20 ruling: every quality curve shares one semantic zero ("80 = your normal") | Shadow: distribution of nightly q per athlete per source. If q ≥ 1.30 is unreachable (<2% of nights) the excellent anchor moves to the observed 90th percentile; if at-baseline nights systematically out-run HAN's felt-right rating, the met point is too generous. **§10 publishes these numbers.** |
+| H-12 | ~~The Q1 re-anchor constants — duration ceiling 85, quality met anchor 85, quality headroom gain 2.0~~ | **RETIRED** — superseded by council ruling 2026-08-02 (`.planning/sleep-v2/council-composition-ruling.md`): the plateau + met-anchor + headroom-gain mechanism hid the 80/20 rule behind a derived gain constant; the founder's rule should be visible in the arithmetic. Replaced by **H-16** | Was: a derivation from HAN's Q1 ruling (§7 Q1) | n/a — see H-16 |
+| H-16 | The two-part composition `score = 0.80 × D + Σ pᵢ × clamp((Cᵢ − 80)/20, −1, +1)` with the ±1 clamp and point vector continuity 8 / regularity 5 / deep 3.5 / REM 3.5 | HYPOTHESIS | Council ruling 2026-08-02 (unanimous on the form; chair-ruled 8/5/3.5/3.5 on registry hygiene — Windred 2024 is a mortality endpoint and cannot fund regularity 6) | Kill tests: (a) partial-r ≤ 0 for any component vs sleep-free next-day readiness at ≥200 nights/≥20 athletes drops that component's points; (b) if HAN's felt-right log shows need-met nights systematically scored above/below ~80, the met anchors are wrong; (c) if no night reaches 100 in ≥60 nights, the excellent anchors are unreachable and move to observed p90 |
+| H-17 | Tier maxima as epistemic caps (B 92 / C 85–93): quality points do not renormalize over missing components — missing evidence cannot testify | HYPOTHESIS | Council ruling 2026-08-02 (epistemic-cap principle, both members; chair corrected the carried-over 90/94 renormalizing caps) | Kill test (Codex's, adopted): mask Tier-A nights down to Tier C; if masked scores predict full Tier-A scores with MAE ≤ 3 over ≥200 paired nights, the caps are too conservative |
+| H-18 | Profile deltas as point transfers with preserved ratios (§9.3's quality-side weight deltas × 40 into the 20-point pool; duration-side deltas dropped as double-counting; ACUTE_SHIFT stage half-authority = stage points halved 3.5 → 1.75) | HYPOTHESIS | Council ruling 2026-08-02 (profiles touch only the 20-point pool; §4's need credits already move duration's lever) | Kill test: H-13's chatter counts plus shadow comparison of per-profile score deltas vs the old weight-delta arithmetic on the same nights (divergence > 5 pts on >10% of profile nights = translation wrong, revisit) |
 | H-13 | Hysteresis hold bands (pressure 18 h → hold 17 h, z 1.5 → 1.25; strain z 1.0 → 0.75; debt 180 → 150 min; nap 20 → 15 min) stop state chatter without changing what the states mean | HYPOTHESIS | None — §9.4 rule 4 mandates hysteresis on every state but ACUTE_SHIFT and names no bands | Shadow: count state entries/exits per 30 nights. More than one flip per two nights on any state = band too narrow; a state that never exits over 30 nights once its signal has fallen = band too wide |
 | H-14 | The strain credit saturates at z = +2, so §9.3's trigger point (z = +1) is worth half the 30-min cap | HYPOTHESIS | None — chosen. §4 caps the credit and §9.3 gives the band, neither gives the shape | Falls out of H-03's test: regress next-day readiness on (TST − need) split by load tertile. If the interaction is absent the credit dies with H-03; if present but flat in z, the ramp becomes a step at the trigger |
 | H-15 | A changed dominant sleep source halves confidence rather than blocking the score | HYPOTHESIS | None — §5.2 names source stability as a confidence factor and gives it no weight; §4's reset-on-discontinuity rule is the evidence that a source change is a real discontinuity (device bias, κ 0.21–0.53) | Shadow: compare v2-vs-readiness correlation on the 14 nights after a source change against matched stable nights. If it is unchanged, the multiplier goes to 1.0; if the score is frankly wrong there, the tier should drop instead of the confidence |
@@ -571,18 +591,18 @@ measurement that would change it does not belong in the engine.
 not hypotheses — they are places where two sections of this document disagree and the code
 had to pick. Recorded here so the pick is visible, not buried in a comment.
 
-1. **§9.4 rule 2's weight ceiling versus §5.2's Tier C table.** Rule 2 clamps every weight to
-   [0.05, 0.60]; §5.2 states Tier C duration = 0.75. Taken literally, rule 2 silently
-   overrules the tier and lands duration at 0.706 after renormalization. Ruling: the ceiling
-   never cuts *below* the tier's own base weight, so deltas still cannot push Tier A duration
-   past 0.60 and Tier C's stated 0.75 survives the clamp. Renormalization still moves the
-   final number when a delta fires (Tier C + DEBT_CARRY emits 0.765 / 0.235).
+1. **[SUPERSEDED by the council composition, 2026-08-02]** §9.4 rule 2's weight ceiling
+   versus §5.2's Tier C table. The [0.05, 0.60] clamp-and-renormalize machinery was
+   deleted with H-12: duration no longer participates in a weight vector at all (fixed
+   0.80 share), and the quality pool composes by point transfer (H-18) with a zero floor
+   and no renormalization.
 2. **§5.2 has no row for a stage-less source that still reports an in-bed span.** §3 says
    manual and iPhone-only entries write `inBed`; §5.2's Tier C row covers "duration + timing
-   only". Ruling: continuity enters Tier C at its own §5.1 weight of 0.15 and the set
-   renormalizes (§5 preamble). Discarding a measured efficiency — the input §5.1 calls the
-   most reliably measured of the five — because the watch did not stage is worse than the
-   alternative. With no continuity denominator the tier is exactly §5.2's 0.75 / 0.25.
+   only". Ruling (restated under the council composition): continuity enters Tier C at its
+   full 8 points when the in-bed span is present — Tier C max 93 with continuity, 85
+   timing-only (H-17). Discarding a measured efficiency — the input §5.1 calls the most
+   reliably measured of the five — because the watch did not stage is worse than the
+   alternative.
 3. **The tier is a data grade, not a baseline-convergence grade.** §5.2's column is "Data
    present", so a not-yet-converged stage EWMA drops the stage component and renormalizes
    (§5 preamble); it does not demote the night. §5.2's Tier D "duration only" clause is

@@ -1,0 +1,150 @@
+=== MOTION ===
+Motion: settle the final scoring composition for Tuwa's sleep score v2 (athlete-recovery iOS app; self-coached amateur athletes, basketball + strength). You may read the repo: the engine is WorkloadApp/Services/SleepScoreEngine.swift (branch sleep-v2, checked out); the spec is .planning/v17-field-notes/research-sleep-score.md (§5 components, §7 founder rulings, §9 context-conditional profiles, §9.5 hypothesis registry H-01..H-15).
+
+FIXED by founder ruling (not debatable): sleep DURATION alone caps the composite at 80/100. Quality (deep/REM scored against the athlete's OWN device baselines), continuity/efficiency, and schedule regularity earn the remaining 20. A 100 must mean a genuinely excellent night, never merely a long one. The score must stay encouraging (nocebo guard: athlete-shifted anchors, no fear framing). Tier-D fallback (legacy duration curve, bit-identical) is exempt by design.
+
+Current implementation to attack or defend:
+- Base weights: duration 0.50 / continuity 0.15 / regularity 0.15 / deep 0.10 / REM 0.10.
+- Mechanism: duration component plateaus at a ceiling constant; quality components' excess above a met-anchor (85) is amplified by a "headroom gain" (2.0) so a wholly excellent night lands exactly 100. Ceiling was 85; founder has now ruled 80.
+- Stage curve (H-11): met-own-baseline q=1.00 -> 85; q>=1.30 -> 100; sub-baseline anchors 0.40->45, 0.55->55, 0.70->70, 0.85->80; floor 45.
+- Degradation tiers: A (stages+inBed) full five; C (duration+timing) weights 0.75/0.25; D legacy curve; E nil. Weights renormalize over available components; per-tier clamp floor 0.05, ceiling max(0.60, tier base weight).
+- Context profiles (§9.3) shift weights per night by deltas, stacked, clamped, renormalized.
+
+Questions to settle with CONCRETE NUMBERS (no ranges), each number either literature-grounded (cite what the paper actually found) or labeled JUDGMENT with a falsification test suitable for the hypothesis registry:
+1. Under the 80 ceiling: is duration 0.50 still right? How do the quality-side 20 points distribute across continuity, regularity, deep, REM — and why those proportions for THIS population (amateur athletes, consumer wearables with kappa 0.21-0.53 stage accuracy)?
+2. Is the plateau + headroom-gain mechanism the right arithmetic, or is a cleaner composition (bonus band on top of a duration base; two-part base+bonus score; multiplicative quality modifier) more defensible and more explainable to an athlete? The founder's 80/20 must fall out of the arithmetic exactly.
+3. Under the 80 ceiling, where does met-own-baseline land on the stage curve, and what should "excellent" require? Keep the sub-baseline anchors athlete-shifted (a normal athlete night must not read as failure).
+4. Coherence check across tiers: with duration capped at 80 and renormalization, what is a Tier-C athlete's realistic max, and is that defensible against a Tier-A athlete's 100? If not, what changes?
+
+Judging criteria: scientific honesty over vendor convention; explainability to an athlete in one sentence; nocebo guard preserved; every invented constant registrable with a kill test; arithmetic must be exact (80/20 by construction, not approximately).
+
+=== CODEX OPENING ===
+### Opening statement
+
+I vote to replace the headroom-gain weighted mean with an explicit base-plus-quality adjustment:
+
+`score = clamp(0…100, 0.80D + Σ[pᵢ × (Cᵢ − 80) / 20])`
+
+Here `D` is the existing 0–100 duration-vs-need curve; therefore duration contributes exactly 0–80. Quality allocations are continuity **8**, regularity **6**, deep **3**, REM **3** points. Context profiles may redistribute those 20 points, but never change the 80/20 budgets; greater sleep pressure should affect `needTonight`, not duration’s weight.
+
+These allocations are **JUDGMENT**, not fitted science. Continuity gets priority because Chinoy found sleep sensitivity ≥0.93 but wake specificity only 0.18–0.54 and inconsistent staging ([paper](https://pubmed.ncbi.nlm.nih.gov/33378539/)); a newer comparison found stage κ **0.21–0.53** ([paper](https://academic.oup.com/sleepadvances/article/6/2/zpaf021/8090472)). Regularity remains substantial but below continuity: Windred found **20–48%** lower mortality across higher regularity quintiles, not improved next-day readiness ([paper](https://pubmed.ncbi.nlm.nih.gov/37738616/)). Leeder’s athletes averaged **80.6%** efficiency versus **88.7%** in controls, supporting athlete-shifted continuity anchors ([paper](https://pubmed.ncbi.nlm.nih.gov/22329779/)). Kill test: at ≥200 nights/20 athletes, any component with within-athlete partial correlation ≤0 with sleep-free next-day readiness loses its allocation; refit the remainder.
+
+Keep H-11 unchanged: **q=1.00 → 85**, **q≥1.30 →100**, and existing sub-baseline anchors. These are **JUDGMENT**; if q≥1.30 occurs on <2% of stable-source nights, replace it with that source-athlete’s 90th percentile.
+
+Tier C should max at exactly **90** with timing only, or **94** when continuity exists—both **JUDGMENT**. Do not renormalize missing evidence to 100: that would certify “excellent” from duration plus schedule alone. Kill this cap if, after ≥100 nights per tier, top-decile Tier-C sleep-free readiness trails Tier A by <2 points.
+
+Strongest objection: tier caps punish device choice. True—but tier/confidence disclosure is preferable to false precision.
+
+**Provisional vote: adopt two-part composition; confidence 0.82.**
+=== GROK OPENING ===
+I will inspect the sleep-score engine and the research spec, then deliver an independent opening statement with a concrete position.## Opening statement — sleep score v2 composition
+
+**Position.** Accept the 80/20 ruling. Keep duration at **0.50**. Shift quality weight toward continuity. Replace headroom-gain with a two-part score. Set stage met-point to **80**. Cap Tier C below 100 on purpose.
+
+### 1. Weights (concrete)
+
+| Component | Weight | Basis |
+|---|---|---|
+| Duration | **0.50** | Keep. Mah 2011 (basketball sleep extension) and Van Dongen 2003 (dose–response of restriction) are the only direct athlete-outcome evidence in the stack. Stages lack that. **JUDGMENT** on the 0.50 figure; kill test = H-01 (partial r with next-day sleep-free readiness; refit at ≥200 nights / ≥20 users). |
+| Continuity | **0.20** (was 0.15) | Chinoy: sleep/wake is reliable; stage κ is 0.21–0.53. Continuity is the honest wearable quality lever. Leeder: athletes are systematically fragmented (SE ≈80.6%). |
+| Regularity | **0.12** (was 0.15) | Windred 2024: regularity beats duration for *mortality*, not next-day readiness. Keep non-zero because evening basketball makes timing actionable. |
+| Deep | **0.09** | SWS↔GH is grade-A physiology; night-to-night readiness prediction is unproven. κ caps honesty. |
+| REM | **0.09** | Motor consolidation is real; *which stage* is contested (§1.2). Same small weight as deep. |
+
+Of the excellence **20** points at full max: continuity **8.0**, regularity **4.8**, deep **3.6**, REM **3.6**.
+
+### 2. Arithmetic
+
+**Reject** plateau + headroom-gain. It hides the 80/20 rule behind a gain constant and couples `qualityMetAnchor` to the ceiling.
+
+**Adopt** exact two-part construction:
+
+```
+score = duration₀₋₈₀ + 20 × Σ wᵢ · clamp((rawᵢ − 80) / 20, 0, 1)
+```
+
+Quality weights renormalize to 1.0 among present quality components. Met quality adds **0** to the bonus. Excellent quality adds its full share of **20**. Founder 80/20 falls out by construction.
+
+Athlete sentence: *“Hours give up to 80. Continuity, stages, and schedule give the last 20.”*
+
+### 3. Stage curve (under 80)
+
+| q | Score |
+|---|---|
+| ≤0.40 | 45 (floor) |
+| 0.55 | 55 |
+| 0.70 | 70 |
+| 0.85 | **75** (softened vs current 80) |
+| **1.00** | **80** (met = zero bonus) |
+| **≥1.30** | **100** (excellent) |
+
+Sub-baseline stays athlete-shifted so a normal under-mean night is not a failure. Excellent at 1.30 is **JUDGMENT** (H-11: if &lt;2% of nights reach 1.30, move to observed p90).
+
+### 4. Tier C coherence
+
+Do **not** let Tier C reach 100. Missing stages means missing architecture evidence.
+
+**JUDGMENT:** excellence pool on Tier C (duration + regularity only) = **10**, so realistic max = **90**. Matches the old headroom math at 0.75/0.25 under an 80 ceiling (`0.75·80 + 0.25·120 = 90`). Kill test: if dogfood Tier-C best nights feel like Tier-A 100s, raise the pool; if they feel thinner, keep 90. Tier D stays legacy bit-identical by contract.
+
+### Assumptions
+Weights are evidence-*quality* priors, not fits. κ bounds stage authority more than any vendor norm. Modal path may be Tier C for non–Apple Watch/Oura sources.
+
+### Strongest opposing argument
+Headroom-gain plus current 0.50/0.15/0.15/0.10/0.10 already lands exact 100 and needs only `durationCeiling = 80` and met-anchor realignment — less redesign, same H-12 kill path. Two-part and the continuity upshift are product taste until shadow data bite.
+
+### Provisional vote
+**Aye** — duration **0.50**; quality **0.20 / 0.12 / 0.09 / 0.09**; two-part 80+20; stage met **80**, excellent **q≥1.30**; Tier-C max **90**.
+
+**Confidence: 0.62**
+
+=== CODEX REBUTTAL AND FINAL VOTE ===
+### Cross-examination of Grok
+
+Grok’s strongest point is arithmetic clarity: an explicit 80-point duration base plus a 20-point quality band makes the founder’s rule auditable and athlete-explainable. Rejecting the hidden 2.0 headroom gain is correct.
+
+Its proposed formula, however, has a fatal defect:
+
+`clamp((rawᵢ − 80) / 20, 0, 1)`
+
+makes every quality value below 80 equivalent. Deep sleep at q=0.40→45 and q=0.85→75 would both contribute zero. That nullifies the athlete-shifted sub-baseline anchors and discards potentially useful signal. Use the signed adjustment from my opening instead; poor quality may reduce the duration-derived score, while excellent quality earns the final 20.
+
+Grok also says “keep duration weight 0.50,” but its two-part arithmetic contains no 0.50 duration weight. Under the new composition, the meaningful constants are the fixed 80-point base and quality-point allocations. Existing context deltas therefore require translation into transfers within the 20-point quality budget; they cannot be applied unchanged.
+
+I concede Grok’s stage re-anchor: revise q=1.00 from **85 to 80**. It gives every quality component the same semantic threshold—80 means “normal/good,” not failure—and q≥1.30→100 remains “excellent.” This is **JUDGMENT**; retain H-11’s <2%-reachability kill test.
+
+I retain **continuity 8 / regularity 6 / deep 3 / REM 3**. Chinoy’s wake specificity of **0.18–0.54** supports caution even for continuity, while stage κ **0.21–0.53** argues against Grok increasing each stage allocation to 3.6. Windred’s **20–48% mortality association** cannot calibrate next-day readiness, but timing is measured more reliably than stages.
+
+Tier C should not renormalize to 100: retain **90 timing-only / 94 with continuity**, explicitly as epistemic caps. Better kill test: across **200 paired nights/20 athletes**, mask Tier-A data to Tier C; lift the 90 cap to 95 only if masked predictions achieve **MAE ≤3** against full Tier-A scores.
+
+**Final vote: adopt signed two-part 80+20 composition; confidence 0.87. Decisive reason: exact arithmetic without making sub-baseline quality evidence disappear.**
+=== GROK REBUTTAL AND FINAL VOTE ===
+I will inspect the sleep-score engine and research spec, then cross-examine CODEX against the founder 80/20 rule and the implemented arithmetic.## Cross-exam of CODEX
+
+### Strongest point
+CODEX’s formula is the cleanest exact construction: **`0.80·D + Σ pᵢ·(Cᵢ−80)/20`**. Duration’s share is fixed at 80. Profiles may only move the **20-point** pool. “Pressure shifts **needTonight**, not duration weight” is the right product rule and matches Van Dongen-style debt handling in the engine.
+
+### Challenges
+
+**1. H-11 freeze vs the new zero line.**  
+CODEX keeps **q=1.00 → 85** while the bonus zero is **80**. Then met stages give `(85−80)/20 = 0.25` of each stage’s points for free. A need-met, all-met night lands **~85**, not **80**. That reimports the old H-12 modal after the founder cut the duration cap to **80**. Under 80/20, **met must score 80 on every quality curve** so met adds **0** bonus. Keep excellent at **q≥1.30 → 100**. Soften **0.85 → 75** so the climb into the bonus band is not a cliff.
+
+**2. Regularity at 6 of 20 overclaims the evidence.**  
+Windred is **mortality**, not next-day readiness (spec §1.3). Continuity is the only quality term with both wearable honesty (Chinoy sleep/wake; stage κ **0.21–0.53**) and athlete fragmentation (Leeder SE **80.6%**). Prefer **continuity 8 / regularity 5 / deep 3.5 / REM 3.5** (still JUDGMENT; same H-01 kill: partial r ≤ 0 drops the component).
+
+**3. Tier C 94 is defensible; 100 is not.**  
+CODEX’s **90** (duration+timing) / **94** (continuity present) matches the engine’s continuity-in-C path and avoids false excellence. Accept that split. Cap stays **JUDGMENT** until top-decile Tier-C vs Tier-A readiness gap is measured.
+
+**4. Citation hygiene.**  
+CODEX’s Chinoy “wake specificity 0.18–0.54” is directionally right; treat exact cells as **verify-primary** before they bind weights.
+
+### Revision to my position
+- **Adopt** CODEX arithmetic (`0.80D` + point-pool bonuses).  
+- **Reject** met-stage **85** under that formula → **met = 80**.  
+- **Accept** Tier-C **90 / 94**.  
+- **Nudge** stage split to **8 / 5 / 3.5 / 3.5** (continuity still first).
+
+### Final vote
+**Aye** — two-part **80+20** by construction; duration **0.50** of the *narrative* (implemented as **0.80·D**); quality points **8 / 5 / 3.5 / 3.5**; stage met **80**, excellent **q≥1.30**; Tier-C max **90** or **94** with continuity.
+
+**Confidence: 0.74**  
+**Decisive reason:** founder 80/20 must be exact and explainable; CODEX’s math delivers that, but only if **met = 80** so a normal baseline night does not silently re-center at 85.

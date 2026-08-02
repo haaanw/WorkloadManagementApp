@@ -1,11 +1,13 @@
 import XCTest
 @testable import workload_management
 
-/// Sleep score v2, phase S1 — the pure engine.
+/// Sleep score v2 — the pure engine, under the council composition
+/// (`.planning/sleep-v2/council-composition-ruling.md`, 2026-08-02).
 ///
 /// The load-bearing tests here are the two the milestone is contracted on:
 /// `test_tierD_isBitIdenticalToRecoveryScoreEngineSleepCurve` (the frozen fallback path)
-/// and the Q1 ceiling group (duration alone never beats 85).
+/// and the H-16 composition group — need-met lands exactly 80, quality earns/loses the
+/// last 20, the tier maxima (100 / 92 / 85–93) fall out with no renormalization.
 final class SleepScoreEngineTests: XCTestCase {
 
     private typealias Engine = SleepScoreEngine
@@ -56,17 +58,18 @@ final class SleepScoreEngineTests: XCTestCase {
         )
     }
 
-    private func allComponents() -> Set<Engine.SleepComponent> {
-        Set(Engine.SleepComponent.allCases)
+    private func allQuality() -> Set<Engine.SleepComponent> {
+        [.continuity, .regularity, .deep, .rem]
     }
 
-    // MARK: - Duration curve (§5.1 + the Q1 re-anchor)
+    // MARK: - Duration curve (§5.1, unscaled — D of the H-16 composition)
 
     func test_durationCurve_anchors() {
-        // §5.1's table scaled by exactly durationCeiling / 100 = 0.85.
+        // §5.1's table verbatim, 0–100. The 0.80 share is applied in the composition,
+        // never inside the curve.
         let expected: [(r: Double, y: Double)] = [
-            (0.60, 8.5), (0.70, 27.2), (0.80, 46.75),
-            (0.85, 57.8), (0.90, 68.0), (0.95, 76.5), (1.00, 85.0)
+            (0.60, 10), (0.70, 32), (0.80, 55),
+            (0.85, 68), (0.90, 80), (0.95, 90), (1.00, 100)
         ]
         for point in expected {
             let score = Engine.durationScore(tstMinutes: point.r * 100, needMinutes: 100)
@@ -74,12 +77,13 @@ final class SleepScoreEngineTests: XCTestCase {
         }
     }
 
-    /// The Q1 ruling as arithmetic: extra hours buy nothing above the need.
-    func test_durationCurve_plateausAtTheEightyFiveCeiling() {
-        XCTAssertEqual(Engine.durationScore(tstMinutes: 450, needMinutes: 450), 85.0, accuracy: 1e-9)
-        XCTAssertEqual(Engine.durationScore(tstMinutes: 600, needMinutes: 450), 85.0, accuracy: 1e-9)
-        XCTAssertEqual(Engine.durationScore(tstMinutes: 900, needMinutes: 450), 85.0, accuracy: 1e-9)
-        XCTAssertEqual(Engine.durationCeiling, 85.0, accuracy: 1e-9)
+    /// HAN's 80/20 rule as arithmetic: D plateaus at 100 however long the night, and its
+    /// share of the composite is exactly 0.80 — so hours alone can never beat 80.
+    func test_durationCurve_plateausAtOneHundred_andSharesExactlyEighty() {
+        XCTAssertEqual(Engine.durationScore(tstMinutes: 450, needMinutes: 450), 100.0, accuracy: 1e-9)
+        XCTAssertEqual(Engine.durationScore(tstMinutes: 600, needMinutes: 450), 100.0, accuracy: 1e-9)
+        XCTAssertEqual(Engine.durationScore(tstMinutes: 900, needMinutes: 450), 100.0, accuracy: 1e-9)
+        XCTAssertEqual(Engine.durationShare, 0.80, accuracy: 1e-12)
     }
 
     func test_durationCurve_isMonotoneNonDecreasing() {
@@ -93,8 +97,8 @@ final class SleepScoreEngineTests: XCTestCase {
     }
 
     func test_durationCurve_floorsBelowSixtyPercent() {
-        XCTAssertEqual(Engine.durationScore(tstMinutes: 30, needMinutes: 100), 8.5, accuracy: 0.001)
-        XCTAssertEqual(Engine.durationScore(tstMinutes: 55, needMinutes: 100), 8.5, accuracy: 0.001)
+        XCTAssertEqual(Engine.durationScore(tstMinutes: 30, needMinutes: 100), 10.0, accuracy: 0.001)
+        XCTAssertEqual(Engine.durationScore(tstMinutes: 55, needMinutes: 100), 10.0, accuracy: 0.001)
     }
 
     // MARK: - Continuity curve
@@ -106,40 +110,31 @@ final class SleepScoreEngineTests: XCTestCase {
         for point in expected {
             let score = Engine.continuityScore(
                 tstMinutes: point.efficiency * 1000,
-                awakeMinutes: nil,
                 inBedMinutes: 1000
             )
             XCTAssertNotNil(score)
             XCTAssertEqual(score!, point.y, accuracy: 0.001, "efficiency \(point.efficiency)")
         }
 
-        // Athlete-normal 85% must not read as a failure (§5.1 rationale, Leeder).
-        let athleteNormal = Engine.continuityScore(tstMinutes: 850, awakeMinutes: nil, inBedMinutes: 1000)
-        XCTAssertEqual(athleteNormal!, 80, accuracy: 0.001)
+        // The met anchor: athlete-normal 85% reads exactly the shared met point of 80
+        // (§5.1 rationale, Leeder) — met continuity adds exactly zero to the composite.
+        let athleteNormal = Engine.continuityScore(tstMinutes: 850, inBedMinutes: 1000)
+        XCTAssertEqual(athleteNormal!, Engine.qualityMetAnchor, accuracy: 0.001)
     }
 
-    func test_continuity_prefersInBedDenominator() {
-        // inBed 480 -> 0.875; the WASO path would give 420/450 = 0.9333.
-        let score = Engine.continuityScore(tstMinutes: 420, awakeMinutes: 30, inBedMinutes: 480)
-        let inBedPath = Engine.continuityScore(tstMinutes: 420, awakeMinutes: nil, inBedMinutes: 480)
-        let wasoPath = Engine.continuityScore(tstMinutes: 420, awakeMinutes: 30, inBedMinutes: nil)
-        XCTAssertNotNil(score)
-        XCTAssertEqual(score!, inBedPath!, accuracy: 1e-9)
-        XCTAssertNotEqual(score!, wasoPath!, accuracy: 0.001)
+    /// Council ruling 2026-08-02: efficiency needs the TRUE opportunity window. Without
+    /// an in-bed span there is no honest denominator — WASO carries no authority (which
+    /// is why Tier B tops at 92).
+    func test_continuity_requiresTheInBedWindow() {
+        XCTAssertNotNil(Engine.continuityScore(tstMinutes: 420, inBedMinutes: 480))
+        XCTAssertNil(Engine.continuityScore(tstMinutes: 420, inBedMinutes: nil))
     }
 
-    func test_continuity_fallsBackToWasoWhenInBedMissingOrShorterThanTst() {
-        let wasoPath = Engine.continuityScore(tstMinutes: 420, awakeMinutes: 30, inBedMinutes: nil)
-        XCTAssertNotNil(wasoPath)
-
-        // inBed shorter than TST is a re-binning artifact, not an efficiency above 100%.
-        let artifact = Engine.continuityScore(tstMinutes: 420, awakeMinutes: 30, inBedMinutes: 400)
-        XCTAssertNotNil(artifact)
-        XCTAssertEqual(artifact!, wasoPath!, accuracy: 1e-9)
-    }
-
-    func test_continuity_nilWhenNoDenominatorAvailable() {
-        XCTAssertNil(Engine.continuityScore(tstMinutes: 420, awakeMinutes: nil, inBedMinutes: nil))
+    /// An in-bed span shorter than TST is a re-binning artifact (§3), not an efficiency
+    /// above 100% — the component drops out rather than lying.
+    func test_continuity_nilWhenInBedShorterThanTst() {
+        XCTAssertNil(Engine.continuityScore(tstMinutes: 420, inBedMinutes: 400))
+        XCTAssertNil(Engine.continuityScore(tstMinutes: 420, inBedMinutes: 0))
     }
 
     // MARK: - Regularity curve
@@ -156,16 +151,24 @@ final class SleepScoreEngineTests: XCTestCase {
         XCTAssertEqual(Engine.regularityScore(midpointSD14Minutes: 10)!, 100, accuracy: 0.001)
         XCTAssertEqual(Engine.regularityScore(midpointSD14Minutes: 300)!, 45, accuracy: 0.001)
         XCTAssertNil(Engine.regularityScore(midpointSD14Minutes: nil))
+        // The met anchor: a 60-minute midpoint SD is an ordinary athlete fortnight and
+        // reads exactly 80 — met regularity adds exactly zero.
+        XCTAssertEqual(
+            Engine.regularityScore(midpointSD14Minutes: 60)!,
+            Engine.qualityMetAnchor,
+            accuracy: 0.001
+        )
     }
 
     // MARK: - Stage curve
 
-    /// H-11: this table deliberately diverges from §5.1's published stage curve at q = 0.85
-    /// (85 -> 80) and q = 1.00 (100 -> 85), and adds an excellent anchor at q = 1.30. The
-    /// registry row carries the reason and the falsification test; this pins the numbers.
+    /// H-11 (REVISED by the council ruling 2026-08-02): met point q = 1.00 → 80 (the
+    /// shared met anchor — met-at-85 would silently hand back a free 5 points), 0.85 → 75
+    /// so the curve stays strictly increasing, excellent q ≥ 1.30 → 100 unchanged,
+    /// sub-baseline anchors and the 45 floor unchanged.
     func test_stageCurve_anchors() {
         let expected: [(q: Double, y: Double)] = [
-            (0.40, 45), (0.55, 55), (0.70, 70), (0.85, 80), (1.00, 85), (1.30, 100)
+            (0.40, 45), (0.55, 55), (0.70, 70), (0.85, 75), (1.00, 80), (1.30, 100)
         ]
         for point in expected {
             let score = Engine.stageScore(minutes: point.q * 100, baselineMinutes: 100)
@@ -173,7 +176,11 @@ final class SleepScoreEngineTests: XCTestCase {
             XCTAssertEqual(score!, point.y, accuracy: 0.001, "stage ratio \(point.q)")
         }
         // The met point and the excellent point, pinned explicitly.
-        XCTAssertEqual(Engine.stageScore(minutes: 100, baselineMinutes: 100)!, 85, accuracy: 1e-9)
+        XCTAssertEqual(
+            Engine.stageScore(minutes: 100, baselineMinutes: 100)!,
+            Engine.qualityMetAnchor,
+            accuracy: 1e-9
+        )
         XCTAssertEqual(Engine.stageScore(minutes: 130, baselineMinutes: 100)!, 100, accuracy: 1e-9)
         XCTAssertEqual(Engine.stageScore(minutes: 200, baselineMinutes: 100)!, 100, accuracy: 1e-9)
     }
@@ -189,38 +196,35 @@ final class SleepScoreEngineTests: XCTestCase {
         XCTAssertNil(Engine.stageScore(minutes: nil, baselineMinutes: 60))
     }
 
-    // MARK: - Composite behaviour (§7 Q1)
+    // MARK: - The H-16 composition
 
-    /// Need met, everything else merely typical: the score lands ≈85, not 100.
-    ///
-    /// Worked, with the quality headroom included — it applies to every quality component
-    /// whose RAW value clears the 85 met anchor, regularity included:
-    /// duration 85 (0.50) + continuity 83.333 (0.15) + regularity 88 raw -> 91 after
-    /// headroom (0.15) + deep 85 (0.10) + REM 85 (0.10) = 85.65.
-    func test_typicalNightAtNeed_landsAtEightyFive() {
+    /// "Hours get you to 80." Need met, every quality component at the athlete's own
+    /// normal: the score lands EXACTLY 80 — met quality adds exactly zero.
+    func test_needMetTypicalNight_landsExactlyEighty() {
         let input = night(
-            tst: 430,
-            inBed: 500,                 // efficiency 0.86 -> 83.333
-            needBase: 430,              // r = 1.00
-            state: tierAState(midpointSD14: 48)
+            tst: 425,
+            inBed: 500,                 // efficiency 0.85 -> 80, the met anchor
+            needBase: 425,              // r = 1.00 -> D = 100
+            state: tierAState(midpointSD14: 60)   // SD 60 -> 80, the met anchor
         )
+        // Stages at baseline (60/60, 90/90) -> q = 1.00 -> 80, the met anchor.
         let result = Engine.compute(input: input)
         XCTAssertEqual(result.tier, .a)
         XCTAssertEqual(result.activeProfiles, [.baseline])
         XCTAssertNotNil(result.score)
-        XCTAssertEqual(result.score!, 85.65, accuracy: 0.01)
+        XCTAssertEqual(result.score!, 80.0, accuracy: 0.001)
     }
 
-    /// A genuinely excellent night reaches exactly 100. This pins `qualityHeadroomGain`.
-    func test_excellentNight_reachesExactlyOneHundred() {
+    /// A wholly excellent Tier-A night reaches exactly 100: 80 + 8 + 5 + 3.5 + 3.5.
+    func test_wholeExcellentTierANight_reachesExactlyOneHundred() {
         let input = night(
             tst: 470,
-            deep: 84,                   // q = 1.4
-            rem: 140,                   // q = 1.4
-            inBed: 500,                 // efficiency 0.94
+            deep: 84,                   // q = 1.4 -> 100
+            rem: 140,                   // q = 1.4 -> 100
+            inBed: 500,                 // efficiency 0.94 -> 100
             remBaseline: 100,
-            needBase: 450,              // r > 1.00
-            state: tierAState(midpointSD14: 20)
+            needBase: 450,              // r > 1.00 -> D = 100
+            state: tierAState(midpointSD14: 20)   // -> 100
         )
         let result = Engine.compute(input: input)
         XCTAssertEqual(result.tier, .a)
@@ -228,29 +232,140 @@ final class SleepScoreEngineTests: XCTestCase {
         XCTAssertEqual(result.score!, 100.0, accuracy: 0.001)
     }
 
-    /// "100 is never merely long" — doubling the night with identical quality changes nothing.
-    func test_merelyLongNight_cannotBeatTheCeiling() {
-        func longNight(tst: Double) -> Engine.SleepInput {
-            night(
-                tst: tst,
-                inBed: tst / 0.865,                    // continuity raw = 85, the met anchor
-                needBase: 450,
-                state: tierAState(midpointSD14: 52.5)  // regularity raw = 85
-            )
-        }
-        let atNeed = Engine.compute(input: longNight(tst: 450))
-        let doubled = Engine.compute(input: longNight(tst: 900))
-        XCTAssertNotNil(atNeed.score)
-        XCTAssertNotNil(doubled.score)
-        XCTAssertEqual(atNeed.score!, doubled.score!, accuracy: 1e-6)
-        XCTAssertLessThanOrEqual(doubled.score!, 85.5)
+    /// The ±1 clamp is the nocebo guard: a need-met night with CATASTROPHIC quality
+    /// floors at exactly 60 — each component subtracts its full points and no more.
+    func test_needMetNightWithAllQualityAtFloor_landsExactlySixty() {
+        let input = night(
+            tst: 450,
+            deep: 5,                    // q = 0.083 -> floor 45 -> clamped to -1
+            rem: 5,                     // q = 0.056 -> floor 45 -> clamped to -1
+            inBed: 750,                 // efficiency 0.60 -> 20 -> clamped to -1
+            needBase: 450,              // r = 1.00 -> D = 100
+            state: tierAState(midpointSD14: 300)  // floor 45 -> clamped to -1
+        )
+        let result = Engine.compute(input: input)
+        XCTAssertEqual(result.tier, .a)
+        XCTAssertEqual(result.activeProfiles, [.baseline])
+        XCTAssertNotNil(result.score)
+        // 80 - 8 - 5 - 3.5 - 3.5 = 60.
+        XCTAssertEqual(result.score!, 60.0, accuracy: 0.001)
     }
 
-    /// The Q1 landing is exact only where all five components score. Fewer quality
-    /// components means less headroom to earn, so the reachable maximum falls — stated
-    /// here rather than discovered in the shadow run.
-    func test_reachableCeiling_fallsWithTheTier() {
-        // Tier C, duration + timing only: 0.75 x 85 + 0.25 x 115 = 92.5, never 100.
+    /// "100 is never merely long" — doubling the night with identical met quality changes
+    /// nothing, and the landing is the 80 hours alone can buy.
+    func test_merelyLongNight_cannotBeatEighty() {
+        func longNight(tst: Double, inBed: Double) -> Engine.SleepInput {
+            night(
+                tst: tst,
+                inBed: inBed,                       // efficiency 0.85, the met anchor
+                needBase: 425,
+                state: tierAState(midpointSD14: 60) // met anchor
+            )
+        }
+        // Stages stay at baseline (the helper's 60/60, 90/90) on both nights.
+        let atNeed = Engine.compute(input: longNight(tst: 425, inBed: 500))
+        let doubled = Engine.compute(input: longNight(tst: 850, inBed: 1000))
+        XCTAssertNotNil(atNeed.score)
+        XCTAssertNotNil(doubled.score)
+        XCTAssertEqual(atNeed.score!, 80.0, accuracy: 0.001)
+        XCTAssertEqual(doubled.score!, atNeed.score!, accuracy: 1e-6)
+        // Duration's D is pinned flat at 100 on both nights — hours buy nothing past 80.
+        XCTAssertEqual(atNeed.componentScores[.duration]!, 100.0, accuracy: 1e-9)
+        XCTAssertEqual(doubled.componentScores[.duration]!, 100.0, accuracy: 1e-9)
+    }
+
+    /// The clamp itself, pinned at the formula level (H-16).
+    func test_qualityContribution_clampsAtPlusMinusOne() {
+        XCTAssertEqual(Engine.qualityContribution(80), 0.0, accuracy: 1e-12)
+        XCTAssertEqual(Engine.qualityContribution(100), 1.0, accuracy: 1e-12)
+        XCTAssertEqual(Engine.qualityContribution(120), 1.0, accuracy: 1e-12)   // clamped
+        XCTAssertEqual(Engine.qualityContribution(90), 0.5, accuracy: 1e-12)
+        XCTAssertEqual(Engine.qualityContribution(70), -0.5, accuracy: 1e-12)
+        XCTAssertEqual(Engine.qualityContribution(60), -1.0, accuracy: 1e-12)
+        XCTAssertEqual(Engine.qualityContribution(20), -1.0, accuracy: 1e-12)   // clamped
+    }
+
+    /// Missing evidence cannot testify — in EITHER direction. A met component and an
+    /// absent component both contribute exactly zero; a sub-met component subtracts.
+    func test_missingComponent_contributesZeroEitherDirection() {
+        func nightWithSD(_ sd: Double?) -> Engine.SleepInput {
+            night(
+                tst: 425,
+                inBed: 500,                    // efficiency 0.85 -> met
+                needBase: 425.0 / 0.9,         // r = 0.90 -> D = 80 -> 0.8 x 80 = 64
+                state: tierAState(midpointSD14: sd)
+            )
+        }
+        let met = Engine.compute(input: nightWithSD(60))       // regularity met -> +0
+        let missing = Engine.compute(input: nightWithSD(nil))  // regularity absent -> +0
+        let subMet = Engine.compute(input: nightWithSD(120))   // floor 45 -> -1 -> -5
+
+        XCTAssertEqual(met.score!, 64.0, accuracy: 0.01)
+        XCTAssertEqual(missing.score!, met.score!, accuracy: 0.001)
+        XCTAssertEqual(subMet.score!, met.score! - Engine.regularityPoints, accuracy: 0.001)
+        // The absent component is zeroed in the audit record, not renormalized away.
+        XCTAssertEqual(missing.points.regularity, 0.0, accuracy: 1e-12)
+        XCTAssertNil(missing.componentScores[.regularity])
+    }
+
+    /// Sub-met continuity SUBTRACTS (signed composition): a fragmented night on real
+    /// efficiency data must read worse than its hours alone.
+    func test_subMetContinuity_subtracts() {
+        let fragmented = night(
+            tst: 450,
+            inBed: 600,                 // efficiency 0.75 -> 45 -> clamped to -1 -> -8
+            needBase: 450,
+            state: tierAState(midpointSD14: 60)
+        )
+        let result = Engine.compute(input: fragmented)
+        // 80 (met everything else) - 8.
+        XCTAssertEqual(result.score!, 72.0, accuracy: 0.001)
+    }
+
+    /// The pool is never renormalized over missing components: excellent-everything with
+    /// no regularity buffer reaches 95, not 100.
+    func test_pool_doesNotRenormalizeOverMissingComponents() {
+        let input = night(
+            tst: 470,
+            deep: 84,
+            rem: 140,
+            inBed: 500,
+            remBaseline: 100,
+            needBase: 450,
+            state: tierAState(midpointSD14: nil)
+        )
+        let result = Engine.compute(input: input)
+        XCTAssertEqual(result.tier, .a)
+        // 80 + 8 + 3.5 + 3.5; regularity's 5 points are simply absent.
+        XCTAssertEqual(result.score!, 95.0, accuracy: 0.001)
+        XCTAssertEqual(result.points.regularity, 0.0, accuracy: 1e-12)
+    }
+
+    /// The tier maxima are epistemic caps (H-17) and fall out of the composition with no
+    /// new constants: A 100 · B 92 (no in-bed span, no continuity) · C 85 timing-only,
+    /// 93 with continuity · D exempt by contract (bit-identical legacy, reaches 100).
+    func test_tierMaxima_fallOutOfTheComposition() {
+        // Tier B best: excellent stages + timing, no in-bed span -> 80 + 5 + 3.5 + 3.5 = 92.
+        let tierBBest = Engine.compute(input: Engine.SleepInput(
+            tstMinutes: 470,
+            deepMinutes: 84,
+            remMinutes: 140,
+            awakeMinutes: 20,           // WASO present — and worth nothing (council ruling)
+            deepBaselineMinutes: 60,
+            remBaselineMinutes: 100,
+            needBaseMinutes: 450,
+            state: Engine.SleepStateVector(
+                midpointSD14Minutes: 10,
+                hasStageData: true,
+                nightsOfHistory: 40
+            )
+        ))
+        XCTAssertEqual(tierBBest.tier, .b)
+        XCTAssertEqual(tierBBest.points.continuity, 0.0, accuracy: 1e-12)
+        XCTAssertNil(tierBBest.componentScores[.continuity])
+        XCTAssertEqual(tierBBest.score!, 92.0, accuracy: 0.001)
+
+        // Tier C timing-only best: 80 + 5 = 85.
         let tierCBest = Engine.compute(input: Engine.SleepInput(
             tstMinutes: 600,
             needBaseMinutes: 450,
@@ -261,13 +376,13 @@ final class SleepScoreEngineTests: XCTestCase {
             )
         ))
         XCTAssertEqual(tierCBest.tier, .c)
-        XCTAssertEqual(tierCBest.weights.continuity, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(tierCBest.score!, 92.5, accuracy: 0.001)
+        XCTAssertEqual(tierCBest.points.continuity, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(tierCBest.score!, 85.0, accuracy: 0.001)
 
-        // Tier C that also has a continuity denominator sits between the two.
+        // Tier C with an in-bed span: 80 + 8 + 5 = 93.
         let tierCWithContinuity = Engine.compute(input: Engine.SleepInput(
             tstMinutes: 600,
-            inBedMinutes: 620,
+            inBedMinutes: 620,          // efficiency 0.968 -> 100
             needBaseMinutes: 450,
             state: Engine.SleepStateVector(
                 midpointSD14Minutes: 10,
@@ -276,9 +391,8 @@ final class SleepScoreEngineTests: XCTestCase {
             )
         ))
         XCTAssertEqual(tierCWithContinuity.tier, .c)
-        XCTAssertGreaterThan(tierCWithContinuity.weights.continuity, 0.0)
-        XCTAssertGreaterThan(tierCWithContinuity.score!, 92.5)
-        XCTAssertLessThan(tierCWithContinuity.score!, 100.0)
+        XCTAssertEqual(tierCWithContinuity.points.continuity, Engine.continuityPoints, accuracy: 1e-12)
+        XCTAssertEqual(tierCWithContinuity.score!, 93.0, accuracy: 0.001)
 
         // Tier D is exempt by contract (PLAN: bit-identical to today's curve), and today's
         // curve does reach 100 on a merely long night. Pinned so the exemption is explicit.
@@ -291,7 +405,8 @@ final class SleepScoreEngineTests: XCTestCase {
     }
 
     func test_score_isClampedZeroToOneHundred() {
-        // All-excellent under a duration-heavy profile stack.
+        // All-excellent under a profile stack: transfers shrink the pool, never grow the
+        // composite past 100.
         let best = Engine.SleepInput(
             tstMinutes: 600,
             deepMinutes: 200,
@@ -313,7 +428,7 @@ final class SleepScoreEngineTests: XCTestCase {
         XCTAssertNotNil(bestResult.score)
         XCTAssertLessThanOrEqual(bestResult.score!, 100.0)
 
-        // All-worst.
+        // All-worst: 0.8 x 10 - 20 would be -12; the composite floors at 0.
         let worst = night(
             tst: 120,
             deep: 1,
@@ -324,7 +439,7 @@ final class SleepScoreEngineTests: XCTestCase {
         )
         let worstResult = Engine.compute(input: worst)
         XCTAssertNotNil(worstResult.score)
-        XCTAssertGreaterThanOrEqual(worstResult.score!, 0.0)
+        XCTAssertEqual(worstResult.score!, 0.0, accuracy: 1e-9)
     }
 
     // MARK: - Tier ladder (§5.2)
@@ -353,11 +468,13 @@ final class SleepScoreEngineTests: XCTestCase {
             .c
         )
 
-        // Genuinely duration-only: no stages, no timing, no continuity denominator.
+        // Genuinely duration-only: no stages, no timing, no in-bed span. WASO alone does
+        // not rescue the night (council ruling: no in-bed span, no continuity).
         XCTAssertEqual(
             Engine.tier(for: night(
                 deep: nil,
                 rem: nil,
+                awake: 30,
                 inBed: nil,
                 state: tierAState(midpointSD14: nil)
             )),
@@ -373,18 +490,18 @@ final class SleepScoreEngineTests: XCTestCase {
 
     /// **A missing stage BASELINE is not missing stage DATA.** Nights 7–13 of an Apple Watch
     /// user have staged samples but no converged EWMA yet. The stage components drop out and
-    /// the weights renormalize (§5 preamble); the night must not be demoted to a tier that
-    /// throws the measured continuity away — §5.1 calls continuity the most reliably
-    /// measured of the five inputs.
+    /// contribute zero (H-16); the night must not be demoted to a tier that throws the
+    /// measured continuity away — §5.1 calls continuity the most reliably measured of the
+    /// five inputs.
     func test_missingStageBaseline_dropsStagesButKeepsContinuity() {
         let input = night(
             tst: 450,
             awake: 30,
-            inBed: 500,                 // efficiency 0.90 -> 95
+            inBed: 500,                 // efficiency 0.90 -> 95 -> +0.75 x 8 = +6
             deepBaseline: nil,          // EWMA not seeded yet
             remBaseline: nil,
             needBase: 450,
-            state: tierAState(midpointSD14: 45, nights: 8)
+            state: tierAState(midpointSD14: 45, nights: 8)   // 90 -> +0.5 x 5 = +2.5
         )
         let result = Engine.compute(input: input)
 
@@ -392,18 +509,17 @@ final class SleepScoreEngineTests: XCTestCase {
         XCTAssertNil(result.componentScores[.deep])
         XCTAssertNil(result.componentScores[.rem])
         XCTAssertEqual(result.componentScores[.continuity]!, 95.0, accuracy: 0.001)
-        XCTAssertEqual(result.weights.deep, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.rem, 0.0, accuracy: 1e-12)
-        // 0.50 / 0.15 / 0.15 renormalized over the three that scored.
-        XCTAssertEqual(result.weights.duration, 0.50 / 0.80, accuracy: 1e-9)
-        XCTAssertEqual(result.weights.continuity, 0.15 / 0.80, accuracy: 1e-9)
-        XCTAssertEqual(result.weights.regularity, 0.15 / 0.80, accuracy: 1e-9)
-        XCTAssertEqual(result.weights.total, 1.0, accuracy: 1e-9)
+        XCTAssertEqual(result.points.deep, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.points.rem, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.points.continuity, Engine.continuityPoints, accuracy: 1e-12)
+        XCTAssertEqual(result.points.regularity, Engine.regularityPoints, accuracy: 1e-12)
+        // 80 + 6 + 2.5, with the absent stages contributing zero — not renormalized.
+        XCTAssertEqual(result.score!, 88.5, accuracy: 0.001)
     }
 
     /// Same defect from the other direction: a source that reports no stages at all, but
     /// does report an in-bed span (§3: manual and iPhone-only entries write `inBed`).
-    func test_tierC_keepsContinuityWhenTheSourceGivesADenominator() {
+    func test_tierC_keepsContinuityWhenTheSourceGivesAnInBedSpan() {
         let input = Engine.SleepInput(
             tstMinutes: 450,
             inBedMinutes: 500,
@@ -417,16 +533,16 @@ final class SleepScoreEngineTests: XCTestCase {
         let result = Engine.compute(input: input)
         XCTAssertEqual(result.tier, .c)
         XCTAssertEqual(result.componentScores[.continuity]!, 95.0, accuracy: 0.001)
-        // §5.2's 0.75 / 0.25 pair plus continuity at its own §5.1 weight of 0.15.
-        XCTAssertEqual(result.weights.duration, 0.75 / 1.15, accuracy: 1e-9)
-        XCTAssertEqual(result.weights.continuity, 0.15 / 1.15, accuracy: 1e-9)
-        XCTAssertEqual(result.weights.regularity, 0.25 / 1.15, accuracy: 1e-9)
-        XCTAssertEqual(result.weights.total, 1.0, accuracy: 1e-9)
+        XCTAssertEqual(result.points.continuity, Engine.continuityPoints, accuracy: 1e-12)
+        XCTAssertEqual(result.points.regularity, Engine.regularityPoints, accuracy: 1e-12)
+        XCTAssertEqual(result.points.deep, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.points.rem, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.score!, 88.5, accuracy: 0.001)
     }
 
     /// The tier names the SOURCE'S data grade; what actually carried authority is
-    /// `weights` / `componentScores`, which is what §9.4 rule 5 stores. Both partial cases
-    /// below are legal and must renormalize honestly rather than silently pretend.
+    /// `points` / `componentScores`, which is what §9.4 rule 5 stores. Both partial cases
+    /// below are legal and must zero honestly rather than silently pretend.
     func test_tierLabel_doesNotPromiseEveryComponentScored() {
         // Tier A with no 14-night midpoint buffer yet: regularity drops.
         let noTiming = Engine.compute(input: night(
@@ -436,12 +552,10 @@ final class SleepScoreEngineTests: XCTestCase {
         ))
         XCTAssertEqual(noTiming.tier, .a)
         XCTAssertNil(noTiming.componentScores[.regularity])
-        XCTAssertEqual(noTiming.weights.regularity, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(noTiming.weights.duration, 0.50 / 0.85, accuracy: 1e-9)
-        XCTAssertEqual(noTiming.weights.total, 1.0, accuracy: 1e-9)
-        XCTAssertFalse(noTiming.weights.availableComponents.contains(.regularity))
+        XCTAssertEqual(noTiming.points.regularity, 0.0, accuracy: 1e-12)
+        XCTAssertFalse(noTiming.points.availableComponents.contains(.regularity))
 
-        // Tier B with neither continuity denominator: continuity drops.
+        // Tier B has no continuity denominator by definition: continuity drops.
         let noContinuity = Engine.compute(input: night(
             tst: 430,
             awake: nil,
@@ -451,10 +565,8 @@ final class SleepScoreEngineTests: XCTestCase {
         ))
         XCTAssertEqual(noContinuity.tier, .b)
         XCTAssertNil(noContinuity.componentScores[.continuity])
-        XCTAssertEqual(noContinuity.weights.continuity, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(noContinuity.weights.duration, 0.50 / 0.85, accuracy: 1e-9)
-        XCTAssertEqual(noContinuity.weights.total, 1.0, accuracy: 1e-9)
-        XCTAssertFalse(noContinuity.weights.availableComponents.contains(.continuity))
+        XCTAssertEqual(noContinuity.points.continuity, 0.0, accuracy: 1e-12)
+        XCTAssertFalse(noContinuity.points.availableComponents.contains(.continuity))
     }
 
     func test_tierOverride_wins() {
@@ -479,23 +591,24 @@ final class SleepScoreEngineTests: XCTestCase {
         XCTAssertEqual(Engine.tier(for: night(tst: 0, tierOverride: .d)), .e)
     }
 
-    func test_tierE_returnsNilScoreAndZeroWeights() {
+    func test_tierE_returnsNilScoreAndZeroPoints() {
         let result = Engine.compute(input: Engine.SleepInput(tstMinutes: nil))
         XCTAssertNil(result.score)
         XCTAssertEqual(result.tier, .e)
         XCTAssertEqual(result.confidence, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.total, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.points.total, 0.0, accuracy: 1e-12)
         XCTAssertTrue(result.componentScores.isEmpty)
         XCTAssertNil(result.needTonightMinutes)
     }
 
-    func test_tierC_baseWeightsAreSeventyFiveTwentyFive() {
-        // No continuity denominator, so the tier is exactly §5.2's stated pair.
+    /// Tier C timing-only: regularity is the only quality authority, so a met-regularity
+    /// need-met night is exactly the 80 hours buy.
+    func test_tierC_timingOnly_regularityIsTheOnlyQualityAuthority() {
         let input = Engine.SleepInput(
             tstMinutes: 450,
             needBaseMinutes: 450,
             state: Engine.SleepStateVector(
-                midpointSD14Minutes: 45,
+                midpointSD14Minutes: 60,     // the met anchor
                 hasStageData: false,
                 nightsOfHistory: 30
             )
@@ -503,16 +616,15 @@ final class SleepScoreEngineTests: XCTestCase {
         let result = Engine.compute(input: input)
         XCTAssertEqual(result.tier, .c)
         XCTAssertEqual(result.activeProfiles, [.baseline])
-        XCTAssertEqual(result.weights.duration, 0.75, accuracy: 1e-9)
-        XCTAssertEqual(result.weights.regularity, 0.25, accuracy: 1e-9)
-        XCTAssertEqual(result.weights.continuity, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.deep, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.rem, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.total, 1.0, accuracy: 1e-9)
+        XCTAssertEqual(result.points.regularity, Engine.regularityPoints, accuracy: 1e-12)
+        XCTAssertEqual(result.points.continuity, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.points.deep, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.points.rem, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.score!, 80.0, accuracy: 0.001)
     }
 
-    func test_tierD_usesSingleComponentWeight() {
-        // A profile-triggering state that must not reach the weights on the frozen tier.
+    func test_tierD_carriesNoQualityPoints() {
+        // A profile-triggering state that must not reach the points on the frozen tier.
         let input = Engine.SleepInput(
             tstMinutes: 450,
             state: Engine.SleepStateVector(
@@ -523,16 +635,18 @@ final class SleepScoreEngineTests: XCTestCase {
         )
         let result = Engine.compute(input: input)
         XCTAssertEqual(result.tier, .d)
-        XCTAssertEqual(result.weights.duration, 1.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.continuity, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.regularity, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.deep, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(result.weights.rem, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.points.total, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(result.componentScores.count, 1)
+        XCTAssertEqual(
+            result.componentScores[.duration]!,
+            RecoveryScoreEngine.sleepDurationToScore(450),
+            accuracy: 1e-12
+        )
         XCTAssertTrue(result.activeProfiles.contains(.debtCarry))
     }
 
-    /// The 85 ceiling deliberately does not apply to the compatibility tier.
-    func test_tierD_ignoresNeedAndCeiling() {
+    /// The composition deliberately does not apply to the compatibility tier.
+    func test_tierD_ignoresNeedAndComposition() {
         for need in [450.0, 570.0] {
             let input = Engine.SleepInput(
                 tstMinutes: 540,
@@ -734,7 +848,7 @@ final class SleepScoreEngineTests: XCTestCase {
 
     /// §9.4 rule 4: every state entry/exit has hysteresis except ACUTE_SHIFT. A latched
     /// state survives down to its hold band, so a signal parked on the entry line cannot
-    /// flip the weights on and off night after night. H-13.
+    /// flip the points on and off night after night. H-13, kept exactly as S1 shipped it.
     func test_profiles_haveEntryExitHysteresis() {
         func held(_ profile: Engine.SleepProfile, _ state: Engine.SleepStateVector) -> Bool {
             Engine.latchedProfiles(state: state, previousProfiles: [profile]).contains(profile)
@@ -766,92 +880,166 @@ final class SleepScoreEngineTests: XCTestCase {
         XCTAssertFalse(held(.napDay, Engine.SleepStateVector(napMinutes: 14)))
     }
 
-    // MARK: - Weight composition (§9.4 rule 2)
+    // MARK: - Point composition (H-16 / H-18)
 
-    func test_weights_deltasStackAndSumToOne() {
-        let weights = Engine.composeWeights(
-            base: Engine.baseWeights(for: .a),
+    /// The ruling's constants of record, pinned by name so a silent retune fails loudly.
+    func test_pointVector_constantsOfRecord() {
+        XCTAssertEqual(Engine.durationShare, 0.80, accuracy: 1e-12)
+        XCTAssertEqual(Engine.continuityPoints, 8.0, accuracy: 1e-12)
+        XCTAssertEqual(Engine.regularityPoints, 5.0, accuracy: 1e-12)
+        XCTAssertEqual(Engine.deepPoints, 3.5, accuracy: 1e-12)
+        XCTAssertEqual(Engine.remPoints, 3.5, accuracy: 1e-12)
+        XCTAssertEqual(Engine.qualityMetAnchor, 80.0, accuracy: 1e-12)
+        XCTAssertEqual(Engine.qualityBandWidth, 20.0, accuracy: 1e-12)
+
+        // The pool is 20 on the full tiers; Tier C grants the stages nothing.
+        XCTAssertEqual(Engine.basePoints(for: .a).total, 20.0, accuracy: 1e-12)
+        XCTAssertEqual(Engine.basePoints(for: .b).total, 20.0, accuracy: 1e-12)
+        XCTAssertEqual(
+            Engine.basePoints(for: .c),
+            Engine.QualityPoints(continuity: 8.0, regularity: 5.0)
+        )
+        XCTAssertEqual(Engine.basePoints(for: .d), Engine.QualityPoints())
+        XCTAssertEqual(Engine.basePoints(for: .e), Engine.QualityPoints())
+    }
+
+    /// H-18: §9.3's quality-side weight deltas scaled by exactly x40 (the 0.50 quality
+    /// weight pool maps onto the 20-point pool), preserving each profile's internal
+    /// ratios; duration-side deltas DROPPED (§4's need credits already move that lever).
+    func test_pointTransfers_translateTheProfileDeltaTable() {
+        XCTAssertEqual(Engine.pointTransfers(for: .baseline), Engine.QualityPoints())
+        XCTAssertEqual(Engine.pointTransfers(for: .napDay), Engine.QualityPoints())
+        // HIGH_PRESSURE: deep +0.04 / reg -0.07 / REM -0.02, ratios 4 : -7 : -2.
+        XCTAssertEqual(
+            Engine.pointTransfers(for: .highPressure),
+            Engine.QualityPoints(regularity: -2.8, deep: 1.6, rem: -0.8)
+        )
+        // HIGH_STRAIN_DAY: deep +0.03 / reg -0.05.
+        XCTAssertEqual(
+            Engine.pointTransfers(for: .highStrainDay),
+            Engine.QualityPoints(regularity: -2.0, deep: 1.2)
+        )
+        // ACUTE_SHIFT: cont +0.05 / reg -0.10; the stage response is the half cap.
+        XCTAssertEqual(
+            Engine.pointTransfers(for: .acuteShift),
+            Engine.QualityPoints(continuity: 2.0, regularity: -4.0)
+        )
+        // CHRONIC_IRREGULAR: reg +0.07 / deep -0.02 / REM -0.02.
+        XCTAssertEqual(
+            Engine.pointTransfers(for: .chronicIrregular),
+            Engine.QualityPoints(regularity: 2.8, deep: -0.8, rem: -0.8)
+        )
+        // DEBT_CARRY: every quality component cedes 0.02 -> 0.8 points.
+        XCTAssertEqual(
+            Engine.pointTransfers(for: .debtCarry),
+            Engine.QualityPoints(continuity: -0.8, regularity: -0.8, deep: -0.8, rem: -0.8)
+        )
+    }
+
+    /// Transfers stack and the pool total moves with them — there is NO renormalization
+    /// back to 20. The moved total is the honest audit record.
+    func test_points_transfersStackWithoutRenormalization() {
+        let points = Engine.composePoints(
+            base: Engine.basePoints(for: .a),
             profiles: [.highPressure, .debtCarry],
-            available: allComponents()
+            available: allQuality()
         )
-        // duration 0.50 + 0.05 + 0.08 = 0.63, clamped to the 0.60 ceiling.
-        XCTAssertEqual(weights.total, 1.0, accuracy: 1e-9)
-        for component in Engine.SleepComponent.allCases where component != .duration {
-            XCTAssertGreaterThan(weights.duration, weights[component])
-        }
-        // Pre-normalization ceiling of 0.60 over a total of 0.97.
-        XCTAssertEqual(weights.duration, 0.60 / 0.97, accuracy: 1e-9)
+        XCTAssertEqual(points.continuity, 7.2, accuracy: 1e-9)   // 8 - 0.8
+        XCTAssertEqual(points.regularity, 1.4, accuracy: 1e-9)   // 5 - 2.8 - 0.8
+        XCTAssertEqual(points.deep, 4.3, accuracy: 1e-9)         // 3.5 + 1.6 - 0.8
+        XCTAssertEqual(points.rem, 1.9, accuracy: 1e-9)          // 3.5 - 0.8 - 0.8
+        XCTAssertEqual(points.total, 14.8, accuracy: 1e-9)
     }
 
-    func test_weights_clampedToFivePercentFloor() {
-        // REM: 0.10 − 0.02 (pressure) − 0.02 (chronic) − 0.02 (debt) = 0.04 -> floored at 0.05.
-        // Duration: 0.50 + 0.05 − 0.05 + 0.08 = 0.58 (no clamp).
-        let weights = Engine.composeWeights(
-            base: Engine.baseWeights(for: .a),
-            profiles: [.highPressure, .chronicIrregular, .debtCarry],
-            available: allComponents()
+    /// A point allocation floors at zero under a deep stack — negative points would
+    /// invert the component's meaning, turning better-than-normal quality into a penalty.
+    func test_points_flooredAtZero() {
+        let points = Engine.composePoints(
+            base: Engine.basePoints(for: .a),
+            profiles: [.highPressure, .highStrainDay, .debtCarry],
+            available: allQuality()
         )
-        XCTAssertEqual(weights.rem / weights.duration, 0.05 / 0.58, accuracy: 1e-6)
-        XCTAssertEqual(weights.total, 1.0, accuracy: 1e-9)
+        // Regularity: 5 - 2.8 - 2.0 - 0.8 = -0.6, floored.
+        XCTAssertEqual(points.regularity, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(points.deep, 5.5, accuracy: 1e-9)         // 3.5 + 1.6 + 1.2 - 0.8
+        XCTAssertEqual(points.continuity, 7.2, accuracy: 1e-9)
+        XCTAssertEqual(points.rem, 1.9, accuracy: 1e-9)
     }
 
-    func test_weights_droppedComponentNeverReceivesADelta() {
-        // HIGH_PRESSURE carries a deep delta, but Tier C dropped the stage components.
-        let weights = Engine.composeWeights(
-            base: Engine.baseWeights(for: .c),
+    func test_points_droppedComponentNeverReceivesATransfer() {
+        // HIGH_PRESSURE carries a deep transfer, but the stages are unavailable here and
+        // absent components can neither testify nor absorb authority.
+        let points = Engine.composePoints(
+            base: Engine.basePoints(for: .c),
             profiles: [.highPressure],
-            available: [.duration, .regularity]
+            available: [.regularity]
         )
-        XCTAssertEqual(weights.deep, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(weights.rem, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(weights.continuity, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(points.deep, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(points.rem, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(points.continuity, 0.0, accuracy: 1e-12)
+        XCTAssertEqual(points.regularity, 2.2, accuracy: 1e-9)   // 5 - 2.8
     }
 
-    func test_weights_renormalizeOverAvailableComponentsOnly() {
-        let weights = Engine.composeWeights(
-            base: Engine.baseWeights(for: .c),
-            profiles: [.highPressure, .debtCarry],
-            available: [.duration, .regularity]
-        )
-        XCTAssertEqual(weights.duration + weights.regularity, 1.0, accuracy: 1e-9)
-        XCTAssertEqual(weights.total, 1.0, accuracy: 1e-9)
-        XCTAssertEqual(weights.continuity, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(weights.deep, 0.0, accuracy: 1e-12)
-        XCTAssertEqual(weights.rem, 0.0, accuracy: 1e-12)
-        // duration 0.75 + 0.05 + 0.08 -> clamped at max(0.60, base 0.75) = 0.75;
-        // regularity 0.25 − 0.07 − 0.02 = 0.16; renormalized over 0.91.
-        XCTAssertEqual(weights.duration, 0.75 / 0.91, accuracy: 1e-9)
-        XCTAssertEqual(weights.regularity, 0.16 / 0.91, accuracy: 1e-9)
-    }
-
-    /// The §9.4-rule-2 ceiling deviation, pinned by value. §9.4 clamps every weight to
-    /// [0.05, 0.60]; §5.2 states Tier C duration = 0.75. The ceiling never cuts below the
-    /// tier's own base weight — which buys the tier's ratio, NOT a frozen 0.75, because
-    /// renormalization still moves the final number whenever a delta fires.
-    func test_weights_tierCCeilingNeverCutsBelowItsOwnBaseWeight() {
-        let weights = Engine.composeWeights(
-            base: Engine.baseWeights(for: .c),
-            profiles: [.debtCarry],
-            available: [.duration, .regularity]
-        )
-        // duration 0.75 + 0.08 -> 0.75 after the clamp; regularity 0.25 − 0.02 = 0.23.
-        XCTAssertEqual(weights.duration, 0.75 / 0.98, accuracy: 1e-9)
-        XCTAssertEqual(weights.regularity, 0.23 / 0.98, accuracy: 1e-9)
-        // A literal 0.60 ceiling would have produced 0.706 / 0.294 with no deltas at all.
-        XCTAssertGreaterThan(weights.duration, 0.72)
-    }
-
-    /// "Stage components capped at half authority" = half of the tier's BASE stage weight,
-    /// pinned as a ratio because renormalization moves the absolutes.
-    func test_acuteShift_capsStageAuthorityAtHalfBase() {
-        let weights = Engine.composeWeights(
-            base: Engine.baseWeights(for: .a),
+    /// "Stage components capped at half authority" (§9.3), council-translated: the stage
+    /// points are halved for the acute night — 3.5 -> 1.75 each, measured against BASE.
+    func test_acuteShift_halvesStagePoints() {
+        let points = Engine.composePoints(
+            base: Engine.basePoints(for: .a),
             profiles: [.acuteShift],
-            available: allComponents()
+            available: allQuality()
         )
-        XCTAssertEqual(weights.deep / weights.duration, 0.05 / 0.55, accuracy: 1e-6)
-        XCTAssertEqual(weights.rem / weights.duration, 0.05 / 0.55, accuracy: 1e-6)
-        XCTAssertEqual(weights.total, 1.0, accuracy: 1e-9)
+        XCTAssertEqual(points.deep, 1.75, accuracy: 1e-12)
+        XCTAssertEqual(points.rem, 1.75, accuracy: 1e-12)
+        XCTAssertEqual(points.continuity, 10.0, accuracy: 1e-9)  // 8 + 2
+        XCTAssertEqual(points.regularity, 1.0, accuracy: 1e-9)   // 5 - 4
+    }
+
+    /// The half cap holds under stacking: a positive deep transfer from HIGH_PRESSURE
+    /// cannot push a stage past half its base authority on an acute night.
+    func test_acuteShift_stageCapHoldsUnderStacking() {
+        let points = Engine.composePoints(
+            base: Engine.basePoints(for: .a),
+            profiles: [.highPressure, .acuteShift],
+            available: allQuality()
+        )
+        XCTAssertEqual(points.deep, 1.75, accuracy: 1e-12)       // min(3.5 + 1.6, 1.75)
+        XCTAssertEqual(points.rem, 1.75, accuracy: 1e-12)
+    }
+
+    /// End to end: a latched profile moves the score by exactly (transfer x contribution),
+    /// with the need held equal across the pair so only the points differ.
+    func test_profileTransfer_movesScoreByPointsTimesContribution() {
+        // Debt 160 sits in DEBT_CARRY's hold band: latched stays on, fresh stays off —
+        // while the §4 debt credit (ungated, capped at 30) is identical for both runs.
+        func run(previous: Set<Engine.SleepProfile>) -> Engine.SleepResult {
+            Engine.compute(input: night(
+                tst: 480,
+                deep: 69,                  // q = 1.15 -> 90 -> contribution +0.5
+                rem: 103.5,                // q = 1.15 -> 90 -> +0.5
+                inBed: 480 / 0.88,         // efficiency 0.88 -> 90 -> +0.5
+                needBase: 450,             // + debt credit 30 -> need 480 -> D = 100
+                state: Engine.SleepStateVector(
+                    midpointSD14Minutes: 45,   // 90 -> +0.5
+                    sleepDebt7Minutes: 160,
+                    hasStageData: true,
+                    nightsOfHistory: 30
+                ),
+                previousProfiles: previous
+            ))
+        }
+        let fresh = run(previous: [])
+        let latched = run(previous: [.debtCarry])
+
+        XCTAssertEqual(fresh.activeProfiles, [.baseline])
+        XCTAssertTrue(latched.activeProfiles.contains(.debtCarry))
+        XCTAssertEqual(fresh.needTonightMinutes!, latched.needTonightMinutes!, accuracy: 1e-9)
+
+        // Fresh: 80 + 0.5 x (8 + 5 + 3.5 + 3.5) = 90.
+        XCTAssertEqual(fresh.score!, 90.0, accuracy: 0.01)
+        // Latched: every quality point cedes 0.8, so 80 + 0.5 x 16.8 = 88.4 — a delta of
+        // exactly (0.8 x 4) x 0.5 = 1.6.
+        XCTAssertEqual(latched.score!, 88.4, accuracy: 0.01)
+        XCTAssertEqual(latched.points.total, 16.8, accuracy: 1e-9)
     }
 
     // MARK: - Nightly need (§4, §9.4 rule 3)
@@ -933,16 +1121,16 @@ final class SleepScoreEngineTests: XCTestCase {
         )
     }
 
-    /// The residual step at a trigger is the §9.3 weight shift alone — states are states,
-    /// not gradients — and it is now under a point instead of six.
+    /// The residual step at a trigger is the §9.3 point transfer alone — states are
+    /// states, not gradients — and under the H-16 composition it is well under a point.
     func test_score_stepAtTheDebtTriggerIsSmall() {
         func scored(debt: Double) -> Double {
             let input = night(
                 tst: 450,
-                inBed: 450 / 0.865,                    // continuity raw = 85
+                inBed: 450 / 0.865,                    // continuity raw = 85 -> +0.25
                 needBase: 450,
                 state: Engine.SleepStateVector(
-                    midpointSD14Minutes: 52.5,         // regularity raw = 85
+                    midpointSD14Minutes: 52.5,         // regularity raw = 85 -> +0.25
                     sleepDebt7Minutes: debt,
                     hasStageData: true,
                     nightsOfHistory: 30
@@ -1076,8 +1264,8 @@ final class SleepScoreEngineTests: XCTestCase {
         XCTAssertNotNil(result.score)
         XCTAssertNotNil(result.needTonightMinutes)
         XCTAssertFalse(result.activeProfiles.isEmpty)
-        XCTAssertEqual(result.weights.total, 1.0, accuracy: 1e-9)
-        for component in result.weights.availableComponents {
+        XCTAssertEqual(result.points.total, 20.0, accuracy: 1e-9)
+        for component in result.points.availableComponents {
             XCTAssertNotNil(
                 result.componentScores[component],
                 "missing component score for \(component.rawValue)"
@@ -1137,8 +1325,7 @@ final class SleepScoreEngineTests: XCTestCase {
                 liveMismatches.append("\(m): \(actual)")
             }
             if result.tier != .d
-                || result.weights.duration != 1.0
-                || result.weights.total != 1.0
+                || result.points.total != 0
                 || result.needTonightMinutes != nil {
                 machineryLeaks.append("v2 machinery leaked at \(m)")
             }
