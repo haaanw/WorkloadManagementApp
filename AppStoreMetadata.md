@@ -17,11 +17,11 @@ strength,workout log,readiness,HRV,recovery,training load,RPE,progress,Apple Wat
 
 ## Promotional Text (170 chars, updatable without review)
 
-Tuwa reads your recovery and training load, then tells you exactly how to adjust today's session — your plan, your numbers, made safe. Fully redesigned in 1.6.
+Tuwa reads your recovery and training load, then tells you exactly how to adjust today's session — your plan, your numbers, made safe. New in 1.7: field-notes design.
 
 ### zh-Hans
 
-Tuwa 读取你的恢复状态与训练负荷，告诉你今天的训练该怎么调——你的计划、你的数字，练得更稳。1.6 全新设计。
+Tuwa 读取你的恢复状态与训练负荷，告诉你今天的训练该怎么调——你的计划、你的数字，练得更稳。1.7 田野笔记新设计，图表可深入分析。
 
 ## Description (en)
 
@@ -60,6 +60,9 @@ Tuwa Pro unlocks full history, overload suggestions, custom exercises, and PR tr
 
 Tuwa is for fitness and performance guidance only. It is not medical advice.
 
+Terms of Use (EULA): https://tuwa.app/terms
+Privacy Policy: https://tuwa.app/privacy
+
 ## Description (zh-Hans)
 
 Tuwa 是自主训练运动员的运动科学后台——你自己打球、撸铁、练体能、写计划，Tuwa 负责把身体数据变成每天的训练决定。
@@ -97,6 +100,17 @@ Tuwa Pro 解锁完整历史、超负荷建议、自定义动作与 PR 追踪。�
 
 Tuwa 仅提供健身与运动表现参考，不构成医疗建议。
 
+使用条款 (EULA)：https://tuwa.app/zh/terms
+隐私政策：https://tuwa.app/zh/privacy
+
+## What's New (v1.7, en)
+
+Tuwa 1.7 brings the field-notes design: a scientist's terse annotations engraved on every card, and a distinct color for each metric so you can read a screen at a glance. Tap into HRV and sleep for new detail views — your personal baseline, the 7.5-hour sleep target, day-by-day scrubbing, and plain-language explanations of what each signal means. Sleep scoring now uses the 7.5-hour target with a smoother curve. Plus larger labels, cleaner charts, and fixes throughout.
+
+## What's New (v1.7, zh-Hans)
+
+Tuwa 1.7 带来田野笔记设计：每张卡片上刻着科学家式的简洁注记，每个指标拥有自己的颜色，一眼即读。轻点心率变异性与睡眠，进入全新详情页——你的个人基准线、7.5 小时睡眠目标、逐日滑动查看，以及每个信号含义的通俗解释。睡眠评分改用 7.5 小时目标和更平滑的曲线。另有更大的标签、更清晰的图表与多处修复。
+
 ## What's New (v1.6, en)
 
 Tuwa 1.6 is a full redesign. Warm, calm surfaces, one precise typeface, and a single accent reserved for your readiness score. Every screen rebuilt: clearer daily verdict, tactile machined controls, steadier motion, faster logging. Tuwa is now built entirely for self-coached athletes.
@@ -106,10 +120,20 @@ Tuwa 1.6 is a full redesign. Warm, calm surfaces, one precise typeface, and a si
 Tuwa 1.6 全新设计。温暖沉稳的界面、统一的精确字体、只属于准备度分数的一抹重点色。每个页面重建：更清晰的每日判定、更扎实的手感控件、更流畅的动效、更快的记录。Tuwa 现在完全为自主训练的运动员打造。
 
 ## Privacy URL
-https://haaanw.github.io/WorkloadManagementApp/privacy.html
+https://tuwa.app/privacy
 
 ## Support URL
-https://haaanw.github.io/WorkloadManagementApp/support.html
+https://tuwa.app/support
 
-## Terms of Service URL
-https://haaanw.github.io/WorkloadManagementApp/terms.html
+## Terms of Use (EULA) URL
+https://tuwa.app/terms
+
+ASC has no field for this — Apple requires auto-renewable-subscription apps to carry a
+functional Terms of Use link **in the description body** (or a custom EULA pasted into
+App Information → License Agreement). The v1.6 submission was rejected 2026-07-25 for
+exactly this. The link now lives at the foot of both descriptions above; do not drop it
+in future copy rewrites.
+
+**Do not retire** `https://haaanw.github.io/WorkloadManagementApp/{terms,privacy}.html` —
+build 17's in-app paywall (`UpgradeSheet.swift:185-189`) still points there. Those links
+move to tuwa.app only in a build after 17.
