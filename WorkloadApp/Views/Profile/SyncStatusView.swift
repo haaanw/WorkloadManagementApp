@@ -12,27 +12,32 @@ struct SyncStatusView: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        ScrollView {
-            VStack(spacing: 0) {
-                // Section header: 17pt Medium sectionHead per DESIGN.md separator grammar.
-                SectionHeader(title: "profile.sync.statusTitle")
-                    .padding(.top, Spacing.md)
-                    .padding(.bottom, Spacing.sm)
-
-                // Card container: entity rows on the surfaceEl plane with row hairlines
+        // TimelineView re-renders the stamps every 30 s: `Date()` captured in a body is
+        // otherwise frozen until something else invalidates the view, which is how a row
+        // could keep saying a just-synced stamp forever (v1.7.1).
+        TimelineView(.periodic(from: .now, by: 30)) { timeline in
+            ScrollView {
                 VStack(spacing: 0) {
-                    ForEach(Array(SyncEntity.allCases.enumerated()), id: \.element.id) { index, entity in
-                        entityRow(entity)
-                        if index < SyncEntity.allCases.count - 1 {
-                            Rectangle()
-                                .fill(ColorTokens.divider)
-                                .frame(height: 0.5)
-                                .padding(.leading, 40)
+                    // Section header: 17pt Medium sectionHead per DESIGN.md separator grammar.
+                    SectionHeader(title: "profile.sync.statusTitle")
+                        .padding(.top, Spacing.md)
+                        .padding(.bottom, Spacing.sm)
+
+                    // Card container: entity rows on the surfaceEl plane with row hairlines
+                    VStack(spacing: 0) {
+                        ForEach(Array(SyncEntity.allCases.enumerated()), id: \.element.id) { index, entity in
+                            entityRow(entity, now: timeline.date)
+                            if index < SyncEntity.allCases.count - 1 {
+                                Rectangle()
+                                    .fill(ColorTokens.divider)
+                                    .frame(height: 0.5)
+                                    .padding(.leading, 40)
+                            }
                         }
                     }
+                    .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+                    .padding(.horizontal, Spacing.sm)
                 }
-                .cardStyle(horizontalPadding: 0, verticalPadding: 0)
-                .padding(.horizontal, Spacing.sm)
             }
         }
         .background(ColorTokens.background)
@@ -47,7 +52,7 @@ struct SyncStatusView: View {
     }
 
     @ViewBuilder
-    private func entityRow(_ entity: SyncEntity) -> some View {
+    private func entityRow(_ entity: SyncEntity, now: Date) -> some View {
         let hasFailed = store.lastErrors[entity] != nil
         let lastSync = store.lastSuccess(for: entity)
 
@@ -70,14 +75,22 @@ struct SyncStatusView: View {
                 // it is prose, and the annotation voice never speaks sentences.
                 if hasFailed, let error = store.lastErrors[entity] {
                     AnnotationLabel(
-                        String(format: String(localized: "sync.status.failed", defaultValue: "Failed %@"), Self.relativeFormatter.localizedString(for: error.timestamp, relativeTo: Date())),
+                        String(format: String(localized: "sync.status.failed", defaultValue: "Failed %@"), relativeStamp(for: error.timestamp, now: now)),
                         size: .small,
                         color: ColorTokens.text2
                     )
                     .annotationReveal()
+                    if let detail = error.detail {
+                        // Diagnostic second line: raw server/decoder text, working voice
+                        // (prose, never uppercased by the annotation transform).
+                        Text(detail)
+                            .font(.Tokens.smallLabel)
+                            .foregroundStyle(ColorTokens.text3)
+                            .lineLimit(2)
+                    }
                 } else if let date = lastSync {
                     AnnotationLabel(
-                        Self.relativeFormatter.localizedString(for: date, relativeTo: Date()),
+                        relativeStamp(for: date, now: now),
                         size: .small,
                         color: ColorTokens.text2
                     )
@@ -107,7 +120,17 @@ struct SyncStatusView: View {
         .accessibilityElement(children: .combine)
         .accessibilityLabel(hasFailed
             ? "\(entity.displayName), sync failed, \(store.lastErrors[entity]?.message ?? "")"
-            : "\(entity.displayName), synced \(lastSync.map { Self.relativeFormatter.localizedString(for: $0, relativeTo: Date()) } ?? "never")")
+            : "\(entity.displayName), synced \(lastSync.map { relativeStamp(for: $0, now: now) } ?? "never")")
+    }
+
+    /// Relative stamp with a "just now" floor. `RelativeDateTimeFormatter` phrases a
+    /// sub-second interval as FUTURE ("in 0 sec") because it rounds before choosing
+    /// tense — the "IN 0 SEC" defect from HAN's 2026-08-05 dogfood.
+    private func relativeStamp(for date: Date, now: Date) -> String {
+        if now.timeIntervalSince(date) < 60 {
+            return LocalePinnedStrings.localized("profile.sync.justNow", locale: locale)
+        }
+        return Self.relativeFormatter.localizedString(for: date, relativeTo: now)
     }
 
     private static let relativeFormatter: RelativeDateTimeFormatter = {

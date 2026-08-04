@@ -31,6 +31,7 @@ struct RecoveryPipeline {
         var hrvDate: Date?
         var rhrDate: Date?
         var sleepDate: Date?
+        var sleepDetail: HealthKitService.LastNightSleepDetail?
 
         // Attempt reads whenever HealthKit is available AND the user has requested access.
         // Absence of data is treated as "no recent data" downstream, never as "unauthorized".
@@ -43,9 +44,9 @@ struct RecoveryPipeline {
             rhr = rhrResult?.value
             rhrDate = rhrResult?.date
 
-            let sleepResult = try? await healthKitService.fetchLastNightSleepWithDate()
-            sleep = sleepResult?.value
-            sleepDate = sleepResult?.date
+            sleepDetail = try? await healthKitService.fetchLastNightSleepDetail()
+            sleep = sleepDetail?.tstMinutes
+            sleepDate = sleepDetail?.sessionEnd
 
             bodyTemp = try? await healthKitService.fetchLatestBodyTemp()
             vo2Max = try? await healthKitService.fetchLatestVO2Max()
@@ -106,6 +107,7 @@ struct RecoveryPipeline {
             athlete: athlete,
             healthKitService: healthKitService,
             modelContext: modelContext,
+            detail: sleepDetail,
             v1SleepMinutes: sleep
         )
         runSleepShadowJoins(athlete: athlete, modelContext: modelContext)
@@ -145,13 +147,11 @@ struct RecoveryPipeline {
     /// - All errors degrade silently to the existing behaviour: the method never throws and
     ///   catches everything internally (sleep v2 must never break the pipeline).
     /// - Once per wake day: the `sleepV2LastFoldedDate` monotonic cutoff (the W-1
-    ///   idempotency contract) makes re-runs on the same day no-ops — and that cutoff is
-    ///   checked BEFORE any HealthKit work (F4): the SwiftData read is a cheap local fetch,
-    ///   the HealthKit query is the expensive part, so on every run after the day's first
-    ///   fold the shadow exits without touching HealthKit. The shadow stays inline
-    ///   otherwise (accepted latency decision: one HealthKit query on the first run of the
-    ///   day — with F3's session keying, a same-day second fold attempt exits at this
-    ///   pre-check because the fold stamps the wake day).
+    ///   idempotency contract) makes re-runs on the same day no-ops — the cutoff is
+    ///   checked before any shadow work (F4). Since v1.7.1 the sleep detail is fetched
+    ///   once in pipeline step 1 (the live score consumes it too) and passed in, so the
+    ///   shadow itself issues no sleep query; the F4 pre-check now guards the fold and
+    ///   the H-37 energy query.
     /// - The fold key is the SESSION's wake day — `startOfDay(sessionEnd)` — never the run
     ///   date (F3a): a pipeline run after midnight must not re-bucket last night onto the
     ///   run day. Two further guards live in `SleepStateBuilder.shouldFold` (F3b/F3c):
@@ -162,6 +162,7 @@ struct RecoveryPipeline {
         athlete: Athlete,
         healthKitService: HealthKitService,
         modelContext: ModelContext,
+        detail: HealthKitService.LastNightSleepDetail?,
         v1SleepMinutes: Double?
     ) async {
         do {
@@ -187,8 +188,9 @@ struct RecoveryPipeline {
                 return
             }
 
-            guard let detail = try await healthKitService.fetchLastNightSleepDetail() else {
-                // No asleep samples in the window — Tier E, no night to fold.
+            guard let detail else {
+                // No asleep samples in the window — Tier E, no night to fold. (The fetch
+                // now happens once in step 1; live score and shadow share the detail.)
                 return
             }
 

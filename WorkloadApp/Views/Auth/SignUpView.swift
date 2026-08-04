@@ -90,10 +90,7 @@ struct SignUpView: View {
                                 }
                                 .frame(maxWidth: .infinity)
                                 .padding(.vertical, Spacing.sm)
-                                .background(
-                                    selectedSport == sport ? ColorTokens.surfaceEl2 : ColorTokens.surfaceEl,
-                                    in: RoundedRectangle(cornerRadius: CornerTokens.control)
-                                )
+                                .contentShape(RoundedRectangle(cornerRadius: CornerTokens.control))
                                 .overlay(
                                     RoundedRectangle(cornerRadius: CornerTokens.control).stroke(
                                         selectedSport == sport ? ColorTokens.text1 : ColorTokens.divider,

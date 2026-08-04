@@ -12,6 +12,25 @@ struct HRVDetailChart: View {
     @Environment(\.locale) private var locale
     let data: [(date: Date, value: Double)]
     @Binding var selectedDate: Date?
+    /// Visible window, in days ending today. The pinch gesture on the detail screen
+    /// drives it; 28 is the default reading.
+    var windowDays: Int = 28
+
+    /// Explicit x-domain (trailing `windowDays`, ending start-of-tomorrow). See
+    /// `SleepDetailChart.xDomain` — same defect, same fix.
+    private var xDomain: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: .now))!
+        let start = calendar.date(byAdding: .day, value: -windowDays, to: end)!
+        return start...end
+    }
+
+    /// The readings inside the visible window — what the marks and the scrub see.
+    /// Baseline math below stays on the FULL series' trailing 7 days so zooming the
+    /// plot never moves the baseline.
+    private var visibleData: [(date: Date, value: Double)] {
+        data.filter { $0.date >= xDomain.lowerBound }
+    }
 
     private var recent: [Double] { data.suffix(7).map(\.value) }
 
@@ -54,10 +73,10 @@ struct HRVDetailChart: View {
                 }
 
                 Chart {
-                    ForEach(data.indices, id: \.self) { i in
+                    ForEach(visibleData.indices, id: \.self) { i in
                         LineMark(
-                            x: .value("Date", data[i].date),
-                            y: .value("HRV", data[i].value)
+                            x: .value("Date", visibleData[i].date),
+                            y: .value("HRV", visibleData[i].value)
                         )
                         .foregroundStyle(ColorTokens.metricRecovery)
                         .lineStyle(StrokeStyle(lineWidth: 1.5))
@@ -101,11 +120,12 @@ struct HRVDetailChart: View {
                         }
                     }
                 }
+                .chartXScale(domain: xDomain)
                 .frame(height: 224)
                 .chartOverlay { proxy in
                     ChartTooltipGesture(
                         proxy: proxy,
-                        data: data,
+                        data: visibleData,
                         selectedDate: $selectedDate,
                         clearsOnEnd: false,
                         // 224pt of plot inside a long ScrollView: a zero-distance drag would own

@@ -101,7 +101,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.workloadSnapshots, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .workloadSnapshots, error: classifyError(error))
+            recordFailure(.workloadSnapshots, error)
             return false
         }
         guard !snapshots.isEmpty else { return true }
@@ -143,10 +143,41 @@ struct SyncService {
         if "\(error)".contains("500") || "\(error)".contains("502") || "\(error)".contains("503") {
             return "Server error"
         }
-        if error is DecodingError {
+        if error is DecodingError || error is EncodingError {
             return "Data format error"
         }
         return "Sync error"
+    }
+
+    /// A compact slice of the underlying error for the Sync Status row's second line, so
+    /// a failure is diagnosable on the device without the Xcode console (v1.7.1).
+    private func errorDetail(_ error: Error) -> String? {
+        if let postgrest = error as? PostgrestError {
+            return postgrest.message
+        }
+        if let decoding = error as? DecodingError {
+            switch decoding {
+            case .typeMismatch(_, let context),
+                 .valueNotFound(_, let context),
+                 .dataCorrupted(let context):
+                return context.debugDescription
+            case .keyNotFound(let key, _):
+                return "Missing field: \(key.stringValue)"
+            @unknown default:
+                return nil
+            }
+        }
+        if error is URLError { return nil }
+        return String("\(error)".prefix(140))
+    }
+
+    /// Records a failure with both the classified label and the diagnostic detail.
+    private func recordFailure(_ entity: SyncEntity, _ error: Error) {
+        SyncTimestampStore.shared.recordFailure(
+            for: entity,
+            error: classifyError(error),
+            detail: errorDetail(error)
+        )
     }
 
     @discardableResult
@@ -156,7 +187,7 @@ struct SyncService {
             return true
         } catch {
             logFailure(entity, direction, error)
-            SyncTimestampStore.shared.recordFailure(for: entity, error: classifyError(error))
+            recordFailure(entity, error)
             return false
         }
     }
@@ -210,7 +241,7 @@ struct SyncService {
             acwrMethod: athlete.acwrMethod.rawValue,
             loadMetricPreference: athlete.loadMetricPreference.rawValue,
             maxHeartRate: athlete.maxHeartRate,
-            dateOfBirth: athlete.dateOfBirth,
+            dateOfBirth: athlete.dateOfBirth.map(DateOnly.init),
             isCoach: athlete.isCoach,
             trainingFrequency: athlete.trainingFrequency?.rawValue,
             experienceLevel: athlete.experienceLevel?.rawValue,
@@ -266,7 +297,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.recoverySnapshots, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .recoverySnapshots, error: classifyError(error))
+            recordFailure(.recoverySnapshots, error)
             return false
         }
         guard !snapshots.isEmpty else { return true }
@@ -284,7 +315,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.wellnessCheckIns, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .wellnessCheckIns, error: classifyError(error))
+            recordFailure(.wellnessCheckIns, error)
             return false
         }
         guard !checkIns.isEmpty else { return true }
@@ -302,7 +333,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.personalRecords, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .personalRecords, error: classifyError(error))
+            recordFailure(.personalRecords, error)
             return false
         }
         guard !prs.isEmpty else { return true }
@@ -320,7 +351,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.workouts, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .workouts, error: classifyError(error))
+            recordFailure(.workouts, error)
             return false
         }
         guard !sessions.isEmpty else { return true }
@@ -344,7 +375,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.workloadSnapshots, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .workloadSnapshots, error: classifyError(error))
+            recordFailure(.workloadSnapshots, error)
             return false
         }
 
@@ -354,7 +385,7 @@ struct SyncService {
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let snap = existing ?? WorkloadSnapshot()
             snap.id = row.id
-            snap.snapshotDate = row.snapshotDate
+            snap.snapshotDate = row.snapshotDate.date
             snap.acuteLoad = row.acuteLoad ?? 0
             snap.chronicLoad = row.chronicLoad ?? 0
             snap.acwr = row.acwr ?? 0
@@ -369,7 +400,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.workloadSnapshots, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .workloadSnapshots, error: classifyError(error))
+            recordFailure(.workloadSnapshots, error)
             return false
         }
         return true
@@ -387,7 +418,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.recoverySnapshots, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .recoverySnapshots, error: classifyError(error))
+            recordFailure(.recoverySnapshots, error)
             return false
         }
 
@@ -397,7 +428,7 @@ struct SyncService {
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let snap = existing ?? RecoverySnapshot()
             snap.id = row.id
-            snap.date = row.date
+            snap.date = row.date.date
             snap.hrvSDNN = row.hrvSdnn
             snap.restingHR = row.restingHr
             snap.sleepDurationMinutes = row.sleepDurationMinutes
@@ -416,7 +447,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.recoverySnapshots, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .recoverySnapshots, error: classifyError(error))
+            recordFailure(.recoverySnapshots, error)
             return false
         }
         return true
@@ -434,7 +465,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.wellnessCheckIns, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .wellnessCheckIns, error: classifyError(error))
+            recordFailure(.wellnessCheckIns, error)
             return false
         }
 
@@ -444,7 +475,7 @@ struct SyncService {
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let checkIn = existing ?? WellnessCheckIn()
             checkIn.id = row.id
-            checkIn.date = row.date
+            checkIn.date = row.date.date
             checkIn.sleepQuality = row.sleepQuality ?? 3
             checkIn.soreness = row.soreness ?? 3
             checkIn.energy = row.energy ?? 3
@@ -458,7 +489,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.wellnessCheckIns, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .wellnessCheckIns, error: classifyError(error))
+            recordFailure(.wellnessCheckIns, error)
             return false
         }
         return true
@@ -476,7 +507,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.workouts, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .workouts, error: classifyError(error))
+            recordFailure(.workouts, error)
             return false
         }
 
@@ -506,7 +537,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.workouts, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .workouts, error: classifyError(error))
+            recordFailure(.workouts, error)
             return false
         }
         return true
@@ -522,7 +553,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.behaviorTags, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .behaviorTags, error: classifyError(error))
+            recordFailure(.behaviorTags, error)
             return false
         }
         guard !tags.isEmpty else { return true }
@@ -544,7 +575,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.behaviorTags, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .behaviorTags, error: classifyError(error))
+            recordFailure(.behaviorTags, error)
             return false
         }
 
@@ -567,7 +598,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.behaviorTags, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .behaviorTags, error: classifyError(error))
+            recordFailure(.behaviorTags, error)
             return false
         }
         return true
@@ -585,7 +616,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.personalRecords, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .personalRecords, error: classifyError(error))
+            recordFailure(.personalRecords, error)
             return false
         }
 
@@ -609,11 +640,56 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.personalRecords, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .personalRecords, error: classifyError(error))
+            recordFailure(.personalRecords, error)
             return false
         }
         return true
     }
+
+/// Calendar-day codec for Postgres `DATE` columns (v1.7.1 sync repair).
+///
+/// PostgREST serialises a `DATE` column as a bare "yyyy-MM-dd" string. The client's
+/// global `.iso8601`-style strategies could neither decode that (every pull on
+/// recovery_snapshots / wellness_check_ins / workload_snapshots threw DecodingError →
+/// "Data format error") nor encode it day-stably: a full UTC timestamp cast to `DATE`
+/// server-side lands on the previous calendar day for any zone east of UTC at local
+/// midnight — which is exactly what start-of-day snapshot dates are. Date-only fields
+/// therefore round-trip through this wrapper as the LOCAL calendar day, bypassing the
+/// container's Date strategies entirely.
+struct DateOnly: Codable, Equatable {
+    let date: Date
+
+    init(_ date: Date) {
+        self.date = Calendar.current.startOfDay(for: date)
+    }
+
+    init(from decoder: Decoder) throws {
+        let raw = try decoder.singleValueContainer().decode(String.self)
+        // Tolerate a timestamptz string too (first 10 chars are the date part) in case
+        // a column is migrated later.
+        guard let parsed = Self.formatter.date(from: String(raw.prefix(10))) else {
+            throw DecodingError.dataCorrupted(DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "Unrecognized DATE string: \(raw)"
+            ))
+        }
+        self.date = parsed
+    }
+
+    func encode(to encoder: Encoder) throws {
+        var container = encoder.singleValueContainer()
+        try container.encode(Self.formatter.string(from: date))
+    }
+
+    private static let formatter: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = .current
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+}
 
 struct AthleteRow: Codable {
     let id: UUID
@@ -624,7 +700,7 @@ struct AthleteRow: Codable {
     let acwrMethod: String?
     let loadMetricPreference: String?
     let maxHeartRate: Int?
-    let dateOfBirth: Date?
+    let dateOfBirth: DateOnly?
     let isCoach: Bool?
     let trainingFrequency: String?
     let experienceLevel: String?
@@ -660,7 +736,7 @@ struct BehaviorTagRow: Codable {
 struct WorkloadSnapshotRow: Codable {
     let id: UUID
     let athleteId: UUID
-    let snapshotDate: Date
+    let snapshotDate: DateOnly
     let acuteLoad: Double?
     let chronicLoad: Double?
     let acwr: Double?
@@ -672,7 +748,7 @@ struct WorkloadSnapshotRow: Codable {
     init(from model: WorkloadSnapshot, athleteId: UUID) {
         self.id = model.id
         self.athleteId = athleteId
-        self.snapshotDate = model.snapshotDate
+        self.snapshotDate = DateOnly(model.snapshotDate)
         self.acuteLoad = model.acuteLoad
         self.chronicLoad = model.chronicLoad
         self.acwr = model.acwr
@@ -686,7 +762,7 @@ struct WorkloadSnapshotRow: Codable {
 struct RecoverySnapshotRow: Codable {
     let id: UUID
     let athleteId: UUID
-    let date: Date
+    let date: DateOnly
     let recoveryScore: Double?
     let hrvSdnn: Double?
     let restingHr: Double?
@@ -702,7 +778,7 @@ struct RecoverySnapshotRow: Codable {
     init(from model: RecoverySnapshot, athleteId: UUID) {
         self.id = model.id
         self.athleteId = athleteId
-        self.date = model.date
+        self.date = DateOnly(model.date)
         self.recoveryScore = model.recoveryScore
         self.hrvSdnn = model.hrvSDNN
         self.restingHr = model.restingHR
@@ -720,7 +796,7 @@ struct RecoverySnapshotRow: Codable {
 struct WellnessCheckInRow: Codable {
     let id: UUID
     let athleteId: UUID
-    let date: Date
+    let date: DateOnly
     let sleepQuality: Int?
     let soreness: Int?
     let energy: Int?
@@ -731,7 +807,7 @@ struct WellnessCheckInRow: Codable {
     init(from model: WellnessCheckIn, athleteId: UUID) {
         self.id = model.id
         self.athleteId = athleteId
-        self.date = model.date
+        self.date = DateOnly(model.date)
         self.sleepQuality = model.sleepQuality
         self.soreness = model.soreness
         self.energy = model.energy
@@ -812,7 +888,7 @@ struct WorkoutSessionRow: Codable {
             )
         } catch {
             logFailure(.templates, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .templates, error: classifyError(error))
+            recordFailure(.templates, error)
             return false
         }
         guard !templates.isEmpty else { return true }
@@ -834,7 +910,7 @@ struct WorkoutSessionRow: Codable {
                 .value
         } catch {
             logFailure(.templates, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .templates, error: classifyError(error))
+            recordFailure(.templates, error)
             return false
         }
 
@@ -874,7 +950,7 @@ struct WorkoutSessionRow: Codable {
             try context.save()
         } catch {
             logFailure(.templates, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .templates, error: classifyError(error))
+            recordFailure(.templates, error)
             return false
         }
         return true
@@ -890,7 +966,7 @@ struct WorkoutSessionRow: Codable {
             profile = try context.fetch(FetchDescriptor(predicate: predicate)).first
         } catch {
             logFailure(.trainingProfiles, .push, error)
-            SyncTimestampStore.shared.recordFailure(for: .trainingProfiles, error: classifyError(error))
+            recordFailure(.trainingProfiles, error)
             return false
         }
         guard let profile else { return true }
@@ -913,7 +989,7 @@ struct WorkoutSessionRow: Codable {
                 .value
         } catch {
             logFailure(.trainingProfiles, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .trainingProfiles, error: classifyError(error))
+            recordFailure(.trainingProfiles, error)
             return false
         }
 
@@ -970,7 +1046,7 @@ struct WorkoutSessionRow: Codable {
             try context.save()
         } catch {
             logFailure(.trainingProfiles, .pull, error)
-            SyncTimestampStore.shared.recordFailure(for: .trainingProfiles, error: classifyError(error))
+            recordFailure(.trainingProfiles, error)
             return false
         }
         return true

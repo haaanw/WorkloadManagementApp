@@ -7,6 +7,9 @@ struct SleepDetailView: View {
 
     @Environment(\.locale) private var locale
     @State private var selectedDate: Date?
+    /// Visible plot window in days, driven by the two-finger pinch on the chart.
+    @State private var windowDays: Int = 28
+    @State private var pinchBaseWindow: Int?
 
     private var nights: [(date: Date, minutes: Double)] {
         snapshots.compactMap { snapshot in
@@ -62,7 +65,11 @@ struct SleepDetailView: View {
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    SleepDetailChart(recoverySnapshots: snapshots, selectedDate: $selectedDate)
+                    SleepDetailChart(
+                        recoverySnapshots: snapshots,
+                        selectedDate: $selectedDate,
+                        windowDays: windowDays
+                    )
                     if let readoutNight {
                         ChartReadoutWell(
                             dayStamp: dayStamp(for: readoutNight.date),
@@ -73,6 +80,7 @@ struct SleepDetailView: View {
                 }
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.md)
+                .simultaneousGesture(windowPinch)
 
                 if !conditionRows.isEmpty {
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
@@ -122,7 +130,10 @@ struct SleepDetailView: View {
                 .font(.Tokens.pageTitle)
                 .foregroundStyle(ColorTokens.text1)
                 .padding(.bottom, Spacing.xs)
-            Text("sleep.detail.header.subtitle")
+            Text(String(
+                format: LocalePinnedStrings.localized("sleep.detail.header.subtitleFormat", locale: locale),
+                windowDays
+            ))
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
         }
@@ -132,10 +143,32 @@ struct SleepDetailView: View {
         .padding(.bottom, Spacing.md)
     }
 
+    /// First calendar day inside the visible plot window (mirrors the chart's domain).
+    private var windowStart: Date {
+        let calendar = Calendar.current
+        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: .now))!
+        return calendar.date(byAdding: .day, value: -windowDays, to: end)!
+    }
+
+    /// Two-finger pinch retunes the plot window: fingers apart zoom IN (fewer days,
+    /// wider bars), together zoom OUT toward 90 days of history.
+    private var windowPinch: some Gesture {
+        MagnifyGesture()
+            .onChanged { value in
+                let base = pinchBaseWindow ?? windowDays
+                pinchBaseWindow = base
+                guard value.magnification > 0 else { return }
+                let scaled = Double(base) / value.magnification
+                windowDays = min(90, max(7, Int(scaled.rounded())))
+            }
+            .onEnded { _ in pinchBaseWindow = nil }
+    }
+
     private var windowStamp: String? {
-        guard let first = nights.first?.date, let last = nights.last?.date else { return nil }
+        let visible = nights.filter { $0.date >= windowStart }
+        guard let first = visible.first?.date, let last = visible.last?.date else { return nil }
         let format = Date.FormatStyle.dateTime.month(.abbreviated).day().locale(locale)
-        return "\(nights.count)D · \(first.formatted(format)) – \(last.formatted(format))"
+        return "\(visible.count)D · \(first.formatted(format)) – \(last.formatted(format))"
     }
 
     // MARK: - Reason tree

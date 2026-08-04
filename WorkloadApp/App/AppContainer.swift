@@ -21,6 +21,23 @@ final class AppContainer {
 
     private static let appContextKey = "appContext"
 
+    // Shared date parsers for the Supabase decoder (formatter construction is expensive;
+    // the custom strategy runs per date field).
+    private static let isoFractional: ISO8601DateFormatter = {
+        let f = ISO8601DateFormatter()
+        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+        return f
+    }()
+    private static let iso = ISO8601DateFormatter()
+    private static let postgresDay: DateFormatter = {
+        let f = DateFormatter()
+        f.calendar = Calendar(identifier: .gregorian)
+        f.locale = Locale(identifier: "en_US_POSIX")
+        f.timeZone = .current
+        f.dateFormat = "yyyy-MM-dd"
+        return f
+    }()
+
     init() {
         if let rawContext = UserDefaults.standard.string(forKey: Self.appContextKey),
            let storedContext = AppContext(rawValue: rawContext) {
@@ -37,7 +54,25 @@ final class AppContainer {
 
         let decoder = JSONDecoder()
         decoder.keyDecodingStrategy = .convertFromSnakeCase
-        decoder.dateDecodingStrategy = .iso8601
+        // Postgres timestamps come back in more shapes than plain `.iso8601` accepts:
+        // PostgREST serialises `timestamptz` written by `DEFAULT now()` WITH fractional
+        // seconds, and a bare `date` column as "yyyy-MM-dd" — `.iso8601` rejects both and
+        // every pull on such a table dies with "Data format error" (v1.7.1 sync repair).
+        // Date-only COLUMNS are owned by the `DateOnly` wrapper in SyncService; the bare-
+        // date branch here is defense in depth for any field still typed `Date`.
+        decoder.dateDecodingStrategy = .custom { decoder in
+            let raw = try decoder.singleValueContainer().decode(String.self)
+            if let date = Self.isoFractional.date(from: raw) ?? Self.iso.date(from: raw) {
+                return date
+            }
+            if raw.count == 10, let date = Self.postgresDay.date(from: raw) {
+                return date
+            }
+            throw DecodingError.dataCorrupted(DecodingError.Context(
+                codingPath: decoder.codingPath,
+                debugDescription: "Unrecognized date string: \(raw)"
+            ))
+        }
 
         // Note: `PostgrestClientOptions` is the correct type in supabase-swift ≥ 2.x.
         // If it doesn't compile, check the SDK version — older releases use `SupabaseClientOptions.DatabaseOptions`.

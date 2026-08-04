@@ -316,8 +316,8 @@ struct TrainingProfileSheet: View {
             .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 
             if showInjuryDetail {
-                // Body regions as machined option cells in a debossed channel + a machined notes
-                // field — the same relief vocabulary as the inline selects (v4.2).
+                // Body regions as flat outlined option cells (v1.7.1: debossed channel
+                // dropped, same grammar as the inline selects) + a machined notes field.
                 VStack(spacing: Spacing.baselinePair) {
                     ForEach(BodyRegion.allCases) { region in
                         MachinedOptionCell(
@@ -333,8 +333,6 @@ struct TrainingProfileSheet: View {
                         }
                     }
                 }
-                .padding(Spacing.xs)
-                .debossed(cornerRadius: CornerTokens.control)
                 .padding(.horizontal, Spacing.sm)
                 .padding(.bottom, Spacing.xs)
 

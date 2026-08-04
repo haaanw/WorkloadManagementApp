@@ -97,8 +97,10 @@ final class SleepShadowNight {
 
     // MARK: - v1 dual-run arm (§6 "compute v1 and v2 every night, store both")
 
-    /// The minutes the LIVE v1 sleep component consumed that morning
-    /// (`fetchLastNightSleepWithDate` — all-source, unclustered; deliberately not the v2 TST).
+    /// The minutes the LIVE v1 sleep component consumed that morning. Since the v1.7.1
+    /// live-fetch repair (2026-08-05) this equals the clustered dominant-source TST —
+    /// the v1-vs-v2 comparison is now composition-only (curve vs stage-aware), no longer
+    /// fetch-vs-fetch. Rows folded before that date carry the old all-source sum.
     var v1SleepMinutes: Double?
     /// `RecoveryScoreEngine.sleepDurationToScore(v1SleepMinutes)` — the v1 sleep component
     /// score for the same night. Nil when v1 saw no sleep.

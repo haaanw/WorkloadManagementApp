@@ -252,8 +252,8 @@ struct DashboardView: View {
             }
             .navigationDestination(for: TrendDestination.self) { dest in
                 switch dest {
-                case .hrv:   HRVDetailView(data: viewModel.hrv28Days)
-                case .sleep: SleepDetailView(snapshots: viewModel.recentSnapshots)
+                case .hrv:   HRVDetailView(data: viewModel.hrv90Days)
+                case .sleep: SleepDetailView(snapshots: viewModel.recentSnapshots90)
                 }
             }
             .task {

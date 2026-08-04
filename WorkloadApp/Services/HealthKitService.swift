@@ -213,41 +213,6 @@ final class HealthKitService {
 
     // MARK: - Sleep
 
-    /// Fetch last night's sleep duration in minutes
-    func fetchLastNightSleep() async throws -> Double? {
-        let type = HKCategoryType(.sleepAnalysis)
-        let calendar = Calendar.current
-        let now = Date.now
-        let startOfToday = calendar.startOfDay(for: now)
-        let startOfYesterday = calendar.date(byAdding: .day, value: -1, to: startOfToday)!
-
-        let predicate = HKQuery.predicateForSamples(
-            withStart: startOfYesterday,
-            end: now,
-            options: .strictStartDate
-        )
-
-        let descriptor = HKSampleQueryDescriptor(
-            predicates: [.categorySample(type: type, predicate: predicate)],
-            sortDescriptors: [SortDescriptor(\.startDate)]
-        )
-
-        let samples = try await descriptor.result(for: store)
-
-        // Filter for asleep categories (not inBed or awake)
-        let asleepSamples = samples.filter { sample in
-            let value = HKCategoryValueSleepAnalysis(rawValue: sample.value)
-            return value == .asleepCore || value == .asleepDeep || value == .asleepREM
-        }
-
-        guard !asleepSamples.isEmpty else { return nil }
-
-        let totalSeconds = asleepSamples.reduce(0.0) { sum, sample in
-            sum + sample.endDate.timeIntervalSince(sample.startDate)
-        }
-        return totalSeconds / 60.0
-    }
-
     // MARK: - Sleep stages (sleep v2, Phase S2)
 
     /// One night's per-stage sleep detail, reduced to scalars for the sleep-v2 shadow path
@@ -295,8 +260,7 @@ final class HealthKitService {
 
     /// Fetch last night's per-stage sleep detail for the sleep-v2 shadow fold.
     ///
-    /// Same window and query pattern as `fetchLastNightSleep()` (start of yesterday → now,
-    /// `HKSampleQueryDescriptor`), but:
+    /// Window: start of yesterday → now, `HKSampleQueryDescriptor`. Reduction rules:
     /// - samples are grouped by writing source, and ONLY the dominant source's samples are
     ///   aggregated — mixing sources double-counts overlapping sessions (iPhone + Watch both
     ///   write) and breaks the same-source baseline discipline (H-04);
@@ -308,8 +272,7 @@ final class HealthKitService {
     /// - per-stage minutes union their intervals before summing, so overlapping same-source
     ///   samples (re-binned or duplicated writes) never double-count;
     /// - `asleepUnspecified` counts toward TST (a stage-less source — the §3 Whoop/manual
-    ///   case — must still produce a Tier-C/D night; the v1 fetch ignores it deliberately
-    ///   and is left untouched);
+    ///   case — must still produce a Tier-C/D night);
     /// - per-stage minutes are nil, not 0, when the source did not stage.
     ///
     /// Returns nil when no asleep samples exist in the window (Tier E — no night).
@@ -591,39 +554,17 @@ final class HealthKitService {
         return (sample.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute())), sample.startDate)
     }
 
-    /// Fetch last night's sleep duration with the latest sample end date.
+    /// Fetch last night's sleep duration with the session's end date.
+    ///
+    /// Delegates to `fetchLastNightSleepDetail()` so the LIVE sleep number rides the same
+    /// dominant-source, session-clustered, interval-unioned reduction as the sleep-v2
+    /// shadow. The previous implementation summed raw sample durations from every source
+    /// across the whole ~24–48 h window — iPhone + Watch double-wrote the night and the
+    /// prior night's post-midnight tail joined it (HAN dogfood 2026-08-05: app 12h 45m vs
+    /// Health 5h 19m for the same night).
     func fetchLastNightSleepWithDate() async throws -> (value: Double, date: Date)? {
-        let type = HKCategoryType(.sleepAnalysis)
-        let calendar = Calendar.current
-        let now = Date.now
-        let startOfToday = calendar.startOfDay(for: now)
-        let startOfYesterday = calendar.date(byAdding: .day, value: -1, to: startOfToday)!
-
-        let predicate = HKQuery.predicateForSamples(
-            withStart: startOfYesterday,
-            end: now,
-            options: .strictStartDate
-        )
-
-        let descriptor = HKSampleQueryDescriptor(
-            predicates: [.categorySample(type: type, predicate: predicate)],
-            sortDescriptors: [SortDescriptor(\.startDate)]
-        )
-
-        let samples = try await descriptor.result(for: store)
-
-        let asleepSamples = samples.filter { sample in
-            let value = HKCategoryValueSleepAnalysis(rawValue: sample.value)
-            return value == .asleepCore || value == .asleepDeep || value == .asleepREM
-        }
-
-        guard !asleepSamples.isEmpty else { return nil }
-
-        let totalSeconds = asleepSamples.reduce(0.0) { sum, sample in
-            sum + sample.endDate.timeIntervalSince(sample.startDate)
-        }
-        let latestDate = asleepSamples.map(\.endDate).max() ?? now
-        return (totalSeconds / 60.0, latestDate)
+        guard let detail = try await fetchLastNightSleepDetail() else { return nil }
+        return (detail.tstMinutes, detail.sessionEnd)
     }
 
     /// Convenience: fetch staleness state for all tracked metrics.

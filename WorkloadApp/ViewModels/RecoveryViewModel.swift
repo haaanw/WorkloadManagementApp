@@ -8,6 +8,9 @@ import SwiftData
 final class RecoveryViewModel {
     var recoveryHistory: [RecoverySnapshot] = []
     var hrvHistory: [(date: Date, value: Double)] = []
+    /// 90-day HRV series for the pinch-zoomable detail screen (v1.7.1); `hrvHistory`
+    /// stays the glance chart's 28-day window and derives from this.
+    var hrvHistoryExtended: [(date: Date, value: Double)] = []
 
     // Fatigue insights (INTEL-04, INTEL-05)
     var fatigueInsights: [FatiguePatternEngine.Insight] = []
@@ -30,19 +33,24 @@ final class RecoveryViewModel {
         // Fetch 28-day recovery history
         recoveryHistory = (try? recoveryRepo.fetchRecoveryHistory(days: 28, athlete: athlete)) ?? []
 
-        // Fetch HRV history from HealthKit
+        // Fetch HRV history from HealthKit: one 90-day fetch, 28-day glance window derived.
+        let cutoff28 = Calendar.current.date(
+            byAdding: .day, value: -28,
+            to: Calendar.current.startOfDay(for: .now)
+        )!
         if healthKitService.isAuthorized {
-            hrvHistory = (try? await healthKitService.fetchHRVHistory(days: 28)) ?? []
+            hrvHistoryExtended = (try? await healthKitService.fetchHRVHistory(days: 90)) ?? []
         }
         #if DEBUG
         // SCREENSHOT_MODE: HealthKit unauthorized — derive HRV trend from seeded snapshots
-        if hrvHistory.isEmpty,
+        if hrvHistoryExtended.isEmpty,
            ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE") {
-            hrvHistory = recoveryHistory
+            hrvHistoryExtended = recoveryHistory
                 .compactMap { snap in snap.hrvSDNN.map { (date: snap.date, value: $0) } }
                 .sorted { $0.date < $1.date }
         }
         #endif
+        hrvHistory = hrvHistoryExtended.filter { $0.date >= cutoff28 }
 
         // Fatigue pattern detection (INTEL-04, INTEL-05)
         let ninetyDaysAgo = Calendar.current.date(byAdding: .day, value: -90, to: .now)!

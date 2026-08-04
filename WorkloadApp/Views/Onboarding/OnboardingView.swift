@@ -56,14 +56,12 @@ struct OnboardingView: View {
                 subtitle: "onboarding.language.subtitle"
             )
 
-            // Machined option channel (v4.2): raised cells with drilled dots in a debossed bay.
+            // Flat option column (v1.7.1): outlined cells, no debossed bay.
             VStack(spacing: Spacing.baselinePair) {
                 ForEach(container.localeManager.supportedLocales, id: \.identifier) { locale in
                     languageRow(for: locale)
                 }
             }
-            .padding(Spacing.xs)
-            .debossed(cornerRadius: CornerTokens.control)
             .padding(.horizontal, 16)
             .padding(.top, 32)
 
@@ -102,7 +100,7 @@ struct OnboardingView: View {
                 spacing: 8
             ) {
                 ForEach(TrainingFrequency.allCases) { freq in
-                    // Machined option cell (v4.2): raised plate + drilled selection dot.
+                    // Flat option cell (v1.7.1): hairline outline + drilled selection dot.
                     MachinedOptionCell(
                         label: freq.displayName,
                         isSelected: selectedFrequency == freq

@@ -117,12 +117,14 @@
     "Discard Changes" : {},
     "Discard session" : {},
     "English" : {},
+    "Floor" : {},
     "HRV" : {},
     "Hours" : {},
     "Increased %lld percent week over week" : {},
     "Keep Editing" : {},
     "Lifting" : {},
     "Load" : {},
+    "Lower" : {},
     "No sets marked done" : {},
     "Nothing will be logged. Mark sets done to record them, or discard this session?" : {},
     "OK" : {},
@@ -145,6 +147,7 @@
     },
     "Recovery" : {},
     "Running" : {},
+    "Selected" : {},
     "Series" : {},
     "Session type" : {},
     "Skip" : {
@@ -166,11 +169,13 @@
     },
     "Sport" : {},
     "Swimming" : {},
+    "TODAY'S PLAN" : {},
     "TSB" : {},
     "Target" : {},
     "Team Sport" : {},
     "Unchanged week over week" : {},
     "Unsaved workout" : {},
+    "Upper" : {},
     "Your changes have not been saved. Keep editing or discard this workout." : {},
     "a11y.archiveTemplate" : {
       "localizations" : {
@@ -4309,6 +4314,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "28 日心率变异性"
+          }
+        }
+      }
+    },
+    "hrv.detail.header.subtitleFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-day heart rate variability"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 日心率变异性"
           }
         }
       }
@@ -9534,6 +9556,23 @@
         }
       }
     },
+    "profile.sync.justNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刚刚"
+          }
+        }
+      }
+    },
     "profile.sync.navTitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12476,6 +12515,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "28 日睡眠时长"
+          }
+        }
+      }
+    },
+    "sleep.detail.header.subtitleFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-day sleep duration"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 日睡眠时长"
           }
         }
       }

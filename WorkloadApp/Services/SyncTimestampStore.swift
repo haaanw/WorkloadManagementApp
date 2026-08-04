@@ -13,12 +13,20 @@ final class SyncTimestampStore {
 
     private(set) var lastErrors: [SyncEntity: SyncError] = [:]
 
+    /// Observable mirror of the persisted success timestamps. UserDefaults writes do not
+    /// invalidate SwiftUI views, so SyncStatusView used to keep rendering a stale
+    /// relative time after a sync completed (the stuck "IN 0 SEC" defect, v1.7.1).
+    private var successTimestamps: [SyncEntity: Date] = [:]
+
     /// Guards against concurrent sync cycles.
     var isSyncing: Bool = false
 
     struct SyncError {
         let message: String
         let timestamp: Date
+        /// Compact slice of the underlying error (Postgrest message, decode context) so
+        /// a failure is diagnosable from the device, not only from the Xcode console.
+        let detail: String?
     }
 
     var hasAnyFailure: Bool {
@@ -28,18 +36,21 @@ final class SyncTimestampStore {
     // MARK: - Timestamp Access
 
     func lastSuccess(for entity: SyncEntity) -> Date? {
-        UserDefaults.standard.object(forKey: "lastSync_\(entity.rawValue)") as? Date
+        if let cached = successTimestamps[entity] { return cached }
+        return UserDefaults.standard.object(forKey: "lastSync_\(entity.rawValue)") as? Date
     }
 
     // MARK: - Recording
 
     func recordSuccess(for entity: SyncEntity) {
-        UserDefaults.standard.set(Date(), forKey: "lastSync_\(entity.rawValue)")
+        let now = Date()
+        UserDefaults.standard.set(now, forKey: "lastSync_\(entity.rawValue)")
+        successTimestamps[entity] = now
         lastErrors[entity] = nil
     }
 
-    func recordFailure(for entity: SyncEntity, error: String) {
-        lastErrors[entity] = SyncError(message: error, timestamp: Date())
+    func recordFailure(for entity: SyncEntity, error: String, detail: String? = nil) {
+        lastErrors[entity] = SyncError(message: error, timestamp: Date(), detail: detail)
     }
 
     // MARK: - Lifecycle
@@ -50,6 +61,7 @@ final class SyncTimestampStore {
         for entity in SyncEntity.allCases {
             UserDefaults.standard.removeObject(forKey: "lastSync_\(entity.rawValue)")
         }
+        successTimestamps.removeAll()
         lastErrors.removeAll()
     }
 

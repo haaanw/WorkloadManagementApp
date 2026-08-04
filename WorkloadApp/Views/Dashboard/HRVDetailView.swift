@@ -7,6 +7,9 @@ struct HRVDetailView: View {
 
     @Environment(\.locale) private var locale
     @State private var selectedDate: Date?
+    /// Visible plot window in days, driven by the two-finger pinch on the chart.
+    @State private var windowDays: Int = 28
+    @State private var pinchBaseWindow: Int?
 
     private var recent: [Double] { data.suffix(7).map(\.value) }
     private var latest: Double? { data.last?.value }
@@ -80,7 +83,7 @@ struct HRVDetailView: View {
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
-                    HRVDetailChart(data: data, selectedDate: $selectedDate)
+                    HRVDetailChart(data: data, selectedDate: $selectedDate, windowDays: windowDays)
                     if let readoutPoint {
                         ChartReadoutWell(
                             dayStamp: dayStamp(for: readoutPoint.date),
@@ -91,6 +94,7 @@ struct HRVDetailView: View {
                 }
                 .padding(.horizontal, Spacing.sm)
                 .padding(.vertical, Spacing.md)
+                .simultaneousGesture(windowPinch)
 
                 if !conditionRows.isEmpty {
                     Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
@@ -136,7 +140,10 @@ struct HRVDetailView: View {
                 .font(.Tokens.pageTitle)
                 .foregroundStyle(ColorTokens.text1)
                 .padding(.bottom, Spacing.xs)
-            Text("hrv.detail.header.subtitle")
+            Text(String(
+                format: LocalePinnedStrings.localized("hrv.detail.header.subtitleFormat", locale: locale),
+                windowDays
+            ))
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)
         }
@@ -146,10 +153,32 @@ struct HRVDetailView: View {
         .padding(.bottom, Spacing.md)
     }
 
+    /// First calendar day inside the visible plot window (mirrors the chart's domain).
+    private var windowStart: Date {
+        let calendar = Calendar.current
+        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: .now))!
+        return calendar.date(byAdding: .day, value: -windowDays, to: end)!
+    }
+
+    /// Two-finger pinch retunes the plot window: fingers apart zoom IN (fewer days,
+    /// wider marks), together zoom OUT toward 90 days of history.
+    private var windowPinch: some Gesture {
+        MagnifyGesture()
+            .onChanged { value in
+                let base = pinchBaseWindow ?? windowDays
+                pinchBaseWindow = base
+                guard value.magnification > 0 else { return }
+                let scaled = Double(base) / value.magnification
+                windowDays = min(90, max(7, Int(scaled.rounded())))
+            }
+            .onEnded { _ in pinchBaseWindow = nil }
+    }
+
     private var windowStamp: String? {
-        guard let first = data.first?.date, let last = data.last?.date else { return nil }
+        let visible = data.filter { $0.date >= windowStart }
+        guard let first = visible.first?.date, let last = visible.last?.date else { return nil }
         let format = Date.FormatStyle.dateTime.month(.abbreviated).day().locale(locale)
-        return "\(data.count)D · \(first.formatted(format)) – \(last.formatted(format))"
+        return "\(visible.count)D · \(first.formatted(format)) – \(last.formatted(format))"
     }
 
     // MARK: - Reason tree

@@ -64,9 +64,13 @@ final class DashboardViewModel {
     // Staleness tracking
     var staleness: HealthKitStaleness = HealthKitStaleness(lastHRVDate: nil, lastSleepDate: nil, lastRHRDate: nil)
 
-    // Trend data for progressive disclosure detail views
+    // Trend data for progressive disclosure detail views. The 28-day arrays feed the
+    // glance charts (frozen paths); the 90-day arrays feed the pinch-zoomable detail
+    // screens (v1.7.1) and are the single fetch the 28-day arrays derive from.
     var hrv28Days: [(date: Date, value: Double)] = []
     var recentSnapshots: [RecoverySnapshot] = []
+    var hrv90Days: [(date: Date, value: Double)] = []
+    var recentSnapshots90: [RecoverySnapshot] = []
 
     // Weekly summary (ANLYT-02, ANLYT-03)
     var weeklySummary: AnalyticsEngine.WeeklySummary?
@@ -121,16 +125,23 @@ final class DashboardViewModel {
             return try? recoveryRepo.fetchLatestSnapshot(athlete: athlete)
         }()
 
-        // Fetch trend history for detail views
-        recentSnapshots = (try? recoveryRepo.fetchRecoveryHistory(days: 28, athlete: athlete)) ?? []
+        // Fetch trend history for detail views: one 90-day fetch, 28-day glance windows
+        // derived from it.
+        let cutoff28 = Calendar.current.date(
+            byAdding: .day, value: -28,
+            to: Calendar.current.startOfDay(for: .now)
+        )!
+        recentSnapshots90 = (try? recoveryRepo.fetchRecoveryHistory(days: 90, athlete: athlete)) ?? []
+        recentSnapshots = recentSnapshots90.filter { $0.date >= cutoff28 }
         if isScreenshotMode {
             // SCREENSHOT_MODE: HealthKit unauthorized — derive HRV trend from seeded snapshots
-            hrv28Days = recentSnapshots.compactMap { snap in
+            hrv90Days = recentSnapshots90.compactMap { snap in
                 snap.hrvSDNN.map { (date: snap.date, value: $0) }
             }
         } else {
-            hrv28Days = (try? await healthKitService.fetchHRVHistory(days: 28)) ?? []
+            hrv90Days = (try? await healthKitService.fetchHRVHistory(days: 90)) ?? []
         }
+        hrv28Days = hrv90Days.filter { $0.date >= cutoff28 }
         latestHRV = todaySnapshot?.hrvSDNN
         latestRHR = todaySnapshot?.restingHR
         latestSleepMinutes = todaySnapshot?.sleepDurationMinutes

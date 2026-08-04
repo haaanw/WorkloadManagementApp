@@ -35,6 +35,12 @@ struct RecoveryView: View {
         Array(scopedRecoverySnapshots.prefix(28).reversed())
     }
 
+    /// The 90-day window the pinch-zoomable detail screen reads (v1.7.1). Its default
+    /// 28-day view shows the same nights as the glance card above.
+    private var sleepWindowExtended: [RecoverySnapshot] {
+        Array(scopedRecoverySnapshots.prefix(90).reversed())
+    }
+
     private var todayRecovery: RecoverySnapshot? {
         scopedRecoverySnapshots.first { Calendar.current.isDateInToday($0.date) }
     }
@@ -190,8 +196,8 @@ struct RecoveryView: View {
             // the same inputs rather than growing a second, divergent pair of routes.
             .navigationDestination(for: TrendDestination.self) { destination in
                 switch destination {
-                case .hrv:   HRVDetailView(data: viewModel.hrvHistory)
-                case .sleep: SleepDetailView(snapshots: sleepWindow)
+                case .hrv:   HRVDetailView(data: viewModel.hrvHistoryExtended)
+                case .sleep: SleepDetailView(snapshots: sleepWindowExtended)
                 }
             }
             .task {

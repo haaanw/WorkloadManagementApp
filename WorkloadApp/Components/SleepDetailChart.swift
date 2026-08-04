@@ -17,10 +17,25 @@ struct SleepDetailChart: View {
     @Environment(\.locale) private var locale
     let recoverySnapshots: [RecoverySnapshot]
     @Binding var selectedDate: Date?
+    /// Visible window, in days ending today. The pinch gesture on the detail screen
+    /// drives it; 28 is the default reading.
+    var windowDays: Int = 28
+
+    /// The plot's explicit x-domain: the trailing `windowDays` calendar days, ending at
+    /// the start of tomorrow so today's bar has its full day-bin. Without an explicit
+    /// domain Swift Charts infers it from the data, and a single night became one bar
+    /// filling the entire plot width (HAN dogfood 2026-08-05).
+    private var xDomain: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: .now))!
+        let start = calendar.date(byAdding: .day, value: -windowDays, to: end)!
+        return start...end
+    }
 
     private var sleepData: [(date: Date, value: Double)] {
         recoverySnapshots.compactMap { snapshot in
-            guard let minutes = snapshot.sleepDurationMinutes else { return nil }
+            guard let minutes = snapshot.sleepDurationMinutes,
+                  snapshot.date >= xDomain.lowerBound else { return nil }
             return (date: snapshot.date, value: minutes / 60.0)
         }
     }
@@ -74,6 +89,7 @@ struct SleepDetailChart: View {
                             .lineStyle(StrokeStyle(lineWidth: 1.5))
                     }
                 }
+                .chartXScale(domain: xDomain)
                 .frame(height: 224)
                 .chartOverlay { proxy in
                     ChartTooltipGesture(

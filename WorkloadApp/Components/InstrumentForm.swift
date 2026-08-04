@@ -160,11 +160,17 @@ struct InstrumentFormRow<Trailing: View>: View {
     }
 }
 
-// MARK: - Machined option cell (raised cell + drilled selection dot)
+// MARK: - Machined option cell (flat outlined cell + drilled selection dot)
 
-/// One machined option: a `.raised` plate carrying a label (+ optional subtitle / icon) and a
-/// drilled selection dot (an ink-ringed pocket that fills ink when selected). The single choosable
-/// unit shared by `InlineOptionList`, `InlineMultiOptionList`, and the onboarding pickers.
+/// One option cell: a FLAT hairline-outlined cell carrying a label (+ optional subtitle / icon)
+/// and a drilled selection dot (an ink-ringed pocket that fills ink when selected). The single
+/// choosable unit shared by `InlineOptionList`, `InlineMultiOptionList`, and the onboarding
+/// pickers.
+///
+/// v1.7.1 (HAN's explicit direction, 2026-08-05): the cell dropped its `.raised` plate and the
+/// list dropped its debossed channel — the raised-boxes-in-a-dark-well grammar read as heavy
+/// "boxes with a darker background". Selection is carried by the outline weight, the dot, and
+/// the label's medium face; the plane underneath stays whatever the host surface is.
 struct MachinedOptionCell: View {
     let label: String
     var subtitle: String? = nil
@@ -221,16 +227,22 @@ struct MachinedOptionCell: View {
             .frame(minHeight: 48)
             .frame(maxWidth: .infinity, alignment: .leading)
             .contentShape(Rectangle())
-            .raised(cornerRadius: CornerTokens.control)
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerTokens.control)
+                    .stroke(
+                        isSelected ? ColorTokens.text1 : ColorTokens.divider,
+                        lineWidth: isSelected ? 1 : 0.5
+                    )
+            )
         }
         .buttonStyle(.pressable(scale: 1, opacity: 0.7))
         .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
     }
 }
 
-/// The recessed bay the option cells sit in: a debossed channel with machined cells stacked
-/// inside a 4pt-gapped column (near-butted, but each cell keeps its own control-corner relief so
-/// the Relief Law holds without a hand-rolled surface). Shared expand/collapse container.
+/// The bay the option cells sit in: a flat 4pt-gapped column of outlined cells. The debossed
+/// channel was dropped in v1.7.1 (HAN: flatter option lists) — the expand/collapse container
+/// keeps its name and call sites, only the surface treatment changed.
 private struct OptionChannel<Content: View>: View {
     @ViewBuilder var content: Content
 
@@ -238,9 +250,7 @@ private struct OptionChannel<Content: View>: View {
         VStack(spacing: Spacing.baselinePair) {
             content
         }
-        .padding(Spacing.xs)
         .frame(maxWidth: .infinity)
-        .debossed(cornerRadius: CornerTokens.control)
     }
 }
 
