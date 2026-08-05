@@ -3,7 +3,11 @@ import SwiftUI
 /// The zoomed HRV screen. Same grammar as `SleepDetailView`: context stamp → title → stats band →
 /// scrubbable plot + persistent readout well → reason tree → expandable explanations.
 struct HRVDetailView: View {
+    /// One MORNING value per calendar day (v1.7.1) — not raw HealthKit samples. See
+    /// `HRVDailyStats` for the reduction, its evidence, and its stated limits.
     let data: [(date: Date, value: Double)]
+    /// Raw samples behind `data`, so an empty series can say WHY it is empty.
+    var rawSampleCount: Int = 0
 
     @Environment(\.locale) private var locale
     @State private var selectedDate: Date?
@@ -11,18 +15,22 @@ struct HRVDetailView: View {
     @State private var windowDays: Int = 28
     @State private var pinchBaseWindow: Int?
 
-    private var recent: [Double] { data.suffix(7).map(\.value) }
-    private var latest: Double? { data.last?.value }
-
-    private var sevenDayAvg: Double? {
-        guard !recent.isEmpty else { return nil }
-        return recent.reduce(0, +) / Double(recent.count)
+    private var dailyValues: [HRVDailyStats.DailyValue] {
+        data.map { HRVDailyStats.DailyValue(date: $0.date, value: $0.value) }
     }
 
-    private var deviationPercent: Double? {
-        guard let v = latest, let b = sevenDayAvg, b > 0 else { return nil }
-        return ((v - b) / b) * 100
+    private var availability: HRVDailyStats.Availability {
+        HRVDailyStats.availability(rawSampleCount: rawSampleCount, daily: dailyValues)
     }
+
+    private var latest: Double? { HRVDailyStats.latest(dailyValues)?.value }
+
+    /// The baseline the screen reports. Nil until there are enough PRIOR mornings —
+    /// a "7-day average" computed from the single day it is being compared against is
+    /// how the delta cell used to read a permanent, meaningless 0%.
+    private var sevenDayAvg: Double? { HRVDailyStats.baseline(dailyValues) }
+
+    private var deviationPercent: Double? { HRVDailyStats.deviationPercent(dailyValues) }
 
     /// The DELTA cell's reading. Found alongside the Round-2 readout-well defects and fixed with
     /// them: "vs 7-day avg" is a phrase the app SAYS, and it was an English literal, so a zh-Hans
@@ -90,6 +98,14 @@ struct HRVDetailView: View {
                             value: "\(Int(readoutPoint.value.rounded())) ms",
                             delta: deltaStamp(for: readoutPoint.value)
                         )
+                    }
+                    // Working voice, not annotation: this is a sentence explaining a
+                    // missing number, and the annotation voice never speaks sentences.
+                    if let availabilityNote {
+                        Text(availabilityNote)
+                            .font(.Tokens.smallLabel)
+                            .foregroundStyle(ColorTokens.text2)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
                 .padding(.horizontal, Spacing.sm)
@@ -174,11 +190,35 @@ struct HRVDetailView: View {
             .onEnded { _ in pinchBaseWindow = nil }
     }
 
+    /// `visible.count` is now honestly a DAY count: `data` holds one value per calendar day,
+    /// where it used to hold every raw sample — a Watch user read stamps like "147D".
     private var windowStamp: String? {
         let visible = data.filter { $0.date >= windowStart }
         guard let first = visible.first?.date, let last = visible.last?.date else { return nil }
         let format = Date.FormatStyle.dateTime.month(.abbreviated).day().locale(locale)
         return "\(visible.count)D · \(first.formatted(format)) – \(last.formatted(format))"
+    }
+
+    /// Says WHY the screen has no numbers, instead of showing a bare "—".
+    ///
+    /// Before the morning-window reduction a midday-only wearer saw a wrong-but-present
+    /// figure. Going silently blank would read as a broken app, so the two causes are
+    /// separated: no HRV at all, versus HRV that exists but never inside the morning window.
+    private var availabilityNote: String? {
+        switch availability {
+        case .noSamples:
+            return nil   // the chart's own empty message already covers this
+        case .noMorningSamples:
+            return LocalePinnedStrings.localized("hrv.detail.note.noMorningSamples", locale: locale)
+        case .building(let days):
+            return String(
+                format: LocalePinnedStrings.localized("hrv.detail.note.building", locale: locale),
+                days,
+                HRVDailyStats.minimumBaselineDays
+            )
+        case .ready:
+            return nil
+        }
     }
 
     // MARK: - Reason tree
@@ -207,10 +247,15 @@ struct HRVDetailView: View {
         return rows
     }
 
+    /// Baseline-window daily values — the series the stability and trend reads run on.
+    private var baselineValues: [Double] {
+        HRVDailyStats.baselineDays(dailyValues).map(\.value)
+    }
+
     private var coefficientOfVariation: Double? {
-        guard recent.count >= 2, let mean = sevenDayAvg, mean > 0 else { return nil }
-        let variance = recent.reduce(0.0) { $0 + ($1 - mean) * ($1 - mean) } / Double(recent.count)
-        return (variance.squareRoot() / mean) * 100
+        guard let sd = HRVDailyStats.standardDeviation(dailyValues),
+              let mean = sevenDayAvg, mean > 0 else { return nil }
+        return (sd / mean) * 100
     }
 
     /// Least-squares slope over the trailing 7 readings, bucketed. The regression is
@@ -218,7 +263,7 @@ struct HRVDetailView: View {
     /// cross-file by `ShadowPredictor` and `FatigueIndexEngine`. Recomputing it locally would be a
     /// second copy of a published function, not a local detail.
     private var trendToken: String? {
-        guard let slope = RecoveryScoreEngine.computeSlope(values: recent) else { return nil }
+        guard let slope = RecoveryScoreEngine.computeSlope(values: baselineValues) else { return nil }
         if slope > 0.5 { return "\u{25B2} RISING" }
         if slope < -0.5 { return "\u{25BC} FALLING" }
         return "= FLAT"

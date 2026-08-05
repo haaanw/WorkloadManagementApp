@@ -9,6 +9,51 @@ final class RecoveryRepository {
         self.modelContext = modelContext
     }
 
+    /// Backfill a night's sleep minutes onto the snapshot of the day the athlete WOKE, when
+    /// that row exists and has no sleep yet.
+    ///
+    /// Why this exists (v1.7.1): sleep is attributed to its wake day, so a night whose wake
+    /// day is not today is not written to today's row. Without a backfill the night would be
+    /// lost entirely — open the app for the first time after midnight and the previous
+    /// morning's session belongs to no row at all. That is worse than the wrong-day
+    /// attribution it replaced.
+    ///
+    /// Deliberately narrow:
+    /// - Only fills a row that already exists. A phantom row for a day the pipeline never
+    ///   ran would carry a fabricated recovery score.
+    /// - Only fills when `sleepDurationMinutes` is nil, so a value that day already measured
+    ///   is never overwritten.
+    /// - Does NOT recompute that day's `recoveryScore`. Rescoring a past day needs that
+    ///   day's baselines, which are gone; the stored score stays the number the athlete saw.
+    ///   The backfilled minutes serve the sleep trend, debt math, and the v2 shadow.
+    ///
+    /// - Returns: true when a row was filled.
+    @discardableResult
+    func backfillSleep(
+        minutes: Double,
+        wakeDay: Date,
+        athlete: Athlete? = nil
+    ) throws -> Bool {
+        let day = Calendar.current.startOfDay(for: wakeDay)
+        let descriptor: FetchDescriptor<RecoverySnapshot>
+        if let athlete {
+            let athleteId = athlete.id
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date == day && $0.athlete?.id == athleteId }
+            )
+        } else {
+            descriptor = FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date == day }
+            )
+        }
+        guard let row = try modelContext.fetch(descriptor).first,
+              row.sleepDurationMinutes == nil else { return false }
+        row.sleepDurationMinutes = minutes
+        row.updatedAt = .now
+        try modelContext.save()
+        return true
+    }
+
     /// Upsert today's recovery snapshot, including computed baselines for ReasoningEngine.
     func upsertRecoverySnapshot(
         hrvSDNN: Double?,

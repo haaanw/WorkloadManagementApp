@@ -4386,6 +4386,40 @@
         }
       }
     },
+    "hrv.detail.note.building" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Building baseline — %1$lld of %2$lld mornings."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在建立基线——已有 %1$lld 个早晨，共需 %2$lld 个。"
+          }
+        }
+      }
+    },
+    "hrv.detail.note.noMorningSamples" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No morning HRV recorded. Readings taken later in the day aren't used for readiness — wear your watch overnight to build this trend."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有记录到早晨的心率变异性。当天较晚时段的读数不用于准备度评估——请佩戴手表过夜以建立该趋势。"
+          }
+        }
+      }
+    },
     "hrv.detail.readout.vsBase" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14004,6 +14038,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最大摄氧量 (VO2 Max)"
+          }
+        }
+      }
+    },
+    "time.justNow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Just now"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "刚刚"
           }
         }
       }

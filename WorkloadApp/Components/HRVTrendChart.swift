@@ -17,10 +17,12 @@ struct HRVTrendChart: View {
     @Environment(\.locale) private var locale
     let data: [(date: Date, value: Double)]
 
+    /// `data` carries one MORNING value per calendar day (v1.7.1). The baseline is the
+    /// mean of the prior days in the trailing window, gated at `HRVDailyStats`'s minimum —
+    /// so the glance card stops printing "7d avg" over a day and a half of samples, and
+    /// stops drawing a baseline rule straight through the single point that produced it.
     private var baseline: Double? {
-        let recent = data.suffix(7)
-        guard !recent.isEmpty else { return nil }
-        return recent.map(\.value).reduce(0, +) / Double(recent.count)
+        HRVDailyStats.baseline(data.map { HRVDailyStats.DailyValue(date: $0.date, value: $0.value) })
     }
 
     /// Explicit trailing-28-day x-domain (v1.7.1). Without it the inferred domain

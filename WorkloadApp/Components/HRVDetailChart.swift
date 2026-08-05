@@ -32,20 +32,19 @@ struct HRVDetailChart: View {
         data.filter { $0.date >= xDomain.lowerBound }
     }
 
-    private var recent: [Double] { data.suffix(7).map(\.value) }
-
-    private var baseline: Double? {
-        guard !recent.isEmpty else { return nil }
-        return recent.reduce(0, +) / Double(recent.count)
+    /// `data` now carries one MORNING value per calendar day (v1.7.1), so the baseline is
+    /// over days rather than over whatever mix of samples the Watch happened to write. The
+    /// statistics — including the rule that the baseline excludes the day being compared to
+    /// it, and the ≥3-day gate — live in `HRVDailyStats` so every HRV surface agrees.
+    private var dailyValues: [HRVDailyStats.DailyValue] {
+        data.map { HRVDailyStats.DailyValue(date: $0.date, value: $0.value) }
     }
 
-    /// Population SD of the trailing 7 readings — the width of the band the athlete's own recent
-    /// days occupy. Nil below two readings, where a spread is not a thing that exists yet.
-    private var standardDeviation: Double? {
-        guard recent.count >= 2, let mean = baseline else { return nil }
-        let variance = recent.reduce(0.0) { $0 + ($1 - mean) * ($1 - mean) } / Double(recent.count)
-        return variance.squareRoot()
-    }
+    private var baseline: Double? { HRVDailyStats.baseline(dailyValues) }
+
+    /// Population SD of the baseline days. Nil whenever the baseline is nil, so the band is
+    /// never drawn around a figure the screen is not willing to state.
+    private var standardDeviation: Double? { HRVDailyStats.standardDeviation(dailyValues) }
 
     private var selectedValue: Double? {
         guard let selectedDate else { return nil }

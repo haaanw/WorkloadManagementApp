@@ -5,6 +5,7 @@ struct RecoveryView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.scenePhase) private var scenePhase
     @Query private var athletes: [Athlete]
     @Query(sort: \RecoverySnapshot.date, order: .reverse)
     private var recoverySnapshots: [RecoverySnapshot]
@@ -196,12 +197,24 @@ struct RecoveryView: View {
             // the same inputs rather than growing a second, divergent pair of routes.
             .navigationDestination(for: TrendDestination.self) { destination in
                 switch destination {
-                case .hrv:   HRVDetailView(data: viewModel.hrvHistoryExtended)
+                case .hrv:   HRVDetailView(data: viewModel.hrvHistoryExtended, rawSampleCount: viewModel.hrvRawSampleCount)
                 case .sleep: SleepDetailView(snapshots: sleepWindowExtended)
                 }
             }
             .task {
                 await loadData()
+            }
+            // `todayCheckIn` / `todayRecovery` ask `isDateInToday` inside the body, but
+            // `.task` runs once per appearance — so after an overnight background the
+            // screen still believed it was yesterday: the morning check-in prompt stayed
+            // hidden and yesterday's snapshot rendered as today's reading (v1.7.1). Both
+            // hooks call the same idempotent load, matching Dashboard/WorkoutLog.
+            .onChange(of: scenePhase) { _, phase in
+                guard phase == .active else { return }
+                Task { await loadData() }
+            }
+            .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+                Task { await loadData() }
             }
         }
     }

@@ -123,19 +123,9 @@ struct SyncStatusView: View {
             : "\(entity.displayName), synced \(lastSync.map { relativeStamp(for: $0, now: now) } ?? "never")")
     }
 
-    /// Relative stamp with a "just now" floor. `RelativeDateTimeFormatter` phrases a
-    /// sub-second interval as FUTURE ("in 0 sec") because it rounds before choosing
-    /// tense — the "IN 0 SEC" defect from HAN's 2026-08-05 dogfood.
+    /// Relative stamp with a "just now" floor — see `RelativeTimeStamp` for why every
+    /// stamp in the app goes through one renderer.
     private func relativeStamp(for date: Date, now: Date) -> String {
-        if now.timeIntervalSince(date) < 60 {
-            return LocalePinnedStrings.localized("profile.sync.justNow", locale: locale)
-        }
-        return Self.relativeFormatter.localizedString(for: date, relativeTo: now)
+        RelativeTimeStamp.string(for: date, now: now, locale: locale)
     }
-
-    private static let relativeFormatter: RelativeDateTimeFormatter = {
-        let f = RelativeDateTimeFormatter()
-        f.unitsStyle = .short
-        return f
-    }()
 }

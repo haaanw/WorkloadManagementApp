@@ -71,6 +71,9 @@ final class DashboardViewModel {
     var recentSnapshots: [RecoverySnapshot] = []
     var hrv90Days: [(date: Date, value: Double)] = []
     var recentSnapshots90: [RecoverySnapshot] = []
+    /// Raw sample count behind `hrv90Days`, so the HRV surfaces can tell "no HRV at all"
+    /// apart from "HRV exists, but none in the morning window" (`HRVDailyStats`).
+    var hrvRawSampleCount: Int = 0
 
     // Weekly summary (ANLYT-02, ANLYT-03)
     var weeklySummary: AnalyticsEngine.WeeklySummary?
@@ -134,12 +137,21 @@ final class DashboardViewModel {
         recentSnapshots90 = (try? recoveryRepo.fetchRecoveryHistory(days: 90, athlete: athlete)) ?? []
         recentSnapshots = recentSnapshots90.filter { $0.date >= cutoff28 }
         if isScreenshotMode {
-            // SCREENSHOT_MODE: HealthKit unauthorized — derive HRV trend from seeded snapshots
+            // SCREENSHOT_MODE: HealthKit unauthorized — derive HRV trend from seeded
+            // snapshots, which are already one value per day (no bucketing needed).
             hrv90Days = recentSnapshots90.compactMap { snap in
                 snap.hrvSDNN.map { (date: snap.date, value: $0) }
             }
+            hrvRawSampleCount = hrv90Days.count
         } else {
-            hrv90Days = (try? await healthKitService.fetchHRVHistory(days: 90)) ?? []
+            // Day-bucket to the morning window BEFORE anything reads it: a Watch writes
+            // several SDNN samples a day, so raw-sample statistics called ~1–2 days of
+            // data "7-day" (v1.7.1). See `HRVDailyStats` for the reduction and its limits.
+            let rawSamples = (try? await healthKitService.fetchHRVHistory(days: 90)) ?? []
+            hrvRawSampleCount = rawSamples.count
+            hrv90Days = HRVDailyStats
+                .dailyValues(samples: rawSamples, days: 90)
+                .map { (date: $0.date, value: $0.value) }
         }
         hrv28Days = hrv90Days.filter { $0.date >= cutoff28 }
         latestHRV = todaySnapshot?.hrvSDNN

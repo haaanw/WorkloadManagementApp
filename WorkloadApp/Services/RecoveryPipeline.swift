@@ -45,8 +45,19 @@ struct RecoveryPipeline {
             rhrDate = rhrResult?.date
 
             sleepDetail = try? await healthKitService.fetchLastNightSleepDetail()
-            sleep = sleepDetail?.tstMinutes
             sleepDate = sleepDetail?.sessionEnd
+
+            // Sleep belongs to the day the athlete WOKE, not the day the pipeline happens
+            // to run (v1.7.1; the sleep-v2 shadow has always keyed this way). Opening the
+            // app at 00:30 used to write the PREVIOUS morning's night onto the new day's
+            // row and present it as "last night" — 17 h stale, and below the 24 h
+            // staleness threshold so nothing flagged it.
+            if let sleepDetail,
+               Calendar.current.isDateInToday(sleepDetail.sessionEnd) {
+                sleep = sleepDetail.tstMinutes
+            } else {
+                sleep = nil
+            }
 
             bodyTemp = try? await healthKitService.fetchLatestBodyTemp()
             vo2Max = try? await healthKitService.fetchLatestVO2Max()
@@ -98,6 +109,19 @@ struct RecoveryPipeline {
             restingHRBaseline: rhrBaseline,
             athlete: athlete
         )
+
+        // 5b. Orphan guard: a night whose wake day is NOT today did not reach the row
+        // above. File it on the day the athlete woke, if that row exists and has no sleep
+        // yet — otherwise a first open after midnight loses the night entirely, which is
+        // worse than the wrong-day attribution the gate above removed. Never overwrites a
+        // measured value and never fabricates a row (see `backfillSleep`).
+        if let sleepDetail, !Calendar.current.isDateInToday(sleepDetail.sessionEnd) {
+            try? recoveryRepo.backfillSleep(
+                minutes: sleepDetail.tstMinutes,
+                wakeDay: sleepDetail.sessionEnd,
+                athlete: athlete
+            )
+        }
 
         // 6. Sleep score v2 — SHADOW fold (Phase S2) + the §6 per-night record and its
         // deferred joins (Phase S3). Computed and recorded, NEVER driving: the live

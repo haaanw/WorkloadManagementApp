@@ -5,6 +5,7 @@ struct TemplateCarouselSection: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
     @Query private var athletes: [Athlete]
 
     // Callbacks for parent coordination
@@ -228,9 +229,15 @@ struct TemplateCarouselSection: View {
                     Spacer()
 
                     if let lastUsed = template.lastUsedAt {
-                        // A timestamp stamp — annotation (v6).
+                        // A timestamp stamp — annotation (v6). The relative part goes
+                        // through `RelativeTimeStamp`, which floors the present to
+                        // "just now": a template saved a moment ago read "Last used in
+                        // 0 seconds" straight after finishing the workout.
                         AnnotationLabel(
-                            String(format: String(localized: "template.lastUsed", defaultValue: "Last used %@"), lastUsed.formatted(.relative(presentation: .named))),
+                            String(
+                                format: LocalePinnedStrings.localized("template.lastUsed", locale: locale),
+                                RelativeTimeStamp.string(for: lastUsed, locale: locale)
+                            ),
                             size: .small
                         )
                     }

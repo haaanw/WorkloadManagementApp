@@ -180,10 +180,18 @@ struct SyncService {
         )
     }
 
+    /// The one seam where an entity's sync outcome is recorded.
+    ///
+    /// Success is stamped HERE, not only in `pushAll`/`pullAll` (v1.7.1). Pipeline- and
+    /// UI-triggered pushes — a logged workout, a saved template, a recovery run — used to
+    /// be able to record a FAILURE but never a success, so one flaky-network moment painted
+    /// a Sync Status row red and no amount of subsequent successful syncing could clear it.
+    /// Recording both outcomes at the same seam makes the screen tell the truth.
     @discardableResult
     private func run(_ entity: SyncEntity, _ direction: SyncDirection, _ action: () async throws -> Void) async -> Bool {
         do {
             try await action()
+            SyncTimestampStore.shared.recordSuccess(for: entity)
             return true
         } catch {
             logFailure(entity, direction, error)
@@ -938,13 +946,30 @@ struct WorkoutSessionRow: Codable {
             template.usageCount = row.usageCount
             template.scheduledDays = row.scheduledDays ?? []
 
-            // Replace groups from JSON
-            if existing != nil {
-                for group in template.groups { context.delete(group) }
-                template.groups = []
-            }
-            if let groupsJSON = row.groupsJson {
-                template.groups = Self.decodeGroups(from: groupsJSON)
+            // Rebuild the group tree ONLY when its content actually differs (v1.7.1).
+            //
+            // The LWW guard above skips a row only when local is strictly NEWER, and this
+            // loop then sets `template.updatedAt = row.updatedAt` — so from the first
+            // applied pull onward local and server timestamps are EQUAL forever, the guard
+            // never fires, and every foreground sync cascade-deleted and re-created every
+            // ExerciseGroup / TemplateExercise / TemplateSet with fresh UUIDs. That churn
+            // could also empty a template mid-edit.
+            //
+            // Comparing the canonical encoding instead of widening the timestamp guard is
+            // deliberate: an equal timestamp does NOT imply equal payload (two devices can
+            // edit inside the same truncated second), so skipping purely on equality could
+            // strand a real remote change. Content is the honest test — identical content
+            // means there is nothing to rebuild; different content still applies.
+            let incomingGroupsJSON = row.groupsJson
+            let localGroupsJSON = existing.map { Self.encodeGroups($0.groups) } ?? nil
+            if existing == nil || incomingGroupsJSON != localGroupsJSON {
+                if existing != nil {
+                    for group in template.groups { context.delete(group) }
+                    template.groups = []
+                }
+                if let groupsJSON = incomingGroupsJSON {
+                    template.groups = Self.decodeGroups(from: groupsJSON)
+                }
             }
 
             if existing == nil { context.insert(template) }
@@ -981,19 +1006,28 @@ struct WorkoutSessionRow: Codable {
 
     @discardableResult
     private func pullTrainingProfile(context: ModelContext, athleteId: UUID) async -> Bool {
-        let row: TrainingProfileRow
+        // Decode an ARRAY, not `.single()` (v1.7.1). `.single()` treats zero rows as the
+        // error PGRST116, so an athlete who never completed cold start had a permanently
+        // red "Training Profile" row — which, because `shouldSync` returns true whenever
+        // any entity has a recorded failure, also forced a full push+pull on every single
+        // foreground. No profile on the server is an ABSENCE, not a failure.
+        let rows: [TrainingProfileRow]
         do {
-            row = try await client
+            rows = try await client
                 .from("training_profiles")
                 .select()
                 .eq("athlete_id", value: athleteId)
-                .single()
+                .limit(1)
                 .execute()
                 .value
         } catch {
             logFailure(.trainingProfiles, .pull, error)
             recordFailure(.trainingProfiles, error)
             return false
+        }
+        guard let row = rows.first else {
+            // Nothing to pull; the local profile (if any) stands.
+            return true
         }
 
         let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }

@@ -5,6 +5,7 @@ struct TemplatePickerSheet: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.locale) private var locale
     @Query private var athletes: [Athlete]
 
     let onSelectTemplate: (WorkoutTemplate) -> Void
@@ -107,7 +108,7 @@ struct TemplatePickerSheet: View {
     private func templateCard(_ template: WorkoutTemplate) -> some View {
         let exercises = template.sortedGroups.flatMap { $0.sortedExercises }
         let lastUsedText: String? = template.lastUsedAt.map {
-            $0.formatted(.relative(presentation: .named))
+            RelativeTimeStamp.string(for: $0, locale: locale)
         }
 
         return Button {
