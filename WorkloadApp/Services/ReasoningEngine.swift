@@ -103,6 +103,26 @@ struct ReasoningEngine {
         return factors.sorted { $0.impact > $1.impact }.prefix(3).map { $0 }
     }
 
+    /// A short, honest statement of what today's score was actually built from — or nil when
+    /// all four signals contributed.
+    ///
+    /// This exists because of the v1.7.1 input change: HRV now counts only when the day has a
+    /// MORNING reading, so an athlete who wears the watch only in the daytime will see the
+    /// score fall back to the remaining signals. The score is renormalized and honest, but
+    /// without a line like this a change in measurement COVERAGE is indistinguishable from a
+    /// change in physiology — which is the specific harm both reviewers named on 2026-08-05.
+    static func coverageNote(for result: RecoveryScoreEngine.RecoveryResult) -> String? {
+        guard result.hasPartialCoverage else { return nil }
+        return String(
+            format: String(
+                localized: "recovery.coverage.partial",
+                defaultValue: "Based on %1$lld of %2$lld signals"
+            ),
+            result.contributingSignalCount,
+            result.totalSignalCount
+        )
+    }
+
     // MARK: - Decision explanation (Phase 28, Wave 2 — ADDITIVE, GA-11)
 
     /// One ranked, confidence-annotated reason for the DECISION (not just the recovery score).

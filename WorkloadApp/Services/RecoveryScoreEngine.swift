@@ -74,6 +74,25 @@ struct RecoveryScoreEngine {
         let trendSlope3Day: Double?    // points per day (positive = improving)
         let trendSlope7Day: Double?    // points per day (positive = improving)
         let trendModifier: Double      // actual adjustment applied (-10 to +10)
+
+        /// How many of the four signals actually contributed.
+        ///
+        /// The score renormalizes over whatever is present, so two days can both read "68"
+        /// while resting on different evidence. Since v1.7.1 HRV is only counted when the day
+        /// has a MORNING reading, so an athlete who does not wear the watch overnight will
+        /// legitimately see three-signal days — and the surface has to be able to say so
+        /// rather than let a coverage change look like a physiological one.
+        var contributingSignalCount: Int {
+            [hrvContribution, rhrContribution, sleepContribution, wellnessContribution]
+                .compactMap { $0 }
+                .count
+        }
+
+        /// Total number of signals the score can draw on.
+        var totalSignalCount: Int { 4 }
+
+        /// True when at least one signal is missing from today's score.
+        var hasPartialCoverage: Bool { contributingSignalCount < totalSignalCount }
     }
 
     // MARK: - Weights

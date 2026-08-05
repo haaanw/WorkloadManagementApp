@@ -14,6 +14,10 @@ struct RecoveryPipeline {
 
     /// Run on app launch and after wellness check-in.
     /// v1.5 self-coached path: HRV / RHR / sleep / wellness + ordinary 7-day baselines only.
+    /// Trailing days of history fetched for the HRV/RHR daily reductions. Wider than the
+    /// 7-day baseline it feeds so a run after a gap still finds seven observed days.
+    static let baselineWindowDays: Int = 30
+
     static func run(
         athlete: Athlete,
         healthKitService: HealthKitService,
@@ -21,6 +25,8 @@ struct RecoveryPipeline {
         syncService: SyncService? = nil
     ) async throws -> RecoveryResult {
         let recoveryRepo = RecoveryRepository(modelContext: modelContext)
+        let calendar = Calendar.current
+        let now = Date.now
 
         // 1. Fetch HealthKit data (staleness-aware)
         var hrv: Double?
@@ -32,17 +38,37 @@ struct RecoveryPipeline {
         var rhrDate: Date?
         var sleepDate: Date?
         var sleepDetail: HealthKitService.LastNightSleepDetail?
+        var hrvReduced: ReadinessInputReducer.Reduced?
+        var rhrReduced: ReadinessInputReducer.Reduced?
 
         // Attempt reads whenever HealthKit is available AND the user has requested access.
         // Absence of data is treated as "no recent data" downstream, never as "unauthorized".
         if healthKitService.isAvailable && healthKitService.hasRequestedAccess {
-            let hrvResult = try? await healthKitService.fetchLatestHRVWithDate()
-            hrv = hrvResult?.value
-            hrvDate = hrvResult?.date
+            // HRV and RHR now arrive as DAILY values rather than as "whichever sample
+            // HealthKit wrote last" (v1.7.1 algorithm update). The two signals reduce
+            // differently on purpose — HRV by morning window because time of day changes
+            // what a momentary SDNN reading means, RHR by calendar day because Apple already
+            // computes it as a daily aggregate. `ReadinessInputReducer` owns that split and
+            // the rule that today never enters its own baseline.
+            let hrvSamples = (try? await healthKitService.fetchHRVHistory(days: baselineWindowDays)) ?? []
+            hrvReduced = ReadinessInputReducer.hrv(
+                samples: hrvSamples,
+                windowDays: baselineWindowDays,
+                now: now,
+                calendar: calendar
+            )
+            hrv = hrvReduced?.today
+            hrvDate = hrvReduced?.today != nil ? now : nil
 
-            let rhrResult = try? await healthKitService.fetchLatestRestingHRWithDate()
-            rhr = rhrResult?.value
-            rhrDate = rhrResult?.date
+            let rhrSamples = (try? await healthKitService.fetchRestingHRHistory(days: baselineWindowDays)) ?? []
+            rhrReduced = ReadinessInputReducer.rhr(
+                samples: rhrSamples,
+                windowDays: baselineWindowDays,
+                now: now,
+                calendar: calendar
+            )
+            rhr = rhrReduced?.today
+            rhrDate = rhrReduced?.today != nil ? now : nil
 
             sleepDetail = try? await healthKitService.fetchLastNightSleepDetail()
             sleepDate = sleepDetail?.sessionEnd
@@ -53,7 +79,7 @@ struct RecoveryPipeline {
             // row and present it as "last night" — 17 h stale, and below the 24 h
             // staleness threshold so nothing flagged it.
             if let sleepDetail,
-               Calendar.current.isDateInToday(sleepDetail.sessionEnd) {
+               calendar.isDateInToday(sleepDetail.sessionEnd) {
                 sleep = sleepDetail.tstMinutes
             } else {
                 sleep = nil
@@ -71,21 +97,31 @@ struct RecoveryPipeline {
 
         let staleness = HealthKitStaleness(lastHRVDate: hrvDate, lastSleepDate: sleepDate, lastRHRDate: rhrDate)
 
-        // 2. Fetch 7-day history for baselines
+        // 2. Baselines from PRIOR days only.
+        //
+        // Both the values and the window changed (v1.7.1). The values are the daily
+        // reductions above rather than a `compactMap` over stored snapshot fields, so the
+        // baseline is built from the same series the score is measured against. And today is
+        // excluded: the old 7-day history fetch included today's own row once the day's first
+        // run had written it, so any later run — a wellness check-in, a dashboard reload —
+        // folded today's reading into the mean it was about to be compared with. The
+        // deviation shrank and the score drifted with no new physiology.
         let recoveryHistory = try recoveryRepo.fetchRecoveryHistory(days: 7, athlete: athlete)
-        let hrvValues = recoveryHistory.compactMap(\.hrvSDNN)
-        let rhrValues = recoveryHistory.compactMap(\.restingHR)
-        let hrvBaseline = RecoveryScoreEngine.computeBaseline(values: hrvValues)
-        let rhrBaseline = RecoveryScoreEngine.computeBaseline(values: rhrValues)
+        let hrvBaseline = RecoveryScoreEngine.computeBaseline(values: hrvReduced?.priorDays ?? [])
+        let rhrBaseline = RecoveryScoreEngine.computeBaseline(values: rhrReduced?.priorDays ?? [])
 
         // 3. Fetch today's wellness check-in
         let todayCheckIn = try recoveryRepo.fetchTodayWellnessCheckIn(athlete: athlete)
         let wellnessScore = todayCheckIn?.wellnessScore
 
-        // 4. Compute recovery score (with trend from recent history)
-        let recentScores = recoveryHistory
-            .sorted { $0.date < $1.date }
-            .map(\.recoveryScore)
+        // 4. Compute recovery score. The trend series also drops today: the modifier is an
+        // autoregression on the engine's own past output, so letting it read the score it is
+        // about to replace made a same-day re-run move the number on its own.
+        let recentScores = ReadinessInputReducer.priorDayScores(
+            recoveryHistory.map { (date: $0.date, score: $0.recoveryScore) },
+            now: now,
+            calendar: calendar
+        )
         let input = RecoveryScoreEngine.RecoveryInput(
             hrvSDNN: hrv,
             restingHR: rhr,
@@ -107,7 +143,12 @@ struct RecoveryPipeline {
             recoveryScore: result.score,
             hrvBaseline: hrvBaseline,
             restingHRBaseline: rhrBaseline,
-            athlete: athlete
+            athlete: athlete,
+            // The pipeline did the daily reduction itself, so a nil HRV here means "today has
+            // no morning reading", not "the read failed". Writing it through clears any
+            // earlier midday value that a pre-v1.7.1 run left on the row — otherwise the row
+            // would display a number the score deliberately did not use.
+            authoritativeHRV: healthKitService.isAvailable && healthKitService.hasRequestedAccess
         )
 
         // 5b. Orphan guard: a night whose wake day is NOT today did not reach the row
@@ -115,7 +156,7 @@ struct RecoveryPipeline {
         // yet — otherwise a first open after midnight loses the night entirely, which is
         // worse than the wrong-day attribution the gate above removed. Never overwrites a
         // measured value and never fabricates a row (see `backfillSleep`).
-        if let sleepDetail, !Calendar.current.isDateInToday(sleepDetail.sessionEnd) {
+        if let sleepDetail, !calendar.isDateInToday(sleepDetail.sessionEnd) {
             try? recoveryRepo.backfillSleep(
                 minutes: sleepDetail.tstMinutes,
                 wakeDay: sleepDetail.sessionEnd,

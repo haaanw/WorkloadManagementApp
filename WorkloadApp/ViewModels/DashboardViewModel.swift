@@ -54,6 +54,10 @@ final class DashboardViewModel {
 
     // Algorithm transparency — why the score is what it is
     var reasoningFactors: [ReasoningEngine.Factor] = []
+    /// "Based on 3 of 4 signals" when a signal is missing from today's score, else nil.
+    /// Since v1.7.1 HRV counts only on days with a morning reading, so coverage genuinely
+    /// varies — and a coverage change must not be mistaken for a physiological one.
+    var recoveryCoverageNote: String?
     var hasRealData: Bool = false
 
     // NOTE: HealthKit connection state is intentionally NOT cached on the ViewModel.
@@ -360,8 +364,10 @@ final class DashboardViewModel {
                 daysSinceRest: daysSinceRest
             )
             reasoningFactors = ReasoningEngine.summarize(input: reasoningInput)
+            recoveryCoverageNote = ReasoningEngine.coverageNote(for: result)
         } else {
             reasoningFactors = []
+            recoveryCoverageNote = nil
         }
 
         isLoading = false

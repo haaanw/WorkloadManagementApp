@@ -456,6 +456,13 @@ struct HeroReadinessCard: View {
                         ForEach(Array(factors.enumerated()), id: \.offset) { index, factor in
                             factorRow(factor, index: index, isLast: index == factors.count - 1)
                         }
+                        // Coverage, when the score rests on fewer than four signals. A
+                        // machine-ish stamp in the annotation voice: it qualifies the reading
+                        // above rather than speaking to the athlete.
+                        if let coverage = viewModel.recoveryCoverageNote {
+                            AnnotationLabel(coverage, size: .small)
+                                .annotationReveal(index: factors.count)
+                        }
                     }
 
                     Spacer().frame(height: Spacing.sm)

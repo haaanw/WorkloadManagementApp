@@ -85,15 +85,21 @@ struct DayBucketer {
             }
     }
 
-    // MARK: - Sleep bucketing
+    // MARK: - All-day bucketing (signals that are ALREADY one value per day)
 
-    /// Reduce last-night sleep aggregates to one `BucketedDay` per calendar day across
-    /// `[startOfDay(rangeStart) ... startOfDay(rangeEnd)]` ascending and dense.
+    /// Reduce a signal that is already a per-day aggregate to one `BucketedDay` per calendar
+    /// day, with **no morning-window filter**: each `(date, value)` is keyed by
+    /// `startOfDay(of: date)`, several samples on a day collapse to their median (defensive
+    /// dedup), and a day with no sample is a GAP (`nil`), never carried forward.
     ///
-    /// Sleep is already one value per night; each `(date, value)` is keyed by `startOfDay(of:
-    /// date)` (no morning-window filter). Multiple samples on one day collapse to their median
-    /// (defensive dedup). A day with no sample is a GAP (`nil`), never carried forward.
-    static func bucketSleep(
+    /// Use this — NOT `bucketMorningWindow` — for any signal the source computes daily rather
+    /// than measures momentarily. **Resting heart rate is the important case**: Apple Watch
+    /// derives RHR as a daily aggregate over rest periods and refines/replaces it through the
+    /// day, so the sample's timestamp does not mark a "morning reading" and an hour filter
+    /// would discard or admit it essentially at random (multi-model review, 2026-08-05).
+    /// HRV SDNN is the opposite — a momentary measurement whose time of day genuinely changes
+    /// its meaning — and keeps the morning window.
+    static func bucketAllDay(
         samples: [(date: Date, value: Double)],
         rangeStart: Date,
         rangeEnd: Date,
@@ -112,6 +118,19 @@ struct DayBucketer {
                 }
                 return BucketedDay(date: day, value: nil)
             }
+    }
+
+    // MARK: - Sleep bucketing
+
+    /// Sleep is already one value per night — the all-day reduction under its domain name,
+    /// kept so existing callers and tests read as sleep rather than as a generic bucket.
+    static func bucketSleep(
+        samples: [(date: Date, value: Double)],
+        rangeStart: Date,
+        rangeEnd: Date,
+        calendar: Calendar
+    ) -> [BucketedDay] {
+        bucketAllDay(samples: samples, rangeStart: rangeStart, rangeEnd: rangeEnd, calendar: calendar)
     }
 
     // MARK: - Day-advance / idempotency fold (W-1)

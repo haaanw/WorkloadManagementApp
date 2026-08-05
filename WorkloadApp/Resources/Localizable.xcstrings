@@ -11250,6 +11250,23 @@
         }
       }
     },
+    "recovery.coverage.partial" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Based on %1$lld of %2$lld signals"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "基于 %2$lld 项信号中的 %1$lld 项"
+          }
+        }
+      }
+    },
     "recovery.empty.body" : {
       "extractionState" : "manual",
       "localizations" : {

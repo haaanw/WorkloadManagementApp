@@ -66,7 +66,8 @@ final class RecoveryRepository {
         hrvBaseline: Double? = nil,
         restingHRBaseline: Double? = nil,
         dataSource: RecoveryDataSource = .healthKit,
-        athlete: Athlete? = nil
+        athlete: Athlete? = nil,
+        authoritativeHRV: Bool = false
     ) throws {
         let today = Calendar.current.startOfDay(for: .now)
         let descriptor: FetchDescriptor<RecoverySnapshot>
@@ -82,7 +83,20 @@ final class RecoveryRepository {
         }
 
         if let existing = try modelContext.fetch(descriptor).first {
-            existing.hrvSDNN = hrvSDNN ?? existing.hrvSDNN
+            // HRV is written AUTHORITATIVELY when the caller has done the daily reduction
+            // itself (v1.7.1): the pipeline now knows whether today has a morning value, and
+            // nil means "measured absent", not "not read". Coalescing there would leave a
+            // stale midday reading on the row while the score was computed without it — the
+            // row would show a number the score never used. Every other caller keeps the
+            // protective coalesce, because for them nil really does mean "no reading taken".
+            if authoritativeHRV {
+                existing.hrvSDNN = hrvSDNN
+            } else {
+                existing.hrvSDNN = hrvSDNN ?? existing.hrvSDNN
+            }
+            // RHR keeps the coalesce even on the authoritative path: Apple refines the daily
+            // value through the day, so a transient absence is not evidence that the day has
+            // no resting heart rate.
             existing.restingHR = restingHR ?? existing.restingHR
             existing.sleepDurationMinutes = sleepDurationMinutes ?? existing.sleepDurationMinutes
             existing.sleepScore = sleepScore ?? existing.sleepScore
