@@ -164,6 +164,23 @@ struct RecoveryPipeline {
             )
         }
 
+        // 5c. Recovery estimator v2 — SHADOW dual-run. Runs AFTER the live score is final and
+        // persisted, writes only to its own local-only model, and can never throw out of the
+        // pipeline. Nothing reads it back into a decision (the sleep-v2 run-dark precedent).
+        runRecoveryShadow(
+            athlete: athlete,
+            hrvReduced: hrvReduced,
+            rhrReduced: rhrReduced,
+            sleepMinutes: sleep,
+            wellnessScore: wellnessScore,
+            liveResult: result,
+            hrvBaseline: hrvBaseline,
+            rhrBaseline: rhrBaseline,
+            now: now,
+            calendar: calendar,
+            modelContext: modelContext
+        )
+
         // 6. Sleep score v2 — SHADOW fold (Phase S2) + the §6 per-night record and its
         // deferred joins (Phase S3). Computed and recorded, NEVER driving: the live
         // recovery score above is already final, and nothing below can throw out of the
@@ -190,6 +207,100 @@ struct RecoveryPipeline {
             snapshot: result,
             staleness: staleness
         )
+    }
+
+    // MARK: - Recovery estimator v2 shadow (never driving)
+
+    /// Record today's v1-vs-v2 recovery comparison.
+    ///
+    /// The v2 arm rescoring HRV and RHR from a robust personal z would move every number the
+    /// athlete has seen, so per the 2026-05-30 approved scope it runs dark until parity is
+    /// reviewed by a human. This is the evidence for that review.
+    ///
+    /// Discipline, all deliberate:
+    /// - Called after the live score is computed AND persisted, so it cannot influence it.
+    /// - **Both stored scores are pre-trend** (`baseScore`). v1's trend modifier is an
+    ///   autoregression on its own past output; including it would confound an estimator
+    ///   change with accumulated inertia.
+    /// - Every failure is swallowed — a shadow must never break the pipeline.
+    /// - Upserts on (athlete, day), so repeated runs in a day refine one row rather than
+    ///   accumulating duplicates.
+    private static func runRecoveryShadow(
+        athlete: Athlete,
+        hrvReduced: ReadinessInputReducer.Reduced?,
+        rhrReduced: ReadinessInputReducer.Reduced?,
+        sleepMinutes: Double?,
+        wellnessScore: Double?,
+        liveResult: RecoveryScoreEngine.RecoveryResult,
+        hrvBaseline: Double?,
+        rhrBaseline: Double?,
+        now: Date,
+        calendar: Calendar,
+        modelContext: ModelContext
+    ) {
+        do {
+            guard let hrvReduced, let rhrReduced else { return }
+            let day = calendar.startOfDay(for: now)
+
+            let hrvOutcome = RecoveryShadowEngine.evaluate(
+                today: hrvReduced.today,
+                priorDays: hrvReduced.priorDays,
+                config: .hrv
+            )
+            let rhrOutcome = RecoveryShadowEngine.evaluate(
+                today: rhrReduced.today,
+                priorDays: rhrReduced.priorDays,
+                config: .rhr
+            )
+            let v2Score = RecoveryShadowEngine.compositeScore(
+                hrvComponent: hrvOutcome.component,
+                rhrComponent: rhrOutcome.component,
+                // Sleep and wellness are carried over from the live arm untouched, so the only
+                // difference under test is the HRV/RHR estimator.
+                sleepComponent: liveResult.sleepContribution,
+                wellnessComponent: liveResult.wellnessContribution
+            )
+
+            let athleteId = athlete.id
+            let descriptor = FetchDescriptor<RecoveryShadowDay>(
+                predicate: #Predicate { $0.date == day }
+            )
+            let existing = ((try? modelContext.fetch(descriptor)) ?? [])
+                .filter { $0.athlete?.id == athleteId }
+            for stale in existing {
+                modelContext.delete(stale)
+            }
+
+            let record = RecoveryShadowDay(
+                date: day,
+                hrvToday: hrvReduced.today,
+                rhrToday: rhrReduced.today,
+                sleepMinutes: sleepMinutes,
+                wellnessScore: wellnessScore,
+                hrvPriorDayCount: hrvReduced.priorDays.count,
+                rhrPriorDayCount: rhrReduced.priorDays.count,
+                v1BaseScore: liveResult.baseScore,
+                v1HrvComponent: liveResult.hrvContribution,
+                v1RhrComponent: liveResult.rhrContribution,
+                v1SleepComponent: liveResult.sleepContribution,
+                v1WellnessComponent: liveResult.wellnessContribution,
+                v1HrvBaseline: hrvBaseline,
+                v1RhrBaseline: rhrBaseline,
+                v2BaseScore: v2Score,
+                v2HrvComponent: hrvOutcome.component,
+                v2RhrComponent: rhrOutcome.component,
+                hrvZ: hrvOutcome.z,
+                rhrZ: rhrOutcome.z,
+                hrvMu: hrvOutcome.mu,
+                rhrMu: rhrOutcome.mu,
+                hrvConfidence: hrvOutcome.confidence
+            )
+            record.athlete = athlete
+            modelContext.insert(record)
+            try modelContext.save()
+        } catch {
+            print("Recovery shadow error: \(error)")
+        }
     }
 
     // MARK: - Sleep v2 shadow (Phase S2 fold + Phase S3 per-night record, never driving)

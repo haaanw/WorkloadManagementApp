@@ -81,9 +81,19 @@ corrected or late HealthKit history; persistence via the W-1 monotonic guard
 unabsorbable, and it adds migration risk on an existing install for no capability we need.
 Nothing else in this plan depends on it. Revisit only as a versioned, replayable cache.
 
-### C. Dual-run the score (SHADOW)
-- Compute a v2 recovery score alongside v1 every run: same components and weights, but HRV
-  and RHR scored from the persisted personal z + robust σ rather than the flat-mean ratio.
+### C. Dual-run the score (SHADOW) — **SHIPPED, dark**
+- `RecoveryShadowEngine` (pure) scores HRV/RHR from a personal z against `BaselineEngine`'s
+  robust baseline, folded EPHEMERALLY from the reducer's prior days (prequential: the scored
+  day never enters its own baseline). Same four components, same weights as the live engine —
+  sleep and wellness are carried over untouched so the ONLY difference under test is the
+  HRV/RHR estimator.
+- **The anchor is held fixed:** `z = 0` maps to 70, exactly v1's `ratio = 1.0` value. If v2
+  also re-anchored, the arms would differ for two reasons and the divergence would be
+  unattributable. Sensitivity is a stated constant (15 points per robust σ), not a tuned one.
+- **Both stored scores are pre-trend.** v1's trend modifier is an autoregression on its own
+  past output; including it would confound the estimator change with accumulated inertia.
+- The arm stays silent when the estimator has not earned an opinion (nil z → nil component →
+  renormalize), and returns no composite at all when neither physiological arm scored.
 - Persist one record per day to a **new local-only model** (`RecoveryShadowDay`), carrying
   both scores, the z's, the confidence, the CV level, and the tier — mirroring
   `SleepShadowNight`.
@@ -92,10 +102,25 @@ Nothing else in this plan depends on it. Revisit only as a versioned, replayable
   source-level no-mutation test.
 
 ### D. Tests
-- `RecoveryPipelineTests` — the orchestrator has **no test file today** (632 lines,
-  including the wake-day gate and the orphan backfill just added). This is the largest
-  coverage hole in the algorithm stack.
-- Daily-value input path, today-excluded baselines, fold idempotency, and the shadow record.
+- **Shipped:** `ReadinessInputReducerTests` (input split, today-excluded baseline and trend,
+  coverage reporting) and `RecoveryShadowTests` (honest silence, fixed anchor, RHR sign
+  inversion, weight parity with the live engine, plus two source-level fences: the shadow
+  model never appears in `SyncService`, and the live engine never references the shadow arm).
+- **Still open:** `RecoveryPipelineTests`. The orchestrator remains the largest coverage hole
+  in the algorithm stack — it is now ~700 lines carrying the wake-day sleep gate, the orphan
+  backfill, the daily-input reduction and two shadow folds, with no direct test file.
+
+### E. The flip decision — what HAN needs before v2 could ever drive the score
+Not a code change; the criteria are recorded here so the bar is set before the data exists.
+1. **Divergence understood first.** The first question is not "which is better" but "how
+   different are they" — distribution of `|v1 − v2|`, rank correlation between the arms, and
+   how often the two land in different recovery zones. That read is leak-free today.
+2. **Predictive comparison needs a leak-free outcome, which does NOT yet exist.** Wellness
+   feeds BOTH arms, so it cannot serve as the outcome, and the sleep-v2 review already
+   rejected a subjective-rating proxy for exactly this reason. Defining that outcome is
+   prerequisite work, not something to improvise at flip time.
+3. **No code flips the gate.** `RecoveryShadowDay` is evidence; only a human decides, the
+   `CrossModalShadowGate.validationSummary` discipline.
 
 ## Explicitly NOT in this patch
 
