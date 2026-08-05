@@ -35,18 +35,15 @@ final class RecoveryRepository {
         athlete: Athlete? = nil
     ) throws -> Bool {
         let day = Calendar.current.startOfDay(for: wakeDay)
-        let descriptor: FetchDescriptor<RecoverySnapshot>
-        if let athlete {
-            let athleteId = athlete.id
-            descriptor = FetchDescriptor<RecoverySnapshot>(
-                predicate: #Predicate { $0.date == day && $0.athlete?.id == athleteId }
-            )
-        } else {
-            descriptor = FetchDescriptor<RecoverySnapshot>(
-                predicate: #Predicate { $0.date == day }
-            )
-        }
-        guard let row = try modelContext.fetch(descriptor).first,
+        // Date-only #Predicate, athlete filtered in Swift: traversing the OPTIONAL to-one
+        // `athlete` relationship inside a #Predicate crashes the SwiftData process rather than
+        // throwing (the trap `RecoveryPipeline.runSleepV2Shadow` and `BaselineStateModelTests`
+        // already document). Found the hard way — it took down the whole test host.
+        let rows = try modelContext.fetch(
+            FetchDescriptor<RecoverySnapshot>(predicate: #Predicate { $0.date == day })
+        )
+        let matching = athlete.map { a in rows.filter { $0.athlete?.id == a.id } } ?? rows
+        guard let row = matching.first,
               row.sleepDurationMinutes == nil else { return false }
         row.sleepDurationMinutes = minutes
         row.updatedAt = .now
@@ -70,19 +67,14 @@ final class RecoveryRepository {
         authoritativeHRV: Bool = false
     ) throws {
         let today = Calendar.current.startOfDay(for: .now)
-        let descriptor: FetchDescriptor<RecoverySnapshot>
-        if let athlete {
-            let athleteId = athlete.id
-            descriptor = FetchDescriptor<RecoverySnapshot>(
-                predicate: #Predicate { $0.date == today && $0.athlete?.id == athleteId }
-            )
-        } else {
-            descriptor = FetchDescriptor<RecoverySnapshot>(
-                predicate: #Predicate { $0.date == today }
-            )
-        }
+        // Date-only #Predicate + Swift-side athlete filter — the optional to-one relationship
+        // must never be traversed inside a #Predicate (see `backfillSleep`).
+        let todayRows = try modelContext.fetch(
+            FetchDescriptor<RecoverySnapshot>(predicate: #Predicate { $0.date == today })
+        )
+        let scoped = athlete.map { a in todayRows.filter { $0.athlete?.id == a.id } } ?? todayRows
 
-        if let existing = try modelContext.fetch(descriptor).first {
+        if let existing = scoped.first {
             // HRV is written AUTHORITATIVELY when the caller has done the daily reduction
             // itself (v1.7.1): the pipeline now knows whether today has a morning value, and
             // nil means "measured absent", not "not read". Coalescing there would leave a

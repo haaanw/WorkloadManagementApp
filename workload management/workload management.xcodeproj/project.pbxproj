@@ -83,6 +83,7 @@
 		DD2704010000000000000001 /* RelativeTimeStamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2704000000000000000001 /* RelativeTimeStamp.swift */; };
 		DD2708010000000000000001 /* ReadinessInputReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2708000000000000000001 /* ReadinessInputReducer.swift */; };
 		DD270A010000000000000001 /* RecoveryShadowEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD270A000000000000000001 /* RecoveryShadowEngine.swift */; };
+		DD270B010000000000000001 /* RecoveryShadowAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD270B000000000000000001 /* RecoveryShadowAnalysis.swift */; };
 		DD2702010000000000000001 /* SleepStateBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2702000000000000000001 /* SleepStateBuilder.swift */; };
 		DD2709010000000000000001 /* RecoveryShadowDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2709000000000000000001 /* RecoveryShadowDay.swift */; };
 		DD3801010000000000000001 /* SleepShadowNight.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3801000000000000000001 /* SleepShadowNight.swift */; };
@@ -295,6 +296,7 @@
 		DD2704000000000000000001 /* RelativeTimeStamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelativeTimeStamp.swift; sourceTree = "<group>"; };
 		DD2708000000000000000001 /* ReadinessInputReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessInputReducer.swift; sourceTree = "<group>"; };
 		DD270A000000000000000001 /* RecoveryShadowEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryShadowEngine.swift; sourceTree = "<group>"; };
+		DD270B000000000000000001 /* RecoveryShadowAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryShadowAnalysis.swift; sourceTree = "<group>"; };
 		DD2702000000000000000001 /* SleepStateBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepStateBuilder.swift; sourceTree = "<group>"; };
 		DD2709000000000000000001 /* RecoveryShadowDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryShadowDay.swift; sourceTree = "<group>"; };
 		DD3801000000000000000001 /* SleepShadowNight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepShadowNight.swift; sourceTree = "<group>"; };
@@ -657,6 +659,7 @@
 				DD2703000000000000000001 /* HRVDailyStats.swift */,
 				DD2708000000000000000001 /* ReadinessInputReducer.swift */,
 				DD270A000000000000000001 /* RecoveryShadowEngine.swift */,
+				DD270B000000000000000001 /* RecoveryShadowAnalysis.swift */,
 				DD2702000000000000000001 /* SleepStateBuilder.swift */,
 				DD3802000000000000000001 /* SleepShadowAnalysis.swift */,
 				DD2002000000000000000001 /* ShadowPredictor.swift */,
@@ -1164,6 +1167,7 @@
 				DD2704010000000000000001 /* RelativeTimeStamp.swift in Sources */,
 				DD2708010000000000000001 /* ReadinessInputReducer.swift in Sources */,
 				DD270A010000000000000001 /* RecoveryShadowEngine.swift in Sources */,
+				DD270B010000000000000001 /* RecoveryShadowAnalysis.swift in Sources */,
 				DD2702010000000000000001 /* SleepStateBuilder.swift in Sources */,
 				DD2709010000000000000001 /* RecoveryShadowDay.swift in Sources */,
 				DD3801010000000000000001 /* SleepShadowNight.swift in Sources */,

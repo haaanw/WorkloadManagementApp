@@ -16,6 +16,40 @@ progress:
 
 # Project State
 
+> ## ⚠️ CORRECTION 2026-07-26 — read before trusting anything below
+>
+> The frontmatter `status` / `stopped_at` fields were written 2026-06-14 and were
+> never updated when the v1.6 launch pushed main on 2026-07-21. Two agents were
+> independently misled by them in one session. Verified directly from `git` and
+> source on 2026-07-26:
+>
+> - **"push held" / "~190 commits ahead of origin" is FALSE.** `git rev-list
+>   --left-right --count origin/main...main` → `0 0`. Local and origin are
+>   identical. All v2.0 engines are on origin (`TodayVerdictEngine`,
+>   `CrossModalFatigueEngine`, `GreenLightEngine`, et al.).
+> - **The verdict surface is LIVE in production**, not flag-gated off.
+>   `VerdictSurfaceActivation.isEnabled` defaults `false`, but that default is a
+>   fence for bare reads (keeps the legacy byte-identical golden-snapshot tests
+>   green). Production opts in unconditionally at `DashboardViewModel.swift:406`.
+> - **Cross-modal drives the verdict** since 2026-07-08
+>   (`CrossModalShadowGate.crossModalDrivesVerdict` defaults `true`, revertible).
+> - **v1.6 build 17 was REJECTED 2026-07-25** — no Terms of Use (EULA) link in the
+>   metadata description body; second rejection of that class. Listing fix landed
+>   at `AppStoreMetadata.md:63` / `:103`.
+> - **The binding blocker to users is deployment, not build.** `tuwa-website` main
+>   is 1 commit ahead of its origin (`bfed11f`, Apple EULA clauses — unpushed,
+>   therefore undeployed), and the live site still serves coach-era `/terms`,
+>   `/privacy`, `/support`. The App Store description now cites `tuwa.app/terms`,
+>   so resubmitting before that route is fixed invites a third rejection.
+>
+> The deferred-UAT list in `stopped_at` is still accurate and still unrun. It is
+> consolidated into a single ordered device pass at
+> `.planning/notes/preship-uat-script-v16.md`.
+>
+> Rule that came out of this: for build, push, or flag state, read the system
+> (`git`, source) — never a planning doc. Established via the CLAUDE⇄CODEX pair
+> board (`.pair/`).
+
 ## Project Reference
 
 See: .planning/PROJECT.md (updated 2026-06-13)
