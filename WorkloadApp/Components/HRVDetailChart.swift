@@ -53,7 +53,7 @@ struct HRVDetailChart: View {
     }
 
     var body: some View {
-        if data.isEmpty {
+        if visibleData.isEmpty {
             Text("hrv.chart.empty.message")
                 .font(.Tokens.label)
                 .foregroundStyle(ColorTokens.text2)

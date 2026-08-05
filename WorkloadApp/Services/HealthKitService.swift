@@ -331,31 +331,57 @@ final class HealthKitService {
         guard !dominantAsleep.isEmpty else { return nil }
 
         // Session clustering (H-25): a gap > 90 min between the dominant source's asleep
-        // samples starts a new session; only the MOST RECENT session is last night.
+        // samples starts a new session.
         let asleepIntervals = dominantAsleep.map { DateInterval(start: $0.startDate, end: $0.endDate) }
         let sessions = SleepSessionMath.sessionClusters(
             asleepIntervals,
             gapMinutes: SleepSessionMath.sessionGapMinutes
         )
-        guard let session = sessions.last, let firstInterval = session.first else { return nil }
+
+        // Main-session pick (v1.7.1): plain `.last` inverted nap and night — an afternoon
+        // nap is the most recent cluster, so it became "last night" and the real night was
+        // demoted to a nap candidate, cratering the live sleep number and score. The night
+        // is the LATEST cluster with at least `nightMinimumMinutes` of unioned sleep; when
+        // no cluster reaches the floor (a brutally short night), the largest cluster
+        // stands in. `.last` among qualifiers still wins so a late run never resurrects
+        // the PREVIOUS night over the most recent one.
+        let unionByCluster = sessions.map { SleepSessionMath.unionMinutes($0) }
+        let chosenIndex: Int
+        if let nightIndex = sessions.indices.last(where: {
+            unionByCluster[$0] >= SleepSessionMath.nightMinimumMinutes
+        }) {
+            chosenIndex = nightIndex
+        } else if let largestIndex = unionByCluster.indices.max(by: {
+            unionByCluster[$0] < unionByCluster[$1]
+        }) {
+            chosenIndex = largestIndex
+        } else {
+            return nil
+        }
+        let session = sessions[chosenIndex]
+        guard let firstInterval = session.first else { return nil }
         let sessionStart = firstInterval.start
         let sessionEnd = session.map(\.end).max()!
 
-        // Nap candidates (H-35): every clustered session EXCEPT the chosen main one,
-        // reduced to start / end / unioned asleep minutes. The nap selection rule lives in
+        // Nap candidates (H-35): every clustered session EXCEPT the chosen main one —
+        // before OR after it; `SleepStateBuilder.napMinutes` itself bounds candidates to
+        // the [lastSleepEnd, mainSessionStart] window, so a post-night nap passed here is
+        // simply ignored until tomorrow's fold. The nap selection rule stays in
         // `SleepStateBuilder.napMinutes` (pure, testable) — this fetch only reports what
         // the window contained.
-        let napCandidates: [SleepStateBuilder.NapCandidate] = sessions.dropLast().compactMap {
-            cluster in
-            guard let first = cluster.first, let end = cluster.map(\.end).max() else {
-                return nil
+        let napCandidates: [SleepStateBuilder.NapCandidate] = sessions.indices
+            .filter { $0 != chosenIndex }
+            .compactMap { index in
+                let cluster = sessions[index]
+                guard let first = cluster.first, let end = cluster.map(\.end).max() else {
+                    return nil
+                }
+                return SleepStateBuilder.NapCandidate(
+                    start: first.start,
+                    end: end,
+                    asleepMinutes: unionByCluster[index]
+                )
             }
-            return SleepStateBuilder.NapCandidate(
-                start: first.start,
-                end: end,
-                asleepMinutes: SleepSessionMath.unionMinutes(cluster)
-            )
-        }
 
         // A sample belongs to the chosen session by overlap with its asleep span. Earlier
         // sessions' samples end > 90 min before `sessionStart`, so they never overlap.
@@ -609,6 +635,11 @@ enum SleepSessionMath {
     /// asleep samples starts a new sleep session (two nights and naps must never merge
     /// into one Night); a gap of exactly 90 minutes still bridges.
     static let sessionGapMinutes: Double = 90.0
+
+    /// Minimum unioned asleep minutes for a cluster to qualify as the main night (3 h).
+    /// Below this every cluster is nap-shaped; the largest one then stands in so a
+    /// brutally short night still produces a reading (v1.7.1 main-session pick).
+    static let nightMinimumMinutes: Double = 180.0
 
     /// Cluster asleep-sample intervals into sessions. Intervals are sorted by start; a new
     /// session begins when an interval starts more than `gapMinutes` after the running

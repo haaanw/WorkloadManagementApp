@@ -523,11 +523,11 @@ struct SyncService {
             session.durationSeconds = row.durationSeconds ?? 0
             session.sessionRPE = row.sessionRpe
             session.notes = row.notes
-            session.totalVolume = row.totalVolume
-            session.externalLoad = row.externalLoad
-            session.internalLoad = row.internalLoad
-            session.trainingStress = row.trainingStress
-            session.sessionType = SessionType(rawValue: row.sessionType) ?? .strength
+            session.totalVolume = row.totalVolume ?? 0
+            session.externalLoad = row.externalLoad ?? 0
+            session.internalLoad = row.internalLoad ?? 0
+            session.trainingStress = row.trainingStress ?? 0
+            session.sessionType = SessionType(rawValue: row.sessionType ?? "") ?? .strength
             session.loggedByCoachId = row.loggedByCoachId
             session.updatedAt = row.updatedAt
             session.athlete = athlete
@@ -849,13 +849,16 @@ struct WorkoutSessionRow: Codable {
     let sportType: String?
     let durationSeconds: Int?
     let sessionRpe: Double?
-    let sessionType: String
+    // Optional on decode (v1.7.1): the live table predates the committed DDL, so these
+    // columns can be nullable server-side — a single NULL row must not fail the whole
+    // pull. Push always supplies concrete values.
+    let sessionType: String?
     let loggedByCoachId: UUID?
     let notes: String?
-    let totalVolume: Double
-    let externalLoad: Double
-    let internalLoad: Double
-    let trainingStress: Double
+    let totalVolume: Double?
+    let externalLoad: Double?
+    let internalLoad: Double?
+    let trainingStress: Double?
     let updatedAt: Date
 
     init(from model: WorkoutSession, athleteId: UUID) {

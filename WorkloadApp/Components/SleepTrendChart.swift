@@ -26,6 +26,16 @@ struct SleepTrendChart: View {
         }
     }
 
+    /// Explicit trailing-28-day x-domain (v1.7.1). Without it Swift Charts infers the
+    /// domain from the data and a single night renders as one bar filling the entire
+    /// plot — the same defect fixed in `SleepDetailChart`.
+    private var xDomain: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: .now))!
+        let start = calendar.date(byAdding: .day, value: -28, to: end)!
+        return start...end
+    }
+
     private var sevenDayAvg: Double? {
         let recent = sleepData.suffix(7)
         guard !recent.isEmpty else { return nil }
@@ -70,6 +80,7 @@ struct SleepTrendChart: View {
                         .foregroundStyle(ColorTokens.text3)
                         .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
                 }
+                .chartXScale(domain: xDomain)
                 .frame(height: 160)
                 // Axis labels host `AnnotationLabel` for the same reason as `HRVTrendChart`: the font
                 // token alone gives the mono face but not the uppercase, tracking, or zh-Hans guard,

@@ -23,6 +23,16 @@ struct HRVTrendChart: View {
         return recent.map(\.value).reduce(0, +) / Double(recent.count)
     }
 
+    /// Explicit trailing-28-day x-domain (v1.7.1). Without it the inferred domain
+    /// collapses on sparse data — a single reading floated in a degenerate plot with
+    /// repeated axis labels, the glance twin of the `SleepDetailChart` defect.
+    private var xDomain: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: .now))!
+        let start = calendar.date(byAdding: .day, value: -28, to: end)!
+        return start...end
+    }
+
     var body: some View {
         if data.isEmpty {
             Text("hrv.chart.empty.message")
@@ -65,6 +75,7 @@ struct HRVTrendChart: View {
                             .lineStyle(StrokeStyle(lineWidth: 1, dash: [5, 3]))
                     }
                 }
+                .chartXScale(domain: xDomain)
                 .frame(height: 184)
                 // Axis labels host `AnnotationLabel` rather than taking `.font(.Tokens.annoSmall)` on a
                 // bare `AxisValueLabel()`. The font token alone buys the Fragment Mono FACE but not the

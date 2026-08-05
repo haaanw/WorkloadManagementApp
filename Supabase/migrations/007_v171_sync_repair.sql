@@ -31,6 +31,22 @@ ALTER TABLE public.workout_sessions ADD COLUMN IF NOT EXISTS internal_load      
 ALTER TABLE public.workout_sessions ADD COLUMN IF NOT EXISTS training_stress    double precision NOT NULL DEFAULT 0;
 ALTER TABLE public.workout_sessions ADD COLUMN IF NOT EXISTS updated_at         timestamptz DEFAULT now();
 
+-- 2b. Backfill: IF NOT EXISTS skips a pre-existing column entirely, so a column that
+-- already existed as nullable keeps its NULLs. The app decodes these defensively now,
+-- but clean data beats defensive decoding.
+UPDATE public.workout_sessions SET session_type    = 'strength' WHERE session_type    IS NULL;
+UPDATE public.workout_sessions SET total_volume    = 0          WHERE total_volume    IS NULL;
+UPDATE public.workout_sessions SET external_load   = 0          WHERE external_load   IS NULL;
+UPDATE public.workout_sessions SET internal_load   = 0          WHERE internal_load   IS NULL;
+UPDATE public.workout_sessions SET training_stress = 0          WHERE training_stress IS NULL;
+UPDATE public.workout_sessions SET updated_at      = now()      WHERE updated_at      IS NULL;
+
+-- 2c. Athlete profile columns the app pushes but no committed migration ever created.
+-- Without them, EVERY athlete push after onboarding fails silently (the athlete push
+-- has no Sync Status row), so profile edits never reach the server.
+ALTER TABLE public.athletes ADD COLUMN IF NOT EXISTS training_frequency text;
+ALTER TABLE public.athletes ADD COLUMN IF NOT EXISTS experience_level   text;
+
 -- 3. RLS: enable and add the owner policy only if it is missing.
 ALTER TABLE public.workout_sessions ENABLE ROW LEVEL SECURITY;
 

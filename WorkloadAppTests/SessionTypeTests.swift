@@ -167,8 +167,8 @@ final class WorkoutSessionRowTests: XCTestCase {
         let session = WorkoutSession()
         session.sessionType = .cardio
         let row = SyncService.WorkoutSessionRow(from: session, athleteId: UUID())
-        let decoded = SessionType(rawValue: row.sessionType)
-        XCTAssertEqual(decoded, .cardio)
+        let decoded = SessionType(rawValue: row.sessionType ?? "")
+        XCTAssertEqual(decoded, SessionType.cardio)
     }
 
     func test_row_preservesAllAttributionFields() {
@@ -178,7 +178,7 @@ final class WorkoutSessionRowTests: XCTestCase {
         session.loggedByCoachId = coachId
         let row = SyncService.WorkoutSessionRow(from: session, athleteId: UUID())
         // Simulate pull-direction decode
-        XCTAssertEqual(SessionType(rawValue: row.sessionType), .match)
+        XCTAssertEqual(SessionType(rawValue: row.sessionType ?? ""), SessionType.match)
         XCTAssertEqual(row.loggedByCoachId, coachId)
     }
 }
