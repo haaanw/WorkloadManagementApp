@@ -43,6 +43,9 @@ struct ReadinessInputReducer {
         /// Strictly-prior days that carry a value, oldest first. The baseline is computed
         /// from these, so today can never pull its own comparison.
         let priorDays: [Double]
+        /// The same prior days with their dates, for consumers that fold day by day and need
+        /// to know WHICH day each value belongs to — `BaselineCheckpoint` seals by date.
+        let priorDatedDays: [(day: Date, value: Double)]
         /// Days with data in the window, today included — for coverage reporting.
         let observedDayCount: Int
     }
@@ -71,7 +74,7 @@ struct ReadinessInputReducer {
         calendar: Calendar
     ) -> Reduced {
         guard let range = range(windowDays: windowDays, now: now, calendar: calendar) else {
-            return Reduced(today: nil, priorDays: [], observedDayCount: 0)
+            return Reduced(today: nil, priorDays: [], priorDatedDays: [], observedDayCount: 0)
         }
         return reduce(
             buckets: DayBucketer.bucketAllDay(
@@ -140,6 +143,7 @@ struct ReadinessInputReducer {
         let today = calendar.startOfDay(for: now)
         var todayValue: Double?
         var prior: [Double] = []
+        var priorDated: [(day: Date, value: Double)] = []
         var observed = 0
         for bucket in buckets {
             guard let value = bucket.value else { continue }
@@ -149,8 +153,14 @@ struct ReadinessInputReducer {
                 todayValue = value
             } else if day < today {
                 prior.append(value)
+                priorDated.append((day: day, value: value))
             }
         }
-        return Reduced(today: todayValue, priorDays: prior, observedDayCount: observed)
+        return Reduced(
+            today: todayValue,
+            priorDays: prior,
+            priorDatedDays: priorDated,
+            observedDayCount: observed
+        )
     }
 }

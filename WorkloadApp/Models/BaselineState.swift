@@ -39,6 +39,19 @@ final class BaselineState {
 
     var updatedAt: Date
 
+    /// Estimator version the HRV/RHR checkpoints below were built under.
+    ///
+    /// `BaselineCheckpoint` compares this against its own `schemaVersion` and rebuilds from
+    /// raw history when they differ — the escape hatch for any change to the estimator or to
+    /// what a sealed day means. Defaulted (and therefore lightweight-migration safe): an
+    /// existing install reads 0, mismatches the current version, and rebuilds once.
+    ///
+    /// The other two things a checkpoint needs are NOT stored separately, because the signal
+    /// state already carries them exactly: `sealedThroughDay` is `…LastBucketedDate` and
+    /// `sealedDayCount` is `…Count`. Duplicating them would create a second source of truth
+    /// that could disagree with the first.
+    var baselineCheckpointVersion: Int = 0
+
     // MARK: - HRV sub-state
 
     /// EWMA baseline μ — Optional so "no fold yet" (nil) is distinguishable from "μ == 0".

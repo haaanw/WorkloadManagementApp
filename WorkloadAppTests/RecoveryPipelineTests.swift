@@ -120,6 +120,29 @@ final class RecoveryPipelineTests: XCTestCase {
         XCTAssertTrue(try context.fetch(FetchDescriptor<RecoveryShadowDay>()).isEmpty)
     }
 
+    // MARK: - Baseline checkpoint persistence
+
+    func test_run_doesNotCreateABaselineRowWhenThereIsNothingToFold() async throws {
+        // With no HealthKit data the shadow returns before touching state — an empty carrier
+        // row would be noise, and its version stamp would falsely claim a checkpoint exists.
+        let context = try makeContext()
+        let athlete = makeAthlete(in: context)
+
+        _ = try await RecoveryPipeline.run(
+            athlete: athlete, healthKitService: HealthKitService(), modelContext: context
+        )
+        let states = try context.fetch(FetchDescriptor<BaselineState>())
+        XCTAssertTrue(states.filter { $0.baselineCheckpointVersion != 0 }.isEmpty)
+    }
+
+    func test_baselineState_startsUnversioned_soAnExistingInstallRebuildsOnce() throws {
+        // The migration contract: a row written before checkpointing existed reads version 0,
+        // mismatches the current version, and is rebuilt from raw history rather than trusted.
+        let state = BaselineState()
+        XCTAssertEqual(state.baselineCheckpointVersion, 0)
+        XCTAssertNotEqual(state.baselineCheckpointVersion, BaselineCheckpoint.schemaVersion)
+    }
+
     // MARK: - Sleep orphan backfill (v1.7.1)
 
     func test_backfillSleep_fillsAnExistingRowThatHasNoSleep() async throws {

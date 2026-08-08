@@ -209,100 +209,6 @@ struct RecoveryPipeline {
         )
     }
 
-    // MARK: - Recovery estimator v2 shadow (never driving)
-
-    /// Record today's v1-vs-v2 recovery comparison.
-    ///
-    /// The v2 arm rescoring HRV and RHR from a robust personal z would move every number the
-    /// athlete has seen, so per the 2026-05-30 approved scope it runs dark until parity is
-    /// reviewed by a human. This is the evidence for that review.
-    ///
-    /// Discipline, all deliberate:
-    /// - Called after the live score is computed AND persisted, so it cannot influence it.
-    /// - **Both stored scores are pre-trend** (`baseScore`). v1's trend modifier is an
-    ///   autoregression on its own past output; including it would confound an estimator
-    ///   change with accumulated inertia.
-    /// - Every failure is swallowed — a shadow must never break the pipeline.
-    /// - Upserts on (athlete, day), so repeated runs in a day refine one row rather than
-    ///   accumulating duplicates.
-    private static func runRecoveryShadow(
-        athlete: Athlete,
-        hrvReduced: ReadinessInputReducer.Reduced?,
-        rhrReduced: ReadinessInputReducer.Reduced?,
-        sleepMinutes: Double?,
-        wellnessScore: Double?,
-        liveResult: RecoveryScoreEngine.RecoveryResult,
-        hrvBaseline: Double?,
-        rhrBaseline: Double?,
-        now: Date,
-        calendar: Calendar,
-        modelContext: ModelContext
-    ) {
-        do {
-            guard let hrvReduced, let rhrReduced else { return }
-            let day = calendar.startOfDay(for: now)
-
-            let hrvOutcome = RecoveryShadowEngine.evaluate(
-                today: hrvReduced.today,
-                priorDays: hrvReduced.priorDays,
-                config: .hrv
-            )
-            let rhrOutcome = RecoveryShadowEngine.evaluate(
-                today: rhrReduced.today,
-                priorDays: rhrReduced.priorDays,
-                config: .rhr
-            )
-            let v2Score = RecoveryShadowEngine.compositeScore(
-                hrvComponent: hrvOutcome.component,
-                rhrComponent: rhrOutcome.component,
-                // Sleep and wellness are carried over from the live arm untouched, so the only
-                // difference under test is the HRV/RHR estimator.
-                sleepComponent: liveResult.sleepContribution,
-                wellnessComponent: liveResult.wellnessContribution
-            )
-
-            let athleteId = athlete.id
-            let descriptor = FetchDescriptor<RecoveryShadowDay>(
-                predicate: #Predicate { $0.date == day }
-            )
-            let existing = ((try? modelContext.fetch(descriptor)) ?? [])
-                .filter { $0.athlete?.id == athleteId }
-            for stale in existing {
-                modelContext.delete(stale)
-            }
-
-            let record = RecoveryShadowDay(
-                date: day,
-                hrvToday: hrvReduced.today,
-                rhrToday: rhrReduced.today,
-                sleepMinutes: sleepMinutes,
-                wellnessScore: wellnessScore,
-                hrvPriorDayCount: hrvReduced.priorDays.count,
-                rhrPriorDayCount: rhrReduced.priorDays.count,
-                v1BaseScore: liveResult.baseScore,
-                v1HrvComponent: liveResult.hrvContribution,
-                v1RhrComponent: liveResult.rhrContribution,
-                v1SleepComponent: liveResult.sleepContribution,
-                v1WellnessComponent: liveResult.wellnessContribution,
-                v1HrvBaseline: hrvBaseline,
-                v1RhrBaseline: rhrBaseline,
-                v2BaseScore: v2Score,
-                v2HrvComponent: hrvOutcome.component,
-                v2RhrComponent: rhrOutcome.component,
-                hrvZ: hrvOutcome.z,
-                rhrZ: rhrOutcome.z,
-                hrvMu: hrvOutcome.mu,
-                rhrMu: rhrOutcome.mu,
-                hrvConfidence: hrvOutcome.confidence
-            )
-            record.athlete = athlete
-            modelContext.insert(record)
-            try modelContext.save()
-        } catch {
-            print("Recovery shadow error: \(error)")
-        }
-    }
-
     // MARK: - Sleep v2 shadow (Phase S2 fold + Phase S3 per-night record, never driving)
 
     /// Run the sleep-v2 shadow computation for last night: fetch stage detail, assemble the
@@ -781,4 +687,231 @@ struct RecoveryPipeline {
         row.sleepV2LastFoldedDate = state.lastFoldedDate
         row.sleepV2PriorWakeBuffer = state.priorWakeBuffer
     }
+    // MARK: - Recovery estimator v2 shadow — checkpoint mirrors + the dual-run fold
+    //
+    // Placed AFTER `runSleepV2Shadow` deliberately: `BaselineTierFenceTests` defines the
+    // sanctioned shadow region as everything from that declaration onward, and greps the
+    // slice before it for substrate symbols. This code is genuinely shadow-only, so it
+    // belongs inside that region — the fence caught it sitting above the line and the
+    // answer was to move the code, never to widen the fence.
+
+    // MARK: - Baseline checkpoint mirrors (HRV / RHR generic sub-state)
+
+    /// Read one signal's persisted checkpoint out of the `@Model` row into plain values.
+    ///
+    /// `sealedThroughDay` and `sealedDayCount` are NOT stored separately — the signal state
+    /// already carries them exactly (`lastBucketedDate` and `count`), and a second copy could
+    /// disagree with the first.
+    private static func checkpointMirror(
+        of row: BaselineState,
+        signal: CheckpointSignal
+    ) -> BaselineCheckpoint.Stored {
+        var state = BaselineEngine.SignalState()
+        switch signal {
+        case .hrv:
+            state.mu = row.hrvMu
+            state.welfordMean = row.hrvWelfordMean
+            state.m2 = row.hrvM2
+            state.count = row.hrvCount
+            state.madBuffer = row.hrvMadBuffer
+            state.lastBucketedDate = row.hrvLastBucketedDate
+            state.cvRatio = row.hrvCvRatio
+            state.cvLevel = BaselineEngine.CVWarning(rawValue: row.hrvCvLevelRaw) ?? .normal
+            state.confidence = row.hrvConfidence
+        case .rhr:
+            state.mu = row.rhrMu
+            state.welfordMean = row.rhrWelfordMean
+            state.m2 = row.rhrM2
+            state.count = row.rhrCount
+            state.madBuffer = row.rhrMadBuffer
+            state.lastBucketedDate = row.rhrLastBucketedDate
+            state.cvRatio = row.rhrCvRatio
+            state.cvLevel = BaselineEngine.CVWarning(rawValue: row.rhrCvLevelRaw) ?? .normal
+            state.confidence = row.rhrConfidence
+        }
+        return BaselineCheckpoint.Stored(
+            state: state,
+            sealedThroughDay: state.lastBucketedDate,
+            sealedDayCount: state.count,
+            schemaVersion: row.baselineCheckpointVersion
+        )
+    }
+
+    /// Write one signal's advanced checkpoint back to the `@Model` row.
+    private static func applyCheckpoint(
+        _ stored: BaselineCheckpoint.Stored,
+        to row: BaselineState,
+        signal: CheckpointSignal
+    ) {
+        let state = stored.state
+        switch signal {
+        case .hrv:
+            row.hrvMu = state.mu
+            row.hrvWelfordMean = state.welfordMean
+            row.hrvM2 = state.m2
+            row.hrvCount = state.count
+            row.hrvMadBuffer = state.madBuffer
+            row.hrvLastBucketedDate = state.lastBucketedDate
+            row.hrvCvRatio = state.cvRatio
+            row.hrvCvLevelRaw = state.cvLevel.rawValue
+            row.hrvConfidence = state.confidence
+        case .rhr:
+            row.rhrMu = state.mu
+            row.rhrWelfordMean = state.welfordMean
+            row.rhrM2 = state.m2
+            row.rhrCount = state.count
+            row.rhrMadBuffer = state.madBuffer
+            row.rhrLastBucketedDate = state.lastBucketedDate
+            row.rhrCvRatio = state.cvRatio
+            row.rhrCvLevelRaw = state.cvLevel.rawValue
+            row.rhrConfidence = state.confidence
+        }
+        row.baselineCheckpointVersion = stored.schemaVersion
+    }
+
+    private enum CheckpointSignal { case hrv, rhr }
+
+    /// The athlete's `BaselineState` row, created on first use.
+    ///
+    /// Fetch-all + filter in Swift: traversing the optional to-one `athlete` relationship
+    /// inside a `#Predicate` crashes SwiftData rather than throwing (the trap this file's
+    /// sleep-v2 fold already documents, and which bit `RecoveryRepository` for real).
+    private static func baselineStateRow(
+        for athlete: Athlete,
+        modelContext: ModelContext
+    ) throws -> BaselineState {
+        let athleteId = athlete.id
+        let all = try modelContext.fetch(FetchDescriptor<BaselineState>())
+        if let existing = all.first(where: { $0.athlete?.id == athleteId }) {
+            return existing
+        }
+        let fresh = BaselineState(athlete: athlete)
+        modelContext.insert(fresh)
+        return fresh
+    }
+
+    // MARK: - Recovery estimator v2 shadow (never driving)
+
+    /// Record today's v1-vs-v2 recovery comparison.
+    ///
+    /// The v2 arm rescoring HRV and RHR from a robust personal z would move every number the
+    /// athlete has seen, so per the 2026-05-30 approved scope it runs dark until parity is
+    /// reviewed by a human. This is the evidence for that review.
+    ///
+    /// Discipline, all deliberate:
+    /// - Called after the live score is computed AND persisted, so it cannot influence it.
+    /// - **Both stored scores are pre-trend** (`baseScore`). v1's trend modifier is an
+    ///   autoregression on its own past output; including it would confound an estimator
+    ///   change with accumulated inertia.
+    /// - Every failure is swallowed — a shadow must never break the pipeline.
+    /// - Upserts on (athlete, day), so repeated runs in a day refine one row rather than
+    ///   accumulating duplicates.
+    private static func runRecoveryShadow(
+        athlete: Athlete,
+        hrvReduced: ReadinessInputReducer.Reduced?,
+        rhrReduced: ReadinessInputReducer.Reduced?,
+        sleepMinutes: Double?,
+        wellnessScore: Double?,
+        liveResult: RecoveryScoreEngine.RecoveryResult,
+        hrvBaseline: Double?,
+        rhrBaseline: Double?,
+        now: Date,
+        calendar: Calendar,
+        modelContext: ModelContext
+    ) {
+        do {
+            guard let hrvReduced, let rhrReduced else { return }
+            let day = calendar.startOfDay(for: now)
+
+            // Baselines resume from a saved checkpoint plus a replayed tail rather than being
+            // re-walked from the fetch window. Two things this buys, both real: days beyond
+            // the fetch window keep counting (`BaselineEngine.confidence` ramps toward 60
+            // days, so a window-bounded fold could never express a settled baseline), and a
+            // gap in app usage is a non-event because the unfolded days are simply still in
+            // the tail. `BaselineCheckpoint` documents why the tail is replayed rather than
+            // trusted.
+            let stateRow = try baselineStateRow(for: athlete, modelContext: modelContext)
+            let hrvCheckpoint = BaselineCheckpoint.advance(
+                stored: checkpointMirror(of: stateRow, signal: .hrv),
+                days: hrvReduced.priorDatedDays.map {
+                    BaselineCheckpoint.DayValue(day: $0.day, value: $0.value)
+                },
+                config: .hrv,
+                now: now,
+                calendar: calendar
+            )
+            let rhrCheckpoint = BaselineCheckpoint.advance(
+                stored: checkpointMirror(of: stateRow, signal: .rhr),
+                days: rhrReduced.priorDatedDays.map {
+                    BaselineCheckpoint.DayValue(day: $0.day, value: $0.value)
+                },
+                config: .rhr,
+                now: now,
+                calendar: calendar
+            )
+            applyCheckpoint(hrvCheckpoint.checkpoint, to: stateRow, signal: .hrv)
+            applyCheckpoint(rhrCheckpoint.checkpoint, to: stateRow, signal: .rhr)
+            stateRow.updatedAt = .now
+
+            let hrvOutcome = RecoveryShadowEngine.evaluate(
+                today: hrvReduced.today,
+                state: hrvCheckpoint.workingState,
+                config: .hrv
+            )
+            let rhrOutcome = RecoveryShadowEngine.evaluate(
+                today: rhrReduced.today,
+                state: rhrCheckpoint.workingState,
+                config: .rhr
+            )
+            let v2Score = RecoveryShadowEngine.compositeScore(
+                hrvComponent: hrvOutcome.component,
+                rhrComponent: rhrOutcome.component,
+                // Sleep and wellness are carried over from the live arm untouched, so the only
+                // difference under test is the HRV/RHR estimator.
+                sleepComponent: liveResult.sleepContribution,
+                wellnessComponent: liveResult.wellnessContribution
+            )
+
+            let athleteId = athlete.id
+            let descriptor = FetchDescriptor<RecoveryShadowDay>(
+                predicate: #Predicate { $0.date == day }
+            )
+            let existing = ((try? modelContext.fetch(descriptor)) ?? [])
+                .filter { $0.athlete?.id == athleteId }
+            for stale in existing {
+                modelContext.delete(stale)
+            }
+
+            let record = RecoveryShadowDay(
+                date: day,
+                hrvToday: hrvReduced.today,
+                rhrToday: rhrReduced.today,
+                sleepMinutes: sleepMinutes,
+                wellnessScore: wellnessScore,
+                hrvPriorDayCount: hrvReduced.priorDays.count,
+                rhrPriorDayCount: rhrReduced.priorDays.count,
+                v1BaseScore: liveResult.baseScore,
+                v1HrvComponent: liveResult.hrvContribution,
+                v1RhrComponent: liveResult.rhrContribution,
+                v1SleepComponent: liveResult.sleepContribution,
+                v1WellnessComponent: liveResult.wellnessContribution,
+                v1HrvBaseline: hrvBaseline,
+                v1RhrBaseline: rhrBaseline,
+                v2BaseScore: v2Score,
+                v2HrvComponent: hrvOutcome.component,
+                v2RhrComponent: rhrOutcome.component,
+                hrvZ: hrvOutcome.z,
+                rhrZ: rhrOutcome.z,
+                hrvMu: hrvOutcome.mu,
+                rhrMu: rhrOutcome.mu,
+                hrvConfidence: hrvOutcome.confidence
+            )
+            record.athlete = athlete
+            modelContext.insert(record)
+            try modelContext.save()
+        } catch {
+            print("Recovery shadow error: \(error)")
+        }
+    }
+
 }

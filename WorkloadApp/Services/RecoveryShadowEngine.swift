@@ -69,6 +69,21 @@ struct RecoveryShadowEngine {
                 bucketedDate: nil
             )
         }
+        return evaluate(today: today, state: state, config: config)
+    }
+
+    /// Score today against a baseline that has ALREADY been folded — the entry point for
+    /// `BaselineCheckpoint`, whose state comes from a saved checkpoint plus a replayed tail
+    /// rather than from re-walking the whole series.
+    ///
+    /// Identical arithmetic to the fold-it-here overload above; only the provenance of the
+    /// state differs. `BaselineCheckpointTests` pins that the two ways of building it land on
+    /// the same numbers.
+    static func evaluate(
+        today: Double?,
+        state: BaselineEngine.SignalState,
+        config: BaselineEngine.SignalConfig
+    ) -> SignalOutcome {
         let confidence = BaselineEngine.confidence(state: state, daysSinceLastBucket: 0)
         guard let today else {
             return SignalOutcome(component: nil, z: nil, mu: state.mu, confidence: confidence)
