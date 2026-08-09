@@ -76,6 +76,38 @@ final class RecoveryShadowDay {
     /// `BaselineEngine.confidence` for the HRV signal, 0–1.
     var hrvConfidence: Double = 0
 
+    // MARK: - Held-out outcomes (evidence — NEVER inputs to either arm)
+
+    /// Everything below is recorded so the two arms can eventually be GRADED, and none of it
+    /// may ever be read by a scoring engine. A source-level fence in `RecoveryShadowTests`
+    /// asserts the scoring engines never reference this model at all; that fence is what keeps
+    /// the distinction real rather than aspirational.
+
+    /// Overnight wrist temperature (°C). Already collected by the app and scored by nothing —
+    /// the one genuinely independent signal that costs the athlete no extra effort.
+    var outcomeWristTempC: Double?
+
+    /// Median overnight respiratory rate (breaths/min). Independent of both arms.
+    var outcomeRespiratoryRate: Double?
+
+    /// The athlete's own blinded readiness judgement, 1–10 — the primary outcome, because it
+    /// is the only measure that targets exactly what the score claims to estimate.
+    var outcomePerceivedReadiness: Int?
+
+    /// Best morning handgrip (kg) when the athlete measured it. Optional and equipment-bound,
+    /// so expect it to be sparse; when present it is the strongest objective evidence here,
+    /// being a performance measurement rather than a physiological proxy.
+    var outcomeGripStrengthKg: Double?
+
+    /// Hand the grip reading came from — a series that switches hands is not one series.
+    var outcomeGripHandRaw: String?
+
+    /// **False means the probe was answered after a score had already been shown.** Such a row
+    /// is still stored, but it is contaminated by expectancy and must be excluded from any
+    /// comparison. Storing the flag rather than assuming blinding is the difference between
+    /// evidence and wishful thinking.
+    var outcomeWasBlinded: Bool = false
+
     // MARK: - Bookkeeping
 
     /// Bumped when the recorded fields or their meaning change, so an analysis can refuse to
@@ -108,8 +140,20 @@ final class RecoveryShadowDay {
         rhrZ: Double? = nil,
         hrvMu: Double? = nil,
         rhrMu: Double? = nil,
-        hrvConfidence: Double = 0
+        hrvConfidence: Double = 0,
+        outcomeWristTempC: Double? = nil,
+        outcomeRespiratoryRate: Double? = nil,
+        outcomePerceivedReadiness: Int? = nil,
+        outcomeGripStrengthKg: Double? = nil,
+        outcomeGripHandRaw: String? = nil,
+        outcomeWasBlinded: Bool = false
     ) {
+        self.outcomeWristTempC = outcomeWristTempC
+        self.outcomeRespiratoryRate = outcomeRespiratoryRate
+        self.outcomePerceivedReadiness = outcomePerceivedReadiness
+        self.outcomeGripStrengthKg = outcomeGripStrengthKg
+        self.outcomeGripHandRaw = outcomeGripHandRaw
+        self.outcomeWasBlinded = outcomeWasBlinded
         self.date = date
         self.hrvToday = hrvToday
         self.rhrToday = rhrToday

@@ -13,6 +13,8 @@ struct ProfileView: View {
 
     // Notification settings
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
+    /// Opt-in blinded morning probe — the held-out outcome the algorithm is graded against.
+    @AppStorage("morningProbeEnabled") private var morningProbeEnabled: Bool = false
     @AppStorage("notificationDay") private var notificationDay: Int = 1  // 1 = Sunday
     @AppStorage("notificationTime") private var notificationTime: String = "19:00"
     @State private var notificationsDenied: Bool = false
@@ -136,6 +138,23 @@ struct ProfileView: View {
                             get: { athlete.weightUnit },
                             set: { athlete.weightUnit = $0; saveAthlete(athlete) }
                         ), options: WeightUnit.allCases) { $0.displayName }
+                        }
+
+                        // ALGORITHM VALIDATION — opt-in held-out outcome capture (v1.7.1).
+                        // Off by default: a question in front of the score every morning is a
+                        // real cost, so it is offered rather than imposed.
+                        profileSection("profile.validation.title") {
+                            InstrumentFormRow(label: "profile.validation.morningProbe") {
+                                Toggle("", isOn: $morningProbeEnabled)
+                                    .labelsHidden()
+                                    .toggleStyle(.machined)
+                            }
+                            Text("profile.validation.footer")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text3)
+                                .frame(maxWidth: .infinity, alignment: .leading)
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.bottom, Spacing.xs)
                         }
 
                         // NOTIFICATIONS section (NOTF-03)

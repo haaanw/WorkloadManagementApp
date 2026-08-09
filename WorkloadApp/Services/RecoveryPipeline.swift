@@ -167,6 +167,9 @@ struct RecoveryPipeline {
         // 5c. Recovery estimator v2 — SHADOW dual-run. Runs AFTER the live score is final and
         // persisted, writes only to its own local-only model, and can never throw out of the
         // pipeline. Nothing reads it back into a decision (the sleep-v2 run-dark precedent).
+        let respiratoryRate = (healthKitService.isAvailable && healthKitService.hasRequestedAccess)
+            ? try? await healthKitService.fetchOvernightRespiratoryRate()
+            : nil
         runRecoveryShadow(
             athlete: athlete,
             hrvReduced: hrvReduced,
@@ -176,6 +179,8 @@ struct RecoveryPipeline {
             liveResult: result,
             hrvBaseline: hrvBaseline,
             rhrBaseline: rhrBaseline,
+            wristTempC: bodyTemp,
+            respiratoryRate: respiratoryRate,
             now: now,
             calendar: calendar,
             modelContext: modelContext
@@ -815,6 +820,8 @@ struct RecoveryPipeline {
         liveResult: RecoveryScoreEngine.RecoveryResult,
         hrvBaseline: Double?,
         rhrBaseline: Double?,
+        wristTempC: Double?,
+        respiratoryRate: Double?,
         now: Date,
         calendar: Calendar,
         modelContext: ModelContext
@@ -872,6 +879,12 @@ struct RecoveryPipeline {
                 wellnessComponent: liveResult.wellnessContribution
             )
 
+            // Today's blinded probe, if the athlete answered one before any score rendered.
+            // Date-only predicate + Swift-side athlete filter (the optional-relationship trap).
+            let probe = (try? modelContext.fetch(
+                FetchDescriptor<MorningReadinessProbe>(predicate: #Predicate { $0.date == day })
+            ))?.first(where: { $0.athlete?.id == athlete.id })
+
             let athleteId = athlete.id
             let descriptor = FetchDescriptor<RecoveryShadowDay>(
                 predicate: #Predicate { $0.date == day }
@@ -904,7 +917,15 @@ struct RecoveryPipeline {
                 rhrZ: rhrOutcome.z,
                 hrvMu: hrvOutcome.mu,
                 rhrMu: rhrOutcome.mu,
-                hrvConfidence: hrvOutcome.confidence
+                hrvConfidence: hrvOutcome.confidence,
+                // Held-out evidence, recorded beside the two arms and fed to neither.
+                outcomeWristTempC: wristTempC,
+                outcomeRespiratoryRate: respiratoryRate,
+                outcomePerceivedReadiness: probe?.perceivedReadiness,
+                outcomeGripStrengthKg: probe?.gripStrengthKg,
+                outcomeGripHandRaw: probe?.gripHandRaw,
+                // Defaults to false: absent a probe there is nothing blinded to claim.
+                outcomeWasBlinded: probe?.wasBlinded ?? false
             )
             record.athlete = athlete
             modelContext.insert(record)

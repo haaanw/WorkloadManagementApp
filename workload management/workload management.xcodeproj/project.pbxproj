@@ -48,6 +48,7 @@
 		DD1401010000000000000001 /* SyncEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1401010000000000000002 /* SyncEntity.swift */; };
 		DD1401010000000000000003 /* SyncTimestampStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1401010000000000000004 /* SyncTimestampStore.swift */; };
 		62324C2A2F66CB0E00A9C2BE /* WorkloadRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF62F66CB0E00A9C2BE /* WorkloadRepository.swift */; };
+		DD270E010000000000000001 /* MorningProbeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD270E000000000000000001 /* MorningProbeSheet.swift */; };
 		62324C2B2F66CB0E00A9C2BE /* MorningCheckInSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */; };
 		62324C2C2F66CB0E00A9C2BE /* SetRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BED2F66CB0E00A9C2BE /* SetRecord.swift */; };
 		62324C2D2F66CB0E00A9C2BE /* ActiveWorkoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C1B2F66CB0E00A9C2BE /* ActiveWorkoutSheet.swift */; };
@@ -87,6 +88,7 @@
 		DD270C010000000000000001 /* BaselineCheckpoint.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD270C000000000000000001 /* BaselineCheckpoint.swift */; };
 		DD2702010000000000000001 /* SleepStateBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2702000000000000000001 /* SleepStateBuilder.swift */; };
 		DD2709010000000000000001 /* RecoveryShadowDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2709000000000000000001 /* RecoveryShadowDay.swift */; };
+		DD270D010000000000000001 /* MorningReadinessProbe.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD270D000000000000000001 /* MorningReadinessProbe.swift */; };
 		DD3801010000000000000001 /* SleepShadowNight.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3801000000000000000001 /* SleepShadowNight.swift */; };
 		DD3802010000000000000001 /* SleepShadowAnalysis.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD3802000000000000000001 /* SleepShadowAnalysis.swift */; };
 		DD2603010000000000000001 /* DayBucketer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2603000000000000000001 /* DayBucketer.swift */; };
@@ -301,6 +303,7 @@
 		DD270C000000000000000001 /* BaselineCheckpoint.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BaselineCheckpoint.swift; sourceTree = "<group>"; };
 		DD2702000000000000000001 /* SleepStateBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepStateBuilder.swift; sourceTree = "<group>"; };
 		DD2709000000000000000001 /* RecoveryShadowDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryShadowDay.swift; sourceTree = "<group>"; };
+		DD270D000000000000000001 /* MorningReadinessProbe.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningReadinessProbe.swift; sourceTree = "<group>"; };
 		DD3801000000000000000001 /* SleepShadowNight.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepShadowNight.swift; sourceTree = "<group>"; };
 		DD3802000000000000000001 /* SleepShadowAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepShadowAnalysis.swift; sourceTree = "<group>"; };
 		DD2603000000000000000001 /* DayBucketer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DayBucketer.swift; sourceTree = "<group>"; };
@@ -343,6 +346,7 @@
 		EE2805010000000000000001 /* PRSDualRunCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PRSDualRunCard.swift; sourceTree = "<group>"; };
 		62324C142F66CB0E00A9C2BE /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		14B27B1AC91147CB45348512 /* SyncStatusView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncStatusView.swift; sourceTree = "<group>"; };
+		DD270E000000000000000001 /* MorningProbeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningProbeSheet.swift; sourceTree = "<group>"; };
 		62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInSheet.swift; sourceTree = "<group>"; };
 		62324C172F66CB0E00A9C2BE /* RecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryView.swift; sourceTree = "<group>"; };
 		62324C192F66CB0E00A9C2BE /* WorkloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadView.swift; sourceTree = "<group>"; };
@@ -579,6 +583,7 @@
 				DD2501000000000000000001 /* SorenessLog.swift */,
 				AE4501010000000000000001 /* VerdictEvent.swift */,
 				DD2709000000000000000001 /* RecoveryShadowDay.swift */,
+				DD270D000000000000000001 /* MorningReadinessProbe.swift */,
 				DD3801000000000000000001 /* SleepShadowNight.swift */,
 				DD2601000000000000000001 /* BaselineState.swift */,
 				62324BEF2F66CB0E00A9C2BE /* WorkloadSnapshot.swift */,
@@ -802,6 +807,7 @@
 			children = (
 				CC0302010000000000000008 /* BehaviorCorrelationRow.swift */,
 				CC0302010000000000000006 /* InsightCard.swift */,
+				DD270E000000000000000001 /* MorningProbeSheet.swift */,
 				62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */,
 				62324C172F66CB0E00A9C2BE /* RecoveryView.swift */,
 			);
@@ -1089,6 +1095,7 @@
 				DD1401010000000000000003 /* SyncTimestampStore.swift in Sources */,
 				62324C2A2F66CB0E00A9C2BE /* WorkloadRepository.swift in Sources */,
 				627EC1982F76857600B89262 /* ProgressionEngine.swift in Sources */,
+				DD270E010000000000000001 /* MorningProbeSheet.swift in Sources */,
 				62324C2B2F66CB0E00A9C2BE /* MorningCheckInSheet.swift in Sources */,
 				62324C2C2F66CB0E00A9C2BE /* SetRecord.swift in Sources */,
 				62324C2D2F66CB0E00A9C2BE /* ActiveWorkoutSheet.swift in Sources */,
@@ -1174,6 +1181,7 @@
 				DD270C010000000000000001 /* BaselineCheckpoint.swift in Sources */,
 				DD2702010000000000000001 /* SleepStateBuilder.swift in Sources */,
 				DD2709010000000000000001 /* RecoveryShadowDay.swift in Sources */,
+				DD270D010000000000000001 /* MorningReadinessProbe.swift in Sources */,
 				DD3801010000000000000001 /* SleepShadowNight.swift in Sources */,
 				DD3802010000000000000001 /* SleepShadowAnalysis.swift in Sources */,
 				627EC1892F75904200B89262 /* PrescribedWorkout.swift in Sources */,

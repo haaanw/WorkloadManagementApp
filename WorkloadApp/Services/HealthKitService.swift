@@ -114,6 +114,10 @@ final class HealthKitService {
             HKQuantityType(.stepCount),
             HKQuantityType(.vo2Max),
             HKQuantityType(.bodyTemperature),
+            // Read purely as a HELD-OUT validation outcome (v1.7.1): overnight respiratory
+            // rate is a recognised recovery/illness marker and is deliberately NOT an input to
+            // any score, which is exactly what makes it usable as evidence.
+            HKQuantityType(.respiratoryRate),
             HKCategoryType(.sleepAnalysis),
         ]
         // Apple sleeping wrist temperature (iOS 17+)
@@ -537,6 +541,42 @@ final class HealthKitService {
         let type = HKQuantityType(.bodyTemperature)
         let sample = try await fetchMostRecentSample(type: type)
         return sample?.quantity.doubleValue(for: .degreeCelsius())
+    }
+
+    // MARK: - Respiratory rate (held-out validation outcome)
+
+    /// Median overnight respiratory rate, in breaths per minute, for the night that ended
+    /// today — or nil when the night produced no samples.
+    ///
+    /// **Read only as validation evidence.** No scoring engine consumes it, and that is the
+    /// point: an outcome that is also an input cannot grade the thing it feeds. Median rather
+    /// than mean because a single disturbed stretch should not move the night's figure.
+    ///
+    /// The window is the same overnight span the sleep reduction uses (yesterday 18:00 →
+    /// now), which keeps a nap or a daytime measurement out of a "last night" number.
+    func fetchOvernightRespiratoryRate() async throws -> Double? {
+        let type = HKQuantityType(.respiratoryRate)
+        let calendar = Calendar.current
+        let now = Date.now
+        let startOfToday = calendar.startOfDay(for: now)
+        guard let windowStart = calendar.date(byAdding: .hour, value: -6, to: startOfToday) else {
+            return nil
+        }
+
+        let predicate = HKQuery.predicateForSamples(
+            withStart: windowStart,
+            end: now,
+            options: .strictStartDate
+        )
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: type, predicate: predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate)]
+        )
+        let samples = try await descriptor.result(for: store)
+        let unit = HKUnit.count().unitDivided(by: .minute())
+        let values = samples.map { $0.quantity.doubleValue(for: unit) }
+        guard !values.isEmpty else { return nil }
+        return BaselineEngine.median(values)
     }
 
     // MARK: - VO2 Max

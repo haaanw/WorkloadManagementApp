@@ -10,6 +10,10 @@ struct DashboardView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    /// Opt-in: a daily question ahead of the score is a real cost, so it is never imposed.
+    @AppStorage("morningProbeEnabled") private var morningProbeEnabled: Bool = false
+    @State private var showMorningProbe = false
+    @State private var probeWasBlinded = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
@@ -257,15 +261,41 @@ struct DashboardView: View {
                 }
             }
             .task {
+                // The blinded probe must be asked BEFORE the reading is on screen — an answer
+                // given after seeing a score is a reaction to that score, not an independent
+                // judgement. So it is presented ahead of the load, and the row it writes
+                // records whether blinding actually held.
+                presentMorningProbeIfDue()
                 await loadData()
             }
             .onAppear { Haptics.prepare() }
+            .sheet(isPresented: $showMorningProbe) {
+                MorningProbeSheet(athlete: athlete, isBlinded: probeWasBlinded)
+            }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     Task { await loadData() }
                 }
             }
         }
+    }
+
+    /// Show the probe when validation is on, today has no probe yet, and — crucially — no
+    /// score has been rendered for this athlete yet in this appearance.
+    ///
+    /// `probeWasBlinded` is set from `hasLoadedOnce`: on the very first appearance of the day
+    /// the dashboard has not yet drawn a reading, so the answer is genuinely blind. If the
+    /// view has already shown a score this session, the probe still appears (the data is worth
+    /// having) but is stamped unblinded so the analysis can exclude it.
+    private func presentMorningProbeIfDue() {
+        guard morningProbeEnabled, let athlete else { return }
+        let day = Calendar.current.startOfDay(for: Date())
+        let existing = (try? modelContext.fetch(
+            FetchDescriptor<MorningReadinessProbe>(predicate: #Predicate { $0.date == day })
+        ))?.contains { $0.athlete?.id == athlete.id } ?? false
+        guard !existing else { return }
+        probeWasBlinded = !viewModel.hasLoadedOnce
+        showMorningProbe = true
     }
 
     private func loadData() async {

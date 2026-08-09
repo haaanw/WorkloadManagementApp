@@ -96,6 +96,7 @@ struct WorkloadApp: App {
                 BaselineState.self,
                 SleepShadowNight.self,
                 RecoveryShadowDay.self,
+                MorningReadinessProbe.self,
                 WellnessCheckIn.self,
                 PersonalRecord.self,
                 CoachAthleteRelationship.self,
