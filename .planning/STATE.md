@@ -16,6 +16,14 @@ progress:
 
 # Project State
 
+> ## ➡️ CURRENT WORK 2026-08-10 — this file is NOT the release status
+>
+> Active release is **v1.7.1 (build 19)**, and its authoritative status lives in
+> **`.planning/v171-hotfix/STATUS.md`** — commits, what shipped, what is open, and
+> what HAN must do. The audit behind it is `.planning/v171-hotfix/AUDIT-2026-08-05.md`;
+> the algorithm work is `.planning/v171-algorithm/{PLAN,VALIDATION-PROTOCOL}.md`.
+> Everything below concerns the v2.0 milestone and was last written 2026-06-14.
+>
 > ## ⚠️ CORRECTION 2026-07-26 — read before trusting anything below
 >
 > The frontmatter `status` / `stopped_at` fields were written 2026-06-14 and were
