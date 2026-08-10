@@ -81,8 +81,8 @@ were each rejected with reasons recorded. Design: score only the days the two ar
 
 ## Open — HAN
 
-1. **Run `Supabase/migrations/007_v171_sync_repair.sql`** in the Supabase SQL editor. Copy ONLY
-   the file's contents. Until then Workouts sync stays red.
+1. ~~**Run `Supabase/migrations/007_v171_sync_repair.sql`**~~ — **DONE 2026-08-10** (HAN ran it
+   in the SQL editor, success). Green Workouts row still unverified on device — see UAT below.
 2. **On-device UAT:** sleep number vs Apple Health next morning; Sync Status all green after
    the SQL; pinch behaviour; the flat option cells (iteration 2 candidates are `ReadoutWell`
    and the `FormField` focus well, still debossed).
@@ -90,6 +90,43 @@ were each rejected with reasons recorded. Design: score only the days the two ar
    blinded days with ≥12 disagreement days, so starting early matters.
 4. **Archive + upload 1.7.1 (19)** when satisfied. Push is also outstanding — nothing has left
    this machine.
+
+## Incident 2026-08-10 — screenshot-mode wipe on HAN's device (RESOLVED, fixes owed)
+
+The main shared Xcode scheme had `SCREENSHOT_MODE` **enabled** (left on since the 1.7 store
+re-shoot), so a device run from Xcode wiped the local store and seeded the mock athlete
+("Alex Chen", random UUID, nil `supabaseUserId`). Every push then failed RLS (unknown
+athlete_id) while every pull returned empty and **painted the row green** — Sync Status merges
+push and pull into one per-entity status, so pull success masks push failure. Diagnosed via
+Supabase SQL forensics + `devicectl` container pull; the wipe lived only in the un-checkpointed
+WAL, so the pre-wipe store was restored to the device byte-for-byte and verified. Scheme
+argument now disabled (committed with this change). Full artifacts in the session scratchpad.
+
+Separate finding from the same forensics: the device store was **born 2026-08-04** (reinstall
+or sign-out) — months of workout history left the phone then, and the server never had
+workouts (push broken until 007, run 2026-08-10). HAN's gmail account owns recovery through
+08-05; the qq account `2583710743@…` (112 recovery rows) may also be HAN — unconfirmed.
+
+All four pre-ship guards were **BUILT the same day** (suite **985/0/2**, +8 `SyncGuardTests`
+incl. two source fences):
+
+- **SCREENSHOT_MODE is now simulator-only** — every screenshot branch in AppRouter compiles
+  under `#if DEBUG && targetEnvironment(simulator)`; a device launch can never wipe again.
+- **Per-direction sync status** — `SyncTimestampStore` keys failures by entity AND direction;
+  a pull success can no longer clear a push failure, and the push failure wins the row display.
+- **Sign-out unsynced-data guard** — `hasPushRisk` (push failure or identity fault) gates the
+  wipe behind a destructive confirmation alert in ProfileView.
+- **Push identity guard** — every public SyncService seam verifies local athlete ↔ session
+  user before the network; a refusal is recorded as an `IdentityFault` and rendered as a
+  banner on SyncStatusView (en + zh-Hans strings added).
+
+One latent test fragility was exposed and fixed while landing this:
+`VerdictSurfaceActivationTests.test_productionOptIn…` depended on the test host's HealthKit
+query THROWING (fast) rather than returning empty — the pipeline's authoritative today-write
+clears seeded signals in the empty case, and which case you get depends on host-app dashboard
+timing. The test now re-asserts the seeded today-signals post-load with the hazard documented.
+The proper long-term fix — a HealthKit protocol seam so pipeline tests are hermetic — joins
+the audit list.
 
 ## Open — engineering
 

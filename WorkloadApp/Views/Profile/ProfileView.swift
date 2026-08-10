@@ -22,6 +22,7 @@ struct ProfileView: View {
     @State private var errorMessage: String?
     @State private var showTrainingProfileSheet = false
     @State private var showDeleteConfirmation = false
+    @State private var showSignOutRiskConfirm = false
     @State private var isDeletingAccount = false
 
     var body: some View {
@@ -362,8 +363,15 @@ struct ProfileView: View {
                         // Account — destructive actions, grouped + separated
                         profileSection("profile.section.account") {
                         InstrumentFormRow(label: "profile.signOut", action: {
-                            Task {
-                                try? await container.signOut(modelContext: modelContext)
+                            // v1.7.1: sign-out cascade-deletes the local store. When a push
+                            // has failed (or sync is refused on identity), local data may
+                            // exist nowhere else — confirm before destroying the only copy.
+                            if SyncTimestampStore.shared.hasPushRisk {
+                                showSignOutRiskConfirm = true
+                            } else {
+                                Task {
+                                    try? await container.signOut(modelContext: modelContext)
+                                }
                             }
                         }) {
                             EmptyView()
@@ -409,6 +417,17 @@ struct ProfileView: View {
             .sheet(isPresented: $showTrainingProfileSheet) {
                 TrainingProfileSheet(existingProfile: trainingProfiles.first)
                     .environment(container)
+            }
+            // Sign-out with unsynced local data (v1.7.1)
+            .alert("profile.signOut.riskTitle", isPresented: $showSignOutRiskConfirm) {
+                Button("action.cancel", role: .cancel) { }
+                Button("profile.signOut.riskConfirm", role: .destructive) {
+                    Task {
+                        try? await container.signOut(modelContext: modelContext)
+                    }
+                }
+            } message: {
+                Text("profile.signOut.riskMessage")
             }
             // Delete account confirmation
             .alert("profile.action.deleteAccount", isPresented: $showDeleteConfirmation) {

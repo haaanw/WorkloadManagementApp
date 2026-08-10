@@ -214,6 +214,17 @@ final class VerdictSurfaceActivationTests: XCTestCase {
 
         let legacy = try XCTUnwrap(vm.recommendation, "load() must compute the legacy recommendation")
 
+        // Determinism guard (2026-08-10): load() runs the REAL RecoveryPipeline, whose
+        // authoritative today-write CLEARS the seeded today-signals whenever the test host's
+        // HealthKit query returns empty instead of throwing — and which of those happens
+        // depends on how far the host app's own dashboard has progressed (pure scheduling;
+        // the failure surfaced only when another suite ran first in the same clone). The
+        // activation contract under test needs today's signals present, so re-assert the
+        // seeded i=13 values; when the pipeline kept them this is a no-op.
+        vm.latestHRV = vm.latestHRV ?? 68
+        vm.latestRHR = vm.latestRHR ?? 51
+        vm.latestSleepMinutes = vm.latestSleepMinutes ?? 462
+
         // Act — the explicit PRODUCTION opt-in (no app-wide flag flip).
         vm.activateVerdictSurface()
 

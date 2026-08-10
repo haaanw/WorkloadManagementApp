@@ -1,6 +1,108 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "profile.signOut.riskTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unsynced data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据未同步"
+          }
+        }
+      }
+    },
+    "profile.signOut.riskMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some of your data has not reached the server. Signing out deletes all local data on this device. Fix sync before you sign out."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部分数据尚未同步到服务器。退出登录会删除此设备上的全部本地数据。请先解决同步问题再退出。"
+          }
+        }
+      }
+    },
+    "profile.signOut.riskConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out anyway"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仍要退出"
+          }
+        }
+      }
+    },
+    "sync.identity.noSession" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not signed in. Sign in again to sync."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未登录。请重新登录后同步。"
+          }
+        }
+      }
+    },
+    "sync.identity.unlinked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This profile is not linked to an account. Sync is paused to protect your data."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此档案未关联账户。为保护你的数据，同步已暂停。"
+          }
+        }
+      }
+    },
+    "sync.identity.mismatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This profile belongs to a different account. Sync is paused to protect your data."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此档案属于另一个账户。为保护你的数据，同步已暂停。"
+          }
+        }
+      }
+    },
     "" : {},
     "%@" : {},
     "%@ %@" : {

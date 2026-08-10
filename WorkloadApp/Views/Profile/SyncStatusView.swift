@@ -23,6 +23,29 @@ struct SyncStatusView: View {
                         .padding(.top, Spacing.md)
                         .padding(.bottom, Spacing.sm)
 
+                    // Identity fault banner (v1.7.1): sync was refused before any entity ran
+                    // because the local athlete does not belong to the signed-in account.
+                    // Without this banner the refusal is invisible and the rows below keep
+                    // their last (stale) state.
+                    if let fault = store.identityFault {
+                        HStack(alignment: .top, spacing: Spacing.xs) {
+                            Circle()
+                                .fill(ColorTokens.zoneDanger)
+                                .frame(width: 8, height: 8)
+                                .padding(.top, Spacing.baselinePair)
+                            Text(identityFaultKey(fault))
+                                .font(.Tokens.smallLabel)
+                                .foregroundStyle(ColorTokens.text1)
+                                .fixedSize(horizontal: false, vertical: true)
+                            Spacer()
+                        }
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.vertical, Spacing.sm)
+                        .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.bottom, Spacing.sm)
+                    }
+
                     // Card container: entity rows on the surfaceEl plane with row hairlines
                     VStack(spacing: 0) {
                         ForEach(Array(SyncEntity.allCases.enumerated()), id: \.element.id) { index, entity in
@@ -51,9 +74,17 @@ struct SyncStatusView: View {
         }
     }
 
+    private func identityFaultKey(_ fault: SyncTimestampStore.IdentityFault) -> LocalizedStringKey {
+        switch fault {
+        case .noSession: "sync.identity.noSession"
+        case .unlinkedAthlete: "sync.identity.unlinked"
+        case .accountMismatch: "sync.identity.mismatch"
+        }
+    }
+
     @ViewBuilder
     private func entityRow(_ entity: SyncEntity, now: Date) -> some View {
-        let hasFailed = store.lastErrors[entity] != nil
+        let hasFailed = store.lastError(for: entity) != nil
         let lastSync = store.lastSuccess(for: entity)
 
         HStack(spacing: Spacing.xs) {
@@ -73,7 +104,7 @@ struct SyncStatusView: View {
                 // this is information the athlete may need to act on. The entity name above
                 // stays working voice, and the trailing server error stays working voice too:
                 // it is prose, and the annotation voice never speaks sentences.
-                if hasFailed, let error = store.lastErrors[entity] {
+                if hasFailed, let error = store.lastError(for: entity) {
                     AnnotationLabel(
                         String(format: String(localized: "sync.status.failed", defaultValue: "Failed %@"), relativeStamp(for: error.timestamp, now: now)),
                         size: .small,
@@ -108,7 +139,7 @@ struct SyncStatusView: View {
             Spacer()
 
             // Trailing error text (only when failed)
-            if let error = store.lastErrors[entity] {
+            if let error = store.lastError(for: entity) {
                 Text(error.message)
                     .font(.Tokens.smallLabel)
                     .foregroundStyle(ColorTokens.zoneCaution)
@@ -119,7 +150,7 @@ struct SyncStatusView: View {
         .frame(minHeight: 48)
         .accessibilityElement(children: .combine)
         .accessibilityLabel(hasFailed
-            ? "\(entity.displayName), sync failed, \(store.lastErrors[entity]?.message ?? "")"
+            ? "\(entity.displayName), sync failed, \(store.lastError(for: entity)?.message ?? "")"
             : "\(entity.displayName), synced \(lastSync.map { relativeStamp(for: $0, now: now) } ?? "never")")
     }
 

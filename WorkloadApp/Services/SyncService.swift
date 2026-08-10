@@ -25,32 +25,33 @@ struct SyncService {
         defer { store.isSyncing = false }
 
         guard let athlete = try? context.fetch(FetchDescriptor<Athlete>()).first else { return }
+        guard await verifyIdentity(athlete) else { return }
 
         await pushAthlete(athlete)
 
         if await pushWorkloadSnapshots(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .workloadSnapshots)
+            store.recordSuccess(for: .workloadSnapshots, direction: .push)
         }
         if await pushRecoverySnapshots(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .recoverySnapshots)
+            store.recordSuccess(for: .recoverySnapshots, direction: .push)
         }
         if await pushWellnessCheckIns(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .wellnessCheckIns)
+            store.recordSuccess(for: .wellnessCheckIns, direction: .push)
         }
         if await pushPersonalRecords(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .personalRecords)
+            store.recordSuccess(for: .personalRecords, direction: .push)
         }
         if await pushWorkoutSessions(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .workouts)
+            store.recordSuccess(for: .workouts, direction: .push)
         }
         if await pushBehaviorTags(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .behaviorTags)
+            store.recordSuccess(for: .behaviorTags, direction: .push)
         }
         if await pushWorkoutTemplates(context: context, coachId: athlete.id) {
-            store.recordSuccess(for: .templates)
+            store.recordSuccess(for: .templates, direction: .push)
         }
         if await pushTrainingProfile(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .trainingProfiles)
+            store.recordSuccess(for: .trainingProfiles, direction: .push)
         }
     }
 
@@ -63,45 +64,47 @@ struct SyncService {
         defer { store.isSyncing = false }
 
         guard let athlete = try? context.fetch(FetchDescriptor<Athlete>()).first else { return }
+        guard await verifyIdentity(athlete) else { return }
 
         await pullAthlete(context: context, existingAthlete: athlete)
 
         if await pullWorkloadSnapshots(context: context, athlete: athlete) {
-            store.recordSuccess(for: .workloadSnapshots)
+            store.recordSuccess(for: .workloadSnapshots, direction: .pull)
         }
         if await pullRecoverySnapshots(context: context, athlete: athlete) {
-            store.recordSuccess(for: .recoverySnapshots)
+            store.recordSuccess(for: .recoverySnapshots, direction: .pull)
         }
         if await pullWellnessCheckIns(context: context, athlete: athlete) {
-            store.recordSuccess(for: .wellnessCheckIns)
+            store.recordSuccess(for: .wellnessCheckIns, direction: .pull)
         }
         if await pullPersonalRecords(context: context, athlete: athlete) {
-            store.recordSuccess(for: .personalRecords)
+            store.recordSuccess(for: .personalRecords, direction: .pull)
         }
         if await pullWorkoutSessions(context: context, athlete: athlete) {
-            store.recordSuccess(for: .workouts)
+            store.recordSuccess(for: .workouts, direction: .pull)
         }
         if await pullBehaviorTags(context: context, athlete: athlete) {
-            store.recordSuccess(for: .behaviorTags)
+            store.recordSuccess(for: .behaviorTags, direction: .pull)
         }
         if await pullWorkoutTemplates(context: context, coachId: athlete.id) {
-            store.recordSuccess(for: .templates)
+            store.recordSuccess(for: .templates, direction: .pull)
         }
         if await pullTrainingProfile(context: context, athleteId: athlete.id) {
-            store.recordSuccess(for: .trainingProfiles)
+            store.recordSuccess(for: .trainingProfiles, direction: .pull)
         }
     }
 
     /// Push only WorkloadSnapshot records (called after WorkoutPipeline).
     @discardableResult
     func pushWorkloadSnapshots(context: ModelContext, athleteId: UUID) async -> Bool {
+        guard await verifyIdentity(context: context, athleteId: athleteId) else { return false }
         let snapshots: [WorkloadSnapshot]
         do {
             snapshots = try context.fetch(FetchDescriptor<WorkloadSnapshot>())
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.workloadSnapshots, .push, error)
-            recordFailure(.workloadSnapshots, error)
+            recordFailure(.workloadSnapshots, .push, error)
             return false
         }
         guard !snapshots.isEmpty else { return true }
@@ -113,6 +116,7 @@ struct SyncService {
 
     /// Push only RecoverySnapshot + WellnessCheckIn (called after RecoveryPipeline).
     func pushRecoveryAndWellness(context: ModelContext, athleteId: UUID) async {
+        guard await verifyIdentity(context: context, athleteId: athleteId) else { return }
         await pushRecoverySnapshots(context: context, athleteId: athleteId)
         await pushWellnessCheckIns(context: context, athleteId: athleteId)
     }
@@ -172,9 +176,10 @@ struct SyncService {
     }
 
     /// Records a failure with both the classified label and the diagnostic detail.
-    private func recordFailure(_ entity: SyncEntity, _ error: Error) {
+    private func recordFailure(_ entity: SyncEntity, _ direction: SyncDirection, _ error: Error) {
         SyncTimestampStore.shared.recordFailure(
             for: entity,
+            direction: direction,
             error: classifyError(error),
             detail: errorDetail(error)
         )
@@ -191,13 +196,49 @@ struct SyncService {
     private func run(_ entity: SyncEntity, _ direction: SyncDirection, _ action: () async throws -> Void) async -> Bool {
         do {
             try await action()
-            SyncTimestampStore.shared.recordSuccess(for: entity)
+            SyncTimestampStore.shared.recordSuccess(for: entity, direction: direction)
             return true
         } catch {
             logFailure(entity, direction, error)
-            recordFailure(entity, error)
+            recordFailure(entity, direction, error)
             return false
         }
+    }
+
+    // MARK: - Identity guard (v1.7.1)
+
+    /// Refuses to sync when the local athlete does not belong to the signed-in account.
+    /// Born from the 2026-08-10 incident: a seeded mock athlete (random id, nil
+    /// `supabaseUserId`) pushed under an id the server never issued — every row was
+    /// RLS-rejected and both failure legs were silent (`pushAthlete` guard-returned, the
+    /// children errored per-entity while the pulls painted the rows green). The fault is
+    /// recorded on `SyncTimestampStore` and rendered as a banner on SyncStatusView.
+    private func verifyIdentity(_ athlete: Athlete) async -> Bool {
+        let store = SyncTimestampStore.shared
+        guard let sessionUserId = try? await client.auth.session.user.id else {
+            store.recordIdentityFault(.noSession)
+            return false
+        }
+        guard let linkedUserId = athlete.supabaseUserId else {
+            store.recordIdentityFault(.unlinkedAthlete)
+            return false
+        }
+        guard linkedUserId == sessionUserId else {
+            store.recordIdentityFault(.accountMismatch)
+            return false
+        }
+        store.clearIdentityFault()
+        return true
+    }
+
+    /// Variant for the seams that receive only an athlete id (pipeline-triggered pushes).
+    private func verifyIdentity(context: ModelContext, athleteId: UUID) async -> Bool {
+        let athletes = (try? context.fetch(FetchDescriptor<Athlete>())) ?? []
+        guard let athlete = athletes.first(where: { $0.id == athleteId }) else {
+            SyncTimestampStore.shared.recordIdentityFault(.unlinkedAthlete)
+            return false
+        }
+        return await verifyIdentity(athlete)
     }
 
     // MARK: - Athlete push/pull
@@ -239,6 +280,7 @@ struct SyncService {
     }
 
     func pushAthlete(_ athlete: Athlete) async {
+        guard await verifyIdentity(athlete) else { return }
         guard let userId = athlete.supabaseUserId else { return }
         let row = AthleteRow(
             id: athlete.id,
@@ -305,7 +347,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.recoverySnapshots, .push, error)
-            recordFailure(.recoverySnapshots, error)
+            recordFailure(.recoverySnapshots, .push, error)
             return false
         }
         guard !snapshots.isEmpty else { return true }
@@ -323,7 +365,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.wellnessCheckIns, .push, error)
-            recordFailure(.wellnessCheckIns, error)
+            recordFailure(.wellnessCheckIns, .push, error)
             return false
         }
         guard !checkIns.isEmpty else { return true }
@@ -341,7 +383,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.personalRecords, .push, error)
-            recordFailure(.personalRecords, error)
+            recordFailure(.personalRecords, .push, error)
             return false
         }
         guard !prs.isEmpty else { return true }
@@ -359,7 +401,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.workouts, .push, error)
-            recordFailure(.workouts, error)
+            recordFailure(.workouts, .push, error)
             return false
         }
         guard !sessions.isEmpty else { return true }
@@ -383,7 +425,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.workloadSnapshots, .pull, error)
-            recordFailure(.workloadSnapshots, error)
+            recordFailure(.workloadSnapshots, .pull, error)
             return false
         }
 
@@ -408,7 +450,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.workloadSnapshots, .pull, error)
-            recordFailure(.workloadSnapshots, error)
+            recordFailure(.workloadSnapshots, .pull, error)
             return false
         }
         return true
@@ -426,7 +468,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.recoverySnapshots, .pull, error)
-            recordFailure(.recoverySnapshots, error)
+            recordFailure(.recoverySnapshots, .pull, error)
             return false
         }
 
@@ -455,7 +497,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.recoverySnapshots, .pull, error)
-            recordFailure(.recoverySnapshots, error)
+            recordFailure(.recoverySnapshots, .pull, error)
             return false
         }
         return true
@@ -473,7 +515,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.wellnessCheckIns, .pull, error)
-            recordFailure(.wellnessCheckIns, error)
+            recordFailure(.wellnessCheckIns, .pull, error)
             return false
         }
 
@@ -497,7 +539,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.wellnessCheckIns, .pull, error)
-            recordFailure(.wellnessCheckIns, error)
+            recordFailure(.wellnessCheckIns, .pull, error)
             return false
         }
         return true
@@ -515,7 +557,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.workouts, .pull, error)
-            recordFailure(.workouts, error)
+            recordFailure(.workouts, .pull, error)
             return false
         }
 
@@ -545,7 +587,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.workouts, .pull, error)
-            recordFailure(.workouts, error)
+            recordFailure(.workouts, .pull, error)
             return false
         }
         return true
@@ -561,7 +603,7 @@ struct SyncService {
                 .filter { $0.athlete?.id == athleteId }
         } catch {
             logFailure(.behaviorTags, .push, error)
-            recordFailure(.behaviorTags, error)
+            recordFailure(.behaviorTags, .push, error)
             return false
         }
         guard !tags.isEmpty else { return true }
@@ -583,7 +625,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.behaviorTags, .pull, error)
-            recordFailure(.behaviorTags, error)
+            recordFailure(.behaviorTags, .pull, error)
             return false
         }
 
@@ -606,7 +648,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.behaviorTags, .pull, error)
-            recordFailure(.behaviorTags, error)
+            recordFailure(.behaviorTags, .pull, error)
             return false
         }
         return true
@@ -624,7 +666,7 @@ struct SyncService {
                 .value
         } catch {
             logFailure(.personalRecords, .pull, error)
-            recordFailure(.personalRecords, error)
+            recordFailure(.personalRecords, .pull, error)
             return false
         }
 
@@ -648,7 +690,7 @@ struct SyncService {
             try context.save()
         } catch {
             logFailure(.personalRecords, .pull, error)
-            recordFailure(.personalRecords, error)
+            recordFailure(.personalRecords, .pull, error)
             return false
         }
         return true
@@ -892,6 +934,7 @@ struct WorkoutSessionRow: Codable {
 
     @discardableResult
     func pushWorkoutTemplates(context: ModelContext, coachId: UUID) async -> Bool {
+        guard await verifyIdentity(context: context, athleteId: coachId) else { return false }
         let templates: [WorkoutTemplate]
         do {
             templates = try context.fetch(
@@ -899,7 +942,7 @@ struct WorkoutSessionRow: Codable {
             )
         } catch {
             logFailure(.templates, .push, error)
-            recordFailure(.templates, error)
+            recordFailure(.templates, .push, error)
             return false
         }
         guard !templates.isEmpty else { return true }
@@ -921,7 +964,7 @@ struct WorkoutSessionRow: Codable {
                 .value
         } catch {
             logFailure(.templates, .pull, error)
-            recordFailure(.templates, error)
+            recordFailure(.templates, .pull, error)
             return false
         }
 
@@ -978,7 +1021,7 @@ struct WorkoutSessionRow: Codable {
             try context.save()
         } catch {
             logFailure(.templates, .pull, error)
-            recordFailure(.templates, error)
+            recordFailure(.templates, .pull, error)
             return false
         }
         return true
@@ -988,13 +1031,14 @@ struct WorkoutSessionRow: Codable {
 
     @discardableResult
     func pushTrainingProfile(context: ModelContext, athleteId: UUID) async -> Bool {
+        guard await verifyIdentity(context: context, athleteId: athleteId) else { return false }
         let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }
         let profile: TrainingProfile?
         do {
             profile = try context.fetch(FetchDescriptor(predicate: predicate)).first
         } catch {
             logFailure(.trainingProfiles, .push, error)
-            recordFailure(.trainingProfiles, error)
+            recordFailure(.trainingProfiles, .push, error)
             return false
         }
         guard let profile else { return true }
@@ -1022,7 +1066,7 @@ struct WorkoutSessionRow: Codable {
                 .value
         } catch {
             logFailure(.trainingProfiles, .pull, error)
-            recordFailure(.trainingProfiles, error)
+            recordFailure(.trainingProfiles, .pull, error)
             return false
         }
         guard let row = rows.first else {
@@ -1083,7 +1127,7 @@ struct WorkoutSessionRow: Codable {
             try context.save()
         } catch {
             logFailure(.trainingProfiles, .pull, error)
-            recordFailure(.trainingProfiles, error)
+            recordFailure(.trainingProfiles, .pull, error)
             return false
         }
         return true

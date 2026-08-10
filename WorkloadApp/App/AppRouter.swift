@@ -73,7 +73,7 @@ struct AppRouter: View {
             }
         }
         .task {
-            #if DEBUG
+            #if DEBUG && targetEnvironment(simulator)
             let args = ProcessInfo.processInfo.arguments
 
             if args.contains("SCREENSHOT_LOADING_MODE") {
@@ -183,7 +183,7 @@ struct AppRouter: View {
                     needsOnboarding = (a.trainingFrequency == nil || a.experienceLevel == nil)
                 }
 
-                #if DEBUG
+                #if DEBUG && targetEnvironment(simulator)
                 // Seed mock data only in SCREENSHOT_MODE — prevents masking welcome card for real users
                 if ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE"),
                    let athlete = (try? modelContext.fetch(FetchDescriptor<Athlete>()))?.first {
@@ -195,7 +195,7 @@ struct AppRouter: View {
         }
     }
 
-    #if DEBUG
+    #if DEBUG && targetEnvironment(simulator)
     private func applyScreenshotLocaleOverride(arguments: [String]) {
         if let idx = arguments.firstIndex(of: "-AppleLanguages"),
            idx + 1 < arguments.count,
