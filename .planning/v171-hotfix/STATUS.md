@@ -102,10 +102,13 @@ Supabase SQL forensics + `devicectl` container pull; the wipe lived only in the 
 WAL, so the pre-wipe store was restored to the device byte-for-byte and verified. Scheme
 argument now disabled (committed with this change). Full artifacts in the session scratchpad.
 
-Separate finding from the same forensics: the device store was **born 2026-08-04** (reinstall
-or sign-out) — months of workout history left the phone then, and the server never had
-workouts (push broken until 007, run 2026-08-10). HAN's gmail account owns recovery through
-08-05; the qq account `2583710743@…` (112 recovery rows) may also be HAN — unconfirmed.
+Separate finding from the same forensics, both halves HAN-confirmed 2026-08-11: the device
+store was born 2026-08-04 because **HAN reinstalled the app that day** — the pre-reinstall
+workout history was deleted with the old container, and the server never had workouts (their
+push was broken until 007, run 2026-08-10). That history is unrecoverable unless an iCloud/
+Finder device backup from before 08-04 still exists. The qq account `2583710743@…` is the
+**App Review demo account** HAN created for Apple (its 112 recovery rows through 08-03 line
+up with the build-18 review window) — not a real user; keep it working for future reviews.
 
 All four pre-ship guards were **BUILT the same day** (suite **985/0/2**, +8 `SyncGuardTests`
 incl. two source fences):
