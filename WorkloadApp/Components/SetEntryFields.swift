@@ -11,20 +11,37 @@ enum SetFocusField: Hashable {
     case reps(UUID)
 }
 
-/// Field-first set entry — HAN-gated variant C of the 2026-08-12 design demos.
+/// Scrolls a set row clear of the keyboard. The sheet injects a closure bound to its
+/// `ScrollViewReader`; a row calls it when one of its fields takes focus — SwiftUI's
+/// automatic keyboard avoidance surfaces only the bare field, leaving the row's label
+/// and chips buried under the pad (HAN UAT round 4).
+private struct SetRowScrollerKey: EnvironmentKey {
+    static let defaultValue: (@MainActor (UUID) -> Void)? = nil
+}
+
+extension EnvironmentValues {
+    var setRowScroller: (@MainActor (UUID) -> Void)? {
+        get { self[SetRowScrollerKey.self] }
+        set { self[SetRowScrollerKey.self] = newValue }
+    }
+}
+
+/// Field-first set entry — the 2026-08-13 parliament spec (Codex + Grok, chaired).
 ///
-/// Two large LABELED wells, typing primary (commit-on-focus-loss + keyboard Done/Next,
-/// the round-3 reliability semantics), plus:
-/// - weight: two nudge chips that STATE their own delta ("−2.5 kg" / "＋2.5 kg") —
-///   replacing the three unlabeled tiles whose blank cold-start read as mystery squares;
-/// - reps: a numbered TAPE — the numerals themselves ride under a fixed accent needle,
-///   the current one enlarged in ink, mirrored live into the reps well while dragging —
-///   replacing the bare axis nobody could read (HAN UAT round 3).
+/// Two large LABELED wells, and exactly three ways in, none provenance-dependent:
+/// - **Tap → type.** Always the primary, visible path. Focus clears the buffer and the
+///   prior value ghosts as the placeholder, so typing never appends to a seeded digit.
+///   Commit on focus loss / toolbar Done / Next (round-3 reliability semantics).
+/// - **Scrub the well.** Direction-locked horizontal drag anywhere on either well —
+///   HAN's "scroll inside the box", adopted as a universal accelerator (never gated on
+///   history). Detents: the house weight increment (2.5 kg / 5 lb) and 1 rep per 24 pt.
+///   The numbered tape is retired; the well itself is the scrubber.
+/// - **Weight chips.** −/＋ one increment; self-explanatory, kept for the plate-math loop.
 ///
-/// Commit semantics are unchanged from the retired components: a commit from any path
-/// (typing, chip, tape) calls `onCommit`, which marks the set done — the established
-/// isDone persistence gate. Typed weights are kept as typed (rounded to 0.25 kg), only
-/// the CHIPS walk the house increment grid; snapping what the athlete typed is hostile.
+/// MATERIALIZE ≠ LOG (the parliament's central ruling): everything above writes VALUES
+/// only. Nothing here marks the set performed — the row's explicit Log action owns
+/// `isDone`. Ghost rules: reps ghost = suggestion, else the universal 8; weight ghost =
+/// suggestion only. Ghosts render `text3` and are never persisted untouched.
 struct SetEntryFields: View {
     @Binding var weightKg: Double?
     @Binding var reps: Int?
@@ -32,8 +49,6 @@ struct SetEntryFields: View {
     /// Suggested values (from `SetSuggestion`) rendered as ghosts until a real commit.
     var suggestedWeightKg: Double? = nil
     var suggestedReps: Int? = nil
-    /// Called on every real commit — marks the set done (established gate).
-    var onCommit: () -> Void = {}
 
     var focus: FocusState<SetFocusField?>.Binding? = nil
     var rowId: UUID = UUID()
@@ -48,21 +63,24 @@ struct SetEntryFields: View {
     @State private var repsText = ""
     @State private var repsSeeded = ""
 
-    // MARK: Tape state
+    // MARK: Scrub state (live values while a drag is in progress; the SwiftData
+    // @Binding is written only on release)
 
     private let minReps = 1
     private let maxReps = 30
-    private let tapePitch: CGFloat = 44
-    /// Live drag value while a tape drag is in progress; isolated so per-pixel motion
-    /// never writes the SwiftData `@Binding`.
-    @State private var dragValue: Int? = nil
-    @State private var dragStartValue: Int? = nil
-    @State private var dragStartX: CGFloat? = nil
-    /// D13(a): silent detents; the ONLY per-adjustment haptic is the 1/30 limit bump.
+    /// Points of horizontal travel per detent.
+    private let scrubPitch: CGFloat = 24
+    @State private var dragWeight: Double? = nil
+    @State private var dragReps: Int? = nil
+    @State private var scrubStartX: CGFloat? = nil
+    @State private var scrubBaseWeight: Double? = nil
+    @State private var scrubBaseReps: Int? = nil
+    /// D13(a): scrub detents are silent; the ONLY per-adjustment haptic is the bound bump.
     private let limitHaptic = UIImpactFeedbackGenerator(style: .medium)
 
     private var isEditingWeight: Bool { focus?.wrappedValue == .weight(rowId) }
     private var isEditingReps: Bool { focus?.wrappedValue == .reps(rowId) }
+    private var isEditing: Bool { isEditingWeight || isEditingReps }
 
     // MARK: Derived
 
@@ -90,15 +108,13 @@ struct SetEntryFields: View {
         return WeightFormatter.displayValue(s, unit: unit)
     }
 
-    /// The value the tape needle sits on: live drag, else committed, else ghost, else a
-    /// mid-range resting point (8 — starting a first drag from 1 makes every set a
-    /// cross-country journey).
-    private var tapeValue: Int {
-        dragValue ?? reps ?? suggestedReps ?? 8
-    }
+    /// The reps reading: live scrub, else committed, else the ghost (suggestion, else
+    /// the universal 8 — HAN's rule: every reps well starts somewhere scrubbable).
+    private var repsGhost: Int { suggestedReps ?? 8 }
+    private var repsShown: Int { dragReps ?? reps ?? repsGhost }
 
-    private var repsIsGhost: Bool { dragValue == nil && reps == nil && suggestedReps != nil }
-    private var weightIsGhost: Bool { weightKg == nil && weightGhostDisplay != nil }
+    private var repsIsGhost: Bool { dragReps == nil && reps == nil }
+    private var weightIsGhost: Bool { dragWeight == nil && weightKg == nil }
 
     /// True on an exercise's very first set: nothing committed, nothing to suggest.
     private var isFirstEver: Bool {
@@ -109,27 +125,22 @@ struct SetEntryFields: View {
         v == v.rounded() ? String(format: "%.0f", v) : String(format: "%.1f", v)
     }
 
-    // MARK: Commit
+    // MARK: Commit (materialize only — the Log action owns isDone)
 
     private func commitWeight(display: Double) {
-        // Typed/chip values keep their meaning; storage rounds to 0.25 in display units.
+        // Typed values keep their meaning; storage rounds to 0.25 in display units.
+        // Chips and scrubs arrive pre-snapped to the house increment.
         let rounded = (max(0, display) * 4).rounded() / 4
         weightKg = WeightFormatter.toKg(rounded, from: unit)
-        if isEditingWeight {
-            weightText = fmt(rounded)
-            weightSeeded = weightText
-        }
-        onCommit()
+        weightText = fmt(rounded)
+        weightSeeded = weightText
     }
 
     private func commitReps(_ v: Int) {
         let clamped = min(maxReps, max(minReps, v))
         reps = clamped
-        if isEditingReps {
-            repsText = "\(clamped)"
-            repsSeeded = repsText
-        }
-        onCommit()
+        repsText = "\(clamped)"
+        repsSeeded = repsText
     }
 
     // MARK: Body
@@ -141,11 +152,9 @@ struct SetEntryFields: View {
                 repsField
             }
 
-            tape
-
             if isFirstEver {
-                // The cold-start answer in words, not blank squares (variant B's lesson,
-                // kept in C): say what happens instead of implying it.
+                // The cold-start answer in words, not blank squares: say what happens
+                // instead of implying it.
                 Text("setEntry.hint.firstSet")
                     .font(.Tokens.smallLabel)
                     .foregroundStyle(ColorTokens.text2)
@@ -172,6 +181,18 @@ struct SetEntryFields: View {
                         .foregroundStyle(ColorTokens.text3)
                 }
             }
+            .gesture(weightScrub)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(String(localized: "setEntry.label.weight", defaultValue: "Weight"))
+            .accessibilityValue(weightAccessibilityValue)
+            .accessibilityAdjustableAction { direction in
+                let base = weightDisplay ?? weightGhostDisplay ?? 0
+                switch direction {
+                case .increment: commitWeight(display: base + increment)
+                case .decrement: commitWeight(display: max(0, base - increment))
+                @unknown default: break
+                }
+            }
             HStack(spacing: Spacing.baselinePair) {
                 nudgeChip(label: "−\(fmt(increment))") { nudgeWeight(-increment) }
                 nudgeChip(label: "＋\(fmt(increment))") { nudgeWeight(increment) }
@@ -180,9 +201,22 @@ struct SetEntryFields: View {
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
+    private var weightAccessibilityValue: String {
+        let display = dragWeight ?? weightDisplay ?? weightGhostDisplay
+        guard let display else {
+            return String(localized: "weightPicker.unset.accessibility", defaultValue: "No weight set")
+        }
+        switch unit {
+        case .kg:
+            return String(format: String(localized: "weightPicker.value.kg.accessibility", defaultValue: "%@ kilograms"), fmt(display))
+        case .lbs:
+            return String(format: String(localized: "weightPicker.value.lb.accessibility", defaultValue: "%@ pounds"), fmt(display))
+        }
+    }
+
     @ViewBuilder private var weightInput: some View {
         if let focus {
-            TextField("—", text: $weightText)
+            TextField(weightFieldPlaceholder, text: $weightText)
                 .keyboardType(.decimalPad)
                 .focused(focus, equals: .weight(rowId))
                 .font(.Tokens.displayAction)
@@ -191,11 +225,14 @@ struct SetEntryFields: View {
                 .foregroundStyle(weightIsGhost && !isEditingWeight ? ColorTokens.text3 : ColorTokens.text1)
                 .onChange(of: focus.wrappedValue) { oldValue, newValue in
                     if newValue == .weight(rowId) {
-                        weightText = weightDisplay.map(fmt) ?? ""
-                        weightSeeded = weightText
+                        // Focus clears the buffer — the prior value ghosts as the
+                        // placeholder. Seeding it as TEXT made typing APPEND ("8" →
+                        // type 12 → "812"), the classic phantom-value generator.
+                        weightText = ""
+                        weightSeeded = ""
                     } else if oldValue == .weight(rowId) {
-                        // Round 3: the decimal pad has no return key — focus loss IS the
-                        // commit path, guarded so focus-and-dismiss commits nothing.
+                        // The decimal pad has no return key — focus loss IS the commit
+                        // path, guarded so focus-and-dismiss commits nothing.
                         if weightText != weightSeeded,
                            let typed = Double(weightText.replacingOccurrences(of: ",", with: ".")) {
                             commitWeight(display: typed)
@@ -207,6 +244,8 @@ struct SetEntryFields: View {
                 .onAppear { syncWeightWell() }
                 .onChange(of: weightKg) { _, _ in if !isEditingWeight { syncWeightWell() } }
                 .toolbar {
+                    // The decimal pad's missing return key, supplied. Contributed only
+                    // while THIS field owns focus so rows never stack duplicates.
                     if isEditingWeight {
                         ToolbarItemGroup(placement: .keyboard) {
                             Spacer()
@@ -225,11 +264,16 @@ struct SetEntryFields: View {
                     }
                 }
         } else {
-            Text(weightDisplay.map(fmt) ?? weightGhostDisplay.map(fmt) ?? "—")
+            Text(dragWeight.map(fmt) ?? weightDisplay.map(fmt) ?? weightGhostDisplay.map(fmt) ?? "—")
                 .font(.Tokens.displayAction)
                 .monospacedDigit()
                 .foregroundStyle(weightIsGhost ? ColorTokens.text3 : ColorTokens.text1)
         }
+    }
+
+    /// Placeholder while focused-empty: the value the athlete is replacing.
+    private var weightFieldPlaceholder: String {
+        weightDisplay.map(fmt) ?? weightGhostDisplay.map(fmt) ?? "—"
     }
 
     /// Keep the (unfocused) weight buffer showing the committed-else-ghost value.
@@ -238,7 +282,8 @@ struct SetEntryFields: View {
     }
 
     private func commitWeightAndAdvance() {
-        if let typed = Double(weightText.replacingOccurrences(of: ",", with: ".")) {
+        if weightText != weightSeeded,
+           let typed = Double(weightText.replacingOccurrences(of: ",", with: ".")) {
             commitWeight(display: typed)
         }
         weightSeeded = weightText
@@ -246,12 +291,49 @@ struct SetEntryFields: View {
     }
 
     /// Chips step from committed → ghost → zero (bodyweight is a legal base) and snap
-    /// onto the house increment grid — the chips are the plate-math path, typing is not.
+    /// onto the house increment grid.
     private func nudgeWeight(_ delta: Double) {
         let base = weightDisplay ?? weightGhostDisplay ?? 0
         let snapped = WeightFormatter.snapToIncrement(base + delta, to: increment)
         Haptics.select()
         commitWeight(display: max(0, snapped))
+    }
+
+    /// HAN's "scroll inside the box": direction-locked horizontal drag, one house
+    /// increment per detent. Deaf while any keypad is up (a grazing touch must never
+    /// fight typing — round 3's law, carried forward).
+    private var weightScrub: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onChanged { g in
+                guard !isEditing else { return }
+                if scrubStartX == nil {
+                    // Horizontal dominance lock: mostly-vertical intent stays with the
+                    // sheet's scroll.
+                    guard abs(g.translation.width) > abs(g.translation.height) else { return }
+                    scrubStartX = g.startLocation.x
+                    scrubBaseWeight = weightDisplay ?? weightGhostDisplay ?? 0
+                    limitHaptic.prepare()
+                }
+                guard let base = scrubBaseWeight, let startX = scrubStartX else { return }
+                let steps = ((g.location.x - startX) / scrubPitch).rounded()
+                let raw = max(0, base + Double(steps) * increment)
+                let snapped = WeightFormatter.snapToIncrement(raw, to: increment)
+                if snapped != dragWeight {
+                    let previous = dragWeight
+                    dragWeight = snapped
+                    weightText = fmt(snapped)
+                    if snapped == 0 && previous != 0 && previous != nil {
+                        limitHaptic.impactOccurred()
+                        limitHaptic.prepare()
+                    }
+                }
+            }
+            .onEnded { _ in
+                if let v = dragWeight { commitWeight(display: v) }
+                dragWeight = nil
+                scrubStartX = nil
+                scrubBaseWeight = nil
+            }
     }
 
     // MARK: Reps field
@@ -265,13 +347,26 @@ struct SetEntryFields: View {
             well(isFocused: isEditingReps) {
                 repsInput
             }
+            .gesture(repsScrub)
+            .accessibilityElement(children: .ignore)
+            .accessibilityLabel(String(localized: "repScrubber.accessibility", defaultValue: "Reps"))
+            .accessibilityValue(
+                String(format: String(localized: "repScrubber.value.accessibility", defaultValue: "%d reps"), repsShown)
+            )
+            .accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: commitReps(repsShown + 1)
+                case .decrement: commitReps(repsShown - 1)
+                @unknown default: break
+                }
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
 
     @ViewBuilder private var repsInput: some View {
         if let focus {
-            TextField("—", text: $repsText)
+            TextField("\(repsShown)", text: $repsText)
                 .keyboardType(.numberPad)
                 .focused(focus, equals: .reps(rowId))
                 .font(.Tokens.displayAction)
@@ -280,8 +375,8 @@ struct SetEntryFields: View {
                 .foregroundStyle(repsIsGhost && !isEditingReps ? ColorTokens.text3 : ColorTokens.text1)
                 .onChange(of: focus.wrappedValue) { oldValue, newValue in
                     if newValue == .reps(rowId) {
-                        repsText = (reps ?? suggestedReps).map { "\($0)" } ?? ""
-                        repsSeeded = repsText
+                        repsText = ""
+                        repsSeeded = ""
                     } else if oldValue == .reps(rowId) {
                         if repsText != repsSeeded, let typed = Int(repsText) {
                             commitReps(typed)
@@ -292,10 +387,6 @@ struct SetEntryFields: View {
                 .onSubmit { commitRepsKeypad() }
                 .onAppear { syncRepsWell() }
                 .onChange(of: reps) { _, _ in if !isEditingReps { syncRepsWell() } }
-                .onChange(of: dragValue) { _, newValue in
-                    // The live mirror: the well shows every tape movement as it happens.
-                    if let v = newValue, !isEditingReps { repsText = "\(v)" }
-                }
                 .toolbar {
                     if isEditingReps {
                         ToolbarItemGroup(placement: .keyboard) {
@@ -307,25 +398,57 @@ struct SetEntryFields: View {
                     }
                 }
         } else {
-            Text(dragValue.map { "\($0)" } ?? (reps ?? suggestedReps).map { "\($0)" } ?? "—")
+            Text("\(repsShown)")
                 .font(.Tokens.displayAction)
                 .monospacedDigit()
                 .contentTransition(.numericText())
                 .foregroundStyle(repsIsGhost ? ColorTokens.text3 : ColorTokens.text1)
-                .animation(Motion.resolved(Motion.digitRoll, reduceMotion: reduceMotion), value: dragValue)
+                .animation(Motion.resolved(Motion.digitRoll, reduceMotion: reduceMotion), value: repsShown)
         }
     }
 
+    /// Keep the (unfocused) reps buffer showing the committed-else-ghost value.
     private func syncRepsWell() {
-        repsText = (reps ?? suggestedReps).map { "\($0)" } ?? ""
+        repsText = "\(reps ?? repsGhost)"
     }
 
     private func commitRepsKeypad() {
-        if let typed = Int(repsText) {
+        if repsText != repsSeeded, let typed = Int(repsText) {
             commitReps(typed)
         }
         repsSeeded = repsText
         focus?.wrappedValue = nil
+    }
+
+    private var repsScrub: some Gesture {
+        DragGesture(minimumDistance: 12)
+            .onChanged { g in
+                guard !isEditing else { return }
+                if scrubStartX == nil {
+                    guard abs(g.translation.width) > abs(g.translation.height) else { return }
+                    scrubStartX = g.startLocation.x
+                    scrubBaseReps = reps ?? repsGhost
+                    limitHaptic.prepare()
+                }
+                guard let base = scrubBaseReps, let startX = scrubStartX else { return }
+                let steps = Int(((g.location.x - startX) / scrubPitch).rounded())
+                let v = min(maxReps, max(minReps, base + steps))
+                if v != dragReps {
+                    let previous = dragReps
+                    dragReps = v
+                    repsText = "\(v)"
+                    if (v == minReps || v == maxReps) && v != previous {
+                        limitHaptic.impactOccurred()
+                        limitHaptic.prepare()
+                    }
+                }
+            }
+            .onEnded { _ in
+                if let v = dragReps { commitReps(v) }
+                dragReps = nil
+                scrubStartX = nil
+                scrubBaseReps = nil
+            }
     }
 
     // MARK: Shared well
@@ -362,116 +485,5 @@ struct SetEntryFields: View {
             RoundedRectangle(cornerRadius: CornerTokens.control)
                 .stroke(ColorTokens.divider, lineWidth: 0.5)
         )
-    }
-
-    // MARK: Tape
-
-    /// The numbered tape: numerals ride at fixed pitch under a fixed accent needle in
-    /// the tick zone (never through the digits), current numeral enlarged in ink,
-    /// neighbours in `text3`, edges faded. Detents are silent; the only haptic is the
-    /// limit bump on newly reaching 1 or 30 (D13(a)).
-    private var tape: some View {
-        GeometryReader { geo in
-            let width = geo.size.width
-            let center = width / 2
-            // Half-pitch correction: cell n's CENTER (not its left edge) sits under the needle.
-            let offset = center - CGFloat(tapeValue - minReps) * tapePitch - tapePitch / 2
-
-            ZStack(alignment: .bottomLeading) {
-                HStack(spacing: 0) {
-                    ForEach(minReps...maxReps, id: \.self) { n in
-                        VStack(spacing: Spacing.baselinePair) {
-                            Text("\(n)")
-                                .font(n == tapeValue ? .Tokens.bodyMedium : .Tokens.smallLabel)
-                                .monospacedDigit()
-                                .foregroundStyle(tapeNumeralColor(n))
-                            Rectangle()
-                                .fill(n == tapeValue ? ColorTokens.text1 : ColorTokens.dividerStrong)
-                                .frame(width: n == tapeValue ? 1.5 : 0.5,
-                                       height: n == tapeValue ? 12 : 8)
-                        }
-                        .frame(width: tapePitch)
-                    }
-                }
-                .offset(x: offset)
-                .animation(
-                    dragValue == nil ? Motion.resolved(Motion.state, reduceMotion: reduceMotion) : nil,
-                    value: tapeValue
-                )
-
-                // Fixed needle in the tick zone — accent, the live-state mark.
-                Rectangle()
-                    .fill(ColorTokens.accent)
-                    .frame(width: 2, height: 16)
-                    .offset(x: center - 1)
-            }
-            .frame(maxHeight: .infinity, alignment: .bottom)
-            .contentShape(Rectangle())
-            // Edge fade so the tape reads as a strip passing a window, not a row of chips.
-            .mask(
-                LinearGradient(
-                    stops: [
-                        .init(color: .clear, location: 0),
-                        .init(color: .black, location: 0.12),
-                        .init(color: .black, location: 0.88),
-                        .init(color: .clear, location: 1)
-                    ],
-                    startPoint: .leading, endPoint: .trailing
-                )
-            )
-            // Deaf while the keypad is up (round 3): a grazing touch must never fight typing.
-            .allowsHitTesting(!isEditingReps && !isEditingWeight)
-            .gesture(
-                DragGesture(minimumDistance: 8)
-                    .onChanged { g in
-                        if dragStartX == nil {
-                            dragStartX = g.startLocation.x
-                            dragStartValue = tapeValue
-                            limitHaptic.prepare()
-                        }
-                        guard let startValue = dragStartValue else { return }
-                        // The tape moves WITH the finger: drag left → higher numbers.
-                        let dx = g.location.x - (dragStartX ?? g.location.x)
-                        let v = min(maxReps, max(minReps, startValue - Int((dx / tapePitch).rounded())))
-                        if v != dragValue {
-                            let previous = dragValue
-                            dragValue = v
-                            if (v == minReps || v == maxReps) && v != previous {
-                                limitHaptic.impactOccurred()
-                                limitHaptic.prepare()
-                            }
-                        }
-                    }
-                    .onEnded { _ in
-                        if let v = dragValue { commitReps(v) }
-                        dragValue = nil
-                        dragStartValue = nil
-                        dragStartX = nil
-                    }
-            )
-        }
-        .frame(height: 48)
-        .accessibilityElement(children: .ignore)
-        .accessibilityLabel(String(localized: "repScrubber.accessibility", defaultValue: "Reps"))
-        .accessibilityValue(
-            (dragValue ?? reps ?? suggestedReps).map {
-                String(format: String(localized: "repScrubber.value.accessibility", defaultValue: "%d reps"), $0)
-            } ?? String(localized: "repScrubber.unset.accessibility", defaultValue: "No reps set")
-        )
-        .accessibilityAdjustableAction { direction in
-            let base = reps ?? suggestedReps ?? 8
-            switch direction {
-            case .increment: commitReps(base + 1)
-            case .decrement: commitReps(base - 1)
-            @unknown default: break
-            }
-        }
-    }
-
-    private func tapeNumeralColor(_ n: Int) -> Color {
-        if n == tapeValue {
-            return repsIsGhost ? ColorTokens.text3 : ColorTokens.text1
-        }
-        return ColorTokens.text3
     }
 }

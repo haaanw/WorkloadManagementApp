@@ -96,7 +96,15 @@ struct ReadoutWell: View {
         }
         .padding(.horizontal, Spacing.sm)
         .frame(minHeight: 32)
-        .debossed(cornerRadius: CornerTokens.control)
+        // Flattened (v1.7.1 round 4, HAN): the debossed pocket's gradient read as a
+        // "gradient effect" against the page's flat cells — the same call HAN made on
+        // the option cells (2026-08-05). Surface + hairline; relief retired here.
+        .background(ColorTokens.surface)
+        .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerTokens.control)
+                .stroke(ColorTokens.divider, lineWidth: 0.5)
+        )
         .accessibilityElement()
         .accessibilityLabel(Text(unit.map { "\(value) \($0)" } ?? value))
     }

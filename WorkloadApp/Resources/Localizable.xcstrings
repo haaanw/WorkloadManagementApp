@@ -1,69 +1,78 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "setEntry.label.weight" : {
+    "set.action.log" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Weight"
+            "value" : "Log set"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "重量"
+            "value" : "记录本组"
           }
         }
       }
     },
-    "setEntry.hint.firstSet" : {
+    "set.action.logged" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "First set of this exercise — type it once. Tuwa will suggest it back next time."
+            "value" : "Logged"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "该动作的第一组——输入一次，下次 Tuwa 会自动带出。"
+            "value" : "已记录"
           }
         }
       }
     },
-    "action.next" : {
+    "set.action.unlog" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Next"
+            "value" : "Unlog"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "下一项"
+            "value" : "取消记录"
           }
         }
       }
     },
-    "" : {
-
+    "set.action.log.hint" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Records this set as performed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "将本组记录为已完成"
+          }
+        }
+      }
     },
-    "—" : {
-
-    },
-    "·" : {
-
-    },
-    "%@" : {
-
-    },
+    "" : {},
+    "—" : {},
+    "·" : {},
+    "%@" : {},
     "%@ - %@" : {
       "localizations" : {
         "en" : {
@@ -134,9 +143,7 @@
         }
       }
     },
-    "%lld" : {
-
-    },
+    "%lld" : {},
     "%lld group%@, %lld exercise%@" : {
       "localizations" : {
         "en" : {
@@ -147,12 +154,8 @@
         }
       }
     },
-    "%lld week training streak" : {
-
-    },
-    "%lld/100" : {
-
-    },
+    "%lld week training streak" : {},
+    "%lld/100" : {},
     "a11y.archiveTemplate" : {
       "localizations" : {
         "en" : {
@@ -761,6 +764,23 @@
         }
       }
     },
+    "action.next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Next"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下一项"
+          }
+        }
+      }
+    },
     "action.ok" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1134,9 +1154,7 @@
         }
       }
     },
-    "ATL" : {
-
-    },
+    "ATL" : {},
     "auth.action.alreadyHaveAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1545,12 +1563,8 @@
         }
       }
     },
-    "Baseline" : {
-
-    },
-    "Basketball session" : {
-
-    },
+    "Baseline" : {},
+    "Basketball session" : {},
     "behavior.impact.suffix" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1738,9 +1752,7 @@
         }
       }
     },
-    "Cancel" : {
-
-    },
+    "Cancel" : {},
     "chart.axis.hours" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1826,18 +1838,10 @@
         }
       }
     },
-    "Could not save session" : {
-
-    },
-    "CrossFit" : {
-
-    },
-    "CTL" : {
-
-    },
-    "Custom" : {
-
-    },
+    "Could not save session" : {},
+    "CrossFit" : {},
+    "CTL" : {},
+    "Custom" : {},
     "cyclePhase.context.follicular" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1974,9 +1978,7 @@
         }
       }
     },
-    "Cycling" : {
-
-    },
+    "Cycling" : {},
     "dashboard.action.connectHealth" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2315,9 +2317,7 @@
         }
       }
     },
-    "Date" : {
-
-    },
+    "Date" : {},
     "date.today" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2352,9 +2352,7 @@
         }
       }
     },
-    "Decreased %lld percent week over week" : {
-
-    },
+    "Decreased %lld percent week over week" : {},
     "delta.aboveBaseline" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2508,12 +2506,8 @@
         }
       }
     },
-    "Discard Changes" : {
-
-    },
-    "Discard session" : {
-
-    },
+    "Discard Changes" : {},
+    "Discard session" : {},
     "duration.hoursMinutes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2633,12 +2627,8 @@
         }
       }
     },
-    "End" : {
-
-    },
-    "English" : {
-
-    },
+    "End" : {},
+    "English" : {},
     "error.import.cameraUnavailable" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4101,9 +4091,7 @@
         }
       }
     },
-    "Floor" : {
-
-    },
+    "Floor" : {},
     "frequency.fiveToSix" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4172,12 +4160,8 @@
         }
       }
     },
-    "Hours" : {
-
-    },
-    "HRV" : {
-
-    },
+    "Hours" : {},
+    "HRV" : {},
     "hrv.chart.annotation" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4841,9 +4825,7 @@
         }
       }
     },
-    "Increased %lld percent week over week" : {
-
-    },
+    "Increased %lld percent week over week" : {},
     "insight.sample.suffix" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4912,12 +4894,8 @@
         }
       }
     },
-    "Keep Editing" : {
-
-    },
-    "kg" : {
-
-    },
+    "Keep Editing" : {},
+    "kg" : {},
     "language.picker.footer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4952,9 +4930,7 @@
         }
       }
     },
-    "Lifting" : {
-
-    },
+    "Lifting" : {},
     "link.privacy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4989,9 +4965,7 @@
         }
       }
     },
-    "Load" : {
-
-    },
+    "Load" : {},
     "load.insights.heroKicker" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5162,9 +5136,7 @@
         }
       }
     },
-    "Lower" : {
-
-    },
+    "Lower" : {},
     "matchTier.match" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5607,9 +5579,7 @@
         }
       }
     },
-    "meters" : {
-
-    },
+    "meters" : {},
     "metric.atl" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5746,9 +5716,7 @@
         }
       }
     },
-    "min" : {
-
-    },
+    "min" : {},
     "mock.verdictReason" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7516,12 +7484,8 @@
         }
       }
     },
-    "No sets marked done" : {
-
-    },
-    "Nothing will be logged. Mark sets done to record them, or discard this session?" : {
-
-    },
+    "No sets marked done" : {},
+    "Nothing will be logged. Mark sets done to record them, or discard this session?" : {},
     "notif.weekly.body.template" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7641,9 +7605,7 @@
         }
       }
     },
-    "OK" : {
-
-    },
+    "OK" : {},
     "onboarding.continue.toSetup" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11667,9 +11629,7 @@
         }
       }
     },
-    "Recovery" : {
-
-    },
+    "Recovery" : {},
     "recovery.blend.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12078,9 +12038,7 @@
         }
       }
     },
-    "reps" : {
-
-    },
+    "reps" : {},
     "repScrubber.accessibility" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -12088,17 +12046,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Reps"
-          }
-        }
-      }
-    },
-    "repScrubber.type.title" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Enter reps"
           }
         }
       }
@@ -12125,9 +12072,7 @@
         }
       }
     },
-    "Running" : {
-
-    },
+    "Running" : {},
     "seanEllis.not" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12230,15 +12175,9 @@
         }
       }
     },
-    "Selected" : {
-
-    },
-    "Series" : {
-
-    },
-    "Session type" : {
-
-    },
+    "Selected" : {},
+    "Series" : {},
+    "Session type" : {},
     "sessionStart.adjust.hide" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12830,6 +12769,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开"
+          }
+        }
+      }
+    },
+    "setEntry.hint.firstSet" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "First set of this exercise — type it once. Tuwa will suggest it back next time."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该动作的第一组——输入一次，下次 Tuwa 会自动带出。"
+          }
+        }
+      }
+    },
+    "setEntry.label.weight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Weight"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重量"
           }
         }
       }
@@ -13633,9 +13606,7 @@
         }
       }
     },
-    "Sport" : {
-
-    },
+    "Sport" : {},
     "sport.crossfit" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13755,9 +13726,7 @@
         }
       }
     },
-    "Stage" : {
-
-    },
+    "Stage" : {},
     "staleness.badge" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13775,9 +13744,7 @@
         }
       }
     },
-    "Start" : {
-
-    },
+    "Start" : {},
     "strainRiskZone.elevated" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -13822,9 +13789,7 @@
         }
       }
     },
-    "Swimming" : {
-
-    },
+    "Swimming" : {},
     "sync.identity.mismatch" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14335,12 +14300,8 @@
         }
       }
     },
-    "Target" : {
-
-    },
-    "Team Sport" : {
-
-    },
+    "Target" : {},
+    "Team Sport" : {},
     "template.empty.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14919,9 +14880,7 @@
         }
       }
     },
-    "TODAY'S PLAN" : {
-
-    },
+    "TODAY'S PLAN" : {},
     "trainingPhase.building" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15058,12 +15017,8 @@
         }
       }
     },
-    "TSB" : {
-
-    },
-    "Unchanged week over week" : {
-
-    },
+    "TSB" : {},
+    "Unchanged week over week" : {},
     "unit.kg" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15166,9 +15121,7 @@
         }
       }
     },
-    "Unsaved workout" : {
-
-    },
+    "Unsaved workout" : {},
     "upgrade.button.restorePurchases" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15800,9 +15753,7 @@
         }
       }
     },
-    "Upper" : {
-
-    },
+    "Upper" : {},
     "verdict.match.microdose" : {
       "localizations" : {
         "en" : {
@@ -17374,13 +17325,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Nothing will be logged. Mark sets done to record them, or discard this session?"
+            "value" : "Nothing will be logged. Tap Log set to record sets, or discard this session?"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "不会记录任何内容。请将组标记为完成以记录它们，或放弃此训练？"
+            "value" : "不会记录任何内容。点按“记录本组”来记录，或放弃本次训练？"
           }
         }
       }
@@ -17391,13 +17342,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "No sets marked done"
+            "value" : "No sets logged"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "没有标记完成的组"
+            "value" : "没有已记录的组"
           }
         }
       }
@@ -17691,9 +17642,7 @@
         }
       }
     },
-    "Your changes have not been saved. Keep editing or discard this workout." : {
-
-    },
+    "Your changes have not been saved. Keep editing or discard this workout." : {},
     "zone.caution" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17779,9 +17728,7 @@
         }
       }
     },
-    "中文" : {
-
-    }
+    "中文" : {}
   },
   "version" : "1.0"
 }

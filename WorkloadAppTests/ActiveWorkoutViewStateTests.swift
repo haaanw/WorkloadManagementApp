@@ -270,8 +270,8 @@ final class ActiveWorkoutViewStateTests: XCTestCase {
         XCTAssertEqual(unsaved.actions.map(\.role), [.cancel, .destructive])
 
         let noDone = ActiveWorkoutAlertState.noCompletedSets(locale: locale)
-        XCTAssertEqual(noDone.title, "No sets marked done")
-        XCTAssertEqual(noDone.message, "Nothing will be logged. Mark sets done to record them, or discard this session?")
+        XCTAssertEqual(noDone.title, "No sets logged")
+        XCTAssertEqual(noDone.message, "Nothing will be logged. Tap Log set to record sets, or discard this session?")
         XCTAssertEqual(noDone.actions.map(\.title), ["Cancel", "Discard session"])
         XCTAssertEqual(noDone.actions.map(\.role), [.cancel, .destructive])
 

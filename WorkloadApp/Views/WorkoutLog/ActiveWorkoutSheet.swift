@@ -93,6 +93,7 @@ struct ActiveWorkoutSheet: View {
                     showFinishConfirmation = true
                 }
             }
+            ScrollViewReader { scrollProxy in
             ScrollView {
                 VStack(spacing: 0) {
                     // Session info
@@ -296,7 +297,7 @@ struct ActiveWorkoutSheet: View {
             // log an empty session, so Cancel keeps the user in the sheet and Discard exits
             // without persistence.
             .confirmationDialog(
-                String(localized: "workout.save.noDone.title", defaultValue: "No sets marked done"),
+                String(localized: "workout.save.noDone.title", defaultValue: "No sets logged"),
                 isPresented: $showZeroDoneGuard,
                 titleVisibility: .visible
             ) {
@@ -305,7 +306,7 @@ struct ActiveWorkoutSheet: View {
                 }
                 Button(String(localized: "action.cancel", defaultValue: "Cancel"), role: .cancel) {}
             } message: {
-                Text(String(localized: "workout.save.noDone.message", defaultValue: "Nothing will be logged. Mark sets done to record them, or discard this session?"))
+                Text(String(localized: "workout.save.noDone.message", defaultValue: "Nothing will be logged. Tap Log set to record sets, or discard this session?"))
             }
             .onAppear {
                 // Warm the haptic generators: this is the highest-interaction screen (per-set
@@ -316,6 +317,16 @@ struct ActiveWorkoutSheet: View {
                 } else if let resolvedPlan, entries.isEmpty {
                     loadFromResolvedPlan(resolvedPlan)
                 }
+            }
+            // Keyboard avoidance (round 4): SwiftUI's automatic scroll surfaces only the
+            // bare focused field; the row's label, chips, and tape stay buried under the
+            // pad. Rows call this closure on focus; centering puts the whole set row in
+            // the upper half of the screen, above the keyboard.
+            .environment(\.setRowScroller) { id in
+                withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                    scrollProxy.scrollTo(id, anchor: .center)
+                }
+            }
             }
             }
             .toolbar(.hidden, for: .navigationBar)
@@ -1012,6 +1023,8 @@ struct ExerciseEntryCard: View {
             ForEach($entry.sets) { $set in
                 let setIndex = entry.sets.firstIndex(where: { $0.id == set.id }) ?? 0
                 VStack(spacing: 0) {
+                    // The scroll target for keyboard avoidance — the ROW, not the field,
+                    // so the label/chips/tape scroll clear of the pad together.
                     SetEntryRow(
                         set: $set,
                         index: setIndex,
@@ -1026,6 +1039,7 @@ struct ExerciseEntryCard: View {
                         showSuggestion: entry.progressionSuggestions != nil
                     )
                 }
+                .id(set.id)
                 Rectangle()
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
@@ -1124,6 +1138,9 @@ struct SetEntryRow: View {
     /// commit advances to reps without dismissing/re-summoning the keyboard (§5.5).
     @FocusState private var focusField: SetFocusField?
 
+    /// Sheet-injected scroll closure — centers this row above the keyboard on focus.
+    @Environment(\.setRowScroller) private var scrollToRow
+
     /// Local override controlling whether a completed (isDone) set shows its full editable
     /// row or the compact one-line summary (§5.3). nil = follow the default (collapse when
     /// done); true/false = the user's explicit tap to expand/collapse.
@@ -1189,8 +1206,11 @@ struct SetEntryRow: View {
     }
 
     /// Collapsed "+ RPE" chip → inline RPE stepper. Fast path never requires RPE.
+    /// Parliament spec (2026-08-13): for .weightReps this renders ONLY when the set
+    /// carries a plan-authored target, so the stepper shows directly (the "+ RPE" chip
+    /// path is dead there); other modes keep the chip.
     @ViewBuilder private var rpeControl: some View {
-        if showRPE || set.rpe != nil {
+        if showRPE || set.rpe != nil || (inputMode == .weightReps && set.targetRPE != nil) {
             SetStepperDouble(
                 value: $set.rpe,
                 increment: 1,
@@ -1483,16 +1503,83 @@ struct SetEntryRow: View {
                 unit: weightUnit,
                 suggestedWeightKg: suggestedCenterKg,
                 suggestedReps: suggestedReps,
-                onCommit: markSetDone,
                 focus: $focusField,
                 rowId: set.id
             )
-            HStack(alignment: .center, spacing: Spacing.xs) {
+            // Parliament spec (2026-08-13): the per-set "+ RPE" chip is gone — session RPE
+            // at Finish is the only free-standing effort input. The effort stepper appears
+            // ONLY when the set carries a PLAN-AUTHORED target (RIR or RPE): a prescribed
+            // target is plan-aware core surface, not the noise HAN flagged.
+            if set.targetRIR != nil || set.targetRPE != nil {
                 effortControl
-                Spacer(minLength: 0)
-                doneToggle
             }
+            logControl
         }
+    }
+
+    /// The explicit per-set log gate (parliament spec, 2026-08-13). Replaces the ✓ box
+    /// whose meaning HAN could not read. Materialize ≠ log: typing, chips, and scrubs
+    /// write VALUES; only this action records the set as performed. Logging fills any
+    /// remaining ghost (suggested reps, else 8; suggested weight when one exists),
+    /// dismisses the keyboard, fires the success haptic, and the row collapses to its
+    /// one-line summary at once — the visible state change the ✓ never gave.
+    @ViewBuilder private var logControl: some View {
+        if set.isDone {
+            HStack(spacing: Spacing.xs) {
+                Image(systemName: "checkmark")
+                    .font(.Tokens.smallLabel)
+                    .foregroundStyle(ColorTokens.text1)
+                Text("set.action.logged")
+                    .font(.Tokens.smallLabel)
+                    .foregroundStyle(ColorTokens.text1)
+                Spacer(minLength: 0)
+                // Recoverability: an accidental log must be reversible in place.
+                Button {
+                    Haptics.tap()
+                    withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                        set.isDone = false
+                    }
+                } label: {
+                    Text("set.action.unlog")
+                        .font(.Tokens.smallLabel)
+                        .foregroundStyle(ColorTokens.text2)
+                        .padding(.horizontal, Spacing.xs)
+                        .padding(.vertical, Spacing.baselinePair)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.pressable)
+            }
+            .padding(.vertical, Spacing.baselinePair)
+        } else {
+            Button(action: logSet) {
+                Text("set.action.log")
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text1)
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, Spacing.xs)
+                    .contentShape(Rectangle())
+                    .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
+            }
+            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+            .accessibilityHint(String(localized: "set.action.log.hint", defaultValue: "Records this set as performed"))
+        }
+    }
+
+    private func logSet() {
+        // Accepting a ghost IS the one-tap "same as last" loop: fill what the athlete
+        // never edited from the suggestion (reps fall back to the universal 8).
+        if set.reps == nil {
+            set.reps = suggestedReps ?? 8
+        }
+        if set.weightKg == nil, let suggested = suggestedCenterKg {
+            set.weightKg = suggested
+        }
+        focusField = nil
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            set.isDone = true
+            expandOverride = nil
+        }
+        Haptics.success()
     }
 
     var body: some View {
@@ -1506,6 +1593,26 @@ struct SetEntryRow: View {
             }
         }
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isCollapsed)
+        // Keyboard avoidance (round 4): when one of this row's fields takes focus, ask
+        // the sheet to center the row above the pad. The 0.3 s beat lets the keyboard
+        // frame settle first — scrolling against a moving keyboard lands short, which
+        // is exactly the "does not scroll enough" HAN reported.
+        .onChange(of: focusField) { _, newValue in
+            guard newValue != nil else { return }
+            // Keyboard already up (row-to-row focus hop): no didShow will fire, scroll
+            // after a short beat.
+            let id = set.id
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) {
+                scrollToRow?(id)
+            }
+        }
+        // First summon: scroll only once the keyboard's frame has settled — scrolling
+        // against a moving keyboard lands short (parliament: frame-driven beats a bare
+        // fixed delay).
+        .onReceive(NotificationCenter.default.publisher(for: UIResponder.keyboardDidShowNotification)) { _ in
+            guard focusField != nil else { return }
+            scrollToRow?(set.id)
+        }
     }
 
     @ViewBuilder private var expandedRow: some View {
@@ -1576,9 +1683,14 @@ struct SetEntryRow: View {
             // addCarriedSet), so their initial values do NOT trigger these onChange handlers —
             // only subsequent in-row user edits do. nil → some transition = a real entry.
             .onChange(of: set.weightKg) { oldValue, newValue in
+                // Parliament spec (2026-08-13): in .weightReps, materialize ≠ log — only
+                // the explicit Log action records performance. Other modes keep the
+                // nil→some auto-mark their steppers were built around.
+                guard inputMode != .weightReps else { return }
                 if oldValue == nil, newValue != nil { markSetDone() }
             }
             .onChange(of: set.reps) { oldValue, newValue in
+                guard inputMode != .weightReps else { return }
                 if oldValue == nil, newValue != nil { markSetDone() }
             }
             .onChange(of: set.durationSeconds) { oldValue, newValue in
