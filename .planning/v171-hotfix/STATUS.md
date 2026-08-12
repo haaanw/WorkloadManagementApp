@@ -102,6 +102,21 @@ All three allocated items landed the same day:
 Suite after the round: units green (the one recorded failure was a simulator
 runner-install error, cleared on reboot), ScreenshotTests 13/13.
 
+## UAT round 3 (2026-08-12) — set-entry input reliability (`3ef9cbe`)
+
+HAN: the workout input row is confusing and typed values "jump around". Three mechanical
+defects fixed same-day: both inline fields committed only via `.onSubmit` **and the iOS
+number/decimal pads have no return key** (typed values silently discarded on dismiss —
+the "jumping"); the rep scrubber's gestures stayed live under the keyboard (a grazing
+touch on the axis overwrote the typed value); cold-start weight tiles were dead "—"
+squares (now route to the keypad). Keyboard toolbar added: Done on both fields, Next on
+weight. Suite 1008/0/2 incl. ScreenshotTests 13/13.
+
+**OPEN — input-row redesign (HAN-gated, v1.7.2 candidate):** HAN judges the v1.5.2
+block+scrubber design not straightforward. Proposed direction: field-first — two large
+numeric wells (keyboard primary now that typing is reliable), small ± increment chips,
+scrubber axis dropped. Demo-first like the homepage rebuild; HAN gates before any build.
+
 ## Open — HAN
 
 1. ~~**Run `Supabase/migrations/007_v171_sync_repair.sql`**~~ — **DONE 2026-08-10** (HAN ran it
