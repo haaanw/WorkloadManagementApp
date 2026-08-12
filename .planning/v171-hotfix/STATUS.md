@@ -137,6 +137,19 @@ buffer (kills the "8"→"812" append class), keyboard avoidance scrolls the row 
 keyboard's settled frame, ReadoutWell flattened app-wide (the circled gradient chips).
 Suite 1008/0/2; both row states screenshot-verified on sim.
 
+## UAT round 6 (2026-08-13) — scrub preview, bodyweight, elapsed stamp (`d0632dd`)
+
+HAN: no scrub preview, needs a bodyweight option, and "why is there a 0 kg indicator" —
+which was the UNLABELED elapsed-timer hero. Landed: flanking-detent scrub preview
+(fades in beside the live reading while swiping); session-start surface reordered with
+a labeled ELAPSED annotation stamp; bodyweight via Codex+Grok council (chaired for
+explicit **0 = BW** over nil-as-BW — a logged BW set must never be indistinguishable
+from a forgotten field): BW ghost default + BW chip + "+10" added-load display +
+"BW × 8" summaries on `.bodyweight` rows, and the council-caught
+`StrengthLoadEngine` guard (0 kg = missing barbell signal, never intensity zero).
+Option C (athlete body mass from HealthKit → true total-load math) recorded as future
+work. Suite 1008/0/2.
+
 ## Open — HAN
 
 1. ~~**Run `Supabase/migrations/007_v171_sync_repair.sql`**~~ — **DONE 2026-08-10** (HAN ran it
