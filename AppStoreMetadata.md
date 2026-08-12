@@ -103,6 +103,14 @@ Tuwa 仅提供健身与运动表现参考，不构成医疗建议。
 使用条款 (EULA)：https://tuwa.app/zh/terms
 隐私政策：https://tuwa.app/zh/privacy
 
+## What's New (v1.7.1, en)
+
+Tuwa 1.7.1 rebuilds workout logging around speed: type, tap, or swipe any value, accept last session's numbers in one tap, and log bodyweight moves like pull-ups as BW with added weight shown as +kg. Sleep charts now read every night straight from Apple Health with a new per-night breakdown — stages, bedtime, efficiency. HRV is labeled as your morning reading, with a note on why it differs from Health's all-day figure. Plus steadier sync and fixes throughout.
+
+## What's New (v1.7.1, zh-Hans)
+
+Tuwa 1.7.1 围绕速度重建了训练记录：任何数值都可输入、轻点或滑动调整，一键沿用上次的重量与次数；引体向上等自重动作记为「自重」，负重显示为 +kg。睡眠图表现在直接从 Apple 健康读取每一晚，并新增单晚分解页——睡眠阶段、就寝时间、效率。心率变异性明确标注为晨间读数，并解释了与健康 App 全天数值不同的原因。另有更稳定的同步与多处修复。
+
 ## What's New (v1.7, en)
 
 Tuwa 1.7 brings the field-notes design: a scientist's terse annotations engraved on every card, and a distinct color for each metric so you can read a screen at a glance. Tap into HRV and sleep for new detail views — your personal baseline, the 7.5-hour sleep target, day-by-day scrubbing, and plain-language explanations of what each signal means. Sleep scoring now uses the 7.5-hour target with a smoother curve. Plus larger labels, cleaner charts, and fixes throughout.
