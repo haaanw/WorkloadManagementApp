@@ -1,433 +1,45 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "sleep.night.open" : {
+    "action.next" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Night breakdown"
+            "value" : "Next"
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "当晚睡眠详情"
+            "value" : "下一项"
           }
         }
       }
     },
-    "sleep.night.navTitle" : {
-      "extractionState" : "manual",
+    "" : {
+
+    },
+    "—" : {
+
+    },
+    "·" : {
+
+    },
+    "%@" : {
+
+    },
+    "%@ - %@" : {
       "localizations" : {
         "en" : {
           "stringUnit" : {
-            "state" : "translated",
-            "value" : "Night"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当晚"
+            "state" : "new",
+            "value" : "%1$@ - %2$@"
           }
         }
       }
     },
-    "sleep.night.header.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Night breakdown"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "当晚睡眠分解"
-          }
-        }
-      }
-    },
-    "sleep.night.label.duration" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Asleep"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "睡眠时长"
-          }
-        }
-      }
-    },
-    "sleep.night.label.inBed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "In bed"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "卧床"
-          }
-        }
-      }
-    },
-    "sleep.night.label.efficiency" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Efficiency"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "效率"
-          }
-        }
-      }
-    },
-    "sleep.night.stage.deep" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Deep"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "深睡"
-          }
-        }
-      }
-    },
-    "sleep.night.stage.core" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Core"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "核心"
-          }
-        }
-      }
-    },
-    "sleep.night.stage.rem" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "REM"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "快速眼动"
-          }
-        }
-      }
-    },
-    "sleep.night.stage.unspecified" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Asleep"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "睡眠"
-          }
-        }
-      }
-    },
-    "sleep.night.stage.awake" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Awake"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "清醒"
-          }
-        }
-      }
-    },
-    "sleep.night.timeline.annotation" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "stage timeline"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "阶段时间线"
-          }
-        }
-      }
-    },
-    "sleep.night.section.stages" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Stage breakdown"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "阶段分解"
-          }
-        }
-      }
-    },
-    "sleep.night.section.facts" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Night record"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "夜间记录"
-          }
-        }
-      }
-    },
-    "sleep.night.about.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "How this night is measured"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "这一晚如何测量"
-          }
-        }
-      }
-    },
-    "sleep.night.about.body" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tuwa reads the night from one source — the device that recorded the most sleep — and joins its samples into a single session. Overlapping samples count once, and afternoon naps are kept separate from the night. Apple Health sometimes adds together every source and every session, so its daily total can differ from the number here."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tuwa 只读取记录睡眠最多的那一个设备，并把它的样本合并为一段睡眠。重叠的样本只计一次，午睡与夜间睡眠分开统计。Apple Health 有时会把所有来源和所有片段加在一起，因此其每日总计可能与这里的数字不同。"
-          }
-        }
-      }
-    },
-    "hrv.detail.label.morning" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Morning"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "晨间"
-          }
-        }
-      }
-    },
-    "hrv.detail.about.window.title" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Why this differs from Apple Health"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "为何与 Apple Health 不同"
-          }
-        }
-      }
-    },
-    "hrv.detail.about.window.body" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tuwa scores HRV from morning readings only (before 11:00), using the day's median. HRV rises through the day, so daytime and evening readings would distort your baseline. Apple Health averages every reading in the day, which is why its number often runs higher. Both are correct — they answer different questions."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Tuwa 只使用早晨（11:00 前）的 HRV 读数，取当天的中位数。HRV 会随一天时间升高，混入白天和晚间的读数会扭曲你的基线。Apple Health 平均全天所有读数，所以它的数字通常更高。两者都是正确的——它们回答的是不同的问题。"
-          }
-        }
-      }
-    },
-    "profile.signOut.riskTitle" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Unsynced data"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "数据未同步"
-          }
-        }
-      }
-    },
-    "profile.signOut.riskMessage" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Some of your data has not reached the server. Signing out deletes all local data on this device. Fix sync before you sign out."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "部分数据尚未同步到服务器。退出登录会删除此设备上的全部本地数据。请先解决同步问题再退出。"
-          }
-        }
-      }
-    },
-    "profile.signOut.riskConfirm" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Sign out anyway"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "仍要退出"
-          }
-        }
-      }
-    },
-    "sync.identity.noSession" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Not signed in. Sign in again to sync."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "未登录。请重新登录后同步。"
-          }
-        }
-      }
-    },
-    "sync.identity.unlinked" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This profile is not linked to an account. Sync is paused to protect your data."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此档案未关联账户。为保护你的数据，同步已暂停。"
-          }
-        }
-      }
-    },
-    "sync.identity.mismatch" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "This profile belongs to a different account. Sync is paused to protect your data."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "此档案属于另一个账户。为保护你的数据，同步已暂停。"
-          }
-        }
-      }
-    },
-    "" : {},
-    "%@" : {},
     "%@ %@" : {
       "localizations" : {
         "en" : {
@@ -444,26 +56,6 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "%1$@ %2$@, estimated"
-          }
-        }
-      }
-    },
-    "%@ - %@" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@ - %2$@"
-          }
-        }
-      }
-    },
-    "%@%@%%" : {
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "%1$@%2$@%%"
           }
         }
       }
@@ -498,7 +90,19 @@
         }
       }
     },
-    "%lld" : {},
+    "%@%@%%" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@%2$@%%"
+          }
+        }
+      }
+    },
+    "%lld" : {
+
+    },
     "%lld group%@, %lld exercise%@" : {
       "localizations" : {
         "en" : {
@@ -509,99 +113,12 @@
         }
       }
     },
-    "%lld week training streak" : {},
-    "%lld/100" : {},
-    "ATL" : {},
-    "Anything bother you?" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Anything bother you?"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "有哪里不舒服吗？"
-          }
-        }
-      }
+    "%lld week training streak" : {
+
     },
-    "Baseline" : {},
-    "Basketball session" : {},
-    "CTL" : {},
-    "Cancel" : {},
-    "Could not save session" : {},
-    "CrossFit" : {},
-    "Custom" : {},
-    "Cycling" : {},
-    "Date" : {},
-    "Decreased %lld percent week over week" : {},
-    "Discard Changes" : {},
-    "Discard session" : {},
-    "English" : {},
-    "Floor" : {},
-    "HRV" : {},
-    "Hours" : {},
-    "Increased %lld percent week over week" : {},
-    "Keep Editing" : {},
-    "Lifting" : {},
-    "Load" : {},
-    "Lower" : {},
-    "No sets marked done" : {},
-    "Nothing will be logged. Mark sets done to record them, or discard this session?" : {},
-    "OK" : {},
-    "Optional — note a sore spot to track how your body handles load." : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Optional — note a sore spot to track how your body handles load."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "可选——记录酸痛部位，了解身体对训练负荷的反应。"
-          }
-        }
-      }
+    "%lld/100" : {
+
     },
-    "Recovery" : {},
-    "Running" : {},
-    "Selected" : {},
-    "Series" : {},
-    "Session type" : {},
-    "Skip" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Skip"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "跳过"
-          }
-        }
-      }
-    },
-    "Sport" : {},
-    "Swimming" : {},
-    "TODAY'S PLAN" : {},
-    "TSB" : {},
-    "Target" : {},
-    "Team Sport" : {},
-    "Unchanged week over week" : {},
-    "Unsaved workout" : {},
-    "Upper" : {},
-    "Your changes have not been saved. Keep editing or discard this workout." : {},
     "a11y.archiveTemplate" : {
       "localizations" : {
         "en" : {
@@ -1566,6 +1083,26 @@
         }
       }
     },
+    "Anything bother you?" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Anything bother you?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "有哪里不舒服吗？"
+          }
+        }
+      }
+    },
+    "ATL" : {
+
+    },
     "auth.action.alreadyHaveAccount" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1974,6 +1511,12 @@
         }
       }
     },
+    "Baseline" : {
+
+    },
+    "Basketball session" : {
+
+    },
     "behavior.impact.suffix" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2161,6 +1704,9 @@
         }
       }
     },
+    "Cancel" : {
+
+    },
     "chart.axis.hours" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2245,6 +1791,18 @@
           }
         }
       }
+    },
+    "Could not save session" : {
+
+    },
+    "CrossFit" : {
+
+    },
+    "CTL" : {
+
+    },
+    "Custom" : {
+
     },
     "cyclePhase.context.follicular" : {
       "extractionState" : "manual",
@@ -2381,6 +1939,9 @@
           }
         }
       }
+    },
+    "Cycling" : {
+
     },
     "dashboard.action.connectHealth" : {
       "extractionState" : "manual",
@@ -2720,6 +2281,9 @@
         }
       }
     },
+    "Date" : {
+
+    },
     "date.today" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2753,6 +2317,9 @@
           }
         }
       }
+    },
+    "Decreased %lld percent week over week" : {
+
     },
     "delta.aboveBaseline" : {
       "extractionState" : "manual",
@@ -2907,6 +2474,12 @@
         }
       }
     },
+    "Discard Changes" : {
+
+    },
+    "Discard session" : {
+
+    },
     "duration.hoursMinutes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3026,6 +2599,12 @@
         }
       }
     },
+    "End" : {
+
+    },
+    "English" : {
+
+    },
     "error.import.cameraUnavailable" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3094,23 +2673,6 @@
         }
       }
     },
-    "error.import.noTextFound" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "No readable text found in the file. Try a clearer image or a different format."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "文件中未找到可读的文本。尝试更清晰的图像或不同的格式。"
-          }
-        }
-      }
-    },
     "error.import.notAuthenticated" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3124,6 +2686,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "你必须登录才能导入训练。"
+          }
+        }
+      }
+    },
+    "error.import.noTextFound" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No readable text found in the file. Try a clearer image or a different format."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件中未找到可读的文本。尝试更清晰的图像或不同的格式。"
           }
         }
       }
@@ -4488,6 +4067,9 @@
         }
       }
     },
+    "Floor" : {
+
+    },
     "frequency.fiveToSix" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4555,6 +4137,12 @@
           }
         }
       }
+    },
+    "Hours" : {
+
+    },
+    "HRV" : {
+
     },
     "hrv.chart.annotation" : {
       "extractionState" : "manual",
@@ -4692,6 +4280,40 @@
         }
       }
     },
+    "hrv.detail.about.window.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa scores HRV from morning readings only (before 11:00), using the day's median. HRV rises through the day, so daytime and evening readings would distort your baseline. Apple Health averages every reading in the day, which is why its number often runs higher. Both are correct — they answer different questions."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa 只使用早晨（11:00 前）的 HRV 读数，取当天的中位数。HRV 会随一天时间升高，混入白天和晚间的读数会扭曲你的基线。Apple Health 平均全天所有读数，所以它的数字通常更高。两者都是正确的——它们回答的是不同的问题。"
+          }
+        }
+      }
+    },
+    "hrv.detail.about.window.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Why this differs from Apple Health"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为何与 Apple Health 不同"
+          }
+        }
+      }
+    },
     "hrv.detail.delta.vsAvg" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -4807,6 +4429,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "最新"
+          }
+        }
+      }
+    },
+    "hrv.detail.label.morning" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Morning"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "晨间"
           }
         }
       }
@@ -5168,6 +4807,9 @@
         }
       }
     },
+    "Increased %lld percent week over week" : {
+
+    },
     "insight.sample.suffix" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5236,7 +4878,12 @@
         }
       }
     },
-    "kg" : {},
+    "Keep Editing" : {
+
+    },
+    "kg" : {
+
+    },
     "language.picker.footer" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5271,6 +4918,9 @@
         }
       }
     },
+    "Lifting" : {
+
+    },
     "link.privacy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5304,6 +4954,9 @@
           }
         }
       }
+    },
+    "Load" : {
+
     },
     "load.insights.heroKicker" : {
       "extractionState" : "manual",
@@ -5474,6 +5127,9 @@
           }
         }
       }
+    },
+    "Lower" : {
+
     },
     "matchTier.match" : {
       "extractionState" : "manual",
@@ -5832,23 +5488,6 @@
         }
       }
     },
-    "measurement.retention.day30" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Day-30 retention"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "第 30 天留存"
-          }
-        }
-      }
-    },
     "measurement.retention.day7" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5862,6 +5501,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "第 7 天留存"
+          }
+        }
+      }
+    },
+    "measurement.retention.day30" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Day-30 retention"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 30 天留存"
           }
         }
       }
@@ -5917,7 +5573,9 @@
         }
       }
     },
-    "meters" : {},
+    "meters" : {
+
+    },
     "metric.atl" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -6054,7 +5712,9 @@
         }
       }
     },
-    "min" : {},
+    "min" : {
+
+    },
     "mock.verdictReason" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7822,6 +7482,12 @@
         }
       }
     },
+    "No sets marked done" : {
+
+    },
+    "Nothing will be logged. Mark sets done to record them, or discard this session?" : {
+
+    },
     "notif.weekly.body.template" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -7940,6 +7606,9 @@
           }
         }
       }
+    },
+    "OK" : {
+
     },
     "onboarding.continue.toSetup" : {
       "extractionState" : "manual",
@@ -8434,6 +8103,23 @@
         }
       }
     },
+    "Optional — note a sore spot to track how your body handles load." : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Optional — note a sore spot to track how your body handles load."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "可选——记录酸痛部位，了解身体对训练负荷的反应。"
+          }
+        }
+      }
+    },
     "paywall.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8770,74 +8456,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "规划今天"
-          }
-        }
-      }
-    },
-    "prType.fastestPace" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fastest Pace"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最快配速"
-          }
-        }
-      }
-    },
-    "prType.maxReps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max Reps"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最多次数"
-          }
-        }
-      }
-    },
-    "prType.maxVolume" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max Volume"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最大总量"
-          }
-        }
-      }
-    },
-    "prType.maxWeight" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Max Weight"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "最大重量"
           }
         }
       }
@@ -10151,6 +9769,57 @@
         }
       }
     },
+    "profile.signOut.riskConfirm" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sign out anyway"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "仍要退出"
+          }
+        }
+      }
+    },
+    "profile.signOut.riskMessage" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Some of your data has not reached the server. Signing out deletes all local data on this device. Fix sync before you sign out."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "部分数据尚未同步到服务器。退出登录会删除此设备上的全部本地数据。请先解决同步问题再退出。"
+          }
+        }
+      }
+    },
+    "profile.signOut.riskTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unsynced data"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "数据未同步"
+          }
+        }
+      }
+    },
     "profile.subscription.athletePro" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -11005,6 +10674,74 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "更新后"
+          }
+        }
+      }
+    },
+    "prType.fastestPace" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fastest Pace"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最快配速"
+          }
+        }
+      }
+    },
+    "prType.maxReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max Reps"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最多次数"
+          }
+        }
+      }
+    },
+    "prType.maxVolume" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max Volume"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最大总量"
+          }
+        }
+      }
+    },
+    "prType.maxWeight" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Max Weight"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最大重量"
           }
         }
       }
@@ -11896,6 +11633,9 @@
         }
       }
     },
+    "Recovery" : {
+
+    },
     "recovery.blend.subtitle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12304,6 +12044,9 @@
         }
       }
     },
+    "reps" : {
+
+    },
     "repScrubber.accessibility" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -12348,7 +12091,9 @@
         }
       }
     },
-    "reps" : {},
+    "Running" : {
+
+    },
     "seanEllis.not" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12450,6 +12195,15 @@
           }
         }
       }
+    },
+    "Selected" : {
+
+    },
+    "Series" : {
+
+    },
+    "Session type" : {
+
     },
     "sessionStart.adjust.hide" : {
       "extractionState" : "manual",
@@ -13063,6 +12817,23 @@
         }
       }
     },
+    "Skip" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Skip"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "跳过"
+          }
+        }
+      }
+    },
     "sleep.chart.annotation" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13471,6 +13242,278 @@
         }
       }
     },
+    "sleep.night.about.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa reads the night from one source — the device that recorded the most sleep — and joins its samples into a single session. Overlapping samples count once, and afternoon naps are kept separate from the night. Apple Health sometimes adds together every source and every session, so its daily total can differ from the number here."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa 只读取记录睡眠最多的那一个设备，并把它的样本合并为一段睡眠。重叠的样本只计一次，午睡与夜间睡眠分开统计。Apple Health 有时会把所有来源和所有片段加在一起，因此其每日总计可能与这里的数字不同。"
+          }
+        }
+      }
+    },
+    "sleep.night.about.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "How this night is measured"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这一晚如何测量"
+          }
+        }
+      }
+    },
+    "sleep.night.header.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night breakdown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当晚睡眠分解"
+          }
+        }
+      }
+    },
+    "sleep.night.label.duration" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asleep"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠时长"
+          }
+        }
+      }
+    },
+    "sleep.night.label.efficiency" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Efficiency"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "效率"
+          }
+        }
+      }
+    },
+    "sleep.night.label.inBed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "In bed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "卧床"
+          }
+        }
+      }
+    },
+    "sleep.night.navTitle" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当晚"
+          }
+        }
+      }
+    },
+    "sleep.night.open" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night breakdown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "当晚睡眠详情"
+          }
+        }
+      }
+    },
+    "sleep.night.section.facts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Night record"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "夜间记录"
+          }
+        }
+      }
+    },
+    "sleep.night.section.stages" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stage breakdown"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阶段分解"
+          }
+        }
+      }
+    },
+    "sleep.night.stage.awake" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Awake"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "清醒"
+          }
+        }
+      }
+    },
+    "sleep.night.stage.core" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Core"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "核心"
+          }
+        }
+      }
+    },
+    "sleep.night.stage.deep" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Deep"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "深睡"
+          }
+        }
+      }
+    },
+    "sleep.night.stage.rem" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "REM"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "快速眼动"
+          }
+        }
+      }
+    },
+    "sleep.night.stage.unspecified" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Asleep"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "睡眠"
+          }
+        }
+      }
+    },
+    "sleep.night.timeline.annotation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "stage timeline"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "阶段时间线"
+          }
+        }
+      }
+    },
     "spike.alert.label.average" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13555,6 +13598,9 @@
           }
         }
       }
+    },
+    "Sport" : {
+
     },
     "sport.crossfit" : {
       "extractionState" : "manual",
@@ -13675,6 +13721,9 @@
         }
       }
     },
+    "Stage" : {
+
+    },
     "staleness.badge" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13691,6 +13740,9 @@
           }
         }
       }
+    },
+    "Start" : {
+
     },
     "strainRiskZone.elevated" : {
       "extractionState" : "extracted_with_value",
@@ -13732,6 +13784,60 @@
           "stringUnit" : {
             "state" : "new",
             "value" : "Moderate"
+          }
+        }
+      }
+    },
+    "Swimming" : {
+
+    },
+    "sync.identity.mismatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This profile belongs to a different account. Sync is paused to protect your data."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此档案属于另一个账户。为保护你的数据，同步已暂停。"
+          }
+        }
+      }
+    },
+    "sync.identity.noSession" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not signed in. Sign in again to sync."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "未登录。请重新登录后同步。"
+          }
+        }
+      }
+    },
+    "sync.identity.unlinked" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This profile is not linked to an account. Sync is paused to protect your data."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "此档案未关联账户。为保护你的数据，同步已暂停。"
           }
         }
       }
@@ -14194,6 +14300,12 @@
           }
         }
       }
+    },
+    "Target" : {
+
+    },
+    "Team Sport" : {
+
     },
     "template.empty.subtitle" : {
       "extractionState" : "manual",
@@ -14773,6 +14885,9 @@
         }
       }
     },
+    "TODAY'S PLAN" : {
+
+    },
     "trainingPhase.building" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14909,6 +15024,12 @@
         }
       }
     },
+    "TSB" : {
+
+    },
+    "Unchanged week over week" : {
+
+    },
     "unit.kg" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15010,6 +15131,9 @@
           }
         }
       }
+    },
+    "Unsaved workout" : {
+
     },
     "upgrade.button.restorePurchases" : {
       "extractionState" : "manual",
@@ -15641,6 +15765,9 @@
           }
         }
       }
+    },
+    "Upper" : {
+
     },
     "verdict.match.microdose" : {
       "localizations" : {
@@ -17530,6 +17657,9 @@
         }
       }
     },
+    "Your changes have not been saved. Keep editing or discard this workout." : {
+
+    },
     "zone.caution" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17615,9 +17745,9 @@
         }
       }
     },
-    "·" : {},
-    "—" : {},
-    "中文" : {}
+    "中文" : {
+
+    }
   },
   "version" : "1.0"
 }

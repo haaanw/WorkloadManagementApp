@@ -48,8 +48,14 @@ struct WeightBlockPicker: View {
 
     /// Inline keypad text buffer; committed on submit / focus loss.
     @State private var keypadText = ""
+    /// The buffer content at focus-entry. Focus loss commits ONLY when the text changed —
+    /// focusing and dismissing without typing must not mark the set done (v1.7.1 round 3).
+    @State private var seededText = ""
     /// Alert fallback when no focus chain is wired (e.g. previews / standalone use).
     @State private var showKeypad = false
+
+    /// True while THIS row's weight field owns the keyboard.
+    private var isEditingInline: Bool { focus?.wrappedValue == .weight(rowId) }
 
     // MARK: Increment / values (display unit)
 
@@ -119,6 +125,12 @@ struct WeightBlockPicker: View {
         let snapped = WeightFormatter.snapToIncrement(display, to: increment)
         weightKg = WeightFormatter.toKg(max(0, snapped), from: unit)
         Haptics.select()
+        // A tile tap while the keypad is up must not leave stale typed text that the
+        // later focus loss would re-commit over the tile's value.
+        if isEditingInline {
+            keypadText = numeralString(max(0, snapped))
+            seededText = keypadText
+        }
         onCommit()
     }
 
@@ -194,13 +206,45 @@ struct WeightBlockPicker: View {
                     .background(ColorTokens.surface)
                     .overlay(Rectangle().stroke(ColorTokens.divider, lineWidth: 0.5))
                     .submitLabel(.next)
-                    .onChange(of: focus.wrappedValue) { _, newValue in
+                    .onChange(of: focus.wrappedValue) { oldValue, newValue in
                         if newValue == .weight(rowId) {
                             // Entering: seed buffer from current center.
                             keypadText = centerDisplay.map(numeralString) ?? ""
+                            seededText = keypadText
+                        } else if oldValue == .weight(rowId) {
+                            // Leaving the field commits the typed edit. The decimal pad
+                            // has NO return key, so before v1.7.1 round 3 `.onSubmit`
+                            // never fired and typed weights were silently discarded.
+                            if keypadText != seededText,
+                               let typed = Double(keypadText.replacingOccurrences(of: ",", with: ".")) {
+                                commit(typed)
+                            }
                         }
                     }
                     .onSubmit { commitKeypadAndAdvance() }
+                    .toolbar {
+                        // The decimal pad's missing return key, supplied: Next advances
+                        // the §5.5 weight → reps chain, Done just dismisses. Contributed
+                        // only while THIS field owns focus so rows never stack duplicates.
+                        if isEditingInline {
+                            ToolbarItemGroup(placement: .keyboard) {
+                                Spacer()
+                                if advanceTo != nil {
+                                    Button(String(localized: "action.next", defaultValue: "Next")) {
+                                        commitKeypadAndAdvance()
+                                    }
+                                }
+                                Button(String(localized: "action.done", defaultValue: "Done")) {
+                                    if keypadText != seededText,
+                                       let typed = Double(keypadText.replacingOccurrences(of: ",", with: ".")) {
+                                        commit(typed)
+                                    }
+                                    seededText = keypadText
+                                    focus.wrappedValue = nil
+                                }
+                            }
+                        }
+                    }
                 Image(systemName: "keyboard")
                     .font(.Tokens.label)
                     .foregroundStyle(isUnset ? ColorTokens.text1 : ColorTokens.text2)
@@ -224,18 +268,36 @@ struct WeightBlockPicker: View {
         }
     }
 
+    /// Route into the typing path: focus the inline field when a chain is wired, else
+    /// present the alert fallback. Cold-start tiles land here.
+    private func openKeypad() {
+        keypadText = centerDisplay.map(numeralString) ?? ""
+        if let focus {
+            focus.wrappedValue = .weight(rowId)
+        } else {
+            showKeypad = true
+        }
+    }
+
     /// Commit the typed weight, then advance focus to reps (§5.5).
     private func commitKeypadAndAdvance() {
         if let typed = Double(keypadText.replacingOccurrences(of: ",", with: ".")) {
             commit(typed)
         }
+        // Mark the buffer clean BEFORE moving focus so the focus-loss handler does not
+        // double-commit.
+        seededText = keypadText
         focus?.wrappedValue = advanceTo
     }
 
     @ViewBuilder
     private func tile(value: Double?, isCenter: Bool, action: @escaping () -> Void) -> some View {
         let enabled = value != nil
-        Button(action: action) {
+        // Cold start (v1.7.1 round 3): with no history and no suggestion all three tiles
+        // rendered "—" and did NOTHING — four mute squares on the athlete's first set
+        // (HAN UAT). An empty tile now routes to the keypad, the one action that can
+        // give it a value.
+        Button(action: enabled ? action : openKeypad) {
             ZStack {
                 Rectangle()
                     .fill(isCenter ? ColorTokens.surfaceEl2 : ColorTokens.surface)
@@ -258,7 +320,6 @@ struct WeightBlockPicker: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.pressable)
-        .disabled(!enabled)
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: weightKg)
         .accessibilityLabel(isCenter
             ? String(localized: "weightPicker.center.accessibility", defaultValue: "Current weight")

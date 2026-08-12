@@ -53,6 +53,12 @@ struct RepScrubber: View {
 
     @State private var showKeypad = false
     @State private var keypadText = ""
+    /// The buffer content at focus-entry. Focus loss commits ONLY when the text changed —
+    /// focusing and dismissing without typing must not mark the set done (v1.7.1 round 3).
+    @State private var seededText = ""
+
+    /// True while THIS row's reps field owns the keyboard.
+    private var isEditingInline: Bool { focus?.wrappedValue == .reps(rowId) }
 
     // v4.1 D13(a): the ONLY per-adjustment haptic is the min/max limit bump (a firm medium
     // impact, matching `Haptics.limit()`). Kept as a local generator so it can be `prepare()`d
@@ -79,6 +85,13 @@ struct RepScrubber: View {
 
     private func commit(_ v: Int) {
         reps = clamp(v)
+        // Keep the inline buffer honest: a commit from any path while the field is up
+        // (VoiceOver adjust, a stray path) must not leave stale text that a later focus
+        // loss would re-commit over this value.
+        if isEditingInline {
+            keypadText = "\(clamp(v))"
+            seededText = keypadText
+        }
         onCommit()
     }
 
@@ -144,12 +157,34 @@ struct RepScrubber: View {
                 .frame(minWidth: 28, alignment: .leading)
                 .fixedSize()
                 .submitLabel(.done)
-                .onChange(of: focus.wrappedValue) { _, newValue in
+                .onChange(of: focus.wrappedValue) { oldValue, newValue in
                     if newValue == .reps(rowId) {
                         keypadText = displayValue.map { "\($0)" } ?? ""
+                        seededText = keypadText
+                    } else if oldValue == .reps(rowId) {
+                        // Leaving the field commits the typed edit. The number pad has NO
+                        // return key, so before v1.7.1 round 3 the ONLY commit path was
+                        // `.onSubmit` — which never fired, and typed reps were silently
+                        // discarded on dismissal ("the value jumps around", HAN UAT).
+                        if keypadText != seededText, let typed = Int(keypadText) {
+                            commit(typed)
+                        }
                     }
                 }
                 .onSubmit { commitKeypad() }
+                .toolbar {
+                    // The number pad's missing return key, supplied: one Done above the
+                    // keyboard, contributed only while THIS field owns focus so rows
+                    // never stack duplicates.
+                    if isEditingInline {
+                        ToolbarItemGroup(placement: .keyboard) {
+                            Spacer()
+                            Button(String(localized: "action.done", defaultValue: "Done")) {
+                                commitKeypad()
+                            }
+                        }
+                    }
+                }
         } else {
             Text(displayValue.map { "\($0)" } ?? "—")
                 .font(.Tokens.bodyMedium)
@@ -168,6 +203,9 @@ struct RepScrubber: View {
         if let typed = Int(keypadText) {
             commit(typed)
         }
+        // Mark the buffer clean BEFORE releasing focus so the focus-loss handler does
+        // not double-commit.
+        seededText = keypadText
         focus?.wrappedValue = nil
     }
 
@@ -209,6 +247,10 @@ struct RepScrubber: View {
             }
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .contentShape(Rectangle())
+            // The track goes DEAF while this row's keypad is up (v1.7.1 round 3): with the
+            // gestures live, a grazing touch on the axis committed a dragged value straight
+            // over what the athlete was typing.
+            .allowsHitTesting(!isEditingInline)
             // Horizontal drag with a minimumDistance so the sheet's vertical ScrollView still
             // scrolls; arbitration via .gesture (SwiftUI prefers the axis-matching gesture).
             .gesture(
