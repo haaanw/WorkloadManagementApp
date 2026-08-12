@@ -814,19 +814,19 @@ struct ActiveWorkoutSheet: View {
                 }
 
                 // Commit-only haptics (single, outcome-based — no stacking): a surfaced spike
-                // is the dominant signal → warning; a PR with no spike → success. The plain
-                // "saved" success for the no-banner case fires at finishAfterSave below.
+                // is the dominant signal → warning; a PR with no spike → success.
+                //
+                // Round 8 (HAN): Finish RETURNS, always. The in-sheet banner hold —
+                // "sheet stays open until the last banner is tapped away" — read as the
+                // save not working. PRs remain recorded and visible in history/PR
+                // surfaces; the spike still speaks through the warning haptic.
                 if showSpikeAlert {
                     Haptics.warning()
                 } else if showPRCelebration {
                     Haptics.success()
                 }
-
-                // Inline banners fired — the save is ALREADY committed above. Let the
-                // bottom banner stack render and stop here; the sheet stays open but is
-                // NOT blocked (user can still dismiss). advancePostSave() runs when the
-                // last banner is tapped away.
-                if showPRCelebration || showSpikeAlert { return }
+                showSpikeAlert = false
+                showPRCelebration = false
             } catch {
                 print("Workout pipeline error: \(error)")
             }
@@ -847,8 +847,16 @@ struct ActiveWorkoutSheet: View {
     }
 
     /// Terminal exit for the post-save flow. The session is already saved by the time this runs.
+    ///
+    /// Round 8 (HAN): `dismiss()` fired while the Finish child sheet was still tearing
+    /// down, and SwiftUI drops a parent dismissal issued mid-child-transition — so the
+    /// athlete landed back on the logging page. Close the child explicitly, then
+    /// dismiss the sheet after the transition beat.
     private func finishAfterSave() {
-        dismiss()
+        showFinishConfirmation = false
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
+            dismiss()
+        }
     }
 
     // MARK: - Save as Template

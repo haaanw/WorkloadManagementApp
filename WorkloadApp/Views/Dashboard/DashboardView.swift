@@ -290,6 +290,11 @@ struct DashboardView: View {
     private func presentMorningProbeIfDue() {
         guard morningProbeEnabled, let athlete else { return }
         let day = Calendar.current.startOfDay(for: Date())
+        // A skipped morning stays skipped (round 8, HAN): the sheet stamps the day on
+        // skip, and re-asking on every Home appearance after an explicit "not today"
+        // is exactly the nagging that gets the toggle turned off.
+        let skippedDay = UserDefaults.standard.double(forKey: "morningProbeSkippedDay")
+        guard skippedDay != day.timeIntervalSinceReferenceDate else { return }
         let existing = (try? modelContext.fetch(
             FetchDescriptor<MorningReadinessProbe>(predicate: #Predicate { $0.date == day })
         ))?.contains { $0.athlete?.id == athlete.id } ?? false

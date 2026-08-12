@@ -49,7 +49,16 @@ struct MorningProbeSheet: View {
                     Button("probe.action.save") { save() }
                 }
                 ToolbarItem(placement: .cancellationAction) {
-                    Button("probe.action.skip") { dismiss() }
+                    Button("probe.action.skip") {
+            // Round 8 (HAN): a bare dismiss recorded nothing, so the probe re-asked on
+            // every Home appearance. Skipping stamps the DAY — one ask per morning,
+            // answered or not. Tomorrow asks fresh.
+            UserDefaults.standard.set(
+                Calendar.current.startOfDay(for: .now).timeIntervalSinceReferenceDate,
+                forKey: "morningProbeSkippedDay"
+            )
+            dismiss()
+        }
                 }
             }
         }

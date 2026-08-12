@@ -72,8 +72,10 @@ struct SetEntryFields: View {
 
     private let minReps = 1
     private let maxReps = 30
-    /// Points of horizontal travel per detent.
-    private let scrubPitch: CGFloat = 24
+    /// Points of horizontal travel per detent. A thumb-width (44 pt, round 8) — at
+    /// 24 pt a short swipe crossed several detents before the tape even registered,
+    /// which read as "I can't control where it lands".
+    private let scrubPitch: CGFloat = 44
     @State private var dragWeight: Double? = nil
     @State private var dragReps: Int? = nil
     @State private var scrubStartX: CGFloat? = nil
