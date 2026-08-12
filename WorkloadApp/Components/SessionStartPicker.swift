@@ -329,19 +329,32 @@ struct SessionStartPicker: View {
     }
 
     private var fullAdjustments: some View {
-        VStack(spacing: Spacing.sm) {
-            RadialPicker(selection: $sportType, title: "picker.sportType.title")
-                .onChange(of: sportType) { _, newSport in
-                    sessionType = defaultSessionType(newSport)
-                    if newSport != .teamSport { matchTier = nil }
-                    syncChoiceFromBindings()
+        VStack(alignment: .leading, spacing: Spacing.sm) {
+            // Round 7 (HAN, 2026-08-13): sport is chosen on the big cards above — a
+            // second SPORT TYPE control here duplicated it, and the long-press radial
+            // wheel exploded over the surrounding layout. The wheel is retired
+            // app-wide; session type is a flat chip row, the same grammar as the
+            // basketball session chips.
+            microLabel("picker.sessionType.title", "Session type")
+            LazyVGrid(
+                columns: [
+                    GridItem(.flexible(), spacing: Spacing.xs),
+                    GridItem(.flexible(), spacing: Spacing.xs),
+                    GridItem(.flexible(), spacing: Spacing.xs)
+                ],
+                spacing: Spacing.xs
+            ) {
+                ForEach(SessionType.allCases) { type in
+                    compactButton(
+                        label: type.displayName,
+                        isSelected: sessionType == type
+                    ) {
+                        sessionType = type
+                        if type != .match { matchTier = nil }
+                        syncChoiceFromBindings()
+                    }
                 }
-
-            RadialPicker(selection: $sessionType, title: "picker.sessionType.title")
-                .onChange(of: sessionType) { _, newType in
-                    if newType != .match { matchTier = nil }
-                    syncChoiceFromBindings()
-                }
+            }
 
             if sessionType == .match {
                 MatchTierPicker(selection: $matchTier)

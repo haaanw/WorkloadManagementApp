@@ -79,8 +79,37 @@ struct SetEntryFields: View {
     @State private var scrubStartX: CGFloat? = nil
     @State private var scrubBaseWeight: Double? = nil
     @State private var scrubBaseReps: Int? = nil
+    /// Fractional progress toward the next detent [−0.5, 0.5] — slides the preview
+    /// tape continuously with the finger (round 7: the next number APPROACHES, it
+    /// doesn't teleport).
+    @State private var scrubFraction: CGFloat = 0
+    /// True only while a scrub gesture is live. `@GestureState` resets on END **and on
+    /// CANCELLATION** — the round-7 "jumps to a random number" bug was a cancelled drag
+    /// (the sheet's vertical scroll stealing the touch) leaving `scrubStartX` and the
+    /// base anchored to a dead gesture, so the NEXT scrub measured against them.
+    @GestureState private var weightScrubActive = false
+    @GestureState private var repsScrubActive = false
     /// D13(a): scrub detents are silent; the ONLY per-adjustment haptic is the bound bump.
     private let limitHaptic = UIImpactFeedbackGenerator(style: .medium)
+
+    /// Commit whatever a terminated weight scrub previewed and clear every anchor.
+    /// Runs from `onEnded` AND from the `@GestureState` reset (cancellation) — nil
+    /// guards make the second arrival a no-op.
+    private func endWeightScrub() {
+        if let v = dragWeight { commitWeight(display: v) }
+        dragWeight = nil
+        scrubStartX = nil
+        scrubBaseWeight = nil
+        scrubFraction = 0
+    }
+
+    private func endRepsScrub() {
+        if let v = dragReps { commitReps(v) }
+        dragReps = nil
+        scrubStartX = nil
+        scrubBaseReps = nil
+        scrubFraction = 0
+    }
 
     private var isEditingWeight: Bool { focus?.wrappedValue == .weight(rowId) }
     private var isEditingReps: Bool { focus?.wrappedValue == .reps(rowId) }
@@ -202,12 +231,15 @@ struct SetEntryFields: View {
             )
             well(isFocused: isEditingWeight) {
                 if let dragging = dragWeight {
-                    // Scrub preview (round 6, HAN): the values being approached fade in
-                    // beside the live one, so a swipe shows where it is going.
-                    scrubPreview(
-                        previous: dragging > 0 ? weightLabel(max(0, dragging - increment)) : nil,
-                        current: weightLabel(dragging),
-                        next: weightLabel(dragging + increment)
+                    // Scrub tape (rounds 6–7, HAN): the neighbouring detents ride a
+                    // strip that slides WITH the finger, so the next number visibly
+                    // approaches and takes over at the crossing.
+                    scrubTape(
+                        labels: (-2...2).map { step -> String? in
+                            let v = dragging + Double(step) * increment
+                            return v >= 0 ? weightLabel(v) : nil
+                        },
+                        fraction: scrubFraction
                     )
                 } else {
                     HStack(alignment: .firstTextBaseline, spacing: Spacing.baselinePair) {
@@ -221,6 +253,9 @@ struct SetEntryFields: View {
                 }
             }
             .gesture(weightScrub)
+            .onChange(of: weightScrubActive) { _, active in
+                if !active { endWeightScrub() }
+            }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(String(localized: "setEntry.label.weight", defaultValue: "Weight"))
             .accessibilityValue(weightAccessibilityValue)
@@ -350,6 +385,7 @@ struct SetEntryFields: View {
     /// fight typing — round 3's law, carried forward).
     private var weightScrub: some Gesture {
         DragGesture(minimumDistance: 12)
+            .updating($weightScrubActive) { _, active, _ in active = true }
             .onChanged { g in
                 guard !isEditing else { return }
                 if scrubStartX == nil {
@@ -361,7 +397,9 @@ struct SetEntryFields: View {
                     limitHaptic.prepare()
                 }
                 guard let base = scrubBaseWeight, let startX = scrubStartX else { return }
-                let steps = ((g.location.x - startX) / scrubPitch).rounded()
+                let rawSteps = (g.location.x - startX) / scrubPitch
+                let steps = rawSteps.rounded()
+                scrubFraction = min(0.5, max(-0.5, rawSteps - steps))
                 let raw = max(0, base + Double(steps) * increment)
                 let snapped = WeightFormatter.snapToIncrement(raw, to: increment)
                 if snapped != dragWeight {
@@ -374,12 +412,7 @@ struct SetEntryFields: View {
                     }
                 }
             }
-            .onEnded { _ in
-                if let v = dragWeight { commitWeight(display: v) }
-                dragWeight = nil
-                scrubStartX = nil
-                scrubBaseWeight = nil
-            }
+            .onEnded { _ in endWeightScrub() }
     }
 
     // MARK: Reps field
@@ -392,16 +425,21 @@ struct SetEntryFields: View {
             )
             well(isFocused: isEditingReps) {
                 if let dragging = dragReps {
-                    scrubPreview(
-                        previous: dragging > minReps ? "\(dragging - 1)" : nil,
-                        current: "\(dragging)",
-                        next: dragging < maxReps ? "\(dragging + 1)" : nil
+                    scrubTape(
+                        labels: (-2...2).map { step -> String? in
+                            let v = dragging + step
+                            return (minReps...maxReps).contains(v) ? "\(v)" : nil
+                        },
+                        fraction: scrubFraction
                     )
                 } else {
                     repsInput
                 }
             }
             .gesture(repsScrub)
+            .onChange(of: repsScrubActive) { _, active in
+                if !active { endRepsScrub() }
+            }
             .accessibilityElement(children: .ignore)
             .accessibilityLabel(String(localized: "repScrubber.accessibility", defaultValue: "Reps"))
             .accessibilityValue(
@@ -476,6 +514,7 @@ struct SetEntryFields: View {
 
     private var repsScrub: some Gesture {
         DragGesture(minimumDistance: 12)
+            .updating($repsScrubActive) { _, active, _ in active = true }
             .onChanged { g in
                 guard !isEditing else { return }
                 if scrubStartX == nil {
@@ -485,8 +524,10 @@ struct SetEntryFields: View {
                     limitHaptic.prepare()
                 }
                 guard let base = scrubBaseReps, let startX = scrubStartX else { return }
-                let steps = Int(((g.location.x - startX) / scrubPitch).rounded())
-                let v = min(maxReps, max(minReps, base + steps))
+                let rawSteps = (g.location.x - startX) / scrubPitch
+                let steps = rawSteps.rounded()
+                scrubFraction = min(0.5, max(-0.5, rawSteps - steps))
+                let v = min(maxReps, max(minReps, base + Int(steps)))
                 if v != dragReps {
                     let previous = dragReps
                     dragReps = v
@@ -497,36 +538,35 @@ struct SetEntryFields: View {
                     }
                 }
             }
-            .onEnded { _ in
-                if let v = dragReps { commitReps(v) }
-                dragReps = nil
-                scrubStartX = nil
-                scrubBaseReps = nil
-            }
+            .onEnded { _ in endRepsScrub() }
     }
 
-    // MARK: Scrub preview
+    // MARK: Scrub tape
 
-    /// The approach indicator (round 6, HAN): while a well is being scrubbed, the
-    /// neighbouring detents fade in beside the live reading — smaller, `text3`, half
-    /// opacity — so the swipe shows where it is going. They vanish on release.
-    private func scrubPreview(previous: String?, current: String, next: String?) -> some View {
-        HStack(spacing: Spacing.sm) {
-            Text(previous ?? " ")
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text3)
-                .opacity(previous == nil ? 0 : 0.55)
-            Text(current)
-                .font(.Tokens.displayAction)
-                .foregroundStyle(ColorTokens.text1)
-                .contentTransition(.numericText())
-                .animation(Motion.resolved(Motion.digitRoll, reduceMotion: reduceMotion), value: current)
-            Text(next ?? " ")
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.text3)
-                .opacity(next == nil ? 0 : 0.55)
+    /// Cell pitch of the in-well preview tape.
+    private let tapeCellWidth: CGFloat = 64
+
+    /// The approach indicator (rounds 6–7, HAN): five detents on a strip that slides
+    /// continuously with the finger — `labels[2]` is the live detent, enlarged in ink;
+    /// neighbours are smaller `text3` at half opacity. The fractional drag remainder
+    /// offsets the strip, so "6" visibly approaches while "5" is still current and the
+    /// emphasis hands over exactly at the crossing. Out-of-range slots are blank.
+    private func scrubTape(labels: [String?], fraction: CGFloat) -> some View {
+        HStack(spacing: 0) {
+            ForEach(Array(labels.enumerated()), id: \.offset) { index, label in
+                Text(label ?? " ")
+                    .font(index == 2 ? .Tokens.displayAction : .Tokens.label)
+                    .foregroundStyle(index == 2 ? ColorTokens.text1 : ColorTokens.text3)
+                    .opacity(label == nil ? 0 : (index == 2 ? 1 : 0.55))
+                    .frame(width: tapeCellWidth)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.6)
+            }
         }
         .monospacedDigit()
+        .offset(x: -fraction * tapeCellWidth)
+        .frame(maxWidth: .infinity)
+        .clipped()
         .transition(.opacity)
     }
 

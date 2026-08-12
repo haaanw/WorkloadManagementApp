@@ -609,16 +609,6 @@ enum MatchTier: String, Codable, CaseIterable, Identifiable {
     }
 }
 
-// MARK: - RadialSelectable conformances (Phase 21)
-
-extension SportType: RadialSelectable {
-    var radialIcon: String { systemImage }
-}
-
-extension SessionType: RadialSelectable {
-    var radialIcon: String { systemImage }
-}
-
 // MARK: - Onboarding Enums
 
 enum TrainingFrequency: String, Codable, CaseIterable, Identifiable {

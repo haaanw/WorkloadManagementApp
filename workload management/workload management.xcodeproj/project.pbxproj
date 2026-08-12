@@ -195,7 +195,6 @@
 		EE0501020000000000000001 /* StreakEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0501010000000000000001 /* StreakEngine.swift */; };
 		EE0501020000000000000002 /* NotificationService.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0501010000000000000002 /* NotificationService.swift */; };
 		EE0502010000000000000001 /* NotificationPrePermissionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE0502010000000000000002 /* NotificationPrePermissionCard.swift */; };
-		EE2102010000000000000002 /* RadialPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2102010000000000000001 /* RadialPicker.swift */; };
 		EE2701020000000000000001 /* StrengthLoadEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2701010000000000000001 /* StrengthLoadEngine.swift */; };
 		EE2702020000000000000001 /* LoadDistributionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2702010000000000000001 /* LoadDistributionEngine.swift */; };
 		EE2703020000000000000001 /* StrainRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EE2703010000000000000001 /* StrainRiskEngine.swift */; };
@@ -429,7 +428,6 @@
 		EE0501010000000000000001 /* StreakEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakEngine.swift; sourceTree = "<group>"; };
 		EE0501010000000000000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		EE0502010000000000000002 /* NotificationPrePermissionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPrePermissionCard.swift; sourceTree = "<group>"; };
-		EE2102010000000000000001 /* RadialPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RadialPicker.swift; sourceTree = "<group>"; };
 		EE2701010000000000000001 /* StrengthLoadEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrengthLoadEngine.swift; sourceTree = "<group>"; };
 		EE2702010000000000000001 /* LoadDistributionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadDistributionEngine.swift; sourceTree = "<group>"; };
 		EE2703010000000000000001 /* StrainRiskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StrainRiskEngine.swift; sourceTree = "<group>"; };
@@ -570,7 +568,6 @@
 				DD0301010000000000000003 /* HRVDetailChart.swift */,
 				DD0301010000000000000002 /* SleepDetailChart.swift */,
 				DD0301010000000000000001 /* ChartDetailPrimitives.swift */,
-				EE2102010000000000000001 /* RadialPicker.swift */,
 				A60A00010000000000000001 /* SessionStartPicker.swift */,
 			);
 			path = Components;
@@ -1104,7 +1101,6 @@
 				AA4402020000000000000001 /* TodayVerdictViewModel.swift in Sources */,
 				62324C302F66CB0E00A9C2BE /* WorkloadApp.swift in Sources */,
 				62324C312F66CB0E00A9C2BE /* MetricTile.swift in Sources */,
-				EE2102010000000000000002 /* RadialPicker.swift in Sources */,
 				A60A00020000000000000001 /* SessionStartPicker.swift in Sources */,
 				A60A00020000000000000002 /* ExerciseClassifier.swift in Sources */,
 				CC0302010000000000000001 /* DataSufficiencyRing.swift in Sources */,
