@@ -15,15 +15,27 @@ import Charts
 /// uppercase/tracking/CJK law lives in one place. The target key is rendered **above the plot**
 /// rather than as an in-plot mark annotation: pinned to the rule it sat on top of the bars and
 /// neither could be read (v6.1, HAN 2026-07-30).
+/// One night for the sleep trend surfaces: wake day + total sleep minutes.
+///
+/// v1.7.1 round 2: the charts draw HealthKit-derived nights
+/// (`SleepSessionMath.NightSummary`, reduced with the corrected clustering) instead of
+/// persisted `RecoverySnapshot` rows — the rows carry pre-fix inflated values (the
+/// 12h45m class) and have gaps HealthKit does not. Snapshot-derived points remain the
+/// FALLBACK for devices where HealthKit has nothing (fresh install, denied read access,
+/// SCREENSHOT_MODE's seeded data).
+struct SleepNightPoint: Identifiable, Equatable {
+    let date: Date
+    let minutes: Double
+
+    var id: Date { date }
+}
+
 struct SleepTrendChart: View {
     @Environment(\.locale) private var locale
-    let recoverySnapshots: [RecoverySnapshot]
+    let nights: [SleepNightPoint]
 
     private var sleepData: [(date: Date, hours: Double)] {
-        recoverySnapshots.compactMap { snapshot in
-            guard let minutes = snapshot.sleepDurationMinutes else { return nil }
-            return (date: snapshot.date, hours: minutes / 60.0)
-        }
+        nights.map { (date: $0.date, hours: $0.minutes / 60.0) }
     }
 
     /// Explicit trailing-28-day x-domain (v1.7.1). Without it Swift Charts infers the

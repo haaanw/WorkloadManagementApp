@@ -94,6 +94,7 @@
 		62F32C992F7167EA00B6135F /* ReasoningEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C982F7167EA00B6135F /* ReasoningEngine.swift */; };
 		62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB72F71849300B6135F /* HRVDetailView.swift */; };
 		62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB82F71849300B6135F /* SleepDetailView.swift */; };
+		AA17010100000000000000D1 /* SleepNightDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA17010100000000000000D2 /* SleepNightDetailView.swift */; };
 		62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CC02F72716500B6135F /* SupabaseConfig.swift */; };
 		62F32CC62F7278EA00B6135F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 62F32CC52F7278EA00B6135F /* Supabase */; };
 		62F32D6D64E26B3830FD00B6 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 62F32DF65C7F3C5307D700B6 /* Assets.xcassets */; };
@@ -331,6 +332,7 @@
 		62F32CA22F71692C00B6135F /* WorkloadAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkloadAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		62F32CB72F71849300B6135F /* HRVDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailView.swift; sourceTree = "<group>"; };
 		62F32CB82F71849300B6135F /* SleepDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailView.swift; sourceTree = "<group>"; };
+		AA17010100000000000000D2 /* SleepNightDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepNightDetailView.swift; sourceTree = "<group>"; };
 		62F32CC02F72716500B6135F /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeAlertBanner.swift; sourceTree = "<group>"; };
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
@@ -770,6 +772,7 @@
 			children = (
 				62F32CB72F71849300B6135F /* HRVDetailView.swift */,
 				62F32CB82F71849300B6135F /* SleepDetailView.swift */,
+				AA17010100000000000000D2 /* SleepNightDetailView.swift */,
 				62324C102F66CB0E00A9C2BE /* DashboardView.swift */,
 				EE2805010000000000000001 /* PRSDualRunCard.swift */,
 				BB0203010000000000000004 /* WeeklySummaryCard.swift */,
@@ -1204,6 +1207,7 @@
 				3ECC7EF76C16FD0D0CB8809E /* ShareSheet.swift in Sources */,
 				62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */,
 				62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */,
+				AA17010100000000000000D1 /* SleepNightDetailView.swift in Sources */,
 				62324C492F66CB0E00A9C2BE /* AuthService.swift in Sources */,
 				62324C4A2F66CB0E00A9C2BE /* WorkloadView.swift in Sources */,
 				AA0202020000000000000001 /* WorkloadViewModel.swift in Sources */,

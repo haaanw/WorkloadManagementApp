@@ -61,7 +61,11 @@ struct HRVDetailView: View {
                 HStack(spacing: 0) {
                     statCell(
                         index: 0,
-                        label: "hrv.detail.label.latest",
+                        // "Morning", not "Latest" (v1.7.1 round 2): the reading is the
+                        // morning-window daily median, and Apple Health's all-day figure
+                        // runs higher — an unlabeled "latest" read as a wrong number
+                        // (HAN UAT: app 69 ms vs Health 89 ms, both correct).
+                        label: "hrv.detail.label.morning",
                         value: latest.map { "\(Int($0))" } ?? "—",
                         unit: latest != nil ? "ms" : nil,
                         // Reading Color Rule v6: this screen reports ONE metric, so its principal
@@ -125,6 +129,10 @@ struct HRVDetailView: View {
                         DetailDisclosureItem(
                             titleKey: "hrv.detail.about.measures.title",
                             bodyKey: "hrv.detail.explanation"
+                        ),
+                        DetailDisclosureItem(
+                            titleKey: "hrv.detail.about.window.title",
+                            bodyKey: "hrv.detail.about.window.body"
                         ),
                         DetailDisclosureItem(
                             titleKey: "hrv.detail.about.deviation.title",

@@ -5,17 +5,36 @@ import SwiftUI
 struct SleepDetailView: View {
     let snapshots: [RecoverySnapshot]
 
+    @Environment(AppContainer.self) private var container
     @Environment(\.locale) private var locale
     @State private var selectedDate: Date?
     /// Visible plot window in days, driven by the two-finger pinch on the chart.
     @State private var windowDays: Int = 28
     @State private var pinchBaseWindow: Int?
+    /// HealthKit-derived nights (v1.7.1 round 2). When present these drive the chart,
+    /// the readout, the condition tree, and the per-night breakdown pages; persisted
+    /// snapshots (which carry pre-fix inflated values and gaps) remain the fallback.
+    @State private var hkNights: [SleepSessionMath.NightSummary] = []
 
     private var nights: [(date: Date, minutes: Double)] {
-        snapshots.compactMap { snapshot in
+        if !hkNights.isEmpty {
+            return hkNights.map { (date: $0.wakeDay, minutes: $0.tstMinutes) }
+        }
+        return snapshots.compactMap { snapshot in
             guard let minutes = snapshot.sleepDurationMinutes else { return nil }
             return (date: snapshot.date, minutes: minutes)
         }
+    }
+
+    private var nightPoints: [SleepNightPoint] {
+        nights.map { SleepNightPoint(date: $0.date, minutes: $0.minutes) }
+    }
+
+    /// The full HealthKit night behind a chart date, when one exists — the input of the
+    /// per-night breakdown page. Snapshot-fallback nights have no stage data, so they
+    /// deliberately offer no breakdown rather than a page of `—`.
+    private func nightSummary(for date: Date) -> SleepSessionMath.NightSummary? {
+        hkNights.first { Calendar.current.isDate($0.wakeDay, inSameDayAs: date) }
     }
 
     private var lastNight: Double? { nights.last?.minutes }
@@ -66,7 +85,7 @@ struct SleepDetailView: View {
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     SleepDetailChart(
-                        recoverySnapshots: snapshots,
+                        nights: nightPoints,
                         selectedDate: $selectedDate,
                         windowDays: windowDays
                     )
@@ -76,6 +95,31 @@ struct SleepDetailView: View {
                             value: sleepString(readoutNight.minutes),
                             delta: deltaStamp(for: readoutNight.minutes)
                         )
+                    }
+                    // Route into the scrubbed night's breakdown (v1.7.1 round 2, HAN request).
+                    // Primitive 2 (Row): a surface that navigates, not a key that commits.
+                    if let readoutNight, let night = nightSummary(for: readoutNight.date) {
+                        NavigationLink {
+                            SleepNightDetailView(
+                                night: night,
+                                sevenDayAvgMinutes: sevenDayAvgMinutes
+                            )
+                        } label: {
+                            HStack(spacing: Spacing.xs) {
+                                Text("sleep.night.open")
+                                    .font(.Tokens.label)
+                                    .foregroundStyle(ColorTokens.text1)
+                                Spacer()
+                                Image(systemName: "chevron.right")
+                                    .font(.Tokens.micro)
+                                    .foregroundStyle(ColorTokens.text3)
+                            }
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.vertical, Spacing.sm)
+                            .contentShape(Rectangle())
+                        }
+                        .buttonStyle(.rowWell(cornerRadius: CornerTokens.control))
+                        .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
                     }
                 }
                 .padding(.horizontal, Spacing.sm)
@@ -111,6 +155,9 @@ struct SleepDetailView: View {
         .background(ColorTokens.background)
         .navigationTitle(Text("recovery.label.sleep"))
         .navigationBarTitleDisplayMode(.inline)
+        .task {
+            hkNights = (try? await container.healthKitService.fetchSleepNights(days: 90)) ?? []
+        }
     }
 
     // MARK: - Header

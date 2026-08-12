@@ -15,7 +15,7 @@ import Charts
 /// inconsistency Wave 2 fixed for axis case. The bands are carried by rules and a key.
 struct SleepDetailChart: View {
     @Environment(\.locale) private var locale
-    let recoverySnapshots: [RecoverySnapshot]
+    let nights: [SleepNightPoint]
     @Binding var selectedDate: Date?
     /// Visible window, in days ending today. The pinch gesture on the detail screen
     /// drives it; 28 is the default reading.
@@ -33,10 +33,9 @@ struct SleepDetailChart: View {
     }
 
     private var sleepData: [(date: Date, value: Double)] {
-        recoverySnapshots.compactMap { snapshot in
-            guard let minutes = snapshot.sleepDurationMinutes,
-                  snapshot.date >= xDomain.lowerBound else { return nil }
-            return (date: snapshot.date, value: minutes / 60.0)
+        nights.compactMap { night in
+            guard night.date >= xDomain.lowerBound else { return nil }
+            return (date: night.date, value: night.minutes / 60.0)
         }
     }
 

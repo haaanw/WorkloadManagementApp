@@ -79,6 +79,29 @@ source-fenced against scoring: blinded morning readiness probe (primary), option
 strength, overnight respiratory rate, wrist temperature. Wellness, felt-right and next-day HRV
 were each rejected with reasons recorded. Design: score only the days the two arms **disagree**.
 
+## UAT round 2 (2026-08-12) — sleep history + night breakdown + HRV labeling
+
+HAN's device round found the sleep charts drawing the pre-fix inflated snapshot rows
+(12h45m / 11h38m, round-tripped through the server after the restore) with July absent,
+and flagged the unlabeled HRV number (app 69 ms morning-median vs Health 89 ms all-day).
+All three allocated items landed the same day:
+
+1. **HealthKit-derived sleep trend** — `fetchSleepNights` + the pure
+   `SleepSessionMath.nightSummaries` per-wake-day reducer (same rules as the live
+   single-night fetch: dominant source, 90-min clustering, 180-min night floor, wake-day
+   keying, unioned stages; 10 new tests). Glance + detail charts now draw HealthKit
+   nights, snapshots remain the fallback (fresh device / no HK / screenshot mode). No
+   history rewrite.
+2. **Per-night breakdown page** — `SleepNightDetailView`, routed from the scrubbed night
+   on the sleep detail screen: stats band (asleep / in bed / efficiency), stage-timeline
+   hypnogram (sleep-hue opacity ladder, awake in neutral ink), stage + night-record
+   reason trees, measurement explainer. en + zh-Hans.
+3. **HRV says "Morning"** — the detail stat is labeled Morning (not Latest) and a new
+   about item explains the morning-median vs Health all-day difference. en + zh-Hans.
+
+Suite after the round: units green (the one recorded failure was a simulator
+runner-install error, cleared on reboot), ScreenshotTests 13/13.
+
 ## Open — HAN
 
 1. ~~**Run `Supabase/migrations/007_v171_sync_repair.sql`**~~ — **DONE 2026-08-10** (HAN ran it

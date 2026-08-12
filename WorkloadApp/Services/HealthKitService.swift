@@ -641,6 +641,66 @@ final class HealthKitService {
         return HealthKitStaleness(lastHRVDate: hrv?.date, lastSleepDate: sleep?.date, lastRHRDate: rhr?.date)
     }
 
+    // MARK: - Sleep night history (v1.7.1 round 2)
+
+    /// Per-night sleep history for the trend charts and the night detail page.
+    ///
+    /// The trend surfaces used to read persisted `RecoverySnapshot` rows, which rendered
+    /// pre-fix inflated values (the 12h45m class, round-tripped through the server) and
+    /// nothing for gaps in snapshot history — while HealthKit holds every night on-device.
+    /// This is the sleep counterpart of the HRV chart's raw-fetch + `HRVDailyStats`
+    /// reduction: one query, then the pure per-wake-day reduction in
+    /// `SleepSessionMath.nightSummaries`, which applies the SAME rules as
+    /// `fetchLastNightSleepDetail` (dominant source per window, 90-min gap clustering,
+    /// 180-min night floor with largest-candidate stand-in, wake-day keying, unioned
+    /// stage intervals). Persisted snapshots are untouched — no history rewrite.
+    func fetchSleepNights(days: Int) async throws -> [SleepSessionMath.NightSummary] {
+        let type = HKCategoryType(.sleepAnalysis)
+        let calendar = Calendar.current
+        let now = Date.now
+        let startOfToday = calendar.startOfDay(for: now)
+        // One extra day of margin so the OLDEST wake-day's night (which starts the
+        // evening before) is not clipped by the query window.
+        guard let queryStart = calendar.date(byAdding: .day, value: -(days + 1), to: startOfToday) else {
+            return []
+        }
+        let predicate = HKQuery.predicateForSamples(
+            withStart: queryStart,
+            end: now,
+            options: .strictStartDate
+        )
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.categorySample(type: type, predicate: predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate)]
+        )
+        let samples = try await descriptor.result(for: store)
+
+        let staged: [SleepSessionMath.StagedSample] = samples.compactMap { sample in
+            let stage: SleepSessionMath.Stage?
+            switch HKCategoryValueSleepAnalysis(rawValue: sample.value) {
+            case .asleepCore: stage = .core
+            case .asleepDeep: stage = .deep
+            case .asleepREM: stage = .rem
+            case .asleepUnspecified: stage = .unspecified
+            case .awake: stage = .awake
+            case .inBed: stage = .inBed
+            default: stage = nil
+            }
+            guard let stage else { return nil }
+            return SleepSessionMath.StagedSample(
+                source: sample.sourceRevision.source.bundleIdentifier,
+                stage: stage,
+                interval: DateInterval(start: sample.startDate, end: sample.endDate)
+            )
+        }
+        return SleepSessionMath.nightSummaries(
+            samples: staged,
+            days: days,
+            now: now,
+            calendar: calendar
+        )
+    }
+
     // MARK: - Private Helpers
 
     private func fetchMostRecentSample(type: HKQuantityType) async throws -> HKQuantitySample? {
@@ -705,6 +765,27 @@ enum SleepSessionMath {
         return clusters
     }
 
+    /// The UNION of the intervals as a merged interval list. `unionMinutes` gives only the
+    /// total; awake-EPISODE counting (night detail page) needs the merged list itself.
+    static func unionIntervals(_ intervals: [DateInterval]) -> [DateInterval] {
+        guard !intervals.isEmpty else { return [] }
+        let sorted = intervals.sorted { $0.start < $1.start }
+        var merged: [DateInterval] = []
+        var currentStart = sorted[0].start
+        var currentEnd = sorted[0].end
+        for interval in sorted.dropFirst() {
+            if interval.start <= currentEnd {
+                currentEnd = max(currentEnd, interval.end)
+            } else {
+                merged.append(DateInterval(start: currentStart, end: currentEnd))
+                currentStart = interval.start
+                currentEnd = interval.end
+            }
+        }
+        merged.append(DateInterval(start: currentStart, end: currentEnd))
+        return merged
+    }
+
     /// Total minutes covered by the UNION of the intervals (F6): same-source overlapping
     /// samples (re-binned or duplicated writes) count each minute once, never twice.
     static func unionMinutes(_ intervals: [DateInterval]) -> Double {
@@ -724,5 +805,213 @@ enum SleepSessionMath {
         }
         total += currentEnd.timeIntervalSince(currentStart)
         return total / 60.0
+    }
+}
+
+// MARK: - Sleep night history reduction (v1.7.1 round 2)
+
+/// Pure per-wake-day reduction over a multi-day sample window. Every rule here is the
+/// single-night fetch's rule (`fetchLastNightSleepDetail`), applied per day — the two
+/// paths must never disagree about what "a night" is, so the constants and the helpers
+/// are shared, not copied.
+extension SleepSessionMath {
+
+    /// Stage of a source sample, HealthKit-agnostic so the reducer stays pure and the
+    /// test suite can drive it with synthetic intervals.
+    enum Stage: Equatable {
+        case core, deep, rem, unspecified, awake, inBed
+
+        var isAsleep: Bool {
+            switch self {
+            case .core, .deep, .rem, .unspecified: return true
+            case .awake, .inBed: return false
+            }
+        }
+    }
+
+    /// One source-attributed staged interval — the pure input shape (no HealthKit types).
+    struct StagedSample {
+        let source: String
+        let stage: Stage
+        let interval: DateInterval
+    }
+
+    /// One merged stage interval inside the chosen session — the night timeline's mark.
+    struct StageSegment: Identifiable {
+        let stage: Stage
+        let interval: DateInterval
+
+        var id: String { "\(stage)-\(interval.start.timeIntervalSinceReferenceDate)" }
+    }
+
+    /// One reduced night, keyed to the WAKE day (the calendar day the main session ends —
+    /// v1.7.1 wake-day keying). Per-stage minutes are nil, never 0, when the dominant
+    /// source did not stage. Local-only display material; never appears in `SyncService`.
+    struct NightSummary: Identifiable {
+        let wakeDay: Date
+        let tstMinutes: Double
+        let deepMinutes: Double?
+        let remMinutes: Double?
+        let coreMinutes: Double?
+        let awakeMinutes: Double?
+        /// Count of merged awake episodes inside the session; nil when the source
+        /// reports no awake samples and does not stage.
+        let awakeEpisodes: Int?
+        let inBedMinutes: Double?
+        let sessionStart: Date
+        let sessionEnd: Date
+        let dominantSourceID: String?
+        /// Merged per-stage intervals (chronological) for the night timeline. Contains
+        /// `.unspecified` runs for stage-less sources so even a Tier-C night draws a
+        /// single-row timeline.
+        let segments: [StageSegment]
+
+        var id: Date { wakeDay }
+    }
+
+    /// Reduce a sample window into per-night summaries for the trailing `days` calendar
+    /// days, ascending by wake day. A day with no qualifying cluster is simply absent —
+    /// never fabricated.
+    static func nightSummaries(
+        samples: [StagedSample],
+        days: Int,
+        now: Date,
+        calendar: Calendar
+    ) -> [NightSummary] {
+        guard !samples.isEmpty, days > 0 else { return [] }
+        let startOfToday = calendar.startOfDay(for: now)
+        var result: [NightSummary] = []
+        for offset in stride(from: days - 1, through: 0, by: -1) {
+            guard let wakeDay = calendar.date(byAdding: .day, value: -offset, to: startOfToday),
+                  let dayEnd = calendar.date(byAdding: .day, value: 1, to: wakeDay),
+                  let windowStart = calendar.date(byAdding: .day, value: -1, to: wakeDay)
+            else { continue }
+            let windowEnd = min(dayEnd, now)
+            guard windowEnd > windowStart else { continue }
+            if let night = nightForWakeDay(
+                wakeDay: wakeDay,
+                dayEnd: dayEnd,
+                windowStart: windowStart,
+                windowEnd: windowEnd,
+                samples: samples
+            ) {
+                result.append(night)
+            }
+        }
+        return result
+    }
+
+    /// The single-night reduction over one 48 h window, claiming only clusters that END
+    /// within the wake day (so adjacent windows can never double-claim a night).
+    private static func nightForWakeDay(
+        wakeDay: Date,
+        dayEnd: Date,
+        windowStart: Date,
+        windowEnd: Date,
+        samples: [StagedSample]
+    ) -> NightSummary? {
+        // Window membership mirrors the live fetch's `.strictStartDate`: sample START
+        // inside the window.
+        let windowSamples = samples.filter {
+            $0.interval.start >= windowStart && $0.interval.start < windowEnd
+        }
+        let asleep = windowSamples.filter { $0.stage.isAsleep }
+        guard !asleep.isEmpty else { return nil }
+
+        // Dominant source: most asleep samples; ties by asleep seconds, then by the id
+        // string — the identical deterministic pick the live fetch makes (F5).
+        var bySource: [String: (count: Int, seconds: Double)] = [:]
+        for sample in asleep {
+            var entry = bySource[sample.source] ?? (0, 0)
+            entry.count += 1
+            entry.seconds += sample.interval.duration
+            bySource[sample.source] = entry
+        }
+        guard let dominantID = bySource.max(by: { lhs, rhs in
+            (lhs.value.count, lhs.value.seconds, lhs.key) < (rhs.value.count, rhs.value.seconds, rhs.key)
+        })?.key else { return nil }
+
+        let dominant = windowSamples.filter { $0.source == dominantID }
+        let dominantAsleep = dominant.filter { $0.stage.isAsleep }
+        guard !dominantAsleep.isEmpty else { return nil }
+
+        // H-25 clustering, then candidates = clusters ENDING within the wake day.
+        let clusters = sessionClusters(dominantAsleep.map(\.interval), gapMinutes: sessionGapMinutes)
+        let clusterEnds = clusters.map { $0.map(\.end).max()! }
+        let candidates = clusters.indices.filter {
+            clusterEnds[$0] >= wakeDay && clusterEnds[$0] < dayEnd
+        }
+        guard !candidates.isEmpty else { return nil }
+
+        // v1.7.1 main-session pick: latest candidate with ≥180 unioned minutes; when no
+        // candidate reaches the floor the largest stands in (a brutally short night still
+        // produces a reading — same behavior the live number shows that morning).
+        let unions = clusters.map { unionMinutes($0) }
+        let chosenIndex: Int
+        if let nightIndex = candidates.last(where: { unions[$0] >= nightMinimumMinutes }) {
+            chosenIndex = nightIndex
+        } else {
+            chosenIndex = candidates.max { unions[$0] < unions[$1] }!
+        }
+        let session = clusters[chosenIndex]
+        guard let sessionStart = session.first?.start,
+              let sessionEnd = session.map(\.end).max() else { return nil }
+
+        func overlapsSession(_ interval: DateInterval) -> Bool {
+            interval.start < sessionEnd && interval.end > sessionStart
+        }
+        func stageIntervals(_ stage: Stage) -> [DateInterval] {
+            dominant
+                .filter { $0.stage == stage && overlapsSession($0.interval) }
+                .map(\.interval)
+        }
+        func minutes(_ stage: Stage) -> Double {
+            unionMinutes(stageIntervals(stage))
+        }
+
+        let deep = minutes(.deep)
+        let rem = minutes(.rem)
+        let core = minutes(.core)
+        let unspecified = minutes(.unspecified)
+        let awakeMerged = unionIntervals(stageIntervals(.awake))
+        let awake = awakeMerged.reduce(0.0) { $0 + $1.duration / 60.0 }
+        let inBedSum = minutes(.inBed)
+
+        let tst = deep + rem + core + unspecified
+        guard tst > 0 else { return nil }
+        let hasStages = (deep + rem + core) > 0
+
+        // Opportunity window (H-24): explicit inBed when the source wrote it, else the
+        // session's asleep+awake span.
+        let sessionSamples = dominant.filter { $0.stage != .inBed && overlapsSession($0.interval) }
+        let spanStart = sessionSamples.map(\.interval.start).min() ?? sessionStart
+        let spanEnd = sessionSamples.map(\.interval.end).max() ?? sessionEnd
+        let inBed: Double? = inBedSum > 0
+            ? inBedSum
+            : spanEnd.timeIntervalSince(spanStart) / 60.0
+
+        let timelineStages: [Stage] = [.deep, .core, .rem, .unspecified, .awake]
+        let segments: [StageSegment] = timelineStages
+            .flatMap { stage in
+                unionIntervals(stageIntervals(stage)).map {
+                    StageSegment(stage: stage, interval: $0)
+                }
+            }
+            .sorted { $0.interval.start < $1.interval.start }
+
+        return NightSummary(
+            wakeDay: wakeDay,
+            tstMinutes: tst,
+            deepMinutes: hasStages ? deep : nil,
+            remMinutes: hasStages ? rem : nil,
+            coreMinutes: hasStages ? core : nil,
+            awakeMinutes: (hasStages || awake > 0) ? awake : nil,
+            awakeEpisodes: (hasStages || awake > 0) ? awakeMerged.count : nil,
+            inBedMinutes: inBed,
+            sessionStart: sessionStart,
+            sessionEnd: sessionEnd,
+            dominantSourceID: dominantID,
+            segments: segments
+        )
     }
 }

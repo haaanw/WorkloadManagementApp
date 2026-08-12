@@ -36,6 +36,28 @@ struct RecoveryView: View {
         Array(scopedRecoverySnapshots.prefix(28).reversed())
     }
 
+    /// HealthKit-derived nights (v1.7.1 round 2) — the glance draws these when present.
+    /// Persisted snapshots carry pre-fix inflated values and gaps; HealthKit is the truth
+    /// the athlete compares us against. `SleepDetailView` runs the same fetch itself.
+    @State private var hkSleepNights: [SleepSessionMath.NightSummary] = []
+
+    private var sleepGlancePoints: [SleepNightPoint] {
+        if !hkSleepNights.isEmpty {
+            let calendar = Calendar.current
+            let cutoff = calendar.date(
+                byAdding: .day, value: -28,
+                to: calendar.startOfDay(for: .now)
+            )!
+            return hkSleepNights
+                .filter { $0.wakeDay >= cutoff }
+                .map { SleepNightPoint(date: $0.wakeDay, minutes: $0.tstMinutes) }
+        }
+        return sleepWindow.compactMap { snapshot in
+            guard let minutes = snapshot.sleepDurationMinutes else { return nil }
+            return SleepNightPoint(date: snapshot.date, minutes: minutes)
+        }
+    }
+
     /// The 90-day window the pinch-zoomable detail screen reads (v1.7.1). Its default
     /// 28-day view shows the same nights as the glance card above.
     private var sleepWindowExtended: [RecoverySnapshot] {
@@ -93,7 +115,7 @@ struct RecoveryView: View {
 
                     RuledSection(header: "recovery.section.sleepTrend") {
                         NavigationLink(value: TrendDestination.sleep) {
-                            SleepTrendChart(recoverySnapshots: sleepWindow)
+                            SleepTrendChart(nights: sleepGlancePoints)
                                 .cardStyle()
                         }
                         .buttonStyle(.rowWell(cornerRadius: CornerTokens.card))
@@ -220,6 +242,7 @@ struct RecoveryView: View {
     }
 
     private func loadData() async {
+        hkSleepNights = (try? await container.healthKitService.fetchSleepNights(days: 28)) ?? []
         guard let athlete else { return }
         await viewModel.load(
             athlete: athlete,
