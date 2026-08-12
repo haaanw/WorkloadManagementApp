@@ -987,11 +987,10 @@ struct ExerciseEntryCard: View {
             // behind a per-row "+ RPE" chip (fast path = weight + reps only).
             switch inputMode {
             case .weightReps:
-                setHeaderRow(columns: [
-                    ("table.header.set", 32),
-                    ("table.header.weight", 0),
-                    ("table.header.reps", 0)
-                ])
+                // No header row: the field-first row (variant C) labels its own wells
+                // (WEIGHT · KG / REPS), and a second set of column captions above them
+                // read as duplication aligned to a layout that no longer exists.
+                EmptyView()
             case .repsOnly:
                 setHeaderRow(columns: [
                     ("table.header.set", 32),
@@ -1472,39 +1471,28 @@ struct SetEntryRow: View {
         .frame(maxWidth: .infinity)
     }
 
-    /// The set-number + measurement controls for the .weightReps row, laid out horizontally
-    /// (default) or stacked vertically (Dynamic Type fallback so 3 tiles + reps + RPE + done
-    /// never clip at AX sizes).
+    /// The .weightReps row controls — field-first (HAN-gated variant C, 2026-08-12):
+    /// the labeled weight/reps wells + chips + reps tape as one block, with RPE and the
+    /// done toggle on their own line beneath. The block stacks internally, so the old
+    /// ViewThatFits horizontal/vertical fallback is no longer needed.
     @ViewBuilder private var weightRepsControls: some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(alignment: .top, spacing: Spacing.xs) {
-                weightRepsCore
-            }
-            VStack(alignment: .leading, spacing: Spacing.xs) {
-                weightRepsCore
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            SetEntryFields(
+                weightKg: $set.weightKg,
+                reps: $set.reps,
+                unit: weightUnit,
+                suggestedWeightKg: suggestedCenterKg,
+                suggestedReps: suggestedReps,
+                onCommit: markSetDone,
+                focus: $focusField,
+                rowId: set.id
+            )
+            HStack(alignment: .center, spacing: Spacing.xs) {
+                effortControl
+                Spacer(minLength: 0)
+                doneToggle
             }
         }
-    }
-
-    @ViewBuilder private var weightRepsCore: some View {
-        WeightBlockPicker(
-            weightKg: $set.weightKg,
-            unit: weightUnit,
-            suggestedCenterKg: suggestedCenterKg,
-            onCommit: markSetDone,
-            focus: $focusField,
-            rowId: set.id,
-            advanceTo: .reps(set.id)
-        )
-        RepScrubber(
-            reps: $set.reps,
-            suggestedReps: suggestedReps,
-            onCommit: markSetDone,
-            focus: $focusField,
-            rowId: set.id
-        )
-        effortControl
-        doneToggle
     }
 
     var body: some View {
