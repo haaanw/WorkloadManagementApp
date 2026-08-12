@@ -112,10 +112,15 @@ touch on the axis overwrote the typed value); cold-start weight tiles were dead 
 squares (now route to the keypad). Keyboard toolbar added: Done on both fields, Next on
 weight. Suite 1008/0/2 incl. ScreenshotTests 13/13.
 
-**OPEN — input-row redesign (HAN-gated, v1.7.2 candidate):** HAN judges the v1.5.2
-block+scrubber design not straightforward. Proposed direction: field-first — two large
-numeric wells (keyboard primary now that typing is reliable), small ± increment chips,
-scrubber axis dropped. Demo-first like the homepage rebuild; HAN gates before any build.
+**Input-row redesign: SHIPPED (`a0e28a7`).** Three interactive demos (A field-first /
+B + last-time rail / C + numbered tape) were built in
+`.design-explorations/set-entry-v2-demo/` and published to HAN as a private artifact;
+**HAN picked C** and it was ported same-day: `SetEntryFields` replaces the deleted
+`WeightBlockPicker` + `RepScrubber` — labeled wells (typing primary, round-3 commit
+semantics), delta-stating ±2.5 chips, and a numbered reps tape whose current numeral
+rides enlarged above a fixed accent needle, mirrored live into the well. First-ever
+sets state the cold-start answer in words. The old SET/WEIGHT/REPS header row is gone
+for .weightReps. Suite 1008/0/2; on-sim screenshot verified against the gated demo.
 
 ## Open — HAN
 
