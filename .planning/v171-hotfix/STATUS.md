@@ -162,6 +162,17 @@ continuous sliding five-detent tape with emphasis handover at the crossing.
 flat chip row only. The ScreenshotTests simulator-boot flake recurred (2nd sighting;
 passes on fresh boot) — worth a defensive launch-retry if it shows a 3rd time.
 
+## UAT round 8 (2026-08-13) — the declared 1.7.1 closer (`edf120a`)
+
+Finish now always returns home (child-sheet teardown race fixed + the PR/spike
+banner-hold removed by HAN's call — outcome haptics stay, PRs live in history);
+morning-probe Skip stamps the day (was a bare dismiss → re-asked on every Home visit;
+skipped days don't count toward the blinded-day quota); scrub pitch 24→44 pt (one
+thumb-width per detent). HAN's roadmap ruling on the record: **v1.7.2's primary lane =
+workout-logging UI/UX overhaul** (opening item: an always-visible scrub scale — knowing
+where a swipe lands BEFORE touching). ScreenshotTests boot-flake 3rd sighting →
+defensive launch-retry queued for the UI harness. Units green.
+
 ## Open — HAN
 
 1. ~~**Run `Supabase/migrations/007_v171_sync_repair.sql`**~~ — **DONE 2026-08-10** (HAN ran it
