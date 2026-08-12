@@ -122,6 +122,21 @@ rides enlarged above a fixed accent needle, mirrored live into the well. First-e
 sets state the cold-start answer in words. The old SET/WEIGHT/REPS header row is gone
 for .weightReps. Suite 1008/0/2; on-sim screenshot verified against the gated demo.
 
+## UAT round 5 (2026-08-13) — parliament-specced set-entry round 2 (`a5a01c2`)
+
+HAN flagged gradient Profile chips, keyboard coverage, the confusing ✓, per-set RPE
+noise, and proposed well-scrub + reps-default-8 — and directed a /multi review. A
+Codex(gpt-5.6-sol)+Grok(grok-4.5) parliament converged (transcript in session record):
+**materialize ≠ log** (explicit "Log set" gate owns isDone; ghosts accepted in one tap;
+immediate collapse; Unlog to reverse), **per-set RPE UI removed** (session RPE only,
+never stamped onto sets — fabricated per-set effort corrupts StrengthLoadEngine RPE→RIR;
+plan-authored RIR/RPE target steppers preserved), **reps ghost = suggestion else 8**.
+Chair ruled the one split for HAN's gesture: direction-locked **well-scrub on both
+wells** (2.5 kg / 1 rep per 24 pt), reps tape retired. Also: focus now clears the type
+buffer (kills the "8"→"812" append class), keyboard avoidance scrolls the row on the
+keyboard's settled frame, ReadoutWell flattened app-wide (the circled gradient chips).
+Suite 1008/0/2; both row states screenshot-verified on sim.
+
 ## Open — HAN
 
 1. ~~**Run `Supabase/migrations/007_v171_sync_repair.sql`**~~ — **DONE 2026-08-10** (HAN ran it
