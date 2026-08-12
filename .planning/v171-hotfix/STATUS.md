@@ -150,6 +150,18 @@ from a forgotten field): BW ghost default + BW chip + "+10" added-load display +
 Option C (athlete body mass from HealthKit → true total-load math) recorded as future
 work. Suite 1008/0/2.
 
+## UAT round 7 (2026-08-13) — scrub cancellation bug, sliding tape, wheel retired (`70b6b75`)
+
+HAN: scrub "jumps to a random number"; wants a 4-5-[6]-7 continuous tape; the long-press
+radial wheel collided with the layout; SPORT TYPE row duplicated the big cards. Root
+cause of the jump: `DragGesture` has no cancellation callback — a scroll-stolen drag
+left the scrub anchors stale and the next scrub measured against them. Fixed with a
+`@GestureState` flag (resets on end AND cancel) + idempotent cleanup. Preview is now a
+continuous sliding five-detent tape with emphasis handover at the crossing.
+**RadialPicker deleted app-wide** (+2 test files, suite 1010→990); Adjust = SESSION TYPE
+flat chip row only. The ScreenshotTests simulator-boot flake recurred (2nd sighting;
+passes on fresh boot) — worth a defensive launch-retry if it shows a 3rd time.
+
 ## Open — HAN
 
 1. ~~**Run `Supabase/migrations/007_v171_sync_repair.sql`**~~ — **DONE 2026-08-10** (HAN ran it
