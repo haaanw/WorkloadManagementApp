@@ -49,6 +49,10 @@ struct SetEntryFields: View {
     /// Suggested values (from `SetSuggestion`) rendered as ghosts until a real commit.
     var suggestedWeightKg: Double? = nil
     var suggestedReps: Int? = nil
+    /// Bodyweight exercise (pull-ups, dips): 0 kg MEANS bodyweight (council ruling,
+    /// 2026-08-13) — displayed as BW, never "0 kg"; positive values are ADDED load and
+    /// read "+10". nil stays "never entered". The weight ghost defaults to BW.
+    var isBodyweight: Bool = false
 
     var focus: FocusState<SetFocusField?>.Binding? = nil
     var rowId: UUID = UUID()
@@ -104,8 +108,30 @@ struct SetEntryFields: View {
     }
 
     private var weightGhostDisplay: Double? {
-        guard weightKg == nil, let s = suggestedWeightKg else { return nil }
-        return WeightFormatter.displayValue(s, unit: unit)
+        guard weightKg == nil else { return nil }
+        if let s = suggestedWeightKg {
+            return WeightFormatter.displayValue(s, unit: unit)
+        }
+        // A bodyweight movement's natural resting point is BW itself.
+        return isBodyweight ? 0 : nil
+    }
+
+    /// The working-voice label for a weight reading: BW for bodyweight-at-zero, a
+    /// "+10"-style added-load reading on bodyweight movements, a plain numeral otherwise.
+    private func weightLabel(_ display: Double) -> String {
+        if isBodyweight {
+            if display == 0 {
+                return LocalePinnedStrings.localized("setEntry.bw", locale: locale)
+            }
+            return "+\(fmt(display))"
+        }
+        return fmt(display)
+    }
+
+    /// The unit suffix is noise beside "BW"; show it only for numeric readings.
+    private var showsWeightUnit: Bool {
+        let current = dragWeight ?? weightDisplay ?? weightGhostDisplay
+        return !(isBodyweight && current == 0)
     }
 
     /// The reps reading: live scrub, else committed, else the ghost (suggestion, else
@@ -129,10 +155,11 @@ struct SetEntryFields: View {
 
     private func commitWeight(display: Double) {
         // Typed values keep their meaning; storage rounds to 0.25 in display units.
-        // Chips and scrubs arrive pre-snapped to the house increment.
+        // Chips and scrubs arrive pre-snapped to the house increment. On a bodyweight
+        // movement, 0 is a REAL statement (BW), never an empty field.
         let rounded = (max(0, display) * 4).rounded() / 4
         weightKg = WeightFormatter.toKg(rounded, from: unit)
-        weightText = fmt(rounded)
+        weightText = weightLabel(rounded)
         weightSeeded = weightText
     }
 
@@ -174,11 +201,23 @@ struct SetEntryFields: View {
                 size: .small
             )
             well(isFocused: isEditingWeight) {
-                HStack(alignment: .firstTextBaseline, spacing: Spacing.baselinePair) {
-                    weightInput
-                    Text(unitLabel)
-                        .font(.Tokens.annoSmall)
-                        .foregroundStyle(ColorTokens.text3)
+                if let dragging = dragWeight {
+                    // Scrub preview (round 6, HAN): the values being approached fade in
+                    // beside the live one, so a swipe shows where it is going.
+                    scrubPreview(
+                        previous: dragging > 0 ? weightLabel(max(0, dragging - increment)) : nil,
+                        current: weightLabel(dragging),
+                        next: weightLabel(dragging + increment)
+                    )
+                } else {
+                    HStack(alignment: .firstTextBaseline, spacing: Spacing.baselinePair) {
+                        weightInput
+                        if showsWeightUnit {
+                            Text(unitLabel)
+                                .font(.Tokens.annoSmall)
+                                .foregroundStyle(ColorTokens.text3)
+                        }
+                    }
                 }
             }
             .gesture(weightScrub)
@@ -194,6 +233,13 @@ struct SetEntryFields: View {
                 }
             }
             HStack(spacing: Spacing.baselinePair) {
+                if isBodyweight {
+                    // One tap back to bodyweight from any added load.
+                    nudgeChip(label: LocalePinnedStrings.localized("setEntry.bw", locale: locale)) {
+                        Haptics.select()
+                        commitWeight(display: 0)
+                    }
+                }
                 nudgeChip(label: "−\(fmt(increment))") { nudgeWeight(-increment) }
                 nudgeChip(label: "＋\(fmt(increment))") { nudgeWeight(increment) }
             }
@@ -264,7 +310,7 @@ struct SetEntryFields: View {
                     }
                 }
         } else {
-            Text(dragWeight.map(fmt) ?? weightDisplay.map(fmt) ?? weightGhostDisplay.map(fmt) ?? "—")
+            Text((dragWeight ?? weightDisplay ?? weightGhostDisplay).map(weightLabel) ?? "—")
                 .font(.Tokens.displayAction)
                 .monospacedDigit()
                 .foregroundStyle(weightIsGhost ? ColorTokens.text3 : ColorTokens.text1)
@@ -273,12 +319,12 @@ struct SetEntryFields: View {
 
     /// Placeholder while focused-empty: the value the athlete is replacing.
     private var weightFieldPlaceholder: String {
-        weightDisplay.map(fmt) ?? weightGhostDisplay.map(fmt) ?? "—"
+        (weightDisplay ?? weightGhostDisplay).map(weightLabel) ?? "—"
     }
 
     /// Keep the (unfocused) weight buffer showing the committed-else-ghost value.
     private func syncWeightWell() {
-        weightText = weightDisplay.map(fmt) ?? weightGhostDisplay.map(fmt) ?? ""
+        weightText = (weightDisplay ?? weightGhostDisplay).map(weightLabel) ?? ""
     }
 
     private func commitWeightAndAdvance() {
@@ -321,7 +367,7 @@ struct SetEntryFields: View {
                 if snapped != dragWeight {
                     let previous = dragWeight
                     dragWeight = snapped
-                    weightText = fmt(snapped)
+                    weightText = weightLabel(snapped)
                     if snapped == 0 && previous != 0 && previous != nil {
                         limitHaptic.impactOccurred()
                         limitHaptic.prepare()
@@ -345,7 +391,15 @@ struct SetEntryFields: View {
                 size: .small
             )
             well(isFocused: isEditingReps) {
-                repsInput
+                if let dragging = dragReps {
+                    scrubPreview(
+                        previous: dragging > minReps ? "\(dragging - 1)" : nil,
+                        current: "\(dragging)",
+                        next: dragging < maxReps ? "\(dragging + 1)" : nil
+                    )
+                } else {
+                    repsInput
+                }
             }
             .gesture(repsScrub)
             .accessibilityElement(children: .ignore)
@@ -449,6 +503,31 @@ struct SetEntryFields: View {
                 scrubStartX = nil
                 scrubBaseReps = nil
             }
+    }
+
+    // MARK: Scrub preview
+
+    /// The approach indicator (round 6, HAN): while a well is being scrubbed, the
+    /// neighbouring detents fade in beside the live reading — smaller, `text3`, half
+    /// opacity — so the swipe shows where it is going. They vanish on release.
+    private func scrubPreview(previous: String?, current: String, next: String?) -> some View {
+        HStack(spacing: Spacing.sm) {
+            Text(previous ?? " ")
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.text3)
+                .opacity(previous == nil ? 0 : 0.55)
+            Text(current)
+                .font(.Tokens.displayAction)
+                .foregroundStyle(ColorTokens.text1)
+                .contentTransition(.numericText())
+                .animation(Motion.resolved(Motion.digitRoll, reduceMotion: reduceMotion), value: current)
+            Text(next ?? " ")
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.text3)
+                .opacity(next == nil ? 0 : 0.55)
+        }
+        .monospacedDigit()
+        .transition(.opacity)
     }
 
     // MARK: Shared well

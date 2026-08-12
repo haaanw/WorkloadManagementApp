@@ -96,12 +96,11 @@ struct ActiveWorkoutSheet: View {
             ScrollViewReader { scrollProxy in
             ScrollView {
                 VStack(spacing: 0) {
-                    // Session info
+                    // Session info (round 6 redesign, HAN): the primary decision — what
+                    // are you training — leads; the optional session name is demoted
+                    // below it; and the elapsed timer is a LABELED annotation stamp, not
+                    // a giant bare numeral (an unlabeled "0m" hero read as "0 kg").
                     VStack(spacing: Spacing.sm) {
-                        TextField(String(localized: "workout.field.sessionName.placeholder", defaultValue: "Session Name (optional)"), text: $sessionName)
-                            .textFieldStyle(SharpTextFieldStyle())
-                            .accessibilityIdentifier("activeWorkout.sessionName")
-
                         SessionStartPicker(
                             choice: $sessionStartChoice,
                             sportType: $sportType,
@@ -132,11 +131,17 @@ struct ActiveWorkoutSheet: View {
                             .transition(.opacity)
                         }
 
+                        TextField(String(localized: "workout.field.sessionName.placeholder", defaultValue: "Session Name (optional)"), text: $sessionName)
+                            .textFieldStyle(SharpTextFieldStyle())
+                            .accessibilityIdentifier("activeWorkout.sessionName")
+
+                        // The running clock as marginalia: a machine stamp with its unit
+                        // of meaning attached, aligned leading like every other stamp.
                         TimelineView(.periodic(from: startTime, by: 1)) { _ in
-                            Text(Date.durationString(seconds: Int(elapsed), locale: locale))
-                                .font(.Tokens.pageTitle)
-                                .monospacedDigit()
-                                .foregroundStyle(ColorTokens.text1)
+                            AnnotationLabel(
+                                "\(LocalePinnedStrings.localized("workout.label.elapsed", locale: locale)) · \(Date.durationString(seconds: Int(elapsed), locale: locale))"
+                            )
+                            .frame(maxWidth: .infinity, alignment: .leading)
                         }
                     }
                     .padding(.horizontal, Spacing.sm)
@@ -1382,6 +1387,10 @@ struct SetEntryRow: View {
         switch inputMode {
         case .weightReps:
             let reps = set.reps ?? set.targetReps ?? 0
+            if set.weightKg == 0, category == .bodyweight {
+                // 0 kg on a bodyweight movement reads BW, never "0kg × 8".
+                return String(format: String(localized: "set.summary.bwReps", defaultValue: "BW × %d"), reps)
+            }
             if let kg = set.weightKg {
                 let display = WeightFormatter.displayValue(kg, unit: weightUnit)
                 let unit = weightUnit == .kg
@@ -1503,6 +1512,7 @@ struct SetEntryRow: View {
                 unit: weightUnit,
                 suggestedWeightKg: suggestedCenterKg,
                 suggestedReps: suggestedReps,
+                isBodyweight: category == .bodyweight,
                 focus: $focusField,
                 rowId: set.id
             )
@@ -1571,8 +1581,14 @@ struct SetEntryRow: View {
         if set.reps == nil {
             set.reps = suggestedReps ?? 8
         }
-        if set.weightKg == nil, let suggested = suggestedCenterKg {
-            set.weightKg = suggested
+        if set.weightKg == nil {
+            if let suggested = suggestedCenterKg {
+                set.weightKg = suggested
+            } else if category == .bodyweight {
+                // Council ruling (2026-08-13): 0 kg MEANS bodyweight — logging a
+                // pull-up with no added load records an explicit BW set, not a blank.
+                set.weightKg = 0
+            }
         }
         focusField = nil
         withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {

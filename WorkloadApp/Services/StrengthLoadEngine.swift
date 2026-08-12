@@ -148,7 +148,10 @@ struct StrengthLoadEngine {
 
     /// Relative intensity = `weightKg / e1RMReference`, or `nil` when no weight / ref <= 0.
     static func relativeIntensity(set: SetRecord, e1RMReference: Double?) -> Double? {
-        guard let weight = set.weightKg, let ref = e1RMReference, ref > 0 else { return nil }
+        // `weight > 0` (council fix, 2026-08-13): 0 kg now means BODYWEIGHT on
+        // bodyweight movements. Without external load there is no relative intensity
+        // against a barbell e1RM — treat it as missing signal, never as intensity 0.
+        guard let weight = set.weightKg, weight > 0, let ref = e1RMReference, ref > 0 else { return nil }
         return weight / ref
     }
 
