@@ -133,7 +133,7 @@ struct HRVDetailChart: View {
                     )
                 }
                 .chartXAxis {
-                    AxisMarks { value in
+                    AxisMarks(values: .stride(by: .day, count: ChartAxisTicks.dayStride(spanningDays: windowDays))) { value in
                         AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                         AxisTick().foregroundStyle(ColorTokens.divider)
                         AxisValueLabel {
@@ -147,7 +147,7 @@ struct HRVDetailChart: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks { value in
+                    AxisMarks(values: .automatic(desiredCount: ChartAxisTicks.yAxisStops)) { value in
                         AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                         AxisValueLabel {
                             if let milliseconds = value.as(Double.self) {

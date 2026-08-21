@@ -14,9 +14,20 @@ struct HealthKitStaleness {
     var isRHRStale: Bool { isStale(lastRHRDate) }
     var hasAnyStaleness: Bool { isHRVStale || isSleepStale || isRHRStale }
 
+    /// Calendar days between the reading and today, not 24-hour blocks (v1.7.2 / audit L3).
+    ///
+    /// `dateComponents(from:to:)` counts elapsed 24-hour spans, so a reading taken at 22:00
+    /// yesterday and read at 09:00 today is 11 hours old and reports `0` — a badge that says
+    /// "0D" for data the athlete would call yesterday's. Flooring both ends to their day gives
+    /// the number a person means by "days ago".
     func daysAgo(_ date: Date?) -> Int? {
         guard let date, isStale(date) else { return nil }
-        return Calendar.current.dateComponents([.day], from: date, to: .now).day
+        let calendar = Calendar.current
+        return calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: date),
+            to: calendar.startOfDay(for: .now)
+        ).day
     }
 
     private func isStale(_ date: Date?) -> Bool {
@@ -499,18 +510,40 @@ final class HealthKitService: HealthDataProviding {
 
     // MARK: - Body Temperature
 
-    /// Fetch latest body temperature reading (from Oura Ring or Apple Watch)
+    /// How far back a body-temperature reading still counts as current.
+    ///
+    /// Sleeping wrist temperature is written nightly by a worn Watch, so a week covers any
+    /// realistic gap (a few nights off the wrist) without letting a reading from a device the
+    /// athlete stopped wearing stand in for tonight's.
+    static let bodyTempFreshnessDays = 7
+
+    /// Fetch latest body temperature reading (from Oura Ring or Apple Watch).
+    ///
+    /// Bounded to the last week (v1.7.2 / audit M7) — an unbounded "most recent" presented a
+    /// months-old reading as current, with no staleness channel to say otherwise.
+    ///
+    /// NOTE on the fallback: sleeping WRIST temperature and general BODY temperature are
+    /// different quantities — the first is a peripheral overnight reading, the second is
+    /// usually an oral or core measurement taken because someone felt unwell. They are
+    /// collapsed into one field here because the alternative for a non-Watch athlete is no
+    /// reading at all. An athlete whose source changes will see a step in the series; that is
+    /// a known limit of this field, not a defect in this fetch. Splitting them properly means
+    /// two fields on `RecoverySnapshot`.
     func fetchLatestBodyTemp() async throws -> Double? {
         // Try sleeping wrist temperature first (Apple Watch)
         if let wristTempType = HKQuantityType.quantityType(forIdentifier: .appleSleepingWristTemperature) {
-            let sample = try await fetchMostRecentSample(type: wristTempType)
+            let sample = try await fetchMostRecentSample(
+                type: wristTempType, withinDays: Self.bodyTempFreshnessDays
+            )
             if let value = sample?.quantity.doubleValue(for: .degreeCelsius()) {
                 return value
             }
         }
         // Fallback to general body temperature
         let type = HKQuantityType(.bodyTemperature)
-        let sample = try await fetchMostRecentSample(type: type)
+        let sample = try await fetchMostRecentSample(
+            type: type, withinDays: Self.bodyTempFreshnessDays
+        )
         return sample?.quantity.doubleValue(for: .degreeCelsius())
     }
 
@@ -552,10 +585,17 @@ final class HealthKitService: HealthDataProviding {
 
     // MARK: - VO2 Max
 
-    /// Fetch latest VO2 Max estimate
+    /// How far back a VO2 max estimate still describes the athlete.
+    ///
+    /// Deliberately much longer than the body-temperature window: cardiorespiratory fitness
+    /// moves over months, and Apple writes an estimate only after a qualifying outdoor
+    /// workout, so a quarter is a fair statement rather than a stale one.
+    static let vo2MaxFreshnessDays = 90
+
+    /// Fetch latest VO2 Max estimate, bounded to the last quarter (v1.7.2 / audit M7).
     func fetchLatestVO2Max() async throws -> Double? {
         let type = HKQuantityType(.vo2Max)
-        let sample = try await fetchMostRecentSample(type: type)
+        let sample = try await fetchMostRecentSample(type: type, withinDays: Self.vo2MaxFreshnessDays)
         let unit = HKUnit.literUnit(with: .milli).unitDivided(by: HKUnit.gramUnit(with: .kilo).unitMultiplied(by: .minute()))
         return sample?.quantity.doubleValue(for: unit)
     }
@@ -680,9 +720,27 @@ final class HealthKitService: HealthDataProviding {
 
     // MARK: - Private Helpers
 
-    private func fetchMostRecentSample(type: HKQuantityType) async throws -> HKQuantitySample? {
+    /// The newest sample of `type`, optionally bounded to the last `withinDays` days.
+    ///
+    /// The bound exists because an unbounded "most recent" is not the same claim as "current"
+    /// (v1.7.2 / audit M7). Body temperature and VO2 max had no bound and no staleness channel,
+    /// so a reading from a phone the athlete stopped wearing months ago was displayed as
+    /// today's. Returning nil past the window is the honest answer: the app does not know.
+    private func fetchMostRecentSample(
+        type: HKQuantityType,
+        withinDays: Int? = nil
+    ) async throws -> HKQuantitySample? {
+        let predicate: HKSamplePredicate<HKQuantitySample>
+        if let withinDays, let start = Calendar.current.date(byAdding: .day, value: -withinDays, to: .now) {
+            predicate = .quantitySample(
+                type: type,
+                predicate: HKQuery.predicateForSamples(withStart: start, end: .now, options: .strictStartDate)
+            )
+        } else {
+            predicate = .quantitySample(type: type)
+        }
         let descriptor = HKSampleQueryDescriptor(
-            predicates: [.quantitySample(type: type)],
+            predicates: [predicate],
             sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)],
             limit: 1
         )

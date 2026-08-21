@@ -248,3 +248,28 @@ struct DetailDisclosureList: View {
         }
     }
 }
+
+// MARK: - Axis ticks (v1.7.2 audit — L1 / L2)
+
+/// Tick spacing for the app's charts.
+///
+/// Swift Charts' automatic date axis picks a stride from the plot width, not from the data's
+/// span, so a dense 28-day series drew repeated labels — "AUG 4" three times in a row, which
+/// reads as a rendering bug rather than as a busy axis. And an automatic y-axis on a tight
+/// domain hands back non-integer stops that the `%.0f` formatter rounds into duplicates
+/// ("62, 62, 63"). Both are the same defect: the axis was left to guess.
+enum ChartAxisTicks {
+
+    /// Day stride that keeps a date axis to at most `maxLabels` labels.
+    ///
+    /// Five is the ceiling because the labels are 10pt uppercase mono with tracking, and a
+    /// 28-day span at 350pt fits about that many before they touch.
+    static func dayStride(spanningDays: Int, maxLabels: Int = 5) -> Int {
+        guard spanningDays > 0 else { return 1 }
+        return max(1, Int((Double(spanningDays) / Double(maxLabels)).rounded(.up)))
+    }
+
+    /// How many y-axis stops to ask for. Deliberately few: these are glance charts, and a
+    /// sparse axis is what stops the `%.0f` rounding from producing two identical labels.
+    static let yAxisStops = 4
+}

@@ -277,6 +277,14 @@ struct DashboardView: View {
                     Task { await loadData() }
                 }
             }
+            // Midnight while the app is in the FOREGROUND (v1.7.2 / audit L4). The scenePhase
+            // hook above only fires on a return from background, so a dashboard left open
+            // across midnight kept yesterday's date label over today's reading, and the
+            // planned-session weekday lookup kept resolving to yesterday. Same idiom as
+            // RecoveryView and NextMatchSection.
+            .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+                Task { await loadData() }
+            }
         }
     }
 

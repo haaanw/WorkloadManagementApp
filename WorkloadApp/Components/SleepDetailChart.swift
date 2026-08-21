@@ -104,7 +104,7 @@ struct SleepDetailChart: View {
                 // Axis labels host `AnnotationLabel` so the uppercase / tracking / zh-Hans guard
                 // comes from the primitive rather than the call site — same reason as the glance.
                 .chartXAxis {
-                    AxisMarks { value in
+                    AxisMarks(values: .stride(by: .day, count: ChartAxisTicks.dayStride(spanningDays: windowDays))) { value in
                         AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                         AxisTick().foregroundStyle(ColorTokens.divider)
                         AxisValueLabel {
@@ -118,7 +118,7 @@ struct SleepDetailChart: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks { value in
+                    AxisMarks(values: .automatic(desiredCount: ChartAxisTicks.yAxisStops)) { value in
                         AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                         AxisValueLabel {
                             if let hours = value.as(Double.self) {

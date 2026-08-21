@@ -29,9 +29,43 @@ struct RecoveryLoadChart: View {
         }
     }
 
+    /// The 28-day window the card claims, pinned explicitly (v1.7.2 / audit M9).
+    ///
+    /// Without it Swift Charts sizes the axis to whatever data happens to exist, so a week with
+    /// three snapshots drew three bars across the full plot — the same defect the sleep and HRV
+    /// charts were fixed for in v1.7.1. A chart headed "28 days" must span 28 days whether or
+    /// not they are all populated.
+    private var xDomain: ClosedRange<Date> {
+        let calendar = Calendar.current
+        let end = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: .now))!
+        let start = calendar.date(byAdding: .day, value: -28, to: end)!
+        return start...end
+    }
+
+    /// Both series' days, so the scrub can reach a day that has a recovery score and no load —
+    /// a rest day, which is exactly the day an athlete looks at this chart to understand
+    /// (v1.7.2 / audit M9). Scrubbing used to snap only to load days, so rest days were
+    /// unreachable.
+    private var scrubDays: [(date: Date, value: Double)] {
+        let calendar = Calendar.current
+        var byDay: [Date: Double] = [:]
+        for snapshot in recoverySnapshots {
+            byDay[calendar.startOfDay(for: snapshot.date)] = 0
+        }
+        for snapshot in loadSnapshots {
+            byDay[calendar.startOfDay(for: snapshot.snapshotDate)] = snapshot.acuteLoad
+        }
+        return byDay
+            .map { (date: $0.key, value: $0.value) }
+            .sorted { $0.date < $1.date }
+    }
+
     private var chartContent: some View {
         let maxLoad = loadSnapshots.map(\.acuteLoad).max() ?? 100
-        let scaleFactor = maxLoad / 100.0
+        // A week with no training has maxLoad 0, and 0/100 collapsed the whole recovery series
+        // onto the baseline — the chart claimed a recovery score of zero on exactly the days it
+        // was most likely to be high (v1.7.2 / audit M9). Fall back to the unscaled 0–100 range.
+        let scaleFactor = maxLoad > 0 ? maxLoad / 100.0 : 1.0
 
         return Chart {
             ForEach(loadSnapshots, id: \.id) { snapshot in
@@ -51,11 +85,16 @@ struct RecoveryLoadChart: View {
                 // (`metricReadiness`), which is what makes a legend unnecessary here.
                 .foregroundStyle(ColorTokens.metricReadiness)
                 .lineStyle(StrokeStyle(lineWidth: 1.5))
+                // A line through one point draws nothing. A single recovery reading in the
+                // window rendered as an empty plot rather than as one score (v1.7.2 / audit M9).
+                .symbol(.circle)
+                .symbolSize(18)
             }
         }
         .frame(height: 184)
+        .chartXScale(domain: xDomain)
         .chartXAxis {
-            AxisMarks { value in
+            AxisMarks(values: .stride(by: .day, count: ChartAxisTicks.dayStride(spanningDays: 28))) { value in
                 AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                 AxisTick().foregroundStyle(ColorTokens.chartGrid)
                 AxisValueLabel {
@@ -69,7 +108,7 @@ struct RecoveryLoadChart: View {
             }
         }
         .chartYAxis {
-            AxisMarks { value in
+            AxisMarks(values: .automatic(desiredCount: ChartAxisTicks.yAxisStops)) { value in
                 AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                 AxisValueLabel {
                     if let load = value.as(Double.self) {
@@ -83,18 +122,26 @@ struct RecoveryLoadChart: View {
         .chartOverlay { proxy in
             ChartTooltipGesture(
                 proxy: proxy,
-                data: loadSnapshots.map { (date: $0.snapshotDate, value: $0.acuteLoad) },
+                data: scrubDays,
                 selectedDate: $selectedDate
             )
         }
         .overlay(alignment: .top) {
-            if let selectedDate,
-               let snapshot = loadSnapshots.first(where: { Calendar.current.isDate($0.snapshotDate, inSameDayAs: selectedDate) }) {
-                let recovery = recoverySnapshots.first(where: { Calendar.current.isDate($0.date, inSameDayAs: selectedDate) })
-                TooltipBubble(
-                    value: "Load: \(String(format: "%.0f", snapshot.acuteLoad))" + (recovery.map { " | Recovery: \(Int($0.recoveryScore))" } ?? ""),
-                    dateLabel: snapshot.snapshotDate.formatted(.dateTime.month(.abbreviated).day().locale(locale))
-                )
+            if let selectedDate {
+                let calendar = Calendar.current
+                let load = loadSnapshots.first { calendar.isDate($0.snapshotDate, inSameDayAs: selectedDate) }
+                let recovery = recoverySnapshots.first { calendar.isDate($0.date, inSameDayAs: selectedDate) }
+                // A day with only a recovery score is still a day worth reading — see
+                // `scrubDays` (audit M9).
+                if load != nil || recovery != nil {
+                    TooltipBubble(
+                        value: [
+                            load.map { "Load: \(String(format: "%.0f", $0.acuteLoad))" },
+                            recovery.map { "Recovery: \(Int($0.recoveryScore))" }
+                        ].compactMap { $0 }.joined(separator: " | "),
+                        dateLabel: selectedDate.formatted(.dateTime.month(.abbreviated).day().locale(locale))
+                    )
+                }
             }
         }
     }

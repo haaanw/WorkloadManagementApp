@@ -155,7 +155,49 @@ Not pruned. `Localizable.xcstrings` is a single large file that the voice-loggin
 and logging-UI lanes both add keys to; a bulk prune from this session would
 conflict on nearly every line. Worth a pass once the parallel lanes close.
 
-### 3.4 L8 — the push has no watermark
+### 3.4 M11 — the detail subtitle vs the sparse-data stamp
+
+`HRVDetailView`'s subtitle already renders `windowDays` (the pinch-zoom window), not a
+hardcoded 28, so "28-day …" over a "1D ·" stamp is not a stale string: the subtitle
+describes the WINDOW and the stamp describes the DATA. Both are accurate and they read
+as a contradiction only because they sit two lines apart.
+
+Fixing it means changing user-facing copy, which is HAN's. The options are: drive the
+subtitle from visible data, drop it when the window is sparse, or reword the stamp.
+
+### 3.5 L9 — two different "week"s on one card
+
+`WeeklySummaryCard` shows a rolling-168-hour summary (`DashboardViewModel` builds it from
+`now - 7 days`) beside a streak counted in ISO weeks (`StreakEngine`). Confirmed, and
+deliberately NOT changed.
+
+Moving the summary to ISO weeks would make "this week" mean the same thing in both places,
+but it also compares a PARTIAL current week against a COMPLETE previous one, so every delta
+reads negative on a Monday. That is a nocebo hazard the design system explicitly guards
+against, and trading a quiet inconsistency for a daily false alarm is a product decision,
+not a bug fix.
+
+### 3.6 L6 — sleep stage intervals admitted unclipped
+
+Real, and deliberately NOT changed. It affects the sleep-v2 SHADOW's inBed/WASO figures,
+and that shadow is mid-way through a pre-registered ≥6-week dogfood window (started
+2026-08-03). Changing the reduction now perturbs the data the §6 criteria will rule on.
+Fix it after the window closes, or the window has to restart.
+
+### 3.7 L7 — the cycle biphasic shift averages samples, not days
+
+Real, and inside `CycleTrackingService`, which is unmounted built-ahead code (§3.1). Fix it
+when the female-athlete milestone opens, alongside whatever else that surface needs.
+
+### 3.8 RecoveryLoadChart's tooltip is hardcoded English
+
+Found while fixing M9. `TooltipBubble` renders `"Load: … | Recovery: …"` as a Swift string
+literal, so a zh-Hans athlete scrubbing the correlation chart reads English. NOT fixed here
+only because it needs two new keys in `Localizable.xcstrings`, and that file is being
+appended to by the voice-logging and logging-UI lanes right now — a merge on a large JSON
+is worse than the defect. Two keys, one commit, once those lanes close.
+
+### 3.9 L8 — the push has no watermark
 
 Every row of every entity uploads on every cycle. Still true, still a real cost
 that grows with history. Fixing it means a per-entity `updatedAt` watermark and a
@@ -187,21 +229,21 @@ means one of the eight 1.7.1 UAT rounds already closed it.
 | M4 | `training_profiles` PK conflict | **Fixed** — `onConflict: "athlete_id"` |
 | M5 | No UNIQUE(athlete_id, date) | **Fixed** — `DailyRowIndex`, half-open keys, migration 011 |
 | M6 | `DateOnly` freezes the time zone | **Fixed** — `CalendarDay`, zone read per call |
-| M7 | Body temp / VO2 max unbounded + no staleness | Open — batch 8 |
+| M7 | Body temp / VO2 max unbounded + no staleness | **Fixed** — bounded fetch windows |
 | M8 | Same-day re-run self-drift | Does not reproduce (v1.7.1 algorithm stage 1) |
-| M9 | RecoveryLoadChart defects | Open — batch 8 |
-| M10 | Load trend renders over nothing | Open — batch 8 |
-| M11 | "28-day" subtitle over sparse data | Open — batch 8 |
-| L1 | Unconstrained axis tick granularity | Open — batch 8 |
-| L2 | Duplicate y-labels, no `chartYScale` | Open — batch 8 |
-| L3 | `daysAgo` counts 24h blocks | Open — batch 8 |
-| L4 | Dashboard date label goes stale | Open — batch 8 |
+| M9 | RecoveryLoadChart defects | **Fixed** — symbol, zero-load guard, x-domain, both-series scrub |
+| M10 | Load trend renders over nothing | **Fixed** — insufficient-data message |
+| M11 | "28-day" subtitle over sparse data | **Recorded** — §3.4 (copy decision) |
+| L1 | Unconstrained axis tick granularity | **Fixed** — `ChartAxisTicks.dayStride` on six charts |
+| L2 | Duplicate y-labels, no `chartYScale` | **Fixed** — bounded y-axis stop count |
+| L3 | `daysAgo` counts 24h blocks | **Fixed** — calendar days |
+| L4 | Dashboard date label goes stale | **Fixed** — `NSCalendarDayChanged` |
 | L5 | Dead HealthKit surface, unused `.stepCount` | **Fixed** |
-| L6 | Stage intervals admitted unclipped | Open |
-| L7 | Cycle biphasic shift averages samples | Open |
-| L8 | Push has no watermark | **Recorded** — §3.4 |
-| L9 | Two different "week"s on one card | Open |
-| L10 | Doc drift in chart comments | Open — batch 8 |
+| L6 | Stage intervals admitted unclipped | **Recorded** — §3.6 (shadow window is live) |
+| L7 | Cycle biphasic shift averages samples | **Recorded** — §3.7 (unmounted surface) |
+| L8 | Push has no watermark | **Recorded** — §3.9 |
+| L9 | Two different "week"s on one card | **Recorded** — §3.5 (nocebo trade-off) |
+| L10 | Doc drift in chart comments | **Fixed** — no-op `.chartLegend` removed |
 
 ---
 

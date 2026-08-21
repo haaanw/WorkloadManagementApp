@@ -87,7 +87,7 @@ struct HRVTrendChart: View {
                 // "JUL 5", so the same axis spoke in two cases on adjacent tabs. Hosting the primitive
                 // costs an explicit format string, which is also what keeps the label localized.
                 .chartXAxis {
-                    AxisMarks { value in
+                    AxisMarks(values: .stride(by: .day, count: ChartAxisTicks.dayStride(spanningDays: 28))) { value in
                         AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                         AxisTick().foregroundStyle(ColorTokens.divider)
                         AxisValueLabel {
@@ -101,7 +101,7 @@ struct HRVTrendChart: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks { value in
+                    AxisMarks(values: .automatic(desiredCount: ChartAxisTicks.yAxisStops)) { value in
                         AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                         AxisValueLabel {
                             if let milliseconds = value.as(Double.self) {

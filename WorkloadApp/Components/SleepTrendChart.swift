@@ -98,7 +98,7 @@ struct SleepTrendChart: View {
                 // token alone gives the mono face but not the uppercase, tracking, or zh-Hans guard,
                 // which DESIGN.md rule 3 requires come from the modifier rather than the call site.
                 .chartXAxis {
-                    AxisMarks { value in
+                    AxisMarks(values: .stride(by: .day, count: ChartAxisTicks.dayStride(spanningDays: 28))) { value in
                         AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                         AxisTick().foregroundStyle(ColorTokens.divider)
                         AxisValueLabel {
@@ -112,7 +112,7 @@ struct SleepTrendChart: View {
                     }
                 }
                 .chartYAxis {
-                    AxisMarks { value in
+                    AxisMarks(values: .automatic(desiredCount: ChartAxisTicks.yAxisStops)) { value in
                         AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                         AxisValueLabel {
                             if let hours = value.as(Double.self) {

@@ -148,6 +148,18 @@ struct WorkloadView: View {
                                     selectedDate: $selectedTrendDate
                                 )
                                 .cardStyle()
+                            } else {
+                                // Say why there is no chart (v1.7.2 / audit M10). A section
+                                // header and a range control sitting over empty space read as a
+                                // rendering failure; one line of copy makes it read as a young
+                                // history, which is what it is. Same string the correlation
+                                // chart already uses for the same state.
+                                Text("workload.chart.insufficientData")
+                                    .font(.Tokens.label)
+                                    .foregroundStyle(ColorTokens.text2)
+                                    .frame(maxWidth: .infinity, alignment: .leading)
+                                    .padding(Spacing.md)
+                                    .cardStyle()
                             }
                         }
                         .padding(.horizontal, Spacing.sm)
@@ -386,6 +398,19 @@ struct LoadTrendChartView: View {
     let snapshots: [WorkloadSnapshot]
     @Binding var selectedDate: Date?
 
+    /// Days the plotted snapshots actually span — the range control lets the athlete change it,
+    /// so the axis stride has to be computed rather than assumed (v1.7.2 / audit L1).
+    private var spanDays: Int {
+        guard let first = snapshots.map(\.snapshotDate).min(),
+              let last = snapshots.map(\.snapshotDate).max() else { return 1 }
+        let calendar = Calendar.current
+        return max(1, calendar.dateComponents(
+            [.day],
+            from: calendar.startOfDay(for: first),
+            to: calendar.startOfDay(for: last)
+        ).day ?? 1)
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.sm) {
             Chart {
@@ -420,9 +445,11 @@ struct LoadTrendChartView: View {
                 }
             }
             .frame(height: 160)
-            .chartLegend(position: .bottom)
+            // No `.chartLegend` here (v1.7.2 / audit L10): it was a no-op. A legend needs a
+            // `foregroundStyle(by:)` mapping to describe, and these series are styled directly;
+            // the series key under the plot is hand-built in the annotation voice.
             .chartXAxis {
-                AxisMarks { value in
+                AxisMarks(values: .stride(by: .day, count: ChartAxisTicks.dayStride(spanningDays: spanDays))) { value in
                     AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                     AxisTick().foregroundStyle(ColorTokens.chartGrid)
                     AxisValueLabel {
@@ -436,7 +463,7 @@ struct LoadTrendChartView: View {
                 }
             }
             .chartYAxis {
-                AxisMarks { value in
+                AxisMarks(values: .automatic(desiredCount: ChartAxisTicks.yAxisStops)) { value in
                     AxisGridLine().foregroundStyle(ColorTokens.chartGrid)
                     AxisValueLabel {
                         if let load = value.as(Double.self) {
