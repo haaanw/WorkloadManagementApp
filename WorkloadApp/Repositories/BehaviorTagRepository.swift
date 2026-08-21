@@ -86,6 +86,14 @@ final class BehaviorTagRepository {
         let descriptor = FetchDescriptor<BehaviorTag>(predicate: predicate)
         let tags = try modelContext.fetch(descriptor)
         for tag in tags {
+            // Tombstone first (v1.7.2 / audit H6) — otherwise the next pull restores the
+            // custom tag the athlete just removed.
+            SyncTombstone.record(
+                rowId: tag.id,
+                entity: .behaviorTags,
+                athleteId: athleteId,
+                in: modelContext
+            )
             modelContext.delete(tag)
         }
         try modelContext.save()

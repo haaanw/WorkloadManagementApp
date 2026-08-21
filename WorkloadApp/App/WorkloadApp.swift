@@ -109,6 +109,7 @@ struct WorkloadApp: App {
                 ExerciseOverride.self,
                 BehaviorTag.self,
                 TrainingProfile.self,
+                SyncTombstone.self,
             ])
             let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
             container = try ModelContainer(for: schema, configurations: [config])

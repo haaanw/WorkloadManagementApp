@@ -136,6 +136,10 @@ final class AppContainer {
         // inherits the previous user's hidden/remapped exercises (codex P2, 2026-07-18).
         let overrides = try modelContext.fetch(FetchDescriptor<ExerciseOverride>())
         for override in overrides { modelContext.delete(override) }
+        // Tombstones are sync bookkeeping keyed by athlete id, not an Athlete relationship,
+        // so they survive the cascade. Left behind, the next signed-in account inherits
+        // them and any row whose id collides would be silently refused on pull (v1.7.2).
+        for tombstone in SyncTombstone.all(in: modelContext) { modelContext.delete(tombstone) }
         try modelContext.save()
         isAuthenticated = false
     }
@@ -158,6 +162,7 @@ final class AppContainer {
         for p in profiles { modelContext.delete(p) }
         let overrides = try modelContext.fetch(FetchDescriptor<ExerciseOverride>())
         for override in overrides { modelContext.delete(override) }
+        for tombstone in SyncTombstone.all(in: modelContext) { modelContext.delete(tombstone) }
         try modelContext.save()
         isAuthenticated = false
     }

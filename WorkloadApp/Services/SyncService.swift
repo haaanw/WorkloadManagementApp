@@ -27,6 +27,10 @@ struct SyncService {
         guard let athlete = try? context.fetch(FetchDescriptor<Athlete>()).first else { return }
         guard await verifyIdentity(athlete) else { return }
 
+        // Deletions settle before any row is written, or a row this device still holds is
+        // pushed back over a deletion made elsewhere (audit H6).
+        await reconcileTombstones(context: context, athlete: athlete)
+
         await pushAthlete(athlete)
 
         if await pushWorkloadSnapshots(context: context, athleteId: athlete.id) {
@@ -65,6 +69,10 @@ struct SyncService {
 
         guard let athlete = try? context.fetch(FetchDescriptor<Athlete>()).first else { return }
         guard await verifyIdentity(athlete) else { return }
+
+        // Deletions settle before any row is read, so a pull cannot re-create a row this
+        // device — or another one — has already deleted (audit H6).
+        await reconcileTombstones(context: context, athlete: athlete)
 
         await pullAthlete(context: context, existingAthlete: athlete)
 
@@ -239,6 +247,131 @@ struct SyncService {
             return false
         }
         return await verifyIdentity(athlete)
+    }
+
+    // MARK: - Tombstones (audit H6)
+
+    /// Where each tombstoned entity lives, and which column carries its owner. An entity
+    /// absent from this map simply has no deletion path — adding one is a single line here
+    /// plus a `SyncTombstone.record` call at the repository's delete seam.
+    ///
+    /// `workout_templates` is owned by `coach_id`, not `athlete_id` — the athlete-owned
+    /// column on that table is nullable and is not the row's owner. Filtering the hard
+    /// delete on the wrong column would silently match nothing.
+    private static let tombstonedTables: [SyncEntity: (table: String, ownerColumn: String)] = [
+        .workouts: ("workout_sessions", "athlete_id"),
+        .templates: ("workout_templates", "coach_id"),
+        .personalRecords: ("personal_records", "athlete_id"),
+        .behaviorTags: ("behavior_tags", "athlete_id"),
+        .wellnessCheckIns: ("wellness_check_ins", "athlete_id")
+    ]
+
+    /// Reconciles deletions in both directions, before any row is pushed or pulled.
+    ///
+    /// Ordering is load-bearing. Deletions must settle FIRST, or a device that still holds
+    /// a row another device deleted pushes it back in the same cycle, and the athlete sees
+    /// the deletion undo itself.
+    ///
+    /// Every step degrades safely when `sync_tombstones` does not exist yet (migration 010
+    /// is run by hand): the push leg records a per-entity failure and retries next cycle,
+    /// the pull leg returns nothing, and the local tombstones still keep the pull loops
+    /// from re-creating deleted rows. The single-device defect is fixed with or without
+    /// the migration; the migration is what makes deletions cross devices.
+    private func reconcileTombstones(context: ModelContext, athlete: Athlete) async {
+        await pushTombstones(context: context, athleteId: athlete.id)
+        await pullTombstones(context: context, athleteId: athlete.id)
+        SyncTombstone.prune(in: context)
+        try? context.save()
+    }
+
+    private func pushTombstones(context: ModelContext, athleteId: UUID) async {
+        let pending = SyncTombstone.pendingByEntity(in: context)
+        guard !pending.isEmpty else { return }
+
+        for (entity, tombstones) in pending {
+            guard let target = Self.tombstonedTables[entity] else { continue }
+            let rows = tombstones.map {
+                SyncTombstoneRow(athleteId: athleteId, entity: entity.rawValue, rowId: $0.rowId, deletedAt: $0.deletedAt)
+            }
+            let rowIds = tombstones.map(\.rowId.uuidString)
+
+            let succeeded = await run(entity, .push) {
+                _ = try await client
+                    .from("sync_tombstones")
+                    .upsert(rows, onConflict: "athlete_id,entity,row_id")
+                    .execute()
+                // Then remove the rows themselves. The tombstone is what makes this safe:
+                // a device that has not synced since still learns the row is gone, so the
+                // hard delete cannot be undone by that device's next push.
+                _ = try await client
+                    .from(target.table)
+                    .delete()
+                    .eq(target.ownerColumn, value: athleteId)
+                    .in("id", values: rowIds)
+                    .execute()
+            }
+            if succeeded {
+                for tombstone in tombstones { tombstone.isPushed = true }
+            }
+        }
+    }
+
+    private func pullTombstones(context: ModelContext, athleteId: UUID) async {
+        let rows: [SyncTombstoneRow]
+        do {
+            rows = try await client
+                .from("sync_tombstones")
+                .select()
+                .eq("athlete_id", value: athleteId)
+                .execute()
+                .value
+        } catch {
+            // Absent table (migration not run) or a transport failure. Local deletions are
+            // still honoured; only cross-device propagation waits.
+            logFailure("pull tombstones", error)
+            return
+        }
+
+        for row in rows {
+            guard let entity = SyncEntity(rawValue: row.entity) else { continue }
+            SyncTombstone.record(
+                rowId: row.rowId,
+                entity: entity,
+                athleteId: athleteId,
+                in: context,
+                isPushed: true
+            )
+            deleteLocalRow(id: row.rowId, entity: entity, context: context)
+        }
+    }
+
+    /// Removes the local copy of a row another device deleted.
+    private func deleteLocalRow(id: UUID, entity: SyncEntity, context: ModelContext) {
+        switch entity {
+        case .workouts:
+            if let row = try? context.fetch(FetchDescriptor<WorkoutSession>(predicate: #Predicate { $0.id == id })).first {
+                context.delete(row)
+            }
+        case .templates:
+            if let row = try? context.fetch(FetchDescriptor<WorkoutTemplate>(predicate: #Predicate { $0.id == id })).first {
+                context.delete(row)
+            }
+        case .personalRecords:
+            if let row = try? context.fetch(FetchDescriptor<PersonalRecord>(predicate: #Predicate { $0.id == id })).first {
+                context.delete(row)
+            }
+        case .behaviorTags:
+            if let row = try? context.fetch(FetchDescriptor<BehaviorTag>(predicate: #Predicate { $0.id == id })).first {
+                context.delete(row)
+            }
+        case .wellnessCheckIns:
+            if let row = try? context.fetch(FetchDescriptor<WellnessCheckIn>(predicate: #Predicate { $0.id == id })).first {
+                context.delete(row)
+            }
+        case .recoverySnapshots, .workloadSnapshots, .trainingProfiles:
+            // Derived daily rows and the single training profile have no deletion path.
+            break
+        }
     }
 
     // MARK: - Athlete push/pull
@@ -566,8 +699,12 @@ struct SyncService {
             return false
         }
 
+        // Rows deleted here are never re-created (audit H6). The tombstone check is
+        // local, so it holds even before migration 010 lets the deletion reach the server.
+        let tombstoned = SyncTombstone.deletedRowIds(entity: .wellnessCheckIns, in: context)
         for row in rows {
             let pred = #Predicate<WellnessCheckIn> { $0.id == row.id }
+            if tombstoned.contains(row.id) { continue }
             let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let checkIn = existing ?? WellnessCheckIn()
@@ -608,8 +745,12 @@ struct SyncService {
             return false
         }
 
+        // Rows deleted here are never re-created (audit H6). The tombstone check is
+        // local, so it holds even before migration 010 lets the deletion reach the server.
+        let tombstoned = SyncTombstone.deletedRowIds(entity: .workouts, in: context)
         for row in rows {
             let pred = #Predicate<WorkoutSession> { $0.id == row.id }
+            if tombstoned.contains(row.id) { continue }
             let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let session = existing ?? WorkoutSession()
@@ -676,8 +817,12 @@ struct SyncService {
             return false
         }
 
+        // Rows deleted here are never re-created (audit H6). The tombstone check is
+        // local, so it holds even before migration 010 lets the deletion reach the server.
+        let tombstoned = SyncTombstone.deletedRowIds(entity: .behaviorTags, in: context)
         for row in rows {
             let pred = #Predicate<BehaviorTag> { $0.id == row.id }
+            if tombstoned.contains(row.id) { continue }
             let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let tag = existing ?? BehaviorTag(tagName: row.tagName)
@@ -717,8 +862,12 @@ struct SyncService {
             return false
         }
 
+        // Rows deleted here are never re-created (audit H6). The tombstone check is
+        // local, so it holds even before migration 010 lets the deletion reach the server.
+        let tombstoned = SyncTombstone.deletedRowIds(entity: .personalRecords, in: context)
         for row in rows {
             let pred = #Predicate<PersonalRecord> { $0.id == row.id }
+            if tombstoned.contains(row.id) { continue }
             let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let pr = existing ?? PersonalRecord(exerciseName: row.exerciseName ?? "", value: row.value ?? 0)
@@ -780,7 +929,11 @@ struct SyncService {
             return false
         }
 
+        // Rows deleted here are never re-created (audit H6). The tombstone check is
+        // local, so it holds even before migration 010 lets the deletion reach the server.
+        let tombstoned = SyncTombstone.deletedRowIds(entity: .templates, in: context)
         for row in rows {
+            if tombstoned.contains(row.id) { continue }
             let pred = #Predicate<WorkoutTemplate> { $0.id == row.id }
             let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
             if let existing, existing.updatedAt > row.updatedAt { continue }
@@ -1030,6 +1183,16 @@ struct DateOnly: Codable, Equatable {
         var container = encoder.singleValueContainer()
         try container.encode(CalendarDay.string(from: date, in: .current))
     }
+}
+
+/// One deletion, on its own table (v1.7.2 / audit H6). Keeping deletions out of the entity
+/// tables is what makes them survive a full-row upsert from a device that still holds the
+/// row — see `SyncTombstone` for the argument.
+struct SyncTombstoneRow: Codable {
+    let athleteId: UUID
+    let entity: String
+    let rowId: UUID
+    let deletedAt: Date
 }
 
 struct AthleteRow: Codable {

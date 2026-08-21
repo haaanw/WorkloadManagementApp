@@ -16,7 +16,18 @@ final class WorkoutRepository {
         try modelContext.save()
     }
 
+    /// Deletes a session and records the deletion so the next pull cannot put it back
+    /// (v1.7.2 / audit H6). Tombstone and delete commit in one `save()`, so a crash
+    /// between them is not a state the store can be left in.
     func deleteSession(_ session: WorkoutSession) throws {
+        if let athleteId = session.athlete?.id {
+            SyncTombstone.record(
+                rowId: session.id,
+                entity: .workouts,
+                athleteId: athleteId,
+                in: modelContext
+            )
+        }
         modelContext.delete(session)
         try modelContext.save()
     }

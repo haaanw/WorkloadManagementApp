@@ -68,8 +68,15 @@ final class TemplateRepository {
         try modelContext.save()
     }
 
-    /// Permanently delete a template
+    /// Permanently delete a template. Records a tombstone so the next pull cannot
+    /// re-create it from the server copy (v1.7.2 / audit H6).
     func delete(_ template: WorkoutTemplate) throws {
+        SyncTombstone.record(
+            rowId: template.id,
+            entity: .templates,
+            athleteId: template.athleteId ?? template.coachId,
+            in: modelContext
+        )
         modelContext.delete(template)
         try modelContext.save()
     }
