@@ -1,0 +1,37 @@
+Tuwa is the sports-science layer for self-coached athletes — the people who play their sport, lift, and condition in parallel, and make every training decision themselves.
+
+You author the plan. Tuwa reads your body — HRV, resting heart rate, sleep, and accumulated training load — and tells you exactly how to run today's session: go as written, trim the top set, or hold back. Concrete numbers, not vague scores. Your plan stays yours.
+
+Fully redesigned in 1.6: a calm, precise interface built around one clear daily reading.
+
+TODAY'S VERDICT
+- A plain answer for today's session: go, adjust, or ease off
+- Concrete adjustments — capped top sets, trimmed back-offs — never a rewritten plan
+- Match awareness: log games and let nearby sessions tighten automatically
+- Equal-weight choices: keeping your plan as written is always one tap
+
+READINESS FROM REAL SIGNALS
+- Recovery score from HRV, resting heart rate, and sleep via Apple Health
+- Personal baselines, not population averages
+- Blends in how you actually feel — the score never overrides you
+
+ONE FATIGUE BUDGET
+- Court time, strength work, and conditioning tracked as one training load
+- Acute:chronic workload ratio (ACWR) with spike detection
+- Load trends that show building, stalling, or overreaching
+
+FAST, SERIOUS LOGGING
+- Log sets, weight, reps, and RPE in seconds
+- 1,300+ exercise movement bank with instant search
+- Templates, carried-forward targets, and automatic personal records
+
+PRIVACY FIRST
+- Raw health data never leaves your device
+- Only composite scores sync for backup
+
+Tuwa Pro unlocks full history, overload suggestions, custom exercises, and PR tracking. Subscriptions are managed through your Apple account and can be cancelled anytime.
+
+Tuwa is for fitness and performance guidance only. It is not medical advice.
+
+Terms of Use (EULA): https://tuwa.app/terms
+Privacy Policy: https://tuwa.app/privacy

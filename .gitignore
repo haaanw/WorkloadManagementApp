@@ -44,6 +44,10 @@ build/
 .playwright-mcp/
 Supabase/.temp/
 
+# Pair board — CLAUDE ⇄ CODEX live coordination channel. Session ephemera:
+# decisions we actually reach get promoted to .planning/notes/ and committed there.
+.pair/
+
 # Local assets / research / crash logs (kept local, not in history)
 Alpino_Complete/
 algorithm research file/
