@@ -272,25 +272,49 @@ struct MorningCheckInSheet: View {
         checkIn.notes = notes.isEmpty ? nil : notes
         checkIn.updatedAt = .now
 
-        // Replace today's behavior tags rather than appending a second set
-        // (cascade-delete the old ones, then recreate from current selection).
-        for old in checkIn.behaviorTags {
-            modelContext.delete(old)
-        }
-        checkIn.behaviorTags = []
-
-        // Create behavior tags for all available tags (D-04, D-06)
+        // Reconcile today's behavior tags IN PLACE (v1.7.2 / audit M3).
+        //
+        // This used to delete every tag and re-create the whole set with fresh UUIDs on
+        // each save. Sync is a full upsert keyed on id, so every re-open of the same day's
+        // check-in left the previous set stranded on the server: the rows accumulated
+        // without bound, and `BehaviorCorrelationEngine` — which counts rows — read the
+        // orphans as real behaviour. Keeping the row and editing it means one row per
+        // (day, tag) for good.
         let allTagNames = defaultTags + customTagNames
+        var carriedOver = Dictionary(
+            checkIn.behaviorTags.map { ($0.tagName, $0) },
+            uniquingKeysWith: { first, _ in first }
+        )
         for tagName in allTagNames {
-            let tag = BehaviorTag(
-                date: .now,
-                tagName: tagName,
-                isActive: selectedTags.contains(tagName),
-                isCustom: !defaultTags.contains(tagName)
+            if let existingTag = carriedOver.removeValue(forKey: tagName) {
+                existingTag.isActive = selectedTags.contains(tagName)
+                existingTag.isCustom = !defaultTags.contains(tagName)
+                existingTag.wellnessCheckIn = checkIn
+                existingTag.athlete = athlete
+                existingTag.updatedAt = .now
+            } else {
+                let tag = BehaviorTag(
+                    date: .now,
+                    tagName: tagName,
+                    isActive: selectedTags.contains(tagName),
+                    isCustom: !defaultTags.contains(tagName)
+                )
+                tag.wellnessCheckIn = checkIn
+                tag.athlete = athlete
+                modelContext.insert(tag)
+            }
+        }
+        // Whatever is left carried a tag name the athlete has since removed from their
+        // custom list. Tombstone it so the deletion reaches the server (audit H6) rather
+        // than the row lingering there and being pulled back.
+        for (_, removedTag) in carriedOver {
+            SyncTombstone.record(
+                rowId: removedTag.id,
+                entity: .behaviorTags,
+                athleteId: athlete.id,
+                in: modelContext
             )
-            tag.wellnessCheckIn = checkIn
-            tag.athlete = athlete
-            modelContext.insert(tag)
+            modelContext.delete(removedTag)
         }
 
         try? modelContext.save()

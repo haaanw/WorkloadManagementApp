@@ -35,12 +35,17 @@ final class RecoveryRepository {
         athlete: Athlete? = nil
     ) throws -> Bool {
         let day = Calendar.current.startOfDay(for: wakeDay)
+        let nextDay = Calendar.current.date(byAdding: .day, value: 1, to: day) ?? day
         // Date-only #Predicate, athlete filtered in Swift: traversing the OPTIONAL to-one
         // `athlete` relationship inside a #Predicate crashes the SwiftData process rather than
         // throwing (the trap `RecoveryPipeline.runSleepV2Shadow` and `BaselineStateModelTests`
         // already document). Found the hard way — it took down the whole test host.
+        //
+        // Half-open range, not `== day` (v1.7.2 / audit M5): a row whose date was written
+        // unfloored — MockDataSeeder used to, and a pulled row carries whatever the other
+        // device wrote — is still that calendar day and must still be found.
         let rows = try modelContext.fetch(
-            FetchDescriptor<RecoverySnapshot>(predicate: #Predicate { $0.date == day })
+            FetchDescriptor<RecoverySnapshot>(predicate: #Predicate { $0.date >= day && $0.date < nextDay })
         )
         let matching = athlete.map { a in rows.filter { $0.athlete?.id == a.id } } ?? rows
         guard let row = matching.first,
@@ -67,10 +72,15 @@ final class RecoveryRepository {
         authoritativeHRV: Bool = false
     ) throws {
         let today = Calendar.current.startOfDay(for: .now)
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today) ?? today
         // Date-only #Predicate + Swift-side athlete filter — the optional to-one relationship
-        // must never be traversed inside a #Predicate (see `backfillSleep`).
+        // must never be traversed inside a #Predicate (see `backfillSleep`). Half-open range
+        // rather than `== today` for the reason given there (audit M5).
         let todayRows = try modelContext.fetch(
-            FetchDescriptor<RecoverySnapshot>(predicate: #Predicate { $0.date == today })
+            FetchDescriptor<RecoverySnapshot>(
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow },
+                sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+            )
         )
         let scoped = athlete.map { a in todayRows.filter { $0.athlete?.id == a.id } } ?? todayRows
 
@@ -123,15 +133,21 @@ final class RecoveryRepository {
     func fetchTodaySnapshot(athlete: Athlete? = nil) throws -> RecoverySnapshot? {
         let today = Calendar.current.startOfDay(for: .now)
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+        // Newest write wins, deterministically (v1.7.2 / audit M5). Without a sort order a
+        // day that somehow holds two rows — two devices, or a pre-M5 unfloored seed — made
+        // the hero recovery score depend on whichever row the store happened to return
+        // first, so it could change between two loads of the same screen.
         let descriptor: FetchDescriptor<RecoverySnapshot>
         if let athlete {
             let athleteId = athlete.id
             descriptor = FetchDescriptor<RecoverySnapshot>(
-                predicate: #Predicate { $0.date >= today && $0.date < tomorrow && $0.athlete?.id == athleteId }
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow && $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         } else {
             descriptor = FetchDescriptor<RecoverySnapshot>(
-                predicate: #Predicate { $0.date >= today && $0.date < tomorrow }
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow },
+                sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         }
         return try modelContext.fetch(descriptor).first
@@ -197,15 +213,18 @@ final class RecoveryRepository {
     func fetchTodayWellnessCheckIn(athlete: Athlete? = nil) throws -> WellnessCheckIn? {
         let today = Calendar.current.startOfDay(for: .now)
         let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today)!
+        // Newest write wins, deterministically — see `fetchTodaySnapshot` (audit M5).
         let descriptor: FetchDescriptor<WellnessCheckIn>
         if let athlete {
             let athleteId = athlete.id
             descriptor = FetchDescriptor<WellnessCheckIn>(
-                predicate: #Predicate { $0.date >= today && $0.date < tomorrow && $0.athlete?.id == athleteId }
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow && $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         } else {
             descriptor = FetchDescriptor<WellnessCheckIn>(
-                predicate: #Predicate { $0.date >= today && $0.date < tomorrow }
+                predicate: #Predicate { $0.date >= today && $0.date < tomorrow },
+                sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         }
         return try modelContext.fetch(descriptor).first

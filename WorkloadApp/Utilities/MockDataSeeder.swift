@@ -80,7 +80,12 @@ enum MockDataSeeder {
 
         // Create recovery snapshots (daily)
         for dayOffset in stride(from: -27, through: 0, by: 1) {
-            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: .now) else { continue }
+            // Floored to the start of the day (v1.7.2 / audit M5). An unfloored seed date
+            // does not match the pipeline's own start-of-day upsert key, so a SCREENSHOT_MODE
+            // run followed by a real pipeline run produced TWO rows for the same day and the
+            // hero score became whichever one the fetch happened to return first.
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: .now)
+                .map({ calendar.startOfDay(for: $0) }) else { continue }
 
             let phase = Double((dayOffset + 28) % 7)
             let baseHRV = 48.0 + phase
@@ -421,7 +426,9 @@ enum MockDataSeeder {
         var ctl = 25.0
 
         for dayOffset in stride(from: -27, through: 0, by: 1) {
-            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: .now) else { continue }
+            // Floored — see the recovery seed above (audit M5).
+            guard let date = calendar.date(byAdding: .day, value: dayOffset, to: .now)
+                .map({ calendar.startOfDay(for: $0) }) else { continue }
 
             // Simulate daily load
             let isRestDay = (-dayOffset) % 4 == 3

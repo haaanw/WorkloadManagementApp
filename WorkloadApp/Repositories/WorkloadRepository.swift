@@ -17,15 +17,21 @@ final class WorkloadRepository {
         athlete: Athlete? = nil
     ) throws {
         let today = Calendar.current.startOfDay(for: .now)
+        let tomorrow = Calendar.current.date(byAdding: .day, value: 1, to: today) ?? today
+        // Half-open day range, newest first (v1.7.2 / audit M5). Exact `== today` equality
+        // missed any row whose date was written unfloored, so the upsert inserted a SECOND
+        // row for the same day; the sort makes the survivor deterministic either way.
         let descriptor: FetchDescriptor<WorkloadSnapshot>
         if let athlete {
             let athleteId = athlete.id
             descriptor = FetchDescriptor<WorkloadSnapshot>(
-                predicate: #Predicate { $0.snapshotDate == today && $0.athlete?.id == athleteId }
+                predicate: #Predicate { $0.snapshotDate >= today && $0.snapshotDate < tomorrow && $0.athlete?.id == athleteId },
+                sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         } else {
             descriptor = FetchDescriptor<WorkloadSnapshot>(
-                predicate: #Predicate { $0.snapshotDate == today }
+                predicate: #Predicate { $0.snapshotDate >= today && $0.snapshotDate < tomorrow },
+                sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
         }
 

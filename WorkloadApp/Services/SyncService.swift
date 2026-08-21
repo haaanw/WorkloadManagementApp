@@ -609,9 +609,10 @@ struct SyncService {
             return false
         }
 
+        // Identified by day — see `DailyRowIndex` (audit M5).
+        var index = DailyRowIndex<WorkloadSnapshot>(athlete: athlete, dayKey: \.snapshotDate, in: context)
         for row in rows {
-            let pred = #Predicate<WorkloadSnapshot> { $0.id == row.id }
-            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
+            let existing = index.match(id: row.id, day: row.snapshotDate.date)
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let snap = existing ?? WorkloadSnapshot()
             snap.id = row.id
@@ -625,6 +626,7 @@ struct SyncService {
             snap.updatedAt = row.updatedAt
             snap.athlete = athlete
             if existing == nil { context.insert(snap) }
+            index.register(snap)
         }
         do {
             try context.save()
@@ -652,9 +654,11 @@ struct SyncService {
             return false
         }
 
+        // Daily snapshots are identified by their DAY, not by their row id — see
+        // `DailyRowIndex` (audit M5).
+        var index = DailyRowIndex<RecoverySnapshot>(athlete: athlete, dayKey: \.date, in: context)
         for row in rows {
-            let pred = #Predicate<RecoverySnapshot> { $0.id == row.id }
-            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
+            let existing = index.match(id: row.id, day: row.date.date)
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let snap = existing ?? RecoverySnapshot()
             snap.id = row.id
@@ -672,6 +676,7 @@ struct SyncService {
             snap.updatedAt = row.updatedAt
             snap.athlete = athlete
             if existing == nil { context.insert(snap) }
+            index.register(snap)
         }
         do {
             try context.save()
@@ -702,10 +707,11 @@ struct SyncService {
         // Rows deleted here are never re-created (audit H6). The tombstone check is
         // local, so it holds even before migration 010 lets the deletion reach the server.
         let tombstoned = SyncTombstone.deletedRowIds(entity: .wellnessCheckIns, in: context)
+        // Identified by day — see `DailyRowIndex` (audit M5).
+        var index = DailyRowIndex<WellnessCheckIn>(athlete: athlete, dayKey: \.date, in: context)
         for row in rows {
-            let pred = #Predicate<WellnessCheckIn> { $0.id == row.id }
             if tombstoned.contains(row.id) { continue }
-            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
+            let existing = index.match(id: row.id, day: row.date.date)
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let checkIn = existing ?? WellnessCheckIn()
             checkIn.id = row.id
@@ -718,6 +724,7 @@ struct SyncService {
             checkIn.updatedAt = row.updatedAt
             checkIn.athlete = athlete
             if existing == nil { context.insert(checkIn) }
+            index.register(checkIn)
         }
         do {
             try context.save()
@@ -749,8 +756,8 @@ struct SyncService {
         // local, so it holds even before migration 010 lets the deletion reach the server.
         let tombstoned = SyncTombstone.deletedRowIds(entity: .workouts, in: context)
         for row in rows {
-            let pred = #Predicate<WorkoutSession> { $0.id == row.id }
             if tombstoned.contains(row.id) { continue }
+            let pred = #Predicate<WorkoutSession> { $0.id == row.id }
             let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let session = existing ?? WorkoutSession()
@@ -821,8 +828,8 @@ struct SyncService {
         // local, so it holds even before migration 010 lets the deletion reach the server.
         let tombstoned = SyncTombstone.deletedRowIds(entity: .behaviorTags, in: context)
         for row in rows {
-            let pred = #Predicate<BehaviorTag> { $0.id == row.id }
             if tombstoned.contains(row.id) { continue }
+            let pred = #Predicate<BehaviorTag> { $0.id == row.id }
             let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let tag = existing ?? BehaviorTag(tagName: row.tagName)
@@ -834,6 +841,15 @@ struct SyncService {
             tag.createdAt = row.createdAt
             tag.updatedAt = row.updatedAt
             tag.athlete = athlete
+            // Restore the check-in link (v1.7.2 / audit M3). Dropping it left a pulled tag
+            // attached to no check-in, so every consumer that reaches tags through
+            // `WellnessCheckIn.behaviorTags` — the correlation engine, the check-in
+            // prefill — saw an empty set on a restored device.
+            if let checkInId = row.wellnessCheckInId {
+                let checkInPredicate = #Predicate<WellnessCheckIn> { $0.id == checkInId }
+                tag.wellnessCheckIn = try? context
+                    .fetch(FetchDescriptor(predicate: checkInPredicate)).first
+            }
             if existing == nil { context.insert(tag) }
         }
         do {
@@ -866,8 +882,8 @@ struct SyncService {
         // local, so it holds even before migration 010 lets the deletion reach the server.
         let tombstoned = SyncTombstone.deletedRowIds(entity: .personalRecords, in: context)
         for row in rows {
-            let pred = #Predicate<PersonalRecord> { $0.id == row.id }
             if tombstoned.contains(row.id) { continue }
+            let pred = #Predicate<PersonalRecord> { $0.id == row.id }
             let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
             if let existing, existing.updatedAt > row.updatedAt { continue }
             let pr = existing ?? PersonalRecord(exerciseName: row.exerciseName ?? "", value: row.value ?? 0)
@@ -1185,6 +1201,55 @@ struct DateOnly: Codable, Equatable {
     }
 }
 
+/// A row that exists at most once per athlete per calendar day.
+///
+/// Recovery snapshots, workload snapshots and wellness check-ins are all derived from a
+/// day rather than from an event, so their real identity is (athlete, day) — the row id is
+/// an implementation detail of whichever device wrote them first.
+protocol DailyAthleteRow: PersistentModel {
+    var id: UUID { get }
+    var athlete: Athlete? { get }
+}
+
+extension RecoverySnapshot: DailyAthleteRow {}
+extension WorkloadSnapshot: DailyAthleteRow {}
+extension WellnessCheckIn: DailyAthleteRow {}
+
+/// Resolves an incoming row to the local row it belongs to, by id and then by day
+/// (v1.7.2 / audit M5).
+///
+/// Pulls used to match on the row id alone. A row another device created for a day this
+/// device already had did not match, so it landed as a SECOND local row for that day —
+/// and the hero recovery score then depended on which of the two a fetch happened to
+/// return first. Matching by day as well, and adopting the server's id onto the row that
+/// matched, makes the two devices converge from that point on.
+///
+/// Built once per pull rather than per row: a year of history is a few hundred rows and
+/// re-fetching them for each incoming row was the obvious way to make this quadratic.
+struct DailyRowIndex<T: DailyAthleteRow> {
+    private var byId: [UUID: T] = [:]
+    private var byDay: [Date: T] = [:]
+    private let dayKey: KeyPath<T, Date>
+
+    init(athlete: Athlete, dayKey: KeyPath<T, Date>, in context: ModelContext) {
+        self.dayKey = dayKey
+        let rows = ((try? context.fetch(FetchDescriptor<T>())) ?? [])
+            .filter { $0.athlete?.id == athlete.id }
+        for row in rows { register(row) }
+    }
+
+    func match(id: UUID, day: Date) -> T? {
+        byId[id] ?? byDay[CalendarDay.startOfDay(for: day, in: .current)]
+    }
+
+    /// Registers a row created during the pull, so two server rows for one day collapse
+    /// onto a single local row rather than racing each other.
+    mutating func register(_ row: T) {
+        byId[row.id] = row
+        byDay[CalendarDay.startOfDay(for: row[keyPath: dayKey], in: .current)] = row
+    }
+}
+
 /// One deletion, on its own table (v1.7.2 / audit H6). Keeping deletions out of the entity
 /// tables is what makes them survive a full-row upsert from a device that still holds the
 /// row — see `SyncTombstone` for the argument.
@@ -1218,10 +1283,16 @@ struct AthleteRow: Codable {
 struct BehaviorTagRow: Codable {
     let id: UUID
     let athleteId: UUID
+    /// A full timestamp, not a `DateOnly`: the `behavior_tags.date` column is timestamptz
+    /// (asserted by migration 011, which is the first committed DDL for this table).
     let date: Date
     let tagName: String
     let isActive: Bool
     let isCustom: Bool
+    /// The check-in this tag was recorded against (v1.7.2 / audit M3). The pull used to
+    /// drop this link, so a tag restored on a new device belonged to no check-in and every
+    /// consumer that reaches tags through `WellnessCheckIn.behaviorTags` saw an empty set.
+    let wellnessCheckInId: UUID?
     let createdAt: Date
     let updatedAt: Date
 
@@ -1232,6 +1303,7 @@ struct BehaviorTagRow: Codable {
         self.tagName = tag.tagName
         self.isActive = tag.isActive
         self.isCustom = tag.isCustom
+        self.wellnessCheckInId = tag.wellnessCheckIn?.id
         self.createdAt = tag.createdAt
         self.updatedAt = tag.updatedAt
     }
