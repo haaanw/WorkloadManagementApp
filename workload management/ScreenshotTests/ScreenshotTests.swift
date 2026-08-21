@@ -23,8 +23,17 @@ final class ScreenshotTests: XCTestCase {
 
     let app = XCUIApplication()
 
+    /// Swallows issues raised while a launch attempt is being retried (v1.7.2 codebase audit).
+    /// Set only for the duration of a non-final attempt in `launchWithRetry`.
+    private var isRetryingLaunch = false
+
     override func setUpWithError() throws {
         continueAfterFailure = false
+    }
+
+    override func record(_ issue: XCTIssue) {
+        guard !isRetryingLaunch else { return }
+        super.record(issue)
     }
 
     // MARK: - Launch helpers
@@ -39,13 +48,51 @@ final class ScreenshotTests: XCTestCase {
                 app.launchArguments += ["-AppleLocale", "zh_CN"]
             }
         }
-        app.launch()
+        launchWithRetry()
         if waitForTabBar {
             XCTAssertTrue(
                 app.otherElements["tabbar.ink"].waitForExistence(timeout: 15),
                 "InkTabBar did not appear — SCREENSHOT_MODE bootstrap failed"
             )
         }
+    }
+
+    /// Launches the app, retrying a simulator boot flake.
+    ///
+    /// Seen three times across the 1.7.1 UAT rounds, always the same shape:
+    /// `FBSOpenApplicationServiceErrorDomain Code=1 … RequestDenied` from SpringBoard, on the
+    /// first launch after a cold simulator boot, passing on the very next run with no code
+    /// change. That is infrastructure, not a product defect, but it fails the whole suite and
+    /// costs a full re-run to distinguish from a real regression.
+    ///
+    /// A retry needs two things. `launch()` reports a boot failure as an XCTIssue rather than
+    /// a thrown error, so `continueAfterFailure` must be on for the attempt to be survivable,
+    /// and the issue itself is swallowed by `record(_:)` — but ONLY on a non-final attempt, so
+    /// a genuinely unlaunchable app still fails loudly with its original diagnostics. The
+    /// terminate between attempts clears a half-launched process, which is the state that
+    /// makes an immediate retry fail for the same reason as the first try.
+    private func launchWithRetry(attempts: Int = 3) {
+        let previousContinueAfterFailure = continueAfterFailure
+        defer {
+            continueAfterFailure = previousContinueAfterFailure
+            isRetryingLaunch = false
+        }
+
+        for attempt in 1...attempts {
+            let isFinalAttempt = attempt == attempts
+            isRetryingLaunch = !isFinalAttempt
+            continueAfterFailure = !isFinalAttempt || previousContinueAfterFailure
+
+            app.launch()
+            if app.wait(for: .runningForeground, timeout: 30) { return }
+
+            guard !isFinalAttempt else { break }
+            app.terminate()
+            _ = app.wait(for: .notRunning, timeout: 10)
+            Thread.sleep(forTimeInterval: 2)
+        }
+
+        XCTFail("The app did not reach the foreground after \(attempts) launch attempts")
     }
 
     private func launchAuthenticatedApp() {
