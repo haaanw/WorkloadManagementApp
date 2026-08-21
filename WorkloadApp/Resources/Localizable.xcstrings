@@ -1,57 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "setEntry.bw" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BW"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自重"
-          }
-        }
-      }
-    },
-    "set.summary.bwReps" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "BW × %d"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "自重 × %d"
-          }
-        }
-      }
-    },
-    "workout.label.elapsed" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "elapsed"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "已进行"
-          }
-        }
-      }
-    },
     "" : {
 
     },
@@ -1117,6 +1066,15 @@
         }
       }
     },
+    "Add set" : {
+
+    },
+    "Adding your set" : {
+
+    },
+    "Adding…" : {
+
+    },
     "alert.error.title" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1619,6 +1577,9 @@
         }
       }
     },
+    "Bench press 80 for 5" : {
+
+    },
     "bodyRegion.ankle" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1844,6 +1805,9 @@
       }
     },
     "Could not save session" : {
+
+    },
+    "Couldn't read that as a set. Fix the words and try again." : {
 
     },
     "CrossFit" : {
@@ -2564,6 +2528,9 @@
           }
         }
       }
+    },
+    "Edit the words you said" : {
+
     },
     "empty.noExercises" : {
       "extractionState" : "manual",
@@ -5006,6 +4973,9 @@
         }
       }
     },
+    "Listening…" : {
+
+    },
     "Load" : {
 
     },
@@ -5178,6 +5148,12 @@
           }
         }
       }
+    },
+    "Log by voice" : {
+
+    },
+    "Logged" : {
+
     },
     "Lower" : {
 
@@ -7330,6 +7306,9 @@
         }
       }
     },
+    "New exercise" : {
+
+    },
     "nextMatch.action.change" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -8170,6 +8149,9 @@
           }
         }
       }
+    },
+    "Parsing…" : {
+
     },
     "paywall.title" : {
       "extractionState" : "manual",
@@ -10797,17 +10779,6 @@
         }
       }
     },
-    "radialPicker.hint" : {
-      "extractionState" : "extracted_with_value",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "new",
-            "value" : "Long press to choose"
-          }
-        }
-      }
-    },
     "readinessZone.high" : {
       "extractionState" : "extracted_with_value",
       "localizations" : {
@@ -11683,6 +11654,9 @@
           }
         }
       }
+    },
+    "Record workout by voice" : {
+
     },
     "Recovery" : {
 
@@ -12778,6 +12752,23 @@
         }
       }
     },
+    "set.summary.bwReps" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BW × %d"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自重 × %d"
+          }
+        }
+      }
+    },
     "set.summary.distDur" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12893,6 +12884,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "开"
+          }
+        }
+      }
+    },
+    "setEntry.bw" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "BW"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自重"
           }
         }
       }
@@ -13873,6 +13881,9 @@
       }
     },
     "Start" : {
+
+    },
+    "Stop listening" : {
 
     },
     "strainRiskZone.elevated" : {
@@ -15156,6 +15167,12 @@
       }
     },
     "TSB" : {
+
+    },
+    "Type" : {
+
+    },
+    "Type a set instead of speaking" : {
 
     },
     "Unchanged week over week" : {
@@ -16581,6 +16598,613 @@
         }
       }
     },
+    "voice.capture.editor.a11y" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Workout notes"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练记录文本"
+          }
+        }
+      }
+    },
+    "voice.capture.logManually" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log manually"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "手动记录"
+          }
+        }
+      }
+    },
+    "voice.capture.mic.start" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音"
+          }
+        }
+      }
+    },
+    "voice.capture.mic.start.a11y" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record workout by voice"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音记录本次训练"
+          }
+        }
+      }
+    },
+    "voice.capture.mic.stop" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止"
+          }
+        }
+      }
+    },
+    "voice.capture.mic.stop.a11y" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop recording"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止录音"
+          }
+        }
+      }
+    },
+    "voice.capture.navTitle" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log a session"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录一次训练"
+          }
+        }
+      }
+    },
+    "voice.capture.parsing" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parsing…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "解析中…"
+          }
+        }
+      }
+    },
+    "voice.capture.parsing.a11y" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Parsing your note"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在解析你的记录"
+          }
+        }
+      }
+    },
+    "voice.capture.placeholder" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Say or type what you did — 'bench press, three sets of eight at eighty kilos…'"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "说出或输入你练了什么——「卧推，三组，每组八次八十公斤……」"
+          }
+        }
+      }
+    },
+    "voice.capture.recording" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "REC %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "REC %@"
+          }
+        }
+      }
+    },
+    "voice.capture.recording.a11y" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recording, elapsed %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录音中，已用时 %@"
+          }
+        }
+      }
+    },
+    "voice.capture.retry" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Try again"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重试"
+          }
+        }
+      }
+    },
+    "voice.capture.submit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log it"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录"
+          }
+        }
+      }
+    },
+    "voice.dictation.adding" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adding…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加中…"
+          }
+        }
+      }
+    },
+    "voice.dictation.adding.a11y" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Adding your set"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在添加训练组"
+          }
+        }
+      }
+    },
+    "voice.dictation.fallback.a11y" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit the words you said"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "编辑你说的内容"
+          }
+        }
+      }
+    },
+    "voice.dictation.listening" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Listening…"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "聆听中…"
+          }
+        }
+      }
+    },
+    "voice.dictation.logged" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Logged"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已记录"
+          }
+        }
+      }
+    },
+    "voice.dictation.prompt" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log by voice"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音记录"
+          }
+        }
+      }
+    },
+    "voice.dictation.record.a11y" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record workout by voice"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音记录本次训练"
+          }
+        }
+      }
+    },
+    "voice.dictation.stop" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Stop listening"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "停止聆听"
+          }
+        }
+      }
+    },
+    "voice.dictation.submit" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add set"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "添加一组"
+          }
+        }
+      }
+    },
+    "voice.dictation.type" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打字"
+          }
+        }
+      }
+    },
+    "voice.dictation.type.a11y" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Type a set instead of speaking"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "改为手动输入训练组"
+          }
+        }
+      }
+    },
+    "voice.dictation.typePlaceholder" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bench press 80 for 5"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "卧推 80 做 5"
+          }
+        }
+      }
+    },
+    "voice.dictation.unparsed" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't read that as a set. Fix the words and try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法识别为一组训练。修改文字后重试。"
+          }
+        }
+      }
+    },
+    "voice.error.audio" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The microphone couldn't start. Try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风无法启动。请重试。"
+          }
+        }
+      }
+    },
+    "voice.error.offline" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No internet connection. Check your connection and try again."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "没有网络连接。请检查网络后重试。"
+          }
+        }
+      }
+    },
+    "voice.error.parse" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Could not understand that workout: %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无法理解这次训练记录：%@"
+          }
+        }
+      }
+    },
+    "voice.error.permission" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Microphone or speech access is off. Turn it on in Settings."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "麦克风或语音识别权限已关闭。请在设置中开启。"
+          }
+        }
+      }
+    },
+    "voice.error.quota" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You've hit today's voice logging limit. Log manually for now."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日语音解析次数已达上限。请先手动记录。"
+          }
+        }
+      }
+    },
+    "voice.error.recognizer" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Speech recognition isn't available right now."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音识别当前不可用。"
+          }
+        }
+      }
+    },
+    "voice.review.newExercise" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "New exercise"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "新动作"
+          }
+        }
+      }
+    },
+    "voice.stash.discard" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Discard"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "丢弃"
+          }
+        }
+      }
+    },
+    "voice.stash.restore" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Restore"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复"
+          }
+        }
+      }
+    },
+    "voice.stash.title" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resume your last note?"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复上次的记录？"
+          }
+        }
+      }
+    },
     "warning.acwrCaution" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17380,6 +18004,23 @@
         }
       }
     },
+    "workout.label.elapsed" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "elapsed"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "已进行"
+          }
+        }
+      }
+    },
     "workout.pr.title.plural" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -17563,6 +18204,22 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "点击 + 记录你的第一次训练。"
+          }
+        }
+      }
+    },
+    "workoutLog.empty.bodyCapture" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tap the mic and say what you did."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "点按麦克风，说出你练了什么。"
           }
         }
       }

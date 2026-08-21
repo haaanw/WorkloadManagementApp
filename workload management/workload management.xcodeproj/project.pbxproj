@@ -217,6 +217,11 @@
 		FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000002 /* FatigueAttentionBanner.swift */; };
 		FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1601010000000000000002 /* WorkoutLLMImportService.swift */; };
 		FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1602010000000000000002 /* WorkoutImportSheet.swift */; };
+		FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702010000000000000002 /* SpeechCaptureService.swift */; };
+		FF1702020000000000000001 /* LogCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702020000000000000002 /* LogCaptureSheet.swift */; };
+		FF1702030000000000000001 /* WorkoutVoiceLogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702030000000000000002 /* WorkoutVoiceLogService.swift */; };
+		FF1702040000000000000001 /* VoiceSetUtteranceParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */; };
+		FF1702050000000000000001 /* VoiceDictationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702050000000000000002 /* VoiceDictationCard.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -450,6 +455,11 @@
 		FF0801010000000000000002 /* FatigueAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueAttentionBanner.swift; sourceTree = "<group>"; };
 		FF1601010000000000000002 /* WorkoutLLMImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLLMImportService.swift; sourceTree = "<group>"; };
 		FF1602010000000000000002 /* WorkoutImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportSheet.swift; sourceTree = "<group>"; };
+		FF1702010000000000000002 /* SpeechCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechCaptureService.swift; sourceTree = "<group>"; };
+		FF1702020000000000000002 /* LogCaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogCaptureSheet.swift; sourceTree = "<group>"; };
+		FF1702030000000000000002 /* WorkoutVoiceLogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutVoiceLogService.swift; sourceTree = "<group>"; };
+		FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSetUtteranceParser.swift; sourceTree = "<group>"; };
+		FF1702050000000000000002 /* VoiceDictationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceDictationCard.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -653,6 +663,9 @@
 				62324BFB2F66CB0E00A9C2BE /* AutoregulationEngine.swift */,
 				EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */,
 				62324BFC2F66CB0E00A9C2BE /* HealthKitService.swift */,
+				FF1702010000000000000002 /* SpeechCaptureService.swift */,
+				FF1702030000000000000002 /* WorkoutVoiceLogService.swift */,
+				FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */,
 				62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */,
 				62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */,
 				DD2602000000000000000001 /* BaselineEngine.swift */,
@@ -830,6 +843,8 @@
 				1101010100000000000000C2 /* TemplateCarouselSection.swift */,
 				1101010100000000000000D2 /* TemplatePreviewSheet.swift */,
 				FF1602010000000000000002 /* WorkoutImportSheet.swift */,
+				FF1702020000000000000002 /* LogCaptureSheet.swift */,
+				FF1702050000000000000002 /* VoiceDictationCard.swift */,
 				1101010100000000000000E2 /* TemplatePickerSheet.swift */,
 				EE4203010000000000000001 /* PlanTodaySheet.swift */,
 				CB4701010000000000000001 /* NextMatchSection.swift */,
@@ -1226,6 +1241,11 @@
 				627EC1902F75917900B89262 /* TemplateEditorSheet.swift in Sources */,
 				FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */,
 				FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */,
+				FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */,
+				FF1702020000000000000001 /* LogCaptureSheet.swift in Sources */,
+				FF1702030000000000000001 /* WorkoutVoiceLogService.swift in Sources */,
+				FF1702040000000000000001 /* VoiceSetUtteranceParser.swift in Sources */,
+				FF1702050000000000000001 /* VoiceDictationCard.swift in Sources */,
 				18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */,
 				2301010100000000000000A1 /* LocaleManager.swift in Sources */,
 				2301020100000000000000A1 /* LanguagePickerView.swift in Sources */,
@@ -1439,6 +1459,8 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa never writes data to Apple Health. This notice is required because the sign-in flow references a HealthKit API that can request write access; Tuwa only ever requests read access.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Tuwa uses the microphone so you can log workouts by voice.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Tuwa transcribes your voice on-device to turn what you say into a workout log.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
@@ -1476,6 +1498,8 @@
 				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				INFOPLIST_KEY_NSHealthShareUsageDescription = "Tuwa reads your heart rate variability, resting heart rate, sleep, workout heart rate, body temperature, and VO2 Max to calculate your daily recovery score and training load.";
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa never writes data to Apple Health. This notice is required because the sign-in flow references a HealthKit API that can request write access; Tuwa only ever requests read access.";
+				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Tuwa uses the microphone so you can log workouts by voice.";
+				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Tuwa transcribes your voice on-device to turn what you say into a workout log.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";

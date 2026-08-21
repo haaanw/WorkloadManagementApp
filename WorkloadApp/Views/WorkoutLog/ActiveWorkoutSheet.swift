@@ -3,9 +3,18 @@ import SwiftData
 
 struct ActiveWorkoutSheet: View {
     var template: WorkoutTemplate?
-    /// The verdict-resolved plan to launch. Mutually exclusive with `template` (see the two inits):
-    /// a sheet is EITHER a template/blank session OR a resolved-prescription session — never both.
+    /// The verdict-resolved plan to launch. Mutually exclusive with `template` (see the three inits):
+    /// a sheet is EITHER a template/blank session OR a resolved-prescription session OR a
+    /// voice/text-parsed session — never a combination.
     var resolvedPlan: ResolvedSessionPlan?
+    /// The narrated session to review before saving (voice/text logging, Phase C). Mutually exclusive
+    /// with both paths above. Unlike them this describes work ALREADY DONE, so its sets arrive
+    /// committed (`isDone == true`) and nothing is overlaid onto the spoken numbers.
+    private let parsedSession: WorkoutVoiceLogService.ParsedSessionDraft?
+    /// Session notes to persist with the saved session. Currently carried only by the voice-capture
+    /// "log manually" fallback, which hands the raw transcript to a blank sheet so the athlete never
+    /// loses what they said while re-entering it by hand.
+    private let initialNotes: String?
 
     @Environment(AppContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
@@ -13,6 +22,9 @@ struct ActiveWorkoutSheet: View {
     @Environment(\.locale) private var locale
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
+    // The athlete's own movements, needed by the live voice ingest so a spoken name resolves
+    // against the same pool the picker and the parsed-session path use (catalog + customs).
+    @Query private var customExercises: [CustomExercise]
     @State private var sessionName = ""
     @State private var sportType: SportType = .lifting
     @State private var sessionType: SessionType = .strength
@@ -45,13 +57,20 @@ struct ActiveWorkoutSheet: View {
     // Zero-done save guard: true when Finish is tapped but NO set is marked done. Saving would
     // log an empty session, so Cancel keeps editing and Discard exits without persistence.
     @State private var showZeroDoneGuard = false
+    // Folded names the parser could not resolve against the catalog or the athlete's customs.
+    // Filled once on the parsed-session load; drives the "NEW EXERCISE" card annotation.
+    @State private var unresolvedNames: Set<String> = []
 
     private var athlete: Athlete? { athletes.first }
 
-    /// Template / blank session path (unchanged). Never carries a resolved plan.
-    init(template: WorkoutTemplate? = nil) {
+    /// Template / blank session path (unchanged). Never carries a resolved plan or a parsed session.
+    /// `initialNotes` is the only addition: the voice-capture "log manually" fallback seeds the blank
+    /// sheet with the transcript so the spoken text survives into the saved session.
+    init(template: WorkoutTemplate? = nil, initialNotes: String? = nil) {
         self.template = template
         self.resolvedPlan = nil
+        self.parsedSession = nil
+        self.initialNotes = initialNotes
         let initialSport = template?.sportType ?? .lifting
         let initialSession = template?.sessionType ?? .strength
         _sportType = State(initialValue: initialSport)
@@ -69,12 +88,32 @@ struct ActiveWorkoutSheet: View {
     init(resolvedPlan: ResolvedSessionPlan) {
         self.template = nil
         self.resolvedPlan = resolvedPlan
+        self.parsedSession = nil
+        self.initialNotes = nil
         _sportType = State(initialValue: resolvedPlan.sportType)
         _sessionType = State(initialValue: resolvedPlan.sessionType)
         _sessionStartChoice = State(
             initialValue: SessionStartMapper.choice(
                 sportType: resolvedPlan.sportType,
                 sessionType: resolvedPlan.sessionType
+            )
+        )
+    }
+
+    /// Voice/text-parsed session path: a session the athlete NARRATED after doing it. Mutually
+    /// exclusive with the two paths above — both are forced nil so no two can combine. The review
+    /// surface is the same sheet on purpose (one editor for every way a session reaches the log).
+    init(parsedSession: WorkoutVoiceLogService.ParsedSessionDraft) {
+        self.template = nil
+        self.resolvedPlan = nil
+        self.parsedSession = parsedSession
+        self.initialNotes = nil
+        _sportType = State(initialValue: parsedSession.sportType)
+        _sessionType = State(initialValue: parsedSession.sessionType)
+        _sessionStartChoice = State(
+            initialValue: SessionStartMapper.choice(
+                sportType: parsedSession.sportType,
+                sessionType: parsedSession.sessionType
             )
         )
     }
@@ -165,8 +204,15 @@ struct ActiveWorkoutSheet: View {
 
                     // Exercise entries
                     ForEach(Array(entries.enumerated()), id: \.element.id) { entryIndex, _ in
-                        ExerciseEntryCard(entry: $entries[entryIndex], sportType: sportType, weightUnit: athlete?.weightUnit ?? .kg)
-                            .entranceReveal(index: entryIndex)
+                        ExerciseEntryCard(
+                            entry: $entries[entryIndex],
+                            sportType: sportType,
+                            weightUnit: athlete?.weightUnit ?? .kg,
+                            isNewExercise: unresolvedNames.contains(
+                                Self.foldedName(entries[entryIndex].exerciseName)
+                            )
+                        )
+                        .entranceReveal(index: entryIndex)
                         Rectangle()
                             .fill(ColorTokens.divider)
                             .frame(height: 0.5)
@@ -177,6 +223,21 @@ struct ActiveWorkoutSheet: View {
                             entries.remove(atOffsets: indexSet)
                         }
                     }
+
+                    // Live incremental voice logging (Phase D). Inline, never a sheet: the set
+                    // list above stays visible so a spoken set is SEEN landing. Present on every
+                    // path — a narrated session can be extended live, the same way a template
+                    // session can. The card owns the microphone; this sheet owns the appending.
+                    VoiceDictationCard { text in
+                        await ingestUtterance(text)
+                    }
+                    .padding(.horizontal, Spacing.sm)
+                    .padding(.vertical, Spacing.xs)
+                    .background(ColorTokens.background)
+
+                    Rectangle()
+                        .fill(ColorTokens.divider)
+                        .frame(height: 0.5)
 
                     // Add exercise button
                     Button {
@@ -321,6 +382,8 @@ struct ActiveWorkoutSheet: View {
                     loadFromTemplate()
                 } else if let resolvedPlan, entries.isEmpty {
                     loadFromResolvedPlan(resolvedPlan)
+                } else if let parsedSession, entries.isEmpty {
+                    loadFromParsedSession(parsedSession)
                 }
             }
             // Keyboard avoidance (round 4): SwiftUI's automatic scroll surfaces only the
@@ -689,6 +752,361 @@ struct ActiveWorkoutSheet: View {
         }
     }
 
+    // MARK: - Parsed-Session Loading (voice/text → workout)
+
+    /// Populate drafts DIRECTLY from a narrated session. Like the resolved-plan path this bypasses
+    /// every overlay the template path applies — NO `ProgressionEngine`, NO history prefill, NO
+    /// template fallback: the SPOKEN numbers ARE the session, and a suggestion written over them
+    /// would silently rewrite what the athlete reported. `sourceTemplate` stays nil (no FillButtonBar,
+    /// no usage stats). Sets arrive committed (`isDone == true` from the mapper) because the work is
+    /// already done — the sheet is a review surface here, not a live logger.
+    private func loadFromParsedSession(_ draft: WorkoutVoiceLogService.ParsedSessionDraft) {
+        sessionName = draft.sessionName
+        sportType = draft.sportType
+        sessionType = draft.sessionType
+        sessionStartChoice = SessionStartMapper.choice(
+            sportType: draft.sportType,
+            sessionType: draft.sessionType
+        )
+        entries = draft.entries
+        sessionRPE = Double(draft.sessionRPE ?? 5)
+        unresolvedNames = Set(draft.unresolvedExerciseNames.map(Self.foldedName))
+
+        // Honest duration: the elapsed clock starts when the sheet OPENS, so a narrated session
+        // would otherwise save as the two minutes spent reviewing it — and durationSeconds feeds
+        // internal load. Back-date the start so elapsed reflects the session the athlete described.
+        if let minutes = draft.durationMinutes, minutes > 0 {
+            startTime = Date.now.addingTimeInterval(-Double(minutes) * 60)
+        }
+
+        persistUnresolvedExercises(named: draft.unresolvedExerciseNames, from: draft.entries)
+    }
+
+    /// Persist names the parser could not resolve as the athlete's own `CustomExercise` rows, so the
+    /// next session (spoken, typed, or picked) finds them locally instead of re-asking the parser.
+    /// Deduped case- and diacritic-insensitively against BOTH the existing custom rows and the
+    /// bundled catalog, matching `ExercisePickerView.instantlyAddSearchText`. Runs off the render
+    /// pass so the review surface never waits on a SwiftData save.
+    private func persistUnresolvedExercises(named names: [String], from drafts: [ExerciseEntryDraft]) {
+        guard !names.isEmpty else { return }
+        guard let athleteID = athlete?.id else { return }
+        // Only value types cross into the Task (ids + enums), never the @Model objects — the same
+        // discipline `instantlyAddSearchText` follows, so the async hop stays free of live models.
+        let context = modelContext
+        let sport = sportType
+        let pending: [(name: String, category: ExerciseCategory, muscle: MuscleGroup)] = names
+            .map { $0.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+            .map { name in
+                // Category/muscle come from the entry the parser built for this name, so the saved
+                // row carries the same classification the athlete is about to review. `.fullBody` is
+                // the never-nil floor the movement bank guarantees.
+                let source = drafts.first { Self.foldedName($0.exerciseName) == Self.foldedName(name) }
+                return (name, source?.exerciseCategory ?? .compound, source?.muscleGroup ?? .fullBody)
+            }
+        guard !pending.isEmpty else { return }
+
+        Task { @MainActor in
+            let athleteDescriptor = FetchDescriptor<Athlete>(predicate: #Predicate { $0.id == athleteID })
+            guard let owner = try? context.fetch(athleteDescriptor).first else { return }
+
+            let existing = (try? context.fetch(FetchDescriptor<CustomExercise>())) ?? []
+            var known = Set(existing.map { Self.foldedName($0.name) })
+            known.formUnion(ExerciseDatabase.all.map { Self.foldedName($0.name) })
+
+            var inserted = false
+            for item in pending where known.insert(Self.foldedName(item.name)).inserted {
+                let exercise = CustomExercise(
+                    name: item.name,
+                    exerciseCategory: item.category,
+                    muscleGroup: item.muscle,
+                    sportType: sport
+                )
+                exercise.athlete = owner
+                context.insert(exercise)
+                inserted = true
+            }
+            guard inserted else { return }
+            do {
+                try context.save()
+            } catch {
+                print("Failed to persist parsed custom exercises: \(error)")
+            }
+        }
+    }
+
+    /// Case + diacritic folding matching `ExerciseCatalogStore`'s normalization, so name matching
+    /// here agrees with the picker and the catalog index.
+    private static func foldedName(_ name: String) -> String {
+        name.folding(
+            options: [.caseInsensitive, .diacriticInsensitive],
+            locale: Locale(identifier: "en_US_POSIX")
+        )
+    }
+
+    // MARK: - Live Voice Ingest (Phase D)
+
+    /// Turn ONE utterance ("eighty for five", "same weight, five more", "bench press 80 kilos
+    /// times 5") into an appended set. Two tiers, deliberately in this order:
+    ///
+    /// 1. `VoiceSetUtteranceParser` — on-device, offline, instant, and free. It answers the shapes
+    ///    an athlete actually speaks between sets, which is the overwhelming majority of traffic.
+    /// 2. The LLM log parser — only when the local grammar is not confident. It costs a round trip
+    ///    and a quota unit, so it is the exception, not the path.
+    ///
+    /// Anything neither tier can apply comes back as `.needsFallbackChip`: the card keeps the
+    /// athlete's words in an editable field. An utterance is never silently dropped.
+    @MainActor
+    private func ingestUtterance(_ text: String) async -> UtteranceOutcome {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return .needsFallbackChip }
+
+        let outcome: UtteranceOutcome
+        if let parsed = VoiceSetUtteranceParser.parse(trimmed, weightUnit: athlete?.weightUnit ?? .kg) {
+            outcome = applyParsedUtterance(parsed)
+        } else {
+            outcome = await ingestViaLLM(trimmed)
+        }
+
+        // The same commit haptic the per-set Log action fires — logging a set by voice must feel
+        // identical to logging it by hand.
+        if case .added = outcome { Haptics.success() }
+        return outcome
+    }
+
+    /// Where a spoken set belongs.
+    private enum UtteranceTarget {
+        /// An exercise already in this session.
+        case existing(Int)
+        /// A movement not in the session yet. `isUnresolved` marks a name that matched neither the
+        /// catalog nor the athlete's customs, so it is persisted as a custom exercise and stamped
+        /// "NEW EXERCISE" on its card — the same treatment the parsed-session path gives.
+        case new(name: String, category: ExerciseCategory, muscle: MuscleGroup?, isUnresolved: Bool)
+        /// Nothing to attach the set to (no name spoken and no entries at all).
+        case unattached
+    }
+
+    /// Apply a locally parsed utterance. Every branch that cannot honestly produce a logged set
+    /// returns `.needsFallbackChip` rather than inventing one — a fabricated set poisons PRs,
+    /// volume, and the load pipeline far worse than one round of manual repair.
+    private func applyParsedUtterance(_ result: VoiceSetUtteranceParser.Result) -> UtteranceOutcome {
+        if result.repeatLast {
+            return repeatLastDoneSet()
+        }
+
+        switch resolveTarget(spokenName: result.exerciseName) {
+        case .existing(let index):
+            var newSet = SetDraft()
+            newSet.reps = result.reps
+            // "same weight" resolves against the TARGET entry's own history in this session —
+            // the last set of this movement that actually carried a weight.
+            newSet.weightKg = result.sameWeight ? lastWeightKg(in: entries[index]) : result.weightKg
+            newSet.durationSeconds = result.durationSeconds
+            newSet.rpe = result.rpe
+            // An RPE alone is not a set. Without at least one measurement there is nothing to log,
+            // so the words go back to the athlete instead of becoming an empty done row.
+            guard newSet.reps != nil || newSet.weightKg != nil || newSet.durationSeconds != nil else {
+                return .needsFallbackChip
+            }
+            newSet.isDone = true
+            withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                entries[index].sets.append(newSet)
+            }
+            return .added(exerciseName: entries[index].exerciseName)
+
+        case .new(let name, let category, let muscle, let isUnresolved):
+            var draft = ExerciseEntryDraft(
+                exerciseName: name,
+                exerciseCategory: category,
+                muscleGroup: muscle
+            )
+            var newSet = SetDraft()
+            newSet.reps = result.reps
+            // No `sameWeight` antecedent exists for a movement that isn't in the session yet.
+            newSet.weightKg = result.weightKg
+            newSet.durationSeconds = result.durationSeconds
+            newSet.rpe = result.rpe
+            // Naming a movement with no numbers ("next up, incline bench") is a legitimate way to
+            // open an exercise — it just opens an UNDONE shell, never a fabricated logged set.
+            newSet.isDone = newSet.reps != nil || newSet.weightKg != nil || newSet.durationSeconds != nil
+            draft.sets = [newSet]
+
+            if isUnresolved {
+                unresolvedNames.insert(Self.foldedName(name))
+                persistUnresolvedExercises(named: [name], from: [draft])
+            }
+            withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                entries.append(draft)
+            }
+            return .added(exerciseName: name)
+
+        case .unattached:
+            return .needsFallbackChip
+        }
+    }
+
+    /// Resolve which entry a spoken utterance belongs to.
+    ///
+    /// A spoken name is matched against THIS SESSION's entries first — mid-workout, "bench" almost
+    /// always means the bench entry already on screen, and matching the catalog first would open a
+    /// duplicate card. Only an unmatched name goes to `resolveLocalExercise` (catalog + customs),
+    /// whose canonical name keeps history and PRs continuous across a spoken variant.
+    ///
+    /// With no name spoken, the set joins the exercise that owns the most recent LOGGED set — the
+    /// one being worked on — falling back to the last entry when nothing is logged yet.
+    private func resolveTarget(spokenName: String?) -> UtteranceTarget {
+        let spoken = spokenName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        guard !spoken.isEmpty else {
+            if let location = lastDoneSetLocation() { return .existing(location.entry) }
+            if !entries.isEmpty { return .existing(entries.count - 1) }
+            return .unattached
+        }
+
+        if let index = entryIndex(matching: spoken) { return .existing(index) }
+
+        if let resolved = WorkoutLLMImportService.resolveLocalExercise(
+            name: spoken,
+            sportType: sportType,
+            catalogExercises: ExerciseDatabase.all,
+            customExercises: customExercises
+        ) {
+            let canonical = resolved.matchedCatalogName ?? resolved.name
+            // The canonical name can match an entry the spoken variant missed ("incline press" →
+            // "Incline Bench Press"), so check once more before opening a second card for it.
+            if let index = entryIndex(matching: canonical) { return .existing(index) }
+            return .new(
+                name: canonical,
+                category: resolved.exerciseCategory,
+                muscle: resolved.muscleGroup,
+                isUnresolved: false
+            )
+        }
+
+        let classification = ExerciseClassifier.classify(spoken)
+        return .new(
+            name: spoken,
+            category: classification.category,
+            muscle: classification.muscleGroup,
+            isUnresolved: true
+        )
+    }
+
+    /// Clone the most recent LOGGED set in the session as another logged set on the same entry —
+    /// the spoken form of the card's own "Repeat last set" action, and identical in effect.
+    /// A brand-new `SetDraft` is built field by field on purpose: `SetDraft.id` is a stored
+    /// default, so copying the struct would put two rows with the same identity in one `ForEach`.
+    private func repeatLastDoneSet() -> UtteranceOutcome {
+        guard let location = lastDoneSetLocation() else { return .needsFallbackChip }
+        let source = entries[location.entry].sets[location.set]
+
+        var clone = SetDraft()
+        clone.reps = source.reps
+        clone.weightKg = source.weightKg
+        clone.durationSeconds = source.durationSeconds
+        clone.distanceMeters = source.distanceMeters
+        clone.rpe = source.rpe
+        clone.rir = source.rir
+        clone.isWarmup = source.isWarmup
+        clone.isDone = true
+
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            entries[location.entry].sets.append(clone)
+        }
+        return .added(exerciseName: entries[location.entry].exerciseName)
+    }
+
+    /// The most recent logged set, searched from the end of the session backwards.
+    private func lastDoneSetLocation() -> (entry: Int, set: Int)? {
+        for entryIndex in entries.indices.reversed() {
+            if let setIndex = entries[entryIndex].sets.lastIndex(where: { $0.isDone }) {
+                return (entryIndex, setIndex)
+            }
+        }
+        return nil
+    }
+
+    /// The last weight this entry actually carried in this session — the antecedent of "same weight".
+    private func lastWeightKg(in entry: ExerciseEntryDraft) -> Double? {
+        entry.sets.last { $0.weightKg != nil }?.weightKg
+    }
+
+    /// Match a spoken/parsed name against the session's entries. Exact normalized equality wins;
+    /// otherwise the LAST containment match wins, because a session holding both "Bench Press" and
+    /// "Close-Grip Bench Press" means "bench" refers to whichever was added most recently.
+    ///
+    /// `WorkoutLLMImportService`'s own fuzzy scorer is file-private, so this is deliberately the
+    /// narrower rule — containment, not scoring — rather than a second copy of that algorithm.
+    private func entryIndex(matching name: String) -> Int? {
+        let key = Self.matchKey(name)
+        guard !key.isEmpty else { return nil }
+        if let exact = entries.firstIndex(where: { Self.matchKey($0.exerciseName) == key }) {
+            return exact
+        }
+        return entries.lastIndex { entry in
+            let entryKey = Self.matchKey(entry.exerciseName)
+            guard !entryKey.isEmpty else { return false }
+            return entryKey.contains(key) || key.contains(entryKey)
+        }
+    }
+
+    /// Case/diacritic-folded, punctuation-stripped, single-spaced — the same normalization shape
+    /// `WorkoutLLMImportService` uses internally, so "Close-Grip Bench" and "close grip bench" are
+    /// one key.
+    private static func matchKey(_ name: String) -> String {
+        foldedName(name)
+            .replacingOccurrences(of: #"[^a-z0-9]+"#, with: " ", options: .regularExpression)
+            .split(separator: " ")
+            .joined(separator: " ")
+    }
+
+    /// Second tier: hand the utterance to the LLM log parser and merge whatever it returns.
+    /// One utterance parses small, so every entry it produces is merged — sets onto a
+    /// folded-name match, otherwise the whole entry is appended. Sets keep the mapper's
+    /// `isDone == true`: the athlete is reporting work already performed.
+    @MainActor
+    private func ingestViaLLM(_ text: String) async -> UtteranceOutcome {
+        do {
+            let response = try await WorkoutVoiceLogService.parseLoggedWorkoutText(
+                text,
+                client: container.supabase
+            )
+            let draft = WorkoutVoiceLogService.mapToParsedSessionDraft(
+                response,
+                transcript: text,
+                catalogExercises: ExerciseDatabase.all,
+                customExercises: customExercises
+            )
+            return mergeParsedEntries(draft)
+        } catch {
+            // Offline, quota, or an unreadable response — all the same to the card: give the
+            // athlete their words back rather than an error they cannot act on.
+            print("Voice ingest fallback failed: \(error)")
+            return .needsFallbackChip
+        }
+    }
+
+    private func mergeParsedEntries(_ draft: WorkoutVoiceLogService.ParsedSessionDraft) -> UtteranceOutcome {
+        guard !draft.entries.isEmpty else { return .needsFallbackChip }
+
+        var firstTouched: String?
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            for parsed in draft.entries {
+                if let index = entryIndex(matching: parsed.exerciseName) {
+                    entries[index].sets.append(contentsOf: parsed.sets)
+                    if firstTouched == nil { firstTouched = entries[index].exerciseName }
+                } else {
+                    entries.append(parsed)
+                    if firstTouched == nil { firstTouched = parsed.exerciseName }
+                }
+            }
+        }
+
+        guard let firstTouched else { return .needsFallbackChip }
+        unresolvedNames.formUnion(draft.unresolvedExerciseNames.map(Self.foldedName))
+        persistUnresolvedExercises(named: draft.unresolvedExerciseNames, from: draft.entries)
+        return .added(exerciseName: firstTouched)
+    }
+
     // MARK: - Save
 
     /// Total sets the user has actually committed across all exercises.
@@ -758,6 +1176,11 @@ struct ActiveWorkoutSheet: View {
         // "unknown" (pre-v2.1 rows keep nil = genuinely unknown).
         session.matchTier = MatchTier.persistedTier(sessionType: sessionType, selected: matchTier)
         session.sourceTemplateId = sourceTemplate?.id
+        // Carried only by the voice-capture "log manually" fallback (nil on every other path), so
+        // the transcript the athlete re-entered by hand is kept beside the session it describes.
+        if let initialNotes, !initialNotes.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            session.notes = initialNotes
+        }
         session.athlete = athlete
         modelContext.insert(session)
 
@@ -926,7 +1349,11 @@ struct ExerciseEntryCard: View {
     @Binding var entry: ExerciseEntryDraft
     var sportType: SportType = .lifting
     var weightUnit: WeightUnit = .kg
+    /// The parser could not match this movement to the catalog or the athlete's customs, so the
+    /// card says so — quietly, in the annotation voice. Only the parsed-session path sets it.
+    var isNewExercise: Bool = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
 
     private var inputMode: ExerciseInputMode {
         entry.exerciseCategory.inputMode
@@ -981,6 +1408,17 @@ struct ExerciseEntryCard: View {
                     .font(.Tokens.sectionHead)
                     .foregroundStyle(ColorTokens.text1)
                 Spacer()
+                if isNewExercise {
+                    // A provenance stamp beside the movement name — marginalia (v6). The uppercase
+                    // transform belongs to `AnnotationLabel`, so the catalog value stays sentence case.
+                    AnnotationLabel(
+                        LocalePinnedStrings.localized(
+                            "voice.review.newExercise",
+                            defaultValue: "New exercise",
+                            locale: locale
+                        )
+                    )
+                }
                 if let muscle = entry.muscleGroup {
                     // A taxonomy tag beside the movement name — marginalia (v6).
                     AnnotationLabel(muscle.displayName, color: ColorTokens.text2)

@@ -22,6 +22,15 @@ struct WorkoutLogView: View {
     @State private var showTemplatePicker = false
     @State private var selectedTemplateForSession: WorkoutTemplate?
     @State private var showLLMImport = false
+    // Voice/text capture — LogCaptureSheet parses the captured text and hands back a reviewable
+    // draft (onParsed), or the raw text when parsing cannot help (onLogManually).
+    @State private var showLogCapture = false
+    // The parsed session awaiting review, launched as its own ActiveWorkoutSheet path. Mirrors the
+    // verdict's stored-value + boolean chaining; cleared when that sheet closes.
+    @State private var parsedSessionForReview: WorkoutVoiceLogService.ParsedSessionDraft?
+    @State private var showParsedWorkout = false
+    // The transcript carried into a blank session when the athlete falls back to logging by hand.
+    @State private var manualLogText: String?
     @State private var showPlanToday = false
     // The verdict's resolved workout, captured on the card's start action and launched as a
     // dedicated ActiveWorkoutSheet path (verdict → workout). Cleared when that sheet closes.
@@ -95,11 +104,20 @@ struct WorkoutLogView: View {
                                 .foregroundStyle(ColorTokens.text2)
                         }
                         Button {
+                            showLogCapture = true
+                        } label: {
+                            Image(systemName: "mic")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text1)
+                        }
+                        .buttonStyle(.pressable)
+                        .accessibilityIdentifier("workoutLog.voiceLog")
+                        Button {
                             showTemplatePicker = true
                         } label: {
                             Image(systemName: "plus")
                                 .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
+                                .foregroundStyle(ColorTokens.text2)
                         }
                         .buttonStyle(.pressable)
                         .accessibilityIdentifier("workoutLog.startWorkout")
@@ -211,7 +229,12 @@ struct WorkoutLogView: View {
                             SectionContainer {
                                 EmptyStateView(
                                     title: "workoutLog.empty.title",
-                                    message: "workoutLog.empty.body"
+                                    // Phase A: points at the new capture CTA instead of the
+                                    // generic "+" copy. New key (workoutLog.empty.body's VALUE
+                                    // is left alone — editing an existing key's text needs a
+                                    // hand edit to the string catalog, which is out of scope
+                                    // here; a new key auto-extracts on build instead).
+                                    message: "workoutLog.empty.bodyCapture"
                                 )
                                 .padding(.horizontal, Spacing.sm)
                             }
@@ -269,12 +292,14 @@ struct WorkoutLogView: View {
             }
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet(
-                    template: selectedTemplateForSession
+                    template: selectedTemplateForSession,
+                    initialNotes: manualLogText
                 )
             }
             .onChange(of: showActiveWorkout) { _, isPresented in
                 if !isPresented {
                     selectedTemplateForSession = nil
+                    manualLogText = nil
                 }
             }
             .sheet(isPresented: $showResolvedWorkout) {
@@ -312,6 +337,32 @@ struct WorkoutLogView: View {
             }
             .sheet(isPresented: $showUpgrade) {
                 UpgradeSheet(trigger: .history(lockedWeeks: lockedWeeks))
+            }
+            .sheet(isPresented: $showLogCapture) {
+                LogCaptureSheet(
+                    onParsed: { draft in
+                        parsedSessionForReview = draft
+                        showParsedWorkout = true
+                    },
+                    onLogManually: { text in
+                        // Blank session, transcript carried into its notes so the athlete re-enters
+                        // the numbers with their own words in front of them.
+                        selectedTemplateForSession = nil
+                        manualLogText = text
+                        showActiveWorkout = true
+                    }
+                )
+                .environment(container)
+            }
+            .sheet(isPresented: $showParsedWorkout) {
+                if let draft = parsedSessionForReview {
+                    ActiveWorkoutSheet(parsedSession: draft)
+                }
+            }
+            .onChange(of: showParsedWorkout) { _, isPresented in
+                if !isPresented {
+                    parsedSessionForReview = nil
+                }
             }
             .sheet(item: $importRPESheet) { suggestion in
                 ImportRPESheet(suggestion: suggestion) { rpe in

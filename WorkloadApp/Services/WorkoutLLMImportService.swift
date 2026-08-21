@@ -254,6 +254,31 @@ enum WorkoutLLMImportService {
         let sportType: SportType
         let source: ExerciseResolveSource
         let confidence: Double
+        /// The matched candidate's canonical catalog/custom-exercise name, distinct from `name`
+        /// (which is always the requested/spoken name). Populated only for `.localCatalog` and
+        /// `.localCustom` matches in `resolveLocalExercise`; nil for `.llm`/`.manual` sources,
+        /// which have no canonical name to defer to. Callers that need history/PR continuity
+        /// across a fuzzy-matched spoken variant (e.g. voice logging) should prefer this over
+        /// `name` when it is non-nil.
+        let matchedCatalogName: String?
+
+        init(
+            name: String,
+            exerciseCategory: ExerciseCategory,
+            muscleGroup: MuscleGroup,
+            sportType: SportType,
+            source: ExerciseResolveSource,
+            confidence: Double,
+            matchedCatalogName: String? = nil
+        ) {
+            self.name = name
+            self.exerciseCategory = exerciseCategory
+            self.muscleGroup = muscleGroup
+            self.sportType = sportType
+            self.source = source
+            self.confidence = confidence
+            self.matchedCatalogName = matchedCatalogName
+        }
     }
 
     struct LLMExerciseCandidate: Equatable {
@@ -334,7 +359,8 @@ enum WorkoutLLMImportService {
             muscleGroup: match.candidate.muscleGroup,
             sportType: sportType,
             source: match.candidate.source,
-            confidence: match.score
+            confidence: match.score,
+            matchedCatalogName: match.candidate.name
         )
     }
 
