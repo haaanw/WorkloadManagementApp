@@ -392,3 +392,80 @@ struct StrengthLoadEngine {
         Swift.min(max, Swift.max(min, value))
     }
 }
+
+// MARK: - Bodyweight load (v1.7.2 audit — "option C")
+
+/// Turns a bodyweight set into a real external load.
+///
+/// The set-entry convention since v1.7.1 is that `weightKg == 0` on a `.bodyweight` movement
+/// means "bodyweight", and `nil` means "never entered" (a logged bodyweight set must never be
+/// indistinguishable from a forgotten field). That convention made the ROW honest and left the
+/// MATH wrong: 0 kg × 10 reps is 0, so three sets of ten pull-ups registered no volume at all
+/// and a pure-calisthenics session reported an external load of zero. sRPE-driven training
+/// stress was unaffected — only volume, weekly volume and load distribution were blind.
+///
+/// The missing quantity is the athlete's body mass, which the app now reads from HealthKit
+/// (`Athlete.bodyMassKg`, device-local — raw HealthKit values never leave the phone).
+///
+/// **What this deliberately does NOT touch:** `estimated1RM`, personal records and
+/// `relativeIntensity`. Giving a pull-up an e1RM overnight would mint a burst of "records"
+/// against a stored value of zero, and the right e1RM reference for a bodyweight movement is a
+/// separate modelling question. This is the total-load fix and nothing else.
+enum BodyweightLoad {
+
+    /// Used when a movement is not recognised. Deliberately mid-range rather than 1.0: over-
+    /// stating load feeds an inflated ACWR, and an inflated ACWR tells an athlete to back off
+    /// a session they could have trained. The conservative error is the safe one here.
+    static let defaultFraction = 0.65
+
+    /// Fraction of body mass a movement actually moves.
+    ///
+    /// Rounded published estimates, matched on the lowercased exercise name. The table is
+    /// short on purpose — every entry is a claim about a body, and a long table of guesses
+    /// reads as precision the numbers do not have.
+    static func fraction(exerciseName: String) -> Double {
+        let name = exerciseName.lowercased()
+        // Hanging and vertical pressing move essentially the whole body.
+        if name.contains("pull-up") || name.contains("pull up") || name.contains("pullup")
+            || name.contains("chin-up") || name.contains("chin up") || name.contains("chinup")
+            || name.contains("muscle-up") || name.contains("muscle up")
+            || name.contains("dip") {
+            return 1.0
+        }
+        if name.contains("inverted row") || name.contains("australian") {
+            return 0.60
+        }
+        if name.contains("push-up") || name.contains("push up") || name.contains("pushup")
+            || name.contains("press-up") || name.contains("press up") {
+            return 0.65
+        }
+        if name.contains("squat") || name.contains("lunge") || name.contains("step-up")
+            || name.contains("step up") || name.contains("pistol") {
+            return 0.60
+        }
+        if name.contains("sit-up") || name.contains("sit up") || name.contains("crunch")
+            || name.contains("leg raise") || name.contains("hollow") || name.contains("v-up") {
+            return 0.40
+        }
+        return defaultFraction
+    }
+
+    /// The load a set actually moved, in kg.
+    ///
+    /// - Non-bodyweight movements are returned unchanged — this must never alter a barbell lift.
+    /// - `nil` in, `nil` out: a set with no weight entered has no load, and inventing one from
+    ///   body mass would turn a forgotten field into data.
+    /// - No body mass on file → the pre-v1.7.2 answer (added load only). Degrading to the old
+    ///   number is honest; guessing a body mass is not.
+    static func effectiveLoadKg(
+        weightKg: Double?,
+        category: ExerciseCategory,
+        exerciseName: String,
+        bodyMassKg: Double?
+    ) -> Double? {
+        guard category == .bodyweight else { return weightKg }
+        guard let addedKg = weightKg else { return nil }
+        guard let bodyMassKg, bodyMassKg > 0 else { return addedKg }
+        return bodyMassKg * fraction(exerciseName: exerciseName) + addedKg
+    }
+}

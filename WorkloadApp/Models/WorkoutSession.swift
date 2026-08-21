@@ -98,12 +98,16 @@ final class WorkoutSession {
 
     /// Recalculate derived fields from exercise entries and RPE
     func recalculateDerivedFields() {
-        // Volume: sum of (weight × reps) across all non-warmup sets
+        // Volume: sum of (load × reps) across all non-warmup sets.
+        //
+        // "Load" rather than "weight" since v1.7.2 (audit — bodyweight option C): a bodyweight
+        // movement now contributes body mass × the movement's fraction, so three sets of ten
+        // pull-ups are no longer worth zero. `SetRecord.effectiveLoadKg` owns that rule; a
+        // barbell lift is unchanged, and an athlete with no body mass on file gets the old
+        // added-load-only number rather than a guess.
         let weightVolume = exerciseEntries.reduce(0.0) { entrySum, entry in
             entrySum + entry.sets.filter { !$0.isWarmup }.reduce(0.0) { setSum, set in
-                let weight = set.weightKg ?? 0
-                let reps = Double(set.reps ?? 0)
-                return setSum + (weight * reps)
+                setSum + set.volume
             }
         }
 

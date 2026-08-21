@@ -88,6 +88,16 @@ struct RecoveryPipeline {
             bodyTemp = try? await healthKitService.fetchLatestBodyTemp()
             vo2Max = try? await healthKitService.fetchLatestVO2Max()
 
+            // Body mass is not a recovery signal and does not enter any score. It is refreshed
+            // here because this is the one place that already reads HealthKit on a schedule, and
+            // `BodyweightLoad` needs a current value to give a bodyweight set a real load
+            // (v1.7.2 audit). Written only when a sample exists — a failed read must never
+            // clear a mass the athlete has on file. Device-local: never added to AthleteRow.
+            if let bodyMass = try? await healthKitService.fetchLatestBodyMass() {
+                athlete.bodyMassKg = bodyMass.kilograms
+                athlete.bodyMassRecordedAt = bodyMass.date
+            }
+
             // Reflect the LATEST full read cycle: data present → .connected; nothing returned →
             // .requestedNoData (e.g. access revoked in Settings, or no recent samples). This is an
             // authoritative cycle (all reads attempted), so it may downgrade a stale .connected.

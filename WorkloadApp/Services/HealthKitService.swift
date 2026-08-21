@@ -69,6 +69,7 @@ protocol HealthDataProviding: AnyObject {
     func fetchLastNightSleepDetail() async throws -> HealthKitService.LastNightSleepDetail?
     func fetchLatestBodyTemp() async throws -> Double?
     func fetchLatestVO2Max() async throws -> Double?
+    func fetchLatestBodyMass() async throws -> (kilograms: Double, date: Date)?
     func fetchOvernightRespiratoryRate() async throws -> Double?
     func fetchDailyActiveEnergyByDay(days: Int) async throws -> [Date: Double]
 }
@@ -136,6 +137,8 @@ final class HealthKitService: HealthDataProviding {
             HKQuantityType(.activeEnergyBurned),
             HKQuantityType(.vo2Max),
             HKQuantityType(.bodyTemperature),
+            // Body mass: turns a bodyweight set into a real load (v1.7.2, see `BodyweightLoad`).
+            HKQuantityType(.bodyMass),
             // Read purely as a HELD-OUT validation outcome (v1.7.1): overnight respiratory
             // rate is a recognised recovery/illness marker and is deliberately NOT an input to
             // any score, which is exactly what makes it usable as evidence.
@@ -555,6 +558,20 @@ final class HealthKitService: HealthDataProviding {
         let sample = try await fetchMostRecentSample(type: type)
         let unit = HKUnit.literUnit(with: .milli).unitDivided(by: HKUnit.gramUnit(with: .kilo).unitMultiplied(by: .minute()))
         return sample?.quantity.doubleValue(for: unit)
+    }
+
+    // MARK: - Body mass
+
+    /// Latest body mass, with the sample's own measurement date.
+    ///
+    /// Feeds `Athlete.bodyMassKg` so a bodyweight set carries a real load (v1.7.2 audit —
+    /// `BodyweightLoad`). The date comes back with it because a body mass is only as current as
+    /// the last weigh-in, and a months-old value presented as today's is the `fetchLatestBodyTemp`
+    /// defect one metric over.
+    func fetchLatestBodyMass() async throws -> (kilograms: Double, date: Date)? {
+        let type = HKQuantityType(.bodyMass)
+        guard let sample = try await fetchMostRecentSample(type: type) else { return nil }
+        return (sample.quantity.doubleValue(for: .gramUnit(with: .kilo)), sample.startDate)
     }
 
     // MARK: - Auto-Import Workouts

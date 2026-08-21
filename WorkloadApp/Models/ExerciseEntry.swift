@@ -19,13 +19,10 @@ final class ExerciseEntry {
         sets.sorted { $0.setIndex < $1.setIndex }
     }
 
-    /// Total volume for this exercise (weight × reps, non-warmup only)
+    /// Total volume for this exercise (load × reps, non-warmup only).
+    /// Bodyweight movements carry their real load via `SetRecord.effectiveLoadKg` (v1.7.2).
     var totalVolume: Double {
-        sets.filter { !$0.isWarmup }.reduce(0.0) { sum, set in
-            let weight = set.weightKg ?? 0
-            let reps = Double(set.reps ?? 0)
-            return sum + (weight * reps)
-        }
+        sets.filter { !$0.isWarmup }.reduce(0.0) { sum, set in sum + set.volume }
     }
 
     init(

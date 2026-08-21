@@ -31,6 +31,19 @@ final class Athlete {
     // AthleteRow fields explicitly, so this stays on-device by construction.
     var nextMatchDate: Date?
 
+    /// Latest body mass, read from HealthKit (v1.7.2 audit — bodyweight "option C").
+    ///
+    /// Exists so a bodyweight set carries a real load: before this, 0 kg × 10 reps was 0, so
+    /// three sets of ten pull-ups registered no volume at all. See `BodyweightLoad`.
+    ///
+    /// PRIVACY: this is a RAW HealthKit value, not a composite score, so it is device-local by
+    /// construction and must never be added to `AthleteRow`. Nullable ⇒ no SwiftData migration;
+    /// nil simply means "not read yet", and the load math degrades to added-load-only.
+    var bodyMassKg: Double?
+    /// When `bodyMassKg` was measured — the HealthKit sample's own date, not the read time, so
+    /// a months-old weigh-in is visible as such rather than presented as current.
+    var bodyMassRecordedAt: Date?
+
     @Relationship(deleteRule: .cascade, inverse: \WorkoutSession.athlete)
     var sessions: [WorkoutSession] = []
 

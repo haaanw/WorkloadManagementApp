@@ -17,9 +17,24 @@ final class SetRecord {
 
     var exerciseEntry: ExerciseEntry?
 
-    /// Volume for this set (weight × reps)
+    /// The load this set actually moved, in kg.
+    ///
+    /// For a bodyweight movement that is the athlete's body mass at the movement's fraction,
+    /// plus whatever was added — see `BodyweightLoad` (v1.7.2 audit). Everything else is
+    /// `weightKg` unchanged. Walks the relationship up to the athlete because a set's load is
+    /// only knowable in the context of the body performing it.
+    var effectiveLoadKg: Double? {
+        BodyweightLoad.effectiveLoadKg(
+            weightKg: weightKg,
+            category: exerciseEntry?.exerciseCategory ?? .compound,
+            exerciseName: exerciseEntry?.exerciseName ?? "",
+            bodyMassKg: exerciseEntry?.session?.athlete?.bodyMassKg
+        )
+    }
+
+    /// Volume for this set (load × reps)
     var volume: Double {
-        (weightKg ?? 0) * Double(reps ?? 0)
+        (effectiveLoadKg ?? 0) * Double(reps ?? 0)
     }
 
     /// Estimated 1RM using Epley formula: weight × (1 + reps/30)

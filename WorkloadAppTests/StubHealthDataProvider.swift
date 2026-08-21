@@ -34,6 +34,7 @@ final class StubHealthDataProvider: HealthDataProviding {
     var sleepDetail: HealthKitService.LastNightSleepDetail?
     var bodyTemp: Double?
     var vo2Max: Double?
+    var bodyMass: (kilograms: Double, date: Date)?
     var respiratoryRate: Double?
     var activeEnergyByDay: [Date: Double] = [:]
 
@@ -61,6 +62,7 @@ final class StubHealthDataProvider: HealthDataProviding {
         sleep: HealthKitService.LastNightSleepDetail? = nil,
         bodyTemp: Double? = nil,
         vo2Max: Double? = nil,
+        bodyMass: (kilograms: Double, date: Date)? = nil,
         respiratoryRate: Double? = nil,
         activeEnergyByDay: [Date: Double] = [:]
     ) -> StubHealthDataProvider {
@@ -70,6 +72,7 @@ final class StubHealthDataProvider: HealthDataProviding {
         stub.sleepDetail = sleep
         stub.bodyTemp = bodyTemp
         stub.vo2Max = vo2Max
+        stub.bodyMass = bodyMass
         stub.respiratoryRate = respiratoryRate
         stub.activeEnergyByDay = activeEnergyByDay
         return stub
@@ -102,6 +105,11 @@ final class StubHealthDataProvider: HealthDataProviding {
     func fetchLatestVO2Max() async throws -> Double? {
         try record()
         return vo2Max
+    }
+
+    func fetchLatestBodyMass() async throws -> (kilograms: Double, date: Date)? {
+        try record()
+        return bodyMass
     }
 
     func fetchOvernightRespiratoryRate() async throws -> Double? {
