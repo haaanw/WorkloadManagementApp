@@ -115,6 +115,7 @@
 		AA1234560000000000000001 /* RevenueCat in Frameworks */ = {isa = PBXBuildFile; productRef = AA1234560000000000000002 /* RevenueCat */; };
 		AA17010100000000000000D1 /* SleepNightDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA17010100000000000000D2 /* SleepNightDetailView.swift */; };
 		AA17010100000000000000E1 /* SetEntryFields.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA17010100000000000000E2 /* SetEntryFields.swift */; };
+		AA17020100000000000000F1 /* ScrubRule.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA17020100000000000000F2 /* ScrubRule.swift */; };
 		AA4401020000000000000001 /* VerdictDecision.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4401010000000000000001 /* VerdictDecision.swift */; };
 		AA4402020000000000000001 /* TodayVerdictViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4402010000000000000001 /* TodayVerdictViewModel.swift */; };
 		AA4403020000000000000001 /* TodayVerdictCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4403010000000000000001 /* TodayVerdictCard.swift */; };
@@ -354,6 +355,7 @@
 		AA10010300000000000002 /* TrainingProfileSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingProfileSheet.swift; sourceTree = "<group>"; };
 		AA17010100000000000000D2 /* SleepNightDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepNightDetailView.swift; sourceTree = "<group>"; };
 		AA17010100000000000000E2 /* SetEntryFields.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetEntryFields.swift; sourceTree = "<group>"; };
+		AA17020100000000000000F2 /* ScrubRule.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScrubRule.swift; sourceTree = "<group>"; };
 		AA4401010000000000000001 /* VerdictDecision.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictDecision.swift; sourceTree = "<group>"; };
 		AA4402010000000000000001 /* TodayVerdictViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayVerdictViewModel.swift; sourceTree = "<group>"; };
 		AA4403010000000000000001 /* TodayVerdictCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayVerdictCard.swift; sourceTree = "<group>"; };
@@ -558,6 +560,7 @@
 				62324BE52F66CB0E00A9C2BE /* MetricTile.swift */,
 				CD0501010000000000000002 /* CardStyle.swift */,
 				AA17010100000000000000E2 /* SetEntryFields.swift */,
+				AA17020100000000000000F2 /* ScrubRule.swift */,
 				2307050100000000000000B2 /* InkTabBar.swift */,
 				2307060100000000000000B2 /* TickScale.swift */,
 				2307090100000000000000B2 /* LayoutPrimitives.swift */,
@@ -1211,6 +1214,7 @@
 				62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */,
 				AA17010100000000000000D1 /* SleepNightDetailView.swift in Sources */,
 				AA17010100000000000000E1 /* SetEntryFields.swift in Sources */,
+				AA17020100000000000000F1 /* ScrubRule.swift in Sources */,
 				62324C492F66CB0E00A9C2BE /* AuthService.swift in Sources */,
 				62324C4A2F66CB0E00A9C2BE /* WorkloadView.swift in Sources */,
 				AA0202020000000000000001 /* WorkloadViewModel.swift in Sources */,

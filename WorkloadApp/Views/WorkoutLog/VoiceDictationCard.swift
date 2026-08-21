@@ -26,6 +26,13 @@ enum UtteranceOutcome: Equatable {
 /// main actor rather than a generic executor.
 @MainActor
 struct VoiceDictationCard: View {
+    /// A counter the host increments to ask this card to start listening — the session bar's
+    /// Speak action (v1.7.2), which lives in the thumb zone while the card itself stays inline.
+    /// A token rather than a Bool because a second request after a completed take must still
+    /// fire, and because a Bool would need resetting from inside the card.
+    ///
+    /// The card remains the sole owner of the microphone; the host only asks.
+    var startToken: Int = 0
     /// Hands the host a FINAL utterance and awaits its verdict. Async because the host may fall
     /// back to the LLM parser for anything the local grammar cannot read.
     let onUtterance: (String) async -> UtteranceOutcome
@@ -107,6 +114,12 @@ struct VoiceDictationCard: View {
         .onChange(of: isTypingFocused) { _, isFocused in
             guard !isFocused, phase == .typing, trimmedTyped.isEmpty else { return }
             phase = .collapsed
+        }
+        // The session bar asked for the microphone. Ignored while a take is already running or
+        // while the athlete is typing — a bar tap must never cut off words in progress.
+        .onChange(of: startToken) { _, newValue in
+            guard newValue > 0, phase == .collapsed else { return }
+            Task { await beginRecording() }
         }
         .onDisappear {
             speech.cancel()

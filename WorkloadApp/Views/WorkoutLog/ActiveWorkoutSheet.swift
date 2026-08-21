@@ -60,6 +60,11 @@ struct ActiveWorkoutSheet: View {
     // Folded names the parser could not resolve against the catalog or the athlete's customs.
     // Filled once on the parsed-session load; drives the "NEW EXERCISE" card annotation.
     @State private var unresolvedNames: Set<String> = []
+    // Bumped by the session bar's Speak action; the inline voice card starts listening on each
+    // increment. A token rather than a Bool so a second tap after a completed take still fires.
+    @State private var voiceStartToken = 0
+    /// Scroll target for the inline voice card — the bar brings it into view before it listens.
+    private static let voiceCardID = "activeWorkout.voiceCard"
 
     private var athlete: Athlete? { athletes.first }
 
@@ -125,14 +130,16 @@ struct ActiveWorkoutSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+            // Finish moved OUT of the titlebar and into the thumb-zone bar below (v1.7.2,
+            // HAN-gated variant F). The three most-used actions used to sit at three
+            // different extremes — Finish top-right, Add exercise and the voice card at the
+            // bottom of a growing scroll — so the more you logged, the further away the
+            // controls that let you log more.
             InstrumentSheetHeader(title: "nav.workout") {
                 SheetHeaderButton(title: "action.cancel") { dismiss() }
-            } trailing: {
-                SheetHeaderButton(title: "action.finish", emphasis: true) {
-                    showFinishConfirmation = true
-                }
             }
             ScrollViewReader { scrollProxy in
+            VStack(spacing: 0) {
             ScrollView {
                 VStack(spacing: 0) {
                     // Session info (round 6 redesign, HAN): the primary decision — what
@@ -228,31 +235,17 @@ struct ActiveWorkoutSheet: View {
                     // list above stays visible so a spoken set is SEEN landing. Present on every
                     // path — a narrated session can be extended live, the same way a template
                     // session can. The card owns the microphone; this sheet owns the appending.
-                    VoiceDictationCard { text in
+                    VoiceDictationCard(startToken: voiceStartToken) { text in
                         await ingestUtterance(text)
                     }
                     .padding(.horizontal, Spacing.sm)
                     .padding(.vertical, Spacing.xs)
                     .background(ColorTokens.background)
+                    .id(Self.voiceCardID)
 
                     Rectangle()
                         .fill(ColorTokens.divider)
                         .frame(height: 0.5)
-
-                    // Add exercise button
-                    Button {
-                        Haptics.tap()
-                        showExercisePicker = true
-                    } label: {
-                        Label("action.addExercise", systemImage: "plus")
-                            .font(.Tokens.body)
-                            .foregroundStyle(ColorTokens.text1)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, Spacing.sm)
-                    }
-                    .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-                    .accessibilityIdentifier("activeWorkout.addExercise")
-                    .background(ColorTokens.background)
 
                     // Duplicate the most-recently-added exercise as a fresh GHOST-scaffolded
                     // entry (§E.2): same name/category/muscle, set count carried, every value
@@ -277,6 +270,9 @@ struct ActiveWorkoutSheet: View {
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         .background(ColorTokens.background)
                     }
+
+                    // The bar is opaque and pinned; the scroll has to be able to end above it.
+                    Color.clear.frame(height: Spacing.lg)
                 }
             }
             .background(ColorTokens.background)
@@ -312,6 +308,9 @@ struct ActiveWorkoutSheet: View {
                     templateName: $templateName,
                     sessionName: sessionName.isEmpty ? sportType.displayName : sessionName,
                     sportType: sportType,
+                    exerciseCount: entries.count,
+                    loggedSetCount: entries.reduce(0) { $0 + $1.sets.filter(\.isDone).count },
+                    elapsed: elapsed,
                     onFinish: {
                         if saveAsTemplate {
                             saveAsTemplateFromSession()
@@ -387,7 +386,7 @@ struct ActiveWorkoutSheet: View {
                 }
             }
             // Keyboard avoidance (round 4): SwiftUI's automatic scroll surfaces only the
-            // bare focused field; the row's label, chips, and tape stay buried under the
+            // bare focused field; the row's label, rule, and chips stay buried under the
             // pad. Rows call this closure on focus; centering puts the whole set row in
             // the upper half of the screen, above the keyboard.
             .environment(\.setRowScroller) { id in
@@ -395,10 +394,82 @@ struct ActiveWorkoutSheet: View {
                     scrollProxy.scrollTo(id, anchor: .center)
                 }
             }
+
+            sessionBar(scrollProxy: scrollProxy)
+            }
             }
             }
             .toolbar(.hidden, for: .navigationBar)
         }
+    }
+
+    // MARK: - Session bar (v1.7.2, HAN-gated variant F)
+
+    /// The three most-used actions, fixed in the thumb zone. The scroll above can grow to any
+    /// length without moving anything the athlete needs.
+    ///
+    /// Speak does NOT open a sheet: Objective 0's law is that the set list stays visible while
+    /// you talk, so the bar scrolls the inline `VoiceDictationCard` into view and asks it to
+    /// start listening. The card keeps its own tap-to-talk and tap-to-type, so both voice doors
+    /// still work exactly as they shipped.
+    ///
+    /// Finish is the ONE ink-filled pill on this screen — the titlebar's emphasis action was
+    /// removed in the same change, so the CTA Law still holds at one per screen.
+    private func sessionBar(scrollProxy: ScrollViewProxy) -> some View {
+        HStack(spacing: Spacing.xs) {
+            barAction(title: "action.speakSet", identifier: "activeWorkout.speakSet") {
+                voiceStartToken += 1
+                withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                    scrollProxy.scrollTo(Self.voiceCardID, anchor: .bottom)
+                }
+            }
+
+            barAction(title: "action.addExercise", identifier: "activeWorkout.addExercise") {
+                showExercisePicker = true
+            }
+
+            PrimaryActionButton(title: "action.finish") {
+                showFinishConfirmation = true
+            }
+            .frame(maxWidth: 132)
+            .accessibilityIdentifier("activeWorkout.finish")
+        }
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .background(ColorTokens.surface)
+        .overlay(alignment: .top) {
+            Rectangle()
+                .fill(ColorTokens.dividerStrong)
+                .frame(height: 0.5)
+        }
+        // The bar stays at the bottom of the SCREEN rather than riding up on the keyboard,
+        // where it would collide with the keypad's own Done/Next toolbar.
+        .ignoresSafeArea(.keyboard, edges: .bottom)
+    }
+
+    private func barAction(
+        title: LocalizedStringKey,
+        identifier: String,
+        action: @escaping () -> Void
+    ) -> some View {
+        Button {
+            Haptics.tap()
+            action()
+        } label: {
+            Text(title)
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.text1)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(maxWidth: .infinity, minHeight: 44)
+                .contentShape(Rectangle())
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerTokens.control)
+                        .stroke(ColorTokens.divider, lineWidth: 0.5)
+                )
+        }
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+        .accessibilityIdentifier(identifier)
     }
 
     // MARK: - Smart Exercise Suggestions
@@ -1355,6 +1426,17 @@ struct ExerciseEntryCard: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
 
+    /// Ledger (v1.7.2, HAN-gated variant D): exactly ONE set is open — the one being done.
+    /// Every other set is a ledger line, whether it is logged or still planned. A
+    /// template-loaded session therefore reads as its plan rather than as five stacked
+    /// editors, and the live loop never scrolls.
+    ///
+    /// nil = nothing open, which is the correct resting state once every set is logged.
+    @State private var openSetID: UUID?
+    /// The athlete said they are done here. Presentation only — folding changes nothing about
+    /// what gets saved.
+    @State private var isFolded = false
+
     private var inputMode: ExerciseInputMode {
         entry.exerciseCategory.inputMode
     }
@@ -1365,6 +1447,13 @@ struct ExerciseEntryCard: View {
     /// or done toggle commits them. This keeps carry-forward consistent with the ghost/commit
     /// model across BOTH weight/reps and cardio, so a carried set is never silently logged as
     /// performed until the user confirms it.
+    /// Appends the next set AND opens it, because in the ledger the new row is always the one
+    /// you are about to do.
+    ///
+    /// "Repeat last set" was retired here (v1.7.2): it cloned the previous set as already
+    /// performed, and the ledger does that in one tap — the carried row arrives holding the
+    /// previous values as ghosts, so Log set accepts them unchanged. The function survives,
+    /// the button does not.
     private func addCarriedSet() {
         var draft = SetDraft()
         if let last = entry.sets.last {
@@ -1376,31 +1465,24 @@ struct ExerciseEntryCard: View {
         }
         withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
             entry.sets.append(draft)
+            openSetID = draft.id
         }
         Haptics.tap()
     }
 
-    /// Clone the previous set entirely as committed (real) values — the "Repeat last set" path.
-    private func repeatLastSet() {
-        guard let last = entry.sets.last else { return }
-        var clone = SetDraft()
-        clone.reps = last.reps ?? last.targetReps
-        clone.weightKg = last.weightKg ?? last.targetWeightKg
-        clone.durationSeconds = last.durationSeconds
-        clone.distanceMeters = last.distanceMeters
-        clone.rpe = last.rpe
-        clone.rir = last.rir
-        clone.isWarmup = last.isWarmup
-        // Explicit user action ("repeat this set, it counts") → the clone is performed.
-        // (addCarriedSet's passive ghost prefill leaves isDone == false on purpose.)
-        clone.isDone = true
-        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
-            entry.sets.append(clone)
+    var body: some View {
+        Group {
+            if isFolded {
+                foldedBody
+            } else {
+                openBody
+            }
         }
-        Haptics.success()
+        .onAppear { syncOpenSet() }
+        .onChange(of: entry.sets.count) { _, _ in syncOpenSet() }
     }
 
-    var body: some View {
+    private var openBody: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack {
@@ -1475,7 +1557,7 @@ struct ExerciseEntryCard: View {
                 let setIndex = entry.sets.firstIndex(where: { $0.id == set.id }) ?? 0
                 VStack(spacing: 0) {
                     // The scroll target for keyboard avoidance — the ROW, not the field,
-                    // so the label/chips/tape scroll clear of the pad together.
+                    // so the label, rule and chips scroll clear of the pad together.
                     SetEntryRow(
                         set: $set,
                         index: setIndex,
@@ -1487,7 +1569,10 @@ struct ExerciseEntryCard: View {
                             setIndex < suggestions.count ? suggestions[setIndex] : nil
                         },
                         progressionType: entry.progressionType,
-                        showSuggestion: entry.progressionSuggestions != nil
+                        showSuggestion: entry.progressionSuggestions != nil,
+                        isOpen: openSetID == set.id,
+                        onRequestOpen: { openSetID = set.id },
+                        onLogged: { advanceAfterLog(loggedID: set.id) }
                     )
                 }
                 .id(set.id)
@@ -1496,27 +1581,10 @@ struct ExerciseEntryCard: View {
                     .frame(height: 0.5)
             }
 
-            // Repeat last set — clones the prior set entirely (committed values).
-            if !entry.sets.isEmpty {
-                Button(action: repeatLastSet) {
-                    HStack(spacing: Spacing.xs) {
-                        Image(systemName: "arrow.clockwise")
-                            .font(.Tokens.label)
-                        Text("set.action.repeatLast")
-                            .font(.Tokens.label)
-                    }
-                    .foregroundStyle(ColorTokens.text1)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, Spacing.sm)
-                    .contentShape(Rectangle())
-                    .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(ColorTokens.divider, lineWidth: 0.5))
-                }
-                .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-                .padding(.horizontal, Spacing.sm)
-                .padding(.top, Spacing.xs)
-            }
-
             // Add set — dashed affordance carrying forward the previous set (ghosted).
+            // Ledger (v1.7.2): this is no longer in the common path. Logging the last set
+            // opens the next one in place, so the loop is fill → Log set → fill → Log set;
+            // this button is for the case where the athlete wants a row without logging one.
             Button(action: addCarriedSet) {
                 HStack(spacing: Spacing.xs) {
                     Image(systemName: "plus")
@@ -1536,8 +1604,107 @@ struct ExerciseEntryCard: View {
             .buttonStyle(.pressable(scale: 1, opacity: 0.6))
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
+
+            // Leaving the exercise: the card folds to one line so a five-exercise session
+            // stays scannable. Presentation only — nothing about the saved session changes.
+            if entry.sets.contains(where: { $0.isDone }) {
+                Button {
+                    Haptics.tap()
+                    withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                        isFolded = true
+                        openSetID = nil
+                    }
+                } label: {
+                    Text("exercise.action.finish")
+                        .font(.Tokens.smallLabel)
+                        .foregroundStyle(ColorTokens.text2)
+                        .frame(maxWidth: .infinity)
+                        .padding(.vertical, Spacing.xs)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+                .padding(.bottom, Spacing.xs)
+            }
         }
         .background(ColorTokens.surfaceEl)
+    }
+
+    /// The folded card: the exercise's result on one line, and the way back in.
+    private var foldedBody: some View {
+        Button {
+            Haptics.tap()
+            withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                isFolded = false
+            }
+        } label: {
+            HStack(spacing: Spacing.xs) {
+                Text(entry.exerciseName)
+                    .font(.Tokens.sectionHead)
+                    .foregroundStyle(ColorTokens.text1)
+                Spacer(minLength: Spacing.xs)
+                Text(foldedSummary)
+                    .font(.Tokens.label)
+                    .monospacedDigit()
+                    .foregroundStyle(ColorTokens.text2)
+                Image(systemName: "chevron.right")
+                    .font(.Tokens.smallLabel)
+                    .foregroundStyle(ColorTokens.text3)
+            }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.sm)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+        .background(ColorTokens.surfaceEl)
+        .accessibilityHint(Text("exercise.action.reopen"))
+    }
+
+    /// "3 sets · 60 kg × 8" — the count, and what the last logged set was.
+    private var foldedSummary: String {
+        let done = entry.sets.filter(\.isDone)
+        let count = String(
+            format: String(localized: "exercise.summary.setCount", defaultValue: "%d sets"),
+            done.count
+        )
+        guard let last = done.last, let reps = last.reps else { return count }
+        if last.weightKg == 0, entry.exerciseCategory == .bodyweight {
+            let bw = String(format: String(localized: "set.summary.bwReps", defaultValue: "BW × %d"), reps)
+            return "\(count) · \(bw)"
+        }
+        guard let kg = last.weightKg else {
+            let repsOnly = String(format: String(localized: "set.summary.repsOnly", defaultValue: "%d reps"), reps)
+            return "\(count) · \(repsOnly)"
+        }
+        let display = WeightFormatter.displayValue(kg, unit: weightUnit)
+        let unit = weightUnit == .kg
+            ? String(localized: "unit.kg", defaultValue: "kg")
+            : String(localized: "unit.lb", defaultValue: "lb")
+        let w = display == display.rounded() ? String(format: "%.0f", display) : String(format: "%.1f", display)
+        let summary = String(format: String(localized: "set.summary.weightReps", defaultValue: "%@%@ × %d"), w, unit, reps)
+        return "\(count) · \(summary)"
+    }
+
+    /// Logging the LAST set opens a fresh carried one in place — the ledger loop. Logging any
+    /// earlier set just hands the rule to the next set that still needs doing.
+    private func advanceAfterLog(loggedID: UUID) {
+        guard let index = entry.sets.firstIndex(where: { $0.id == loggedID }) else { return }
+        if index == entry.sets.count - 1 {
+            addCarriedSet()
+            openSetID = entry.sets.last?.id
+        } else if let next = entry.sets.first(where: { !$0.isDone }) {
+            openSetID = next.id
+        } else {
+            openSetID = nil
+        }
+    }
+
+    /// The set that should hold the editor when the card first appears, and after the set list
+    /// is replaced underneath it (a template load, a parsed voice session): the first one still
+    /// to do. A session that arrives fully logged — every voice-parsed one does — opens nothing,
+    /// which is exactly right: there is nothing left to enter, only rows to correct.
+    private func syncOpenSet() {
+        if let current = openSetID, entry.sets.contains(where: { $0.id == current }) { return }
+        openSetID = entry.sets.first(where: { !$0.isDone })?.id
     }
 
     /// Column headers for the set table — axis labels for a column of readings, so the ANNOTATION
@@ -1580,6 +1747,14 @@ struct SetEntryRow: View {
     var suggestion: ProgressionEngine.SetSuggestion? = nil
     var progressionType: ProgressionEngine.ProgressionType? = nil
     var showSuggestion: Bool = false
+    /// Ledger (v1.7.2): the CARD decides which row holds the editor, so only one is ever open.
+    /// A closed row is a ledger line — logged or still planned.
+    var isOpen: Bool = true
+    /// The athlete tapped this ledger line. The card moves the editor here.
+    var onRequestOpen: (() -> Void)? = nil
+    /// This row just recorded itself as performed. The card advances the editor and, on the
+    /// last row, opens a fresh carried set — which is what removes "Add set" from the loop.
+    var onLogged: (() -> Void)? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     /// Per-set RPE is collapsed behind a "+ RPE" chip; start expanded only if RPE already set.
@@ -1592,17 +1767,10 @@ struct SetEntryRow: View {
     /// Sheet-injected scroll closure — centers this row above the keyboard on focus.
     @Environment(\.setRowScroller) private var scrollToRow
 
-    /// Local override controlling whether a completed (isDone) set shows its full editable
-    /// row or the compact one-line summary (§5.3). nil = follow the default (collapse when
-    /// done); true/false = the user's explicit tap to expand/collapse.
-    @State private var expandOverride: Bool? = nil
-
-    /// Whether the row is rendered collapsed: a done set collapses by default, but a user
-    /// tap can force it open (or re-collapse it). Never collapse a not-done set.
-    private var isCollapsed: Bool {
-        guard set.isDone else { return false }
-        return expandOverride == nil ? true : !(expandOverride!)
-    }
+    /// Whether the row is rendered collapsed. The card owns this now: openness is a property
+    /// of the exercise (one editor at a time), not of the individual set. A closed NOT-done
+    /// row is legitimate and new — it is a planned set waiting its turn.
+    private var isCollapsed: Bool { !isOpen }
 
     /// Weight ± step in the USER'S DISPLAY UNIT (not kg). Unit-aware: lb athletes nudge by
     /// 5 lb, kg athletes by 2.5 kg. The stepper now operates entirely in display units via
@@ -1789,13 +1957,14 @@ struct SetEntryRow: View {
         .accessibilityAddTraits(set.isWarmup ? [.isButton, .isSelected] : .isButton)
     }
 
-    /// Compact one-line summary of a completed set (§5.3). Tapping re-expands the full
-    /// editable row (the set stays isDone). `text2`, monospacedDigit, hairline separators, no accent.
+    /// The ledger line — one set, one row. A logged set reads in ink and is stamped LOGGED;
+    /// a set still to do reads ghosted and is stamped PLANNED, so the plan is legible without
+    /// five editors open. Tapping either moves the editor here.
     @ViewBuilder private var collapsedSummary: some View {
         Button {
             Haptics.tap()
             withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
-                expandOverride = true
+                onRequestOpen?()
             }
         } label: {
             HStack(spacing: Spacing.xs) {
@@ -1806,7 +1975,7 @@ struct SetEntryRow: View {
                 Text(summaryText)
                     .font(.Tokens.body)
                     .monospacedDigit()
-                    .foregroundStyle(ColorTokens.text2)
+                    .foregroundStyle(set.isDone ? ColorTokens.text2 : ColorTokens.text3)
                 if set.isWarmup {
                     // A flag on the reading, not speech — annotation (v6). The set index and the
                     // summary itself stay in the working voice: they are the row's DATA, and the
@@ -1814,9 +1983,7 @@ struct SetEntryRow: View {
                     AnnotationLabel(key: "set.warmup.label")
                 }
                 Spacer()
-                Image(systemName: "checkmark")
-                    .font(.Tokens.smallLabel)
-                    .foregroundStyle(ColorTokens.text3)
+                AnnotationLabel(key: set.isDone ? "set.action.logged" : "set.status.planned")
             }
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
@@ -1832,12 +1999,19 @@ struct SetEntryRow: View {
     private var summaryText: String {
         switch inputMode {
         case .weightReps:
-            let reps = set.reps ?? set.targetReps ?? 0
-            if set.weightKg == 0, category == .bodyweight {
+            // Ledger (v1.7.2): a PLANNED line resolves through exactly the ghosts `logSet()`
+            // would accept, so what the line says is what logging it records. Anything less
+            // would make the plan and the result disagree on screen.
+            let reps = set.reps ?? suggestedReps ?? 8
+            let weightKg: Double? = set.weightKg
+                ?? (set.isDone
+                    ? nil
+                    : (suggestedCenterKg ?? (category == .bodyweight ? 0 : nil)))
+            if weightKg == 0, category == .bodyweight {
                 // 0 kg on a bodyweight movement reads BW, never "0kg × 8".
                 return String(format: String(localized: "set.summary.bwReps", defaultValue: "BW × %d"), reps)
             }
-            if let kg = set.weightKg {
+            if let kg = weightKg {
                 let display = WeightFormatter.displayValue(kg, unit: weightUnit)
                 let unit = weightUnit == .kg
                     ? String(localized: "unit.kg", defaultValue: "kg")
@@ -1958,6 +2132,10 @@ struct SetEntryRow: View {
                 unit: weightUnit,
                 suggestedWeightKg: suggestedCenterKg,
                 suggestedReps: suggestedReps,
+                // The `●` landmark: what this athlete actually did last time. Already on the
+                // draft (loader-stamped, non-warmup) — the rule reads it, nothing fetches.
+                lastSessionWeightKg: set.lastSessionWeightKg,
+                lastSessionReps: set.lastSessionReps,
                 isBodyweight: category == .bodyweight,
                 focus: $focusField,
                 rowId: set.id
@@ -2039,7 +2217,9 @@ struct SetEntryRow: View {
         focusField = nil
         withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
             set.isDone = true
-            expandOverride = nil
+            // The card closes this row and opens the next one — on the last set that means a
+            // fresh carried row, which is the whole ledger loop.
+            onLogged?()
         }
         Haptics.success()
     }
