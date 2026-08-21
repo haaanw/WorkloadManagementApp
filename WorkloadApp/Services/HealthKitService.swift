@@ -117,17 +117,10 @@ final class HealthKitService: HealthDataProviding {
         self.hasRequestedAccess = UserDefaults.standard.bool(forKey: Self.hasRequestedKey)
     }
 
-    /// Record that a live read returned data (called by the pipeline after a successful fetch).
-    /// Idempotent; only ever sets the flag true (empty reads must not clear it — see probe rules).
-    func noteObservedData() {
-        hasObservedData = true
-    }
-
     /// Update the "currently has data" signal from a COMPLETE authoritative read cycle.
     ///
-    /// Unlike `noteObservedData()` (one-way latch, used by the best-effort migration probe which
-    /// must never flip the flag to false), this is called by `RecoveryPipeline` after it has
-    /// attempted ALL of its HealthKit reads for the run. Passing `false` here means the full read
+    /// Called by `RecoveryPipeline` after it has attempted ALL of its HealthKit reads for the
+    /// run — never from a single best-effort read. Passing `false` here means the full read
     /// cycle returned nothing — which legitimately downgrades a previously-`.connected` user to
     /// `.requestedNoData` when they've revoked access (or genuinely have no recent samples).
     /// The persisted `hasRequestedAccess` flag is untouched, so the connect CTA never reappears.
@@ -140,9 +133,7 @@ final class HealthKitService: HealthDataProviding {
         var types: Set<HKObjectType> = [
             HKQuantityType(.heartRateVariabilitySDNN),
             HKQuantityType(.restingHeartRate),
-            HKQuantityType(.heartRate),
             HKQuantityType(.activeEnergyBurned),
-            HKQuantityType(.stepCount),
             HKQuantityType(.vo2Max),
             HKQuantityType(.bodyTemperature),
             // Read purely as a HELD-OUT validation outcome (v1.7.1): overnight respiratory
@@ -205,13 +196,6 @@ final class HealthKitService: HealthDataProviding {
 
     // MARK: - HRV
 
-    /// Fetch the most recent HRV (SDNN) reading, typically from morning/sleep
-    func fetchLatestHRV() async throws -> Double? {
-        let type = HKQuantityType(.heartRateVariabilitySDNN)
-        let sample = try await fetchMostRecentSample(type: type)
-        return sample?.quantity.doubleValue(for: .secondUnit(with: .milli))
-    }
-
     /// Fetch HRV readings for the past N days
     func fetchHRVHistory(days: Int) async throws -> [(date: Date, value: Double)] {
         let type = HKQuantityType(.heartRateVariabilitySDNN)
@@ -223,13 +207,6 @@ final class HealthKitService: HealthDataProviding {
     }
 
     // MARK: - Resting Heart Rate
-
-    /// Fetch the most recent resting heart rate
-    func fetchLatestRestingHR() async throws -> Double? {
-        let type = HKQuantityType(.restingHeartRate)
-        let sample = try await fetchMostRecentSample(type: type)
-        return sample?.quantity.doubleValue(for: HKUnit.count().unitDivided(by: .minute()))
-    }
 
     /// Fetch resting heart rate readings for the past N days.
     ///
@@ -517,46 +494,6 @@ final class HealthKitService: HealthDataProviding {
         return byDay
     }
 
-    // MARK: - Workout Heart Rate (for TRIMP)
-
-    /// Fetch heart rate samples during a specific time range (for TRIMP calculation)
-    func fetchWorkoutHeartRates(start: Date, end: Date) async throws -> [(date: Date, bpm: Double)] {
-        let type = HKQuantityType(.heartRate)
-        let predicate = HKQuery.predicateForSamples(withStart: start, end: end, options: .strictStartDate)
-        let bpmUnit = HKUnit.count().unitDivided(by: .minute())
-
-        let descriptor = HKSampleQueryDescriptor(
-            predicates: [.quantitySample(type: type, predicate: predicate)],
-            sortDescriptors: [SortDescriptor(\.startDate)]
-        )
-
-        let samples = try await descriptor.result(for: store)
-        return samples.map { ($0.startDate, $0.quantity.doubleValue(for: bpmUnit)) }
-    }
-
-    /// Calculate TRIMP from HR samples during a workout
-    func calculateTRIMP(start: Date, end: Date, maxHR: Int) async throws -> Double? {
-        let hrSamples = try await fetchWorkoutHeartRates(start: start, end: end)
-        guard !hrSamples.isEmpty else { return nil }
-
-        // Bucket samples into 5 HR zones and sum durations
-        var zoneDurations = [Double](repeating: 0, count: 5)
-
-        for i in 0..<hrSamples.count {
-            let zone = WorkloadCalculator.hrZone(heartRate: hrSamples[i].bpm, maxHR: maxHR)
-            let duration: TimeInterval
-            if i + 1 < hrSamples.count {
-                duration = hrSamples[i + 1].date.timeIntervalSince(hrSamples[i].date)
-            } else {
-                duration = end.timeIntervalSince(hrSamples[i].date)
-            }
-            let minutes = duration / 60.0
-            zoneDurations[zone - 1] += minutes
-        }
-
-        return WorkloadCalculator.trimp(zoneDurationsMinutes: zoneDurations)
-    }
-
     // MARK: - Body Temperature
 
     /// Fetch latest body temperature reading (from Oura Ring or Apple Watch)
@@ -662,14 +599,6 @@ final class HealthKitService: HealthDataProviding {
     func fetchLastNightSleepWithDate() async throws -> (value: Double, date: Date)? {
         guard let detail = try await fetchLastNightSleepDetail() else { return nil }
         return (detail.tstMinutes, detail.sessionEnd)
-    }
-
-    /// Convenience: fetch staleness state for all tracked metrics.
-    func fetchStaleness() async -> HealthKitStaleness {
-        let hrv = try? await fetchLatestHRVWithDate()
-        let rhr = try? await fetchLatestRestingHRWithDate()
-        let sleep = try? await fetchLastNightSleepWithDate()
-        return HealthKitStaleness(lastHRVDate: hrv?.date, lastSleepDate: sleep?.date, lastRHRDate: rhr?.date)
     }
 
     // MARK: - Sleep night history (v1.7.1 round 2)
