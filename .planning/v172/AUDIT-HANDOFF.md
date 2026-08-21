@@ -76,23 +76,25 @@ is the parallel session's own lane and was deliberately not duplicated.
 Adding or removing a file in the app target needs a hand-wired `.pbxproj` entry.
 Each item below is otherwise ready.
 
-### 2.1 Retire the coach-era invite surface — DELETE 2 files
+### 2.1 Retire the coach-era invite surface — DONE (HAN ruling 2026-08-22)
 
-- `WorkloadApp/Services/InviteService.swift`
-- `WorkloadApp/Views/Profile/InviteConfirmationSheet.swift`
+DELETED: `WorkloadApp/Services/InviteService.swift`,
+`WorkloadApp/Views/Profile/InviteConfirmationSheet.swift`.
 
-Unreachable (nothing presents the sheet), and broken by the same snake_case
-decode defect as §1.1 — invite redemption has never worked. Coach mode was
-dropped in v1.6 and the app is athlete-only, so there is no future that needs it.
+Unreachable, and broken by the same snake_case decode defect as §1.1 — invite
+redemption has never worked. Coach mode was dropped in v1.6.
 
-### 2.2 `WorkoutLogViewModel` has no callers — DELETE 1 file
+Neither file had a `.pbxproj` entry, so no project edit was needed: they were
+never compiled by any target. See §3.10 — that turned out to be true of eleven
+other files too.
 
-`WorkloadApp/ViewModels/WorkoutLogViewModel.swift` is referenced exactly once in
-the whole repo: its own declaration. `WorkoutLogView` does not use it.
+### 2.2 `WorkoutLogViewModel` has no callers — DONE (HAN ruling 2026-08-22)
 
-**Coordinate with the logging-UI session first** — a logging overhaul might
-legitimately want to reintroduce a view model, in which case deleting and
-rewriting is churn.
+DELETED, with its four `.pbxproj` entries. It was referenced exactly once in the
+whole repo: its own declaration.
+
+If the logging-UI overhaul wants a view model it will write the one it needs; a
+stale unused one is more likely to mislead than to help.
 
 ### 2.3 Prune the retired UIKit shell contracts in `AppShellContracts.swift`
 
@@ -107,18 +109,23 @@ holds `ActiveWorkoutViewState`, `ExerciseEntryDraft` and `SetDraft`, which the
 logging-UI session is very likely to be editing right now. Land it after that
 lane closes.
 
-### 2.4 Ten unused components in `CardStyle.swift` — HAN's call, not mine
+### 2.4 Unused components in `CardStyle.swift` — DONE (HAN ruling 2026-08-22)
 
-`InstrumentHero`, `MetricRail`, `ControlTray`, `DisclosureRow`,
-`QuietActionButton`, `InstrumentToggle`, `SheetScaffold`, `LoadingStateView`,
-`ErrorStateView`, `StaleDataView` have no call sites and no mention in
-`DESIGN.md` or `design-system/`.
+HAN's ruling: where the code and the design docs disagree, the code is the later
+decision — keep what is in use, clear out what is not.
 
-Deliberately NOT deleted. `IconButton` is in the same unused set but IS documented
-(8 references in the design docs), which shows the set is a mix of "leftover" and
-"vocabulary defined ahead of use". Deleting design-system primitives on an
-engineer's judgement is a design decision; DESIGN.md is HAN's. Also a live
-collision risk with any design-adjacent session.
+DELETED (207 + 27 lines): `InstrumentHero`, `MetricRail`, `ControlTray`,
+`DisclosureRow`, `QuietActionButton`, `IconButton`, `InstrumentToggle`,
+`SheetScaffold`, `LoadingStateView`, `ErrorStateView`, `StaleDataView`, and then
+`StatusRail`, which the removal orphaned. The sweep was run to a fixpoint, so no
+newly-dead component is left behind.
+
+`IconButton` went too. It was the one I had held back because the design docs
+mention it eight times — under HAN's ruling those references are the stale side.
+
+**Doc drift to settle, NOT edited by me** (`.pair/PROTOCOL.md` §4 forbids editing
+DESIGN.md to suit code): the eight `IconButton` references in `DESIGN.md` /
+`design-system/` now point at a component that no longer exists.
 
 ---
 
@@ -197,6 +204,42 @@ only because it needs two new keys in `Localizable.xcstrings`, and that file is 
 appended to by the voice-logging and logging-UI lanes right now — a merge on a large JSON
 is worse than the defect. Two keys, one commit, once those lanes close.
 
+### 3.10 Twelve files under `WorkloadApp/` are compiled by NO target
+
+Found while removing the invite surface, and it upgrades §3.1 from "unmounted" to
+something sharper. The app target is hand-wired in `.pbxproj` (four entries per
+file), and these twelve have none — no target builds them:
+
+```
+WorkloadApp/Repositories/CycleSnapshotRepository.swift
+WorkloadApp/Components/CycleFuelingCard.swift
+WorkloadApp/Components/CycleStatusStrip.swift
+WorkloadApp/Components/REDSAttentionBanner.swift
+WorkloadApp/Views/Recovery/NiggleLogSheet.swift
+WorkloadApp/Views/WorkoutLog/PrescribedWorkoutCard.swift
+WorkloadApp/Views/WorkoutLog/ShareCodeSheet.swift
+WorkloadApp/Views/WorkoutLog/ShareImportPreviewSheet.swift
+WorkloadApp/Views/WorkoutLog/ShareImportSheet.swift
+WorkloadApp/Services/CycleTrackingService.swift
+WorkloadApp/Services/REDSRiskEngine.swift
+WorkloadApp/Services/TemplateSharingService.swift
+```
+
+Why it matters: **no compiler has checked these since they were written.** If
+`Athlete`, `MenstrualCycleSnapshot` or `WorkoutTemplate` changed shape — and they
+have, repeatedly — these files would not have failed the build. Whoever opens the
+female-athlete milestone will find code that looks finished and may not compile.
+
+Two clusters, two answers:
+
+- **Cycle / RED-S (7 files).** Keep, per §3.1 — but they need to be added to the
+  target so they at least compile, or moved out of the source tree so their status
+  is legible. Sitting in `WorkloadApp/` uncompiled is the worst of both.
+- **Template sharing (4 files) + `PrescribedWorkoutCard`.** This settles the
+  fix-or-retire question in §1.1: the share surface has never shipped in any
+  binary, in any build, ever. Retire is the honest answer. Four of the five are in
+  `Views/WorkoutLog/`, so the deletion belongs to that lane or to HAN.
+
 ### 3.9 L8 — the push has no watermark
 
 Every row of every entity uploads on every cycle. Still true, still a real cost
@@ -224,7 +267,7 @@ means one of the eight 1.7.1 UAT rounds already closed it.
 | H9 | "Last used in 0 seconds" | Fixed earlier (no `.relative(` remains) |
 | H10 | RecoveryView never re-evaluates today | Fixed earlier (scenePhase + `NSCalendarDayChanged`) |
 | M1 | Athlete pull restores 4 of 11 fields | **Fixed** — `SyncService.apply` + migration 009 |
-| M2 | Invite / share-code snake_case decode | **Handoff** — §1.1, §2.1 (retire-or-fix decision) |
+| M2 | Invite / share-code snake_case decode | **Half fixed** — invite surface DELETED (§2.1); share surface is HAN/WorkoutLog (§1.1, §3.10) |
 | M3 | behavior_tags DDL, link, churn | **Fixed** — in-place reconcile, link synced, migration 011 |
 | M4 | `training_profiles` PK conflict | **Fixed** — `onConflict: "athlete_id"` |
 | M5 | No UNIQUE(athlete_id, date) | **Fixed** — `DailyRowIndex`, half-open keys, migration 011 |

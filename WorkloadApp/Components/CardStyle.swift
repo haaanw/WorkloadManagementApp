@@ -276,117 +276,6 @@ extension View {
     }
 }
 
-// MARK: - Surfaces
-
-struct InstrumentHero<Content: View>: View {
-    @ViewBuilder var content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    var body: some View {
-        content
-            .emphasisCardStyle()
-    }
-}
-
-struct MetricRail<Content: View>: View {
-    @ViewBuilder var content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    var body: some View {
-        HStack(spacing: 0) {
-            content
-        }
-        .frame(maxWidth: .infinity)
-        .padding(.horizontal, Spacing.sm)
-        .padding(.vertical, Spacing.sm)
-        .background(ColorTokens.recessed, in: RoundedRectangle(cornerRadius: CornerTokens.card))
-        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.hairline, lineWidth: 0.5))
-    }
-}
-
-struct StatusRail: View {
-    let title: String
-    var detail: String?
-    var statusColor: Color = ColorTokens.statusNeutral
-
-    var body: some View {
-        HStack(alignment: .firstTextBaseline, spacing: Spacing.sm) {
-            Rectangle()
-                .fill(statusColor)
-                .frame(width: 2)
-                .accessibilityHidden(true)
-            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-                Text(title)
-                    .font(.Tokens.labelMedium)
-                    .foregroundStyle(ColorTokens.textPrimary)
-                if let detail {
-                    Text(detail)
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            Spacer(minLength: 0)
-        }
-        .dataPlate()
-    }
-}
-
-struct ControlTray<Content: View>: View {
-    @ViewBuilder var content: Content
-
-    init(@ViewBuilder content: () -> Content) {
-        self.content = content()
-    }
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.sm) {
-            content
-        }
-        .dataPlate(verticalPadding: Spacing.md)
-    }
-}
-
-struct DisclosureRow: View {
-    let title: String
-    var subtitle: String?
-    var trailingText: String?
-
-    var body: some View {
-        HStack(spacing: Spacing.sm) {
-            VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-                Text(title)
-                    .font(.Tokens.body)
-                    .foregroundStyle(ColorTokens.textPrimary)
-                if let subtitle {
-                    Text(subtitle)
-                        .font(.Tokens.smallLabel)
-                        .foregroundStyle(ColorTokens.textSecondary)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-            }
-            Spacer(minLength: Spacing.sm)
-            if let trailingText {
-                Text(trailingText)
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.textSecondary)
-            }
-            Image(systemName: "chevron.right")
-                .font(.Tokens.smallLabel)
-                .foregroundStyle(ColorTokens.textTertiary)
-                .accessibilityHidden(true)
-        }
-        .frame(minHeight: 44)
-        .contentShape(Rectangle())
-    }
-}
-
 // MARK: - Card
 
 /// The one reusable card container: `surfaceEl` fill + 0.5pt `divider` hairline border,
@@ -1056,49 +945,6 @@ struct SecondaryActionButton: View {
     }
 }
 
-struct QuietActionButton: View {
-    let title: LocalizedStringKey
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            Haptics.tap()
-            action()
-        } label: {
-            Text(title)
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.textSecondary)
-                .frame(minHeight: 44)
-                .padding(.horizontal, Spacing.sm)
-        }
-        .buttonStyle(.pressable)
-    }
-}
-
-struct IconButton: View {
-    let systemImage: String
-    let accessibilityLabel: LocalizedStringKey
-    var isSelected: Bool = false
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            Haptics.tap()
-            action()
-        } label: {
-            Image(systemName: systemImage)
-                .font(.Tokens.body)
-                .foregroundStyle(isSelected ? ColorTokens.textPrimary : ColorTokens.textSecondary)
-                .frame(width: 44, height: 44)
-                .background(isSelected ? ColorTokens.active : ColorTokens.control, in: RoundedRectangle(cornerRadius: CornerTokens.control))
-                .overlay(RoundedRectangle(cornerRadius: CornerTokens.control).stroke(isSelected ? ColorTokens.hairlineStrong : ColorTokens.hairline, lineWidth: 0.5))
-        }
-        .buttonStyle(.pressable)
-        .accessibilityLabel(accessibilityLabel)
-        .accessibilityAddTraits(isSelected ? [.isButton, .isSelected] : .isButton)
-    }
-}
-
 struct InstrumentSegmentedControl<Option: Hashable>: View {
     let options: [Option]
     @Binding var selection: Option
@@ -1142,19 +988,6 @@ struct InstrumentSegmentedControl<Option: Hashable>: View {
         }
         .buttonStyle(.pressable(scale: 1, opacity: 0.7))
         .accessibilityAddTraits(selected ? [.isButton, .isSelected] : .isButton)
-    }
-}
-
-struct InstrumentToggle: View {
-    let title: LocalizedStringKey
-    @Binding var isOn: Bool
-
-    var body: some View {
-        Toggle(title, isOn: $isOn)
-            .font(.Tokens.body)
-            .foregroundStyle(ColorTokens.textPrimary)
-            .toggleStyle(.design)
-            .frame(minHeight: 44)
     }
 }
 
@@ -1251,43 +1084,6 @@ struct DialValueCell: View {
     }
 }
 
-struct SheetScaffold<Content: View, Footer: View>: View {
-    let title: LocalizedStringKey
-    @ViewBuilder var content: Content
-    @ViewBuilder var footer: Footer
-
-    init(
-        title: LocalizedStringKey,
-        @ViewBuilder content: () -> Content,
-        @ViewBuilder footer: () -> Footer
-    ) {
-        self.title = title
-        self.content = content()
-        self.footer = footer()
-    }
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: 0) {
-                ScrollView {
-                    VStack(alignment: .leading, spacing: Spacing.md) {
-                        content
-                    }
-                    .padding(Spacing.sm)
-                }
-                BottomActionDock {
-                    footer
-                }
-            }
-            .background(ColorTokens.background)
-            .navigationTitle(title)
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbarBackground(ColorTokens.background, for: .navigationBar)
-            .toolbarBackground(.visible, for: .navigationBar)
-        }
-    }
-}
-
 struct BottomActionDock<Content: View>: View {
     @ViewBuilder var content: Content
 
@@ -1322,21 +1118,6 @@ struct SkeletonBlock: View {
     }
 }
 
-struct LoadingStateView: View {
-    let title: LocalizedStringKey
-
-    var body: some View {
-        VStack(spacing: Spacing.sm) {
-            ProgressView()
-            Text(title)
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.textSecondary)
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .background(ColorTokens.background)
-    }
-}
-
 struct EmptyStateView: View {
     let title: LocalizedStringKey
     let message: LocalizedStringKey
@@ -1351,35 +1132,6 @@ struct EmptyStateView: View {
                 .foregroundStyle(ColorTokens.textSecondary)
         }
         .dataPlate()
-    }
-}
-
-struct ErrorStateView: View {
-    let title: LocalizedStringKey
-    let message: String
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            Text(title)
-                .font(.Tokens.sectionHead)
-                .foregroundStyle(ColorTokens.statusCritical)
-            Text(message)
-                .font(.Tokens.label)
-                .foregroundStyle(ColorTokens.textSecondary)
-        }
-        .dataPlate()
-    }
-}
-
-struct StaleDataView: View {
-    let message: String
-
-    var body: some View {
-        StatusRail(
-            title: "Data needs refresh",
-            detail: message,
-            statusColor: ColorTokens.statusAttention
-        )
     }
 }
 
