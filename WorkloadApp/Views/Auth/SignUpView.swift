@@ -200,10 +200,12 @@ struct SignUpView: View {
                 guard let userId = await container.authService.currentUserId() else {
                     throw SignUpSocialError.noUserId
                 }
-                let existingAthlete = await container.syncService.bootstrapAthlete(
+                switch await container.syncService.bootstrapAthlete(
                     context: modelContext, userId: userId
-                )
-                if existingAthlete == nil {
+                ) {
+                case .created:
+                    break
+                case .notFound:
                     // New user — create Athlete profile locally and push to Supabase
                     let name = [credential.fullName?.givenName, credential.fullName?.familyName]
                         .compactMap { $0 }
@@ -217,6 +219,11 @@ struct SignUpView: View {
                     modelContext.insert(athlete)
                     try modelContext.save()
                     await container.syncService.pushAthlete(athlete)
+                case .failed(let error):
+                    // A returning athlete can land on the sign-up screen. On a transport
+                    // failure, creating a profile here would push "Athlete" over the real
+                    // server row (v1.7.2 / audit H7).
+                    throw error
                 }
             }
             await container.syncService.pullAll(context: modelContext)
@@ -240,10 +247,12 @@ struct SignUpView: View {
                 guard let userId = await container.authService.currentUserId() else {
                     throw SignUpSocialError.noUserId
                 }
-                let existingAthlete = await container.syncService.bootstrapAthlete(
+                switch await container.syncService.bootstrapAthlete(
                     context: modelContext, userId: userId
-                )
-                if existingAthlete == nil {
+                ) {
+                case .created:
+                    break
+                case .notFound:
                     // New user — create Athlete profile locally and push to Supabase
                     let athlete = Athlete(
                         id: userId,
@@ -254,6 +263,9 @@ struct SignUpView: View {
                     modelContext.insert(athlete)
                     try modelContext.save()
                     await container.syncService.pushAthlete(athlete)
+                case .failed(let error):
+                    // See the Apple branch above.
+                    throw error
                 }
             }
             await container.syncService.pullAll(context: modelContext)

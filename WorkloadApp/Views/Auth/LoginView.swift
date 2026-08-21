@@ -144,12 +144,18 @@ struct LoginView: View {
                 guard let userId = await container.authService.currentUserId() else {
                     throw AuthBootstrapError.noUserId
                 }
-                let athlete = await container.syncService.bootstrapAthlete(
+                switch await container.syncService.bootstrapAthlete(
                     context: modelContext,
                     userId: userId
-                )
-                if athlete == nil {
+                ) {
+                case .created:
+                    break
+                case .notFound:
                     throw AuthBootstrapError.athleteNotFound
+                case .failed(let error):
+                    // The server was never reached. "Profile not found" would be a lie and
+                    // would send the athlete to support over a dropped connection.
+                    throw error
                 }
             }
 
@@ -177,10 +183,12 @@ struct LoginView: View {
                 guard let userId = await container.authService.currentUserId() else {
                     throw AuthBootstrapError.noUserId
                 }
-                let existingAthlete = await container.syncService.bootstrapAthlete(
+                switch await container.syncService.bootstrapAthlete(
                     context: modelContext, userId: userId
-                )
-                if existingAthlete == nil {
+                ) {
+                case .created:
+                    break
+                case .notFound:
                     // New user via Apple — create Athlete profile
                     let name = [credential.fullName?.givenName, credential.fullName?.familyName]
                         .compactMap { $0 }
@@ -194,6 +202,12 @@ struct LoginView: View {
                     modelContext.insert(athlete)
                     try modelContext.save()
                     await container.syncService.pushAthlete(athlete)
+                case .failed(let error):
+                    // Do NOT fabricate a profile here (v1.7.2 / audit H7). Apple returns
+                    // `fullName` only on the FIRST authorization, so a re-auth that fails
+                    // to reach the server would create "Athlete" and push it straight over
+                    // the real server row, destroying the athlete's name for every device.
+                    throw error
                 }
             }
             await container.syncService.pullAll(context: modelContext)
@@ -217,10 +231,12 @@ struct LoginView: View {
                 guard let userId = await container.authService.currentUserId() else {
                     throw AuthBootstrapError.noUserId
                 }
-                let existingAthlete = await container.syncService.bootstrapAthlete(
+                switch await container.syncService.bootstrapAthlete(
                     context: modelContext, userId: userId
-                )
-                if existingAthlete == nil {
+                ) {
+                case .created:
+                    break
+                case .notFound:
                     // New user via Google — create Athlete profile
                     let athlete = Athlete(
                         id: userId,
@@ -231,6 +247,10 @@ struct LoginView: View {
                     modelContext.insert(athlete)
                     try modelContext.save()
                     await container.syncService.pushAthlete(athlete)
+                case .failed(let error):
+                    // See the Apple branch: a fabricated "Athlete" profile would be pushed
+                    // over the real server row.
+                    throw error
                 }
             }
             await container.syncService.pullAll(context: modelContext)

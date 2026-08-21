@@ -243,40 +243,55 @@ struct SyncService {
 
     // MARK: - Athlete push/pull
 
+    /// The three distinguishable outcomes of a bootstrap attempt.
+    ///
+    /// They are separate cases because the callers must act differently (v1.7.2 / audit H7).
+    /// `bootstrapAthlete` used to return `Athlete?`, which collapsed "the server has no
+    /// profile for this account" and "the request never reached the server" into one `nil`.
+    /// Every caller read that `nil` as the former, so a reinstall on a bad network signed
+    /// the athlete out of a perfectly good account, and an Apple/Google re-auth created a
+    /// fresh local profile named "Athlete" and pushed it over the real server row.
+    enum BootstrapOutcome {
+        /// A profile exists on the server and now exists locally.
+        case created(Athlete)
+        /// The request succeeded and the account genuinely has no athlete row.
+        case notFound
+        /// The request failed. Nothing is known about whether a profile exists.
+        case failed(Error)
+    }
+
     /// Fetches the athlete profile from Supabase and creates it locally.
     /// Called on first sign-in to a fresh device (no local Athlete exists yet).
-    /// Returns the newly-created local Athlete, or nil if not found.
-    func bootstrapAthlete(context: ModelContext, userId: UUID) async -> Athlete? {
-        let row: AthleteRow
+    ///
+    /// Decodes an ARRAY rather than using `.single()`: `.single()` reports zero rows as the
+    /// error PGRST116, which is precisely the ambiguity this method exists to remove. With
+    /// an array, an empty result IS the not-found signal and any thrown error IS a failure.
+    func bootstrapAthlete(context: ModelContext, userId: UUID) async -> BootstrapOutcome {
+        let rows: [AthleteRow]
         do {
-            row = try await client
+            rows = try await client
                 .from("athletes")
                 .select()
                 .eq("user_id", value: userId)
-                .single()
+                .limit(1)
                 .execute()
                 .value
         } catch {
             logFailure("bootstrap athlete", error)
-            return nil
+            return .failed(error)
         }
+        guard let row = rows.first else { return .notFound }
+
         let athlete = Athlete(
             id: row.id,
             displayName: row.displayName ?? "",
             sportType: SportType(rawValue: row.sportType ?? "") ?? .custom
         )
         athlete.supabaseUserId = row.userId
-        athlete.isCoach = row.isCoach ?? false
-        if let freq = row.trainingFrequency {
-            athlete.trainingFrequency = TrainingFrequency(rawValue: freq)
-        }
-        if let exp = row.experienceLevel {
-            athlete.experienceLevel = ExperienceLevel(rawValue: exp)
-        }
-        athlete.updatedAt = row.updatedAt
+        Self.apply(row, to: athlete)
         context.insert(athlete)
         try? context.save()
-        return athlete
+        return .created(athlete)
     }
 
     func pushAthlete(_ athlete: Athlete) async {
@@ -307,34 +322,66 @@ struct SyncService {
 
     private func pullAthlete(context: ModelContext, existingAthlete: Athlete) async {
         guard let userId = existingAthlete.supabaseUserId else { return }
-        let row: AthleteRow
+        let rows: [AthleteRow]
         do {
-            row = try await client
+            rows = try await client
                 .from("athletes")
                 .select()
                 .eq("user_id", value: userId)
-                .single()
+                .limit(1)
                 .execute()
                 .value
         } catch {
             logFailure("pull athlete", error)
             return
         }
+        guard let row = rows.first else { return }
         if existingAthlete.updatedAt > row.updatedAt { return }
-        existingAthlete.displayName = row.displayName ?? existingAthlete.displayName
-        existingAthlete.isCoach = row.isCoach ?? existingAthlete.isCoach
-        if let freq = row.trainingFrequency {
-            existingAthlete.trainingFrequency = TrainingFrequency(rawValue: freq)
-        }
-        if let exp = row.experienceLevel {
-            existingAthlete.experienceLevel = ExperienceLevel(rawValue: exp)
-        }
-        existingAthlete.updatedAt = row.updatedAt
+        Self.apply(row, to: existingAthlete)
         do {
             try context.save()
         } catch {
             logFailure("pull athlete save", error)
         }
+    }
+
+    /// Copies a server athlete row onto a local `Athlete`.
+    ///
+    /// Every field `pushAthlete` sends is restored here (v1.7.2 / audit M1). Before this,
+    /// a pull restored only `displayName` / `isCoach` / `trainingFrequency` /
+    /// `experienceLevel`, so `sportType`, `weightUnit`, `acwrMethod`,
+    /// `loadMetricPreference`, `maxHeartRate` and `dateOfBirth` were write-only — a new
+    /// device came up with defaults for settings the athlete had already chosen, silently.
+    ///
+    /// Nil is read as ABSENT, never as "cleared". The `athletes` table has grown columns by
+    /// hand across three releases (007 backfilled two of them), so a column the server does
+    /// not have yet decodes as nil on every row; coalescing keeps a schema gap from wiping a
+    /// real local value. The cost is that genuinely clearing `maxHeartRate` or `dateOfBirth`
+    /// does not propagate to another device — the cheaper of the two failures.
+    static func apply(_ row: AthleteRow, to athlete: Athlete) {
+        athlete.displayName = row.displayName ?? athlete.displayName
+        if let sport = row.sportType.flatMap(SportType.init(rawValue:)) {
+            athlete.sportType = sport
+        }
+        if let unit = row.weightUnit.flatMap(WeightUnit.init(rawValue:)) {
+            athlete.weightUnit = unit
+        }
+        if let method = row.acwrMethod.flatMap(ACWRMethod.init(rawValue:)) {
+            athlete.acwrMethod = method
+        }
+        if let metric = row.loadMetricPreference.flatMap(LoadSource.init(rawValue:)) {
+            athlete.loadMetricPreference = metric
+        }
+        athlete.maxHeartRate = row.maxHeartRate ?? athlete.maxHeartRate
+        athlete.dateOfBirth = row.dateOfBirth?.date ?? athlete.dateOfBirth
+        athlete.isCoach = row.isCoach ?? athlete.isCoach
+        if let freq = row.trainingFrequency.flatMap(TrainingFrequency.init(rawValue:)) {
+            athlete.trainingFrequency = freq
+        }
+        if let exp = row.experienceLevel.flatMap(ExperienceLevel.init(rawValue:)) {
+            athlete.experienceLevel = exp
+        }
+        athlete.updatedAt = row.updatedAt
     }
 
     // MARK: - Push helpers
@@ -695,6 +742,257 @@ struct SyncService {
         }
         return true
     }
+    // MARK: - Template push/pull
+
+    @discardableResult
+    func pushWorkoutTemplates(context: ModelContext, coachId: UUID) async -> Bool {
+        guard await verifyIdentity(context: context, athleteId: coachId) else { return false }
+        let templates: [WorkoutTemplate]
+        do {
+            templates = try context.fetch(
+                FetchDescriptor<WorkoutTemplate>(predicate: #Predicate { $0.coachId == coachId })
+            )
+        } catch {
+            logFailure(.templates, .push, error)
+            recordFailure(.templates, .push, error)
+            return false
+        }
+        guard !templates.isEmpty else { return true }
+        let rows = templates.map { WorkoutTemplateRow(from: $0) }
+        return await run(.templates, .push) {
+            _ = try await client.from("workout_templates").upsert(rows).execute()
+        }
+    }
+
+    @discardableResult
+    private func pullWorkoutTemplates(context: ModelContext, coachId: UUID) async -> Bool {
+        let rows: [WorkoutTemplateRow]
+        do {
+            rows = try await client
+                .from("workout_templates")
+                .select()
+                .eq("coach_id", value: coachId)
+                .execute()
+                .value
+        } catch {
+            logFailure(.templates, .pull, error)
+            recordFailure(.templates, .pull, error)
+            return false
+        }
+
+        for row in rows {
+            let pred = #Predicate<WorkoutTemplate> { $0.id == row.id }
+            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
+            if let existing, existing.updatedAt > row.updatedAt { continue }
+            let template = existing ?? WorkoutTemplate(coachId: row.coachId, templateName: row.templateName)
+            template.id = row.id
+            template.coachId = row.coachId
+            template.templateName = row.templateName
+            template.sportType = SportType(rawValue: row.sportType) ?? .lifting
+            template.sessionType = SessionType(rawValue: row.sessionType) ?? .strength
+            template.notes = row.notes
+            template.updatedAt = row.updatedAt
+            template.createdAt = row.createdAt
+            template.isAthleteOwned = row.isAthleteOwned
+            template.athleteId = row.athleteId
+            template.isFavorite = row.isFavorite
+            template.isArchived = row.isArchived
+            template.lastUsedAt = row.lastUsedAt
+            template.usageCount = row.usageCount
+            template.scheduledDays = row.scheduledDays ?? []
+
+            // Rebuild the group tree ONLY when its content actually differs (v1.7.1).
+            //
+            // The LWW guard above skips a row only when local is strictly NEWER, and this
+            // loop then sets `template.updatedAt = row.updatedAt` — so from the first
+            // applied pull onward local and server timestamps are EQUAL forever, the guard
+            // never fires, and every foreground sync cascade-deleted and re-created every
+            // ExerciseGroup / TemplateExercise / TemplateSet with fresh UUIDs. That churn
+            // could also empty a template mid-edit.
+            //
+            // Comparing the canonical encoding instead of widening the timestamp guard is
+            // deliberate: an equal timestamp does NOT imply equal payload (two devices can
+            // edit inside the same truncated second), so skipping purely on equality could
+            // strand a real remote change. Content is the honest test — identical content
+            // means there is nothing to rebuild; different content still applies.
+            let incomingGroupsJSON = row.groupsJson
+            let localGroupsJSON = existing.map { Self.encodeGroups($0.groups) } ?? nil
+            if existing == nil || incomingGroupsJSON != localGroupsJSON {
+                if existing != nil {
+                    for group in template.groups { context.delete(group) }
+                    template.groups = []
+                }
+                if let groupsJSON = incomingGroupsJSON {
+                    template.groups = Self.decodeGroups(from: groupsJSON)
+                }
+            }
+
+            if existing == nil { context.insert(template) }
+        }
+        do {
+            try context.save()
+        } catch {
+            logFailure(.templates, .pull, error)
+            recordFailure(.templates, .pull, error)
+            return false
+        }
+        return true
+    }
+
+    // MARK: - Training Profile push/pull
+
+    @discardableResult
+    func pushTrainingProfile(context: ModelContext, athleteId: UUID) async -> Bool {
+        guard await verifyIdentity(context: context, athleteId: athleteId) else { return false }
+        let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }
+        let profile: TrainingProfile?
+        do {
+            profile = try context.fetch(FetchDescriptor(predicate: predicate)).first
+        } catch {
+            logFailure(.trainingProfiles, .push, error)
+            recordFailure(.trainingProfiles, .push, error)
+            return false
+        }
+        guard let profile else { return true }
+        let row = TrainingProfileRow(from: profile)
+        return await run(.trainingProfiles, .push) {
+            // Conflict on athlete_id, not the primary key (v1.7.2 / audit M4). The table
+            // carries UNIQUE(athlete_id) (migration 006) while each device mints its own
+            // `id`, so a default PK upsert from a second device is an INSERT that violates
+            // the unique constraint — 23505, a permanently red Training Profile row.
+            _ = try await client
+                .from("training_profiles")
+                .upsert(row, onConflict: "athlete_id")
+                .execute()
+        }
+    }
+
+    @discardableResult
+    private func pullTrainingProfile(context: ModelContext, athleteId: UUID) async -> Bool {
+        // Decode an ARRAY, not `.single()` (v1.7.1). `.single()` treats zero rows as the
+        // error PGRST116, so an athlete who never completed cold start had a permanently
+        // red "Training Profile" row — which, because `shouldSync` returns true whenever
+        // any entity has a recorded failure, also forced a full push+pull on every single
+        // foreground. No profile on the server is an ABSENCE, not a failure.
+        let rows: [TrainingProfileRow]
+        do {
+            rows = try await client
+                .from("training_profiles")
+                .select()
+                .eq("athlete_id", value: athleteId)
+                .limit(1)
+                .execute()
+                .value
+        } catch {
+            logFailure(.trainingProfiles, .pull, error)
+            recordFailure(.trainingProfiles, .pull, error)
+            return false
+        }
+        guard let row = rows.first else {
+            // Nothing to pull; the local profile (if any) stands.
+            return true
+        }
+
+        let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }
+        let existing = try? context.fetch(FetchDescriptor(predicate: predicate)).first
+        if let existing, existing.updatedAt > row.updatedAt { return true }
+
+        if let existing {
+            existing.sessionsPerWeek = row.sessionsPerWeek
+            existing.avgDurationMinutes = row.avgDurationMinutes
+            existing.typicalSRPE = row.typicalSrpe
+            existing.weeksAtLevel = row.weeksAtLevel
+            existing.trainingAgeYears = row.trainingAgeYears
+            existing.periodizationPreference = row.periodizationPreference
+            existing.movementTypes = row.movementTypes
+            existing.injuryHistory = row.injuryHistory?.data(using: .utf8)
+            existing.seededATL = row.seededAtl
+            existing.seededCTL = row.seededCtl
+            existing.seededAt = row.seededAt
+            existing.biasEstimatedATL = row.biasEstimatedAtl
+            existing.biasEstimatedCTL = row.biasEstimatedCtl
+            existing.biasActualATL = row.biasActualAtl
+            existing.biasActualCTL = row.biasActualCtl
+            existing.biasCapturedAt = row.biasCapturedAt
+            existing.coldStartCompletedAt = row.coldStartCompletedAt
+            existing.updatedAt = row.updatedAt
+        } else {
+            let profile = TrainingProfile(
+                id: row.id,
+                athleteId: row.athleteId,
+                sessionsPerWeek: row.sessionsPerWeek,
+                avgDurationMinutes: row.avgDurationMinutes,
+                typicalSRPE: row.typicalSrpe,
+                weeksAtLevel: row.weeksAtLevel,
+                seededATL: row.seededAtl,
+                seededCTL: row.seededCtl,
+                seededAt: row.seededAt
+            )
+            profile.createdAt = row.createdAt
+            profile.trainingAgeYears = row.trainingAgeYears
+            profile.periodizationPreference = row.periodizationPreference
+            profile.movementTypes = row.movementTypes
+            profile.injuryHistory = row.injuryHistory?.data(using: .utf8)
+            profile.biasEstimatedATL = row.biasEstimatedAtl
+            profile.biasEstimatedCTL = row.biasEstimatedCtl
+            profile.biasActualATL = row.biasActualAtl
+            profile.biasActualCTL = row.biasActualCtl
+            profile.biasCapturedAt = row.biasCapturedAt
+            profile.coldStartCompletedAt = row.coldStartCompletedAt
+            profile.updatedAt = row.updatedAt
+            context.insert(profile)
+        }
+        do {
+            try context.save()
+        } catch {
+            logFailure(.trainingProfiles, .pull, error)
+            recordFailure(.trainingProfiles, .pull, error)
+            return false
+        }
+        return true
+    }
+
+    // MARK: - Group JSON helpers
+
+    static func encodeGroups(_ groups: [ExerciseGroup]) -> String? {
+        let dtos = groups.sorted(by: { $0.orderIndex < $1.orderIndex }).map { GroupDTO(from: $0) }
+        let encoder = JSONEncoder()
+        guard let data = try? encoder.encode(dtos) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func decodeGroups(from json: String) -> [ExerciseGroup] {
+        let decoder = JSONDecoder()
+        guard let data = json.data(using: .utf8),
+              let dtos = try? decoder.decode([GroupDTO].self, from: data) else { return [] }
+        return dtos.enumerated().map { index, dto in
+            let group = ExerciseGroup(groupName: dto.groupName, orderIndex: index)
+            group.exercises = dto.exercises.enumerated().map { eIdx, exDTO in
+                let exercise = TemplateExercise(
+                    exerciseName: exDTO.exerciseName,
+                    exerciseCategory: ExerciseCategory(rawValue: exDTO.exerciseCategory) ?? .compound,
+                    muscleGroup: exDTO.muscleGroup.flatMap { MuscleGroup(rawValue: $0) },
+                    orderIndex: eIdx
+                )
+                exercise.sets = exDTO.sets.enumerated().map { sIdx, setDTO in
+                    TemplateSet(
+                        setIndex: sIdx,
+                        targetReps: setDTO.targetReps,
+                        targetWeightKg: setDTO.targetWeightKg,
+                        targetDurationSeconds: setDTO.targetDurationSeconds,
+                        targetDistanceMeters: setDTO.targetDistanceMeters,
+                        targetRPE: setDTO.targetRPE,
+                        targetRIR: setDTO.targetRIR,
+                        isWarmup: setDTO.isWarmup
+                    )
+                }
+                return exercise
+            }
+            return group
+        }
+    }
+
+}
 
 /// Calendar-day codec for Postgres `DATE` columns (v1.7.1 sync repair).
 ///
@@ -709,15 +1007,17 @@ struct SyncService {
 struct DateOnly: Codable, Equatable {
     let date: Date
 
+    /// `TimeZone.current` is read on every call — never cached (v1.7.2 / audit M6). See
+    /// `CalendarDay` for why that matters.
     init(_ date: Date) {
-        self.date = Calendar.current.startOfDay(for: date)
+        self.date = CalendarDay.startOfDay(for: date, in: .current)
     }
 
     init(from decoder: Decoder) throws {
         let raw = try decoder.singleValueContainer().decode(String.self)
         // Tolerate a timestamptz string too (first 10 chars are the date part) in case
         // a column is migrated later.
-        guard let parsed = Self.formatter.date(from: String(raw.prefix(10))) else {
+        guard let parsed = CalendarDay.date(from: String(raw.prefix(10)), in: .current) else {
             throw DecodingError.dataCorrupted(DecodingError.Context(
                 codingPath: decoder.codingPath,
                 debugDescription: "Unrecognized DATE string: \(raw)"
@@ -728,17 +1028,8 @@ struct DateOnly: Codable, Equatable {
 
     func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
-        try container.encode(Self.formatter.string(from: date))
+        try container.encode(CalendarDay.string(from: date, in: .current))
     }
-
-    private static let formatter: DateFormatter = {
-        let f = DateFormatter()
-        f.calendar = Calendar(identifier: .gregorian)
-        f.locale = Locale(identifier: "en_US_POSIX")
-        f.timeZone = .current
-        f.dateFormat = "yyyy-MM-dd"
-        return f
-    }()
 }
 
 struct AthleteRow: Codable {
@@ -928,251 +1219,6 @@ struct WorkoutSessionRow: Codable {
         self.trainingStress = model.trainingStress
         self.updatedAt = model.updatedAt
     }
-}
-
-    // MARK: - Template push/pull
-
-    @discardableResult
-    func pushWorkoutTemplates(context: ModelContext, coachId: UUID) async -> Bool {
-        guard await verifyIdentity(context: context, athleteId: coachId) else { return false }
-        let templates: [WorkoutTemplate]
-        do {
-            templates = try context.fetch(
-                FetchDescriptor<WorkoutTemplate>(predicate: #Predicate { $0.coachId == coachId })
-            )
-        } catch {
-            logFailure(.templates, .push, error)
-            recordFailure(.templates, .push, error)
-            return false
-        }
-        guard !templates.isEmpty else { return true }
-        let rows = templates.map { WorkoutTemplateRow(from: $0) }
-        return await run(.templates, .push) {
-            _ = try await client.from("workout_templates").upsert(rows).execute()
-        }
-    }
-
-    @discardableResult
-    private func pullWorkoutTemplates(context: ModelContext, coachId: UUID) async -> Bool {
-        let rows: [WorkoutTemplateRow]
-        do {
-            rows = try await client
-                .from("workout_templates")
-                .select()
-                .eq("coach_id", value: coachId)
-                .execute()
-                .value
-        } catch {
-            logFailure(.templates, .pull, error)
-            recordFailure(.templates, .pull, error)
-            return false
-        }
-
-        for row in rows {
-            let pred = #Predicate<WorkoutTemplate> { $0.id == row.id }
-            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
-            if let existing, existing.updatedAt > row.updatedAt { continue }
-            let template = existing ?? WorkoutTemplate(coachId: row.coachId, templateName: row.templateName)
-            template.id = row.id
-            template.coachId = row.coachId
-            template.templateName = row.templateName
-            template.sportType = SportType(rawValue: row.sportType) ?? .lifting
-            template.sessionType = SessionType(rawValue: row.sessionType) ?? .strength
-            template.notes = row.notes
-            template.updatedAt = row.updatedAt
-            template.createdAt = row.createdAt
-            template.isAthleteOwned = row.isAthleteOwned
-            template.athleteId = row.athleteId
-            template.isFavorite = row.isFavorite
-            template.isArchived = row.isArchived
-            template.lastUsedAt = row.lastUsedAt
-            template.usageCount = row.usageCount
-            template.scheduledDays = row.scheduledDays ?? []
-
-            // Rebuild the group tree ONLY when its content actually differs (v1.7.1).
-            //
-            // The LWW guard above skips a row only when local is strictly NEWER, and this
-            // loop then sets `template.updatedAt = row.updatedAt` — so from the first
-            // applied pull onward local and server timestamps are EQUAL forever, the guard
-            // never fires, and every foreground sync cascade-deleted and re-created every
-            // ExerciseGroup / TemplateExercise / TemplateSet with fresh UUIDs. That churn
-            // could also empty a template mid-edit.
-            //
-            // Comparing the canonical encoding instead of widening the timestamp guard is
-            // deliberate: an equal timestamp does NOT imply equal payload (two devices can
-            // edit inside the same truncated second), so skipping purely on equality could
-            // strand a real remote change. Content is the honest test — identical content
-            // means there is nothing to rebuild; different content still applies.
-            let incomingGroupsJSON = row.groupsJson
-            let localGroupsJSON = existing.map { Self.encodeGroups($0.groups) } ?? nil
-            if existing == nil || incomingGroupsJSON != localGroupsJSON {
-                if existing != nil {
-                    for group in template.groups { context.delete(group) }
-                    template.groups = []
-                }
-                if let groupsJSON = incomingGroupsJSON {
-                    template.groups = Self.decodeGroups(from: groupsJSON)
-                }
-            }
-
-            if existing == nil { context.insert(template) }
-        }
-        do {
-            try context.save()
-        } catch {
-            logFailure(.templates, .pull, error)
-            recordFailure(.templates, .pull, error)
-            return false
-        }
-        return true
-    }
-
-    // MARK: - Training Profile push/pull
-
-    @discardableResult
-    func pushTrainingProfile(context: ModelContext, athleteId: UUID) async -> Bool {
-        guard await verifyIdentity(context: context, athleteId: athleteId) else { return false }
-        let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }
-        let profile: TrainingProfile?
-        do {
-            profile = try context.fetch(FetchDescriptor(predicate: predicate)).first
-        } catch {
-            logFailure(.trainingProfiles, .push, error)
-            recordFailure(.trainingProfiles, .push, error)
-            return false
-        }
-        guard let profile else { return true }
-        let row = TrainingProfileRow(from: profile)
-        return await run(.trainingProfiles, .push) {
-            _ = try await client.from("training_profiles").upsert(row).execute()
-        }
-    }
-
-    @discardableResult
-    private func pullTrainingProfile(context: ModelContext, athleteId: UUID) async -> Bool {
-        // Decode an ARRAY, not `.single()` (v1.7.1). `.single()` treats zero rows as the
-        // error PGRST116, so an athlete who never completed cold start had a permanently
-        // red "Training Profile" row — which, because `shouldSync` returns true whenever
-        // any entity has a recorded failure, also forced a full push+pull on every single
-        // foreground. No profile on the server is an ABSENCE, not a failure.
-        let rows: [TrainingProfileRow]
-        do {
-            rows = try await client
-                .from("training_profiles")
-                .select()
-                .eq("athlete_id", value: athleteId)
-                .limit(1)
-                .execute()
-                .value
-        } catch {
-            logFailure(.trainingProfiles, .pull, error)
-            recordFailure(.trainingProfiles, .pull, error)
-            return false
-        }
-        guard let row = rows.first else {
-            // Nothing to pull; the local profile (if any) stands.
-            return true
-        }
-
-        let predicate = #Predicate<TrainingProfile> { $0.athleteId == athleteId }
-        let existing = try? context.fetch(FetchDescriptor(predicate: predicate)).first
-        if let existing, existing.updatedAt > row.updatedAt { return true }
-
-        if let existing {
-            existing.sessionsPerWeek = row.sessionsPerWeek
-            existing.avgDurationMinutes = row.avgDurationMinutes
-            existing.typicalSRPE = row.typicalSrpe
-            existing.weeksAtLevel = row.weeksAtLevel
-            existing.trainingAgeYears = row.trainingAgeYears
-            existing.periodizationPreference = row.periodizationPreference
-            existing.movementTypes = row.movementTypes
-            existing.injuryHistory = row.injuryHistory?.data(using: .utf8)
-            existing.seededATL = row.seededAtl
-            existing.seededCTL = row.seededCtl
-            existing.seededAt = row.seededAt
-            existing.biasEstimatedATL = row.biasEstimatedAtl
-            existing.biasEstimatedCTL = row.biasEstimatedCtl
-            existing.biasActualATL = row.biasActualAtl
-            existing.biasActualCTL = row.biasActualCtl
-            existing.biasCapturedAt = row.biasCapturedAt
-            existing.coldStartCompletedAt = row.coldStartCompletedAt
-            existing.updatedAt = row.updatedAt
-        } else {
-            let profile = TrainingProfile(
-                id: row.id,
-                athleteId: row.athleteId,
-                sessionsPerWeek: row.sessionsPerWeek,
-                avgDurationMinutes: row.avgDurationMinutes,
-                typicalSRPE: row.typicalSrpe,
-                weeksAtLevel: row.weeksAtLevel,
-                seededATL: row.seededAtl,
-                seededCTL: row.seededCtl,
-                seededAt: row.seededAt
-            )
-            profile.createdAt = row.createdAt
-            profile.trainingAgeYears = row.trainingAgeYears
-            profile.periodizationPreference = row.periodizationPreference
-            profile.movementTypes = row.movementTypes
-            profile.injuryHistory = row.injuryHistory?.data(using: .utf8)
-            profile.biasEstimatedATL = row.biasEstimatedAtl
-            profile.biasEstimatedCTL = row.biasEstimatedCtl
-            profile.biasActualATL = row.biasActualAtl
-            profile.biasActualCTL = row.biasActualCtl
-            profile.biasCapturedAt = row.biasCapturedAt
-            profile.coldStartCompletedAt = row.coldStartCompletedAt
-            profile.updatedAt = row.updatedAt
-            context.insert(profile)
-        }
-        do {
-            try context.save()
-        } catch {
-            logFailure(.trainingProfiles, .pull, error)
-            recordFailure(.trainingProfiles, .pull, error)
-            return false
-        }
-        return true
-    }
-
-    // MARK: - Group JSON helpers
-
-    static func encodeGroups(_ groups: [ExerciseGroup]) -> String? {
-        let dtos = groups.sorted(by: { $0.orderIndex < $1.orderIndex }).map { GroupDTO(from: $0) }
-        let encoder = JSONEncoder()
-        guard let data = try? encoder.encode(dtos) else { return nil }
-        return String(data: data, encoding: .utf8)
-    }
-
-    static func decodeGroups(from json: String) -> [ExerciseGroup] {
-        let decoder = JSONDecoder()
-        guard let data = json.data(using: .utf8),
-              let dtos = try? decoder.decode([GroupDTO].self, from: data) else { return [] }
-        return dtos.enumerated().map { index, dto in
-            let group = ExerciseGroup(groupName: dto.groupName, orderIndex: index)
-            group.exercises = dto.exercises.enumerated().map { eIdx, exDTO in
-                let exercise = TemplateExercise(
-                    exerciseName: exDTO.exerciseName,
-                    exerciseCategory: ExerciseCategory(rawValue: exDTO.exerciseCategory) ?? .compound,
-                    muscleGroup: exDTO.muscleGroup.flatMap { MuscleGroup(rawValue: $0) },
-                    orderIndex: eIdx
-                )
-                exercise.sets = exDTO.sets.enumerated().map { sIdx, setDTO in
-                    TemplateSet(
-                        setIndex: sIdx,
-                        targetReps: setDTO.targetReps,
-                        targetWeightKg: setDTO.targetWeightKg,
-                        targetDurationSeconds: setDTO.targetDurationSeconds,
-                        targetDistanceMeters: setDTO.targetDistanceMeters,
-                        targetRPE: setDTO.targetRPE,
-                        targetRIR: setDTO.targetRIR,
-                        isWarmup: setDTO.isWarmup
-                    )
-                }
-                return exercise
-            }
-            return group
-        }
-    }
-
 }
 
 // MARK: - Template Row

@@ -140,14 +140,23 @@ struct AppRouter: View {
                 let localAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
                 if localAthletes?.isEmpty != false,
                    let userId = await container.authService.currentUserId() {
-                    _ = await container.syncService.bootstrapAthlete(
+                    switch await container.syncService.bootstrapAthlete(
                         context: modelContext,
                         userId: userId
-                    )
-                    // If bootstrap failed (no Supabase athlete row), treat as zombie account
-                    let athletesAfterBootstrap = try? modelContext.fetch(FetchDescriptor<Athlete>())
-                    if athletesAfterBootstrap?.isEmpty == true {
+                    ) {
+                    case .created:
+                        break
+                    case .notFound:
+                        // A genuine zombie: the session is valid but the account owns no
+                        // athlete row. Signing out is the only way forward.
                         try? await container.authService.signOut()
+                        isCheckingSession = false
+                        return
+                    case .failed:
+                        // The server was unreachable — we know NOTHING about whether a
+                        // profile exists (v1.7.2 / audit H7). Keep the Keychain session so
+                        // the next launch retries; land on the login screen rather than
+                        // destroying a valid session because the plane had no wifi.
                         isCheckingSession = false
                         return
                     }
