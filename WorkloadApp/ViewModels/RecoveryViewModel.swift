@@ -27,7 +27,7 @@ final class RecoveryViewModel {
 
     func load(
         athlete: Athlete,
-        healthKitService: HealthKitService,
+        healthKitService: any HealthDataProviding,
         modelContext: ModelContext
     ) async {
         isLoading = true
@@ -95,7 +95,7 @@ final class RecoveryViewModel {
     /// Re-trigger recovery pipeline after wellness check-in.
     func onWellnessCheckInSaved(
         athlete: Athlete,
-        healthKitService: HealthKitService,
+        healthKitService: any HealthDataProviding,
         modelContext: ModelContext
     ) async {
         _ = try? await RecoveryPipeline.run(

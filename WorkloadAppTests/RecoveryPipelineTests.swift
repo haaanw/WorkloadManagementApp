@@ -50,7 +50,7 @@ final class RecoveryPipelineTests: XCTestCase {
 
         let result = try await RecoveryPipeline.run(
             athlete: athlete,
-            healthKitService: HealthKitService(),
+            healthKitService: StubHealthDataProvider.silent(),
             modelContext: context
         )
 
@@ -64,7 +64,7 @@ final class RecoveryPipelineTests: XCTestCase {
         let athlete = makeAthlete(in: context)
 
         _ = try await RecoveryPipeline.run(
-            athlete: athlete, healthKitService: HealthKitService(), modelContext: context
+            athlete: athlete, healthKitService: StubHealthDataProvider.silent(), modelContext: context
         )
         let snapshots = try context.fetch(FetchDescriptor<RecoverySnapshot>())
         XCTAssertEqual(snapshots.count, 1)
@@ -79,7 +79,7 @@ final class RecoveryPipelineTests: XCTestCase {
         // A dashboard reload, a wellness check-in and a foreground all re-run the pipeline.
         let context = try makeContext()
         let athlete = makeAthlete(in: context)
-        let service = HealthKitService()
+        let service = StubHealthDataProvider.silent()
 
         _ = try await RecoveryPipeline.run(athlete: athlete, healthKitService: service, modelContext: context)
         _ = try await RecoveryPipeline.run(athlete: athlete, healthKitService: service, modelContext: context)
@@ -92,7 +92,7 @@ final class RecoveryPipelineTests: XCTestCase {
         // second run moved the score with no new physiology.
         let context = try makeContext()
         let athlete = makeAthlete(in: context)
-        let service = HealthKitService()
+        let service = StubHealthDataProvider.silent()
 
         let first = try await RecoveryPipeline.run(
             athlete: athlete, healthKitService: service, modelContext: context
@@ -112,7 +112,7 @@ final class RecoveryPipelineTests: XCTestCase {
         let athlete = makeAthlete(in: context)
 
         let result = try await RecoveryPipeline.run(
-            athlete: athlete, healthKitService: HealthKitService(), modelContext: context
+            athlete: athlete, healthKitService: StubHealthDataProvider.silent(), modelContext: context
         )
         XCTAssertEqual(result.score, 50)
         // No reduction ran, so no shadow row should exist — the arm stays silent rather than
@@ -129,7 +129,7 @@ final class RecoveryPipelineTests: XCTestCase {
         let athlete = makeAthlete(in: context)
 
         _ = try await RecoveryPipeline.run(
-            athlete: athlete, healthKitService: HealthKitService(), modelContext: context
+            athlete: athlete, healthKitService: StubHealthDataProvider.silent(), modelContext: context
         )
         let states = try context.fetch(FetchDescriptor<BaselineState>())
         XCTAssertTrue(states.filter { $0.baselineCheckpointVersion != 0 }.isEmpty)

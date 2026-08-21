@@ -42,12 +42,43 @@ enum HealthKitConnectionState: Equatable {
     case connected
 }
 
+/// Everything the recovery pipeline and its view models read from the body.
+///
+/// This exists so a test can decide what the body reported (v1.7.2 codebase audit). Before
+/// it, `RecoveryPipeline.run` took the concrete `HealthKitService` and therefore queried
+/// the real HealthKit store inside the test host — where a query on an empty simulator
+/// sometimes THREW and sometimes returned an empty result, depending on how far the host
+/// app's own dashboard had progressed. `VerdictSurfaceActivationTests` passed only in the
+/// throwing case: in the empty case the pipeline's authoritative today-write cleared the
+/// seeded signals and the honest-confidence gate correctly deferred. The test was patched
+/// to re-assert its seed values; the seam is the real fix (pair board C-v171g-002).
+///
+/// The protocol is exactly the surface those callers use — no more. It is not an attempt
+/// to abstract HealthKit.
+@MainActor
+protocol HealthDataProviding: AnyObject {
+    var isAvailable: Bool { get }
+    var hasRequestedAccess: Bool { get }
+    var isAuthorized: Bool { get }
+    var connectionState: HealthKitConnectionState { get }
+
+    func updateObservedData(_ present: Bool)
+
+    func fetchHRVHistory(days: Int) async throws -> [(date: Date, value: Double)]
+    func fetchRestingHRHistory(days: Int) async throws -> [(date: Date, value: Double)]
+    func fetchLastNightSleepDetail() async throws -> HealthKitService.LastNightSleepDetail?
+    func fetchLatestBodyTemp() async throws -> Double?
+    func fetchLatestVO2Max() async throws -> Double?
+    func fetchOvernightRespiratoryRate() async throws -> Double?
+    func fetchDailyActiveEnergyByDay(days: Int) async throws -> [Date: Double]
+}
+
 /// Service for reading health and fitness data from HealthKit.
 /// All wearable data (Apple Watch, Whoop, Oura, Garmin) flows through HealthKit
 /// as the unified API when their companion apps are installed.
 @MainActor
 @Observable
-final class HealthKitService {
+final class HealthKitService: HealthDataProviding {
     private let store = HKHealthStore()
 
     /// UserDefaults key persisting that we have completed an authorization request at least once.

@@ -20,7 +20,7 @@ struct RecoveryPipeline {
 
     static func run(
         athlete: Athlete,
-        healthKitService: HealthKitService,
+        healthKitService: any HealthDataProviding,
         modelContext: ModelContext,
         syncService: SyncService? = nil
     ) async throws -> RecoveryResult {
@@ -247,7 +247,7 @@ struct RecoveryPipeline {
     ///   truncated 02:00 fetch never folds and the full night still folds later that day.
     private static func runSleepV2Shadow(
         athlete: Athlete,
-        healthKitService: HealthKitService,
+        healthKitService: any HealthDataProviding,
         modelContext: ModelContext,
         detail: HealthKitService.LastNightSleepDetail?,
         v1SleepMinutes: Double?

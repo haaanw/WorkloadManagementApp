@@ -113,7 +113,7 @@ final class DashboardViewModelDualRunTests: XCTestCase {
         }
 
         let vm = DashboardViewModel()
-        await vm.load(athlete: athlete, healthKitService: HealthKitService(), modelContext: ctx)
+        await vm.load(athlete: athlete, healthKitService: StubHealthDataProvider.silent(), modelContext: ctx)
 
         XCTAssertNil(vm.dualRunMessage, "flag-off: dualRunMessage MUST be nil after load()")
     }

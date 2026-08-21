@@ -93,7 +93,7 @@ final class DashboardViewModel {
 
     func load(
         athlete: Athlete,
-        healthKitService: HealthKitService,
+        healthKitService: any HealthDataProviding,
         modelContext: ModelContext,
         syncService: SyncService? = nil
     ) async {

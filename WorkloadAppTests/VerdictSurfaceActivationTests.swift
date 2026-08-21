@@ -208,22 +208,25 @@ final class VerdictSurfaceActivationTests: XCTestCase {
         }
 
         let vm = DashboardViewModel()
+        // Hermetic by construction (v1.7.2 codebase audit): a silent provider means the
+        // pipeline reads nothing from the body, so the seeded history above is exactly what
+        // the verdict sees. This test used to pass a real `HealthKitService` and therefore
+        // queried the test host's own HealthKit store, which on an empty simulator sometimes
+        // threw and sometimes returned empty depending on how far the host app's dashboard
+        // had progressed. In the empty case the pipeline's authoritative today-write cleared
+        // the seeded signals and the verdict correctly deferred — so the test only passed
+        // when the query happened to throw. The re-assertion that patched that is gone; the
+        // seam is the fix (pair board C-v171g-002).
+        //
         // Bare load() snapshots the dual-run inputs but (flags default-off) leaves dualRunMessage nil.
-        await vm.load(athlete: athlete, healthKitService: HealthKitService(), modelContext: ctx)
+        await vm.load(athlete: athlete, healthKitService: StubHealthDataProvider.silent(), modelContext: ctx)
         XCTAssertNil(vm.dualRunMessage, "bare load() must leave dualRunMessage nil (production opt-in not yet called)")
 
         let legacy = try XCTUnwrap(vm.recommendation, "load() must compute the legacy recommendation")
 
-        // Determinism guard (2026-08-10): load() runs the REAL RecoveryPipeline, whose
-        // authoritative today-write CLEARS the seeded today-signals whenever the test host's
-        // HealthKit query returns empty instead of throwing — and which of those happens
-        // depends on how far the host app's own dashboard has progressed (pure scheduling;
-        // the failure surfaced only when another suite ran first in the same clone). The
-        // activation contract under test needs today's signals present, so re-assert the
-        // seeded i=13 values; when the pipeline kept them this is a no-op.
-        vm.latestHRV = vm.latestHRV ?? 68
-        vm.latestRHR = vm.latestRHR ?? 51
-        vm.latestSleepMinutes = vm.latestSleepMinutes ?? 462
+        XCTAssertNotNil(vm.latestHRV, "the seeded today-signals must survive a silent HealthKit read")
+        XCTAssertNotNil(vm.latestRHR)
+        XCTAssertNotNil(vm.latestSleepMinutes)
 
         // Act — the explicit PRODUCTION opt-in (no app-wide flag flip).
         vm.activateVerdictSurface()
@@ -247,7 +250,7 @@ final class VerdictSurfaceActivationTests: XCTestCase {
         // No recovery/session history → cold-start → no real FatigueResult → builder returns nil.
 
         let vm = DashboardViewModel()
-        await vm.load(athlete: athlete, healthKitService: HealthKitService(), modelContext: ctx)
+        await vm.load(athlete: athlete, healthKitService: StubHealthDataProvider.silent(), modelContext: ctx)
 
         // Act — production opt-in over thin/empty data.
         vm.activateVerdictSurface()
