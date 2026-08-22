@@ -78,4 +78,6 @@ The current listing is a basic version. Optimize:
 
 Sleep score v2 activation (its ≥6-week shadow dogfood runs on its own clock);
 algorithm estimator v2 flip (gated on the pre-registered validation, ~40 blinded
-days); website/ASO (CODEX lane).
+days); website SEO/GEO + Twitter-first social marketing (queued as the v1.7.3
+parallel lane — `.planning/v173/MARKETING.md`, HAN 2026-08-22). Note: App Store
+ASO moved INTO scope 2026-08-21 as Objective 3.
