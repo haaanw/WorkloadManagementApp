@@ -121,6 +121,7 @@
 		AA4403020000000000000001 /* TodayVerdictCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA4403010000000000000001 /* TodayVerdictCard.swift */; };
 		AAFE00020000000000000001 /* ResolvedSessionPlan.swift in Sources */ = {isa = PBXBuildFile; fileRef = AAFE00010000000000000001 /* ResolvedSessionPlan.swift */; };
 		AB10000000000000000000B1 /* SetSuggestion.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB10000000000000000000A1 /* SetSuggestion.swift */; };
+		AA17030100000000000000A1 /* SessionRPEScale.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA17030100000000000000A2 /* SessionRPEScale.swift */; };
 		AC4101020000000000000001 /* VerdictSurfaceActivation.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4101010000000000000001 /* VerdictSurfaceActivation.swift */; };
 		AC4103020000000000000001 /* CrossModalShadowGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4103010000000000000001 /* CrossModalShadowGate.swift */; };
 		AC4301020000000000000001 /* TodayVerdictEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4301010000000000000001 /* TodayVerdictEngine.swift */; };
@@ -361,6 +362,7 @@
 		AA4403010000000000000001 /* TodayVerdictCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayVerdictCard.swift; sourceTree = "<group>"; };
 		AAFE00010000000000000001 /* ResolvedSessionPlan.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResolvedSessionPlan.swift; sourceTree = "<group>"; };
 		AB10000000000000000000A1 /* SetSuggestion.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetSuggestion.swift; sourceTree = "<group>"; };
+		AA17030100000000000000A2 /* SessionRPEScale.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionRPEScale.swift; sourceTree = "<group>"; };
 		AC4101010000000000000001 /* VerdictSurfaceActivation.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictSurfaceActivation.swift; sourceTree = "<group>"; };
 		AC4103010000000000000001 /* CrossModalShadowGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CrossModalShadowGate.swift; sourceTree = "<group>"; };
 		AC4301010000000000000001 /* TodayVerdictEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayVerdictEngine.swift; sourceTree = "<group>"; };
@@ -741,6 +743,7 @@
 				62324C052F66CB0E00A9C2BE /* DateHelpers.swift */,
 				62324C062F66CB0E00A9C2BE /* WeightFormatter.swift */,
 				AB10000000000000000000A1 /* SetSuggestion.swift */,
+				AA17030100000000000000A2 /* SessionRPEScale.swift */,
 				4BB412FB22A0BBEB3067D75D /* ShareSheet.swift */,
 			);
 			path = Utilities;
@@ -1209,6 +1212,7 @@
 				62324C472F66CB0E00A9C2BE /* Enums.swift in Sources */,
 				62324C482F66CB0E00A9C2BE /* WeightFormatter.swift in Sources */,
 				AB10000000000000000000B1 /* SetSuggestion.swift in Sources */,
+				AA17030100000000000000A1 /* SessionRPEScale.swift in Sources */,
 				3ECC7EF76C16FD0D0CB8809E /* ShareSheet.swift in Sources */,
 				62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */,
 				62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */,

@@ -42,17 +42,29 @@ struct FinishWorkoutSheet: View {
                     .fill(ColorTokens.divider)
                     .frame(height: 0.5)
 
-                // RPE section
+                // RPE section. The reading follows the hero grammar the app already uses for a
+                // score — the numeral, then the word that says what the numeral means — so the
+                // athlete answers an anchored question instead of picking a bare number.
+                // `SessionRPEScale` owns the anchors and why they repeat.
                 VStack(spacing: Spacing.xs) {
                     Text("workout.prompt.rpe")
                         .font(.Tokens.body)
                         .foregroundStyle(ColorTokens.text1)
 
-                    Text(String(format: String(localized: "workout.rpe.display", defaultValue: "RPE: %d"), Int(rpe)))
-                        .font(.Tokens.pageTitle)
-                        .monospacedDigit()
-                        .contentTransition(.numericText())
-                        .foregroundStyle(ColorTokens.text1)
+                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                        Text("\(Int(rpe))")
+                            .font(.Tokens.pageTitle)
+                            .monospacedDigit()
+                            .contentTransition(.numericText())
+                            .foregroundStyle(ColorTokens.text1)
+                        Text("·")
+                            .font(.Tokens.sectionHead)
+                            .foregroundStyle(ColorTokens.text3)
+                        Text(SessionRPEScale.anchor(for: rpe).labelKey)
+                            .font(.Tokens.sectionHead)
+                            .foregroundStyle(ColorTokens.text2)
+                    }
+                    .accessibilityElement(children: .combine)
 
                     Slider(
                         value: $rpe,

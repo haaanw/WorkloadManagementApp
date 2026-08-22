@@ -99,10 +99,18 @@ struct SetEntryFields: View {
 
     private let minReps = 1
     private let maxReps = 30
-    /// Points of travel per detent. Round 8 set 44 pt (one thumb-width) on a scrub with NO
-    /// visible scale, where the only way to feel control was to make each detent expensive.
-    /// The rule shows the landing before you commit to it, so the pitch buys landscape
-    /// instead: at 30 pt a full-width rule states ±6 detents at rest.
+    /// Points of travel per detent. **Ratified by HAN 2026-08-22** after the ported build.
+    ///
+    /// Round 8 set 44 pt (one thumb-width) on a scrub with NO visible scale, where the only way
+    /// to feel control was to make each detent expensive. The rule shows the landing before you
+    /// commit to it, so the pitch buys landscape instead. Measured on a 366 pt rule: 30 pt shows
+    /// ±15 kg either side at rest, 44 pt shows ±10 kg, 24 pt shows ±19 kg. All three reach a
+    /// normal session-to-session change in one thumb swipe, so the trade is not reach — it is
+    /// how often a landmark (last, target, pr) is on screen when you look down, and the
+    /// landmarks are the point of the redesign.
+    ///
+    /// If it ever reads twitchy on the gym floor, 36 is the next step up; if it takes two swipes
+    /// to reach a weight, 24 is the step down. One number, one line.
     private let scrubPitch: CGFloat = 30
     /// Live value while a drag is in progress; the `@Binding` is written only on release.
     /// One set of anchors, because Bench expands exactly one field at a time.
@@ -520,9 +528,17 @@ struct SetEntryFields: View {
     // MARK: Scrub — one gesture, because Bench expands one field
 
     /// Direction-locked horizontal drag on the rule. The rule travels WITH the thumb, so a
-    /// rightward drag brings lower numbers under the needle — the convention any visible
-    /// scale forces, and the one behaviour this redesign inverts. Deaf while a keypad is up
-    /// (a grazing touch must never fight typing — round 3's law, carried forward).
+    /// rightward drag brings lower numbers under the needle — the one behaviour this redesign
+    /// inverts. **Ratified by HAN 2026-08-22.**
+    ///
+    /// The alternative (1.7.1's mapping, value follows the thumb) is not neutral once a scale is
+    /// visible: the needle is fixed, so the rule has to move, and raising the value on a
+    /// rightward drag sends the rule LEFT — the scale would slide against the finger pushing it.
+    /// A moving needle over a fixed domain is not a third option either: 0–300 kg across a
+    /// 366 pt rule is about 1 pt per kg, which no thumb can place.
+    ///
+    /// Deaf while a keypad is up (a grazing touch must never fight typing — round 3's law,
+    /// carried forward).
     private var scrub: some Gesture {
         DragGesture(minimumDistance: 12)
             .updating($scrubActive) { _, active, _ in active = true }
