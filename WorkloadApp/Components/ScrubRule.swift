@@ -103,6 +103,9 @@ struct ScrubRule: View {
         /// Minimum horizontal gap between two landmark LABELS before the lower-priority one
         /// gives its word up.
         static let labelClearance: CGFloat = 56
+        /// Minimum gap between two landmark GLYPHS before the lower-priority one is dropped
+        /// entirely — below this they overlap rather than crowd.
+        static let glyphClearance: CGFloat = 12
     }
 
     /// Floor-modulo. Swift's `%` follows the sign of the dividend, which puts the majors in the
@@ -211,12 +214,26 @@ struct ScrubRule: View {
     private func drawLandmarks(in context: inout GraphicsContext, width: CGFloat) {
         guard !landmarks.isEmpty else { return }
 
-        // Allocate the words by IMPORTANCE, not left-to-right, so a crowded band keeps the one
-        // that matters. Positions are absolute, so the allocation is stable while scrubbing.
+        // Two allocations, both by IMPORTANCE rather than left-to-right, so a crowded band keeps
+        // what matters. Positions are absolute, so the allocation is stable while scrubbing.
+        //
+        // First the GLYPHS. Two landmarks on one value would draw on top of each other and read
+        // as a smudge, and that is not hypothetical: on a lift you have not beaten yet, last,
+        // target and pr are the same number. The highest-priority mark keeps the spot.
+        var glyphSpots: [CGFloat] = []
+        var drawn: [Landmark] = []
+        for landmark in landmarks.sorted(by: { $0.priority < $1.priority }) {
+            let px = x(landmark.value, width: width)
+            guard !glyphSpots.contains(where: { abs($0 - px) < Metrics.glyphClearance }) else { continue }
+            glyphSpots.append(px)
+            drawn.append(landmark)
+        }
+
+        // Then the WORDS, which need far more room than a glyph.
         var claimed: [CGFloat] = []
         var labelled = Set<UUID>()
         if showsLandmarkLabels {
-            for landmark in landmarks.sorted(by: { $0.priority < $1.priority }) {
+            for landmark in drawn {
                 let px = x(landmark.value, width: width)
                 let collides = claimed.contains { abs($0 - px) < Metrics.labelClearance }
                 if !collides {
@@ -226,7 +243,7 @@ struct ScrubRule: View {
             }
         }
 
-        for landmark in landmarks {
+        for landmark in drawn {
             let px = x(landmark.value, width: width)
             let word = isLatin ? landmark.label.uppercased(with: locale) : landmark.label
             let body = labelled.contains(landmark.id)

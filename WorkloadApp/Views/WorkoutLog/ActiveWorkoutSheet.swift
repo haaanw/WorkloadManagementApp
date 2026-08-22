@@ -217,7 +217,8 @@ struct ActiveWorkoutSheet: View {
                             weightUnit: athlete?.weightUnit ?? .kg,
                             isNewExercise: unresolvedNames.contains(
                                 Self.foldedName(entries[entryIndex].exerciseName)
-                            )
+                            ),
+                            prWeightKg: prWeightKg(for: entries[entryIndex].exerciseName)
                         )
                         .entranceReveal(index: entryIndex)
                         Rectangle()
@@ -401,6 +402,24 @@ struct ActiveWorkoutSheet: View {
             }
             .toolbar(.hidden, for: .navigationBar)
         }
+    }
+
+    // MARK: - Personal record landmark
+
+    /// The heaviest weight ever logged on a movement, in kg — the `▲ PR` mark on the weight
+    /// rule. nil when the athlete has never set one, which is the normal state for most of the
+    /// catalog and simply means the rule carries no PR mark.
+    ///
+    /// Read from the athlete's own relationship rather than a store-wide `@Query`: the records
+    /// are already reachable, and it keeps the athlete filter out of a `#Predicate` (the
+    /// optional-relationship idiom `RecoveryRepository` documents as a SwiftData trap).
+    /// The resolution itself is pure and tested — see `PersonalRecordLookup`.
+    private func prWeightKg(for exerciseName: String) -> Double? {
+        guard let athlete else { return nil }
+        return PersonalRecordLookup.bestMaxWeightKg(
+            exerciseName: exerciseName,
+            in: athlete.personalRecords
+        )
     }
 
     // MARK: - Session bar (v1.7.2, HAN-gated variant F)
@@ -1423,6 +1442,9 @@ struct ExerciseEntryCard: View {
     /// The parser could not match this movement to the catalog or the athlete's customs, so the
     /// card says so — quietly, in the annotation voice. Only the parsed-session path sets it.
     var isNewExercise: Bool = false
+    /// Heaviest weight ever logged on this movement, in kg. Resolved once by the sheet from the
+    /// athlete's records rather than per row.
+    var prWeightKg: Double? = nil
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.locale) private var locale
 
@@ -1568,6 +1590,7 @@ struct ExerciseEntryCard: View {
                         suggestion: entry.progressionSuggestions.flatMap { suggestions in
                             setIndex < suggestions.count ? suggestions[setIndex] : nil
                         },
+                        prWeightKg: prWeightKg,
                         progressionType: entry.progressionType,
                         showSuggestion: entry.progressionSuggestions != nil,
                         isOpen: openSetID == set.id,
@@ -1745,6 +1768,10 @@ struct SetEntryRow: View {
     var exerciseName: String = ""
     var category: ExerciseCategory = .compound
     var suggestion: ProgressionEngine.SetSuggestion? = nil
+    /// Heaviest weight ever logged on this movement, in kg — the `▲` landmark on the weight
+    /// rule. Resolved by the sheet and passed down as a value: this row stays pure
+    /// presentation and never fetches.
+    var prWeightKg: Double? = nil
     var progressionType: ProgressionEngine.ProgressionType? = nil
     var showSuggestion: Bool = false
     /// Ledger (v1.7.2): the CARD decides which row holds the editor, so only one is ever open.
@@ -2136,6 +2163,7 @@ struct SetEntryRow: View {
                 // draft (loader-stamped, non-warmup) — the rule reads it, nothing fetches.
                 lastSessionWeightKg: set.lastSessionWeightKg,
                 lastSessionReps: set.lastSessionReps,
+                prWeightKg: prWeightKg,
                 isBodyweight: category == .bodyweight,
                 focus: $focusField,
                 rowId: set.id

@@ -177,3 +177,39 @@ struct SetSuggestion {
         }
     }
 }
+
+/// The `▲ PR` landmark's value — the heaviest weight ever logged on one movement.
+///
+/// Pure and separate from the view because the "heaviest" part is not obvious:
+/// `PRDetector` **appends** a new `PersonalRecord` every time a lift is beaten rather than
+/// updating the existing row, so a well-trained movement holds a whole history of `.maxWeight`
+/// records and only the largest of them is the current PR. Taking `.first` would put an old,
+/// lower number on the rule as if it were the record.
+///
+/// (`PRDetector` itself matches with `existingPRs.first { … }` against that same history, which
+/// is a latent detection defect — recorded in `.planning/v172/AUDIT-HANDOFF.md`, not fixed
+/// here: this lane draws the mark, it does not own PR detection.)
+///
+/// Exercise identity is the name string, matched exactly — the same rule the whole app uses
+/// (`CLAUDE.md`: "Exercise identity = name string"), and the same comparison `PRDetector`
+/// makes when it decides whether a record was beaten. A fuzzy match here would show a PR the
+/// detector will never update.
+enum PersonalRecordLookup {
+
+    /// Heaviest logged weight in kg, or nil when the athlete has never set one on this
+    /// movement — the normal state for most of a 1,324-exercise catalog.
+    ///
+    /// - Parameters:
+    ///   - exerciseName: the movement, matched exactly.
+    ///   - records: the athlete's own records. Pass `athlete.personalRecords`; this function
+    ///     does no filtering by athlete because it never sees more than one athlete's rows.
+    static func bestMaxWeightKg(
+        exerciseName: String,
+        in records: [PersonalRecord]
+    ) -> Double? {
+        records
+            .filter { $0.recordType == .maxWeight && $0.exerciseName == exerciseName }
+            .map(\.value)
+            .max()
+    }
+}

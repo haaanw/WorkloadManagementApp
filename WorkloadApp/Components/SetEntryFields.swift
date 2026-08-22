@@ -65,6 +65,11 @@ struct SetEntryFields: View {
     /// Last session's non-warmup values — the `●` landmark. Measured, so a filled glyph.
     var lastSessionWeightKg: Double? = nil
     var lastSessionReps: Int? = nil
+    /// The heaviest weight ever logged on this movement — the `▲` landmark, weight rule only.
+    /// There is no reps equivalent by design: `PRType.maxReps` records the most reps at ANY
+    /// weight, so on a strength lift it is usually a light set's number and would mark a place
+    /// on the reps rule the athlete has no reason to aim at.
+    var prWeightKg: Double? = nil
     /// Bodyweight exercise (pull-ups, dips): 0 kg MEANS bodyweight (council ruling,
     /// 2026-08-13) — displayed as BW, never "0 kg"; positive values are ADDED load and
     /// read "+10". nil stays "never entered". The weight ghost defaults to BW.
@@ -380,6 +385,16 @@ struct SetEntryFields: View {
                     glyph: "●",
                     label: LocalePinnedStrings.localized("setEntry.landmark.last", locale: locale),
                     priority: 2
+                ))
+            }
+            if let pr = prWeightKg, pr > 0 {
+                marks.append(.init(
+                    value: WeightFormatter.displayValue(pr, unit: unit),
+                    glyph: "▲",
+                    label: LocalePinnedStrings.localized("setEntry.landmark.pr", locale: locale),
+                    // Lowest of the three: a PR usually sits far from today's working weight,
+                    // so it is the mark that can most afford to lose its word to a crowd.
+                    priority: 3
                 ))
             }
         case .reps:

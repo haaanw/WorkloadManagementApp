@@ -12605,7 +12605,7 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Add Set"
+            "value" : "Add set"
           }
         },
         "zh-Hans" : {
@@ -13054,6 +13054,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "上次"
+          }
+        }
+      }
+    },
+    "setEntry.landmark.pr" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "PR"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "纪录"
           }
         }
       }
