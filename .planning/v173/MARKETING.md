@@ -34,7 +34,21 @@ methodology/FAQ pages with direct answers high on the page; schema.org markup
 category terms); the §10 claim rails apply — engines quote text verbatim, an
 overclaim becomes a quoted overclaim.
 
+### 2b. Science series — the SEO/GEO content engine (HAN 2026-08-24)
+
+A research-article series on the site's existing blog
+(`src/content/blog/`, one post today). Brief + editorial rules:
+`.planning/v173/SCIENCE-SERIES.md`. Scope is frontier sports science
+broadly — the fatigue/readiness algorithms Tuwa uses, sleep, gait,
+barefoot footwear, physiology — not just workload management. This series
+IS the GEO play: fact-dense, citation-backed pages are what answer
+engines quote.
+
 ### 3. Twitter (primary)
+
+**Voice logging is the marketing spearhead across ALL channels (HAN
+2026-08-24)** — not a website-only item. The launch thread, the demo screen
+recordings, the first Reels, and the compare-page row all lead with it.
 
 Direction: build-in-public from the personal account; the founder IS the
 reference user, so the n=1 dogfood is the content. Pillars: (a) dev/build

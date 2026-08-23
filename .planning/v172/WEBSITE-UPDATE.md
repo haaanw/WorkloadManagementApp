@@ -28,11 +28,17 @@ the touched paths on the pair board first (precedent C-007 / C-fn17e-001).
    carries, and the support page lacks an account-deletion answer (App
    Review 5.1.1(v)). Port both, en/zh/fr, bump `lastUpdated` (also hardcoded
    at `src/pages/privacy.astro:4`).
-5. **Set-entry visuals.** Homepage logging plates render the pre-overhaul
-   entry UI; the shipped UI is the always-visible scrub scale with TARGET
-   and LAST markers. Update the mockups/plates to match the shipped app.
-6. Optional: a voice-logging row on `compare.astro` if the page structure
-   accepts it cleanly.
+5. **All app-UI depictions site-wide, not only set entry (HAN 2026-08-24).**
+   Audit every place the site renders the app — coded plates, mockups, any
+   real screenshots on homepage/feature pages/OG cards — and bring them to
+   the shipped 1.7.2 UI: the always-visible scrub scale with TARGET and
+   LAST markers, the voice capture sheet. Fresh framed 1.7.2 store sets
+   exist at `appstore screenshots/1.7-{en,zh-Hans}/framed/` as reference.
+6. **A voice-logging row on `compare.astro` — REQUIRED (HAN 2026-08-24).**
+   Voice logging is a distribution highlight; the compare page is where it
+   lands hardest (no listed competitor parses a spoken narrative into an
+   editable draft — verify each cell claim against the competitor's shipped
+   product before stating it).
 
 ## Constraints (standing site law)
 
