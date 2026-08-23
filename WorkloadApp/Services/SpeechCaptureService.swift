@@ -177,6 +177,16 @@ final class SpeechCaptureService {
             return
         }
 
+        // Touching `AVAudioEngine.inputNode` with no usable input route makes AudioToolbox
+        // abort() the process from inside the framework — not catchable from Swift. Prove the
+        // route exists first (no-mic simulator, active call holding the route, Bluetooth input
+        // dropping out, CarPlay) and fail into the recoverable notice instead.
+        guard session.isInputAvailable else {
+            try? session.setActive(false, options: [.notifyOthersOnDeactivation])
+            state = .failed(.audioEngineFailure)
+            return
+        }
+
         let engine = AVAudioEngine()
         let inputNode = engine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
