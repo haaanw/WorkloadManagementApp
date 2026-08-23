@@ -1,5 +1,39 @@
 # v1.7.2 Objective 2 — audit handoff
 
+## Resolution log — 2026-08-23 (HAN rulings, executed by CLAUDE)
+
+- **§1.1 / §3.10 template sharing: RETIRED.** HAN ruled retire. All five files
+  deleted (`TemplateSharingService`, the three Share sheets,
+  `PrescribedWorkoutCard`). None had ever been compiled into any target.
+- **§3.10 cycle/RED-S cluster: ADDED TO THE APP TARGET.** HAN ruled keep-and-
+  compile. All seven files hand-wired into `.pbxproj`; the build SUCCEEDS with
+  no source change — the "may not compile" fear did not materialize.
+- **§2.3 AppShellContracts prune: DONE** (the logging lane closed; twelve dead
+  types deleted, 1688 → 684 lines).
+- **§3.8 tooltip: FIXED** (two keys via `LocalePinnedStrings`).
+- **§3.2 #Predicate convention: RULED — no sweep.** The comment in
+  `RecoveryRepository` now records the trap as toolchain/data-shape-specific
+  (iOS 26.1 probe did not reproduce). Defensive sites stay; the ~20 others
+  are left alone.
+- **§2.4 IconButton doc drift: DISSOLVED.** `DESIGN.md` has zero IconButton
+  references; the eight hits are all in `design-system/`, where IconButton is
+  a canonical JSX spec component. A spec component with no current iOS binding
+  is a normal state, not drift. No doc edit.
+- **§3.4 M11 subtitle: RULED — no change.** Window and data stamps describe
+  different true things; both readings are accurate. Recorded, closed.
+- **§3.3 localization-key prune: DEFERRED to v1.7.3** (bulk churn on a file
+  three lanes just touched; unused keys ship harmlessly).
+- **§6.1 SpeechCaptureService SIGABRT: FIXED** (`8fb6b4d`) —
+  `isInputAvailable` guard routes to the recoverable notice.
+- **New (ASO lane recommendation): in-app review prompt SHIPPED** —
+  `ReviewPromptGate` (pure, tested) + `requestReview` after a post-save sheet
+  dismissal; ≥5 sessions, 60-day cooldown, fresh-save window on `createdAt`,
+  inert in SCREENSHOT_MODE.
+
+Still open after this log: §3.5 (L9 two "week"s — nocebo trade-off, HAN copy
+call), §3.6 (L6 — gated on the sleep-v2 shadow window), §3.7 (L7 — female-
+athlete milestone), §3.9 (L8 push watermark — sync-contract design change).
+
 Findings this session could not act on, and why. Two reasons only:
 
 1. **`WorkloadApp/Views/WorkoutLog/` is owned by the parallel logging-UI session.**

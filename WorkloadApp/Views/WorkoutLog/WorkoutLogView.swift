@@ -1,6 +1,7 @@
 import SwiftUI
 import SwiftData
 import Combine
+import StoreKit
 
 struct WorkoutLogView: View {
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
@@ -9,6 +10,7 @@ struct WorkoutLogView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.requestReview) private var requestReview
     @State private var showActiveWorkout = false
     @State private var showUpgrade = false
     @State private var selectedSessionType: SessionType? = nil
@@ -300,6 +302,7 @@ struct WorkoutLogView: View {
                 if !isPresented {
                     selectedTemplateForSession = nil
                     manualLogText = nil
+                    maybeRequestReview()
                 }
             }
             .sheet(isPresented: $showResolvedWorkout) {
@@ -309,6 +312,7 @@ struct WorkoutLogView: View {
             }
             .onChange(of: showResolvedWorkout) { _, isPresented in
                 if !isPresented {
+                    maybeRequestReview()
                     resolvedPlanForSession = nil
                     // The verdict's prescription may now be completed — refresh the card + prompts.
                     if let athlete = athletes.first {
@@ -362,6 +366,7 @@ struct WorkoutLogView: View {
             .onChange(of: showParsedWorkout) { _, isPresented in
                 if !isPresented {
                     parsedSessionForReview = nil
+                    maybeRequestReview()
                 }
             }
             .sheet(item: $importRPESheet) { suggestion in
@@ -536,6 +541,29 @@ struct WorkoutLogView: View {
             asOf: .now,
             calendar: .current
         )
+    }
+
+    /// Fires the App Store review prompt when a workout sheet closes right after a save.
+    /// `ReviewPromptGate` holds the policy; the fresh-save window keys on `createdAt`, so a
+    /// cancelled sheet (no new session) never prompts. The delay clears the sheet's
+    /// dismissal transition — a prompt mid-transition is silently dropped by the system.
+    private func maybeRequestReview() {
+        #if DEBUG && targetEnvironment(simulator)
+        // The capture harness closes workout sheets over freshly seeded sessions — a review
+        // alert mid-run would wedge every subsequent plate.
+        if ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE") { return }
+        #endif
+        let defaults = UserDefaults.standard
+        let lastPromptedAt = defaults.object(forKey: ReviewPromptGate.lastPromptedAtKey) as? Date
+        guard ReviewPromptGate.shouldPrompt(
+            completedSessionCount: sessions.count,
+            latestSessionCreatedAt: sessions.map(\.createdAt).max(),
+            lastPromptedAt: lastPromptedAt
+        ) else { return }
+        defaults.set(Date.now, forKey: ReviewPromptGate.lastPromptedAtKey)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.8) {
+            requestReview()
+        }
     }
 
     private func loadImportSuggestions() async {

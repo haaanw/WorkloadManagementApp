@@ -41,6 +41,12 @@ final class RecoveryRepository {
         // throwing (the trap `RecoveryPipeline.runSleepV2Shadow` and `BaselineStateModelTests`
         // already document). Found the hard way — it took down the whole test host.
         //
+        // Scope of the trap (v1.7.2 audit ruling, 2026-08-23): a probe on iOS 26.1 with an
+        // owned row AND an orphan row did NOT reproduce the crash, so it is toolchain- or
+        // data-shape-specific. The convention stays as written here defensively, but the
+        // ~20 existing `$0.athlete?.id` predicate sites elsewhere are NOT being swept —
+        // churn without a measured failure. Re-probe before relying on either behavior.
+        //
         // Half-open range, not `== day` (v1.7.2 / audit M5): a row whose date was written
         // unfloored — MockDataSeeder used to, and a pulled row carries whatever the other
         // device wrote — is still that calendar day and must still be found.

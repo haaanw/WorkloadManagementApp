@@ -219,6 +219,14 @@
 		FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1601010000000000000002 /* WorkoutLLMImportService.swift */; };
 		FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1602010000000000000002 /* WorkoutImportSheet.swift */; };
 		FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702010000000000000002 /* SpeechCaptureService.swift */; };
+		FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2309010000000000000002 /* ReviewPromptGate.swift */; };
+		FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308070000000000000002 /* NiggleLogSheet.swift */; };
+		FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308060000000000000002 /* REDSAttentionBanner.swift */; };
+		FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308050000000000000002 /* CycleStatusStrip.swift */; };
+		FF2308040000000000000001 /* CycleFuelingCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308040000000000000002 /* CycleFuelingCard.swift */; };
+		FF2308030000000000000001 /* CycleSnapshotRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308030000000000000002 /* CycleSnapshotRepository.swift */; };
+		FF2308020000000000000001 /* REDSRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308020000000000000002 /* REDSRiskEngine.swift */; };
+		FF2308010000000000000001 /* CycleTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308010000000000000002 /* CycleTrackingService.swift */; };
 		FF1702020000000000000001 /* LogCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702020000000000000002 /* LogCaptureSheet.swift */; };
 		FF1702030000000000000001 /* WorkoutVoiceLogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702030000000000000002 /* WorkoutVoiceLogService.swift */; };
 		FF1702040000000000000001 /* VoiceSetUtteranceParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */; };
@@ -458,6 +466,14 @@
 		FF1601010000000000000002 /* WorkoutLLMImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLLMImportService.swift; sourceTree = "<group>"; };
 		FF1602010000000000000002 /* WorkoutImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportSheet.swift; sourceTree = "<group>"; };
 		FF1702010000000000000002 /* SpeechCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechCaptureService.swift; sourceTree = "<group>"; };
+		FF2309010000000000000002 /* ReviewPromptGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptGate.swift; sourceTree = "<group>"; };
+		FF2308070000000000000002 /* NiggleLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleLogSheet.swift; sourceTree = "<group>"; };
+		FF2308060000000000000002 /* REDSAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REDSAttentionBanner.swift; sourceTree = "<group>"; };
+		FF2308050000000000000002 /* CycleStatusStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleStatusStrip.swift; sourceTree = "<group>"; };
+		FF2308040000000000000002 /* CycleFuelingCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleFuelingCard.swift; sourceTree = "<group>"; };
+		FF2308030000000000000002 /* CycleSnapshotRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleSnapshotRepository.swift; sourceTree = "<group>"; };
+		FF2308020000000000000002 /* REDSRiskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REDSRiskEngine.swift; sourceTree = "<group>"; };
+		FF2308010000000000000002 /* CycleTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleTrackingService.swift; sourceTree = "<group>"; };
 		FF1702020000000000000002 /* LogCaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogCaptureSheet.swift; sourceTree = "<group>"; };
 		FF1702030000000000000002 /* WorkoutVoiceLogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutVoiceLogService.swift; sourceTree = "<group>"; };
 		FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSetUtteranceParser.swift; sourceTree = "<group>"; };
@@ -556,6 +572,9 @@
 			isa = PBXGroup;
 			children = (
 				CC0302010000000000000004 /* BehaviorTagChip.swift */,
+				FF2308060000000000000002 /* REDSAttentionBanner.swift */,
+				FF2308050000000000000002 /* CycleStatusStrip.swift */,
+				FF2308040000000000000002 /* CycleFuelingCard.swift */,
 				CC0302010000000000000002 /* DataSufficiencyRing.swift */,
 				BB0203010000000000000002 /* DeltaIndicator.swift */,
 				62324BE42F66CB0E00A9C2BE /* HRVTrendChart.swift */,
@@ -631,6 +650,7 @@
 			children = (
 				62324BF42F66CB0E00A9C2BE /* AthleteRepository.swift */,
 				CC0301010000000000000004 /* BehaviorTagRepository.swift */,
+				FF2308030000000000000002 /* CycleSnapshotRepository.swift */,
 				62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */,
 				DD2004000000000000000001 /* CyclePredictionLogRepository.swift */,
 				DD2502000000000000000001 /* SorenessLogRepository.swift */,
@@ -669,6 +689,9 @@
 				FF1702010000000000000002 /* SpeechCaptureService.swift */,
 				FF1702030000000000000002 /* WorkoutVoiceLogService.swift */,
 				FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */,
+				FF2309010000000000000002 /* ReviewPromptGate.swift */,
+				FF2308020000000000000002 /* REDSRiskEngine.swift */,
+				FF2308010000000000000002 /* CycleTrackingService.swift */,
 				62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */,
 				62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */,
 				DD2602000000000000000001 /* BaselineEngine.swift */,
@@ -819,6 +842,7 @@
 			isa = PBXGroup;
 			children = (
 				CC0302010000000000000008 /* BehaviorCorrelationRow.swift */,
+				FF2308070000000000000002 /* NiggleLogSheet.swift */,
 				CC0302010000000000000006 /* InsightCard.swift */,
 				DD270E000000000000000001 /* MorningProbeSheet.swift */,
 				62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */,
@@ -1246,6 +1270,14 @@
 				FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */,
 				FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */,
 				FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */,
+				FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */,
+				FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */,
+				FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */,
+				FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */,
+				FF2308040000000000000001 /* CycleFuelingCard.swift in Sources */,
+				FF2308030000000000000001 /* CycleSnapshotRepository.swift in Sources */,
+				FF2308020000000000000001 /* REDSRiskEngine.swift in Sources */,
+				FF2308010000000000000001 /* CycleTrackingService.swift in Sources */,
 				FF1702020000000000000001 /* LogCaptureSheet.swift in Sources */,
 				FF1702030000000000000001 /* WorkoutVoiceLogService.swift in Sources */,
 				FF1702040000000000000001 /* VoiceSetUtteranceParser.swift in Sources */,
