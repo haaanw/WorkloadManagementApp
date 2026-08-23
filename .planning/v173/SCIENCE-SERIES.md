@@ -51,6 +51,40 @@ workload management and recovery.
 6. Match-day proximity and strength training — the microdosing evidence
    base (bridges both classes; canonical vocabulary from CONTEXT.md).
 
+## Distribution — three platforms per article (HAN 2026-08-24)
+
+Every article ships in three editions from one evidence core. Write the
+core platform-neutral, then wrap it per platform — never fork the facts.
+
+1. **tuwa.app blog — the canonical edition.** Publishes FIRST. Carries the
+   schema markup and the GEO mechanics; this is the URL search and answer
+   engines should own. Site voice (working voice, no first person needed).
+   CTA: the relevant feature page.
+2. **X long-form article — the founder edition.** Posted on HAN's personal
+   account, whose identity is a creative who vibe-codes and shares the tech
+   — so the wrapper is first-person: "I'm building Tuwa; here is the science
+   under this week's problem," including build details where honest. The
+   evidence core and every citation stay intact; the claim rails bind
+   regardless of voice. Format for X: minimal markup survives, so
+   structure by short paragraphs and plain lists, no schema, images
+   re-attached natively. Ends with the app link. A 2–3 tweet teaser thread
+   links the article.
+3. **Substack — the newsletter edition.** Same founder voice as X. Set the
+   canonical link to the tuwa.app URL (Substack supports this) so
+   syndication never competes with the site in search. CTA: subscribe +
+   app link.
+
+Sequencing per article: site edition approved and live → X and Substack
+editions within the same week. Never syndicate before the canonical URL
+exists. Drafting all three editions together is fine; publishing any of
+them is HAN's hand only — the X account and Substack are personal outward
+surfaces, same rule as every deploy.
+
+Consequence for how the core is WRITTEN: the personal wrapper must be
+separable — open each draft with the evidence core standing alone, so the
+site edition needs no surgery and the founder framing is an added layer,
+not a rewrite.
+
 ## Cadence proposal
 
 One article per week sustained beats six in launch week; SEO compounds on

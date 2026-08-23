@@ -44,6 +44,13 @@ barefoot footwear, physiology — not just workload management. This series
 IS the GEO play: fact-dense, citation-backed pages are what answer
 engines quote.
 
+**Multi-platform (HAN 2026-08-24):** each article ships three editions
+from one evidence core — canonical on tuwa.app (schema + GEO), an X
+long-form article in HAN's founder voice (the personal account's
+creative/vibe-coding identity), and a Substack edition with the canonical
+link pointed at tuwa.app. The series is therefore ALSO the social content
+engine, not website-only. Site publishes first; HAN posts everything.
+
 ### 3. Twitter (primary)
 
 **Voice logging is the marketing spearhead across ALL channels (HAN
