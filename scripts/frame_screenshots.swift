@@ -210,15 +210,15 @@ let screenSpecs: [String: ScreenSpec] = [
     // ── Shipped store set ────────────────────────────────────────────────────────
     "VerdictMicrodose": ScreenSpec(metric: .readiness, machineKey: "match_proximity: aware",
                                    inclusion: .store(rank: 1)),
-    "StrikeZone":       ScreenSpec(metric: .load,      machineKey: "strike_zone: plan ± readiness",
+    "LogCapture":       ScreenSpec(metric: .strain,    machineKey: "input: voice · text · dictation",
                                    inclusion: .store(rank: 2)),
     "Dashboard":        ScreenSpec(metric: .readiness, machineKey: "inputs: hrv · rhr · sleep",
                                    inclusion: .store(rank: 3)),
     "Recovery":         ScreenSpec(metric: .recovery,  machineKey: "baseline: 28d rolling",
                                    inclusion: .store(rank: 4)),
-    "Workload":         ScreenSpec(metric: .load,      machineKey: "acwr: acute 7d / chronic 28d",
+    "SleepDetail":      ScreenSpec(metric: .sleep,     machineKey: "sleep_target: 7.5 h",
                                    inclusion: .store(rank: 5)),
-    "WorkoutLog":       ScreenSpec(metric: .readiness, machineKey: "verdict: plan × readiness",
+    "Workload":         ScreenSpec(metric: .load,      machineKey: "acwr: acute 7d / chronic 28d",
                                    inclusion: .store(rank: 6)),
     "ActiveWorkout":    ScreenSpec(metric: .strain,    machineKey: "logged: sets · reps · load",
                                    inclusion: .store(rank: 7)),
@@ -226,6 +226,18 @@ let screenSpecs: [String: ScreenSpec] = [
                                    inclusion: .store(rank: 8)),
     "MovementBank":     ScreenSpec(metric: .strain,    machineKey: "catalog: 1,324 movements",
                                    inclusion: .store(rank: 9)),
+
+    // ── Dropped from the store set 2026-08-22 (ASO pass, Objective 3) ────────────
+    //    Both were captures of the SAME surface as plate 1. `test07` used to save the verdict
+    //    card twice in a row with no state change between the two saves, and `test03` shoots
+    //    the identical scroll position of the Workout log — so three of nine plates were one
+    //    screen wearing three captions. The strike-zone bar and the verdict live inside plate
+    //    1; plate 1's caption is what names them. Their attachments are kept (they are useful
+    //    navigation smoke) but they no longer occupy store slots.
+    "StrikeZone":       ScreenSpec(metric: .load,      machineKey: "strike_zone: plan ± readiness",
+                                   inclusion: .excluded(reason: "duplicate of VerdictMicrodose — the strike-zone bar is inside plate 1")),
+    "WorkoutLog":       ScreenSpec(metric: .readiness, machineKey: "verdict: plan × readiness",
+                                   inclusion: .excluded(reason: "duplicate of VerdictMicrodose — same surface, same scroll position")),
 
     // ── v2.1 beachhead screens: specced, NEVER YET CAPTURED. Round-2 review finding:
     //    these used to claim `.store(rank: 10…13)` while no harness attachment produces
@@ -264,6 +276,17 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
         "StrikeZone": FrameCopy(
             headline: "Stay in your strike zone",
             subline: "Today's number lands inside the band."
+        ),
+        "LogCapture": FrameCopy(
+            headline: "Say the session. Keep the sets.",
+            subline: "Speak it or type it — Tuwa writes the log."
+        ),
+        // "a 7.5-hour line", not "your own target": the shipping engine scores sleep against a
+        // FIXED target. The adaptive one is designed and unbuilt (§10 claim rails). The window
+        // is the screen's own default — 28 nights — so the subline says four weeks, not twelve.
+        "SleepDetail": FrameCopy(
+            headline: "Every night, against the target",
+            subline: "Four weeks of nights on a 7.5-hour line."
         ),
         "NextMatch": FrameCopy(
             headline: "Match timing matters",
@@ -318,6 +341,14 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
         "StrikeZone": FrameCopy(
             headline: "留在今日区间",
             subline: "今天的数字落在合适范围内。"
+        ),
+        "LogCapture": FrameCopy(
+            headline: "说一句，训练就记好了",
+            subline: "开口说或直接打字，Tuwa 帮你填好每一组。"
+        ),
+        "SleepDetail": FrameCopy(
+            headline: "每一晚，都对照目标",
+            subline: "四周的每一晚，画在 7.5 小时这条线上。"
         ),
         "NextMatch": FrameCopy(
             headline: "比赛时间很重要",
@@ -692,6 +723,8 @@ func annotation(
 /// hits one of these patterns.
 let screenPatterns: [(patterns: [String], token: String)] = [
     (["verdictmicrodose", "v21_01"],                 "VerdictMicrodose"),
+    (["logcapture", "log_capture", "voicelog"],      "LogCapture"),
+    (["sleepdetail", "sleep_detail"],                "SleepDetail"),
     (["strikezone", "strike_zone", "v21_02"],        "StrikeZone"),
     (["nextmatch", "next_match", "v21_03"],          "NextMatch"),
     (["matchtier", "match_tier", "v21_04"],          "MatchTier"),

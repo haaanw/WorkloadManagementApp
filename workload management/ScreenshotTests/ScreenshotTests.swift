@@ -193,16 +193,21 @@ final class ScreenshotTests: XCTestCase {
         saveScreenshot("05_Profile")
     }
 
-    // MARK: - Verdict card (the v2.1 App Store hero shots)
+    // MARK: - Verdict card (the App Store hero shot)
 
+    /// ONE attachment, not two. This test used to save `AppStore_v21_01_VerdictMicrodose` and
+    /// `AppStore_v21_02_StrikeZone` back to back with no state change between them, so store
+    /// plates 1 and 2 were the same pixels under different captions — and `04_WorkoutLog` shot
+    /// the same surface again at plate 6. Three of nine plates were one screen. The strike-zone
+    /// bar is inside this capture; the plate-1 caption is what names it.
     func test07_VerdictCard() throws {
         launchAuthenticatedApp()
         tapTab("tab.log")
 
         XCTAssertTrue(anyElement("workoutLog.verdict.reason").waitForExistence(timeout: 10), "Verdict reason line missing")
         XCTAssertTrue(anyElement("workoutLog.verdict.strikeZone").waitForExistence(timeout: 5), "Strike-zone bar missing")
+        sleep(2)
         saveScreenshot("AppStore_v21_01_VerdictMicrodose")
-        saveScreenshot("AppStore_v21_02_StrikeZone")
     }
 
     // MARK: - Logging flow smoke (start → template picker → active workout → exercise picker)
@@ -221,7 +226,6 @@ final class ScreenshotTests: XCTestCase {
         startBlank.tap()
 
         XCTAssertTrue(app.buttons["activeWorkout.addExercise"].waitForExistence(timeout: 10), "Active workout add-exercise action missing")
-        saveScreenshot("07_ActiveWorkout")
     }
 
     func test09_ExercisePicker_SearchesCatalog() throws {
@@ -285,5 +289,130 @@ final class ScreenshotTests: XCTestCase {
         // rather than assert seed internals, but capture the surface either way.
         _ = app.descendants(matching: .any)["templatePicker.template"].waitForExistence(timeout: 3)
         saveScreenshot("10_TemplatePicker")
+    }
+
+    // MARK: - Active workout, started FROM A TEMPLATE (the store plate)
+
+    /// `test08` starts blank on purpose — that is the smoke path. It must not be the plate.
+    /// The blank sheet is an empty session: "0m", no exercises, a session-type picker. Under
+    /// the caption "Log every rep" that was an App Store screenshot of an app with nothing in
+    /// it. Starting from a seeded template gives the same surface with real exercises and real
+    /// target sets on it.
+    func test13_ActiveWorkout_FromTemplate() throws {
+        launchAuthenticatedApp()
+        tapTab("tab.log")
+
+        let start = app.buttons["workoutLog.startWorkout"]
+        XCTAssertTrue(start.waitForExistence(timeout: 10), "Workout start action missing")
+        start.tap()
+
+        // Selecting a template dismisses the picker and opens the active sheet pre-filled.
+        // "RIR Strength" by name, not `firstMatch`: the grid's first cell is the bodyweight
+        // circuit, and barbell work with target weights reads better at store thumbnail size.
+        // Seeded template names are literals, identical in both locales.
+        XCTAssertTrue(
+            app.descendants(matching: .any)["templatePicker.template"].firstMatch.waitForExistence(timeout: 10),
+            "No seeded template to start from"
+        )
+        let template = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "RIR")).firstMatch
+        XCTAssertTrue(template.waitForExistence(timeout: 5), "RIR Strength template missing from the seed")
+        template.tap()
+
+        XCTAssertTrue(app.buttons["activeWorkout.addExercise"].waitForExistence(timeout: 15), "Active workout did not open from template")
+        // Scroll the session-type chooser off the top so the plate is exercises and sets, not
+        // setup chrome. A full `swipeUp()` overshoots and clips the first exercise's weight
+        // readout against the sheet header, so this is a measured drag instead.
+        let top = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.72))
+        let bottom = app.windows.firstMatch.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.30))
+        top.press(forDuration: 0.05, thenDragTo: bottom)
+        sleep(2)
+        saveScreenshot("07_ActiveWorkout")
+    }
+
+    // MARK: - Voice / text log capture (the 1.7.2 headline feature)
+
+    /// Typed, not spoken: the simulator has no microphone, and submitting would call the parse
+    /// edge function over the network. The sheet's whole point is that speaking and typing are
+    /// the same door, so the typed state is an honest capture of it.
+    ///
+    /// **Do not tap the mic here.** An earlier version dismissed the keyboard by starting the
+    /// recorder — `LogCaptureSheet` disables the editor while recording, which makes it resign
+    /// first responder. That works, and then the app dies: on a simulator there is no audio
+    /// input device, `AVAudioEngine.inputNode` takes `AURemoteIO::Initialize()` into an RPC
+    /// timeout, and AudioToolbox calls `abort()`. SIGABRT inside AudioToolbox is not catchable
+    /// from Swift, so there is no way to make the mic path safe from the test side. Filed for
+    /// the owning lane in `.planning/v172/AUDIT-HANDOFF.md`.
+    func test14_LogCapture_NarrativeEntry() throws {
+        launchAuthenticatedApp()
+        tapTab("tab.log")
+
+        let voiceLog = app.buttons["workoutLog.voiceLog"]
+        XCTAssertTrue(voiceLog.waitForExistence(timeout: 10), "Voice-log entry point missing")
+
+        // Sheet presentation from this toolbar button drops the first tap often enough to fail
+        // a run (seen once in three). Retry rather than leave the store set one plate short.
+        let editor = app.textViews["logCapture.editor"]
+        var opened = false
+        for _ in 0..<3 {
+            voiceLog.tap()
+            if editor.waitForExistence(timeout: 8) { opened = true; break }
+        }
+        XCTAssertTrue(opened, "Log capture editor missing after three attempts")
+        editor.tap()
+        editor.typeText(Self.sampleNarration)
+
+        // The keyboard stays up, on purpose. An earlier version swiped the sheet's ScrollView
+        // to dismiss it; the sheet's content is too short to scroll, so the keyboard never
+        // went away AND the swipe landed on the predictive-suggestion bar, which appended a
+        // stray "And" to the narration in the published English plate. The sheet's content is
+        // short enough that "Record" and the "Log it" key are both above the keyboard anyway —
+        // and the keyboard's own dictation mic, bottom right, is the third input door.
+        sleep(2)
+        saveScreenshot("11_LogCapture")
+    }
+
+    /// The narration the store plate shows. Locale-matched so the zh-Hans set does not ship an
+    /// English sentence inside a Chinese screenshot.
+    private static var sampleNarration: String {
+        let lang = ProcessInfo.processInfo.environment["SCREENSHOT_LANG"] ?? "en"
+        if lang == "zh-Hans" {
+            return "深蹲三组五次，130 公斤，最后一组有点沉。卧推四组八次，80 公斤。"
+        }
+        return "Back squat, three sets of five at 130 kilos, last one felt heavy. Then bench, four by eight at eighty."
+    }
+
+    // MARK: - Sleep detail (the only surface carrying the sleep hue)
+
+    /// Reached from the Recovery tab's sleep-trend card. The NavigationLink carries no
+    /// accessibility identifier — `RecoveryView.swift` belongs to another lane — so the card is
+    /// matched on what it renders instead.
+    ///
+    /// The needle is `7.5`, from `sleep.chart.annotation` ("7.5h target" / "7.5 小时目标"): it is
+    /// the one string on that card that survives translation intact. Matching the word "Sleep"
+    /// does NOT work — SwiftUI composes the NavigationLink's accessibility label out of the
+    /// chart's own annotations, so the button reads `7.5h target`, and the only element on the
+    /// screen labelled "Sleep" is a StaticText inside the score card, which is not tappable.
+    func test15_SleepDetail_Opens() throws {
+        launchAuthenticatedApp()
+        tapTab("tab.recovery")
+        XCTAssertTrue(anyElement("recovery.scoreCard").waitForExistence(timeout: 10), "Recovery score card missing")
+
+        let sleepLink = app.buttons
+            .matching(NSPredicate(format: "label CONTAINS %@", "7.5"))
+            .firstMatch
+        XCTAssertTrue(sleepLink.waitForExistence(timeout: 10), "Sleep trend card missing")
+        sleepLink.tap()
+
+        // `SleepDetailView` falls back to persisted RecoverySnapshots when HealthKit has no
+        // nights — which is always true on a SCREENSHOT_MODE simulator — so the seeded 12
+        // weeks are what the chart draws.
+        let lang = ProcessInfo.processInfo.environment["SCREENSHOT_LANG"] ?? "en"
+        let detailTitle = lang == "zh-Hans" ? "睡眠趋势" : "Sleep trend"
+        XCTAssertTrue(
+            app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", detailTitle)).firstMatch.waitForExistence(timeout: 10),
+            "Sleep detail did not open"
+        )
+        sleep(2)
+        saveScreenshot("12_SleepDetail")
     }
 }

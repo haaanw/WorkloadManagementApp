@@ -1,0 +1,50 @@
+App Store Connect — version-locked fields for 1.7.2
+Drafted 2026-08-22. NOT submitted. Rationale in 1-keyword-metadata-audit.md.
+
+Name, subtitle and keywords can only change with a new build. Promotional text can be
+changed at any time without review.
+
+================================================================================
+ENGLISH (U.S.) — App Information / Version Information
+================================================================================
+
+Name (30 max)            [24]
+Tuwa: Training Readiness
+
+Subtitle (30 max)        [28]
+Your plan, tuned to recovery
+
+Keywords (100 max)       [95]
+HRV,load,ACWR,workout,log,lift,strength,sleep,strain,fatigue,basketball,gym,tracker,RPE,barbell
+
+Promotional Text (170 max)   [140]
+New in 1.7.2: log a session by saying it. Speak, type, or dictate — Tuwa parses the sets and hands you a draft to check. Free on every tier.
+
+================================================================================
+SIMPLIFIED CHINESE
+================================================================================
+
+Name (30 max)            [15]
+Tuwa - 准备度与训练负荷
+
+Subtitle (30 max)        [14]
+读身体的信号，调今天的训练量
+
+Keywords (100 max)       [87]
+HRV,心率变异性,静息心率,睡眠,恢复评分,力量训练,健身记录,训练日志,ACWR,疲劳,过度训练,篮球,举铁,深蹲,卧推,自主训练,比赛日,减量,备赛,运动表现,健康数据
+
+Promotional Text (170 max)   [56]
+1.7.2 新增：说一句话就能记完一次训练。开口说、打字或听写，Tuwa 解析成草稿，你确认即可。所有版本免费。
+
+================================================================================
+UNCHANGED — do not edit
+================================================================================
+
+Category                 Health & Fitness (primary) · Sports (secondary)
+Privacy URL              https://tuwa.app/privacy
+Support URL              https://tuwa.app/support
+Terms of Use (EULA) URL  https://tuwa.app/terms
+                         ^ ALSO stays in the description body. The v1.6 submission was
+                           rejected on 2026-07-25 for its absence there.
+App Review notes         Demo account 2583710743@qq.com stays.
+Info.plist               NSHealthUpdateUsageDescription stays.

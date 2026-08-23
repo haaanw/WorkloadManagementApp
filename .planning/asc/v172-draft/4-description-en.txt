@@ -1,0 +1,45 @@
+Your plan is yours. Tuwa decides how hard to run it today.
+
+Log the session by saying it — speak, type, or use the keyboard mic — and Tuwa turns your sentence into sets you can check and correct. Then it reads HRV, resting heart rate, sleep and your accumulated training load, and gives one plain answer for today: go as written, trim the top set, or hold back. A number and a reason, not a mood ring.
+
+Built for self-coached athletes — the people who play their sport, lift, and condition in parallel, and make every call themselves.
+
+SAY THE SESSION
+- Describe the workout out loud, type it, or dictate it — three doors, one pipeline
+- Tuwa parses it into an editable draft; you confirm it, nothing saves itself
+- Fix any set by hand — manual entry never goes away
+- Free on every tier
+
+TODAY'S VERDICT
+- Go, adjust, or ease off — with the adjusted number and a one-line reason
+- Concrete changes: a capped top set, a back-off set cut. Never a rewritten plan
+- Game-aware: set a match date and the sessions near it tighten to a short, sharp microdose
+- Last night's game loads your legs and spares your bench — Tuwa tracks them apart
+- Keeping your plan as written is always one tap, and never the smaller button
+
+READINESS FROM REAL SIGNALS
+- Recovery score from HRV, resting heart rate and sleep, read from Apple Health
+- Scored against your own rolling baseline, not a population average
+- Your own answer on how you feel is blended in — the score never overrides you
+- Open HRV and sleep for the baseline, the target line, and night-by-night detail
+
+ONE FATIGUE BUDGET
+- Court time, barbell work and conditioning on a single load curve
+- Acute-to-chronic workload ratio with spike detection
+- Trends that show building, holding, or overreaching
+
+SERIOUS LOGGING
+- Sets, weight, reps and RPE in seconds
+- A 1,324-movement exercise bank with instant search
+- Templates, carried-forward targets, and automatic personal records
+
+PRIVACY
+- Raw health data never leaves your device
+- Only composite scores sync, and only for backup
+
+Tuwa Pro unlocks full history, overload suggestions, custom exercises, and PR tracking. Subscriptions are managed through your Apple account and can be cancelled at any time.
+
+Tuwa is a training tool, not a medical device. It does not diagnose, treat, or prevent injury.
+
+Terms of Use (EULA): https://tuwa.app/terms
+Privacy Policy: https://tuwa.app/privacy

@@ -6,9 +6,39 @@ import SwiftData
 /// Only available in DEBUG builds.
 enum MockDataSeeder {
 
+    /// Days of training history the seed lays down.
+    ///
+    /// Was 28. `PeriodizationEngine.checkSufficiency` needs **8 weeks** before it will name a
+    /// training phase, so a 4-week seed put "Keep logging — periodization insights unlock after
+    /// 8 weeks of consistent training" on the Dashboard — inside the App Store screenshot. The
+    /// marketing set must show the app working, not the app waiting. 12 weeks also gives the
+    /// Load tab's 12W range real data instead of a stub.
+    private static let historyDays = 84
+
+    /// Deterministic stand-in for `SystemRandomNumberGenerator`.
+    ///
+    /// The seed feeds the App Store capture run, which shoots en and zh-Hans as two separate
+    /// simulator launches. With `Double.random(in:)` those two runs produced different chart
+    /// shapes, different ACWR, and different session durations — two localizations of the same
+    /// plate showing different data. SplitMix64 makes every launch identical.
+    private struct SeededGenerator: RandomNumberGenerator {
+        private var state: UInt64
+
+        init(seed: UInt64) { state = seed }
+
+        mutating func next() -> UInt64 {
+            state &+= 0x9E37_79B9_7F4A_7C15
+            var z = state
+            z = (z ^ (z >> 30)) &* 0xBF58_476D_1CE4_E5B9
+            z = (z ^ (z >> 27)) &* 0x94D0_49BB_1331_11EB
+            return z ^ (z >> 31)
+        }
+    }
+
     @MainActor
     static func seed(modelContext: ModelContext, athlete: Athlete) {
         let calendar = Calendar.current
+        var rng = SeededGenerator(seed: 0x7577_6120_5345_4544)
 
         // Screenshot mode needs deterministic data on every launch because UI
         // tests create sessions and templates while exercising the flows.
@@ -43,8 +73,8 @@ enum MockDataSeeder {
         )
         athlete.updatedAt = .now
 
-        // Create 28 days of workout sessions (4 weeks)
-        for dayOffset in stride(from: -27, through: 0, by: 1) {
+        // Create `historyDays` of workout sessions (12 weeks)
+        for dayOffset in stride(from: -(historyDays - 1), through: 0, by: 1) {
             guard let date = calendar.date(byAdding: .day, value: dayOffset, to: .now) else { continue }
 
             // Rest days: every 4th day
@@ -55,13 +85,13 @@ enum MockDataSeeder {
 
             switch weekday {
             case 2, 5: // Mon, Thu — strength
-                session = createStrengthSession(date: date, weekNumber: (-dayOffset) / 7)
+                session = createStrengthSession(date: date, weekNumber: (-dayOffset) / 7, rng: &rng)
             case 3, 6: // Tue, Fri — cardio
-                session = createCardioSession(date: date)
+                session = createCardioSession(date: date, rng: &rng)
             case 4: // Wed — skills
-                session = createSkillSession(date: date)
+                session = createSkillSession(date: date, rng: &rng)
             case 7: // Sat — long session
-                session = createLongSession(date: date, weekNumber: (-dayOffset) / 7)
+                session = createLongSession(date: date, weekNumber: (-dayOffset) / 7, rng: &rng)
             default:
                 continue
             }
@@ -79,7 +109,7 @@ enum MockDataSeeder {
         }
 
         // Create recovery snapshots (daily)
-        for dayOffset in stride(from: -27, through: 0, by: 1) {
+        for dayOffset in stride(from: -(historyDays - 1), through: 0, by: 1) {
             // Floored to the start of the day (v1.7.2 / audit M5). An unfloored seed date
             // does not match the pipeline's own start-of-day upsert key, so a SCREENSHOT_MODE
             // run followed by a real pipeline run produced TWO rows for the same day and the
@@ -87,7 +117,11 @@ enum MockDataSeeder {
             guard let date = calendar.date(byAdding: .day, value: dayOffset, to: .now)
                 .map({ calendar.startOfDay(for: $0) }) else { continue }
 
-            let phase = Double((dayOffset + 28) % 7)
+            // Non-negative remainder. `dayOffset % 7` keeps the sign of the dividend in Swift, so
+            // once the window grew past 28 days the old `(dayOffset + 28) % 7` went negative and
+            // drove HRV and sleep BELOW their intended floors — the opposite of what the comment
+            // below promises.
+            let phase = Double(((dayOffset % 7) + 7) % 7)
             let baseHRV = 48.0 + phase
             let baseRHR = 58.0 - min(phase, 3)
             // Centred ABOVE the 7.5 h target (450 min), not on the old 7 h one: this seed feeds
@@ -165,9 +199,45 @@ enum MockDataSeeder {
             )
             bench.sets = [
                 TemplateSet(setIndex: 0, targetReps: 5, targetWeightKg: 70, targetRIR: 2),
-                TemplateSet(setIndex: 1, targetReps: 5, targetWeightKg: 72.5, targetRIR: 1)
+                TemplateSet(setIndex: 1, targetReps: 5, targetWeightKg: 72.5, targetRIR: 1),
+                TemplateSet(setIndex: 2, targetReps: 5, targetWeightKg: 75, targetRIR: 1)
             ]
-            group.exercises = [bench]
+
+            let row = TemplateExercise(
+                exerciseName: "Barbell Row",
+                exerciseCategory: .compound,
+                muscleGroup: .back,
+                orderIndex: 1
+            )
+            row.sets = [
+                TemplateSet(setIndex: 0, targetReps: 8, targetWeightKg: 65, targetRIR: 2),
+                TemplateSet(setIndex: 1, targetReps: 8, targetWeightKg: 65, targetRIR: 2),
+                TemplateSet(setIndex: 2, targetReps: 8, targetWeightKg: 67.5, targetRIR: 1)
+            ]
+
+            let press = TemplateExercise(
+                exerciseName: "Overhead Press",
+                exerciseCategory: .compound,
+                muscleGroup: .shoulders,
+                orderIndex: 2
+            )
+            press.sets = [
+                TemplateSet(setIndex: 0, targetReps: 8, targetWeightKg: 45, targetRIR: 2),
+                TemplateSet(setIndex: 1, targetReps: 8, targetWeightKg: 45, targetRIR: 2)
+            ]
+
+            let pullUp = TemplateExercise(
+                exerciseName: "Pull Up",
+                exerciseCategory: .bodyweight,
+                muscleGroup: .back,
+                orderIndex: 3
+            )
+            pullUp.sets = [
+                TemplateSet(setIndex: 0, targetReps: 8, targetRIR: 2),
+                TemplateSet(setIndex: 1, targetReps: 8, targetRIR: 1)
+            ]
+
+            group.exercises = [bench, row, press, pullUp]
             template.groups = [group]
             modelContext.insert(template)
         }
@@ -183,16 +253,40 @@ enum MockDataSeeder {
             template.athleteId = athlete.id
 
             let group = ExerciseGroup(groupName: "Main", orderIndex: 0)
-            let run = TemplateExercise(
-                exerciseName: "Tempo Run",
+            let warmup = TemplateExercise(
+                exerciseName: "Easy Jog",
                 exerciseCategory: .cardio,
                 muscleGroup: .fullBody,
                 orderIndex: 0
             )
+            warmup.sets = [
+                TemplateSet(setIndex: 0, targetDurationSeconds: 10 * 60, targetDistanceMeters: 1600, targetRPE: 3)
+            ]
+
+            let run = TemplateExercise(
+                exerciseName: "Tempo Run",
+                exerciseCategory: .cardio,
+                muscleGroup: .fullBody,
+                orderIndex: 1
+            )
             run.sets = [
                 TemplateSet(setIndex: 0, targetDurationSeconds: 25 * 60, targetDistanceMeters: 5000, targetRPE: 7)
             ]
-            group.exercises = [run]
+
+            let strides = TemplateExercise(
+                exerciseName: "Strides",
+                exerciseCategory: .interval,
+                muscleGroup: .legs,
+                orderIndex: 2
+            )
+            strides.sets = [
+                TemplateSet(setIndex: 0, targetDurationSeconds: 20, targetDistanceMeters: 120, targetRPE: 8),
+                TemplateSet(setIndex: 1, targetDurationSeconds: 20, targetDistanceMeters: 120, targetRPE: 8),
+                TemplateSet(setIndex: 2, targetDurationSeconds: 20, targetDistanceMeters: 120, targetRPE: 8),
+                TemplateSet(setIndex: 3, targetDurationSeconds: 20, targetDistanceMeters: 120, targetRPE: 8)
+            ]
+
+            group.exercises = [warmup, run, strides]
             template.groups = [group]
             modelContext.insert(template)
         }
@@ -218,7 +312,30 @@ enum MockDataSeeder {
                 TemplateSet(setIndex: 0, targetReps: 20, targetRPE: 7),
                 TemplateSet(setIndex: 1, targetReps: 15, targetRPE: 8)
             ]
-            group.exercises = [pushUp]
+
+            let splitSquat = TemplateExercise(
+                exerciseName: "Split Squat",
+                exerciseCategory: .compound,
+                muscleGroup: .legs,
+                orderIndex: 1
+            )
+            splitSquat.sets = [
+                TemplateSet(setIndex: 0, targetReps: 12, targetRPE: 7),
+                TemplateSet(setIndex: 1, targetReps: 12, targetRPE: 8)
+            ]
+
+            let plank = TemplateExercise(
+                exerciseName: "Plank",
+                exerciseCategory: .isolation,
+                muscleGroup: .core,
+                orderIndex: 2
+            )
+            plank.sets = [
+                TemplateSet(setIndex: 0, targetDurationSeconds: 60, targetRPE: 6),
+                TemplateSet(setIndex: 1, targetDurationSeconds: 60, targetRPE: 7)
+            ]
+
+            group.exercises = [pushUp, splitSquat, plank]
             template.groups = [group]
             modelContext.insert(template)
         }
@@ -293,18 +410,22 @@ enum MockDataSeeder {
 
     // MARK: - Session Factories
 
-    private static func createStrengthSession(date: Date, weekNumber: Int) -> WorkoutSession {
+    private static func createStrengthSession(
+        date: Date,
+        weekNumber: Int,
+        rng: inout SeededGenerator
+    ) -> WorkoutSession {
         let session = WorkoutSession(
             sessionDate: date,
             sessionName: "Upper Body",
             sportType: .lifting,
-            durationSeconds: 3600 + Int.random(in: -600...600),
-            sessionRPE: Double.random(in: 6...9),
+            durationSeconds: 3600 + Int.random(in: -600...600, using: &rng),
+            sessionRPE: Double.random(in: 6...9, using: &rng),
             sessionType: .strength
         )
 
-        // Progressive overload across weeks
-        let baseWeight = 60.0 + Double(3 - weekNumber) * 2.5
+        // Progressive overload across weeks: 12 weeks back is the lightest, today the heaviest.
+        let baseWeight = 75.0 - Double(weekNumber) * 1.5
 
         let bench = ExerciseEntry(exerciseName: "Barbell Bench Press", exerciseCategory: .compound, muscleGroup: .chest, orderIndex: 0)
         for i in 0..<4 {
@@ -327,31 +448,31 @@ enum MockDataSeeder {
         return session
     }
 
-    private static func createCardioSession(date: Date) -> WorkoutSession {
+    private static func createCardioSession(date: Date, rng: inout SeededGenerator) -> WorkoutSession {
         let session = WorkoutSession(
             sessionDate: date,
             sessionName: "Tempo Conditioning",
             sportType: .teamSport,
-            durationSeconds: Int.random(in: 1800...3600),
-            sessionRPE: Double.random(in: 4...6),
+            durationSeconds: Int.random(in: 1800...3600, using: &rng),
+            sessionRPE: Double.random(in: 4...6, using: &rng),
             sessionType: .cardio
         )
 
         let run = ExerciseEntry(exerciseName: "Court Intervals", exerciseCategory: .interval, muscleGroup: .legs, orderIndex: 0)
-        let dist = Double.random(in: 4000...8000)
+        let dist = Double.random(in: 4000...8000, using: &rng)
         run.sets.append(SetRecord(setIndex: 0, durationSeconds: session.durationSeconds, distanceMeters: dist, rpe: session.sessionRPE))
         session.exerciseEntries.append(run)
 
         return session
     }
 
-    private static func createSkillSession(date: Date) -> WorkoutSession {
+    private static func createSkillSession(date: Date, rng: inout SeededGenerator) -> WorkoutSession {
         let session = WorkoutSession(
             sessionDate: date,
             sessionName: "Shooting + Handles",
             sportType: .teamSport,
-            durationSeconds: Int.random(in: 2700...5400),
-            sessionRPE: Double.random(in: 5...8),
+            durationSeconds: Int.random(in: 2700...5400, using: &rng),
+            sessionRPE: Double.random(in: 5...8, using: &rng),
             sessionType: .skill
         )
 
@@ -389,17 +510,25 @@ enum MockDataSeeder {
         return session
     }
 
-    private static func createLongSession(date: Date, weekNumber: Int) -> WorkoutSession {
+    private static func createLongSession(
+        date: Date,
+        weekNumber: Int,
+        rng: inout SeededGenerator
+    ) -> WorkoutSession {
         let session = WorkoutSession(
             sessionDate: date,
             sessionName: "Lower Body Strength",
             sportType: .lifting,
-            durationSeconds: 4200 + Int.random(in: -600...600),
-            sessionRPE: Double.random(in: 7...9),
+            durationSeconds: 4200 + Int.random(in: -600...600, using: &rng),
+            sessionRPE: Double.random(in: 7...9, using: &rng),
             sessionType: .strength
         )
 
-        let baseWeight = 80.0 + Double(3 - weekNumber) * 5.0
+        // The squat top set is `baseWeight + 20`, so this week lands on 140 kg — the same number
+        // `ensureScreenshotResolvedPlan` prescribes as today's planned top set and the same ladder
+        // the 142.5 kg PR sits on. Before this the history topped out around 115 kg while the
+        // store plate advertised a 140 kg plan, which does not survive being read twice.
+        let baseWeight = 120.0 - Double(weekNumber) * 2.5
 
         let squat = ExerciseEntry(exerciseName: "Barbell Back Squat", exerciseCategory: .compound, muscleGroup: .legs, orderIndex: 0)
         for i in 0..<5 {
@@ -424,15 +553,16 @@ enum MockDataSeeder {
         // Simulate progressive EWMA build-up
         var atl = 20.0
         var ctl = 25.0
+        var rng = SeededGenerator(seed: 0x4C4F_4144_5F53_4545)
 
-        for dayOffset in stride(from: -27, through: 0, by: 1) {
+        for dayOffset in stride(from: -(historyDays - 1), through: 0, by: 1) {
             // Floored — see the recovery seed above (audit M5).
             guard let date = calendar.date(byAdding: .day, value: dayOffset, to: .now)
                 .map({ calendar.startOfDay(for: $0) }) else { continue }
 
             // Simulate daily load
             let isRestDay = (-dayOffset) % 4 == 3
-            let dailyTSS = isRestDay ? 0.0 : Double.random(in: 30...80)
+            let dailyTSS = isRestDay ? 0.0 : Double.random(in: 30...80, using: &rng)
 
             atl = atl * 0.86 + dailyTSS * 0.14  // ~7-day half-life
             ctl = ctl * 0.96 + dailyTSS * 0.04  // ~28-day half-life

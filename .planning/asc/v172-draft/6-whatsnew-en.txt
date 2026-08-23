@@ -1,0 +1,5 @@
+Tuwa 1.7.2 makes describing the session the fastest way to log it.
+
+Say what you did — "back squat, three sets of five at 130, last one felt heavy" — or type the same sentence, or use the keyboard's dictation mic. Tuwa turns it into an editable draft with every set filled in and ticked off. Nothing saves until you confirm it, and any number is still yours to correct by hand. Mid-session, the same thing works one set at a time. Manual entry is unchanged and still the way to fix anything. Voice logging is free on every tier.
+
+<<PLACEHOLDER — fill before submission with the shipped items from the logging UI/UX lane and the codebase-audit lane, then delete this line.>>

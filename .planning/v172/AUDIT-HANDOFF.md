@@ -302,3 +302,58 @@ Run them in that order. 009 is the most urgent: without it, **every athlete
 profile push is rejected PGRST204 and silently** — the athlete push has no Sync
 Status row, so unit, ACWR method, load metric, max HR and date of birth have never
 reached the server.
+
+---
+
+## 6. Added by the ASO lane (Objective 3), 2026-08-22
+
+### 6.1 `SpeechCaptureService.start()` aborts the app when there is no audio input route
+
+Found while shooting the App Store voice-logging plate. Not an ASO problem — reporting
+it here because `Views/WorkoutLog/LogCaptureSheet.swift` and
+`Services/SpeechCaptureService.swift` belong to the logging-UI lane, and because the
+device UAT for voice logging was waived pre-ship.
+
+**Reproduction (100%, iPhone 17 Pro Max simulator, iOS 26.1):** open `LogCaptureSheet`,
+tap the mic, grant Speech Recognition. The app does not throw and does not show a
+failure notice — it dies with `SIGABRT`.
+
+Crash report: `~/Library/Logs/DiagnosticReports/workload management-2026-08-22-014003.ips`
+
+```
+libsystem_c.dylib            abort
+AudioToolboxCore             _ReportRPCTimeout(char const*, int)
+AudioToolboxCore             _CheckRPCError(char const*, int, int)
+libEmbeddedSystemAUs.dylib   AURemoteIO::Initialize()
+AudioToolboxCore             AudioUnitInitialize
+AVFAudio                     AVAudioIONodeImpl::GetInputFormat(unsigned long)
+AVFAudio                     -[AVAudioNode inputFormatForBus:]
+AVFAudio                     AVAudioEngineImpl::UpdateInputNode(bool)
+AVFAudio                     -[AVAudioEngine inputNode]
+workload management          SpeechCaptureService.start(localeIdentifier:)
+workload management          LogCaptureSheet.toggleRecording()
+```
+
+**What is actually happening.** `AVAudioEngine.inputNode` forces the IO unit to
+initialize. With no input route the audio-server RPC times out and AudioToolbox calls
+`abort()` from inside the framework. The abort is **not catchable from Swift** — no
+`do/try/catch` around `start()` can save it, which is why this is worth a look rather
+than a shrug.
+
+**How much of this is simulator-only.** The RPC timeout itself is: a real iPhone has a
+built-in mic, so the common path initializes. What is *not* simulator-only is the
+shape — `inputNode` is touched without first proving there is a usable input route.
+Real-device states that reach the same place: an active phone/FaceTime call holding the
+route, a route change mid-activation, a Bluetooth device that advertises input and then
+drops it, and CarPlay. Worth confirming which of those the shipped code already survives.
+
+**Suggested guard, for whoever owns the file** — check
+`AVAudioSession.sharedInstance().isInputAvailable` (and that `setActive(true)` succeeded)
+*before* touching `engine.inputNode`, and route a false to the existing
+`speech.state == .failed` path, which already renders a proper failure notice and leaves
+the typed text intact. That turns an uncatchable abort into the recoverable failure the
+sheet is already designed around.
+
+**Consequence for this lane, already handled.** `test14_LogCapture_NarrativeEntry`
+captures the typed state and never taps the mic. The comment on that test explains why,
+so nobody re-introduces the mic tap to "improve" the screenshot.

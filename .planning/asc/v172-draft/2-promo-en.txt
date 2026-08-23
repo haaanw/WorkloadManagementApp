@@ -1,0 +1,1 @@
+New in 1.7.2: log a session by saying it. Speak, type, or dictate — Tuwa parses the sets and hands you a draft to check. Free on every tier.
