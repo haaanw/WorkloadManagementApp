@@ -136,8 +136,8 @@ struct RecoveryLoadChart: View {
                 if load != nil || recovery != nil {
                     TooltipBubble(
                         value: [
-                            load.map { "Load: \(String(format: "%.0f", $0.acuteLoad))" },
-                            recovery.map { "Recovery: \(Int($0.recoveryScore))" }
+                            load.map { "\(LocalePinnedStrings.localized("chart.tooltip.load", locale: locale)): \(String(format: "%.0f", $0.acuteLoad))" },
+                            recovery.map { "\(LocalePinnedStrings.localized("chart.tooltip.recovery", locale: locale)): \(Int($0.recoveryScore))" }
                         ].compactMap { $0 }.joined(separator: " | "),
                         dateLabel: selectedDate.formatted(.dateTime.month(.abbreviated).day().locale(locale))
                     )
