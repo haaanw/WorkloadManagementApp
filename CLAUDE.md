@@ -99,6 +99,11 @@ Key constraints to enforce (DESIGN.md v6 "Field Notes" — 2026-07-30, an **over
 - **Corners come from `CornerTokens` only** — card 12pt / control 8pt / pill (`Capsule()`); never a hand-typed radius literal
 - **No shadows** — elevation is plane + hairline + the relief system (`.raised`/`.debossed` chokepoint modifiers only)
 - **Two-Voice Type Law (v6)** — two faces with strictly disjoint jobs: **Instrument Sans** (Regular + Medium) for everything the app *says*, via `Font.Tokens.*`; **Fragment Mono** for everything it *annotates*, via `Font.Tokens.anno` (12pt) / `.annoSmall` (10pt) ONLY — **≤12pt hard cap, uppercase + tracking applied by the token/modifier, never the call site**. All data numerals add `.monospacedDigit()`; never `.system()` or semantic styles. `IBMPlexMono`, `SourceSerif4`, and `Alpino` are fence-banned strings (Alpino is marketing/slides only); `FragmentMono` appears only in `FontTokens.swift`
+- **Third voice — website long-form only (HAN ruling 2026-08-25).** The blog's science-series
+  articles read in **Newsreader** (serif). This does NOT relax the Two-Voice Type Law in the
+  app: the serif is fence-banned in iOS exactly as Alpino is, and `DESIGN.md` is unamended.
+  Its job is strictly long-form reading — article headline, deck, body, pull quotes, source
+  list. Never navigation, never a CTA, never a label, never outside an article.
 - **Annotation is marginalia** — units, deltas, timestamps, axis labels, reason trees (`├─ └─`), machine keys (`HRV_BASELINE: TRUE`). **Never a sentence, headline, CTA, or tab label.** Unicode glyph set (`▲▼ ● ○ ├─ └─ ▁▂▃ ░▒ ·`), no icon font, no emoji ever. zh-Hans gets no case transform and no added tracking
 - **Five metric hues (v6)** — `metric-readiness` `#2E7D4F` / `metric-recovery` `#1D7189` / `metric-sleep` `#52589E` / `metric-strain` `#A8442D` / `metric-load` `#8A6810`. Each metric owns its hue. Usable as series lines, state dots, "now" markers, and hero readings; **never as a plane fill, card background, CTA fill, or decorative tint.** These five are the only colors v6 adds
 - **Reading Color Rule v6 (supersedes the v5 Accent Rule)** — the hero reading takes **its metric's hue**; `ColorTokens.accent` (travertine `#6F6759`) owns **live-state marks exclusively** (progress fills, active/selected, tab tick, recording dot, needles) plus hero readings with no metric identity. A colored text element must **name the metric or zone whose hue it wears**; there is **no cap on how many do** (the v6.0 "one colored text element per screen" rule was removed in v6.1, HAN 2026-07-30 — it forbade the sanctioned metric-hue annotation key and contradicted the design system's own iOS specimen). Never decorative, never a CTA fill, never labels
@@ -163,6 +168,9 @@ Key constraints to enforce (DESIGN.md v6 "Field Notes" — 2026-07-30, an **over
 ## Fonts
 - `InstrumentSans-Regular.ttf` + `InstrumentSans-Medium.ttf` (static faces, SIL OFL) — the working voice (DESIGN.md v6)
 - `FragmentMono-Regular.ttf` (SIL OFL, Wei Huang) — the annotation voice, ≤12pt marginalia only (v6)
+- `Newsreader` (SIL OFL, Production Type) — **WEBSITE ONLY**, the long-form reading voice on
+  tuwa.app blog articles. Fence-banned in the app exactly like Alpino. Self-hosted variable
+  woff2 at `tuwa-website/public/fonts/`; Latin only, so zh-Hans articles cascade to Noto Sans SC
 - `NotoSansSC-Regular.otf` + `NotoSansSC-Medium.otf` — CJK cascade fallback
 ## Platform Requirements
 - Xcode (latest, tested with iPhone 17 Pro Max simulator)
