@@ -26,9 +26,14 @@ Per article, produce three editions from ONE evidence core, in this order:
   a figure would help, describe it in one bracketed line). Direct answer in
   the first ~120 words; question-shaped H2s; a 3–5 item FAQ block at the end;
   sentence case throughout.
-- X long-form edition: first person, "I'm building Tuwa" frame, short
-  paragraphs, plain lists, every citation kept, ends with the app link
-  placeholder [APP LINK]. Plus a 2–3 tweet teaser thread.
+- X long-form edition: first person, "I'm building Tuwa" frame, written for
+  X's Article composer (real headings, inline image slots marked in
+  brackets). X penalizes outbound links and rewards on-platform dwell, so
+  this edition must be SUFFICIENT ON ITS OWN — a reader who never leaves X
+  gets the whole argument and every citation by name; the canonical
+  tuwa.app URL appears once, as a citations appendix near the end, never as
+  the payoff. Plus a 2–3 tweet teaser thread that links the X Article
+  itself, not tuwa.app.
 - Substack edition: same founder voice, notes the canonical URL placeholder
   [CANONICAL URL], ends with subscribe + app link.
 
