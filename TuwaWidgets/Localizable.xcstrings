@@ -1,0 +1,240 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "widget.anno.acwr" : {
+      "comment" : "Annotation key above the ACWR reading. Uppercase transform is applied by the annotation modifier (Latin only).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acwr"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ACWR"
+          }
+        }
+      }
+    },
+    "widget.anno.load" : {
+      "comment" : "Annotation key on the training-load widget's empty state.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training load"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练负荷"
+          }
+        }
+      }
+    },
+    "widget.anno.readiness" : {
+      "comment" : "Annotation key above the readiness score.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Readiness"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备度"
+          }
+        }
+      }
+    },
+    "widget.anno.sevenDay" : {
+      "comment" : "Annotation axis key above the 7-day load sparkline.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7d load"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7天负荷"
+          }
+        }
+      }
+    },
+    "widget.load.description" : {
+      "comment" : "Training-load widget description in the widget gallery.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your ACWR zone and 7-day load trend."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你的 ACWR 区间与 7 天负荷趋势。"
+          }
+        }
+      }
+    },
+    "widget.load.empty" : {
+      "comment" : "Training-load widget empty state (working voice, sentence case).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Log a session to start your load trend."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "记录一次训练，开始你的负荷趋势。"
+          }
+        }
+      }
+    },
+    "widget.load.title" : {
+      "comment" : "Training-load widget name in the widget gallery.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Training load"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练负荷"
+          }
+        }
+      }
+    },
+    "widget.readiness.description" : {
+      "comment" : "Readiness widget description in the widget gallery.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's readiness score and verdict."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今日准备度评分与训练结论。"
+          }
+        }
+      }
+    },
+    "widget.readiness.empty" : {
+      "comment" : "Readiness widget empty state (working voice, sentence case).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Open Tuwa to record today's readiness."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "打开 Tuwa 记录今日准备度。"
+          }
+        }
+      }
+    },
+    "widget.readiness.title" : {
+      "comment" : "Readiness widget name in the widget gallery.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Readiness"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "准备度"
+          }
+        }
+      }
+    },
+    "widget.sample.loadZone" : {
+      "comment" : "Gallery-preview zone label (matches ACWRZone.optimal's display name).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load Steady"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负荷平稳"
+          }
+        }
+      }
+    },
+    "widget.sample.verdict" : {
+      "comment" : "Gallery-preview verdict line. Representative copy only — never shown for real data.",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recovered and ready. Execute today's plan as written."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复良好，可以按计划执行今天的训练。"
+          }
+        }
+      }
+    },
+    "widget.sample.zone" : {
+      "comment" : "Gallery-preview zone label (matches RecoveryZone.green's display name).",
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Go"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正常训练"
+          }
+        }
+      }
+    }
+  },
+  "version" : "1.0"
+}

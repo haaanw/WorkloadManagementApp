@@ -74,6 +74,9 @@
 		62324C492F66CB0E00A9C2BE /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFA2F66CB0E00A9C2BE /* AuthService.swift */; };
 		62324C4A2F66CB0E00A9C2BE /* WorkloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C192F66CB0E00A9C2BE /* WorkloadView.swift */; };
 		62324C4B2F66CB0E00A9C2BE /* ColorTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C042F66CB0E00A9C2BE /* ColorTokens.swift */; };
+		AB1702010000000000000001 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1701010000000000000001 /* WidgetSnapshot.swift */; };
+		AB1702010000000000000002 /* WidgetSnapshotStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1701010000000000000002 /* WidgetSnapshotStore.swift */; };
+		AB1702010000000000000003 /* WidgetSnapshotWriter.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1701010000000000000003 /* WidgetSnapshotWriter.swift */; };
 		62324C4C2F66CB0E00A9C2BE /* WorkoutPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C022F66CB0E00A9C2BE /* WorkoutPipeline.swift */; };
 		62324C4D2F66CB0E00A9C2BE /* ExerciseEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEA2F66CB0E00A9C2BE /* ExerciseEntry.swift */; };
 		62324C4E2F66CB0E00A9C2BE /* SessionDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C1D2F66CB0E00A9C2BE /* SessionDetailView.swift */; };
@@ -311,6 +314,9 @@
 		62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryScoreEngine.swift; sourceTree = "<group>"; };
 		62324C002F66CB0E00A9C2BE /* SyncService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncService.swift; sourceTree = "<group>"; };
 		62324C012F66CB0E00A9C2BE /* WorkloadCalculator.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadCalculator.swift; sourceTree = "<group>"; };
+		AB1701010000000000000001 /* WidgetSnapshot.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshot.swift; sourceTree = "<group>"; };
+		AB1701010000000000000002 /* WidgetSnapshotStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotStore.swift; sourceTree = "<group>"; };
+		AB1701010000000000000003 /* WidgetSnapshotWriter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WidgetSnapshotWriter.swift; sourceTree = "<group>"; };
 		62324C022F66CB0E00A9C2BE /* WorkoutPipeline.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutPipeline.swift; sourceTree = "<group>"; };
 		62324C042F66CB0E00A9C2BE /* ColorTokens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorTokens.swift; sourceTree = "<group>"; };
 		62324C052F66CB0E00A9C2BE /* DateHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateHelpers.swift; sourceTree = "<group>"; };
@@ -713,6 +719,9 @@
 				DD1401010000000000000002 /* SyncEntity.swift */,
 				DD1401010000000000000004 /* SyncTimestampStore.swift */,
 				62324C012F66CB0E00A9C2BE /* WorkloadCalculator.swift */,
+				AB1701010000000000000001 /* WidgetSnapshot.swift */,
+				AB1701010000000000000002 /* WidgetSnapshotStore.swift */,
+				AB1701010000000000000003 /* WidgetSnapshotWriter.swift */,
 				62324C022F66CB0E00A9C2BE /* WorkoutPipeline.swift */,
 				5727EB0C443D8392F0E17C60 /* SubscriptionService.swift */,
 				2301010100000000000000A2 /* LocaleManager.swift */,
@@ -1253,6 +1262,9 @@
 				DD0301020000000000000001 /* ChartDetailPrimitives.swift in Sources */,
 				AA0202020000000000000004 /* RecoveryLoadChart.swift in Sources */,
 				62324C4B2F66CB0E00A9C2BE /* ColorTokens.swift in Sources */,
+				AB1702010000000000000001 /* WidgetSnapshot.swift in Sources */,
+				AB1702010000000000000002 /* WidgetSnapshotStore.swift in Sources */,
+				AB1702010000000000000003 /* WidgetSnapshotWriter.swift in Sources */,
 				62324C4C2F66CB0E00A9C2BE /* WorkoutPipeline.swift in Sources */,
 				627EC1942F76620200B89262 /* CustomExercise.swift in Sources */,
 				BC1001010000000000000001 /* ExerciseOverride.swift in Sources */,

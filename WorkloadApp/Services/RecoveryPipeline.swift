@@ -216,6 +216,12 @@ struct RecoveryPipeline {
             }
         }
 
+        // 7. Publish the readiness half of the home-screen widget snapshot (composite
+        // values only — the on-device raw-data law extends to the App Group container).
+        // The verdict line arrives separately from the dashboard, which is the one
+        // place the autoregulation headline is computed.
+        WidgetSnapshotWriter.publishReadiness(score: result.score, zone: result.zone)
+
         return RecoveryResult(
             score: result.score,
             zone: result.zone,

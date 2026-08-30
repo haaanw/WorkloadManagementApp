@@ -72,6 +72,15 @@ struct WorkoutPipeline {
         session.chronicLoad = latestResult.ctl
         try modelContext.save()
 
+        // 7b. Publish the load half of the home-screen widget snapshot (composite
+        // day-total loads + ACWR zone; the raw-data law extends to the App Group).
+        WidgetSnapshotWriter.publishLoad(
+            acwr: latestResult.acwr,
+            zone: ACWRZone.classify(acwr: latestResult.acwr, ctl: latestResult.ctl),
+            modelContext: modelContext,
+            athlete: athlete
+        )
+
         // --- Cold-start switchover check (COLD-05, D-11, D-13) ---
         let athleteIdForProfile = athlete.id
         let profilePredicate = #Predicate<TrainingProfile> { $0.athleteId == athleteIdForProfile }
@@ -157,6 +166,13 @@ struct WorkoutPipeline {
                 latest,
                 weeklyVolume: weeklyVol,
                 loadSource: athlete.loadMetricPreference,
+                athlete: athlete
+            )
+            // Keep the widget's load half in step after a deletion-driven recompute.
+            WidgetSnapshotWriter.publishLoad(
+                acwr: latest.acwr,
+                zone: ACWRZone.classify(acwr: latest.acwr, ctl: latest.ctl),
+                modelContext: modelContext,
                 athlete: athlete
             )
         }

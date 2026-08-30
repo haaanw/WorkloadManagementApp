@@ -342,6 +342,21 @@ final class DashboardViewModel {
             cyclesObserved: 0
         )
 
+        // Home-screen widget snapshot: the verdict line exists only here (the
+        // recommendation is a load() product, not a pipeline one), and the load half is
+        // published from the VM's resolved values so a cold-start seeded ACWR shows the
+        // same number the dashboard does. Screenshot mode publishes nothing — mock
+        // values must never reach a real widget.
+        if !isScreenshotMode {
+            WidgetSnapshotWriter.publishVerdictLine(recommendation?.headline)
+            WidgetSnapshotWriter.publishLoad(
+                acwr: acwr,
+                zone: acwrZone,
+                modelContext: modelContext,
+                athlete: athlete
+            )
+        }
+
         // ACT-01 — DO NOT build the dual-run message here. `load()` only SNAPSHOTS the three inputs
         // the build needs; a BARE `load()` therefore leaves `dualRunMessage` nil (keeping the
         // `DashboardViewModelDualRunTests.test_flagOff_dualRunMessage_nilAfterLoad` fence green
