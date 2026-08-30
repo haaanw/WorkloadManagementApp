@@ -32,7 +32,31 @@ metadata release; the missed ASO fields wait for the full version).
   gated on 1.7.3): `.planning/v172/VOICE-UAT.md` sections 1–3 + 5 on
   device; watch the first ReviewPromptGate ratings arrive; note the ASC
   baseline before the new listing fields land (for `10-ab-rationale.md`).
-- Candidate app features: HAN names them at kickoff.
+## App features — NAMED at kickoff (HAN, 2026-08-30)
+
+1. **Voice logging round 2 — dogfood first.** HAN tries the shipped 1.7.2
+   voice input on the official build (`.planning/v172/VOICE-UAT.md` is the
+   script); his findings become the fix list. The improvement lane opens on
+   his report, not before.
+2. **Voice section UI redesign.** The capture surfaces (LogCaptureSheet,
+   VoiceDictationCard) get a design pass. Demo-first per house style; folds
+   in whatever round 1 dogfood surfaces, so it runs behind item 1.
+3. **iOS home-screen widgets (WidgetKit).** New widget extension target —
+   `.pbxproj` is CLAUDE-only and target creation is the big serialization
+   point. Needs an App Group so the widget can read shared data; HealthKit
+   raw data stays out of the shared container (composite scores only, same
+   law as sync). Candidate widgets: today's readiness reading + verdict;
+   training-load strip. Light-only, v6 tokens, no shadows — DESIGN.md binds
+   widgets exactly as it binds the app.
+4. **The onboarding journey — the approved v1.8 spec rides into this
+   release** (HAN 2026-08-30). Spec: `.planning/v18/ONBOARDING.md` (APPROVED
+   2026-08-24) + `.planning/v18/GROWTH-STACK.md`. ≤12 screens ending in the
+   HealthKit-conditional hard paywall after a real readiness reveal,
+   card-gated Apple trial, account creation at screen 10, PostHog behind
+   UXAnalyticsService. NOTE: the spec says this is not a point release
+   (monetization model changes) — the marketing-version number stays HAN's
+   call at submission; 1.7.3 may become 1.8 when it ships. The ASO fields in
+   checklist item 1 ride whatever the number ends up being.
 
 ## Standing gates
 
