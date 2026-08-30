@@ -1,0 +1,137 @@
+---
+title: "How Tuwa computes training load: EWMA, ACWR, and what the ratio’s critics got right"
+date: 2026-08-24
+description: "Tuwa builds one daily load series across every kind of training, smooths it with exponentially weighted averages, and reports the acute:chronic ratio as a zone and a direction — not an injury prediction. Here is the arithmetic, and the published criticism that shaped it."
+tags: ["training load", "ACWR", "EWMA", "session RPE", "how Tuwa works"]
+draft: false
+deck: "EWMA, the acute:chronic ratio, and what the ratio’s critics got right — including the part where the research it was built on came apart."
+articleClass: "How Tuwa works"
+seriesNo: 1
+coverMark: "decay"
+leadFigure: "cliff-edge"
+faq:
+  - q: "What is the acute:chronic workload ratio?"
+    a: "The acute:chronic workload ratio (ACWR) divides an athlete’s recent training load — conventionally the last 7 days — by their longer-term load, conventionally the last 28 days. A ratio near 1.0 means this week looks like the last month. A ratio well above 1.0 means training has stepped up faster than the preceding month would predict."
+  - q: "Why does Tuwa use an exponentially weighted moving average instead of 7-day and 28-day rolling averages?"
+    a: "A rolling average treats every day inside the window as equally important and every day outside it as worthless, so a hard session drops out of the acute window overnight. An exponentially weighted moving average decays each day’s contribution gradually, which matches how fatigue is understood to dissipate. Williams and colleagues proposed the EWMA form in the British Journal of Sports Medicine in 2017, and Murray and colleagues reported it was a more sensitive indicator than the rolling form. Tuwa uses decay constants of 1/7 for the acute term and 1/28 for the chronic term."
+  - q: "Does a high ACWR mean an athlete will get injured?"
+    a: "No. Tuwa makes no injury prediction. Between 2019 and 2021 several research groups showed that the original ACWR-versus-injury findings suffer from mathematical coupling, confounding by training schedule, and undeclared analytical choices. Tuwa reports the ratio as a description of how the athlete’s load is changing, as one input among several to a training decision — never as a risk score."
+  - q: "How does Tuwa put strength training and sport practice on the same load scale?"
+    a: "Every session carries a session-RPE reading, and session duration combined with session RPE gives an internal load figure in the Foster tradition. Tuwa converts strength work into the same internal-load units by scoring hard sets and mapping a strength strain unit onto its session-RPE equivalent, so lifting, conditioning and sport practice move one daily load curve rather than three separate ones."
+---
+
+import Figure from '../../components/blog/Figure.astro';
+
+Tuwa turns training into one daily load number, smooths that series two ways, and divides the fast-moving average by the slow-moving one. The fast average — acute load — decays with a constant of 1/7 per day. The slow average — chronic load — decays with a constant of 1/28. Their ratio is the acute:chronic workload ratio, and Tuwa reads it as a zone and a direction rather than as a number to obey. It is not an injury prediction, and the app does not present it as one. That restraint is deliberate. The strongest published criticism of this ratio landed between 2019 and 2021, and it changed what the metric can honestly be used for.
+
+## What counts as one day of training load?
+
+External load is what an athlete did — kilograms lifted, minutes run, sets completed. Internal load is what it cost them. The two come apart constantly: the same 90-minute practice costs far more in a bad week than a good one.
+
+Tuwa's load series is internal. It rests on the session-RPE method that Carl Foster's group introduced in the late 1990s, in which an athlete rates the whole session on a 0–10 scale after finishing and that rating is combined with session duration ([Foster 1998](https://pubmed.ncbi.nlm.nih.gov/9662690/); [Foster et al. 2001](https://pubmed.ncbi.nlm.nih.gov/11708692/)). The method needs no laboratory and no chest strap, and it applies across very different training modes — which is exactly what an athlete who lifts, runs and plays a sport needs.
+
+In the shipped app, a session's stress figure is its duration in hours, multiplied by its session RPE, multiplied again by that RPE over ten. The second RPE term weights hard sessions above long easy ones more steeply than a plain duration-by-RPE product does. A calendar day's load is the sum of every session logged that day. Rest days are not skipped — they enter the series as zeros, which is what keeps the decay arithmetic honest about time off.
+
+One design point matters more than any of the arithmetic. Tuwa builds **one** load series, not one per sport. Strength work is scored by hard sets and converted into session-RPE-equivalent units before joining the same daily curve as conditioning and sport practice. An athlete who plays a match on Tuesday and squats on Wednesday has one fatigue budget, and the series says so.
+
+<Figure
+  n={1}
+  name="one-fatigue-budget"
+  caption="One fatigue budget. Sport practice, strength work and conditioning are reduced to a single daily internal-load series before any smoothing happens. Rest days enter as zeros rather than as gaps."
+/>
+
+## Why an exponentially weighted average instead of 7-day and 28-day blocks?
+
+The conventional ACWR uses two rolling averages: the mean of the last 7 days over the mean of the last 28. That form has a structural flaw. Every day inside the window counts fully, every day outside counts zero, so a brutal session contributes its full weight for seven days and then vanishes overnight. Nothing in human physiology has a cliff edge on day eight.
+
+[Williams and colleagues (2017)](https://pubmed.ncbi.nlm.nih.gov/27650255/) proposed replacing both rolling means with exponentially weighted moving averages, whose weights decay geometrically, and [Menaspà (2017)](https://pubmed.ncbi.nlm.nih.gov/27222309/) made the same argument from the coaching side. [Murray and colleagues (2017)](https://pubmed.ncbi.nlm.nih.gov/28003238/) compared the two forms in Australian football players and reported the exponentially weighted version to be the more sensitive indicator.
+
+Tuwa uses the EWMA form. Each day the acute term updates as `acute = acute × (1 − 1/7) + load × 1/7`, and the chronic term identically with 1/28. The ratio is acute over chronic. Tuwa also carries the difference, chronic minus acute, which the endurance literature calls form or training stress balance.
+
+<Figure
+  n={2}
+  name="cliff-edge"
+  caption="The cliff edge, drawn. A rolling 7-day window gives a session full weight for seven days and zero on the eighth. An exponentially weighted average with a decay constant of 1/7 per day discards it geometrically instead, and never quite reaches zero."
+/>
+
+Both terms are re-estimated across a 35-day history every time a session is saved, starting from zero. That is a short memory for a 28-day decay constant, and the consequence is worth stating plainly: the chronic term settles below its long-run value, so the ratio sits above where a fully settled estimate would put it. This is one reason Tuwa presents the ratio as a zone and a trajectory rather than as a threshold to act on, and why the app reports no zone at all until chronic load is above zero.
+
+## What did the ACWR's critics establish?
+
+The ratio became popular through a run of findings from 2014 onward — [Hulin and colleagues](https://pubmed.ncbi.nlm.nih.gov/23962877/) in elite cricket fast bowlers, then rugby league, and [Gabbett's 2016 "training-injury prevention paradox" paper](https://pubmed.ncbi.nlm.nih.gov/26758673/), among the most cited sports-medicine papers of its decade. The [2016 IOC consensus statement on load and injury risk](https://pubmed.ncbi.nlm.nih.gov/27535989/) treated the ratio as a monitoring tool worth using. A "sweet spot" around 0.8–1.3 and a "danger zone" above roughly 1.5 entered the vocabulary of team sport.
+
+Then the statistics were examined properly, and four criticisms landed.
+
+> Time to Dismiss ACWR and Its Underlying Theory.
+
+
+
+**Mathematical coupling.** In the conventional calculation the acute period sits inside the chronic period, so the numerator is part of its own denominator. [Lolli and colleagues (2019)](https://pubmed.ncbi.nlm.nih.gov/29101104/) showed that this alone produces spurious correlation between ratio and outcome — structure that appears in random numbers. Uncoupling removes part of it, not the deeper problem.
+
+<Figure
+  n={3}
+  name="coupling"
+  caption="Mathematical coupling. In the conventional form the seven days of the numerator are also seven of the twenty-eight days of the denominator, so the two terms cannot vary independently."
+/>
+
+**Confounding by schedule.** [Bornn, Ward and Norman (2019)](https://www.sloansportsconference.com/research-papers/training-schedule-confounds-the-relationship-between-acute-chronic-workload-ratio-and-injury) combined Monte Carlo simulation with training data from professional soccer and American football, and showed that the yearly training calendar alone can generate an apparent ACWR-injury relationship when no causal relationship is present.
+
+**Analytical freedom.** [Impellizzeri and colleagues (2020)](https://pubmed.ncbi.nlm.nih.gov/32502973/) catalogued the undeclared choices in a typical ACWR analysis — how to bin the ratio, where to place the reference category, coupled or uncoupled, EWMA or rolling — and showed that the direction of a reported result can turn on them. Their [2021 follow-up in *Sports Medicine*](https://pubmed.ncbi.nlm.nih.gov/33332011/) is titled "Time to Dismiss ACWR and Its Underlying Theory", and argues the chronic term adds nothing beyond acute load itself.
+
+**Weak and inconsistent evidence overall.** Two systematic reviews published in 2020 — [Griffin and colleagues](https://pubmed.ncbi.nlm.nih.gov/31691167/) and [Maupin and colleagues](https://pubmed.ncbi.nlm.nih.gov/32158285/) — found the underlying studies heterogeneous in method and generally at moderate-to-high risk of bias. [Wang and colleagues (2020)](https://pubmed.ncbi.nlm.nih.gov/32125672/) set out what a defensible causal analysis of activity and injury would actually require.
+
+The honest summary is this. Sudden increases in training, relative to what an athlete is accustomed to, are widely believed by practitioners to matter, and the mechanism is plausible. The specific claim that a ratio above 1.5 carries a quantified injury risk does not survive the scrutiny it received. Those are two different claims, and only the first is safe to build on.
+
+## How did that criticism change what Tuwa ships?
+
+Four concrete consequences, all visible in the app.
+
+**The ratio never predicts injury, and never blocks a session.** Tuwa's daily verdict is go, modify or hold, with a concrete adjustment attached and a reason line naming its inputs. The athlete overrides it with one tap and the app does not argue. The ratio is one input beside recovery signals, recent session history, and the session the athlete actually planned.
+
+**Zones are labels, not verdicts.** The shipped thresholds — below 0.8 *Load Light*, 0.8 to 1.3 *Load Steady*, 1.3 to 1.5 *Load Building*, 1.5 and above *High Load* — are the conventional bands from the Gabbett-era literature. They usefully describe where training has moved. They are not calibrated risk boundaries for any individual, and Tuwa's copy does not describe them as such.
+
+<Figure
+  n={4}
+  name="zone-strip"
+  caption="The shipped zone strip. Conventional bands from the Gabbett-era literature, carried as descriptive labels with the current reading marked. The app reports a zone and a direction, never a risk score."
+/>
+
+**Spikes are compared to the athlete, not to a population.** Alongside the ratio, Tuwa flags a session whose stress figure reaches 1.5 times that athlete's own recent session average, and marks it high above 2.0. It needs at least three prior sessions before it will say anything. A single-session spike against personal history is a simpler, less contested signal than a ratio of two smoothed series.
+
+**Nothing is reported when nothing is known.** With no chronic load accumulated, the zone reads *No Data* rather than defaulting to something reassuring. The same rule governs session monotony and strain in [Foster's 1998 sense](https://pubmed.ncbi.nlm.nih.gov/9662690/): they are computed only when a 14-day window holds at least seven logged days with genuine variance between them. On the sparse logs that real amateur athletes produce, those statistics are fragile, so below that gate the app falls back to a coarser signal and says which one it used.
+
+## What Tuwa does not claim about load
+
+It does not forecast. There is no overreach prediction and no multi-week projection in the shipped app; the load history it draws is 28 days of what happened.
+
+It does not write programmes. The athlete or their coach authors the plan; Tuwa modulates today's numbers inside it.
+
+It does not diagnose. Tuwa is a training tool, not a medical device. It does not diagnose, treat, or prevent injury.
+
+To see how the curve is presented in the app, read [training load in Tuwa](/training-load/).
+
+<div class="article-sources">
+
+## Sources
+
+- Foster C. Monitoring training in athletes with reference to overtraining syndrome. *Med Sci Sports Exerc.* 1998;30(7):1164–1168. [PMID 9662690](https://pubmed.ncbi.nlm.nih.gov/9662690/)
+- Foster C, Florhaug JA, Franklin J, et al. A new approach to monitoring exercise training. *J Strength Cond Res.* 2001;15(1):109–115. [PMID 11708692](https://pubmed.ncbi.nlm.nih.gov/11708692/)
+- Hulin BT, Gabbett TJ, Blanch P, Chapman P, Bailey D, Orchard JW. Spikes in acute workload are associated with increased injury risk in elite cricket fast bowlers. *Br J Sports Med.* 2014;48(8):708–712. [PMID 23962877](https://pubmed.ncbi.nlm.nih.gov/23962877/)
+- Gabbett TJ. The training-injury prevention paradox: should athletes be training smarter and harder? *Br J Sports Med.* 2016;50(5):273–280. [PMID 26758673](https://pubmed.ncbi.nlm.nih.gov/26758673/)
+- Soligard T, Schwellnus M, Alonso JM, et al. How much is too much? (Part 1) International Olympic Committee consensus statement on load in sport and risk of injury. *Br J Sports Med.* 2016;50(17):1030–1041. [PMID 27535989](https://pubmed.ncbi.nlm.nih.gov/27535989/)
+- Williams S, West S, Cross MJ, Stokes KA. Better way to determine the acute:chronic workload ratio? *Br J Sports Med.* 2017;51(3):209–210. [PMID 27650255](https://pubmed.ncbi.nlm.nih.gov/27650255/)
+- Menaspà P. Are rolling averages a good way to assess training load for injury prevention? *Br J Sports Med.* 2017;51(7):618–619. [PMID 27222309](https://pubmed.ncbi.nlm.nih.gov/27222309/)
+- Murray NB, Gabbett TJ, Townshend AD, Blanch P. Calculating acute:chronic workload ratios using exponentially weighted moving averages provides a more sensitive indicator of injury likelihood than rolling averages. *Br J Sports Med.* 2017;51(9):749–754. [PMID 28003238](https://pubmed.ncbi.nlm.nih.gov/28003238/)
+- Lolli L, Batterham AM, Hawkins R, et al. Mathematical coupling causes spurious correlation within the conventional acute-to-chronic workload ratio calculations. *Br J Sports Med.* 2019;53(15):921–922. [PMID 29101104](https://pubmed.ncbi.nlm.nih.gov/29101104/)
+- Bornn L, Ward P, Norman D. Training schedule confounds the relationship between acute:chronic workload ratio and injury: a causal analysis in professional soccer and American football. MIT Sloan Sports Analytics Conference, 2019.
+- Impellizzeri FM, Woodcock S, Coutts AJ, Fanchini M, McCall A, Vigotsky AD. Acute:chronic workload ratio: conceptual issues and fundamental pitfalls. *Int J Sports Physiol Perform.* 2020;15(6):907–913. [PMID 32502973](https://pubmed.ncbi.nlm.nih.gov/32502973/)
+- Impellizzeri FM, Woodcock S, McCall A, Ward P, Coutts AJ. What role do chronic workloads play in the acute to chronic workload ratio? Time to dismiss ACWR and its underlying theory. *Sports Med.* 2021;51(3):581–592. [PMID 33332011](https://pubmed.ncbi.nlm.nih.gov/33332011/)
+- Griffin A, Kenny IC, Comyns TM, Lyons M. The association between the acute:chronic workload ratio and injury and its application in team sports: a systematic review. *Sports Med.* 2020;50(3):561–580. [PMID 31691167](https://pubmed.ncbi.nlm.nih.gov/31691167/)
+- Maupin D, Schram B, Canetti E, Orr R. The relationship between acute:chronic workload ratios and injury risk in sports: a systematic review. *Open Access J Sports Med.* 2020;11:51–75. [PMID 32158285](https://pubmed.ncbi.nlm.nih.gov/32158285/)
+- Wang C, Vargas JT, Stokes T, Steele R, Shrier I. Analyzing activity and injury: lessons learned from the acute:chronic workload ratio. *Sports Med.* 2020;50(7):1243–1254. [PMID 32125672](https://pubmed.ncbi.nlm.nih.gov/32125672/)
+
+## Not medical advice
+
+Training load, session RPE and recovery signals are training-planning inputs. They do not diagnose injury, illness or overtraining, and they do not establish readiness to return to sport. Pain, fever, dizziness, unusual fatigue or any medical concern should override anything an app tells you.
+
+</div>
