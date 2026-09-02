@@ -53,10 +53,38 @@ metadata release; the missed ASO fields wait for the full version).
    2026-08-24) + `.planning/v18/GROWTH-STACK.md`. ≤12 screens ending in the
    HealthKit-conditional hard paywall after a real readiness reveal,
    card-gated Apple trial, account creation at screen 10, PostHog behind
-   UXAnalyticsService. NOTE: the spec says this is not a point release
+   UXAnalyticsService. GATE PASSED 2026-09-01 with amendments
+   (BUILD-PLAN.md). NOTE: the spec says this is not a point release
    (monetization model changes) — the marketing-version number stays HAN's
    call at submission; 1.7.3 may become 1.8 when it ships. The ASO fields in
    checklist item 1 ride whatever the number ends up being.
+
+Added at kickoff round 2 (HAN, 2026-09-02), from the dogfood report
+(`DOGFOOD-2026-09-01.md`):
+
+5. **Launch fix — optimistic local-first open.** Cold open < 1 s for a
+   returning user; pullAll / RevenueCat / pipelines move off the paint
+   path. Background-freshness follow-on (HK background delivery +
+   BGAppRefresh) after the optimistic launch ships.
+6. **Plan-led logging round 2** — features 1+2 absorbed into the U2
+   mandate: program in → today's proposal → check-in-adjusted numbers →
+   voice-led capture. Demo-first, MULTIPLE directions, several rounds.
+   Carries the B1 PDF fixes, B2 narrative capture (no silence stop), R1
+   transcript quality, U1 import prominence.
+7. **App-wide reorientation around easy logging (NEW, HAN 2026-09-02).**
+   The whole app's UI/UX re-examined against the new center: logging and
+   the daily adjustment are the product's spine, and every surface (Home
+   hierarchy, tab priorities, navigation, empty states, import placement)
+   should make that spine obvious and effortless. Phase 1 = experience
+   audit + IA proposal (starts now); phase 2 = demos, after feature 6's
+   direction locks so the two design languages cannot fork.
+
+Lane collision rules (2026-09-02): the launch-fix lane OWNS
+`AppRouter.swift` until its commit lands; the onboarding build starts with
+screens and defers its router branch until then. Features 6 and 7 write
+only `.design-explorations/` until HAN gates. `Localizable.xcstrings`
+still carries an unidentified session's WIP — nobody appends until it
+lands or is claimed.
 
 ## Standing gates
 
