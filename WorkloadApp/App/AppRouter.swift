@@ -8,6 +8,12 @@ struct AppRouter: View {
     @State private var container = AppContainer()
     @State private var isCheckingSession = true
     @State private var needsOnboarding = false
+    /// True while the deferred launch pull (v1.7.3 B3) is running behind first paint.
+    /// Drives the quiet sync indicator over the main shell — nothing else.
+    @State private var isDeferredSyncRunning = false
+    /// Set when the deferred zombie check finds the athlete store emptied under a live
+    /// session. Surfaces an alert; never signs out, never wipes (LaunchRoutingEngine).
+    @State private var showDeferredSessionFault = false
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
@@ -39,7 +45,29 @@ struct AppRouter: View {
             case .main:
                 MainTabView()
                     .transition(.opacity)
+                    .overlay(alignment: .top) {
+                        if isDeferredSyncRunning {
+                            DeferredSyncIndicator()
+                                .padding(.top, Spacing.xs)
+                                .transition(.opacity)
+                        }
+                    }
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isDeferredSyncRunning)
             }
+        }
+        // Deferred zombie surface (v1.7.3 B3): the background pull found no local athlete
+        // under a live session. The athlete is already inside the app, so nothing is wiped
+        // and nobody is signed out — the fault is stated, and sign-out stays behind the
+        // user-confirmed Profile path with its push-risk wipe guard. Verbatim strings:
+        // Localizable.xcstrings carries another session's WIP (flagged for follow-up).
+        .alert(Text(verbatim: "Account data unavailable"), isPresented: $showDeferredSessionFault) {
+            Button {
+                showDeferredSessionFault = false
+            } label: {
+                Text(verbatim: "OK")
+            }
+        } message: {
+            Text(verbatim: "Your training data could not be matched to your account. Nothing on this device was changed. To switch accounts, sign out from Profile.")
         }
         .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: route)
         .environment(container)
@@ -56,7 +84,10 @@ struct AppRouter: View {
         }
         .onChange(of: container.isAuthenticated) { _, isAuth in
             guard isAuth else { return }
-            // Link RevenueCat identity on fresh sign-in/sign-up
+            // Link RevenueCat identity on fresh sign-in/sign-up — and on the fast-path
+            // launch (v1.7.3 B3), which relies on this block for RevenueCat + the HealthKit
+            // probe so neither blocks first paint. `logIn` is a background round-trip;
+            // entitlements meanwhile come from RevenueCat's cached CustomerInfo.
             Task {
                 if let userId = await container.authService.currentUserId() {
                     await container.subscriptionService.logIn(userId: userId)
@@ -133,13 +164,36 @@ struct AppRouter: View {
             }
             #endif
 
-            // Check Keychain for existing session
-            let hasSession = await container.authService.hasSession()
-            if hasSession {
-                // Bootstrap local Athlete if missing (fresh install with valid Keychain session)
-                let localAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
-                if localAthletes?.isEmpty != false,
-                   let userId = await container.authService.currentUserId() {
+            // v1.7.3 B3 — optimistic local-first launch. The decision lives in
+            // LaunchRoutingEngine; this task only executes it. The session check is the
+            // LOCAL one on purpose: Supabase's `auth.session` refreshes an expired token
+            // over the network, and an expired-every-morning token was half of the ~10 s
+            // "Preparing Tuwa" stall.
+            let localAthletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
+            switch LaunchRoutingEngine.decide(
+                hasLocalSession: container.authService.hasLocalSession,
+                hasLocalAthlete: !localAthletes.isEmpty
+            ) {
+            case .showLogin:
+                isCheckingSession = false
+
+            case .routeImmediately:
+                // Returning user: paint the app NOW. needsOnboarding is set before
+                // isAuthenticated so the route lands once, without a .main → .onboarding
+                // flash. RevenueCat logIn and the HealthKit probe ride the isAuthenticated
+                // onChange above (already non-blocking); only the pull needs a home here.
+                if let a = localAthletes.first {
+                    needsOnboarding = (a.trainingFrequency == nil || a.experienceLevel == nil)
+                }
+                container.setAuthenticated(true)
+                isCheckingSession = false
+                await runDeferredLaunchSync()
+
+            case .blockingBootstrap:
+                // Fresh install (or reinstall) with a session: there is no local Athlete to
+                // paint, so blocking is the only honest launch. This chain encodes the
+                // zombie and H7 incidents — do not weaken it.
+                if let userId = await container.authService.currentUserId() {
                     switch await container.syncService.bootstrapAthlete(
                         context: modelContext,
                         userId: userId
@@ -161,7 +215,7 @@ struct AppRouter: View {
                         return
                     }
                 }
-                // Session exists — sync if stale, then show app
+                // First pull, still pre-paint: a bootstrapped athlete has no history yet.
                 if container.syncService.shouldForegroundSync {
                     await container.syncService.pullAll(context: modelContext)
                     // Sign-up resilience: if still no athlete after pull, sign out (zombie account)
@@ -192,15 +246,31 @@ struct AppRouter: View {
                     needsOnboarding = (a.trainingFrequency == nil || a.experienceLevel == nil)
                 }
 
-                #if DEBUG && targetEnvironment(simulator)
-                // Seed mock data only in SCREENSHOT_MODE — prevents masking welcome card for real users
-                if ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE"),
-                   let athlete = (try? modelContext.fetch(FetchDescriptor<Athlete>()))?.first {
-                    MockDataSeeder.seed(modelContext: modelContext, athlete: athlete)
-                }
-                #endif
+                isCheckingSession = false
             }
-            isCheckingSession = false
+        }
+    }
+
+    // MARK: - Deferred launch sync (v1.7.3 B3)
+
+    /// The background half of the fast path: pull when the sync clock says stale, then run
+    /// the deferred zombie check. Runs AFTER first paint — it must never block routing and
+    /// it must never sign the athlete out. Identity faults inside the pull are already
+    /// surfaced by SyncService's identity guard (SyncStatusView banner); the one outcome
+    /// handled here is the athlete store emptying under a live session, which is SURFACED
+    /// via alert and acted on only by the user through the guarded Profile sign-out.
+    private func runDeferredLaunchSync() async {
+        guard container.syncService.shouldForegroundSync else { return }
+        isDeferredSyncRunning = true
+        await container.syncService.pullAll(context: modelContext)
+        isDeferredSyncRunning = false
+
+        let athletesAfterPull = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
+        let action = LaunchRoutingEngine.deferredZombieAction(
+            athleteCountAfterPull: athletesAfterPull.count
+        )
+        if action == .surfaceFault {
+            showDeferredSessionFault = true
         }
     }
 
@@ -395,6 +465,30 @@ private extension View {
             // bar in the layout for its safe-area contribution. Belt-and-braces with the
             // UITabBarAppearance transparent config in MainTabView.init.
             .toolbarBackground(.hidden, for: .tabBar)
+    }
+}
+
+// MARK: - Deferred sync indicator (v1.7.3 B3)
+
+/// The quiet indicator over the main shell while the deferred launch pull runs: an
+/// annotation-voice capsule with a live dot. Accent is the live-state semantic and a running
+/// sync is live state; the 8pt dot matches the SyncStatusView status dots. No spinner —
+/// the athlete is already using the app, the sync is a footnote. Verbatim string because
+/// `Localizable.xcstrings` carries another session's WIP (flagged for follow-up) and the
+/// annotation voice is uppercase Latin by law.
+private struct DeferredSyncIndicator: View {
+    var body: some View {
+        HStack(spacing: Spacing.xs) {
+            Circle()
+                .fill(ColorTokens.accent)
+                .frame(width: 8, height: 8)
+            AnnotationLabel("SYNCING", size: .small, color: ColorTokens.text2)
+        }
+        .padding(.horizontal, Spacing.sm)
+        .padding(.vertical, Spacing.xs)
+        .background(Capsule().fill(ColorTokens.surfaceEl))
+        .overlay(Capsule().stroke(ColorTokens.hairline, lineWidth: 1))
+        .accessibilityIdentifier("app.deferredSync")
     }
 }
 

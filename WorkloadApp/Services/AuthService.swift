@@ -47,9 +47,13 @@ final class AuthService {
         try await client.rpc("delete_own_account").execute()
     }
 
-    /// Returns true if a valid session exists (checks Keychain — does not make a network request).
-    func hasSession() async -> Bool {
-        (try? await client.auth.session) != nil
+    /// True if a session exists in LOCAL storage. Never refreshes and never touches the
+    /// network; the session may be expired — background sync refreshes it on demand via
+    /// `auth.session`. This is deliberately NOT an `auth.session` check: that getter
+    /// refreshes an expired token over the network, and gating first paint on it was half
+    /// of dogfood B3's ~10 s launch stall (tokens expire every morning).
+    var hasLocalSession: Bool {
+        client.auth.currentSession != nil
     }
 
     // MARK: - Social Auth

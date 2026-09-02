@@ -252,6 +252,7 @@
 		FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308050000000000000002 /* CycleStatusStrip.swift */; };
 		FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308060000000000000002 /* REDSAttentionBanner.swift */; };
 		FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308070000000000000002 /* NiggleLogSheet.swift */; };
+		FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2401010000000000000002 /* LaunchRoutingEngine.swift */; };
 		FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2309010000000000000002 /* ReviewPromptGate.swift */; };
 /* End PBXBuildFile section */
 
@@ -495,7 +496,7 @@
 		DD3802000000000000000001 /* SleepShadowAnalysis.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepShadowAnalysis.swift; sourceTree = "<group>"; };
 		DF4601010000000000000001 /* FeltRightPromptEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeltRightPromptEngine.swift; sourceTree = "<group>"; };
 		DF4602010000000000000001 /* FeltRightPromptRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeltRightPromptRow.swift; sourceTree = "<group>"; };
-		E752BE5EAB399B662DB5503F /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; path = Localizable.xcstrings; sourceTree = "<group>"; };
+		E752BE5EAB399B662DB5503F /* Localizable.xcstrings */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.json.xcstrings; path = Localizable.xcstrings; sourceTree = "<group>"; };
 		EE0501010000000000000001 /* StreakEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StreakEngine.swift; sourceTree = "<group>"; };
 		EE0501010000000000000002 /* NotificationService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationService.swift; sourceTree = "<group>"; };
 		EE0502010000000000000002 /* NotificationPrePermissionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationPrePermissionCard.swift; sourceTree = "<group>"; };
@@ -533,6 +534,7 @@
 		FF2308050000000000000002 /* CycleStatusStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleStatusStrip.swift; sourceTree = "<group>"; };
 		FF2308060000000000000002 /* REDSAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REDSAttentionBanner.swift; sourceTree = "<group>"; };
 		FF2308070000000000000002 /* NiggleLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleLogSheet.swift; sourceTree = "<group>"; };
+		FF2401010000000000000002 /* LaunchRoutingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRoutingEngine.swift; sourceTree = "<group>"; };
 		FF2309010000000000000002 /* ReviewPromptGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptGate.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -557,15 +559,11 @@
 		};
 		6245F7FA2F8A27600087D193 /* ScreenshotTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = ScreenshotTests;
 			sourceTree = "<group>";
 		};
 		62F32CA32F71692C00B6135F /* ../WorkloadAppTests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-			);
 			path = ../WorkloadAppTests;
 			sourceTree = "<group>";
 		};
@@ -780,6 +778,7 @@
 				FF1702030000000000000002 /* WorkoutVoiceLogService.swift */,
 				FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */,
 				FF2309010000000000000002 /* ReviewPromptGate.swift */,
+				FF2401010000000000000002 /* LaunchRoutingEngine.swift */,
 				FF2308020000000000000002 /* REDSRiskEngine.swift */,
 				FF2308010000000000000002 /* CycleTrackingService.swift */,
 				62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */,
@@ -1438,6 +1437,7 @@
 				FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */,
 				FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */,
 				FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */,
+				FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */,
 				FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */,
 				FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */,
 				FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */,
