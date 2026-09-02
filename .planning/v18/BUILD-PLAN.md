@@ -37,6 +37,43 @@ Work order (HAN, 2026-08-30): (1) this plan; (2) demo for HAN's visual gate
 (`.design-explorations/onboarding-v18-demo/`); (3) build behind a feature
 flag; (4) suite green per batch. No RevenueCat/ASC config from any session.
 
+## Amendments (HAN, 2026-09-02, reorientation session) — these also override the sections below
+
+5. **Version label: this ships as v1.7.3, not v1.8.** HAN's correction on the
+   record. The `.planning/v18/` path stays for history; every new reference
+   says v1.7.3.
+6. **The "bring your program" import moment JOINS the onboarding flow.**
+   This closes APP-REORIENTATION R10 (HAN weighed the first-run Home surface
+   and chose onboarding). Placement inside the flow is demo-round-2 design
+   space — the constraint is only that a new user is ASKED for their program
+   before onboarding ends, with a skippable path.
+7. **A tutorial space JOINS the onboarding flow**: show the user how to use
+   the app on a daily basis, led by the product's strongest function — the
+   workout logging workflow — inside the daily loop (check-in → proposal →
+   log). Format and placement are demo-round-2 design space. SEQUENCING
+   FLAG: the tutorial demonstrates the plan-led logging surfaces that
+   feature 6 (direction A, rounds ongoing) is still designing — the tutorial
+   screens cannot finalize before that lane locks; build the slot last or
+   mock its frames.
+8. **Question trim — cut what does not feed accuracy.** Verified in source
+   this session: `athlete.trainingFrequency` and `athlete.experienceLevel`
+   are read by NO engine, pipeline, or ViewModel (consumers are only the
+   router sentinel `AppRouter.swift:103`, Profile's editable pickers, the
+   mock seeder, and sync). So **screens 6 and 7 LEAVE the flow**; both stay
+   editable in Profile's existing Athlete Info section — no new settings UI
+   is needed. Two build consequences: (a) the onboarding-completion sentinel
+   at `AppRouter.swift:103` keys on exactly these two fields and must be
+   re-keyed to an explicit completion marker, or users who skip them re-enter
+   onboarding forever; (b) the `TrainingProfile` questionnaire is the
+   OPPOSITE case — it feeds `ColdStartEngine`'s ATL/CTL seeding — and it
+   stays where it already is (optional card on Home/Profile, never in
+   onboarding).
+9. **The three quiz screens (2, 4, 5) STAY** — HAN's explicit call
+   2026-09-02 against the trim principle: they are conversion architecture
+   (self-diagnosis, the commitment device, the reveal's personalization),
+   not data collection. The ≤12-screen cap stands: the two freed slots pay
+   for the import moment and the tutorial.
+
 ---
 
 ## 1. Spec-vs-code conflicts — points where both cannot be true

@@ -1,8 +1,12 @@
 # v1.8 — onboarding redesign + monetization model change
 
 Status: **APPROVED by HAN 2026-08-24.** Spec, not a proposal.
-Version label `1.8` is provisional — this changes the monetization model, so it
-is not a point release. HAN confirms the number at release.
+Version label RESOLVED (HAN, 2026-09-02): **this ships as v1.7.3.**
+Amended 2026-09-02 (HAN, on the record in BUILD-PLAN.md "Amendments"):
+program-import moment + daily-use tutorial JOIN the flow; screens 6–7
+(training frequency, experience level) LEAVE it (engine-dead, stay editable
+in Profile); quiz screens 2/4/5 stay. BUILD-PLAN.md amendments override
+the screen table below where they conflict.
 
 Related: `.planning/v173/MARKETING.md` (marketing lane), `GROWTH-STACK.md`
 (instrumentation, offers, ads — the funnel this spec is measured by).

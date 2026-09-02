@@ -179,11 +179,11 @@ Shipped onboarding is language → frequency → experience → HealthKit
 v1.8 flow *sells* the gap on screen 3 ("everyone who modulates owns your
 program…", `ONBOARDING.md` §2) but its screen map contains no import moment
 either; the user exits the paywall onto a Home with no plan and no ask.
-**Proposal (flag, not a spec change — the v1.8 spec is approved):** HAN
-decides where the day-0 "bring your program" moment lives: a post-paywall
-screen in the v1.8 flow, or the first-run Today surface (R6's rewritten empty
-state). One of the two must exist, or the spine starts empty for every new
-user.
+**RULED (HAN, 2026-09-02): the import moment lives in the onboarding flow.**
+Recorded with the rest of his onboarding amendments (v1.7.3 label, tutorial
+space, engine-dead question trim, quiz stays) in
+`.planning/v18/BUILD-PLAN.md` "Amendments (HAN, 2026-09-02)". R10 is closed
+as a decision; the onboarding lane builds it.
 
 ### R11 · LOW · "Plan Today" authoring is a menu item
 Designating today's session lives 2 taps inside the ellipsis menu
