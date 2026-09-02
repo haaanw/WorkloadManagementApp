@@ -91,6 +91,28 @@ final class DashboardViewModel {
     /// skeletons over already-rendered content.
     var hasLoadedOnce = false
 
+    // MARK: - Today-plan glance (reorientation slice 1, APP-REORIENTATION R2)
+
+    /// What Home's primary CTA should do about today's plan. A PURE read of the persisted
+    /// decision state — it never writes verdict slots and never logs a `VerdictEvent`, so the
+    /// SC4 decision seam stays single-surfaced on the Log tab's verdict card.
+    enum TodayPlanCTA: Equatable {
+        /// No planned session today — the CTA keeps its recommendation-driven blank-session path.
+        case none
+        /// A plan exists but the athlete has not decided on the verdict card yet. Slice 1
+        /// deliberately leaves the CTA on the blank path here; slice 2 (proposal on Home)
+        /// closes this state.
+        case pendingDecision
+        /// Decision made with at least one accepted suggestion — start the adjusted resolved plan.
+        case startAdjusted(ResolvedSessionPlan)
+        /// Athlete kept the authored plan — start it as written.
+        case startPlan(ResolvedSessionPlan)
+    }
+
+    /// Derived once per `load()`. `fetchTodaysPlannedSession` already excludes completed and
+    /// skipped prescriptions, so finishing the workout returns the CTA to `.none` on reload.
+    var todayPlanCTA: TodayPlanCTA = .none
+
     func load(
         athlete: Athlete,
         healthKitService: any HealthDataProviding,
@@ -385,8 +407,57 @@ final class DashboardViewModel {
             recoveryCoverageNote = nil
         }
 
+        // Today-plan glance (reorientation slice 1) — mirror the verdict VM's persisted-state
+        // read so Home's CTA can start an already-decided plan instead of a blank session.
+        // Same repository-as-local pattern as the fetches above; decision state lives in the
+        // frozen prescription's set markers, so this read agrees with the Log tab's card.
+        todayPlanCTA = Self.deriveTodayPlanCTA(athleteId: athlete.id, modelContext: modelContext)
+
         isLoading = false
         hasLoadedOnce = true
+    }
+
+    /// The slice-1 glance derivation, `static` so tests can drive it without a full `load()`
+    /// (which would run the pipelines). Pure read — see `TodayPlanCTA`.
+    ///
+    /// Fetches directly instead of constructing a `PlannedSessionRepository`: a `@MainActor`
+    /// repository deallocated inside a synchronous test call trips the libswift_Concurrency
+    /// back-deploy deinit SIGABRT (the C-wdg-002 trap; same reason `TodayVerdictViewModel`
+    /// stores its repositories). The filter below mirrors
+    /// `PlannedSessionRepository.fetchTodaysPlannedSession` — keep the two in step.
+    static func deriveTodayPlanCTA(athleteId: UUID, modelContext: ModelContext) -> TodayPlanCTA {
+        let calendar = Calendar.current
+        let startOfDay = calendar.startOfDay(for: .now)
+        guard let endOfDay = calendar.date(byAdding: .day, value: 1, to: startOfDay) else {
+            return .none
+        }
+        let descriptor = FetchDescriptor<PrescribedWorkout>(
+            sortBy: [SortDescriptor(\.scheduledDate, order: .reverse)]
+        )
+        let all = (try? modelContext.fetch(descriptor)) ?? []
+        guard let plan = all.first(where: { prescription in
+            prescription.athleteId == athleteId
+                && prescription.status == .assigned   // not skipped, and NOT already completed
+                && prescription.scheduledDate >= startOfDay
+                && prescription.scheduledDate < endOfDay
+        }) else {
+            return .none
+        }
+        // Per-exercise top sets — the same reduction `TodayVerdictViewModel.perExerciseTopSets`
+        // applies, so both surfaces always derive the identical decision state.
+        let topSets = plan.allExercises.compactMap { exercise in
+            exercise.sortedSets
+                .filter { !$0.isWarmup && ($0.targetWeightKg ?? 0) > 0 }
+                .max { ($0.targetWeightKg ?? 0) < ($1.targetWeightKg ?? 0) }
+        }
+        switch VerdictDecisionApplier.persistedDecisionState(forTopSets: topSets) {
+        case .pending:
+            return .pendingDecision
+        case .accepted, .mixed:
+            return .startAdjusted(ResolvedSessionPlan.resolve(from: plan))
+        case .keptPlan:
+            return .startPlan(ResolvedSessionPlan.resolve(from: plan))
+        }
     }
 
     /// ACT-01 — build the dual-run "method updated" message, gated by the OR of the surface flag and

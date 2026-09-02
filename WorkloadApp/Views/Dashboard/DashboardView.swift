@@ -23,6 +23,10 @@ struct DashboardView: View {
     @State private var showActiveWorkout = false
     @State private var showWellnessCheckIn = false
     @State private var showTrainingProfile = false
+    // Reorientation slice 1 (R2) — the CTA's start-ready plan, launched as its own
+    // ActiveWorkoutSheet path exactly like WorkoutLogView's verdict-card start.
+    @State private var resolvedPlanForSession: ResolvedSessionPlan?
+    @State private var showResolvedWorkout = false
     @State private var viewModel = DashboardViewModel()
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
 
@@ -31,6 +35,15 @@ struct DashboardView: View {
     private var showWelcomeCard: Bool {
         guard athlete != nil else { return false }
         return recentSessions.isEmpty && allCheckIns.isEmpty
+    }
+
+    /// Reorientation slice 1 (R3) — today's check-in, athlete-scoped, so the morning prompt
+    /// can live on the screen the day starts on. Same derivation as `RecoveryView.todayCheckIn`.
+    private var todayCheckIn: WellnessCheckIn? {
+        guard let athleteId = athlete?.id else { return nil }
+        return allCheckIns.first {
+            $0.athlete?.id == athleteId && Calendar.current.isDateInToday($0.date)
+        }
     }
 
     private var showTrainingProfileCard: Bool {
@@ -54,6 +67,20 @@ struct DashboardView: View {
                         .buttonStyle(.pressable)
                     }
 
+                    // 0b. Reorientation slice 1 (R3) — the daily loop OPENS with the check-in, so
+                    //     its prompt lives above the reading on the screen the user lands on.
+                    //     Hidden while the welcome card shows (that card carries its own
+                    //     check-in button; two affordances for one action is noise).
+                    if athlete != nil, !showWelcomeCard, todayCheckIn == nil {
+                        MorningCheckInPrompt {
+                            showWellnessCheckIn = true
+                        }
+                        .padding(.horizontal, Spacing.sm)
+                        .padding(.bottom, Spacing.sm)
+                        .transition(.opacity)
+                        .entranceReveal()
+                    }
+
                     // 1. Hero readiness — score + recommendation headline in its footer (recommendation stays "up top").
                     HeroReadinessCard(viewModel: viewModel)
                         .accessibilityIdentifier("dashboard.hero")
@@ -65,10 +92,23 @@ struct DashboardView: View {
                     // UNTOUCHED — flag-gated exactly as before.
                     PRSDualRunCard(message: viewModel.dualRunMessage)
 
-                    // 3. Recommendation-aware primary action — always presents ActiveWorkoutSheet (logging never blocked).
+                    // 3. Primary action — plan-aware since reorientation slice 1 (R2): a decided
+                    //    plan starts through the SAME resolvedPlan path as the Log tab's verdict
+                    //    card, so the screen's one ink pill can never bypass adjusted numbers.
+                    //    No plan / undecided ⇒ the recommendation-labeled blank path, unchanged
+                    //    (logging is never blocked).
                     PrimaryActionCTA(
                         recommendation: viewModel.recommendation,
-                        onTap: { showActiveWorkout = true }
+                        planCTA: viewModel.todayPlanCTA,
+                        onTap: {
+                            switch viewModel.todayPlanCTA {
+                            case .startAdjusted(let plan), .startPlan(let plan):
+                                resolvedPlanForSession = plan
+                                showResolvedWorkout = true
+                            case .none, .pendingDecision:
+                                showActiveWorkout = true
+                            }
+                        }
                     )
 
                     // 4. Established-user value cluster (C.2): once the user has real data, prioritise
@@ -248,8 +288,27 @@ struct DashboardView: View {
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet()
             }
+            // Slice 1 (R2) — the decided plan's workout, mirroring WorkoutLogView's
+            // showResolvedWorkout path. The reload on dismiss re-derives the CTA: a
+            // completed prescription leaves `.assigned`, so the pill returns to blank.
+            .sheet(isPresented: $showResolvedWorkout) {
+                if let plan = resolvedPlanForSession {
+                    ActiveWorkoutSheet(resolvedPlan: plan)
+                }
+            }
+            .onChange(of: showResolvedWorkout) { _, isPresented in
+                if !isPresented {
+                    resolvedPlanForSession = nil
+                    Task { await loadData() }
+                }
+            }
             .sheet(isPresented: $showWellnessCheckIn) {
-                MorningCheckInSheet()
+                // Slice 1 (R3) — a saved check-in re-runs the pipeline so the reading and
+                // the recommendation absorb it immediately (same contract as RecoveryView's
+                // onSaved → onWellnessCheckInSaved).
+                MorningCheckInSheet(onSaved: {
+                    Task { await loadData() }
+                })
             }
             .sheet(isPresented: $showTrainingProfile) {
                 TrainingProfileSheet()
@@ -341,10 +400,30 @@ struct DashboardView: View {
 /// (`PrimaryActionButton`) — the one per screen, never accent-filled (Accent Rule).
 struct PrimaryActionCTA: View {
     let recommendation: AutoregulationEngine.TrainingRecommendation?
+    /// Reorientation slice 1 (R2) — when a decided plan exists, the pill names and starts
+    /// it (keys shared with the verdict card, so both surfaces speak identically).
+    var planCTA: DashboardViewModel.TodayPlanCTA = .none
     let onTap: () -> Void
 
     private var labelKey: LocalizedStringKey {
-        switch recommendation?.sessionType {
+        Self.labelKey(planCTA: planCTA, sessionType: recommendation?.sessionType)
+    }
+
+    /// Extracted for tests: plan states outrank the recommendation label; pending keeps the
+    /// blank-path label (slice 1 leaves the undecided state to the Log tab's card).
+    static func labelKey(
+        planCTA: DashboardViewModel.TodayPlanCTA,
+        sessionType: AutoregulationEngine.TrainingRecommendation.RecommendedSessionType?
+    ) -> LocalizedStringKey {
+        switch planCTA {
+        case .startAdjusted:
+            return "verdictCard.start.adjusted"
+        case .startPlan:
+            return "verdictCard.start.plan"
+        case .none, .pendingDecision:
+            break
+        }
+        switch sessionType {
         case .rest:
             return "dashboard.cta.logRestDay"
         case .activeRecovery:
