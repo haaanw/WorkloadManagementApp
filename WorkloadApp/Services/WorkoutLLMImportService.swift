@@ -83,8 +83,24 @@ enum WorkoutLLMImportService {
             return response
         } catch let error as ImportError {
             throw error
+        } catch let error as FunctionsError {
+            throw mapFunctionsError(error)
         } catch {
             throw ImportError.parseFailed(error.localizedDescription)
+        }
+    }
+
+    /// Maps a Supabase Functions failure to `ImportError`, preferring the edge function's own
+    /// `{"error": "..."}` body over the SDK's transport phrasing ("Edge Function returned a
+    /// non-2xx status code"), which tells the athlete nothing about what to change.
+    private static func mapFunctionsError(_ error: FunctionsError) -> ImportError {
+        switch error {
+        case .httpError(let code, let data):
+            struct ServerError: Decodable { let error: String }
+            let detail = (try? JSONDecoder().decode(ServerError.self, from: data))?.error
+            return .parseFailed(detail ?? "HTTP \(code)")
+        case .relayError:
+            return .parseFailed(error.localizedDescription)
         }
     }
 
@@ -129,7 +145,44 @@ enum WorkoutLLMImportService {
             throw ImportError.noTextFound
         }
 
-        return text
+        return preprocessProgramText(text)
+    }
+
+    // MARK: - Program Text Preprocessing
+
+    /// Strips page furniture from a multi-page program extraction before it is sent to the
+    /// parser: page-number lines, control characters, and runs of blank lines. Deliberately
+    /// conservative — programs legitimately repeat content lines ("3×8", "Rest 2 min"), so no
+    /// repeated-line deduplication is attempted. Pure and unit-tested.
+    static func preprocessProgramText(_ text: String) -> String {
+        // Only UNAMBIGUOUS furniture forms. Bare number lines are deliberately kept —
+        // PDF table extraction routinely emits real cells ("140") as their own lines,
+        // and "3/8" can be reps notation. A false strip destroys program content.
+        let pageFurniture = [
+            #"^[-–—]\s*\d{1,4}\s*[-–—]$"#,                       // - 3 -
+            #"^(page|p\.)\s*\d{1,4}(\s*(of|/)\s*\d{1,4})?$"#,    // Page 3 of 6, p. 3
+            #"^第\s*\d{1,4}\s*页(\s*[，,/]?\s*共\s*\d{1,4}\s*页)?$"#  // 第 3 页，共 6 页
+        ]
+
+        let lines = text
+            .replacingOccurrences(of: #"[\x{200B}-\x{200D}\x{FEFF}]"#, with: "", options: .regularExpression)
+            .components(separatedBy: .newlines)
+            .map { line -> String in
+                line.replacingOccurrences(of: #"[ \t]+"#, with: " ", options: .regularExpression)
+                    .trimmingCharacters(in: .whitespaces)
+            }
+            .filter { line in
+                guard !line.isEmpty else { return true }  // blank lines collapse below
+                let lowered = line.lowercased()
+                return !pageFurniture.contains { pattern in
+                    lowered.range(of: pattern, options: .regularExpression) != nil
+                }
+            }
+
+        return lines
+            .joined(separator: "\n")
+            .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
     // MARK: - Image OCR

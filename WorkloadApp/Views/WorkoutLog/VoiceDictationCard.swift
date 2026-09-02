@@ -15,7 +15,7 @@ enum UtteranceOutcome: Equatable {
 /// Live incremental voice logging, inline (Phase D).
 ///
 /// Not a sheet: the session list stays visible behind it, because the whole point is logging a set
-/// the moment it ends and SEEING it appear. One tap starts listening; 1.5s of silence stops it;
+/// the moment it ends and SEEING it appear. One tap starts listening; 5s of silence stops it;
 /// the utterance goes to the host, which appends a set. Typing is always available beside the mic
 /// (modality-neutral law — voice is one input among several, never a gate on logging).
 ///
@@ -67,7 +67,12 @@ struct VoiceDictationCard: View {
 
     /// Silence that ends an utterance. Long enough to survive the pause between "eighty kilos"
     /// and "for five", short enough that the set lands before the athlete puts the phone down.
-    private static let silenceTimeout: TimeInterval = 1.5
+    /// B2 ruling (HAN, dogfood 2026-09-01): 1.5 s was far too aggressive for how people
+    /// actually speak between thoughts — the window is now generous. This auto-stop exists
+    /// ONLY on this live per-set card; narrative capture (`LogCaptureSheet`) has no silence
+    /// stop at all and ends only by user action. A visible countdown affordance rides the
+    /// plan-led capture UI build.
+    private static let silenceTimeout: TimeInterval = 5.0
 
     private var trimmedTyped: String {
         typedText.trimmingCharacters(in: .whitespacesAndNewlines)

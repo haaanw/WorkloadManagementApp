@@ -79,6 +79,30 @@ Added at kickoff round 2 (HAN, 2026-09-02), from the dogfood report
    audit + IA proposal (starts now); phase 2 = demos, after feature 6's
    direction locks so the two design languages cannot fork.
 
+8. **App-wide color / visual-identity pass (NEW, HAN 2026-09-02, HAN-OWNED).**
+   HAN's ruling from the feature-6 round-1 gate: the app reads too
+   monocolor-centric. Goal: use more of the brand colors — especially the
+   accent — to (1) make the app more visually pleasant and (2) distinguish
+   functions and areas by color so the interface is easier to identify and
+   understand. HAN drives this himself in another venue; no lane builds it.
+   NOTE: this collides with DESIGN.md v6 law (accent = live-state only, five
+   metric hues never decorative) — whatever HAN decides lands as a DESIGN.md
+   amendment first, code second (code-beats-stale-docs law applies in the
+   other direction here: the doc moves before the code).
+
+Feature 6 status (2026-09-02): FOUR demo rounds delivered on one artifact;
+HAN gated direction A (calendar spine) with six additions (round 1→2),
+refined it (rounds 2→3→4: day-picker reschedule, program screen w/ phases,
+duration ladder read/ask/suggest, green logged toggle, first-run-only voice
+hint → full-width speak bar, inline set editor; S4 adaptive cells frozen),
+then **LOCKED it: "all good now" (2026-09-02) — the BUILD is open**. This
+unblocks feature 7 phase 2 (demo lanes may now share the locked language).
+Build plan + fix list + phase-0 record:
+`.design-explorations/logging-v4-demo/PLAN.md`. Phase 0 (B1 cap+preprocess+
+error surfacing, R1 transcript cleaner, B2 generous silence window) built
+first — no new strings, xcstrings freeze respected; edge-fn deploy awaits
+HAN's go.
+
 Lane collision rules (2026-09-02): the launch-fix lane OWNS
 `AppRouter.swift` until its commit lands; the onboarding build starts with
 screens and defers its router branch until then. Features 6 and 7 write

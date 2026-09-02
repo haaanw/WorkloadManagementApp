@@ -708,9 +708,14 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    if (workout_text.length > 10_000) {
+    // Plan mode accepts whole multi-week program extractions (PDFs routinely
+    // exceed 10k chars); log mode stays tight — a spoken session is short.
+    const maxChars = mode === "plan" ? 60_000 : 10_000;
+    if (workout_text.length > maxChars) {
       return new Response(
-        JSON.stringify({ error: "workout_text must not exceed 10,000 characters" }),
+        JSON.stringify({
+          error: `workout_text must not exceed ${maxChars.toLocaleString("en-US")} characters for ${mode} mode`,
+        }),
         { status: 400, headers: JSON_HEADERS }
       );
     }

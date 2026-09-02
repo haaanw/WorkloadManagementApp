@@ -95,10 +95,16 @@ enum WorkoutVoiceLogService {
             let mode: String
         }
 
+        // R1 (dogfood 2026-09-01): hand the LLM organized text — fillers and stutters
+        // filtered locally first. The athlete's raw words are preserved separately as the
+        // draft's `transcript`; only the parser input is cleaned.
+        let cleaned = NarrativeTranscriptCleaner.clean(text)
+        let outgoing = cleaned.isEmpty ? text : cleaned
+
         do {
             let response: ParsedLoggedWorkoutResponse = try await client.functions.invoke(
                 "parse-workout",
-                options: .init(body: LogRequest(workout_text: text, mode: "log"))
+                options: .init(body: LogRequest(workout_text: outgoing, mode: "log"))
             )
             return response
         } catch let error as VoiceLogError {
@@ -258,5 +264,81 @@ enum WorkoutVoiceLogService {
         }
 
         return MappedExercise(draft: draft, unresolvedName: unresolvedName)
+    }
+}
+
+// MARK: - Narrative Transcript Cleanup (R1)
+
+/// Pure local cleanup pass over a narrative capture transcript before the LLM sees it
+/// (HAN's R1 mandate, dogfood 2026-09-01): filter filler words and stutters, keep only
+/// information-bearing content, hand the parser organized text.
+///
+/// Deliberately conservative — a wrongly removed word corrupts a workout record, so:
+/// - only unambiguous filler tokens are dropped (never "like", which carries content);
+/// - stutter collapse removes only EXACT adjacent duplicate words, and never numeric
+///   tokens or number words ("eight eight" could be a misheard "eighty-eight");
+/// - the raw transcript is preserved on the draft; only the parser input is cleaned.
+enum NarrativeTranscriptCleaner {
+
+    private static let fillerTokens: Set<String> = [
+        "uh", "uhh", "um", "umm", "er", "erm", "hmm", "mmm", "mhm", "呃", "嗯"
+    ]
+
+    private static let numberWords: Set<String> = [
+        "zero", "one", "two", "three", "four", "five", "six", "seven", "eight", "nine",
+        "ten", "eleven", "twelve", "thirteen", "fourteen", "fifteen", "sixteen",
+        "seventeen", "eighteen", "nineteen", "twenty", "thirty", "forty", "fifty",
+        "sixty", "seventy", "eighty", "ninety", "hundred", "thousand", "half", "quarter"
+    ]
+
+    static func clean(_ transcript: String) -> String {
+        let lines = transcript.components(separatedBy: .newlines).map(cleanLine)
+        return lines
+            .joined(separator: "\n")
+            .replacingOccurrences(of: #"\n{3,}"#, with: "\n\n", options: .regularExpression)
+            .trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    private static func cleanLine(_ line: String) -> String {
+        let tokens = line.split(separator: " ").map(String.init)
+        var kept: [String] = []
+        kept.reserveCapacity(tokens.count)
+
+        for token in tokens {
+            let core = normalizedCore(of: token)
+
+            // Unambiguous filler: drop, but keep terminal punctuation flowing by
+            // never dropping a token that ends a sentence for the previous word.
+            if fillerTokens.contains(core) {
+                continue
+            }
+
+            // Stutter: exact adjacent duplicate, non-numeric, not a number word.
+            if let previous = kept.last,
+               !core.isEmpty,
+               core == normalizedCore(of: previous),
+               !isNumeric(core),
+               !numberWords.contains(core) {
+                // Keep the LATER token — it carries any punctuation the tail had.
+                kept.removeLast()
+            }
+
+            kept.append(token)
+        }
+
+        return kept.joined(separator: " ")
+    }
+
+    /// Lowercased token with leading/trailing punctuation stripped; interior characters
+    /// (decimal points, hyphens) are preserved so "80.5" and "chin-up" stay intact.
+    private static func normalizedCore(of token: String) -> String {
+        var scalars = Substring(token.lowercased())
+        while let first = scalars.first, first.isPunctuation { scalars.removeFirst() }
+        while let last = scalars.last, last.isPunctuation || last == "," { scalars.removeLast() }
+        return String(scalars)
+    }
+
+    private static func isNumeric(_ core: String) -> Bool {
+        !core.isEmpty && core.allSatisfy { $0.isNumber || $0 == "." || $0 == "," }
     }
 }
