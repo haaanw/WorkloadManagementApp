@@ -17,14 +17,20 @@ struct AppRouter: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
+    /// True while the OnboardingV2 flow owns the screen (flag-gated; BUILD-PLAN §5).
+    /// Set only from the launch decision — the flow itself clears it via its completion
+    /// closures, and while the flag is OFF this can never become true.
+    @State private var showOnboardingV2 = false
+
     /// The root routing state — a single Equatable value so the loading → login →
     /// onboarding → tabs hand-offs cross-fade (`Motion.screen`) instead of snapping.
     private enum Route: Equatable {
-        case loading, login, onboarding, main
+        case loading, login, onboarding, onboardingV2, main
     }
 
     private var route: Route {
         if isCheckingSession { return .loading }
+        if showOnboardingV2 { return .onboardingV2 }
         if !container.isAuthenticated { return .login }
         if needsOnboarding { return .onboarding }
         return .main
@@ -42,6 +48,12 @@ struct AppRouter: View {
             case .onboarding:
                 OnboardingView(onComplete: { needsOnboarding = false })
                     .transition(.opacity)
+            case .onboardingV2:
+                OnboardingV2Flow(
+                    onComplete: { showOnboardingV2 = false },
+                    onShowLogin: { showOnboardingV2 = false }
+                )
+                .transition(.opacity)
             case .main:
                 MainTabView()
                     .transition(.opacity)
@@ -97,10 +109,16 @@ struct AppRouter: View {
             Task.detached(priority: .utility) {
                 await container.healthKitService.runMigrationProbe()
             }
-            // Re-evaluate onboarding after fresh signup (D-06)
+            // Re-evaluate onboarding after fresh signup (D-06). Sentinel re-keyed per
+            // amendment 8: V2 removes the frequency/experience screens, so completion is
+            // an explicit marker; with the marker false this reduces to the legacy check.
             let athletes = (try? modelContext.fetch(FetchDescriptor<Athlete>())) ?? []
             if let a = athletes.first {
-                needsOnboarding = (a.trainingFrequency == nil || a.experienceLevel == nil)
+                needsOnboarding = OnboardingV2Routing.needsLegacyOnboarding(
+                    trainingFrequencySet: a.trainingFrequency != nil,
+                    experienceLevelSet: a.experienceLevel != nil,
+                    v2Completed: OnboardingV2Gate().completed
+                )
             }
         }
         .task {
@@ -175,6 +193,15 @@ struct AppRouter: View {
                 hasLocalAthlete: !localAthletes.isEmpty
             ) {
             case .showLogin:
+                // Fresh install (no session, no athlete): the flag routes it to the V2
+                // flow's pre-auth stretch (C5 — a returning user with a session can never
+                // reach this branch, and the screen-1 "log in" link exits to LoginView).
+                showOnboardingV2 = OnboardingV2Routing.presentsFreshFlow(
+                    flagEnabled: OnboardingV2Flag.isEnabled(),
+                    hasLocalSession: false,
+                    hasLocalAthlete: !localAthletes.isEmpty,
+                    completed: OnboardingV2Gate().completed
+                )
                 isCheckingSession = false
 
             case .routeImmediately:
@@ -183,7 +210,11 @@ struct AppRouter: View {
                 // flash. RevenueCat logIn and the HealthKit probe ride the isAuthenticated
                 // onChange above (already non-blocking); only the pull needs a home here.
                 if let a = localAthletes.first {
-                    needsOnboarding = (a.trainingFrequency == nil || a.experienceLevel == nil)
+                    needsOnboarding = OnboardingV2Routing.needsLegacyOnboarding(
+                        trainingFrequencySet: a.trainingFrequency != nil,
+                        experienceLevelSet: a.experienceLevel != nil,
+                        v2Completed: OnboardingV2Gate().completed
+                    )
                 }
                 container.setAuthenticated(true)
                 isCheckingSession = false
@@ -240,10 +271,14 @@ struct AppRouter: View {
                     await container.healthKitService.runMigrationProbe()
                 }
 
-                // Check if onboarding is needed (D-06)
+                // Check if onboarding is needed (D-06; amendment-8 re-key)
                 let onboardingAthletes = try? modelContext.fetch(FetchDescriptor<Athlete>())
                 if let a = onboardingAthletes?.first {
-                    needsOnboarding = (a.trainingFrequency == nil || a.experienceLevel == nil)
+                    needsOnboarding = OnboardingV2Routing.needsLegacyOnboarding(
+                        trainingFrequencySet: a.trainingFrequency != nil,
+                        experienceLevelSet: a.experienceLevel != nil,
+                        v2Completed: OnboardingV2Gate().completed
+                    )
                 }
 
                 isCheckingSession = false

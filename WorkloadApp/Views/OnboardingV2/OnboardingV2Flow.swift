@@ -1,0 +1,153 @@
+import SwiftUI
+
+/// OnboardingV2 coordinator (BUILD-PLAN §2/§6 batch 1) — the ≤12-screen flow behind
+/// `OnboardingV2Flag`, one file per screen, this file owning only sequencing, the answer
+/// store, the step dots, and the back affordance. Screens 6–7 (training frequency,
+/// experience level) are NOT here by amendment 8 — they live in Profile. The reveal,
+/// account, paywall, exit-offer, import-moment, and tutorial steps arrive in batches 2–6.
+struct OnboardingV2Flow: View {
+    /// The flow finished (all persisted gate state already written). The router decides
+    /// what renders next; the flow never touches `isAuthenticated` directly.
+    let onComplete: () -> Void
+    /// The screen-1 "log in" affordance (C5): an existing customer reinstalling must
+    /// reach `LoginView` without answering a quiz.
+    let onShowLogin: () -> Void
+
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
+    @State private var answers = OnboardingAnswers()
+    @State private var step: Step = .coldOpen
+
+    /// The full main path, declared now so the dot count is honest to the final design
+    /// while batches land. `exitOffer` is deliberately absent — it is a dismiss-intent
+    /// overlay on the paywall, not a step on the path.
+    enum Step: Int, CaseIterable {
+        case coldOpen, quizProblem, gap, quizSplit, quizFatigue
+        case healthConnect, reveal, account, paywall
+        case importMoment, tutorial
+    }
+
+    /// Steps with a built screen this batch. Advancing past the last built step finishes
+    /// the flow; each batch extends this frontier.
+    private static let builtFrontier: Step = .quizFatigue
+
+    var body: some View {
+        VStack(spacing: 0) {
+            topBar
+
+            ZStack {
+                ColdOpenScreen(onShowLogin: onShowLogin)
+                    .opacity(step == .coldOpen ? 1 : 0)
+                if step == .quizProblem {
+                    OnboardingQuizScreen(config: .problem, selectedID: $answers.problemChoiceID)
+                }
+                if step == .gap {
+                    GapScreen()
+                }
+                if step == .quizSplit {
+                    OnboardingQuizScreen(config: .split, selectedID: $answers.splitChoiceID)
+                }
+                if step == .quizFatigue {
+                    OnboardingQuizScreen(config: .fatigue, selectedID: $answers.fatigueChoiceID)
+                }
+            }
+            .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: step)
+
+            VStack(spacing: Spacing.md) {
+                stepDots
+
+                PrimaryActionButton(title: continueTitle, isDisabled: !canAdvance) {
+                    advance()
+                }
+            }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.bottom, Spacing.xl)
+        }
+        .background(ColorTokens.background)
+        .accessibilityIdentifier("onboardingV2.flow")
+    }
+
+    // MARK: - Chrome
+
+    /// Back is allowed across the pre-auth stretch (screens 1–8 per the state machine).
+    private var topBar: some View {
+        HStack {
+            if step != .coldOpen {
+                Button {
+                    back()
+                } label: {
+                    Image(systemName: "chevron.left")
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text2)
+                        .frame(width: 44, height: 44)
+                }
+                .buttonStyle(.pressable)
+                .accessibilityLabel(Text("action.back"))
+                .accessibilityIdentifier("onboardingV2.back")
+            }
+            Spacer()
+        }
+        .padding(.horizontal, Spacing.xs)
+        .frame(height: 44)
+    }
+
+    /// The flow's one live-state mark (v6 Reading Color Rule) — the active dot takes
+    /// travertine, exactly as the shipped `OnboardingView` dots do.
+    private var stepDots: some View {
+        HStack(spacing: Spacing.xs) {
+            ForEach(Step.allCases, id: \.rawValue) { s in
+                Circle()
+                    .fill(s == step ? ColorTokens.accent : ColorTokens.divider)
+                    .frame(width: 8, height: 8)
+            }
+        }
+    }
+
+    private var continueTitle: LocalizedStringKey {
+        step == .coldOpen ? "onboardingV2.coldOpen.cta" : "action.continue"
+    }
+
+    private var canAdvance: Bool {
+        switch step {
+        case .coldOpen, .gap:
+            return true
+        case .quizProblem:
+            return answers.problemChoiceID != nil
+        case .quizSplit:
+            return answers.splitChoiceID != nil
+        case .quizFatigue:
+            return answers.fatigueChoiceID != nil
+        default:
+            return true
+        }
+    }
+
+    // MARK: - Sequencing
+
+    private func advance() {
+        if step == Self.builtFrontier {
+            finish()
+            return
+        }
+        guard let next = Step(rawValue: step.rawValue + 1) else {
+            finish()
+            return
+        }
+        withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
+            step = next
+        }
+    }
+
+    private func back() {
+        guard let previous = Step(rawValue: step.rawValue - 1) else { return }
+        withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
+            step = previous
+        }
+    }
+
+    private func finish() {
+        OnboardingV2Gate().completed = true
+        Haptics.success()
+        onComplete()
+    }
+}

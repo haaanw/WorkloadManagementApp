@@ -254,6 +254,11 @@
 		FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308070000000000000002 /* NiggleLogSheet.swift */; };
 		FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2309010000000000000002 /* ReviewPromptGate.swift */; };
 		FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2401010000000000000002 /* LaunchRoutingEngine.swift */; };
+		FF2603010000000000000001 /* OnboardingV2State.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603010000000000000002 /* OnboardingV2State.swift */; };
+		FF2603020000000000000001 /* OnboardingV2Flow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603020000000000000002 /* OnboardingV2Flow.swift */; };
+		FF2603030000000000000001 /* ColdOpenScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603030000000000000002 /* ColdOpenScreen.swift */; };
+		FF2603040000000000000001 /* GapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603040000000000000002 /* GapScreen.swift */; };
+		FF2603050000000000000001 /* OnboardingQuizScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603050000000000000002 /* OnboardingQuizScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -536,6 +541,11 @@
 		FF2308070000000000000002 /* NiggleLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleLogSheet.swift; sourceTree = "<group>"; };
 		FF2309010000000000000002 /* ReviewPromptGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptGate.swift; sourceTree = "<group>"; };
 		FF2401010000000000000002 /* LaunchRoutingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRoutingEngine.swift; sourceTree = "<group>"; };
+		FF2603010000000000000002 /* OnboardingV2State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2State.swift; sourceTree = "<group>"; };
+		FF2603020000000000000002 /* OnboardingV2Flow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2Flow.swift; sourceTree = "<group>"; };
+		FF2603030000000000000002 /* ColdOpenScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColdOpenScreen.swift; sourceTree = "<group>"; };
+		FF2603040000000000000002 /* GapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GapScreen.swift; sourceTree = "<group>"; };
+		FF2603050000000000000002 /* OnboardingQuizScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingQuizScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -779,6 +789,7 @@
 				FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */,
 				FF2309010000000000000002 /* ReviewPromptGate.swift */,
 				FF2401010000000000000002 /* LaunchRoutingEngine.swift */,
+				FF2603010000000000000002 /* OnboardingV2State.swift */,
 				FF2308020000000000000002 /* REDSRiskEngine.swift */,
 				FF2308010000000000000002 /* CycleTrackingService.swift */,
 				62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */,
@@ -916,6 +927,17 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
+		FF2603000000000000000003 /* OnboardingV2 */ = {
+			isa = PBXGroup;
+			children = (
+				FF2603020000000000000002 /* OnboardingV2Flow.swift */,
+				FF2603030000000000000002 /* ColdOpenScreen.swift */,
+				FF2603040000000000000002 /* GapScreen.swift */,
+				FF2603050000000000000002 /* OnboardingQuizScreen.swift */,
+			);
+			path = OnboardingV2;
+			sourceTree = "<group>";
+		};
 		62324C152F66CB0E00A9C2BE /* Profile */ = {
 			isa = PBXGroup;
 			children = (
@@ -987,6 +1009,7 @@
 				62324C112F66CB0E00A9C2BE /* Dashboard */,
 				FF0602010000000000000003 /* Export */,
 				62324C132F66CB0E00A9C2BE /* Onboarding */,
+				FF2603000000000000000003 /* OnboardingV2 */,
 				62324C152F66CB0E00A9C2BE /* Profile */,
 				62324C182F66CB0E00A9C2BE /* Recovery */,
 				62324C1A2F66CB0E00A9C2BE /* Workload */,
@@ -1438,6 +1461,11 @@
 				FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */,
 				FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */,
 				FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */,
+				FF2603010000000000000001 /* OnboardingV2State.swift in Sources */,
+				FF2603020000000000000001 /* OnboardingV2Flow.swift in Sources */,
+				FF2603030000000000000001 /* ColdOpenScreen.swift in Sources */,
+				FF2603040000000000000001 /* GapScreen.swift in Sources */,
+				FF2603050000000000000001 /* OnboardingQuizScreen.swift in Sources */,
 				FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */,
 				FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */,
 				FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */,
