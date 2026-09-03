@@ -110,6 +110,30 @@ only `.design-explorations/` until HAN gates. `Localizable.xcstrings`
 still carries an unidentified session's WIP — nobody appends until it
 lands or is claimed.
 
+## CLOSURE PLAN (HAN "close the todos", 2026-09-03)
+
+Three build lanes, hard boundaries; xcstrings WIP is landed (05a770a) so
+appends are open again, kept atomic per lane:
+
+- **Lane A — plan-led main build (feature 6) + reorientation slices 2+4.**
+  One owner for all WorkoutLog-adjacent surfaces; the audit's slices 2 and
+  4 ride the feature-6 build instead of colliding with it. R10 is already
+  CLOSED by onboarding amendment 6 (import joins the flow).
+- **Lane B — onboarding build, batches 1–6** per BUILD-PLAN + amendments
+  1–9. AppRouter is free (launch fix landed); the PostHog SPM change stays
+  its own flagged commit.
+- **Lane C — reorientation slice 3** (Trends merge Option A + router
+  seam). HOLDS AppRouter/MainTabView until Lane B's batch-1 router branch
+  commits, then proceeds. Slice 5 (hygiene) folds into the standing
+  audit-leftovers list, not built here.
+- `.pbxproj` serialization: a lane lands its pbxproj edit inside its own
+  batch commit and announces it; no two lanes edit it in the same window;
+  conflicts resolve in Lane A's favor (largest surface).
+
+Remaining HAN-personal items to close 1.7.3: color-pass direction (lands
+as a DESIGN.md amendment first), widgets home-screen visual check, ASO
+fields at submission, final on-device UAT of the whole release.
+
 ## Standing gates
 
 No push, no ASC action without HAN. Sleep-v2 activation and estimator-v2
