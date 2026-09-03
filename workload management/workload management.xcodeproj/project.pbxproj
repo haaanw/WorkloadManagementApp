@@ -259,6 +259,9 @@
 		FF2603030000000000000001 /* ColdOpenScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603030000000000000002 /* ColdOpenScreen.swift */; };
 		FF2603040000000000000001 /* GapScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603040000000000000002 /* GapScreen.swift */; };
 		FF2603050000000000000001 /* OnboardingQuizScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603050000000000000002 /* OnboardingQuizScreen.swift */; };
+		FF2603060000000000000001 /* OnboardingRevealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603060000000000000002 /* OnboardingRevealService.swift */; };
+		FF2603070000000000000001 /* HealthConnectScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603070000000000000002 /* HealthConnectScreen.swift */; };
+		FF2603080000000000000001 /* RevealScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603080000000000000002 /* RevealScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -546,6 +549,9 @@
 		FF2603030000000000000002 /* ColdOpenScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColdOpenScreen.swift; sourceTree = "<group>"; };
 		FF2603040000000000000002 /* GapScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GapScreen.swift; sourceTree = "<group>"; };
 		FF2603050000000000000002 /* OnboardingQuizScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingQuizScreen.swift; sourceTree = "<group>"; };
+		FF2603060000000000000002 /* OnboardingRevealService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingRevealService.swift; sourceTree = "<group>"; };
+		FF2603070000000000000002 /* HealthConnectScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthConnectScreen.swift; sourceTree = "<group>"; };
+		FF2603080000000000000002 /* RevealScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -790,6 +796,7 @@
 				FF2309010000000000000002 /* ReviewPromptGate.swift */,
 				FF2401010000000000000002 /* LaunchRoutingEngine.swift */,
 				FF2603010000000000000002 /* OnboardingV2State.swift */,
+				FF2603060000000000000002 /* OnboardingRevealService.swift */,
 				FF2308020000000000000002 /* REDSRiskEngine.swift */,
 				FF2308010000000000000002 /* CycleTrackingService.swift */,
 				62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */,
@@ -934,6 +941,8 @@
 				FF2603030000000000000002 /* ColdOpenScreen.swift */,
 				FF2603040000000000000002 /* GapScreen.swift */,
 				FF2603050000000000000002 /* OnboardingQuizScreen.swift */,
+				FF2603070000000000000002 /* HealthConnectScreen.swift */,
+				FF2603080000000000000002 /* RevealScreen.swift */,
 			);
 			path = OnboardingV2;
 			sourceTree = "<group>";
@@ -1466,6 +1475,9 @@
 				FF2603030000000000000001 /* ColdOpenScreen.swift in Sources */,
 				FF2603040000000000000001 /* GapScreen.swift in Sources */,
 				FF2603050000000000000001 /* OnboardingQuizScreen.swift in Sources */,
+				FF2603060000000000000001 /* OnboardingRevealService.swift in Sources */,
+				FF2603070000000000000001 /* HealthConnectScreen.swift in Sources */,
+				FF2603080000000000000001 /* RevealScreen.swift in Sources */,
 				FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */,
 				FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */,
 				FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */,
