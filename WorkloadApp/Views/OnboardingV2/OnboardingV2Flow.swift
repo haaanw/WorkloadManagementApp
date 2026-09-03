@@ -6,12 +6,27 @@ import SwiftUI
 /// experience level) are NOT here by amendment 8 — they live in Profile. The reveal,
 /// account, paywall, exit-offer, import-moment, and tutorial steps arrive in batches 2–6.
 struct OnboardingV2Flow: View {
-    /// The flow finished (all persisted gate state already written). The router decides
-    /// what renders next; the flow never touches `isAuthenticated` directly.
+    /// The flow finished (all persisted gate state already written; the flow flips
+    /// `isAuthenticated` itself once an account exists — BUILD-PLAN §3: the flow, not
+    /// the auth flag, decides when `.main` renders).
     let onComplete: () -> Void
     /// The screen-1 "log in" affordance (C5): an existing customer reinstalling must
     /// reach `LoginView` without answering a quiz.
     let onShowLogin: () -> Void
+    /// Relaunch-while-pending resume (BUILD-PLAN §3): an account exists and the wall
+    /// was never resolved — the flow opens AT the paywall.
+    let resumeAtPaywall: Bool
+
+    init(
+        onComplete: @escaping () -> Void,
+        onShowLogin: @escaping () -> Void,
+        resumeAtPaywall: Bool = false
+    ) {
+        self.onComplete = onComplete
+        self.onShowLogin = onShowLogin
+        self.resumeAtPaywall = resumeAtPaywall
+        _step = State(initialValue: resumeAtPaywall ? .paywall : .coldOpen)
+    }
 
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(AppContainer.self) private var container
@@ -34,7 +49,7 @@ struct OnboardingV2Flow: View {
 
     /// Steps with a built screen this batch. Advancing past the last built step finishes
     /// the flow; each batch extends this frontier.
-    private static let builtFrontier: Step = .reveal
+    private static let builtFrontier: Step = .importMoment
 
     var body: some View {
         VStack(spacing: 0) {
@@ -64,15 +79,31 @@ struct OnboardingV2Flow: View {
                         splitChoiceID: answers.splitChoiceID
                     )
                 }
+                if step == .account {
+                    AccountScreen(
+                        splitChoiceID: answers.splitChoiceID,
+                        onCreated: accountCreated
+                    )
+                }
+                if step == .paywall {
+                    OnboardingPaywallScreen(
+                        variant: OnboardingV2Gate().branch == .real ? .hard : .soft,
+                        onPurchased: paywallResolved,
+                        onSoftDeclined: softDeclined
+                    )
+                }
+                if step == .importMoment {
+                    ImportMomentScreen(onDone: advance)
+                }
             }
             .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: step)
 
             VStack(spacing: Spacing.md) {
                 stepDots
 
-                // Screen 8 owns its own CTA pair (connect / skip); everywhere else the
-                // coordinator's single ink pill advances (one ink pill per screen).
-                if step != .healthConnect {
+                // Screens that own their CTAs render no shared pill (one ink pill per
+                // screen): HK connect, account, paywall, and the import moment.
+                if ![.healthConnect, .account, .paywall, .importMoment].contains(step) {
                     PrimaryActionButton(
                         title: continueTitle,
                         isLoading: isComputingReveal,
@@ -173,6 +204,37 @@ struct OnboardingV2Flow: View {
         }
     }
 
+    // MARK: - Screens 10–12 resolution (BUILD-PLAN §3)
+
+    /// Account exists → the wall goes pending BEFORE the paywall renders, so a relaunch
+    /// mid-wall resumes at screen 11 (the wall is the product boundary).
+    private func accountCreated() {
+        OnboardingV2Gate().paywallPending = true
+        withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
+            step = .paywall
+        }
+    }
+
+    /// Entitlement arrived (purchase, trial, restore, or the exit offer).
+    private func paywallResolved() {
+        OnboardingV2Gate().paywallPending = false
+        withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
+            step = .importMoment
+        }
+    }
+
+    /// Soft branch "not now": free tier, day-7 clock starts, flow continues — the
+    /// import moment applies to free athletes too (amendment 6: asked before the
+    /// flow ends, skippable).
+    private func softDeclined() {
+        let gate = OnboardingV2Gate()
+        gate.paywallPending = false
+        gate.softPaywallShownAt = .now
+        withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
+            step = .importMoment
+        }
+    }
+
     // MARK: - Sequencing
 
     private func advance() {
@@ -197,7 +259,12 @@ struct OnboardingV2Flow: View {
     }
 
     private func finish() {
-        OnboardingV2Gate().completed = true
+        let gate = OnboardingV2Gate()
+        gate.completed = true
+        gate.paywallPending = false
+        // An account exists by the time the flow can finish (screens 10+ gate it), so
+        // authenticating here is what routes `.main` — the flow decides the moment.
+        container.setAuthenticated(true)
         Haptics.success()
         onComplete()
     }

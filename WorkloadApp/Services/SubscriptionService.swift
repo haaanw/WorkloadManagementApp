@@ -97,6 +97,16 @@ final class SubscriptionService {
         return offerings.current?.identifier == tier.offeringIdentifier ? offerings.current : nil
     }
 
+    /// Exact-identifier offering fetch for the onboarding funnel (C6): `onboarding` and
+    /// `onboarding_exit` are HAN-configured RevenueCat offerings that may not exist yet —
+    /// callers degrade gracefully on nil, and no tier fallback happens HERE (the paywall
+    /// screen owns its own fallback so the exit offer can never sell the wrong package).
+    func fetchOffering(identifier: String) async throws -> Offering? {
+        guard isConfigured else { return nil }
+        let offerings = try await Purchases.shared.offerings()
+        return offerings.offering(identifier: identifier)
+    }
+
     // MARK: - Purchase
 
     func purchase(package: Package) async throws {

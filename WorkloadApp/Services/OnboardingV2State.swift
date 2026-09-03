@@ -117,6 +117,20 @@ enum OnboardingV2Routing {
         flagEnabled && paywallPending && !isPro && !completed
     }
 
+    /// Day-7 soft-paywall re-ask, time-and-flags half (BUILD-PLAN §3). The data half —
+    /// "the app now has observed HRV days ≥ floor" — is asynchronous and checked at the
+    /// call site via the same reveal math, so this stays a pure clock decision.
+    static func softReaskIsDue(
+        now: Date,
+        flagEnabled: Bool,
+        softShownAt: Date?,
+        reaskDone: Bool,
+        isPro: Bool
+    ) -> Bool {
+        guard flagEnabled, !reaskDone, !isPro, let shownAt = softShownAt else { return false }
+        return now.timeIntervalSince(shownAt) >= 7 * 86_400
+    }
+
     /// Amendment 8 sentinel re-key. The legacy sentinel keyed on
     /// `trainingFrequency == nil || experienceLevel == nil`; V2 removes those screens, so
     /// a V2 completer would loop into legacy onboarding forever without the explicit

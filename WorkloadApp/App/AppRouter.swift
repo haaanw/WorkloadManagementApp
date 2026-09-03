@@ -21,6 +21,10 @@ struct AppRouter: View {
     /// Set only from the launch decision — the flow itself clears it via its completion
     /// closures, and while the flag is OFF this can never become true.
     @State private var showOnboardingV2 = false
+    /// Relaunch-while-paywall-pending (BUILD-PLAN §3): the flow reopens AT screen 11.
+    @State private var onboardingV2ResumesAtPaywall = false
+    /// Day-7 soft-paywall re-ask (spec §4) — presented once over the main shell.
+    @State private var showSoftReask = false
 
     /// The root routing state — a single Equatable value so the loading → login →
     /// onboarding → tabs hand-offs cross-fade (`Motion.screen`) instead of snapping.
@@ -51,7 +55,8 @@ struct AppRouter: View {
             case .onboardingV2:
                 OnboardingV2Flow(
                     onComplete: { showOnboardingV2 = false },
-                    onShowLogin: { showOnboardingV2 = false }
+                    onShowLogin: { showOnboardingV2 = false },
+                    resumeAtPaywall: onboardingV2ResumesAtPaywall
                 )
                 .transition(.opacity)
             case .main:
@@ -65,6 +70,14 @@ struct AppRouter: View {
                         }
                     }
                     .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: isDeferredSyncRunning)
+                    // Day-7 soft re-ask (spec §4): once, over the shell, dismissible.
+                    .sheet(isPresented: $showSoftReask) {
+                        OnboardingPaywallScreen(
+                            variant: .soft,
+                            onPurchased: { showSoftReask = false },
+                            onSoftDeclined: { showSoftReask = false }
+                        )
+                    }
             }
         }
         // Deferred zombie surface (v1.7.3 B3): the background pull found no local athlete
@@ -205,6 +218,19 @@ struct AppRouter: View {
                 isCheckingSession = false
 
             case .routeImmediately:
+                // Relaunch while the hard wall was pending and no entitlement arrived:
+                // resume AT the paywall (BUILD-PLAN §3 — the wall is the product
+                // boundary, not a UI accident). Entitlements read RevenueCat's cached
+                // CustomerInfo; Restore on the wall resolves a stale false.
+                if OnboardingV2Routing.resumesAtPaywall(
+                    flagEnabled: OnboardingV2Flag.isEnabled(),
+                    paywallPending: OnboardingV2Gate().paywallPending,
+                    isPro: container.subscriptionService.isPro,
+                    completed: OnboardingV2Gate().completed
+                ) {
+                    onboardingV2ResumesAtPaywall = true
+                    showOnboardingV2 = true
+                }
                 // Returning user: paint the app NOW. needsOnboarding is set before
                 // isAuthenticated so the route lands once, without a .main → .onboarding
                 // flash. RevenueCat logIn and the HealthKit probe ride the isAuthenticated
@@ -307,6 +333,32 @@ struct AppRouter: View {
         if action == .surfaceFault {
             showDeferredSessionFault = true
         }
+
+        await presentSoftReaskIfDue()
+    }
+
+    /// Day-7 soft-paywall re-ask (spec §4): the clock half is a pure decision; the data
+    /// half — "the app now has ≥ floor observed HRV mornings" — reuses the reveal math.
+    /// Runs behind first paint on the deferred launch path; fires at most once ever
+    /// (`reaskDone` stamps when presented, not when answered).
+    private func presentSoftReaskIfDue() async {
+        let gate = OnboardingV2Gate()
+        guard OnboardingV2Routing.softReaskIsDue(
+            now: .now,
+            flagEnabled: OnboardingV2Flag.isEnabled(),
+            softShownAt: gate.softPaywallShownAt,
+            reaskDone: gate.reaskDone,
+            isPro: container.subscriptionService.isPro
+        ) else { return }
+
+        let reveal = await OnboardingRevealService.compute(
+            healthKitService: container.healthKitService
+        )
+        guard reveal.observedPriorHRVDays >= BaselineEngine.BaselineConstants.confFloorDays else {
+            return
+        }
+        gate.reaskDone = true
+        showSoftReask = true
     }
 
     #if DEBUG && targetEnvironment(simulator)

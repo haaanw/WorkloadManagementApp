@@ -110,6 +110,33 @@ final class OnboardingV2RoutingTests: XCTestCase {
         ))
     }
 
+    // MARK: - Day-7 soft re-ask (clock half; batch 3)
+
+    func test_softReask_firesAfterSevenDays_once() {
+        let shown = Date(timeIntervalSince1970: 1_760_000_000)
+        let sixDays = shown.addingTimeInterval(6 * 86_400)
+        let eightDays = shown.addingTimeInterval(8 * 86_400)
+
+        XCTAssertFalse(OnboardingV2Routing.softReaskIsDue(
+            now: sixDays, flagEnabled: true, softShownAt: shown, reaskDone: false, isPro: false
+        ))
+        XCTAssertTrue(OnboardingV2Routing.softReaskIsDue(
+            now: eightDays, flagEnabled: true, softShownAt: shown, reaskDone: false, isPro: false
+        ))
+        XCTAssertFalse(OnboardingV2Routing.softReaskIsDue(
+            now: eightDays, flagEnabled: true, softShownAt: shown, reaskDone: true, isPro: false
+        ), "the re-ask fires once, ever")
+        XCTAssertFalse(OnboardingV2Routing.softReaskIsDue(
+            now: eightDays, flagEnabled: true, softShownAt: shown, reaskDone: false, isPro: true
+        ), "an entitled user is never re-asked")
+        XCTAssertFalse(OnboardingV2Routing.softReaskIsDue(
+            now: eightDays, flagEnabled: false, softShownAt: shown, reaskDone: false, isPro: false
+        ))
+        XCTAssertFalse(OnboardingV2Routing.softReaskIsDue(
+            now: eightDays, flagEnabled: true, softShownAt: nil, reaskDone: false, isPro: false
+        ), "no soft paywall was ever shown — nothing to re-ask")
+    }
+
     // MARK: - Gate state round-trip
 
     func test_gateState_roundTrips() {

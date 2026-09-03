@@ -262,6 +262,10 @@
 		FF2603060000000000000001 /* OnboardingRevealService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603060000000000000002 /* OnboardingRevealService.swift */; };
 		FF2603070000000000000001 /* HealthConnectScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603070000000000000002 /* HealthConnectScreen.swift */; };
 		FF2603080000000000000001 /* RevealScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603080000000000000002 /* RevealScreen.swift */; };
+		FF2603090000000000000001 /* AccountScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603090000000000000002 /* AccountScreen.swift */; };
+		FF26030A0000000000000001 /* OnboardingPaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030A0000000000000002 /* OnboardingPaywallScreen.swift */; };
+		FF26030B0000000000000001 /* ExitOfferScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030B0000000000000002 /* ExitOfferScreen.swift */; };
+		FF26030C0000000000000001 /* ImportMomentScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030C0000000000000002 /* ImportMomentScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -552,6 +556,10 @@
 		FF2603060000000000000002 /* OnboardingRevealService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingRevealService.swift; sourceTree = "<group>"; };
 		FF2603070000000000000002 /* HealthConnectScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HealthConnectScreen.swift; sourceTree = "<group>"; };
 		FF2603080000000000000002 /* RevealScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RevealScreen.swift; sourceTree = "<group>"; };
+		FF2603090000000000000002 /* AccountScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AccountScreen.swift; sourceTree = "<group>"; };
+		FF26030A0000000000000002 /* OnboardingPaywallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPaywallScreen.swift; sourceTree = "<group>"; };
+		FF26030B0000000000000002 /* ExitOfferScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitOfferScreen.swift; sourceTree = "<group>"; };
+		FF26030C0000000000000002 /* ImportMomentScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMomentScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -943,6 +951,10 @@
 				FF2603050000000000000002 /* OnboardingQuizScreen.swift */,
 				FF2603070000000000000002 /* HealthConnectScreen.swift */,
 				FF2603080000000000000002 /* RevealScreen.swift */,
+				FF2603090000000000000002 /* AccountScreen.swift */,
+				FF26030A0000000000000002 /* OnboardingPaywallScreen.swift */,
+				FF26030B0000000000000002 /* ExitOfferScreen.swift */,
+				FF26030C0000000000000002 /* ImportMomentScreen.swift */,
 			);
 			path = OnboardingV2;
 			sourceTree = "<group>";
@@ -1478,6 +1490,10 @@
 				FF2603060000000000000001 /* OnboardingRevealService.swift in Sources */,
 				FF2603070000000000000001 /* HealthConnectScreen.swift in Sources */,
 				FF2603080000000000000001 /* RevealScreen.swift in Sources */,
+				FF2603090000000000000001 /* AccountScreen.swift in Sources */,
+				FF26030A0000000000000001 /* OnboardingPaywallScreen.swift in Sources */,
+				FF26030B0000000000000001 /* ExitOfferScreen.swift in Sources */,
+				FF26030C0000000000000001 /* ImportMomentScreen.swift in Sources */,
 				FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */,
 				FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */,
 				FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */,
