@@ -54,10 +54,8 @@ metadata release; the missed ASO fields wait for the full version).
    HealthKit-conditional hard paywall after a real readiness reveal,
    card-gated Apple trial, account creation at screen 10, PostHog behind
    UXAnalyticsService. GATE PASSED 2026-09-01 with amendments
-   (BUILD-PLAN.md). NOTE: the spec says this is not a point release
-   (monetization model changes) — the marketing-version number stays HAN's
-   call at submission; 1.7.3 may become 1.8 when it ships. The ASO fields in
-   checklist item 1 ride whatever the number ends up being.
+   (BUILD-PLAN.md). **Version RULED (HAN 2026-09-03): ships as 1.7.3,
+   final.** The ASO fields in checklist item 1 ride 1.7.3.
 
 Added at kickoff round 2 (HAN, 2026-09-02), from the dogfood report
 (`DOGFOOD-2026-09-01.md`):
@@ -79,7 +77,11 @@ Added at kickoff round 2 (HAN, 2026-09-02), from the dogfood report
    audit + IA proposal (starts now); phase 2 = demos, after feature 6's
    direction locks so the two design languages cannot fork.
 
-8. **App-wide color / visual-identity pass (NEW, HAN 2026-09-02, HAN-OWNED).**
+8. **App-wide color / visual-identity pass — MODE CHANGED (HAN 2026-09-03):
+   discussion + demo iterations in the CLAUDE session**, replacing
+   "HAN drives elsewhere." Process: direction discussion → visual demos
+   (iterated like set-entry-v2) → HAN locks → DESIGN.md amendment lands
+   FIRST → a carrier lane applies app-wide. Original framing follows:
    HAN's ruling from the feature-6 round-1 gate: the app reads too
    monocolor-centric. Goal: use more of the brand colors — especially the
    accent — to (1) make the app more visually pleasant and (2) distinguish
