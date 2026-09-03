@@ -38,7 +38,8 @@ overclaim becomes a quoted overclaim.
 
 A research-article series on the site's existing blog
 (`src/content/blog/`, one post today). Brief + editorial rules:
-`.planning/v173/SCIENCE-SERIES.md`. Scope is frontier sports science
+`.planning/v173/SCIENCE-SERIES.md`. Topic queue, evidence triage, and
+running order: `.planning/v173/SCIENCE-SLATE.md`. Scope is frontier sports science
 broadly — the fatigue/readiness algorithms Tuwa uses, sleep, gait,
 barefoot footwear, physiology — not just workload management. This series
 IS the GEO play: fact-dense, citation-backed pages are what answer

@@ -1,8 +1,9 @@
-# MCP connector exploration — Tuwa as a data source for the user's own AI
+# MCP connector — Tuwa as a data source for the user's own AI
 
-Status: EXPLORATION QUEUED (HAN idea, 2026-09-02). Research-first; not a
-v1.7.3 item (that release is full). Target: research now, build decision
-after 1.7.3 ships.
+Status: **LOCKED for v1.7.4 (HAN, 2026-09-03).** The headline feature of
+the next version after 1.7.3. Sequence: the research lane answers the open
+questions below first (it may run parallel to late 1.7.3 work); the build
+follows the research, inside v1.7.4.
 
 ## The idea (HAN)
 

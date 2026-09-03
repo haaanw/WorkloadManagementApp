@@ -252,8 +252,8 @@
 		FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308050000000000000002 /* CycleStatusStrip.swift */; };
 		FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308060000000000000002 /* REDSAttentionBanner.swift */; };
 		FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308070000000000000002 /* NiggleLogSheet.swift */; };
-		FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2401010000000000000002 /* LaunchRoutingEngine.swift */; };
 		FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2309010000000000000002 /* ReviewPromptGate.swift */; };
+		FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2401010000000000000002 /* LaunchRoutingEngine.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -534,8 +534,8 @@
 		FF2308050000000000000002 /* CycleStatusStrip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleStatusStrip.swift; sourceTree = "<group>"; };
 		FF2308060000000000000002 /* REDSAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REDSAttentionBanner.swift; sourceTree = "<group>"; };
 		FF2308070000000000000002 /* NiggleLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleLogSheet.swift; sourceTree = "<group>"; };
-		FF2401010000000000000002 /* LaunchRoutingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRoutingEngine.swift; sourceTree = "<group>"; };
 		FF2309010000000000000002 /* ReviewPromptGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptGate.swift; sourceTree = "<group>"; };
+		FF2401010000000000000002 /* LaunchRoutingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRoutingEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */

@@ -99,6 +99,9 @@
     "%lld week training streak" : {
 
     },
+    "%lld/10" : {
+
+    },
     "%lld/100" : {
 
     },
@@ -1861,13 +1864,37 @@
     "Couldn't read that as a set. Fix the words and try again." : {
 
     },
-    "CrossFit" : {
-
-    },
     "CTL" : {
 
     },
-    "Custom" : {
+    "cycle.fueling.fasted" : {
+
+    },
+    "cycle.fueling.lutealHeat" : {
+
+    },
+    "cycle.fueling.lutealNutrition" : {
+
+    },
+    "cycle.fueling.protein" : {
+
+    },
+    "cycle.fueling.title" : {
+
+    },
+    "cycle.indicator.day" : {
+
+    },
+    "cycle.indicator.label" : {
+
+    },
+    "cycle.reds.body" : {
+
+    },
+    "cycle.reds.dismiss.a11y" : {
+
+    },
+    "cycle.reds.title" : {
 
     },
     "cyclePhase.context.follicular" : {
@@ -2005,9 +2032,6 @@
           }
         }
       }
-    },
-    "Cycling" : {
-
     },
     "dashboard.action.connectHealth" : {
       "extractionState" : "manual",
@@ -2929,6 +2953,40 @@
         }
       }
     },
+    "exercise.action.finish" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Done with this exercise"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "该动作已完成"
+          }
+        }
+      }
+    },
+    "exercise.action.reopen" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reopen"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "重新打开"
+          }
+        }
+      }
+    },
     "exercise.detail.category" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3167,57 +3225,6 @@
         }
       }
     },
-    "exercise.action.finish" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Done with this exercise"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "该动作已完成"
-          }
-        }
-      }
-    },
-    "exercise.action.reopen" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Reopen"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "重新打开"
-          }
-        }
-      }
-    },
-    "exercise.summary.setCount" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d sets"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%d 组"
-          }
-        }
-      }
-    },
     "exercise.label.prefilledFromLast" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -3401,6 +3408,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "自定义练习"
+          }
+        }
+      }
+    },
+    "exercise.summary.setCount" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d sets"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%d 组"
           }
         }
       }
@@ -5037,9 +5061,6 @@
           }
         }
       }
-    },
-    "Lifting" : {
-
     },
     "link.privacy" : {
       "extractionState" : "manual",
@@ -7580,6 +7601,39 @@
           }
         }
       }
+    },
+    "niggle.field.limitedTraining" : {
+
+    },
+    "niggle.field.limitedTraining.subtitle" : {
+
+    },
+    "niggle.field.note.placeholder" : {
+
+    },
+    "niggle.field.region" : {
+
+    },
+    "niggle.field.severity" : {
+
+    },
+    "niggle.field.severity.hint" : {
+
+    },
+    "niggle.field.type" : {
+
+    },
+    "niggle.heading" : {
+
+    },
+    "niggle.nav.title" : {
+
+    },
+    "niggle.scale.severity.high" : {
+
+    },
+    "niggle.scale.severity.low" : {
+
     },
     "niggleType.pain" : {
       "extractionState" : "extracted_with_value",
@@ -12196,9 +12250,6 @@
         }
       }
     },
-    "Running" : {
-
-    },
     "rpe.anchor.easy" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12922,6 +12973,23 @@
         }
       }
     },
+    "set.status.planned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Planned"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "计划"
+          }
+        }
+      }
+    },
     "set.suggestion.accessibility" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -12969,23 +13037,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "保持 %@kg"
-          }
-        }
-      }
-    },
-    "set.status.planned" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Planned"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "计划"
           }
         }
       }
@@ -14236,9 +14287,6 @@
         }
       }
     },
-    "Swimming" : {
-
-    },
     "sync.identity.mismatch" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14750,9 +14798,6 @@
       }
     },
     "Target" : {
-
-    },
-    "Team Sport" : {
 
     },
     "template.empty.subtitle" : {
@@ -18310,23 +18355,6 @@
         }
       }
     },
-    "workout.finish.summary" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "About to save"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "即将保存"
-          }
-        }
-      }
-    },
     "workout.finish.duration" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -18374,6 +18402,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "已记录组数"
+          }
+        }
+      }
+    },
+    "workout.finish.summary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "About to save"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "即将保存"
           }
         }
       }

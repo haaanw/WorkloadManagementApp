@@ -112,6 +112,12 @@ piece becomes one only we can write. The already-drafted article is close to thi
 
 All verified as shipped or as real recorded decisions before being listed here.
 
+> Running order and per-topic triage: `.planning/v173/SCIENCE-SLATE.md`. That
+> file is the queue; this one stays the rules. It adds one article to this list
+> ("Why Tuwa never asks what you ate" — Decision), records HAN's 2026-08-24
+> spoken topics as struck or converted under rule 0, and keeps the rejected
+> ideas on the record so they are not re-proposed.
+
 **Mechanism**
 - One fatigue budget — basketball, lifting and conditioning on a single load
   curve. This is the actual differentiator and no competitor draws it.
