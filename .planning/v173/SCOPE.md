@@ -81,7 +81,19 @@ Added at kickoff round 2 (HAN, 2026-09-02), from the dogfood report
    discussion + demo iterations in the CLAUDE session**, replacing
    "HAN drives elsewhere." Process: direction discussion → visual demos
    (iterated like set-entry-v2) → HAN locks → DESIGN.md amendment lands
-   FIRST → a carrier lane applies app-wide. Original framing follows:
+   FIRST → a carrier lane applies app-wide.
+   **DIRECTION GATED (HAN 2026-09-03): A — area identity through the
+   existing five metric hues** (low-chroma "area tint" role: hero-plane
+   wash, tinted hairlines, section markers; hue = the metric family you
+   are standing in). B (new accent family) and C (expressive color)
+   REJECTED. No external reference app — develop the palette we own; HAN
+   likes the existing accent/metric colors, they are underutilized.
+   **Plus: the warm stone base cools slightly** — HAN wants the planes "a
+   bit less warm"; the demo carries a base-temperature toggle (current
+   stone vs a cooled step) so intensity and temperature are judged
+   independently. Round 1 = whisper (~4%) / quiet (~8%) / present (~12%)
+   on Home + Trends + Log, side-by-side vs current. Original framing
+   follows:
    HAN's ruling from the feature-6 round-1 gate: the app reads too
    monocolor-centric. Goal: use more of the brand colors — especially the
    accent — to (1) make the app more visually pleasant and (2) distinguish
