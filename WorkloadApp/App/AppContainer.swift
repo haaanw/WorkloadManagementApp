@@ -91,6 +91,13 @@ final class AppContainer {
         self.localeManager = LocaleManager()
         self.uxAnalyticsService = UXAnalyticsService()
 
+        // PostHog rides BEHIND the sanitizer as a sink, and only while the OnboardingV2
+        // flag is on (BUILD-PLAN §4; the release gate — ASC privacy label + vendor
+        // approval — applies at flag flip). Nil until HAN fills the ingest key.
+        if OnboardingV2Flag.isEnabled(), let postHogSink = PostHogAnalyticsSink() {
+            uxAnalyticsService.register(sink: postHogSink)
+        }
+
         // Phase 23 P2: Cancel any legacy weekly-summary pending requests so the next
         // schedule call reissues with deliver-time localization. Idempotent: stamps
         // UserDefaults with the current schema version on first run.

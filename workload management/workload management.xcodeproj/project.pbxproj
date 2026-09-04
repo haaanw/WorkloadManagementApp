@@ -276,6 +276,7 @@
 		FF26030A0000000000000001 /* OnboardingPaywallScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030A0000000000000002 /* OnboardingPaywallScreen.swift */; };
 		FF26030B0000000000000001 /* ExitOfferScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030B0000000000000002 /* ExitOfferScreen.swift */; };
 		FF26030C0000000000000001 /* ImportMomentScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030C0000000000000002 /* ImportMomentScreen.swift */; };
+		FF26030D0000000000000001 /* PostHogAnalyticsSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030D0000000000000002 /* PostHogAnalyticsSink.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -580,6 +581,7 @@
 		FF26030A0000000000000002 /* OnboardingPaywallScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingPaywallScreen.swift; sourceTree = "<group>"; };
 		FF26030B0000000000000002 /* ExitOfferScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitOfferScreen.swift; sourceTree = "<group>"; };
 		FF26030C0000000000000002 /* ImportMomentScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMomentScreen.swift; sourceTree = "<group>"; };
+		FF26030D0000000000000002 /* PostHogAnalyticsSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHogAnalyticsSink.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -829,6 +831,7 @@
 				FF2401010000000000000002 /* LaunchRoutingEngine.swift */,
 				FF2603010000000000000002 /* OnboardingV2State.swift */,
 				FF2603060000000000000002 /* OnboardingRevealService.swift */,
+				FF26030D0000000000000002 /* PostHogAnalyticsSink.swift */,
 				FF2308020000000000000002 /* REDSRiskEngine.swift */,
 				FF2308010000000000000002 /* CycleTrackingService.swift */,
 				62324BFD2F66CB0E00A9C2BE /* PRDetector.swift */,
@@ -1190,6 +1193,7 @@
 				62F32CC52F7278EA00B6135F /* Supabase */,
 				AA1234560000000000000002 /* RevenueCat */,
 				6285C7C32FB02E4300067723 /* GoogleSignIn */,
+				FF26030E0000000000000001 /* PostHog */,
 			);
 			productName = "workload management";
 			productReference = 62324B4E2F66C5F600A9C2BE /* workload management.app */;
@@ -1278,6 +1282,7 @@
 				62F32CBB2F7270B400B6135F /* XCRemoteSwiftPackageReference "supabase-swift" */,
 				623333B02F73CB94007206BC /* XCRemoteSwiftPackageReference "purchases-ios" */,
 				6285C7C22FB02CF700067723 /* XCRemoteSwiftPackageReference "GoogleSignIn-iOS" */,
+				FF26030E0000000000000002 /* XCRemoteSwiftPackageReference "posthog-ios" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 62324B4F2F66C5F600A9C2BE /* Products */;
@@ -1542,6 +1547,7 @@
 				FF26030A0000000000000001 /* OnboardingPaywallScreen.swift in Sources */,
 				FF26030B0000000000000001 /* ExitOfferScreen.swift in Sources */,
 				FF26030C0000000000000001 /* ImportMomentScreen.swift in Sources */,
+				FF26030D0000000000000001 /* PostHogAnalyticsSink.swift in Sources */,
 				FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */,
 				FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */,
 				FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */,
@@ -2049,6 +2055,14 @@
 				minimumVersion = 2.5.1;
 			};
 		};
+		FF26030E0000000000000002 /* XCRemoteSwiftPackageReference "posthog-ios" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PostHog/posthog-ios.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 3.71.0;
+			};
+		};
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -2066,6 +2080,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 623333B02F73CB94007206BC /* XCRemoteSwiftPackageReference "purchases-ios" */;
 			productName = RevenueCat;
+		};
+		FF26030E0000000000000001 /* PostHog */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FF26030E0000000000000002 /* XCRemoteSwiftPackageReference "posthog-ios" */;
+			productName = PostHog;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
