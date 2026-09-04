@@ -435,7 +435,24 @@ struct AppRouter: View {
 
 // MARK: - Main tab shell (SwiftUI rehost, Stage R)
 
-/// The live app shell: five athlete tabs over the SwiftUI tree.
+/// The four athlete tabs (v1.7.3 reorientation slice 3, APP-REORIENTATION §4.2 Option A:
+/// the read-only Recovery and Load exhibits merged into Trends).
+enum AppTab: Hashable, CaseIterable {
+    case home, log, trends, profile
+}
+
+/// The R9 router seam: `selectedTab` used to be private to `MainTabView`, so no
+/// cross-feature entry could hand off between tabs — every such entry opened a sheet in
+/// place. Any view under the shell can now read this from the environment and set
+/// `selection` to switch tabs programmatically. It is a seam, not a policy: it carries
+/// no navigation stack state and no deep-link grammar — those stay with each tab.
+@MainActor
+@Observable
+final class TabRouter {
+    var selection: AppTab = .home
+}
+
+/// The live app shell: four athlete tabs over the SwiftUI tree.
 /// Coach mode is intentionally NOT represented here — the self-coached reset is product
 /// intent; the UIKit AppShell carrying coach tabs was the deviation (orchestration D3/R6).
 /// Mirrors the UIKit shell's scenePhase-active foreground sync (entitlement refresh +
@@ -445,15 +462,14 @@ struct MainTabView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
 
-    /// The five athlete tabs. Selection is held here so tab REVISITS cross-fade content in
-    /// via `tabCrossfade` (`Motion.tabSwitch` — near-instant; tab switches are frequent
-    /// actions) instead of snapping; first renders stay with each screen's
+    /// Selection lives on the router (R9) so cross-tab handoffs are possible; holding the
+    /// router in `@State` here keeps the existing behavior — tab REVISITS cross-fade
+    /// content in via `tabCrossfade` (`Motion.tabSwitch` — near-instant; tab switches are
+    /// frequent actions) instead of snapping; first renders stay with each screen's
     /// `entranceReveal` choreography.
-    private enum Tab: Hashable {
-        case home, log, recovery, load, profile
-    }
+    @State private var router = TabRouter()
 
-    @State private var selectedTab: Tab = .home
+    private var selectedTab: AppTab { router.selection }
 
     /// Stage 4a: the stock tab bar stays in the LAYOUT (its UIKit safe-area contribution is
     /// what keeps tab roots and pushed screens clear of the custom bar) but must draw
@@ -468,38 +484,36 @@ struct MainTabView: View {
 
     /// Stage 4a — items for the custom Ink & Grain bar (text-forward, no glyphs in the
     /// primary direction). Accessibility IDs are the Stage-4b test contract.
-    private var tabItems: [InkTabBar<Tab>.Item] {
+    private var tabItems: [InkTabBar<AppTab>.Item] {
         [
             .init(tab: .home, title: "tab.home", accessibilityID: "tab.home"),
             .init(tab: .log, title: "tab.log", accessibilityID: "tab.log"),
-            .init(tab: .recovery, title: "tab.recovery", accessibilityID: "tab.recovery"),
-            .init(tab: .load, title: "tab.load", accessibilityID: "tab.load"),
+            .init(tab: .trends, title: "tab.trends", accessibilityID: "tab.trends"),
             .init(tab: .profile, title: "tab.profile", accessibilityID: "tab.profile")
         ]
     }
 
     var body: some View {
-        TabView(selection: $selectedTab) {
+        TabView(selection: Bindable(router).selection) {
             DashboardView()
                 .inkTabChild(isSelected: selectedTab == .home)
-                .tag(Tab.home)
+                .tag(AppTab.home)
 
             WorkoutLogView()
                 .inkTabChild(isSelected: selectedTab == .log)
-                .tag(Tab.log)
+                .tag(AppTab.log)
 
-            RecoveryView()
-                .inkTabChild(isSelected: selectedTab == .recovery)
-                .tag(Tab.recovery)
-
-            WorkloadView()
-                .inkTabChild(isSelected: selectedTab == .load)
-                .tag(Tab.load)
+            TrendsView()
+                .inkTabChild(isSelected: selectedTab == .trends)
+                .tag(AppTab.trends)
 
             ProfileView()
                 .inkTabChild(isSelected: selectedTab == .profile)
-                .tag(Tab.profile)
+                .tag(AppTab.profile)
         }
+        // R9: the router rides the environment so any tab child can hand off to another
+        // tab (e.g. a future "see the trend" row switching to Trends) without a sheet.
+        .environment(router)
         // Stage 4a (D6): the stock tab bar is hidden per tab (inkTabChild); the app renders
         // its own Ink & Grain bar as a bottom safe-area inset. The TabView hosts its tabs in
         // UIKit, so the inset does NOT reach their safe areas — each child carries a matching
@@ -507,7 +521,7 @@ struct MainTabView: View {
         // content clears the bar (fixes the stock-chrome bottom clipping). Selection state and
         // `tabCrossfade` behavior are unchanged.
         .safeAreaInset(edge: .bottom, spacing: 0) {
-            InkTabBar(items: tabItems, selection: $selectedTab)
+            InkTabBar(items: tabItems, selection: Bindable(router).selection)
         }
         // Native parity: the bar stays pinned at the screen bottom and the keyboard covers
         // it (without this the safe-area inset rides on top of the keyboard). Tab content

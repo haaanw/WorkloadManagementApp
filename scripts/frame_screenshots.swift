@@ -214,18 +214,25 @@ let screenSpecs: [String: ScreenSpec] = [
                                    inclusion: .store(rank: 2)),
     "Dashboard":        ScreenSpec(metric: .readiness, machineKey: "inputs: hrv · rhr · sleep",
                                    inclusion: .store(rank: 3)),
-    "Recovery":         ScreenSpec(metric: .recovery,  machineKey: "baseline: 28d rolling",
+    "Trends":           ScreenSpec(metric: .recovery,  machineKey: "trends: hrv · sleep · load",
                                    inclusion: .store(rank: 4)),
     "SleepDetail":      ScreenSpec(metric: .sleep,     machineKey: "sleep_target: 7.5 h",
                                    inclusion: .store(rank: 5)),
-    "Workload":         ScreenSpec(metric: .load,      machineKey: "acwr: acute 7d / chronic 28d",
-                                   inclusion: .store(rank: 6)),
     "ActiveWorkout":    ScreenSpec(metric: .strain,    machineKey: "logged: sets · reps · load",
-                                   inclusion: .store(rank: 7)),
+                                   inclusion: .store(rank: 6)),
     "TemplatePicker":   ScreenSpec(metric: .load,      machineKey: "templates: user-authored",
-                                   inclusion: .store(rank: 8)),
+                                   inclusion: .store(rank: 7)),
     "MovementBank":     ScreenSpec(metric: .strain,    machineKey: "catalog: 1,324 movements",
-                                   inclusion: .store(rank: 9)),
+                                   inclusion: .store(rank: 8)),
+
+    // ── Retired with the Trends merge (v1.7.3 reorientation slice 3, 2026-09-03) ─
+    //    The Recovery and Load tabs no longer exist — their trend/history content is
+    //    the Trends tab (plate 4); their current-readings content lives on Home
+    //    (plate 3). The 9-plate set becomes 8 until the ASO re-shoot re-decides it.
+    "Recovery":         ScreenSpec(metric: .recovery,  machineKey: "baseline: 28d rolling",
+                                   inclusion: .excluded(reason: "tab retired — merged into Trends (reorientation slice 3)")),
+    "Workload":         ScreenSpec(metric: .load,      machineKey: "acwr: acute 7d / chronic 28d",
+                                   inclusion: .excluded(reason: "tab retired — merged into Trends (reorientation slice 3)")),
 
     // ── Dropped from the store set 2026-08-22 (ASO pass, Objective 3) ────────────
     //    Both were captures of the SAME surface as plate 1. `test07` used to save the verdict
@@ -316,6 +323,10 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
             headline: "Track training load",
             subline: "Watch acute and chronic load move."
         ),
+        "Trends": FrameCopy(
+            headline: "Every trend, one place",
+            subline: "HRV, sleep, and training load over time."
+        ),
         "WorkoutLog": FrameCopy(
             headline: "Today's call, then the log",
             subline: "The verdict first, your history under it."
@@ -377,6 +388,10 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
         "Workload": FrameCopy(
             headline: "追踪训练负荷",
             subline: "急性与慢性负荷尽在掌握。"
+        ),
+        "Trends": FrameCopy(
+            headline: "所有趋势，一页看全",
+            subline: "HRV、睡眠与训练负荷的变化。"
         ),
         "WorkoutLog": FrameCopy(
             headline: "先给结论，再看记录",
@@ -739,6 +754,7 @@ let screenPatterns: [(patterns: [String], token: String)] = [
     (["coachroster", "coach_roster"],                "CoachRoster"),
     (["pdfexport", "pdf_export"],                    "PDFExport"),
     (["dashboard", "home"],                          "Dashboard"),
+    (["trends"],                                     "Trends"),
     (["recovery"],                                   "Recovery"),
     (["workload", "acwr"],                           "Workload"),
     (["profile"],                                    "Profile")

@@ -152,12 +152,26 @@ final class TrendsMergeTests: XCTestCase {
                        "the 90-day detail-view snapshot array was retired with the Trends merge")
     }
 
+    /// The tab merge itself: four tabs, Trends among them, selection owned by the R9
+    /// router seam so cross-feature entries can hand off between tabs.
+    ///
+    /// The router's default is asserted at the SOURCE level, not by constructing one:
+    /// deallocating a `@MainActor` class in a sync test context SIGABRTs through
+    /// `swift_task_deinitOnExecutorMainActorBackDeploy` (the C-wdg-002 trap — same crash,
+    /// zero-second failure, no assertion message).
+    func test_tabStructure_isOptionA() {
+        XCTAssertEqual(AppTab.allCases, [.home, .log, .trends, .profile])
+        let router = readSource("WorkloadApp/App/AppRouter.swift")
+        XCTAssertTrue(router.contains("var selection: AppTab = .home"),
+                      "the shell opens on Home — TabRouter's default moved")
+    }
+
     /// Every `TrendDestination` push must land on the self-fetching screens, never on the
-    /// pure rendering views with a caller-supplied array.
+    /// pure rendering views with a caller-supplied array. (RecoveryView left this list
+    /// when the tab retired in commit 2 of the slice.)
     func test_fence_allTrendDestinationsLandOnDetailScreens() {
         for path in [
             "WorkloadApp/Views/Dashboard/DashboardView.swift",
-            "WorkloadApp/Views/Recovery/RecoveryView.swift",
             "WorkloadApp/Views/Trends/TrendsView.swift",
         ] {
             let source = readSource(path)

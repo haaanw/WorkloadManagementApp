@@ -8,9 +8,10 @@ import XCTest
 /// design after the Stage R rehost (36747b8). This suite targets the SwiftUI tree via the
 /// stable IDs added in Stages R/4a/4b: app.loading(.view), tabbar.ink, tab.*,
 /// dashboard.hero, workoutLog.verdictCard/.reason/.strikeZone, workoutLog.startWorkout,
-/// templatePicker.startBlank, activeWorkout.addExercise, recovery.scoreCard, workload.acwr,
+/// templatePicker.startBlank, activeWorkout.addExercise, trends.hrvTrend, trends.loadTrend,
 /// export.workoutData, profile.movementBank. Coach-mode tests were deleted (coach UI is
-/// intentionally absent from the rehosted app), not ported.
+/// intentionally absent from the rehosted app), not ported. The Recovery and Load tabs
+/// (recovery.scoreCard / workload.acwr) retired into Trends — v1.7.3 reorientation slice 3.
 ///
 /// Run on two simulators for both required App Store device sizes (ASO-03):
 ///   - 6.7" (iPhone 15 Pro Max class)
@@ -99,8 +100,8 @@ final class ScreenshotTests: XCTestCase {
         launchApp(arguments: ["SCREENSHOT_MODE"])
     }
 
-    /// Taps an InkTabBar item by its stable identifier (tab.home / tab.log / tab.recovery /
-    /// tab.load / tab.profile).
+    /// Taps an InkTabBar item by its stable identifier (tab.home / tab.log / tab.trends /
+    /// tab.profile — four tabs since the v1.7.3 Trends merge, reorientation slice 3).
     private func tapTab(_ identifier: String) {
         let item = app.buttons[identifier]
         XCTAssertTrue(item.waitForExistence(timeout: 10), "Tab item \(identifier) missing")
@@ -132,18 +133,16 @@ final class ScreenshotTests: XCTestCase {
 
     // MARK: - Tab navigation smoke (InkTabBar)
 
-    func test01_TabBar_NavigatesAllFiveTabs() throws {
+    func test01_TabBar_NavigatesAllFourTabs() throws {
         launchAuthenticatedApp()
         XCTAssertTrue(anyElement("dashboard.hero").waitForExistence(timeout: 10), "Dashboard hero missing on launch")
 
         tapTab("tab.log")
         XCTAssertTrue(app.buttons["workoutLog.startWorkout"].waitForExistence(timeout: 10), "Log tab content missing")
 
-        tapTab("tab.recovery")
-        XCTAssertTrue(anyElement("recovery.scoreCard").waitForExistence(timeout: 10), "Recovery score card missing")
-
-        tapTab("tab.load")
-        XCTAssertTrue(anyElement("workload.acwr").waitForExistence(timeout: 10), "ACWR card missing")
+        tapTab("tab.trends")
+        XCTAssertTrue(anyElement("trends.hrvTrend").waitForExistence(timeout: 10), "Trends HRV card missing")
+        XCTAssertTrue(anyElement("trends.loadTrend").waitForExistence(timeout: 10), "Trends load-trend section missing")
 
         tapTab("tab.profile")
         XCTAssertTrue(app.buttons["profile.movementBank"].waitForExistence(timeout: 10), "Profile movement-bank row missing")
@@ -169,20 +168,16 @@ final class ScreenshotTests: XCTestCase {
         saveScreenshot("04_WorkoutLog")
     }
 
-    func test04_Workload() throws {
+    /// The merged Trends tab (v1.7.3 reorientation slice 3) — replaces the retired
+    /// Recovery + Load captures (`03_Recovery` / `02_Workload`). One capture: the tab's
+    /// top — HRV and sleep glance charts with the load-trend section entering. The store
+    /// set is 8 plates until the ASO re-shoot re-decides it.
+    func test04_Trends() throws {
         launchAuthenticatedApp()
-        tapTab("tab.load")
-        XCTAssertTrue(anyElement("workload.acwr").waitForExistence(timeout: 10), "ACWR card missing")
+        tapTab("tab.trends")
+        XCTAssertTrue(anyElement("trends.hrvTrend").waitForExistence(timeout: 10), "Trends HRV card missing")
         sleep(2)
-        saveScreenshot("02_Workload")
-    }
-
-    func test05_Recovery() throws {
-        launchAuthenticatedApp()
-        tapTab("tab.recovery")
-        XCTAssertTrue(anyElement("recovery.scoreCard").waitForExistence(timeout: 10), "Recovery score card missing")
-        sleep(2)
-        saveScreenshot("03_Recovery")
+        saveScreenshot("02_Trends")
     }
 
     func test06_Profile() throws {
@@ -273,7 +268,7 @@ final class ScreenshotTests: XCTestCase {
 
     func test11_Export_ActionsPresent() throws {
         launchAuthenticatedApp()
-        tapTab("tab.load")
+        tapTab("tab.trends")
         XCTAssertTrue(app.buttons["export.workoutData"].waitForExistence(timeout: 10), "Workout-data export action missing")
     }
 
@@ -383,9 +378,9 @@ final class ScreenshotTests: XCTestCase {
 
     // MARK: - Sleep detail (the only surface carrying the sleep hue)
 
-    /// Reached from the Recovery tab's sleep-trend card. The NavigationLink carries no
-    /// accessibility identifier — `RecoveryView.swift` belongs to another lane — so the card is
-    /// matched on what it renders instead.
+    /// Reached from the Trends tab's sleep-trend card (the Recovery tab retired into
+    /// Trends, v1.7.3 reorientation slice 3). The NavigationLink carries no accessibility
+    /// identifier, so the card is matched on what it renders instead.
     ///
     /// The needle is `7.5`, from `sleep.chart.annotation` ("7.5h target" / "7.5 小时目标"): it is
     /// the one string on that card that survives translation intact. Matching the word "Sleep"
@@ -394,8 +389,8 @@ final class ScreenshotTests: XCTestCase {
     /// screen labelled "Sleep" is a StaticText inside the score card, which is not tappable.
     func test15_SleepDetail_Opens() throws {
         launchAuthenticatedApp()
-        tapTab("tab.recovery")
-        XCTAssertTrue(anyElement("recovery.scoreCard").waitForExistence(timeout: 10), "Recovery score card missing")
+        tapTab("tab.trends")
+        XCTAssertTrue(anyElement("trends.hrvTrend").waitForExistence(timeout: 10), "Trends HRV card missing")
 
         let sleepLink = app.buttons
             .matching(NSPredicate(format: "label CONTAINS %@", "7.5"))

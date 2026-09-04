@@ -58,7 +58,6 @@
 		62324C302F66CB0E00A9C2BE /* WorkloadApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE22F66CB0E00A9C2BE /* WorkloadApp.swift */; };
 		62324C312F66CB0E00A9C2BE /* MetricTile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE52F66CB0E00A9C2BE /* MetricTile.swift */; };
 		62324C332F66CB0E00A9C2BE /* SleepTrendChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE62F66CB0E00A9C2BE /* SleepTrendChart.swift */; };
-		62324C342F66CB0E00A9C2BE /* RecoveryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */; };
 		62324C352F66CB0E00A9C2BE /* RecoveryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF52F66CB0E00A9C2BE /* RecoveryRepository.swift */; };
 		62324C362F66CB0E00A9C2BE /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C102F66CB0E00A9C2BE /* DashboardView.swift */; };
 		62324C372F66CB0E00A9C2BE /* RecoveryPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFE2F66CB0E00A9C2BE /* RecoveryPipeline.swift */; };
@@ -73,14 +72,12 @@
 		62324C402F66CB0E00A9C2BE /* Athlete.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE82F66CB0E00A9C2BE /* Athlete.swift */; };
 		62324C412F66CB0E00A9C2BE /* WorkoutRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BF72F66CB0E00A9C2BE /* WorkoutRepository.swift */; };
 		62324C422F66CB0E00A9C2BE /* PersonalRecord.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEB2F66CB0E00A9C2BE /* PersonalRecord.swift */; };
-		62324C432F66CB0E00A9C2BE /* RecoveryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C172F66CB0E00A9C2BE /* RecoveryView.swift */; };
 		62324C442F66CB0E00A9C2BE /* WorkoutLogView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C1E2F66CB0E00A9C2BE /* WorkoutLogView.swift */; };
 		62324C452F66CB0E00A9C2BE /* WorkloadCalculator.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C012F66CB0E00A9C2BE /* WorkloadCalculator.swift */; };
 		62324C462F66CB0E00A9C2BE /* AppRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE12F66CB0E00A9C2BE /* AppRouter.swift */; };
 		62324C472F66CB0E00A9C2BE /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BE92F66CB0E00A9C2BE /* Enums.swift */; };
 		62324C482F66CB0E00A9C2BE /* WeightFormatter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C062F66CB0E00A9C2BE /* WeightFormatter.swift */; };
 		62324C492F66CB0E00A9C2BE /* AuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BFA2F66CB0E00A9C2BE /* AuthService.swift */; };
-		62324C4A2F66CB0E00A9C2BE /* WorkloadView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C192F66CB0E00A9C2BE /* WorkloadView.swift */; };
 		62324C4B2F66CB0E00A9C2BE /* ColorTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C042F66CB0E00A9C2BE /* ColorTokens.swift */; };
 		62324C4C2F66CB0E00A9C2BE /* WorkoutPipeline.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C022F66CB0E00A9C2BE /* WorkoutPipeline.swift */; };
 		62324C4D2F66CB0E00A9C2BE /* ExerciseEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324BEA2F66CB0E00A9C2BE /* ExerciseEntry.swift */; };
@@ -117,7 +114,6 @@
 		AA0201010000000000000001 /* StalenessWarningBadge.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0201010000000000000002 /* StalenessWarningBadge.swift */; };
 		AA0201010000000000000003 /* AnalyticsEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0201010000000000000004 /* AnalyticsEngine.swift */; };
 		AA0201010000000000000005 /* CSVExportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0201010000000000000006 /* CSVExportEngine.swift */; };
-		AA0202020000000000000001 /* WorkloadViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000001 /* WorkloadViewModel.swift */; };
 		AA0202020000000000000002 /* TimeRangeSegmentedControl.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */; };
 		AA0202020000000000000003 /* ChartTooltipOverlay.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000003 /* ChartTooltipOverlay.swift */; };
 		AA0202020000000000000004 /* RecoveryLoadChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA0202010000000000000004 /* RecoveryLoadChart.swift */; };
@@ -389,14 +385,11 @@
 		62324C052F66CB0E00A9C2BE /* DateHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DateHelpers.swift; sourceTree = "<group>"; };
 		62324C062F66CB0E00A9C2BE /* WeightFormatter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WeightFormatter.swift; sourceTree = "<group>"; };
 		62324C082F66CB0E00A9C2BE /* DashboardViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardViewModel.swift; sourceTree = "<group>"; };
-		62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryViewModel.swift; sourceTree = "<group>"; };
 		62324C0D2F66CB0E00A9C2BE /* LoginView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoginView.swift; sourceTree = "<group>"; };
 		62324C0E2F66CB0E00A9C2BE /* SignUpView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SignUpView.swift; sourceTree = "<group>"; };
 		62324C102F66CB0E00A9C2BE /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
 		62324C142F66CB0E00A9C2BE /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInSheet.swift; sourceTree = "<group>"; };
-		62324C172F66CB0E00A9C2BE /* RecoveryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryView.swift; sourceTree = "<group>"; };
-		62324C192F66CB0E00A9C2BE /* WorkloadView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadView.swift; sourceTree = "<group>"; };
 		62324C1B2F66CB0E00A9C2BE /* ActiveWorkoutSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ActiveWorkoutSheet.swift; sourceTree = "<group>"; };
 		62324C1C2F66CB0E00A9C2BE /* ExercisePickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExercisePickerView.swift; sourceTree = "<group>"; };
 		62324C1D2F66CB0E00A9C2BE /* SessionDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionDetailView.swift; sourceTree = "<group>"; };
@@ -430,7 +423,6 @@
 		AA0201010000000000000002 /* StalenessWarningBadge.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StalenessWarningBadge.swift; sourceTree = "<group>"; };
 		AA0201010000000000000004 /* AnalyticsEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AnalyticsEngine.swift; sourceTree = "<group>"; };
 		AA0201010000000000000006 /* CSVExportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CSVExportEngine.swift; sourceTree = "<group>"; };
-		AA0202010000000000000001 /* WorkloadViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkloadViewModel.swift; sourceTree = "<group>"; };
 		AA0202010000000000000002 /* TimeRangeSegmentedControl.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TimeRangeSegmentedControl.swift; sourceTree = "<group>"; };
 		AA0202010000000000000003 /* ChartTooltipOverlay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ChartTooltipOverlay.swift; sourceTree = "<group>"; };
 		AA0202010000000000000004 /* RecoveryLoadChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryLoadChart.swift; sourceTree = "<group>"; };
@@ -923,8 +915,6 @@
 			children = (
 				62324C082F66CB0E00A9C2BE /* DashboardViewModel.swift */,
 				AA4402010000000000000001 /* TodayVerdictViewModel.swift */,
-				62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */,
-				AA0202010000000000000001 /* WorkloadViewModel.swift */,
 				7ED3010200000000000000F1 /* TrendsViewModel.swift */,
 			);
 			path = ViewModels;
@@ -1011,7 +1001,6 @@
 				CC0302010000000000000006 /* InsightCard.swift */,
 				DD270E000000000000000001 /* MorningProbeSheet.swift */,
 				62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */,
-				62324C172F66CB0E00A9C2BE /* RecoveryView.swift */,
 			);
 			path = Recovery;
 			sourceTree = "<group>";
@@ -1022,17 +1011,9 @@
 				7ED3010100000000000000F1 /* TrendsView.swift */,
 				7ED3010300000000000000F1 /* TrendDetailScreens.swift */,
 				7ED3010400000000000000F1 /* TrendsComponents.swift */,
-			);
-			path = Trends;
-			sourceTree = "<group>";
-		};
-		62324C1A2F66CB0E00A9C2BE /* Workload */ = {
-			isa = PBXGroup;
-			children = (
-				62324C192F66CB0E00A9C2BE /* WorkloadView.swift */,
 				AA0202010000000000000004 /* RecoveryLoadChart.swift */,
 			);
-			path = Workload;
+			path = Trends;
 			sourceTree = "<group>";
 		};
 		62324C1F2F66CB0E00A9C2BE /* WorkoutLog */ = {
@@ -1074,7 +1055,6 @@
 				62324C152F66CB0E00A9C2BE /* Profile */,
 				62324C182F66CB0E00A9C2BE /* Recovery */,
 				7ED3010000000000000000E1 /* Trends */,
-				62324C1A2F66CB0E00A9C2BE /* Workload */,
 				62324C1F2F66CB0E00A9C2BE /* WorkoutLog */,
 				627EC18C2F75917900B89262 /* TemplateEditorSheet.swift */,
 				627EC18D2F75917900B89262 /* TemplateListView.swift */,
@@ -1427,7 +1407,6 @@
 				EE4204020000000000000001 /* ManualLiftEntrySheet.swift in Sources */,
 				FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */,
 				62324C332F66CB0E00A9C2BE /* SleepTrendChart.swift in Sources */,
-				62324C342F66CB0E00A9C2BE /* RecoveryViewModel.swift in Sources */,
 				62324C352F66CB0E00A9C2BE /* RecoveryRepository.swift in Sources */,
 				62324C362F66CB0E00A9C2BE /* DashboardView.swift in Sources */,
 				EE2805020000000000000001 /* PRSDualRunCard.swift in Sources */,
@@ -1488,7 +1467,6 @@
 				CC0903010000000000000001 /* TemplateRepository.swift in Sources */,
 				EE4201020000000000000001 /* PlannedSessionRepository.swift in Sources */,
 				62324C422F66CB0E00A9C2BE /* PersonalRecord.swift in Sources */,
-				62324C432F66CB0E00A9C2BE /* RecoveryView.swift in Sources */,
 				62324C442F66CB0E00A9C2BE /* WorkoutLogView.swift in Sources */,
 				62324C452F66CB0E00A9C2BE /* WorkloadCalculator.swift in Sources */,
 				62324C462F66CB0E00A9C2BE /* AppRouter.swift in Sources */,
@@ -1504,8 +1482,6 @@
 				AA17010100000000000000E1 /* SetEntryFields.swift in Sources */,
 				AA17020100000000000000F1 /* ScrubRule.swift in Sources */,
 				62324C492F66CB0E00A9C2BE /* AuthService.swift in Sources */,
-				62324C4A2F66CB0E00A9C2BE /* WorkloadView.swift in Sources */,
-				AA0202020000000000000001 /* WorkloadViewModel.swift in Sources */,
 				AA0202020000000000000002 /* TimeRangeSegmentedControl.swift in Sources */,
 				AA0202020000000000000003 /* ChartTooltipOverlay.swift in Sources */,
 				DD0301020000000000000003 /* HRVDetailChart.swift in Sources */,
