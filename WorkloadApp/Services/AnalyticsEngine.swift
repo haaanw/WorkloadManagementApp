@@ -95,6 +95,35 @@ enum UXAnalyticsEvent: String, Codable, CaseIterable {
     case profileDestinationOpened = "profile_destination_opened"
     case coachContextSwitched = "coach_context_switched"
     case uiErrorPresented = "ui_error_presented"
+
+    // OnboardingV2 funnel (GROWTH-STACK §1.2). Property discipline: every numeric is a
+    // BUCKET (`confidence: floor|partial|full`, `readiness_band: low|mid|high`), never a
+    // value; quiz answers are low-cardinality choice IDs. `hk_granted`/`hk_denied` are
+    // deliberately absent — READ denial is unobservable (C3), so the truthful event is
+    // `hk_prompt_completed{outcome: data_found|no_data}`.
+    case onboardingStarted = "onboarding_started"
+    case onboardingScreenViewed = "onboarding_screen_viewed"
+    case onboardingScreenAdvanced = "onboarding_screen_advanced"
+    case onboardingQuizAnswered = "onboarding_quiz_answered"
+    case onboardingAbandoned = "onboarding_abandoned"
+    case hkPromptShown = "hk_prompt_shown"
+    case hkPromptCompleted = "hk_prompt_completed"
+    case revealRendered = "reveal_rendered"
+    case accountCreated = "account_created"
+    case paywallShown = "paywall_shown"
+    case trialStarted = "trial_started"
+    case purchaseCompleted = "purchase_completed"
+    case paywallDismissIntent = "paywall_dismiss_intent"
+    case exitOfferShown = "exit_offer_shown"
+    case exitOfferAccepted = "exit_offer_accepted"
+    case onboardingCompleted = "onboarding_completed"
+}
+
+/// A downstream receiver of sanitized analytics events. `UXAnalyticsService` is the ONLY
+/// egress: sinks receive events strictly AFTER `sanitized(_:)` has run, so nothing
+/// health-shaped can reach a vendor SDK. Views never talk to a sink directly.
+protocol AnalyticsSink: AnyObject {
+    func send(_ event: UXAnalyticsEvent, properties: [String: String])
 }
 
 struct UXAnalyticsRecord: Codable, Equatable {
@@ -111,11 +140,20 @@ final class UXAnalyticsService {
     private let encoder = JSONEncoder()
     private let decoder = JSONDecoder()
 
+    /// Registered sinks (e.g. PostHog behind the OnboardingV2 flag). Receive
+    /// SANITIZED properties only — registration order is delivery order.
+    private var sinks: [AnalyticsSink] = []
+
+    func register(sink: AnalyticsSink) {
+        sinks.append(sink)
+    }
+
     func track(_ event: UXAnalyticsEvent, properties: [String: String] = [:]) {
+        let clean = sanitized(properties)
         let record = UXAnalyticsRecord(
             name: event,
             timestamp: Date(),
-            properties: sanitized(properties)
+            properties: clean
         )
         var records = recentRecords()
         records.append(record)
@@ -124,6 +162,9 @@ final class UXAnalyticsService {
         }
         if let data = try? encoder.encode(records) {
             UserDefaults.standard.set(data, forKey: storageKey)
+        }
+        for sink in sinks {
+            sink.send(event, properties: clean)
         }
     }
 

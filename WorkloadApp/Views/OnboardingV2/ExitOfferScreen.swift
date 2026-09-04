@@ -95,6 +95,7 @@ struct ExitOfferScreen: View {
         do {
             try await container.subscriptionService.purchase(package: package)
             if container.subscriptionService.isPro {
+                container.uxAnalyticsService.track(.exitOfferAccepted, properties: ["offer_id": "onboarding_exit"])
                 Haptics.success()
                 onAccepted()
             }

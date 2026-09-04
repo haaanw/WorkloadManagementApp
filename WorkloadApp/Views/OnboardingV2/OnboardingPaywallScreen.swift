@@ -307,10 +307,12 @@ struct OnboardingPaywallScreen: View {
     }
 
     private func handleDismissIntent() {
+        container.uxAnalyticsService.track(.paywallDismissIntent, properties: ["variant": "hard"])
         let gate = OnboardingV2Gate()
         if !gate.exitOfferShown,
            exitOffering?.availablePackages.isEmpty == false {
             gate.exitOfferShown = true
+            container.uxAnalyticsService.track(.exitOfferShown, properties: ["offer_id": "onboarding_exit"])
             showExitOffer = true
         }
         // Otherwise: stay. The hard wall is the product boundary (BUILD-PLAN §3).
@@ -320,8 +322,13 @@ struct OnboardingPaywallScreen: View {
         isPurchasing = true
         errorMessage = nil
         do {
+            let hadTrial = trialAvailable
             try await container.subscriptionService.purchase(package: package)
             if container.subscriptionService.isPro {
+                container.uxAnalyticsService.track(
+                    hadTrial ? .trialStarted : .purchaseCompleted,
+                    properties: ["product_id": package.storeProduct.productIdentifier]
+                )
                 Haptics.success()
                 onPurchased()
             }

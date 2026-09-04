@@ -88,6 +88,9 @@ struct HealthConnectScreen: View {
             }
         }
         .padding(.bottom, Spacing.xs)
+        .onAppear {
+            container.uxAnalyticsService.track(.hkPromptShown)
+        }
     }
 
     private func signalRow(icon: String, labelKey: LocalizedStringKey, index: Int) -> some View {

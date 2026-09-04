@@ -118,6 +118,18 @@ struct OnboardingV2Flow: View {
         }
         .background(ColorTokens.background)
         .accessibilityIdentifier("onboardingV2.flow")
+        .onAppear {
+            guard !resumeAtPaywall else { return }
+            container.uxAnalyticsService.track(.onboardingStarted, properties: [
+                "locale": Locale.current.identifier
+            ])
+        }
+        .onChange(of: step) { _, newStep in
+            container.uxAnalyticsService.track(.onboardingScreenViewed, properties: [
+                "index": String(newStep.rawValue + 1),
+                "screen_id": String(describing: newStep)
+            ])
+        }
     }
 
     // MARK: - Chrome
@@ -196,7 +208,16 @@ struct OnboardingV2Flow: View {
                 healthKitService: container.healthKitService
             )
             reveal = outcome
-            OnboardingV2Gate().branch = outcome.isRealBranch ? .real : .degraded
+            let branch: OnboardingV2Gate.Branch = outcome.isRealBranch ? .real : .degraded
+            OnboardingV2Gate().branch = branch
+            // C3: the truthful outcome — data found or not; grant/deny is unobservable.
+            container.uxAnalyticsService.track(.hkPromptCompleted, properties: [
+                "outcome": outcome.observedPriorHRVDays > 0 ? "data_found" : "no_data"
+            ])
+            container.uxAnalyticsService.track(.revealRendered, properties: [
+                "branch": branch.rawValue,
+                "confidence": outcome.confidenceBucket.rawValue
+            ])
             isComputingReveal = false
             withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
                 step = .reveal
@@ -209,7 +230,13 @@ struct OnboardingV2Flow: View {
     /// Account exists → the wall goes pending BEFORE the paywall renders, so a relaunch
     /// mid-wall resumes at screen 11 (the wall is the product boundary).
     private func accountCreated() {
-        OnboardingV2Gate().paywallPending = true
+        let gate = OnboardingV2Gate()
+        gate.paywallPending = true
+        container.uxAnalyticsService.track(.accountCreated)
+        container.uxAnalyticsService.track(.paywallShown, properties: [
+            "gate": gate.branch == .real ? "hard" : "soft",
+            "branch": gate.branch?.rawValue ?? "degraded"
+        ])
         withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
             step = .paywall
         }
@@ -238,6 +265,7 @@ struct OnboardingV2Flow: View {
     // MARK: - Sequencing
 
     private func advance() {
+        trackQuizAnswerIfLeavingQuiz()
         if step == Self.builtFrontier {
             finish()
             return
@@ -251,6 +279,21 @@ struct OnboardingV2Flow: View {
         }
     }
 
+    /// Quiz answers leave the device only as low-cardinality choice IDs (C7).
+    private func trackQuizAnswerIfLeavingQuiz() {
+        let payload: (String, String?)? = switch step {
+        case .quizProblem: ("q1_problem", answers.problemChoiceID)
+        case .quizSplit: ("q2_split", answers.splitChoiceID)
+        case .quizFatigue: ("q3_fatigue", answers.fatigueChoiceID)
+        default: nil
+        }
+        guard let payload, let choiceID = payload.1 else { return }
+        container.uxAnalyticsService.track(.onboardingQuizAnswered, properties: [
+            "question_id": payload.0,
+            "choice_id": choiceID
+        ])
+    }
+
     private func back() {
         guard let previous = Step(rawValue: step.rawValue - 1) else { return }
         withAnimation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion)) {
@@ -262,6 +305,10 @@ struct OnboardingV2Flow: View {
         let gate = OnboardingV2Gate()
         gate.completed = true
         gate.paywallPending = false
+        container.uxAnalyticsService.track(.onboardingCompleted, properties: [
+            "reached_index": String(step.rawValue + 1),
+            "gate": gate.branch == .real ? "hard" : "soft"
+        ])
         // An account exists by the time the flow can finish (screens 10+ gate it), so
         // authenticating here is what routes `.main` — the flow decides the moment.
         container.setAuthenticated(true)
