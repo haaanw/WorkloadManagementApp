@@ -24,7 +24,7 @@ final class TemplateRepository {
             sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
         )
         return try modelContext.fetch(descriptor)
-            .filter { $0.isAthleteOwned && !$0.isArchived }
+            .filter { $0.isAthleteOwned && !$0.isArchived && !$0.isProgramDay }
     }
 
     /// Fetch only favorited athlete-owned templates

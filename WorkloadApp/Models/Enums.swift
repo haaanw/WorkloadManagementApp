@@ -726,3 +726,91 @@ enum CyclePhase: String, Codable, CaseIterable, Identifiable {
         }
     }
 }
+
+// MARK: - Program & Schedule Enums (v1.7.3 feature 6 — plan-led logging)
+
+/// How the athlete's program arrived. The program is always user-authored (CORE-REDEFINITION:
+/// Tuwa never writes the program); the source only records the door it came through.
+enum ProgramSource: String, Codable, CaseIterable, Identifiable {
+    case text
+    case pdf
+    case photo
+    case voice
+    case manual
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .text:   String(localized: "programSource.text", defaultValue: "Pasted text")
+        case .pdf:    String(localized: "programSource.pdf", defaultValue: "PDF")
+        case .photo:  String(localized: "programSource.photo", defaultValue: "Photo")
+        case .voice:  String(localized: "programSource.voice", defaultValue: "Described by voice")
+        case .manual: String(localized: "programSource.manual", defaultValue: "Built in app")
+        }
+    }
+}
+
+/// The duration ladder (round-3 note 3): read the file's own phase/duration info when present;
+/// else ask the athlete in one tap; else — only on request — suggest one from history + health
+/// data + the plan's structure. The suggestion names its inputs and hands the decision back.
+enum ProgramDurationSource: String, Codable {
+    case readFromFile
+    case asked
+    case suggested
+}
+
+/// The transition decision when a new block opens above chronic load (epic 8): the eased entry
+/// trims back-off sets only (top sets untouched); "as written" is the equal-weight alternative
+/// and is never nagged.
+enum ProgramEntryMode: String, Codable {
+    case eased
+    case asWritten
+}
+
+/// What a schedule entry is. Program sessions come from materializing the active program onto
+/// dates; the game ladder (match / scrimmage / pickup) mirrors `MatchTier` — tier decides
+/// protection (match proximity), all three produce carry. `offPlanLift` is extra strength work
+/// scheduled outside the program.
+enum ScheduleEntryKind: String, Codable, CaseIterable, Identifiable {
+    case programSession
+    case match
+    case scrimmage
+    case pickup
+    case offPlanLift
+
+    var id: String { rawValue }
+
+    var displayName: String {
+        switch self {
+        case .programSession: String(localized: "scheduleKind.programSession", defaultValue: "Planned session")
+        case .match:          String(localized: "scheduleKind.match", defaultValue: "Match")
+        case .scrimmage:      String(localized: "scheduleKind.scrimmage", defaultValue: "Scrimmage")
+        case .pickup:         String(localized: "scheduleKind.pickup", defaultValue: "Pickup")
+        case .offPlanLift:    String(localized: "scheduleKind.offPlanLift", defaultValue: "Off-plan lift")
+        }
+    }
+
+    /// Only a full match moves protection (match proximity / taper). Scrimmage and pickup log
+    /// carry but never trigger taper — promote to `.match` if the game deserves protection.
+    var movesProtection: Bool { self == .match }
+}
+
+/// Lifecycle of a schedule entry. Cancellation is a RECORDED state (visible, struck, undoable)
+/// — never a deletion. A reschedule marks the source `.moved` (keeps it on its day, struck)
+/// and creates a fresh `.planned` entry on the destination day.
+enum ScheduleEntryStatus: String, Codable {
+    case planned
+    case completed
+    case canceled
+    case moved
+
+    var displayName: String {
+        switch self {
+        case .planned:   String(localized: "scheduleStatus.planned", defaultValue: "Planned")
+        case .completed: String(localized: "scheduleStatus.completed", defaultValue: "Done")
+        case .canceled:  String(localized: "scheduleStatus.canceled", defaultValue: "Canceled")
+        case .moved:     String(localized: "scheduleStatus.moved", defaultValue: "Moved")
+        }
+    }
+}

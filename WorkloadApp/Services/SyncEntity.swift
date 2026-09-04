@@ -12,6 +12,8 @@ enum SyncEntity: String, CaseIterable, Identifiable {
     case workloadSnapshots
     case behaviorTags
     case trainingProfiles
+    case trainingPrograms
+    case scheduleEntries
 
     var id: String { rawValue }
 
@@ -25,6 +27,8 @@ enum SyncEntity: String, CaseIterable, Identifiable {
         case .workloadSnapshots: "Training Load"
         case .behaviorTags: "Behavior Tags"
         case .trainingProfiles: "Training Profile"
+        case .trainingPrograms: "Programs"
+        case .scheduleEntries: "Schedule"
         }
     }
 }

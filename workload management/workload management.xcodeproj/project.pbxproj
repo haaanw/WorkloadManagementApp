@@ -145,6 +145,11 @@
 		AC4302020000000000000001 /* VerdictReasonBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4302010000000000000001 /* VerdictReasonBuilder.swift */; };
 		AC4303020000000000000001 /* TodayVerdictService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4303010000000000000001 /* TodayVerdictService.swift */; };
 		AE4501020000000000000001 /* VerdictEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4501010000000000000001 /* VerdictEvent.swift */; };
+		FA6101020000000000000001 /* TrainingProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6101010000000000000001 /* TrainingProgram.swift */; };
+		FA6102020000000000000001 /* ScheduleEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6102010000000000000001 /* ScheduleEntry.swift */; };
+		FA6103020000000000000001 /* ProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6103010000000000000001 /* ProgramRepository.swift */; };
+		FA6104020000000000000001 /* ScheduleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6104010000000000000001 /* ScheduleRepository.swift */; };
+		FA6105020000000000000001 /* ProgramScheduleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6105010000000000000001 /* ProgramScheduleService.swift */; };
 		AE4502020000000000000001 /* VerdictEventRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4502010000000000000001 /* VerdictEventRepository.swift */; };
 		AE4503020000000000000001 /* GreenLightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4503010000000000000001 /* GreenLightEngine.swift */; };
 		AE4504020000000000000001 /* VerdictOutcomeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4504010000000000000001 /* VerdictOutcomeSheet.swift */; };
@@ -450,6 +455,11 @@
 		AC4302010000000000000001 /* VerdictReasonBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictReasonBuilder.swift; sourceTree = "<group>"; };
 		AC4303010000000000000001 /* TodayVerdictService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayVerdictService.swift; sourceTree = "<group>"; };
 		AE4501010000000000000001 /* VerdictEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictEvent.swift; sourceTree = "<group>"; };
+		FA6101010000000000000001 /* TrainingProgram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingProgram.swift; sourceTree = "<group>"; };
+		FA6102010000000000000001 /* ScheduleEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEntry.swift; sourceTree = "<group>"; };
+		FA6103010000000000000001 /* ProgramRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramRepository.swift; sourceTree = "<group>"; };
+		FA6104010000000000000001 /* ScheduleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleRepository.swift; sourceTree = "<group>"; };
+		FA6105010000000000000001 /* ProgramScheduleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramScheduleService.swift; sourceTree = "<group>"; };
 		AE4502010000000000000001 /* VerdictEventRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictEventRepository.swift; sourceTree = "<group>"; };
 		AE4503010000000000000001 /* GreenLightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreenLightEngine.swift; sourceTree = "<group>"; };
 		AE4504010000000000000001 /* VerdictOutcomeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictOutcomeSheet.swift; sourceTree = "<group>"; };
@@ -747,6 +757,8 @@
 				DD2024000000000000000001 /* ShadowArmPrediction.swift */,
 				DD2501000000000000000001 /* SorenessLog.swift */,
 				AE4501010000000000000001 /* VerdictEvent.swift */,
+				FA6101010000000000000001 /* TrainingProgram.swift */,
+				FA6102010000000000000001 /* ScheduleEntry.swift */,
 				DD2709000000000000000001 /* RecoveryShadowDay.swift */,
 				DD270D000000000000000001 /* MorningReadinessProbe.swift */,
 				DD3801000000000000000001 /* SleepShadowNight.swift */,
@@ -780,6 +792,8 @@
 				62324BF62F66CB0E00A9C2BE /* WorkloadRepository.swift */,
 				CC0903000000000000000001 /* TemplateRepository.swift */,
 				EE4201010000000000000001 /* PlannedSessionRepository.swift */,
+				FA6103010000000000000001 /* ProgramRepository.swift */,
+				FA6104010000000000000001 /* ScheduleRepository.swift */,
 				AA10010100000000000002 /* TrainingProfileRepository.swift */,
 				62324BF72F66CB0E00A9C2BE /* WorkoutRepository.swift */,
 			);
@@ -855,6 +869,7 @@
 				AC4301010000000000000001 /* TodayVerdictEngine.swift */,
 				AC4302010000000000000001 /* VerdictReasonBuilder.swift */,
 				AC4303010000000000000001 /* TodayVerdictService.swift */,
+				FA6105010000000000000001 /* ProgramScheduleService.swift */,
 				AA4401010000000000000001 /* VerdictDecision.swift */,
 				AAFE00010000000000000001 /* ResolvedSessionPlan.swift */,
 				AE4503010000000000000001 /* GreenLightEngine.swift */,
@@ -1429,6 +1444,11 @@
 				DD2024010000000000000001 /* ShadowArmPrediction.swift in Sources */,
 				DD2501010000000000000001 /* SorenessLog.swift in Sources */,
 				AE4501020000000000000001 /* VerdictEvent.swift in Sources */,
+				FA6101020000000000000001 /* TrainingProgram.swift in Sources */,
+				FA6102020000000000000001 /* ScheduleEntry.swift in Sources */,
+				FA6103020000000000000001 /* ProgramRepository.swift in Sources */,
+				FA6104020000000000000001 /* ScheduleRepository.swift in Sources */,
+				FA6105020000000000000001 /* ProgramScheduleService.swift in Sources */,
 				DD2601010000000000000001 /* BaselineState.swift in Sources */,
 				DD2002010000000000000001 /* ShadowPredictor.swift in Sources */,
 				DD2003010000000000000001 /* CycleModifierGate.swift in Sources */,

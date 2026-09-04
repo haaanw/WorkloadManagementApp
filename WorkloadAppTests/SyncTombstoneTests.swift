@@ -226,7 +226,8 @@ final class SyncTombstoneTests: XCTestCase {
         let source = readSource("WorkloadApp/Services/SyncService.swift")
         XCTAssertFalse(source.isEmpty)
 
-        for entity in ["workouts", "templates", "personalRecords", "behaviorTags", "wellnessCheckIns"] {
+        for entity in ["workouts", "templates", "personalRecords", "behaviorTags", "wellnessCheckIns",
+                       "trainingPrograms", "scheduleEntries"] {
             XCTAssertTrue(
                 source.contains("SyncTombstone.deletedRowIds(entity: .\(entity), in: context)"),
                 "The \(entity) pull does not check tombstones — deleted rows will resurrect (audit H6)"
@@ -234,8 +235,8 @@ final class SyncTombstoneTests: XCTestCase {
         }
         XCTAssertEqual(
             source.components(separatedBy: "if tombstoned.contains(row.id) { continue }").count - 1,
-            5,
-            "Expected the tombstone skip on all five deletable pull loops"
+            7,
+            "Expected the tombstone skip on all seven deletable pull loops"
         )
     }
 

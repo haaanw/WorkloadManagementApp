@@ -27,6 +27,14 @@ final class WorkoutTemplate {
     var usageCount: Int = 0
     var scheduledDays: [Int] = []  // ISO 8601: 1=Mon...7=Sun
 
+    // MARK: - Program Day Ownership (v1.7.3 feature 6)
+
+    /// True when this template holds one day of an imported `TrainingProgram` (referenced by
+    /// `ProgramDay.templateId`). Program-day templates are working storage for the program —
+    /// they stay out of the standalone template lists/carousels but keep the full editor +
+    /// sync machinery. Additive-nullable default: existing rows decode unchanged.
+    var isProgramDay: Bool = false
+
     @Relationship(deleteRule: .cascade, inverse: \ExerciseGroup.template)
     var groups: [ExerciseGroup] = []
 

@@ -110,6 +110,10 @@ struct WorkloadApp: App {
                 BehaviorTag.self,
                 TrainingProfile.self,
                 SyncTombstone.self,
+                TrainingProgram.self,
+                ProgramPhase.self,
+                ProgramDay.self,
+                ScheduleEntry.self,
             ])
             let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
             container = try ModelContainer(for: schema, configurations: [config])

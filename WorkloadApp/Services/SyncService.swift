@@ -57,6 +57,12 @@ struct SyncService {
         if await pushTrainingProfile(context: context, athleteId: athlete.id) {
             store.recordSuccess(for: .trainingProfiles, direction: .push)
         }
+        if await pushTrainingPrograms(context: context, athleteId: athlete.id) {
+            store.recordSuccess(for: .trainingPrograms, direction: .push)
+        }
+        if await pushScheduleEntries(context: context, athleteId: athlete.id) {
+            store.recordSuccess(for: .scheduleEntries, direction: .push)
+        }
     }
 
     /// Pull all Supabase records for current user and upsert into local SwiftData (last-write-wins).
@@ -99,6 +105,12 @@ struct SyncService {
         }
         if await pullTrainingProfile(context: context, athleteId: athlete.id) {
             store.recordSuccess(for: .trainingProfiles, direction: .pull)
+        }
+        if await pullTrainingPrograms(context: context, athleteId: athlete.id) {
+            store.recordSuccess(for: .trainingPrograms, direction: .pull)
+        }
+        if await pullScheduleEntries(context: context, athleteId: athlete.id) {
+            store.recordSuccess(for: .scheduleEntries, direction: .pull)
         }
     }
 
@@ -366,6 +378,14 @@ struct SyncService {
             }
         case .wellnessCheckIns:
             if let row = try? context.fetch(FetchDescriptor<WellnessCheckIn>(predicate: #Predicate { $0.id == id })).first {
+                context.delete(row)
+            }
+        case .trainingPrograms:
+            if let row = try? context.fetch(FetchDescriptor<TrainingProgram>(predicate: #Predicate { $0.id == id })).first {
+                context.delete(row)
+            }
+        case .scheduleEntries:
+            if let row = try? context.fetch(FetchDescriptor<ScheduleEntry>(predicate: #Predicate { $0.id == id })).first {
                 context.delete(row)
             }
         case .recoverySnapshots, .workloadSnapshots, .trainingProfiles:
@@ -969,6 +989,7 @@ struct SyncService {
             template.lastUsedAt = row.lastUsedAt
             template.usageCount = row.usageCount
             template.scheduledDays = row.scheduledDays ?? []
+            template.isProgramDay = row.isProgramDay ?? false
 
             // Rebuild the group tree ONLY when its content actually differs (v1.7.1).
             //
@@ -1158,6 +1179,239 @@ struct SyncService {
                 return exercise
             }
             return group
+        }
+    }
+
+    // MARK: - Training Program push/pull (v1.7.3 feature 6)
+
+    @discardableResult
+    func pushTrainingPrograms(context: ModelContext, athleteId: UUID) async -> Bool {
+        guard await verifyIdentity(context: context, athleteId: athleteId) else { return false }
+        let programs: [TrainingProgram]
+        do {
+            programs = try context.fetch(
+                FetchDescriptor<TrainingProgram>(predicate: #Predicate { $0.athleteId == athleteId })
+            )
+        } catch {
+            logFailure(.trainingPrograms, .push, error)
+            recordFailure(.trainingPrograms, .push, error)
+            return false
+        }
+        guard !programs.isEmpty else { return true }
+        let rows = programs.map { TrainingProgramRow(from: $0) }
+        return await run(.trainingPrograms, .push) {
+            _ = try await client.from("training_programs").upsert(rows).execute()
+        }
+    }
+
+    @discardableResult
+    func pullTrainingPrograms(context: ModelContext, athleteId: UUID) async -> Bool {
+        let rows: [TrainingProgramRow]
+        do {
+            rows = try await client
+                .from("training_programs")
+                .select()
+                .eq("athlete_id", value: athleteId)
+                .execute()
+                .value
+        } catch {
+            logFailure(.trainingPrograms, .pull, error)
+            recordFailure(.trainingPrograms, .pull, error)
+            return false
+        }
+
+        let tombstoned = SyncTombstone.deletedRowIds(entity: .trainingPrograms, in: context)
+        for row in rows {
+            if tombstoned.contains(row.id) { continue }
+            let pred = #Predicate<TrainingProgram> { $0.id == row.id }
+            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
+            if let existing, existing.updatedAt > row.updatedAt { continue }
+            let program = existing ?? TrainingProgram(
+                id: row.id,
+                athleteId: row.athleteId,
+                name: row.name,
+                source: ProgramSource(rawValue: row.source) ?? .manual,
+                durationWeeks: row.durationWeeks,
+                durationSource: ProgramDurationSource(rawValue: row.durationSource) ?? .asked
+            )
+            program.athleteId = row.athleteId
+            program.name = row.name
+            program.sourceRawValue = row.source
+            program.importedAt = row.importedAt
+            program.durationWeeks = row.durationWeeks
+            program.durationSourceRawValue = row.durationSource
+            program.startDate = row.startDate
+            program.trainingWeekdays = row.trainingWeekdays ?? []
+            program.positionWeek = row.positionWeek
+            program.positionDay = row.positionDay
+            program.isActive = row.isActive
+            program.isArchived = row.isArchived
+            program.archivedAt = row.archivedAt
+            program.entryModeRawValue = row.entryMode
+            program.notes = row.notes
+            program.createdAt = row.createdAt
+            program.updatedAt = row.updatedAt
+            program.isSynced = true
+
+            // Rebuild child trees only when content differs (same churn guard as templates:
+            // equal timestamps do not imply equal payload, and ProgramDay ids are referenced
+            // by ScheduleEntry.programDayId, so needless rebuilds would strand the schedule).
+            let localPhasesJSON = existing.map { Self.encodeProgramPhases($0.phases) } ?? nil
+            if existing == nil || row.phasesJson != localPhasesJSON {
+                if existing != nil {
+                    for phase in program.phases { context.delete(phase) }
+                    program.phases = []
+                }
+                if let phasesJSON = row.phasesJson {
+                    program.phases = Self.decodeProgramPhases(from: phasesJSON)
+                }
+            }
+            let localDaysJSON = existing.map { Self.encodeProgramDays($0.days) } ?? nil
+            if existing == nil || row.daysJson != localDaysJSON {
+                if existing != nil {
+                    for day in program.days { context.delete(day) }
+                    program.days = []
+                }
+                if let daysJSON = row.daysJson {
+                    program.days = Self.decodeProgramDays(from: daysJSON)
+                }
+            }
+
+            if existing == nil { context.insert(program) }
+        }
+        do {
+            try context.save()
+        } catch {
+            logFailure(.trainingPrograms, .pull, error)
+            recordFailure(.trainingPrograms, .pull, error)
+            return false
+        }
+        return true
+    }
+
+    // MARK: - Schedule Entry push/pull (v1.7.3 feature 6)
+
+    @discardableResult
+    func pushScheduleEntries(context: ModelContext, athleteId: UUID) async -> Bool {
+        guard await verifyIdentity(context: context, athleteId: athleteId) else { return false }
+        let entries: [ScheduleEntry]
+        do {
+            entries = try context.fetch(
+                FetchDescriptor<ScheduleEntry>(predicate: #Predicate { $0.athleteId == athleteId })
+            )
+        } catch {
+            logFailure(.scheduleEntries, .push, error)
+            recordFailure(.scheduleEntries, .push, error)
+            return false
+        }
+        guard !entries.isEmpty else { return true }
+        let rows = entries.map { ScheduleEntryRow(from: $0) }
+        return await run(.scheduleEntries, .push) {
+            _ = try await client.from("schedule_entries").upsert(rows).execute()
+        }
+    }
+
+    @discardableResult
+    func pullScheduleEntries(context: ModelContext, athleteId: UUID) async -> Bool {
+        let rows: [ScheduleEntryRow]
+        do {
+            rows = try await client
+                .from("schedule_entries")
+                .select()
+                .eq("athlete_id", value: athleteId)
+                .execute()
+                .value
+        } catch {
+            logFailure(.scheduleEntries, .pull, error)
+            recordFailure(.scheduleEntries, .pull, error)
+            return false
+        }
+
+        let tombstoned = SyncTombstone.deletedRowIds(entity: .scheduleEntries, in: context)
+        for row in rows {
+            if tombstoned.contains(row.id) { continue }
+            let pred = #Predicate<ScheduleEntry> { $0.id == row.id }
+            let existing = try? context.fetch(FetchDescriptor(predicate: pred)).first
+            if let existing, existing.updatedAt > row.updatedAt { continue }
+            let entry = existing ?? ScheduleEntry(
+                id: row.id,
+                athleteId: row.athleteId,
+                date: row.date,
+                kind: ScheduleEntryKind(rawValue: row.kind) ?? .programSession,
+                title: row.title
+            )
+            entry.athleteId = row.athleteId
+            entry.date = row.date
+            entry.kindRawValue = row.kind
+            entry.statusRawValue = row.status
+            entry.title = row.title
+            entry.programId = row.programId
+            entry.programDayId = row.programDayId
+            entry.movedToDate = row.movedToDate
+            entry.movedFromDate = row.movedFromDate
+            entry.canceledAt = row.canceledAt
+            entry.completedSessionId = row.completedSessionId
+            entry.isAdHoc = row.isAdHoc
+            entry.durationMinutes = row.durationMinutes
+            entry.note = row.note
+            entry.createdAt = row.createdAt
+            entry.updatedAt = row.updatedAt
+            entry.isSynced = true
+            if existing == nil { context.insert(entry) }
+        }
+        do {
+            try context.save()
+        } catch {
+            logFailure(.scheduleEntries, .pull, error)
+            recordFailure(.scheduleEntries, .pull, error)
+            return false
+        }
+        return true
+    }
+
+    // MARK: - Program JSON helpers (v1.7.3 feature 6)
+
+    static func encodeProgramPhases(_ phases: [ProgramPhase]) -> String? {
+        guard !phases.isEmpty else { return nil }
+        let dtos = phases.sorted { $0.orderIndex < $1.orderIndex }.map { ProgramPhaseDTO(from: $0) }
+        guard let data = try? JSONEncoder().encode(dtos) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func decodeProgramPhases(from json: String) -> [ProgramPhase] {
+        guard let data = json.data(using: .utf8),
+              let dtos = try? JSONDecoder().decode([ProgramPhaseDTO].self, from: data) else { return [] }
+        return dtos.enumerated().map { index, dto in
+            ProgramPhase(
+                id: dto.id,
+                name: dto.name,
+                startWeek: dto.startWeek,
+                endWeek: dto.endWeek,
+                orderIndex: index
+            )
+        }
+    }
+
+    static func encodeProgramDays(_ days: [ProgramDay]) -> String? {
+        guard !days.isEmpty else { return nil }
+        let dtos = days
+            .sorted { ($0.weekNumber, $0.dayNumber) < ($1.weekNumber, $1.dayNumber) }
+            .map { ProgramDayDTO(from: $0) }
+        guard let data = try? JSONEncoder().encode(dtos) else { return nil }
+        return String(data: data, encoding: .utf8)
+    }
+
+    static func decodeProgramDays(from json: String) -> [ProgramDay] {
+        guard let data = json.data(using: .utf8),
+              let dtos = try? JSONDecoder().decode([ProgramDayDTO].self, from: data) else { return [] }
+        return dtos.map { dto in
+            ProgramDay(
+                id: dto.id,
+                weekNumber: dto.weekNumber,
+                dayNumber: dto.dayNumber,
+                title: dto.title,
+                templateId: dto.templateId
+            )
         }
     }
 
@@ -1475,6 +1729,8 @@ struct WorkoutTemplateRow: Codable {
     let lastUsedAt: Date?
     let usageCount: Int
     let scheduledDays: [Int]?
+    /// Optional so a pull from a server that predates migration 012 still decodes.
+    let isProgramDay: Bool?
 
     init(from model: WorkoutTemplate) {
         self.id = model.id
@@ -1493,6 +1749,7 @@ struct WorkoutTemplateRow: Codable {
         self.lastUsedAt = model.lastUsedAt
         self.usageCount = model.usageCount
         self.scheduledDays = model.scheduledDays.isEmpty ? nil : model.scheduledDays
+        self.isProgramDay = model.isProgramDay
     }
 }
 
@@ -1543,6 +1800,131 @@ struct TrainingProfileRow: Codable {
         self.coldStartCompletedAt = model.coldStartCompletedAt
         self.createdAt = model.createdAt
         self.updatedAt = model.updatedAt
+    }
+}
+
+// MARK: - Training Program Row (v1.7.3 feature 6)
+
+struct TrainingProgramRow: Codable {
+    let id: UUID
+    let athleteId: UUID
+    let name: String
+    let source: String
+    let importedAt: Date
+    let durationWeeks: Int
+    let durationSource: String
+    let startDate: Date?
+    let trainingWeekdays: [Int]?
+    let positionWeek: Int
+    let positionDay: Int
+    let isActive: Bool
+    let isArchived: Bool
+    let archivedAt: Date?
+    let entryMode: String?
+    let notes: String?
+    let phasesJson: String?
+    let daysJson: String?
+    let createdAt: Date
+    let updatedAt: Date
+
+    init(from model: TrainingProgram) {
+        self.id = model.id
+        self.athleteId = model.athleteId
+        self.name = model.name
+        self.source = model.sourceRawValue
+        self.importedAt = model.importedAt
+        self.durationWeeks = model.durationWeeks
+        self.durationSource = model.durationSourceRawValue
+        self.startDate = model.startDate
+        self.trainingWeekdays = model.trainingWeekdays.isEmpty ? nil : model.trainingWeekdays
+        self.positionWeek = model.positionWeek
+        self.positionDay = model.positionDay
+        self.isActive = model.isActive
+        self.isArchived = model.isArchived
+        self.archivedAt = model.archivedAt
+        self.entryMode = model.entryModeRawValue
+        self.notes = model.notes
+        self.phasesJson = SyncService.encodeProgramPhases(model.phases)
+        self.daysJson = SyncService.encodeProgramDays(model.days)
+        self.createdAt = model.createdAt
+        self.updatedAt = model.updatedAt
+    }
+}
+
+// MARK: - Schedule Entry Row (v1.7.3 feature 6)
+
+struct ScheduleEntryRow: Codable {
+    let id: UUID
+    let athleteId: UUID
+    let date: Date
+    let kind: String
+    let status: String
+    let title: String
+    let programId: UUID?
+    let programDayId: UUID?
+    let movedToDate: Date?
+    let movedFromDate: Date?
+    let canceledAt: Date?
+    let completedSessionId: UUID?
+    let isAdHoc: Bool
+    let durationMinutes: Int?
+    let note: String?
+    let createdAt: Date
+    let updatedAt: Date
+
+    init(from model: ScheduleEntry) {
+        self.id = model.id
+        self.athleteId = model.athleteId
+        self.date = model.date
+        self.kind = model.kindRawValue
+        self.status = model.statusRawValue
+        self.title = model.title
+        self.programId = model.programId
+        self.programDayId = model.programDayId
+        self.movedToDate = model.movedToDate
+        self.movedFromDate = model.movedFromDate
+        self.canceledAt = model.canceledAt
+        self.completedSessionId = model.completedSessionId
+        self.isAdHoc = model.isAdHoc
+        self.durationMinutes = model.durationMinutes
+        self.note = model.note
+        self.createdAt = model.createdAt
+        self.updatedAt = model.updatedAt
+    }
+}
+
+// MARK: - Program DTOs for JSON encoding (v1.7.3 feature 6)
+//
+// Ids are part of the payload: `ScheduleEntry.programDayId` references `ProgramDay.id`,
+// so a rebuild that minted fresh ids would strand every schedule entry.
+
+private struct ProgramPhaseDTO: Codable {
+    let id: UUID
+    let name: String
+    let startWeek: Int
+    let endWeek: Int
+
+    init(from phase: ProgramPhase) {
+        self.id = phase.id
+        self.name = phase.name
+        self.startWeek = phase.startWeek
+        self.endWeek = phase.endWeek
+    }
+}
+
+private struct ProgramDayDTO: Codable {
+    let id: UUID
+    let weekNumber: Int
+    let dayNumber: Int
+    let title: String
+    let templateId: UUID?
+
+    init(from day: ProgramDay) {
+        self.id = day.id
+        self.weekNumber = day.weekNumber
+        self.dayNumber = day.dayNumber
+        self.title = day.title
+        self.templateId = day.templateId
     }
 }
 
