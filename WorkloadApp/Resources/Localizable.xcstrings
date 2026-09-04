@@ -14610,6 +14610,23 @@
         }
       }
     },
+    "tab.trends" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "趋势"
+          }
+        }
+      }
+    },
     "table.header.dist" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15528,6 +15545,23 @@
     },
     "Unchanged week over week" : {
 
+    },
+    "trends.nav.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Trends"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "趋势"
+          }
+        }
+      }
     },
     "unit.kg" : {
       "extractionState" : "manual",

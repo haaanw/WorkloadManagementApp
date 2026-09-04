@@ -313,10 +313,13 @@ struct DashboardView: View {
             .sheet(isPresented: $showTrainingProfile) {
                 TrainingProfileSheet()
             }
+            // Reorientation slice 3: both tabs land on the SAME self-fetching screens
+            // (`TrendDetailScreens` — the one fetch path). The 90-day arrays this VM
+            // used to fetch solely for these pushes are retired with it.
             .navigationDestination(for: TrendDestination.self) { dest in
                 switch dest {
-                case .hrv:   HRVDetailView(data: viewModel.hrv90Days, rawSampleCount: viewModel.hrvRawSampleCount)
-                case .sleep: SleepDetailView(snapshots: viewModel.recentSnapshots90)
+                case .hrv:   HRVDetailScreen()
+                case .sleep: SleepDetailScreen()
                 }
             }
             .task {

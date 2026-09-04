@@ -254,6 +254,11 @@
 		FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308070000000000000002 /* NiggleLogSheet.swift */; };
 		FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2309010000000000000002 /* ReviewPromptGate.swift */; };
 		FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2401010000000000000002 /* LaunchRoutingEngine.swift */; };
+		7ED3010100000000000000F2 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010100000000000000F1 /* TrendsView.swift */; };
+		7ED3010200000000000000F2 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010200000000000000F1 /* TrendsViewModel.swift */; };
+		7ED3010300000000000000F2 /* TrendDetailScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010300000000000000F1 /* TrendDetailScreens.swift */; };
+		7ED3010400000000000000F2 /* TrendsComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010400000000000000F1 /* TrendsComponents.swift */; };
+		7ED3010500000000000000F2 /* MorningCheckInPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010500000000000000F1 /* MorningCheckInPrompt.swift */; };
 		FF2603010000000000000001 /* OnboardingV2State.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603010000000000000002 /* OnboardingV2State.swift */; };
 		FF2603020000000000000001 /* OnboardingV2Flow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603020000000000000002 /* OnboardingV2Flow.swift */; };
 		FF2603030000000000000001 /* ColdOpenScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603030000000000000002 /* ColdOpenScreen.swift */; };
@@ -548,6 +553,11 @@
 		FF2308070000000000000002 /* NiggleLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleLogSheet.swift; sourceTree = "<group>"; };
 		FF2309010000000000000002 /* ReviewPromptGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptGate.swift; sourceTree = "<group>"; };
 		FF2401010000000000000002 /* LaunchRoutingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRoutingEngine.swift; sourceTree = "<group>"; };
+		7ED3010100000000000000F1 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
+		7ED3010200000000000000F1 /* TrendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewModel.swift; sourceTree = "<group>"; };
+		7ED3010300000000000000F1 /* TrendDetailScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendDetailScreens.swift; sourceTree = "<group>"; };
+		7ED3010400000000000000F1 /* TrendsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsComponents.swift; sourceTree = "<group>"; };
+		7ED3010500000000000000F1 /* MorningCheckInPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInPrompt.swift; sourceTree = "<group>"; };
 		FF2603010000000000000002 /* OnboardingV2State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2State.swift; sourceTree = "<group>"; };
 		FF2603020000000000000002 /* OnboardingV2Flow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2Flow.swift; sourceTree = "<group>"; };
 		FF2603030000000000000002 /* ColdOpenScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColdOpenScreen.swift; sourceTree = "<group>"; };
@@ -897,6 +907,7 @@
 				AA4402010000000000000001 /* TodayVerdictViewModel.swift */,
 				62324C092F66CB0E00A9C2BE /* RecoveryViewModel.swift */,
 				AA0202010000000000000001 /* WorkloadViewModel.swift */,
+				7ED3010200000000000000F1 /* TrendsViewModel.swift */,
 			);
 			path = ViewModels;
 			sourceTree = "<group>";
@@ -925,6 +936,7 @@
 				62F32CB82F71849300B6135F /* SleepDetailView.swift */,
 				AA17010100000000000000D2 /* SleepNightDetailView.swift */,
 				62324C102F66CB0E00A9C2BE /* DashboardView.swift */,
+				7ED3010500000000000000F1 /* MorningCheckInPrompt.swift */,
 				EE2805010000000000000001 /* PRSDualRunCard.swift */,
 				BB0203010000000000000004 /* WeeklySummaryCard.swift */,
 				AA10010200000000000002 /* TrainingProfileCard.swift */,
@@ -986,6 +998,16 @@
 			path = Recovery;
 			sourceTree = "<group>";
 		};
+		7ED3010000000000000000E1 /* Trends */ = {
+			isa = PBXGroup;
+			children = (
+				7ED3010100000000000000F1 /* TrendsView.swift */,
+				7ED3010300000000000000F1 /* TrendDetailScreens.swift */,
+				7ED3010400000000000000F1 /* TrendsComponents.swift */,
+			);
+			path = Trends;
+			sourceTree = "<group>";
+		};
 		62324C1A2F66CB0E00A9C2BE /* Workload */ = {
 			isa = PBXGroup;
 			children = (
@@ -1033,6 +1055,7 @@
 				FF2603000000000000000003 /* OnboardingV2 */,
 				62324C152F66CB0E00A9C2BE /* Profile */,
 				62324C182F66CB0E00A9C2BE /* Recovery */,
+				7ED3010000000000000000E1 /* Trends */,
 				62324C1A2F66CB0E00A9C2BE /* Workload */,
 				62324C1F2F66CB0E00A9C2BE /* WorkoutLog */,
 				627EC18C2F75917900B89262 /* TemplateEditorSheet.swift */,
@@ -1348,6 +1371,11 @@
 				62324C2E2F66CB0E00A9C2BE /* WorkoutSession.swift in Sources */,
 				62324C2F2F66CB0E00A9C2BE /* DashboardViewModel.swift in Sources */,
 				AA4402020000000000000001 /* TodayVerdictViewModel.swift in Sources */,
+				7ED3010100000000000000F2 /* TrendsView.swift in Sources */,
+				7ED3010200000000000000F2 /* TrendsViewModel.swift in Sources */,
+				7ED3010300000000000000F2 /* TrendDetailScreens.swift in Sources */,
+				7ED3010400000000000000F2 /* TrendsComponents.swift in Sources */,
+				7ED3010500000000000000F2 /* MorningCheckInPrompt.swift in Sources */,
 				62324C302F66CB0E00A9C2BE /* WorkloadApp.swift in Sources */,
 				62324C312F66CB0E00A9C2BE /* MetricTile.swift in Sources */,
 				A60A00020000000000000001 /* SessionStartPicker.swift in Sources */,

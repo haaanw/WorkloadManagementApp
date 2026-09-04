@@ -215,12 +215,12 @@ struct RecoveryView: View {
                     Task { await onCheckInSaved() }
                 })
             }
-            // Same destination enum Home routes on, so the two tabs land on the same screens with
-            // the same inputs rather than growing a second, divergent pair of routes.
+            // Same destination enum Home routes on, landing on the SAME self-fetching
+            // screens (`TrendDetailScreens` — the one fetch path, reorientation slice 3).
             .navigationDestination(for: TrendDestination.self) { destination in
                 switch destination {
-                case .hrv:   HRVDetailView(data: viewModel.hrvHistoryExtended, rawSampleCount: viewModel.hrvRawSampleCount)
-                case .sleep: SleepDetailView(snapshots: sleepWindowExtended)
+                case .hrv:   HRVDetailScreen()
+                case .sleep: SleepDetailScreen()
                 }
             }
             .task {
@@ -261,36 +261,8 @@ struct RecoveryView: View {
     }
 }
 
-// MARK: - Morning Check-in Prompt
-
-struct MorningCheckInPrompt: View {
-    let action: () -> Void
-
-    var body: some View {
-        Button {
-            Haptics.tap()
-            action()
-        } label: {
-            HStack {
-                VStack(alignment: .leading, spacing: Spacing.baselinePair) {
-                    Text("recovery.checkin.title")
-                        .font(.Tokens.sectionHead)
-                        .foregroundStyle(ColorTokens.text1)
-                    Text("recovery.checkin.prompt")
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                }
-                Spacer()
-                Image(systemName: "chevron.right")
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text3)
-            }
-            .cardStyle(verticalPadding: Spacing.sm)
-        }
-        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-        .foregroundStyle(ColorTokens.text1)
-    }
-}
+// (`MorningCheckInPrompt` moved to `Views/Dashboard/MorningCheckInPrompt.swift` with the
+// Trends merge — Home is its surviving consumer.)
 
 // MARK: - Recovery Score Card
 
@@ -436,36 +408,8 @@ struct RecoveryScoreCard: View {
     }
 }
 
-// MARK: - Wellness History
-
-struct WellnessHistorySection: View {
-    let checkIns: [WellnessCheckIn]
-    @Environment(\.locale) private var locale
-
-    var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            ForEach(Array(checkIns.enumerated()), id: \.element.id) { index, checkIn in
-                HStack {
-                    Text(checkIn.date.relativeString(locale: locale))
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                    Spacer()
-                    Text("\(Int(checkIn.wellnessScore))/100")
-                        .font(.Tokens.smallLabelMedium)
-                        .monospacedDigit()
-                        .foregroundStyle(ColorTokens.text1)
-                }
-                .padding(.horizontal, Spacing.sm)
-                .padding(.vertical, Spacing.sm)
-
-                if index < checkIns.count - 1 {
-                    RowSeparator()
-                }
-            }
-        }
-        .cardStyle(horizontalPadding: 0, verticalPadding: 0)
-    }
-}
+// (`WellnessHistorySection` moved to `Views/Trends/TrendsComponents.swift` with the
+// Trends merge.)
 
 // MARK: - Ruled section wrapper
 

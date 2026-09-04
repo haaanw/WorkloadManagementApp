@@ -68,16 +68,11 @@ final class DashboardViewModel {
     // Staleness tracking
     var staleness: HealthKitStaleness = HealthKitStaleness(lastHRVDate: nil, lastSleepDate: nil, lastRHRDate: nil)
 
-    // Trend data for progressive disclosure detail views. The 28-day arrays feed the
-    // glance charts (frozen paths); the 90-day arrays feed the pinch-zoomable detail
-    // screens (v1.7.1) and are the single fetch the 28-day arrays derive from.
-    var hrv28Days: [(date: Date, value: Double)] = []
+    /// 28-day recovery window feeding the fatigue-index recency read and the PRS
+    /// readiness input. (Reorientation slice 3: the 90-day HRV + snapshot arrays this VM
+    /// fetched solely for the detail pushes are retired — `HRVDetailScreen` /
+    /// `SleepDetailScreen` own that fetch now, one path for one screen.)
     var recentSnapshots: [RecoverySnapshot] = []
-    var hrv90Days: [(date: Date, value: Double)] = []
-    var recentSnapshots90: [RecoverySnapshot] = []
-    /// Raw sample count behind `hrv90Days`, so the HRV surfaces can tell "no HRV at all"
-    /// apart from "HRV exists, but none in the morning window" (`HRVDailyStats`).
-    var hrvRawSampleCount: Int = 0
 
     // Weekly summary (ANLYT-02, ANLYT-03)
     var weeklySummary: AnalyticsEngine.WeeklySummary?
@@ -154,32 +149,9 @@ final class DashboardViewModel {
             return try? recoveryRepo.fetchLatestSnapshot(athlete: athlete)
         }()
 
-        // Fetch trend history for detail views: one 90-day fetch, 28-day glance windows
-        // derived from it.
-        let cutoff28 = Calendar.current.date(
-            byAdding: .day, value: -28,
-            to: Calendar.current.startOfDay(for: .now)
-        )!
-        recentSnapshots90 = (try? recoveryRepo.fetchRecoveryHistory(days: 90, athlete: athlete)) ?? []
-        recentSnapshots = recentSnapshots90.filter { $0.date >= cutoff28 }
-        if isScreenshotMode {
-            // SCREENSHOT_MODE: HealthKit unauthorized — derive HRV trend from seeded
-            // snapshots, which are already one value per day (no bucketing needed).
-            hrv90Days = recentSnapshots90.compactMap { snap in
-                snap.hrvSDNN.map { (date: snap.date, value: $0) }
-            }
-            hrvRawSampleCount = hrv90Days.count
-        } else {
-            // Day-bucket to the morning window BEFORE anything reads it: a Watch writes
-            // several SDNN samples a day, so raw-sample statistics called ~1–2 days of
-            // data "7-day" (v1.7.1). See `HRVDailyStats` for the reduction and its limits.
-            let rawSamples = (try? await healthKitService.fetchHRVHistory(days: 90)) ?? []
-            hrvRawSampleCount = rawSamples.count
-            hrv90Days = HRVDailyStats
-                .dailyValues(samples: rawSamples, days: 90)
-                .map { (date: $0.date, value: $0.value) }
-        }
-        hrv28Days = hrv90Days.filter { $0.date >= cutoff28 }
+        // 28-day recovery window (fatigue recency + PRS readiness input). The 90-day
+        // detail-view fetch that used to live here moved to `TrendDetailScreens`.
+        recentSnapshots = (try? recoveryRepo.fetchRecoveryHistory(days: 28, athlete: athlete)) ?? []
         latestHRV = todaySnapshot?.hrvSDNN
         latestRHR = todaySnapshot?.restingHR
         latestSleepMinutes = todaySnapshot?.sleepDurationMinutes
