@@ -145,10 +145,35 @@ Five hues derived from the app icon's hue families, re-tuned 2026-07-28 for mutu
 | `--metric-strain`    | `#A8442D` | Strain / acute load       | Rust       |
 | `--metric-load`      | `#8A6810` | Training load / ACWR      | Ochre      |
 
-**Metric hues may be used as:** series lines, state dots, chart "now" markers, and hero readings (by identity).
-**Metric hues may NEVER be used as:** plane fills, card backgrounds, CTA fills, decorative tints, or icon tints at rest. A hue identifies a *measurement*; it never dresses a *surface*.
+**Metric hues may be used as:** series lines, state dots, chart "now" markers, hero readings (by identity), and the **area tint** (v6.3, below).
+**Metric hues may NEVER be used as:** opaque plane fills, card backgrounds, CTA fills, decorative tints, or icon tints at rest. A hue identifies a *measurement*; it never dresses a *surface* — the sole exception is the fixed-formula area tint.
 
 These five are the **only** colors v6 adds. Adding a sixth hue is a design change requiring approval, and the fence test enumerates the set.
+
+### The Area Tint (v6.3 — HAN locked 2026-09-06, demo round 1: "warm and whisper")
+
+Each functional area of the app takes a **whisper** of its owning metric hue,
+so the hue you are bathed in is the metric family you are standing in. Two
+formulas, no others, applied via tokens/modifiers only — never a hand-mixed
+color at a call site:
+
+- **Hero-plane wash:** `color-mix(in srgb, areaHue 4%, plane)` — on the
+  area's hero card plane only.
+- **Hairline tint:** `color-mix(in srgb, areaHue 18%, divider)` — on the
+  area's hairline dividers.
+
+**Area ownership:** an area's hue is the metric family of its primary
+reading — Home/Today → `metric-readiness`; Trends (recovery surfaces) →
+`metric-recovery`; sleep detail → `metric-sleep`; Log/capture →
+`metric-strain`; load surfaces → `metric-load`. A surface with no metric
+identity (Profile, settings, auth, onboarding) stays untinted stone.
+
+**Explicitly REJECTED at the same gate (do not reintroduce):** the cooled
+stone ramp (the warm ladder stands, unchanged); section-marker squares; the
+area hue on the active tab tick (travertine keeps the live-state monopoly);
+card washes beyond the hero plane; any intensity above 4%/18%. The contrast
+floors in this document are unaffected — a 4% wash moves plane luminance by
+less than a point; the measured floors still hold.
 
 ### Zone colors (RE-TUNED in v6)
 

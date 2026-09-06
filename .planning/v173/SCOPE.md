@@ -88,12 +88,12 @@ Added at kickoff round 2 (HAN, 2026-09-02), from the dogfood report
    are standing in). B (new accent family) and C (expressive color)
    REJECTED. No external reference app — develop the palette we own; HAN
    likes the existing accent/metric colors, they are underutilized.
-   **Plus: the warm stone base cools slightly** — HAN wants the planes "a
-   bit less warm"; the demo carries a base-temperature toggle (current
-   stone vs a cooled step) so intensity and temperature are judged
-   independently. Round 1 = whisper (~4%) / quiet (~8%) / present (~12%)
-   on Home + Trends + Log, side-by-side vs current. Original framing
-   follows:
+   **LOCKED (HAN 2026-09-06, demo round 1): WARM stone + WHISPER** — the
+   cooled ramp is rejected (warm ladder stands), tint role = 4% hero-plane
+   wash + 18% hairline tint only; markers/tab-hue/card washes rejected.
+   DESIGN.md v6.3 amendment LANDED (doc-first law honored). Remaining: the
+   carrier lane applies it app-wide + design-system/tokens gains the two
+   formulas. Original framing follows:
    HAN's ruling from the feature-6 round-1 gate: the app reads too
    monocolor-centric. Goal: use more of the brand colors — especially the
    accent — to (1) make the app more visually pleasant and (2) distinguish
