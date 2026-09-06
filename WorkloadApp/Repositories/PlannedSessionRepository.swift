@@ -87,6 +87,25 @@ final class PlannedSessionRepository {
         return prescription
     }
 
+    /// Eased program entry (v1.7.3 feature 6, epic 8): trim ONE back-off working set per
+    /// exercise from a prescription's FROZEN COPY — the last by set index that is neither
+    /// a warmup nor the top set (heaviest working set). Top sets are never touched, and the
+    /// source template (the athlete's program) is never touched — only the working copy
+    /// reflects the controlled entry the athlete chose at import.
+    func trimOneBackoffPerExercise(_ prescription: PrescribedWorkout, reason: String) throws {
+        for exercise in prescription.allExercises {
+            let working = exercise.sortedSets.filter { !$0.isWarmup }
+            guard working.count > 1 else { continue }
+            let topWeight = working.compactMap(\.targetWeightKg).max()
+            let topSet = working.first { $0.targetWeightKg == topWeight } ?? working[0]
+            guard let victim = working.reversed().first(where: { $0.id != topSet.id }) else { continue }
+            exercise.sets.removeAll { $0.id == victim.id }
+            modelContext.delete(victim)
+            topSet.verdictReason = reason
+        }
+        try modelContext.save()
+    }
+
     /// The most recent non-skipped planned session scheduled for today, or nil.
     /// Fetch-all + Swift filter to avoid the optional-relationship `#Predicate` in-memory trap.
     func fetchTodaysPlannedSession(athleteId: UUID) -> PrescribedWorkout? {

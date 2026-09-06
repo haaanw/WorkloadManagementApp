@@ -377,11 +377,11 @@ Key constraints to enforce (DESIGN.md v6 "Field Notes" — 2026-07-30, an **over
 - Responsibilities: Check Keychain session, bootstrap Athlete if needed, show ProgressView (loading) → LoginView (no auth) → MainTabView (authenticated)
 - Location: `WorkloadApp/App/AppRouter.swift` (MainTabView struct)
 - Triggers: Authenticated app state
-- Responsibilities: Render the five athlete tabs (Home, Log, Recovery, Load, Profile) via the custom InkTabBar (stock tab bar stripped transparent but kept for safe-area insets); foreground sync on scenePhase.active. Athlete-only — there is NO coach mode or mode switching (dropped v1.6).
+- Responsibilities: Render the four athlete tabs (Today, Log, Trends, Profile — v1.7.3 reorientation: Recovery+Load merged into Trends, tab 1 reframed as Today) via the custom InkTabBar (stock tab bar stripped transparent but kept for safe-area insets); `TabRouter` in the environment is the R9 cross-tab handoff seam; foreground sync on scenePhase.active. Athlete-only — there is NO coach mode or mode switching (dropped v1.6).
 - Location: `WorkloadApp/Views/Dashboard/DashboardView.swift`
-- Responsibilities: Render hero readiness card (recovery score), metrics strip, training load section, recent sessions
+- Responsibilities: The "Today" surface (v1.7.3 feature 7 slice 2): check-in prompt → fatigue caution → the day's proposal (`TodayProposalSection` hosts the verdict card + decision seam; no-plan state offers Bring your program / Start unplanned) → readiness hero as evidence → load/metrics/summary/recent sessions
 - Location: `WorkloadApp/Views/WorkoutLog/WorkoutLogView.swift` + ActiveWorkoutSheet
-- Responsibilities: Display session history, allow new session creation, trigger WorkoutPipeline on save
+- Responsibilities: Capture + history (v1.7.3 feature 6): calendar spine (`ScheduleWeekSection`, editable week + day sheets), one program door (`ProgramImportSheet`), session history, new session creation, WorkoutPipeline on save. The verdict card moved to Today.
 ## Error Handling
 - **HealthKit authorization missing:** Render EmptyStateCard on Dashboard suggesting permission grant; fetch returns nil, recovery score degrades
 - **Supabase sync failures:** Log error, continue local app operation; isSynced flag tracks state for retry

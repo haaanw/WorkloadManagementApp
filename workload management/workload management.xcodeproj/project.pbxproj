@@ -146,6 +146,8 @@
 		FA6103020000000000000001 /* ProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6103010000000000000001 /* ProgramRepository.swift */; };
 		FA6104020000000000000001 /* ScheduleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6104010000000000000001 /* ScheduleRepository.swift */; };
 		FA6105020000000000000001 /* ProgramScheduleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6105010000000000000001 /* ProgramScheduleService.swift */; };
+		FA6109020000000000000001 /* ProgramInsightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6109010000000000000001 /* ProgramInsightEngine.swift */; };
+		FA610A020000000000000001 /* ProgramOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA610A010000000000000001 /* ProgramOverviewView.swift */; };
 		AE4502020000000000000001 /* VerdictEventRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4502010000000000000001 /* VerdictEventRepository.swift */; };
 		AE4503020000000000000001 /* GreenLightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4503010000000000000001 /* GreenLightEngine.swift */; };
 		AE4504020000000000000001 /* VerdictOutcomeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4504010000000000000001 /* VerdictOutcomeSheet.swift */; };
@@ -182,6 +184,7 @@
 		DD0301020000000000000002 /* SleepDetailChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0301010000000000000002 /* SleepDetailChart.swift */; };
 		DD0301020000000000000003 /* HRVDetailChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0301010000000000000003 /* HRVDetailChart.swift */; };
 		DD0403010000000000000001 /* WelcomeActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0403010000000000000002 /* WelcomeActionCard.swift */; };
+		FA610B020000000000000001 /* TodayProposalSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA610B010000000000000001 /* TodayProposalSection.swift */; };
 		DD0901010000000000000001 /* TrainingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0901010000000000000002 /* TrainingProfile.swift */; };
 		DD1303010000000000000001 /* SharpTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1303010000000000000002 /* SharpTextFieldStyle.swift */; };
 		DD1401010000000000000001 /* SyncEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1401010000000000000002 /* SyncEntity.swift */; };
@@ -241,6 +244,9 @@
 		FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000002 /* FatigueAttentionBanner.swift */; };
 		FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1601010000000000000002 /* WorkoutLLMImportService.swift */; };
 		FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1602010000000000000002 /* WorkoutImportSheet.swift */; };
+		FA6106020000000000000001 /* ProgramImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6106010000000000000001 /* ProgramImportSheet.swift */; };
+		FA6108020000000000000001 /* QuickPastSessionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6108010000000000000001 /* QuickPastSessionSheet.swift */; };
+		FA6107020000000000000001 /* ScheduleWeekSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6107010000000000000001 /* ScheduleWeekSection.swift */; };
 		FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702010000000000000002 /* SpeechCaptureService.swift */; };
 		FF1702020000000000000001 /* LogCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702020000000000000002 /* LogCaptureSheet.swift */; };
 		FF1702030000000000000001 /* WorkoutVoiceLogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702030000000000000002 /* WorkoutVoiceLogService.swift */; };
@@ -453,6 +459,8 @@
 		FA6103010000000000000001 /* ProgramRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramRepository.swift; sourceTree = "<group>"; };
 		FA6104010000000000000001 /* ScheduleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleRepository.swift; sourceTree = "<group>"; };
 		FA6105010000000000000001 /* ProgramScheduleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramScheduleService.swift; sourceTree = "<group>"; };
+		FA6109010000000000000001 /* ProgramInsightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramInsightEngine.swift; sourceTree = "<group>"; };
+		FA610A010000000000000001 /* ProgramOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramOverviewView.swift; sourceTree = "<group>"; };
 		AE4502010000000000000001 /* VerdictEventRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictEventRepository.swift; sourceTree = "<group>"; };
 		AE4503010000000000000001 /* GreenLightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreenLightEngine.swift; sourceTree = "<group>"; };
 		AE4504010000000000000001 /* VerdictOutcomeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictOutcomeSheet.swift; sourceTree = "<group>"; };
@@ -484,6 +492,7 @@
 		DD0301010000000000000002 /* SleepDetailChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailChart.swift; sourceTree = "<group>"; };
 		DD0301010000000000000003 /* HRVDetailChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailChart.swift; sourceTree = "<group>"; };
 		DD0403010000000000000002 /* WelcomeActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeActionCard.swift; sourceTree = "<group>"; };
+		FA610B010000000000000001 /* TodayProposalSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayProposalSection.swift; sourceTree = "<group>"; };
 		DD0901010000000000000002 /* TrainingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingProfile.swift; sourceTree = "<group>"; };
 		DD1303010000000000000002 /* SharpTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpTextFieldStyle.swift; sourceTree = "<group>"; };
 		DD1401010000000000000002 /* SyncEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEntity.swift; sourceTree = "<group>"; };
@@ -542,6 +551,9 @@
 		FF0801010000000000000002 /* FatigueAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueAttentionBanner.swift; sourceTree = "<group>"; };
 		FF1601010000000000000002 /* WorkoutLLMImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLLMImportService.swift; sourceTree = "<group>"; };
 		FF1602010000000000000002 /* WorkoutImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportSheet.swift; sourceTree = "<group>"; };
+		FA6106010000000000000001 /* ProgramImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramImportSheet.swift; sourceTree = "<group>"; };
+		FA6108010000000000000001 /* QuickPastSessionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPastSessionSheet.swift; sourceTree = "<group>"; };
+		FA6107010000000000000001 /* ScheduleWeekSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleWeekSection.swift; sourceTree = "<group>"; };
 		FF1702010000000000000002 /* SpeechCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechCaptureService.swift; sourceTree = "<group>"; };
 		FF1702020000000000000002 /* LogCaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogCaptureSheet.swift; sourceTree = "<group>"; };
 		FF1702030000000000000002 /* WorkoutVoiceLogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutVoiceLogService.swift; sourceTree = "<group>"; };
@@ -865,6 +877,7 @@
 				AC4302010000000000000001 /* VerdictReasonBuilder.swift */,
 				AC4303010000000000000001 /* TodayVerdictService.swift */,
 				FA6105010000000000000001 /* ProgramScheduleService.swift */,
+				FA6109010000000000000001 /* ProgramInsightEngine.swift */,
 				AA4401010000000000000001 /* VerdictDecision.swift */,
 				AAFE00010000000000000001 /* ResolvedSessionPlan.swift */,
 				AE4503010000000000000001 /* GreenLightEngine.swift */,
@@ -949,6 +962,7 @@
 				BB0203010000000000000004 /* WeeklySummaryCard.swift */,
 				AA10010200000000000002 /* TrainingProfileCard.swift */,
 				DD0403010000000000000002 /* WelcomeActionCard.swift */,
+				FA610B010000000000000001 /* TodayProposalSection.swift */,
 				EE0502010000000000000002 /* NotificationPrePermissionCard.swift */,
 			);
 			path = Dashboard;
@@ -1026,6 +1040,10 @@
 				1101010100000000000000C2 /* TemplateCarouselSection.swift */,
 				1101010100000000000000D2 /* TemplatePreviewSheet.swift */,
 				FF1602010000000000000002 /* WorkoutImportSheet.swift */,
+				FA6106010000000000000001 /* ProgramImportSheet.swift */,
+				FA610A010000000000000001 /* ProgramOverviewView.swift */,
+				FA6108010000000000000001 /* QuickPastSessionSheet.swift */,
+				FA6107010000000000000001 /* ScheduleWeekSection.swift */,
 				FF1702020000000000000002 /* LogCaptureSheet.swift */,
 				FF1702050000000000000002 /* VoiceDictationCard.swift */,
 				1101010100000000000000E2 /* TemplatePickerSheet.swift */,
@@ -1387,6 +1405,7 @@
 				BB0203010000000000000001 /* DeltaIndicator.swift in Sources */,
 				BB0203010000000000000003 /* WeeklySummaryCard.swift in Sources */,
 				DD0403010000000000000001 /* WelcomeActionCard.swift in Sources */,
+				FA610B020000000000000001 /* TodayProposalSection.swift in Sources */,
 				EE0502010000000000000001 /* NotificationPrePermissionCard.swift in Sources */,
 				62F32D7DC317C2EF8C0400B6 /* SpikeAlertBanner.swift in Sources */,
 				DD1303010000000000000001 /* SharpTextFieldStyle.swift in Sources */,
@@ -1433,6 +1452,8 @@
 				FA6103020000000000000001 /* ProgramRepository.swift in Sources */,
 				FA6104020000000000000001 /* ScheduleRepository.swift in Sources */,
 				FA6105020000000000000001 /* ProgramScheduleService.swift in Sources */,
+				FA6109020000000000000001 /* ProgramInsightEngine.swift in Sources */,
+				FA610A020000000000000001 /* ProgramOverviewView.swift in Sources */,
 				DD2601010000000000000001 /* BaselineState.swift in Sources */,
 				DD2002010000000000000001 /* ShadowPredictor.swift in Sources */,
 				DD2003010000000000000001 /* CycleModifierGate.swift in Sources */,
@@ -1508,6 +1529,9 @@
 				627EC1902F75917900B89262 /* TemplateEditorSheet.swift in Sources */,
 				FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */,
 				FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */,
+				FA6106020000000000000001 /* ProgramImportSheet.swift in Sources */,
+				FA6108020000000000000001 /* QuickPastSessionSheet.swift in Sources */,
+				FA6107020000000000000001 /* ScheduleWeekSection.swift in Sources */,
 				FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */,
 				FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */,
 				FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */,

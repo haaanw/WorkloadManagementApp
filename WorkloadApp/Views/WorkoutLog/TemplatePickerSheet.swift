@@ -11,6 +11,8 @@ struct TemplatePickerSheet: View {
     let onSelectTemplate: (WorkoutTemplate) -> Void
     let onStartBlank: () -> Void
     let onCreateTemplate: () -> Void
+    /// Opens the program door (R6: empty states sell import first).
+    var onBringProgram: () -> Void = {}
 
     // MARK: - Template Fetching
 
@@ -62,15 +64,30 @@ struct TemplatePickerSheet: View {
 
     // MARK: - Empty State
 
+    // Import-first empty state (R6). Also retires the stale "Templates tab" copy —
+    // `empty.noTemplates.hint` named a tab that does not exist in the five-tab app.
     private var emptyState: some View {
         VStack(spacing: Spacing.sm) {
             Text("empty.noTemplates")
                 .font(.Tokens.sectionHead)
                 .foregroundStyle(ColorTokens.text1)
-            Text("empty.noTemplates.hint")
+            Text("empty.noTemplates.pickerImportFirst")
                 .font(.Tokens.body)
                 .foregroundStyle(ColorTokens.text2)
                 .multilineTextAlignment(.center)
+            Button {
+                Haptics.tap()
+                dismiss()
+                onBringProgram()
+            } label: {
+                Text("workoutLog.menu.bringProgram")
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text1)
+                    .padding(.horizontal, Spacing.md)
+                    .padding(.vertical, Spacing.xs)
+                    .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+            }
+            .buttonStyle(.pressable)
             Button {
                 Haptics.tap()
                 dismiss()
@@ -78,10 +95,7 @@ struct TemplatePickerSheet: View {
             } label: {
                 Text("action.createTemplate")
                     .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text1)
-                    .padding(.horizontal, Spacing.md)
-                    .padding(.vertical, Spacing.xs)
-                    .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+                    .foregroundStyle(ColorTokens.text2)
             }
             .buttonStyle(.pressable)
         }

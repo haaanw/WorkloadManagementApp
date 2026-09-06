@@ -253,6 +253,192 @@ async function handlePlanMode(workout_text: string): Promise<Response> {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
+// Program mode (OpenAI) — v1.7.3 feature 6, epic 1. The text is a whole
+// multi-week training block; the response preserves its week/day structure
+// instead of flattening days into groups. Plan mode above stays untouched:
+// shipped 1.7.2 clients decode its flat shape, so the structured shape is a
+// NEW mode, never a change to the old one. Same enum vocab, same no-invention
+// rules, and the schema + the Swift decoder (ParsedProgramResponse in
+// WorkoutLLMImportService) must move together (strict: true).
+// ─────────────────────────────────────────────────────────────────────────
+const PROGRAM_SYSTEM_PROMPT = `You are a training-program parser. The text is an athlete's multi-week training program. Extract ONLY what is explicitly stated. Do NOT invent or hallucinate any values — the program's numbers belong to its author.
+
+Rules:
+- Convert all weights to kilograms. If the weight appears to be in pounds (lbs), multiply by 0.453592 to convert to kg.
+- Use null for any field not explicitly mentioned in the text. Never guess reps, weights, or durations.
+- Infer sport_type and session_type from context if obvious. Default to "lifting" / "strength".
+- Preserve the program's week structure: one entry per training week, in order, numbered from 1. If the text has day headers but no week structure, emit a single week 1 holding those days. If it has neither, emit week 1 with a single day titled "Main".
+- Each day gets its own entry with a short title taken from the text's own words ("Upper", "Heavy lower", "Day 3 - Full body"). Number days within their week from 1 in order of appearance.
+- duration_weeks: the block length in weeks ONLY when the text states or clearly implies it (e.g. it lists 6 distinct weeks, or says "8-week block"); otherwise null.
+- phases: ONLY when the text names phase/block bands (e.g. intro, build, peak, deload, accumulation, intensification, taper, test). Use the text's own phase names and 1-based inclusive week ranges. An unnamed program gets an empty array.
+- A week described as identical to a previous week ("weeks 2-4 same as week 1", "repeat") still gets its own week entries with the repeated content.
+- Mark sets as warmup only if explicitly labeled as warmup in the text.
+- exercise_category should reflect the movement type: compound (multi-joint), isolation (single-joint), cardio, bodyweight, plyometric, drill, or interval.
+- muscle_group should be the most specific primary muscle targeted when identifiable. Fall back to the coarse region value only when the specific muscle is ambiguous, or use null.`;
+
+const PROGRAM_EXERCISE_SCHEMA = {
+  type: "object" as const,
+  properties: {
+    exercise_name: { type: "string" as const },
+    exercise_category: {
+      type: "string" as const,
+      enum: [...EXERCISE_CATEGORIES],
+    },
+    muscle_group: {
+      type: ["string", "null"] as const,
+      enum: [...MUSCLE_GROUPS, null],
+    },
+    sets: {
+      type: "array" as const,
+      items: {
+        type: "object" as const,
+        properties: {
+          target_reps: { type: ["integer", "null"] as const },
+          target_weight_kg: { type: ["number", "null"] as const },
+          target_duration_seconds: { type: ["integer", "null"] as const },
+          target_rpe: { type: ["number", "null"] as const },
+          is_warmup: { type: "boolean" as const },
+        },
+        required: [
+          "target_reps",
+          "target_weight_kg",
+          "target_duration_seconds",
+          "target_rpe",
+          "is_warmup",
+        ],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: ["exercise_name", "exercise_category", "muscle_group", "sets"],
+  additionalProperties: false,
+};
+
+const PROGRAM_SCHEMA = {
+  type: "object" as const,
+  properties: {
+    program_name: { type: "string" as const },
+    sport_type: {
+      type: "string" as const,
+      enum: [...SPORT_TYPES],
+    },
+    session_type: {
+      type: "string" as const,
+      enum: [...SESSION_TYPES],
+    },
+    duration_weeks: { type: ["integer", "null"] as const },
+    phases: {
+      type: "array" as const,
+      items: {
+        type: "object" as const,
+        properties: {
+          name: { type: "string" as const },
+          start_week: { type: "integer" as const },
+          end_week: { type: "integer" as const },
+        },
+        required: ["name", "start_week", "end_week"],
+        additionalProperties: false,
+      },
+    },
+    weeks: {
+      type: "array" as const,
+      items: {
+        type: "object" as const,
+        properties: {
+          week_number: { type: "integer" as const },
+          days: {
+            type: "array" as const,
+            items: {
+              type: "object" as const,
+              properties: {
+                day_number: { type: "integer" as const },
+                title: { type: "string" as const },
+                exercises: {
+                  type: "array" as const,
+                  items: PROGRAM_EXERCISE_SCHEMA,
+                },
+              },
+              required: ["day_number", "title", "exercises"],
+              additionalProperties: false,
+            },
+          },
+        },
+        required: ["week_number", "days"],
+        additionalProperties: false,
+      },
+    },
+  },
+  required: [
+    "program_name",
+    "sport_type",
+    "session_type",
+    "duration_weeks",
+    "phases",
+    "weeks",
+  ],
+  additionalProperties: false,
+};
+
+async function handleProgramMode(workout_text: string): Promise<Response> {
+  const apiKey = Deno.env.get("OPENAI_API_KEY");
+  if (!apiKey) {
+    return new Response(
+      JSON.stringify({ error: "OpenAI API key not configured" }),
+      { status: 500, headers: JSON_HEADERS }
+    );
+  }
+
+  const openaiResponse = await fetch(
+    "https://api.openai.com/v1/chat/completions",
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${apiKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "gpt-4o-mini",
+        messages: [
+          { role: "system", content: PROGRAM_SYSTEM_PROMPT },
+          { role: "user", content: workout_text },
+        ],
+        response_format: {
+          type: "json_schema",
+          json_schema: {
+            name: "parsed_program",
+            schema: PROGRAM_SCHEMA,
+            strict: true,
+          },
+        },
+      }),
+    }
+  );
+
+  if (!openaiResponse.ok) {
+    const errorBody = await openaiResponse.text();
+    console.error("OpenAI API error (program):", openaiResponse.status, errorBody);
+    return new Response(
+      JSON.stringify({ error: "Failed to parse program" }),
+      { status: 502, headers: JSON_HEADERS }
+    );
+  }
+
+  const data = await openaiResponse.json();
+  const content = data.choices?.[0]?.message?.content;
+
+  if (!content) {
+    return new Response(
+      JSON.stringify({ error: "Failed to parse program" }),
+      { status: 502, headers: JSON_HEADERS }
+    );
+  }
+
+  const parsed = JSON.parse(content);
+
+  return new Response(JSON.stringify(parsed), { headers: JSON_HEADERS });
+}
+
+// ─────────────────────────────────────────────────────────────────────────
 // Log mode (DeepSeek) — the text describes work already performed, not a
 // plan. DeepSeek's json_object response_format does not enforce a schema
 // (see DEEPSEEK_DOCS_NOTES below), so the shape is spelled out in the
@@ -686,9 +872,9 @@ Deno.serve(async (req: Request) => {
 
     // Mode validation
     const mode = rawMode ?? "plan";
-    if (mode !== "plan" && mode !== "log") {
+    if (mode !== "plan" && mode !== "log" && mode !== "program") {
       return new Response(
-        JSON.stringify({ error: 'mode must be "plan" or "log"' }),
+        JSON.stringify({ error: 'mode must be "plan", "log" or "program"' }),
         { status: 400, headers: JSON_HEADERS }
       );
     }
@@ -708,9 +894,9 @@ Deno.serve(async (req: Request) => {
       );
     }
 
-    // Plan mode accepts whole multi-week program extractions (PDFs routinely
-    // exceed 10k chars); log mode stays tight — a spoken session is short.
-    const maxChars = mode === "plan" ? 60_000 : 10_000;
+    // Plan/program modes accept whole multi-week program extractions (PDFs
+    // routinely exceed 10k chars); log mode stays tight — a spoken session is short.
+    const maxChars = mode === "log" ? 10_000 : 60_000;
     if (workout_text.length > maxChars) {
       return new Response(
         JSON.stringify({
@@ -741,6 +927,9 @@ Deno.serve(async (req: Request) => {
     // Provider routing
     if (mode === "plan") {
       return await handlePlanMode(workout_text);
+    }
+    if (mode === "program") {
+      return await handleProgramMode(workout_text);
     }
     return await handleLogMode(workout_text);
   } catch (error) {

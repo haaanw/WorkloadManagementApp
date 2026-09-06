@@ -13,6 +13,8 @@ struct TemplateCarouselSection: View {
     var onStartFromTemplate: (WorkoutTemplate) -> Void
     var onCreateTemplate: () -> Void
     var onPreviewTemplate: ((WorkoutTemplate) -> Void)? = nil
+    /// Opens the program door (R6: empty states sell import first).
+    var onBringProgram: () -> Void = {}
 
     @State private var centeredId: UUID?
     @State private var showDeleteConfirmation = false
@@ -65,6 +67,8 @@ struct TemplateCarouselSection: View {
 
     // MARK: - Empty State
 
+    // Import-first empty state (R6): the product's core is "bring YOUR plan" — the
+    // program door leads; authoring a template is the quiet second path.
     private var emptyState: some View {
         SectionContainer {
             VStack(spacing: Spacing.sm) {
@@ -72,20 +76,29 @@ struct TemplateCarouselSection: View {
                     .font(.Tokens.sectionHead)
                     .foregroundStyle(ColorTokens.text1)
 
-                Text("empty.noTemplates.description")
+                Text("empty.noTemplates.importFirst")
                     .font(.Tokens.body)
                     .foregroundStyle(ColorTokens.text2)
                     .multilineTextAlignment(.center)
+
+                Button {
+                    onBringProgram()
+                } label: {
+                    Text("workoutLog.menu.bringProgram")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text1)
+                        .padding(.horizontal, Spacing.md)
+                        .padding(.vertical, Spacing.xs)
+                        .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+                }
+                .buttonStyle(.pressable)
 
                 Button {
                     onCreateTemplate()
                 } label: {
                     Text("action.createTemplate")
                         .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
-                        .padding(.horizontal, Spacing.md)
-                        .padding(.vertical, Spacing.xs)
-                        .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+                        .foregroundStyle(ColorTokens.text2)
                 }
                 .buttonStyle(.pressable)
             }

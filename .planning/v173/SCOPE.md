@@ -133,6 +133,11 @@ appends are open again, kept atomic per lane:
   One owner for all WorkoutLog-adjacent surfaces; the audit's slices 2 and
   4 ride the feature-6 build instead of colliding with it. R10 is already
   CLOSED by onboarding amendment 6 (import joins the flow).
+  STATUS 2026-09-06: BUILT — batch 1 landed `40d4314`; batches 2–7 (epics
+  1–10 + slices 2+4) landed as one commit, suite green. Build record +
+  deviation list: `.design-explorations/logging-v4-demo/PLAN.md` §BUILD
+  RECORD. HAN actions: run migration 012, deploy parse-workout (new
+  program mode), fidelity pass on device.
 - **Lane B — onboarding build, batches 1–6** per BUILD-PLAN + amendments
   1–9. AppRouter is free (launch fix landed); the PostHog SPM change stays
   its own flagged commit.

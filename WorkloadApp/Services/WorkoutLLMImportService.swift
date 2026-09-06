@@ -38,6 +38,35 @@ enum WorkoutLLMImportService {
         }
     }
 
+    /// Program-mode response (v1.7.3 feature 6, epic 1): the parser preserves the file's
+    /// week/day structure instead of flattening days into groups. Moves together with
+    /// PROGRAM_SCHEMA in `parse-workout/index.ts` (strict mode).
+    struct ParsedProgramResponse: Decodable {
+        let program_name: String
+        let sport_type: String
+        let session_type: String
+        let duration_weeks: Int?
+        let phases: [ParsedPhase]
+        let weeks: [ParsedWeek]
+
+        struct ParsedPhase: Decodable {
+            let name: String
+            let start_week: Int
+            let end_week: Int
+        }
+
+        struct ParsedWeek: Decodable {
+            let week_number: Int
+            let days: [ParsedDay]
+        }
+
+        struct ParsedDay: Decodable {
+            let day_number: Int
+            let title: String
+            let exercises: [ParsedWorkoutResponse.ParsedExercise]
+        }
+    }
+
     // MARK: - Errors
 
     enum ImportError: LocalizedError {
@@ -46,6 +75,8 @@ enum WorkoutLLMImportService {
         case noTextFound
         case parseFailed(String)
         case notAuthenticated
+        case programTooLong
+        case emptyProgram
 
         var errorDescription: String? {
             switch self {
@@ -59,6 +90,10 @@ enum WorkoutLLMImportService {
                 return String(localized: "error.import.parseFailed", defaultValue: "Failed to parse workout: \(detail)")
             case .notAuthenticated:
                 return String(localized: "error.import.notAuthenticated", defaultValue: "You must be signed in to import workouts.")
+            case .programTooLong:
+                return String(localized: "error.import.programTooLong", defaultValue: "This file is too long to read at once. Try a few weeks at a time, or a photo of one week.")
+            case .emptyProgram:
+                return String(localized: "error.import.emptyProgram", defaultValue: "This file has no workout I can read — try a photo of one week.")
             }
         }
     }
@@ -80,6 +115,39 @@ enum WorkoutLLMImportService {
                 "parse-workout",
                 options: .init(body: ParseRequest(workout_text: text))
             )
+            return response
+        } catch let error as ImportError {
+            throw error
+        } catch let error as FunctionsError {
+            throw mapFunctionsError(error)
+        } catch {
+            throw ImportError.parseFailed(error.localizedDescription)
+        }
+    }
+
+    /// Sends program text to the parse-workout edge function in program mode and decodes the
+    /// structured (week/day-preserving) response. The 60k cap is enforced client-side first so
+    /// the athlete gets the human copy instead of a server 400.
+    @MainActor
+    static func parseProgramText(
+        _ text: String,
+        client: SupabaseClient
+    ) async throws -> ParsedProgramResponse {
+        struct ParseRequest: Encodable {
+            let workout_text: String
+            let mode: String
+        }
+
+        guard text.count <= 60_000 else { throw ImportError.programTooLong }
+
+        do {
+            let response: ParsedProgramResponse = try await client.functions.invoke(
+                "parse-workout",
+                options: .init(body: ParseRequest(workout_text: text, mode: "program"))
+            )
+            guard response.weeks.contains(where: { week in
+                week.days.contains { !$0.exercises.isEmpty }
+            }) else { throw ImportError.emptyProgram }
             return response
         } catch let error as ImportError {
             throw error
@@ -289,6 +357,126 @@ enum WorkoutLLMImportService {
             sessionType: sessionType,
             groups: groups
         )
+    }
+
+    // MARK: - Program Building (v1.7.3 feature 6)
+
+    /// The duration ladder's first rung: what the file itself states. `nil` means the file is
+    /// silent and the athlete must be ASKED (never guessed). A multi-week structure counts as
+    /// stated — the weeks themselves document the length.
+    static func statedDurationWeeks(of response: ParsedProgramResponse) -> Int? {
+        if let stated = response.duration_weeks, stated >= 1 { return stated }
+        let structural = response.weeks.count
+        return structural > 1 ? structural : nil
+    }
+
+    /// Builds the unsaved model graph for an imported program: the `TrainingProgram` with its
+    /// phases and days, plus one content-holding `WorkoutTemplate` per day (flagged
+    /// `isProgramDay`). Nothing is inserted — the caller saves through `ProgramRepository`
+    /// and activates through `ProgramScheduleService`.
+    ///
+    /// When the chosen duration exceeds the parsed weeks (a one-week file run for 8 weeks),
+    /// later weeks cycle through the parsed content; the program's numbers are never invented.
+    @MainActor
+    static func buildProgram(
+        from response: ParsedProgramResponse,
+        durationWeeks: Int,
+        durationSource: ProgramDurationSource,
+        athleteId: UUID,
+        source: ProgramSource
+    ) -> (program: TrainingProgram, dayTemplates: [WorkoutTemplate]) {
+        let program = TrainingProgram(
+            athleteId: athleteId,
+            name: response.program_name,
+            source: source,
+            durationWeeks: max(1, durationWeeks),
+            durationSource: durationSource
+        )
+
+        program.phases = response.phases.enumerated().compactMap { index, phase in
+            guard phase.start_week <= program.durationWeeks else { return nil }
+            return ProgramPhase(
+                name: phase.name,
+                startWeek: phase.start_week,
+                endWeek: min(phase.end_week, program.durationWeeks),
+                orderIndex: index
+            )
+        }
+
+        let parsedWeeks = response.weeks
+            .sorted { $0.week_number < $1.week_number }
+            .filter { !$0.days.isEmpty }
+        guard !parsedWeeks.isEmpty else { return (program, []) }
+
+        var dayTemplates: [WorkoutTemplate] = []
+        for week in 1...program.durationWeeks {
+            let sourceWeek = parsedWeeks[(week - 1) % parsedWeeks.count]
+            for day in sourceWeek.days.sorted(by: { $0.day_number < $1.day_number }) {
+                let template = makeDayTemplate(
+                    programName: response.program_name,
+                    week: week,
+                    day: day,
+                    sportType: SportType(rawValue: response.sport_type) ?? .lifting,
+                    sessionType: SessionType(rawValue: response.session_type) ?? .strength,
+                    athleteId: athleteId
+                )
+                dayTemplates.append(template)
+                program.days.append(ProgramDay(
+                    weekNumber: week,
+                    dayNumber: day.day_number,
+                    title: day.title,
+                    templateId: template.id
+                ))
+            }
+        }
+        return (program, dayTemplates)
+    }
+
+    @MainActor
+    private static func makeDayTemplate(
+        programName: String,
+        week: Int,
+        day: ParsedProgramResponse.ParsedDay,
+        sportType: SportType,
+        sessionType: SessionType,
+        athleteId: UUID
+    ) -> WorkoutTemplate {
+        let template = WorkoutTemplate(
+            coachId: athleteId,
+            templateName: "\(programName) · W\(week)D\(day.day_number) · \(day.title)",
+            sportType: sportType,
+            sessionType: sessionType
+        )
+        template.isAthleteOwned = true
+        template.athleteId = athleteId
+        template.isProgramDay = true
+
+        let group = ExerciseGroup(groupName: day.title, orderIndex: 0)
+        group.exercises = day.exercises.enumerated().map { index, exercise in
+            let templateExercise = TemplateExercise(
+                exerciseName: exercise.exercise_name,
+                exerciseCategory: ExerciseCategory(rawValue: exercise.exercise_category) ?? .compound,
+                muscleGroup: exercise.muscle_group.flatMap { MuscleGroup(rawValue: $0) },
+                orderIndex: index
+            )
+            templateExercise.sets = exercise.sets.enumerated().map { setIndex, set in
+                TemplateSet(
+                    setIndex: setIndex,
+                    targetReps: set.target_reps,
+                    targetWeightKg: set.target_weight_kg,
+                    targetDurationSeconds: set.target_duration_seconds,
+                    targetRPE: set.target_rpe,
+                    targetRIR: set.target_rpe.map { Int(10.0 - $0) },
+                    isWarmup: set.is_warmup
+                )
+            }
+            if templateExercise.sets.isEmpty {
+                templateExercise.sets = [TemplateSet(setIndex: 0)]
+            }
+            return templateExercise
+        }
+        template.groups = [group]
+        return template
     }
 
     // MARK: - Free-form Exercise Resolution

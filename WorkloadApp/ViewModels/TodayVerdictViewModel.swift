@@ -336,6 +336,11 @@ final class TodayVerdictViewModel {
             }
         }()
 
+        // Epic 9 (adaptive cells): the proposal's structured shape inputs — the suggestion's
+        // back-off cut and the headline exercise's working-set count ("ALL 4 SETS").
+        let backoffCut = max(0, headline.adjustedBackoffSetCut ?? 0)
+        let workingSets = headlineWorkingSetCount(in: plan)
+
         display = TodayVerdictDisplay(
             headlineExerciseName: sessionHeadlineName(in: plan) ?? "",
             plannedTopSetKg: plannedTopSetKg,
@@ -346,7 +351,9 @@ final class TodayVerdictViewModel {
             confidenceNote: confidenceNote,
             appliedState: appliedState,
             // Microdose framing ONLY on a real proximity-tightened adjustment (ADR-0002 / item 5).
-            isMicrodose: lastHeadlineMatchProximity && kind == .adjusted
+            isMicrodose: lastHeadlineMatchProximity && kind == .adjusted,
+            backoffSetCut: backoffCut,
+            workingSetCount: workingSets
         )
     }
 
@@ -364,6 +371,16 @@ final class TodayVerdictViewModel {
     /// The SESSION headline top set = the per-exercise top set with the max weight across the session.
     private func sessionHeadline(in plan: PrescribedWorkout) -> TemplateSet? {
         perExerciseTopSets(in: plan).max { ($0.targetWeightKg ?? 0) < ($1.targetWeightKg ?? 0) }
+    }
+
+    /// Working (non-warmup) set count of the exercise that owns the headline top set —
+    /// the "ALL 4 SETS" number in the adaptive cells (epic 9).
+    private func headlineWorkingSetCount(in plan: PrescribedWorkout) -> Int {
+        guard let headline = sessionHeadline(in: plan) else { return 0 }
+        let owner = plan.allExercises.first { exercise in
+            exercise.sets.contains { $0.id == headline.id }
+        }
+        return owner?.sortedSets.filter { !$0.isWarmup }.count ?? 0
     }
 
     /// The exercise name that owns the session headline top set.

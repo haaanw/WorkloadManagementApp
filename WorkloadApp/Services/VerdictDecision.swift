@@ -72,6 +72,20 @@ struct TodayVerdictDisplay: Equatable {
     /// Whether the athlete has decided yet (drives the decision-row vs confirmed-line swap).
     enum AppliedState { case pending, accepted, keptPlan }
 
+    /// The proposal's actual SHAPE (v1.7.3 feature 6, epic 9 — frozen S4 spec). Drives the
+    /// accept cell's verb + sublabel so the two cells read as a choice between two concrete
+    /// sessions: kg for load, sets for volume, percent as annotation.
+    enum ProposalShape: Equatable {
+        /// Nothing to decide — one "Got it" cell.
+        case steady
+        /// The top set eases ("Go 5% lighter · 132.5 kg"), possibly with a back-off cut riding.
+        case loadTrim
+        /// Load holds; back-off volume drops ("Cut the volume · top set + 1 back-off").
+        case volumeCut
+        /// Match-proximity cap ("Microdose today · 1 top set · ~20 min").
+        case microdose
+    }
+
     let headlineExerciseName: String
     let plannedTopSetKg: Double
     let adjustedTopSetKg: Double
@@ -83,6 +97,32 @@ struct TodayVerdictDisplay: Equatable {
     /// v2.1 (ADR-0002): the adjustment is a match-proximity MICRODOSE — the card swaps its modify
     /// framing to "Microdose" (vocabulary only; the numbers/logic are already in the fields above).
     var isMicrodose: Bool = false
+
+    // MARK: Proposal shape (epic 9)
+
+    /// The suggestion's structured back-off cut (0 = none).
+    var backoffSetCut: Int = 0
+    /// Working (non-warmup) sets on the headline exercise — the "ALL 4 SETS" number.
+    var workingSetCount: Int = 0
+
+    /// Derived shape per the frozen S4 spec. Order matters: microdose outranks the others;
+    /// a real load ease reads as a load trim (any cut rides in the sublabel); a cut with no
+    /// load ease is a volume day; anything else — including an RPE-cap-only nudge, which has
+    /// no set-shape of its own — falls back to the load-trim voice via `hasAdjustment`.
+    var shape: ProposalShape {
+        guard kind == .adjusted, hasAdjustment else { return .steady }
+        if isMicrodose { return .microdose }
+        if adjustedTopSetKg < plannedTopSetKg - 0.001 { return .loadTrim }
+        if backoffSetCut > 0 { return .volumeCut }
+        return .loadTrim
+    }
+
+    /// The load ease as a whole percent (annotation voice), nil when load is unchanged.
+    var loadTrimPercent: Int? {
+        guard plannedTopSetKg > 0, adjustedTopSetKg < plannedTopSetKg - 0.001 else { return nil }
+        let percent = Int(((plannedTopSetKg - adjustedTopSetKg) / plannedTopSetKg * 100).rounded())
+        return max(percent, 1)
+    }
 }
 
 // MARK: - VerdictDecisionApplier (slot mutations only — the autonomy invariant)

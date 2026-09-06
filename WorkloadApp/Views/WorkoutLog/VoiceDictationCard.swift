@@ -1,5 +1,29 @@
 import SwiftUI
 
+/// First-run retirement for the voice coaching line (v1.7.3 feature 6, round-3 note 3):
+/// the hint teaches for the first week or two, then retires PERMANENTLY — never a standing
+/// visual liability. After retirement the speak control widens into the full-width bar
+/// (round-4 note: ease of using the speaking function wins on all aspects).
+enum VoiceHintRetirement {
+    static let firstSeenKey = "voiceHint.firstSeenAt"
+    static let retirementDays = 14
+
+    /// Pure rule, unit-tested: retired once the first sighting is `retirementDays` old.
+    static func isRetired(firstSeenAt: Date?, now: Date = .now) -> Bool {
+        guard let firstSeenAt else { return false }
+        return now.timeIntervalSince(firstSeenAt) >= Double(retirementDays) * 86_400
+    }
+
+    /// Stamps the first sighting on first call; reads thereafter.
+    static func isRetired(defaults: UserDefaults = .standard, now: Date = .now) -> Bool {
+        if let first = defaults.object(forKey: firstSeenKey) as? Date {
+            return isRetired(firstSeenAt: first, now: now)
+        }
+        defaults.set(now, forKey: firstSeenKey)
+        return false
+    }
+}
+
 /// What the host sheet did with one utterance. The card is deliberately DUMB about logging: it
 /// hands back a final string and renders whichever of these two answers it gets. All matching,
 /// resolution, and mutation live in `ActiveWorkoutSheet` — the card owns the microphone and the
@@ -33,6 +57,14 @@ struct VoiceDictationCard: View {
     ///
     /// The card remains the sole owner of the microphone; the host only asks.
     var startToken: Int = 0
+    /// Docked rendering (v1.7.3 feature 6, epic 10): the capture control lives at the bottom
+    /// of the sheet — first weeks as the round 76pt mic with the coaching line beside it,
+    /// after the hint retires as the full-width 64pt speak bar. false keeps the original
+    /// inline card (other mounts unchanged).
+    var isDocked: Bool = false
+    /// True when today's session is plan-resolved — the coaching line teaches the plan-aware
+    /// grammar ("say only what changed; the plan supplies the exercise and the target").
+    var planAware: Bool = false
     /// Hands the host a FINAL utterance and awaits its verdict. Async because the host may fall
     /// back to the LLM parser for anything the local grammar cannot read.
     let onUtterance: (String) async -> UtteranceOutcome
@@ -51,6 +83,8 @@ struct VoiceDictationCard: View {
     /// The last exercise a successful ingest touched, echoed as a stamp so the athlete gets
     /// confirmation even when the appended set scrolled out of view.
     @State private var lastAdded: String?
+    /// Docked mode: whether the first-run coaching line has permanently retired.
+    @State private var hintRetired = false
     @FocusState private var isTypingFocused: Bool
 
     /// The card's own state machine. Deliberately NOT the speech state: typing never touches the
@@ -79,30 +113,20 @@ struct VoiceDictationCard: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: Spacing.xs) {
-            switch phase {
-            case .collapsed:
-                collapsedRow
-            case .typing:
-                typingRow
-            case .recording:
-                recordingRow
-            case .resolving(let utterance):
-                resolvingRow(utterance)
-            case .unparsed:
-                fallbackChip
-            }
-
-            if case .failed(let error) = speech.state {
-                failureNotice(for: error)
+        Group {
+            if isDocked {
+                dockedBody
+            } else {
+                inlineBody
             }
         }
-        .padding(Spacing.sm)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
-        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
         .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: phase)
         .accessibilityIdentifier("activeWorkout.voiceDictation")
+        .onAppear {
+            if isDocked {
+                hintRetired = VoiceHintRetirement.isRetired()
+            }
+        }
         // Silence auto-stop rides the service's OWN 0.5s elapsed tick rather than a second timer
         // this view would have to own and invalidate — one less timer to leak on disappear.
         .onChange(of: speech.elapsed) { _, _ in
@@ -129,6 +153,232 @@ struct VoiceDictationCard: View {
         .onDisappear {
             speech.cancel()
         }
+    }
+
+    /// The original inline card (non-docked mounts unchanged).
+    private var inlineBody: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            stateContent
+            if case .failed(let error) = speech.state {
+                failureNotice(for: error)
+            }
+        }
+        .padding(Spacing.sm)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+        .overlay(RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5))
+    }
+
+    /// The docked capture control (epic 10): two ages of the mic. First weeks — the round
+    /// 76pt mic bottom-trailing with the coaching line beside it. After the hint retires —
+    /// the full-width 64pt speak bar, tappable anywhere along its length, the transcript
+    /// appearing inside it only while recording.
+    private var dockedBody: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            if case .failed(let error) = speech.state {
+                failureNotice(for: error)
+            }
+            switch phase {
+            case .collapsed:
+                if hintRetired {
+                    speakBar
+                } else {
+                    HStack(alignment: .center, spacing: Spacing.xs) {
+                        coachingCapsule
+                        roundMic
+                    }
+                }
+            case .typing:
+                typingRow
+                    .padding(Spacing.xs)
+                    .background(ColorTokens.surfaceEl2, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
+                    )
+            case .recording:
+                recordingBar
+            case .resolving(let utterance):
+                resolvingRow(utterance)
+                    .padding(Spacing.xs)
+                    .background(ColorTokens.surfaceEl2, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
+                    )
+            case .unparsed:
+                fallbackChip
+                    .padding(Spacing.xs)
+                    .background(ColorTokens.surfaceEl2, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: CornerTokens.control)
+                            .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
+                    )
+            }
+        }
+    }
+
+    @ViewBuilder
+    private var stateContent: some View {
+        switch phase {
+        case .collapsed:
+            collapsedRow
+        case .typing:
+            typingRow
+        case .recording:
+            recordingRow
+        case .resolving(let utterance):
+            resolvingRow(utterance)
+        case .unparsed:
+            fallbackChip
+        }
+    }
+
+    // MARK: - Docked age 1 · coaching capsule + round mic (first weeks)
+
+    private var coachingCapsule: some View {
+        VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+            Text(coachingLine)
+                .font(.Tokens.label)
+                .foregroundStyle(ColorTokens.text2)
+                .fixedSize(horizontal: false, vertical: true)
+            HStack(spacing: Spacing.xs) {
+                if planAware {
+                    AnnotationLabel(coachingSub, size: .small)
+                }
+                Spacer(minLength: 0)
+                Button {
+                    Haptics.tap()
+                    phase = .typing
+                    isTypingFocused = true
+                } label: {
+                    Text(typeLabel)
+                        .font(.Tokens.smallLabel)
+                        .foregroundStyle(ColorTokens.text2)
+                        .frame(minHeight: 28)
+                        .padding(.horizontal, Spacing.xs)
+                        .contentShape(Rectangle())
+                        .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+                }
+                .buttonStyle(.pressable)
+                .accessibilityIdentifier("activeWorkout.voiceDictation.type")
+                .accessibilityLabel(typeButtonAccessibilityLabel)
+            }
+        }
+        .padding(Spacing.xs)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .background(ColorTokens.surface, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerTokens.control)
+                .stroke(ColorTokens.divider, lineWidth: 0.5)
+        )
+    }
+
+    /// The plain round mic (gated demo: SF Symbol `mic`, 76pt, docked for the right thumb;
+    /// accent ring + dot appear only while recording — accent is live-state territory).
+    private var roundMic: some View {
+        Button {
+            Haptics.tap()
+            Task { await beginRecording() }
+        } label: {
+            Image(systemName: "mic")
+                .font(.Tokens.displayAction)
+                .foregroundStyle(ColorTokens.text1)
+                .frame(width: 76, height: 76)
+                .background(ColorTokens.surfaceEl2, in: Circle())
+                .overlay(Circle().stroke(ColorTokens.dividerStrong, lineWidth: 0.5))
+                .contentShape(Circle())
+        }
+        .buttonStyle(.pressable)
+        .disabled(speech.state == .requestingPermission)
+        .accessibilityIdentifier("activeWorkout.voiceDictation.record")
+        .accessibilityLabel(recordButtonAccessibilityLabel)
+    }
+
+    // MARK: - Docked age 2 · the full-width speak bar (hint retired)
+
+    /// One control, the whole bottom: tappable anywhere along its length. The small keyboard
+    /// affordance rides the trailing edge as a ZStack SIBLING (never a nested button).
+    private var speakBar: some View {
+        ZStack(alignment: .trailing) {
+            Button {
+                Haptics.tap()
+                Task { await beginRecording() }
+            } label: {
+                HStack(spacing: Spacing.sm) {
+                    Image(systemName: "mic")
+                        .font(.Tokens.sectionTitle)
+                        .foregroundStyle(ColorTokens.text1)
+                    Text(speakLabel)
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text1)
+                }
+                .frame(maxWidth: .infinity, minHeight: 64)
+                .background(ColorTokens.surfaceEl2, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+                .overlay(
+                    RoundedRectangle(cornerRadius: CornerTokens.control)
+                        .stroke(ColorTokens.dividerStrong, lineWidth: 0.5)
+                )
+                .contentShape(Rectangle())
+            }
+            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+            .disabled(speech.state == .requestingPermission)
+            .accessibilityIdentifier("activeWorkout.voiceDictation.record")
+            .accessibilityLabel(recordButtonAccessibilityLabel)
+
+            Button {
+                Haptics.tap()
+                phase = .typing
+                isTypingFocused = true
+            } label: {
+                Image(systemName: "keyboard")
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text2)
+                    .frame(width: 44, height: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.pressable)
+            .padding(.trailing, Spacing.xs)
+            .accessibilityIdentifier("activeWorkout.voiceDictation.type")
+            .accessibilityLabel(typeButtonAccessibilityLabel)
+        }
+    }
+
+    /// Recording, docked: the bar goes live — accent ring, live dot, transcript inside,
+    /// tap anywhere to stop. One shape for both ages of the mic.
+    private var recordingBar: some View {
+        Button {
+            stopAndSubmit()
+        } label: {
+            HStack(spacing: Spacing.xs) {
+                Circle()
+                    .fill(ColorTokens.accent)
+                    .frame(width: 10, height: 10)
+                    .scaleEffect(reduceMotion ? 1 : 1 + CGFloat(min(speech.audioLevel, 1)) * 0.6)
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: speech.audioLevel)
+                    .accessibilityHidden(true)
+                Text(livePartial)
+                    .font(.Tokens.label)
+                    .foregroundStyle(speech.transcript.isEmpty ? ColorTokens.text3 : ColorTokens.text1)
+                    .lineLimit(1)
+                    .truncationMode(.head)
+                Spacer(minLength: 0)
+                Image(systemName: "stop.fill")
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text1)
+            }
+            .padding(.horizontal, Spacing.sm)
+            .frame(maxWidth: .infinity, minHeight: 64)
+            .background(ColorTokens.surfaceEl2, in: RoundedRectangle(cornerRadius: CornerTokens.control))
+            .overlay(
+                RoundedRectangle(cornerRadius: CornerTokens.control)
+                    .stroke(ColorTokens.accent, lineWidth: 1.5)
+            )
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+        .accessibilityLabel(stopLabel)
+        .accessibilityIdentifier("activeWorkout.voiceDictation.stop")
     }
 
     // MARK: - Collapsed
@@ -407,6 +657,38 @@ struct VoiceDictationCard: View {
         LocalePinnedStrings.localized(
             "voice.dictation.prompt",
             defaultValue: "Log by voice",
+            locale: locale
+        )
+    }
+
+    /// The first-run coaching line (round 4): plan-aware sessions teach the grammar shortcut;
+    /// unplanned sessions keep the general prompt.
+    private var coachingLine: String {
+        planAware
+            ? LocalePinnedStrings.localized(
+                "voice.dictation.coaching.plan",
+                defaultValue: "Say only what changed — \"one thirty for five\"",
+                locale: locale
+            )
+            : LocalePinnedStrings.localized(
+                "voice.dictation.coaching.free",
+                defaultValue: "Say a set — \"bench press 80 for 5\"",
+                locale: locale
+            )
+    }
+
+    private var coachingSub: String {
+        LocalePinnedStrings.localized(
+            "voice.dictation.coaching.sub",
+            defaultValue: "The plan supplies the exercise and the target",
+            locale: locale
+        )
+    }
+
+    private var speakLabel: String {
+        LocalePinnedStrings.localized(
+            "voice.dictation.speak",
+            defaultValue: "Speak",
             locale: locale
         )
     }

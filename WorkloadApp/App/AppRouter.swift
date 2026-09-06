@@ -486,7 +486,9 @@ struct MainTabView: View {
     /// primary direction). Accessibility IDs are the Stage-4b test contract.
     private var tabItems: [InkTabBar<AppTab>.Item] {
         [
-            .init(tab: .home, title: "tab.home", accessibilityID: "tab.home"),
+            // Slice 2 (R8): the first tab is "Today" — it carries the daily loop. The
+            // accessibility ID stays `tab.home` (the UI-test contract is ID-stable).
+            .init(tab: .home, title: "tab.today", accessibilityID: "tab.home"),
             .init(tab: .log, title: "tab.log", accessibilityID: "tab.log"),
             .init(tab: .trends, title: "tab.trends", accessibilityID: "tab.trends"),
             .init(tab: .profile, title: "tab.profile", accessibilityID: "tab.profile")

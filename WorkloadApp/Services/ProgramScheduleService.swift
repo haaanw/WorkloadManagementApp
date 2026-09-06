@@ -146,6 +146,73 @@ struct ProgramScheduleService {
         try scheduleRepo.insert(materializedEntries(for: program, asOf: today))
     }
 
+    /// The connection wire (epic 1 → verdict): if today has a planned program entry and no
+    /// designation exists yet, designate it — the frozen deep copy of the day's template —
+    /// so `TodayVerdictService` reads the program day with no changes of its own.
+    /// Returns the (existing or new) designation, or nil when today has nothing planned.
+    @discardableResult
+    static func ensureTodayDesignation(
+        athleteId: UUID,
+        plannedSessionRepo: PlannedSessionRepository,
+        scheduleRepo: ScheduleRepository,
+        programRepo: ProgramRepository
+    ) -> PrescribedWorkout? {
+        if let existing = plannedSessionRepo.fetchTodaysPlannedSession(athleteId: athleteId) {
+            return existing
+        }
+        guard
+            let entry = scheduleRepo.plannedProgramEntry(on: .now, athleteId: athleteId),
+            let programId = entry.programId,
+            let program = programRepo.fetchProgram(id: programId),
+            let day = program.days.first(where: { $0.id == entry.programDayId }),
+            let template = programRepo.template(for: day)
+        else { return nil }
+        let prescription = plannedSessionRepo.planFromTemplate(template, athleteId: athleteId)
+        // The eased entry chosen at import (epic 8) shapes week 1's working copies:
+        // one back-off trimmed per lift, top sets as written. The program's own
+        // templates stay untouched.
+        if program.entryMode == .eased && day.weekNumber == 1 {
+            try? plannedSessionRepo.trimOneBackoffPerExercise(
+                prescription,
+                reason: String(
+                    localized: "program.easedEntry.reason",
+                    defaultValue: "Eased entry — week 1: one back-off trimmed, top set as written."
+                )
+            )
+        }
+        return prescription
+    }
+
+    /// Completion hook: when a session saves, mark the day's program entry completed and
+    /// advance the position cursor past the completed day (never backwards — a make-up
+    /// session for an earlier day leaves the cursor alone).
+    static func recordProgramCompletion(
+        sessionId: UUID,
+        sessionDate: Date,
+        athleteId: UUID,
+        scheduleRepo: ScheduleRepository,
+        programRepo: ProgramRepository
+    ) {
+        guard
+            let entry = scheduleRepo.plannedProgramEntry(on: sessionDate, athleteId: athleteId),
+            let programId = entry.programId,
+            let program = programRepo.fetchProgram(id: programId),
+            let day = program.days.first(where: { $0.id == entry.programDayId })
+        else { return }
+        try? scheduleRepo.markCompleted(entry, sessionId: sessionId)
+
+        let cursorIsBehind = (program.positionWeek, program.positionDay) <= (day.weekNumber, day.dayNumber)
+        guard cursorIsBehind else { return }
+        let ordered = program.sortedDays
+        if let index = ordered.firstIndex(where: { $0.id == day.id }), index + 1 < ordered.count {
+            let next = ordered[index + 1]
+            try? programRepo.movePosition(program, toWeek: next.weekNumber, day: next.dayNumber)
+        } else {
+            // Block finished — cursor rests on its last day.
+            try? programRepo.movePosition(program, toWeek: day.weekNumber, day: day.dayNumber)
+        }
+    }
+
     /// The typical sessions-per-week of the block, read from its own structure.
     static func inferredWeekdays(for program: TrainingProgram) -> [Int] {
         let counts = (1...max(1, program.durationWeeks)).map { program.days(inWeek: $0).count }

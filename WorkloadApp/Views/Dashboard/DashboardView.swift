@@ -57,7 +57,9 @@ struct DashboardView: View {
                 VStack(spacing: 0) {
                     // 0. Editorial screen header (Stage 4a) — the visible title lives in the
                     //    content, not the stock nav bar; the log action rides its baseline.
-                    ScreenHeader(title: "dashboard.nav.title") {
+                    //    Slice 2 (R8): the screen is "Today" — it carries the daily loop, not
+                    //    a dashboard of readings.
+                    ScreenHeader(title: "dashboard.nav.today") {
                         // Inherits the header-action slot styling (10pt Medium micro-caps,
                         // text2) from ScreenHeader — no per-site font/color overrides.
                         Button("dashboard.action.logWorkout") {
@@ -81,35 +83,40 @@ struct DashboardView: View {
                         .entranceReveal()
                     }
 
-                    // 1. Hero readiness — score + recommendation headline in its footer (recommendation stays "up top").
+                    // 1. Fatigue caution ABOVE the proposal's start affordance (slice 2, R4):
+                    //    a warning that reads below the button arrives after the decision.
+                    if !viewModel.isColdStartActive,
+                       let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
+                       zone != .low {
+                        FatigueAttentionBanner(fatigueIndex: fi, zone: zone)
+                            .padding(.horizontal, Spacing.sm)
+                            .padding(.bottom, Spacing.sm)
+                    }
+
+                    // 2. THE PROPOSAL (slice 2, R1): the day's plan-aware verdict — plan name,
+                    //    adjusted numbers, reason, decision, start — is Home's centerpiece.
+                    //    One advisory voice (R4): the verdict is the answer; readiness and
+                    //    fatigue read as its evidence, never as parallel advice. The section
+                    //    owns the decision seam the Log tab used to carry.
+                    TodayProposalSection(
+                        showsNoPlanFallback: !showWelcomeCard,
+                        onProposalChanged: {
+                            Task { await loadData() }
+                        }
+                    )
+                    .entranceReveal()
+
+                    // 3. Readiness as evidence (R8): the hero reading supports the proposal.
                     HeroReadinessCard(viewModel: viewModel)
                         .accessibilityIdentifier("dashboard.hero")
                         .padding(.horizontal, Spacing.sm)
-                        .entranceReveal()
+                        .padding(.top, Spacing.sm)
+                        .entranceReveal(index: 1)
 
-                    // 2. Phase 28 Wave 4 — FLAGGED dual-run card; placement PROVISIONAL, flagged for human visual review.
+                    // Phase 28 Wave 4 — FLAGGED dual-run card; placement PROVISIONAL, flagged for human visual review.
                     // Flag OFF (default) → dualRunMessage nil → PRSDualRunCard renders EmptyView → layout byte-identical.
                     // UNTOUCHED — flag-gated exactly as before.
                     PRSDualRunCard(message: viewModel.dualRunMessage)
-
-                    // 3. Primary action — plan-aware since reorientation slice 1 (R2): a decided
-                    //    plan starts through the SAME resolvedPlan path as the Log tab's verdict
-                    //    card, so the screen's one ink pill can never bypass adjusted numbers.
-                    //    No plan / undecided ⇒ the recommendation-labeled blank path, unchanged
-                    //    (logging is never blocked).
-                    PrimaryActionCTA(
-                        recommendation: viewModel.recommendation,
-                        planCTA: viewModel.todayPlanCTA,
-                        onTap: {
-                            switch viewModel.todayPlanCTA {
-                            case .startAdjusted(let plan), .startPlan(let plan):
-                                resolvedPlanForSession = plan
-                                showResolvedWorkout = true
-                            case .none, .pendingDecision:
-                                showActiveWorkout = true
-                            }
-                        }
-                    )
 
                     // 4. Established-user value cluster (C.2): once the user has real data, prioritise
                     //    "what's my load + what do I do + act" — fatigue/cold-start → load → metrics →
@@ -127,18 +134,14 @@ struct DashboardView: View {
                     if viewModel.hasRealData || viewModel.isColdStartActive {
                         Spacer().frame(height: Spacing.lg)
 
-                        // Fatigue attention signal (D-FAT, COLD-07)
+                        // Fatigue attention signal (D-FAT, COLD-07). Slice 2 (R4): the banner
+                        // itself moved ABOVE the proposal — only the cold-start note stays here.
                         if viewModel.isColdStartActive {
                             // D-16: Show "Building baseline..." during cold-start
                             Text("dashboard.coldStart.buildingBaseline")
                                 .font(.Tokens.label)
                                 .foregroundStyle(ColorTokens.text2)
                                 .cardStyle(verticalPadding: Spacing.sm)
-                                .padding(.horizontal, Spacing.sm)
-                            Spacer().frame(height: Spacing.lg)
-                        } else if let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
-                                  zone != .low {
-                            FatigueAttentionBanner(fatigueIndex: fi, zone: zone)
                                 .padding(.horizontal, Spacing.sm)
                             Spacer().frame(height: Spacing.lg)
                         }
@@ -616,11 +619,9 @@ struct HeroReadinessCard: View {
                     Spacer().frame(height: Spacing.sm)
                 }
 
-                if let rec = viewModel.recommendation {
-                    Text(rec.headline)
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text1)
-                }
+                // Slice 2 (R4): the AutoregulationEngine headline no longer speaks here —
+                // one daily advisory voice, and it is the proposal card above. The reading's
+                // factors stay: they are evidence, not advice.
         }
         .cardStyle(verticalPadding: Spacing.sm)
     }

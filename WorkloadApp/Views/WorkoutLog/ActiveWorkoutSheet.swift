@@ -50,6 +50,9 @@ struct ActiveWorkoutSheet: View {
     // The frozen prescription this resolved session fulfills (nil for template/blank sessions). Set on
     // load; used after a successful save to mark the prescription completed + link the session id.
     @State private var resolvedPrescriptionID: UUID?
+    // Program-spine completion repos (v1.7.3 feature 6) — held as @State (deinit trap).
+    @State private var programCompletionScheduleRepo: ScheduleRepository?
+    @State private var programCompletionProgramRepo: ProgramRepository?
     // Held (NOT a method local) to honor the @MainActor deinit-safety invariant: a @MainActor
     // repository deallocated mid-synchronous-method trips the iOS-26.1-sim back-deploy deinit SIGABRT.
     // Lazily created on the resolved-plan load path; used to mark the prescription completed on save.
@@ -232,22 +235,6 @@ struct ActiveWorkoutSheet: View {
                         }
                     }
 
-                    // Live incremental voice logging (Phase D). Inline, never a sheet: the set
-                    // list above stays visible so a spoken set is SEEN landing. Present on every
-                    // path — a narrated session can be extended live, the same way a template
-                    // session can. The card owns the microphone; this sheet owns the appending.
-                    VoiceDictationCard(startToken: voiceStartToken) { text in
-                        await ingestUtterance(text)
-                    }
-                    .padding(.horizontal, Spacing.sm)
-                    .padding(.vertical, Spacing.xs)
-                    .background(ColorTokens.background)
-                    .id(Self.voiceCardID)
-
-                    Rectangle()
-                        .fill(ColorTokens.divider)
-                        .frame(height: 0.5)
-
                     // Duplicate the most-recently-added exercise as a fresh GHOST-scaffolded
                     // entry (§E.2): same name/category/muscle, set count carried, every value
                     // ghosted (isDone=false) so building a multi-exercise session is fast
@@ -396,6 +383,22 @@ struct ActiveWorkoutSheet: View {
                 }
             }
 
+            // The docked capture control (v1.7.3 feature 6, epic 10): voice is the sheet's
+            // primary capture — the round mic with the first-run coaching line, widening to
+            // the full-width speak bar once the hint retires. The card owns the microphone;
+            // this sheet owns the appending. Sits ABOVE the session bar, in the thumb zone.
+            VoiceDictationCard(
+                startToken: voiceStartToken,
+                isDocked: true,
+                planAware: resolvedPlan != nil
+            ) { text in
+                await ingestUtterance(text)
+            }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .background(ColorTokens.background)
+            .id(Self.voiceCardID)
+
             sessionBar(scrollProxy: scrollProxy)
             }
             }
@@ -436,13 +439,9 @@ struct ActiveWorkoutSheet: View {
     /// removed in the same change, so the CTA Law still holds at one per screen.
     private func sessionBar(scrollProxy: ScrollViewProxy) -> some View {
         HStack(spacing: Spacing.xs) {
-            barAction(title: "action.speakSet", identifier: "activeWorkout.speakSet") {
-                voiceStartToken += 1
-                withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
-                    scrollProxy.scrollTo(Self.voiceCardID, anchor: .bottom)
-                }
-            }
-
+            // The Speak slot retired with the docked capture control (feature 6, epic 10):
+            // the mic now sits directly above this bar, always visible — a second door to
+            // the same microphone would be noise.
             barAction(title: "action.addExercise", identifier: "activeWorkout.addExercise") {
                 showExercisePicker = true
             }
@@ -986,6 +985,14 @@ struct ActiveWorkoutSheet: View {
 
         switch resolveTarget(spokenName: result.exerciseName) {
         case .existing(let index):
+            // Plan-aware grammar (feature 6, epic 4): on a plan-resolved session, a spoken
+            // set FILLS the expected next planned ghost of that exercise — the plan supplies
+            // whatever the athlete left unsaid ("one thirty for five" needs no exercise;
+            // "five reps" needs no weight). Appending resumes once the plan's rows are spent.
+            if resolvedPlan != nil,
+               let outcome = fillNextPlannedSet(entryIndex: index, result: result) {
+                return outcome
+            }
             var newSet = SetDraft()
             newSet.reps = result.reps
             // "same weight" resolves against the TARGET entry's own history in this session —
@@ -1079,6 +1086,42 @@ struct ActiveWorkoutSheet: View {
             muscle: classification.muscleGroup,
             isUnresolved: true
         )
+    }
+
+    /// Plan-aware fill (epic 4): the first still-planned working set of the entry takes the
+    /// spoken numbers; the plan's ghosts supply anything unsaid. Returns nil when the entry
+    /// has no planned ghost left (caller appends instead — extra sets beyond the plan are
+    /// legitimate work, never dropped). The spoken word wins over the ghost on every field
+    /// it names, so a deviation ("130, not 132.5") records exactly what happened.
+    private func fillNextPlannedSet(
+        entryIndex: Int,
+        result: VoiceSetUtteranceParser.Result
+    ) -> UtteranceOutcome? {
+        guard let setIndex = entries[entryIndex].sets.firstIndex(where: { set in
+            !set.isDone && !set.isWarmup
+                && (set.targetWeightKg != nil || set.targetReps != nil)
+        }) else { return nil }
+
+        let ghost = entries[entryIndex].sets[setIndex]
+        let spokenWeight = result.sameWeight ? lastWeightKg(in: entries[entryIndex]) : result.weightKg
+        let reps = result.reps ?? ghost.targetReps
+        let weight = spokenWeight ?? ghost.targetWeightKg
+        guard reps != nil || weight != nil || result.durationSeconds != nil else {
+            return nil
+        }
+
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            entries[entryIndex].sets[setIndex].reps = reps
+            entries[entryIndex].sets[setIndex].weightKg = weight
+            if let duration = result.durationSeconds {
+                entries[entryIndex].sets[setIndex].durationSeconds = duration
+            }
+            if let rpe = result.rpe {
+                entries[entryIndex].sets[setIndex].rpe = rpe
+            }
+            entries[entryIndex].sets[setIndex].isDone = true
+        }
+        return .added(exerciseName: entries[entryIndex].exerciseName)
     }
 
     /// Clone the most recent LOGGED set in the session as another logged set on the same entry —
@@ -1297,6 +1340,25 @@ struct ActiveWorkoutSheet: View {
                 // the failure rather than swallowing it.
                 print("Verdict linkage failed: session \(session.id) saved but prescription \(prescriptionID) not marked completed.")
             }
+            // Program spine (v1.7.3 feature 6): a fulfilled designation also completes the
+            // day's schedule entry and advances the program position cursor. Repos held as
+            // @State per the deinit-safety rule; no-op when no program entry exists today.
+            if let athleteId = athlete?.id {
+                if programCompletionScheduleRepo == nil {
+                    programCompletionScheduleRepo = ScheduleRepository(modelContext: modelContext)
+                    programCompletionProgramRepo = ProgramRepository(modelContext: modelContext)
+                }
+                if let scheduleRepo = programCompletionScheduleRepo,
+                   let programRepo = programCompletionProgramRepo {
+                    ProgramScheduleService.recordProgramCompletion(
+                        sessionId: session.id,
+                        sessionDate: session.sessionDate,
+                        athleteId: athleteId,
+                        scheduleRepo: scheduleRepo,
+                        programRepo: programRepo
+                    )
+                }
+            }
         }
 
         // Update template usage stats
@@ -1504,6 +1566,36 @@ struct ExerciseEntryCard: View {
         .onChange(of: entry.sets.count) { _, _ in syncOpenSet() }
     }
 
+    /// Sets the "All as planned" sweep would log: still to do, with real ghosts to accept.
+    private var sweepableSets: [Int] {
+        entry.sets.indices.filter { index in
+            let set = entry.sets[index]
+            return !set.isDone && (set.targetWeightKg != nil || set.targetReps != nil)
+        }
+    }
+
+    /// Epic 10: one tap logs every remaining planned set with its exact ghosts (the same
+    /// fills `logSet()` applies — materialize ≠ log law respected, nothing fabricated).
+    private func logAllAsPlanned() {
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            for index in sweepableSets {
+                if entry.sets[index].reps == nil {
+                    entry.sets[index].reps = entry.sets[index].targetReps ?? 8
+                }
+                if entry.sets[index].weightKg == nil {
+                    if let target = entry.sets[index].targetWeightKg {
+                        entry.sets[index].weightKg = target
+                    } else if entry.exerciseCategory == .bodyweight {
+                        entry.sets[index].weightKg = 0
+                    }
+                }
+                entry.sets[index].isDone = true
+            }
+            openSetID = nil
+        }
+        Haptics.success()
+    }
+
     private var openBody: some View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
@@ -1523,13 +1615,50 @@ struct ExerciseEntryCard: View {
                         )
                     )
                 }
-                if let muscle = entry.muscleGroup {
+                // Epic 10: the per-exercise sweep — logs the plan's exact ghosts for every
+                // remaining planned set. Only rendered while there is something to sweep.
+                if !sweepableSets.isEmpty {
+                    Button {
+                        logAllAsPlanned()
+                    } label: {
+                        AnnotationLabel(key: "set.action.allAsPlanned", size: .small, color: ColorTokens.text2)
+                            .padding(.horizontal, Spacing.xs)
+                            .padding(.vertical, Spacing.baselinePair)
+                            .contentShape(Rectangle())
+                            .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+                    }
+                    .buttonStyle(.pressable)
+                    .accessibilityLabel(String(
+                        localized: "set.action.allAsPlanned.a11y",
+                        defaultValue: "Log every remaining set as planned"
+                    ))
+                } else if let muscle = entry.muscleGroup {
                     // A taxonomy tag beside the movement name — marginalia (v6).
                     AnnotationLabel(muscle.displayName, color: ColorTokens.text2)
                 }
             }
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.sm)
+
+            // Epic 3 (visible adjustment thread): the verdict's provenance the drafts already
+            // carry, rendered as marginalia — adjusted stamp, planned reference, trim percent.
+            if let adjusted = entry.sets.first(where: { $0.isSuggestedAdjustment }),
+               let plannedKg = adjusted.plannedWeightKg,
+               let targetKg = adjusted.targetWeightKg,
+               plannedKg > targetKg + 0.001 {
+                let percent = max(1, Int(((plannedKg - targetKg) / plannedKg * 100).rounded()))
+                let plannedText = WeightFormatter.display(plannedKg, unit: weightUnit, locale: locale)
+                AnnotationLabel(String(
+                    format: LocalePinnedStrings.localized(
+                        "set.adjusted.stamp",
+                        defaultValue: "Adjusted · ↓ from %@ · %d%% lighter",
+                        locale: locale
+                    ),
+                    plannedText, percent
+                ))
+                .padding(.horizontal, Spacing.sm)
+                .padding(.bottom, Spacing.xs)
+            }
 
             // Suggestion rationale
             if let rationale = entry.suggestionRationale {
@@ -1984,13 +2113,19 @@ struct SetEntryRow: View {
         .accessibilityAddTraits(set.isWarmup ? [.isButton, .isSelected] : .isButton)
     }
 
-    /// The ledger line — one set, one row. A logged set reads in ink and is stamped LOGGED;
-    /// a set still to do reads ghosted and is stamped PLANNED, so the plan is legible without
-    /// five editors open. Tapping either moves the editor here.
+    /// The ledger line — one set, one row (v1.7.3 feature 6, epic 10). A LOGGED set wears the
+    /// brand green (zone-optimal, dot + word — color plus label, never color alone, on a card
+    /// plane per the contrast rule); tapping it drops it straight back to editable — one gesture
+    /// each way, the explicit Log action still owns the committed state. A planned set reads
+    /// ghosted with an AS PLANNED quick pill that logs the plan's exact ghosts in one tap.
     @ViewBuilder private var collapsedSummary: some View {
         Button {
             Haptics.tap()
             withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                if set.isDone {
+                    // Logged → back to editable. Recoverability without menus.
+                    set.isDone = false
+                }
                 onRequestOpen?()
             }
         } label: {
@@ -2010,7 +2145,20 @@ struct SetEntryRow: View {
                     AnnotationLabel(key: "set.warmup.label")
                 }
                 Spacer()
-                AnnotationLabel(key: set.isDone ? "set.action.logged" : "set.status.planned")
+                if set.isDone {
+                    HStack(spacing: Spacing.baselinePair) {
+                        Circle()
+                            .fill(ColorTokens.zoneOptimal)
+                            .frame(width: 6, height: 6)
+                            .accessibilityHidden(true)
+                        AnnotationLabel(key: "set.action.logged", color: ColorTokens.zoneOptimal)
+                    }
+                } else {
+                    if hasPlanGhosts {
+                        asPlannedPill
+                    }
+                    AnnotationLabel(key: "set.status.planned")
+                }
             }
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
@@ -2018,7 +2166,52 @@ struct SetEntryRow: View {
         }
         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
         .accessibilityElement(children: .combine)
-        .accessibilityHint(String(localized: "set.collapsed.expandHint", defaultValue: "Tap to edit this set"))
+        .accessibilityHint(set.isDone
+            ? String(localized: "set.collapsed.unlogHint", defaultValue: "Tap to unlog and edit this set")
+            : String(localized: "set.collapsed.expandHint", defaultValue: "Tap to edit this set"))
+    }
+
+    /// True when the row's ghosts resolve to real numbers — the precondition for "As planned"
+    /// (materialize ≠ log law: the pill only ever logs what the line already shows).
+    /// (`self.set` — a body starting with the bare token `set` parses as a setter.)
+    private var hasPlanGhosts: Bool {
+        self.set.targetWeightKg != nil || self.set.targetReps != nil || suggestedCenterKg != nil
+    }
+
+    /// The per-row quick log (epic 10): accepts the plan's exact ghosts — the same fills
+    /// `logSet()` would apply — without advancing the editor or appending a carried row
+    /// (the plan's shape is fixed; nothing is fabricated).
+    private var asPlannedPill: some View {
+        Button {
+            logAsPlanned()
+        } label: {
+            AnnotationLabel(key: "set.action.asPlanned", size: .small, color: ColorTokens.text2)
+                .padding(.horizontal, Spacing.xs)
+                .padding(.vertical, Spacing.baselinePair)
+                .contentShape(Rectangle())
+                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+        }
+        .buttonStyle(.pressable)
+        .accessibilityLabel(String(localized: "set.action.asPlanned.a11y", defaultValue: "Log this set as planned"))
+    }
+
+    /// The pill's fill — identical semantics to `logSet()`'s ghost acceptance, minus the
+    /// editor advance (`onLogged` stays untouched so no carried row is appended).
+    func logAsPlanned() {
+        if set.reps == nil {
+            set.reps = suggestedReps ?? 8
+        }
+        if set.weightKg == nil {
+            if let suggested = suggestedCenterKg {
+                set.weightKg = suggested
+            } else if category == .bodyweight {
+                set.weightKg = 0
+            }
+        }
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            set.isDone = true
+        }
+        Haptics.success()
     }
 
     /// One-line summary string for a completed set, e.g. "60kg × 5" / "12 reps" / "5km".

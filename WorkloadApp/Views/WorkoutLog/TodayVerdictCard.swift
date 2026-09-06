@@ -166,10 +166,22 @@ struct TodayVerdictCard: View {
 
     // MARK: - Number-led captions (the "from planned" reference + the zone caption)
 
-    /// "↓ from 140 kg" — the planned reference shown beside today's number when trimmed.
+    /// The delta annotation beside today's number, shaped by the proposal (epic 9):
+    /// a load trim references the planned number, a volume day names the cut in sets,
+    /// a microdose reads as capped.
     private var fromPlannedCaption: String {
-        let planned = WeightFormatter.display(display.plannedTopSetKg, unit: weightUnit, locale: locale)
-        return String(format: String(localized: "verdictCard.fromPlanned", defaultValue: "↓ from %@"), planned)
+        switch display.shape {
+        case .volumeCut:
+            return String(
+                format: String(localized: "verdictCard.delta.volume", defaultValue: "VOLUME −%lld SETS"),
+                display.backoffSetCut
+            )
+        case .microdose:
+            return String(localized: "verdictCard.delta.capped", defaultValue: "CAPPED")
+        case .loadTrim, .steady:
+            let planned = WeightFormatter.display(display.plannedTopSetKg, unit: weightUnit, locale: locale)
+            return String(format: String(localized: "verdictCard.fromPlanned", defaultValue: "↓ from %@"), planned)
+        }
     }
 
     /// The micro-caps line under the strike-zone bar (text label — the zone state, never color alone).
@@ -203,18 +215,114 @@ struct TodayVerdictCard: View {
             }
         } else if display.kind == .asPlanned {
             // Nothing to accept/decline — a single friction-free acknowledge (plain cell).
+            // Steady days collapse to ONE cell; its sublabel states the unchanged session.
             KeyRow([
-                KeyRow.Key(title: "verdictCard.action.gotIt", action: onKeepPlan)
+                KeyRow.Key(
+                    title: "verdictCard.action.gotIt",
+                    subtitle: steadySublabel,
+                    action: onKeepPlan
+                )
             ])
         } else {
             // SC1 equal weight (nocebo guard): Accept and Keep-my-plan are BOTH plain
             // `.standard` key cells in ONE butted row — identical size, type, fill, and press
             // treatment; neither reads as the endorsed option. NEVER give either the CTA role.
+            // Epic 9 (frozen S4 spec): the accept cell SPEAKS the proposal — its verb tracks
+            // the verdict's shape and its sublabel carries the engine's actual unit (kg for
+            // load, sets for volume, percent as annotation); the keep cell states the plan.
             KeyRow([
-                KeyRow.Key(title: "verdictCard.action.accept", action: onAccept),
-                KeyRow.Key(title: "verdictCard.action.keep", action: onKeepPlan)
+                KeyRow.Key(
+                    title: acceptCellTitle,
+                    subtitle: acceptCellSublabel,
+                    action: onAccept
+                ),
+                KeyRow.Key(
+                    title: "verdictCard.action.keep",
+                    subtitle: keepCellSublabel,
+                    action: onKeepPlan
+                )
             ])
         }
+    }
+
+    // MARK: - Adaptive cell copy (epic 9, frozen S4 spec)
+
+    private var acceptCellTitle: LocalizedStringKey {
+        switch display.shape {
+        case .loadTrim:
+            if let percent = display.loadTrimPercent {
+                return LocalizedStringKey(String(
+                    format: String(localized: "verdictCard.cell.goLighter", defaultValue: "Go %lld%% lighter"),
+                    percent
+                ))
+            }
+            return "verdictCard.action.accept"
+        case .volumeCut:
+            return "verdictCard.cell.cutVolume"
+        case .microdose:
+            return "verdictCard.cell.microdose"
+        case .steady:
+            return "verdictCard.action.accept"
+        }
+    }
+
+    private var acceptCellSublabel: String? {
+        let unitStamp = weightUnit == .kg ? "KG" : "LB"
+        switch display.shape {
+        case .loadTrim:
+            var parts = ["\(weightNumeral(display.adjustedTopSetKg)) \(unitStamp)"]
+            if display.backoffSetCut > 0 {
+                parts.append(String(
+                    format: String(localized: "verdictCard.sub.backoffCut", defaultValue: "−%lld BACK-OFF"),
+                    display.backoffSetCut
+                ))
+            }
+            return parts.joined(separator: " · ")
+        case .volumeCut:
+            let kept = max(0, display.workingSetCount - 1 - display.backoffSetCut)
+            return String(
+                format: String(localized: "verdictCard.sub.topPlusBackoff", defaultValue: "TOP SET + %lld BACK-OFF"),
+                kept
+            )
+        case .microdose:
+            return String(localized: "verdictCard.sub.microdose", defaultValue: "1 TOP SET · ~20 MIN")
+        case .steady:
+            return nil
+        }
+    }
+
+    private var keepCellSublabel: String? {
+        let unitStamp = weightUnit == .kg ? "KG" : "LB"
+        switch display.shape {
+        case .loadTrim:
+            return "\(weightNumeral(display.plannedTopSetKg)) \(unitStamp) · "
+                + String(localized: "verdictCard.sub.allSets", defaultValue: "ALL SETS")
+        case .volumeCut:
+            return String(
+                format: String(localized: "verdictCard.sub.allNSets", defaultValue: "ALL %lld SETS"),
+                display.workingSetCount
+            )
+        case .microdose:
+            return String(localized: "verdictCard.sub.fullSession", defaultValue: "FULL SESSION")
+        case .steady:
+            return nil
+        }
+    }
+
+    private var steadySublabel: String? {
+        guard display.workingSetCount > 0 else { return nil }
+        return String(
+            format: String(localized: "verdictCard.sub.steady", defaultValue: "ALL %lld SETS · AS WRITTEN"),
+            display.workingSetCount
+        )
+    }
+
+    /// Bare numeral in the display unit — the unit stamp rides beside it in the sublabel.
+    private func weightNumeral(_ kg: Double) -> String {
+        let value = WeightFormatter.displayValue(kg, unit: weightUnit)
+        return value.truncatingRemainder(dividingBy: 1) == 0
+            ? String(format: "%.0f", value)
+            : String(format: "%.1f", value)
     }
 
     // MARK: - Feel-override row (SC2 first-class, obvious)

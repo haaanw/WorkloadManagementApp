@@ -197,7 +197,9 @@ final class ScreenshotTests: XCTestCase {
     /// bar is inside this capture; the plate-1 caption is what names it.
     func test07_VerdictCard() throws {
         launchAuthenticatedApp()
-        tapTab("tab.log")
+        // Slice 2 (R1): the proposal card lives on the Today surface now — the day's
+        // decision is the first tab's centerpiece, not a Log-tab artifact.
+        tapTab("tab.home")
 
         XCTAssertTrue(anyElement("workoutLog.verdict.reason").waitForExistence(timeout: 10), "Verdict reason line missing")
         XCTAssertTrue(anyElement("workoutLog.verdict.strikeZone").waitForExistence(timeout: 5), "Strike-zone bar missing")

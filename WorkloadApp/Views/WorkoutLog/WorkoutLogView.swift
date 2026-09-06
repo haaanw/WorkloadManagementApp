@@ -17,7 +17,12 @@ struct WorkoutLogView: View {
     @State private var importSuggestions: [WorkoutImportSuggestion] = []
     @State private var importRPESheet: WorkoutImportSuggestion?
     @State private var showMyPrograms = false
-    @State private var showTextImport = false
+    @State private var showProgramImport = false
+    @State private var pastDayLog: PastDayLogRequest?
+    // Program designation repos (feature 6 wire) — held as @State (deinit trap).
+    @State private var designationPlannedRepo: PlannedSessionRepository?
+    @State private var designationScheduleRepo: ScheduleRepository?
+    @State private var designationProgramRepo: ProgramRepository?
     @State private var selectedTemplateForPreview: WorkoutTemplate?
     @State private var showTemplateEditor = false
     @State private var editingTemplate: WorkoutTemplate?
@@ -75,16 +80,19 @@ struct WorkoutLogView: View {
                 // font) is retired; title + actions live in the content, above the filter rail.
                 ScreenHeader(title: "workoutLog.nav.title") {
                     HStack(spacing: Spacing.sm) {
+                        // One door (U1/R5): "Bring your program" leads, ungated. The legacy
+                        // Pro-gated text importer's entry is retired — its bulk-day job is
+                        // subsumed by the program door (the sheet itself stays in the target).
                         Menu {
+                            Button {
+                                showProgramImport = true
+                            } label: {
+                                Label("workoutLog.menu.bringProgram", systemImage: "square.and.arrow.down")
+                            }
                             Button {
                                 showPlanToday = true
                             } label: {
                                 Label("planToday.menu.label", systemImage: "calendar.badge.plus")
-                            }
-                            Button {
-                                showLLMImport = true
-                            } label: {
-                                Label("workoutLog.import.ai", systemImage: "sparkles")
                             }
                             Button {
                                 showMyPrograms = true
@@ -92,13 +100,9 @@ struct WorkoutLogView: View {
                                 Label("workoutLog.menu.myPrograms", systemImage: "doc.text.fill")
                             }
                             Button {
-                                if container.subscriptionService.isPro {
-                                    showTextImport = true
-                                } else {
-                                    showUpgrade = true
-                                }
+                                showLLMImport = true
                             } label: {
-                                Label("workoutLog.import.text", systemImage: "doc.plaintext")
+                                Label("workoutLog.import.ai", systemImage: "sparkles")
                             }
                         } label: {
                             Image(systemName: "ellipsis.circle")
@@ -133,33 +137,12 @@ struct WorkoutLogView: View {
 
                 ScrollView {
                     VStack(spacing: 0) {
-                        // Today's suggest-and-confirm verdict card — only when a today-plan exists.
-                        // No today-plan ⇒ vm.display == nil ⇒ nothing renders (screen byte-unchanged).
-                        if let vm = verdictVM, let display = vm.display, let athlete = athletes.first {
-                            SectionContainer {
-                                TodayVerdictCard(
-                                    display: display,
-                                    weightUnit: athlete.weightUnit,
-                                    canStartWorkout: vm.canStartResolvedWorkout,
-                                    onAccept: { vm.accept() },
-                                    onKeepPlan: { vm.keepPlan() },
-                                    onFeel: { vm.feelOverride($0) },
-                                    onStartWorkout: {
-                                        // Derived from the persisted decision state — the Start CTA only
-                                        // renders when canStartWorkout is true, so a resolved plan is
-                                        // available here. Assert the invariant in DEBUG; never no-op.
-                                        guard let plan = vm.resolvedPlanForWorkout else {
-                                            assertionFailure("Start tapped without a resolvable plan — canStartWorkout/resolvedPlanForWorkout drifted")
-                                            return
-                                        }
-                                        resolvedPlanForSession = plan
-                                        showResolvedWorkout = true
-                                    }
-                                )
-                                .padding(.horizontal, Spacing.sm)
-                            }
-                            .entranceReveal()
-                        }
+                        // Slice 2 (R1): the verdict card MOVED to the Today surface
+                        // (`TodayProposalSection` on the Dashboard) — the day's proposal now
+                        // lives where the day starts, and this tab is what its name says:
+                        // capture and history. The VM wiring below stays for the felt-right /
+                        // outcome prompts and the plan-refresh seams; the decision surface is
+                        // single-mounted on Today.
 
                         // v2.1 dogfood — the next-day "felt right?" capture. Renders ONLY on the
                         // calendar day after a differing-verdict day (criterion 3: judged next-day,
@@ -183,6 +166,14 @@ struct WorkoutLogView: View {
                         // Next match — the one schedule-shaped plan object (ADR-0002). Always
                         // renders; empty state ("no scheduled match") is a normal, calm state.
                         // Stage 2 wires the date into the verdict; here it is set/clear only.
+                        // Calendar spine (feature 6): the editable training week + day sheets.
+                        ScheduleWeekSection(
+                            onLogPastDay: { day, kind in
+                                pastDayLog = PastDayLogRequest(day: day, kind: kind)
+                            }
+                        )
+                        .entranceReveal(index: 1)
+
                         NextMatchSection()
                             .entranceReveal(index: 1)
 
@@ -202,6 +193,9 @@ struct WorkoutLogView: View {
                             },
                             onPreviewTemplate: { template in
                                 selectedTemplateForPreview = template
+                            },
+                            onBringProgram: {
+                                showProgramImport = true
                             }
                         )
                         .entranceReveal(index: 2)
@@ -335,6 +329,9 @@ struct WorkoutLogView: View {
                     onCreateTemplate: {
                         editingTemplate = nil
                         showTemplateEditor = true
+                    },
+                    onBringProgram: {
+                        showProgramImport = true
                     }
                 )
                 .environment(container)
@@ -374,14 +371,30 @@ struct WorkoutLogView: View {
                     acceptImport(suggestion, rpe: rpe)
                 }
             }
-            .sheet(isPresented: $showMyPrograms) {
+            .sheet(isPresented: $showMyPrograms, onDismiss: {
+                // Position moves / re-imports change today's proposal.
+                if let athlete = athletes.first {
+                    ensureProgramDesignation(athleteId: athlete.id)
+                    verdictVM?.refresh(athlete: athlete)
+                }
+            }) {
                 NavigationStack {
-                    TemplateListView()
+                    ProgramOverviewView()
                         .environment(container)
                 }
             }
-            .sheet(isPresented: $showTextImport) {
-                TextTemplateImportSheet()
+            .sheet(isPresented: $showProgramImport, onDismiss: {
+                // A newly activated program should propose today immediately.
+                if let athlete = athletes.first {
+                    ensureProgramDesignation(athleteId: athlete.id)
+                    verdictVM?.refresh(athlete: athlete)
+                }
+            }) {
+                ProgramImportSheet()
+                    .environment(container)
+            }
+            .sheet(item: $pastDayLog) { request in
+                QuickPastSessionSheet(day: request.day, kind: request.kind)
                     .environment(container)
             }
             .sheet(item: $selectedTemplateForPreview) { template in
@@ -452,6 +465,7 @@ struct WorkoutLogView: View {
                     verdictVM = vm
                 }
                 if let athlete = athletes.first {
+                    ensureProgramDesignation(athleteId: athlete.id)
                     verdictVM?.refresh(athlete: athlete)
                 }
                 refreshFeltRightPrompt()
@@ -472,6 +486,7 @@ struct WorkoutLogView: View {
             // 2 days old ⇒ ineligible; the repository's record-time guard is the backstop).
             .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
                 if let athlete = athletes.first {
+                    ensureProgramDesignation(athleteId: athlete.id)
                     verdictVM?.refresh(athlete: athlete)
                 }
                 refreshFeltRightPrompt()
@@ -601,6 +616,33 @@ struct WorkoutLogView: View {
             importSuggestions.removeAll { $0.id == suggestion.id }
         }
     }
+
+    /// The program→proposal wire (feature 6, epic 1): designate today's program day when
+    /// nothing is designated yet, so the verdict card proposes it without a manual
+    /// "Plan Today" step.
+    private func ensureProgramDesignation(athleteId: UUID) {
+        if designationPlannedRepo == nil {
+            designationPlannedRepo = PlannedSessionRepository(modelContext: modelContext)
+            designationScheduleRepo = ScheduleRepository(modelContext: modelContext)
+            designationProgramRepo = ProgramRepository(modelContext: modelContext)
+        }
+        guard let plannedRepo = designationPlannedRepo,
+              let scheduleRepo = designationScheduleRepo,
+              let programRepo = designationProgramRepo else { return }
+        ProgramScheduleService.ensureTodayDesignation(
+            athleteId: athleteId,
+            plannedSessionRepo: plannedRepo,
+            scheduleRepo: scheduleRepo,
+            programRepo: programRepo
+        )
+    }
+}
+
+/// A past-day retroactive logging request (calendar spine day sheet → QuickPastSessionSheet).
+struct PastDayLogRequest: Identifiable {
+    let day: Date
+    let kind: ScheduleEntryKind
+    var id: String { "\(day.timeIntervalSince1970)-\(kind.rawValue)" }
 }
 
 // MARK: - Phase 45 verdict-event action mapping

@@ -822,6 +822,12 @@ struct KeyRow: View {
         let title: LocalizedStringKey
         var role: Role = .standard
         var accessibilityID: String? = nil
+        /// Optional annotation-voice sublabel under the title (v1.7.3 feature 6, epic 9 —
+        /// the adaptive decision cells speak the engine's actual unit: "132.5 KG · −1
+        /// BACK-OFF"). Data-interpolated at the call site, so a String, rendered through
+        /// `AnnotationLabel`'s literal path. Equal-weight law untouched: both cells of a
+        /// row carry the same treatment whether or not they have sublabels.
+        var subtitle: String? = nil
         let action: () -> Void
 
         var id: String { accessibilityID ?? String(describing: title) }
@@ -855,12 +861,23 @@ struct KeyRow: View {
             Haptics.tap()
             key.action()
         } label: {
-            KeyCellLabel(title: key.title)
-                .foregroundStyle(key.role == .cta ? ColorTokens.inkInverse : ColorTokens.text1)
-                .frame(maxWidth: .infinity, minHeight: 44)
-                .padding(.horizontal, Spacing.xs)
-                .background(key.role == .cta ? ColorTokens.text1 : ColorTokens.surfaceEl)
-                .contentShape(Rectangle())
+            VStack(spacing: 2) {
+                KeyCellLabel(title: key.title)
+                    .foregroundStyle(key.role == .cta ? ColorTokens.inkInverse : ColorTokens.text1)
+                if let subtitle = key.subtitle {
+                    AnnotationLabel(
+                        subtitle,
+                        size: .small,
+                        color: key.role == .cta ? ColorTokens.inkInverse.opacity(0.7) : ColorTokens.text3
+                    )
+                    .multilineTextAlignment(.center)
+                }
+            }
+            .frame(maxWidth: .infinity, minHeight: 44)
+            .padding(.horizontal, Spacing.xs)
+            .padding(.vertical, key.subtitle == nil ? 0 : Spacing.xs)
+            .background(key.role == .cta ? ColorTokens.text1 : ColorTokens.surfaceEl)
+            .contentShape(Rectangle())
         }
         // Relief-inversion press (pick 4-A): the cell sinks into a pocket under the finger —
         // no scale (scale-only key presses are retired). Corner 0 because the row clips.

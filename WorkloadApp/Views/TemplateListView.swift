@@ -7,30 +7,49 @@ struct TemplateListView: View {
     @Query private var athletes: [Athlete]
     @State private var showEditor = false
     @State private var selectedTemplate: WorkoutTemplate?
+    @State private var showProgramImport = false
 
     private var coachId: UUID? { athletes.first?.id }
 
     private var templates: [WorkoutTemplate] {
         guard let coachId else { return [] }
-        return (try? modelContext.fetch(
+        return ((try? modelContext.fetch(
             FetchDescriptor<WorkoutTemplate>(
                 predicate: #Predicate { $0.coachId == coachId },
                 sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
             )
-        )) ?? []
+        )) ?? [])
+        // Program-day templates are the active block's working storage (v1.7.3
+        // feature 6) — they live on the program screen, never in this list.
+        .filter { !$0.isProgramDay }
     }
 
     var body: some View {
         ScrollView {
             VStack(spacing: 0) {
                 if templates.isEmpty {
+                    // Import-first empty state (R6): the spine is "bring YOUR plan";
+                    // authoring a template is the quiet path below.
                     VStack(spacing: 8) {
                         Text("empty.noTemplates")
                             .font(.Tokens.body)
                             .foregroundStyle(ColorTokens.text2)
-                        Text("template.empty.subtitle")
+                        Text("template.empty.importFirst")
                             .font(.Tokens.label)
                             .foregroundStyle(ColorTokens.text3)
+                            .multilineTextAlignment(.center)
+                        Button {
+                            Haptics.tap()
+                            showProgramImport = true
+                        } label: {
+                            Text("workoutLog.menu.bringProgram")
+                                .font(.Tokens.label)
+                                .foregroundStyle(ColorTokens.text1)
+                                .padding(.horizontal, Spacing.md)
+                                .padding(.vertical, Spacing.xs)
+                                .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
+                        }
+                        .buttonStyle(.pressable)
                     }
                     .padding(.vertical, 48)
                     .frame(maxWidth: .infinity)
@@ -72,6 +91,10 @@ struct TemplateListView: View {
                 )
                 .environment(container)
             }
+        }
+        .sheet(isPresented: $showProgramImport) {
+            ProgramImportSheet()
+                .environment(container)
         }
     }
 
