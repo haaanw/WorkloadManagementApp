@@ -279,6 +279,7 @@
 		FF26030B0000000000000001 /* ExitOfferScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030B0000000000000002 /* ExitOfferScreen.swift */; };
 		FF26030C0000000000000001 /* ImportMomentScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030C0000000000000002 /* ImportMomentScreen.swift */; };
 		FF26030D0000000000000001 /* PostHogAnalyticsSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030D0000000000000002 /* PostHogAnalyticsSink.swift */; };
+		FF26030F0000000000000001 /* TutorialScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030F0000000000000002 /* TutorialScreen.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -586,6 +587,7 @@
 		FF26030B0000000000000002 /* ExitOfferScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExitOfferScreen.swift; sourceTree = "<group>"; };
 		FF26030C0000000000000002 /* ImportMomentScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMomentScreen.swift; sourceTree = "<group>"; };
 		FF26030D0000000000000002 /* PostHogAnalyticsSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHogAnalyticsSink.swift; sourceTree = "<group>"; };
+		FF26030F0000000000000002 /* TutorialScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialScreen.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -989,6 +991,7 @@
 				FF26030A0000000000000002 /* OnboardingPaywallScreen.swift */,
 				FF26030B0000000000000002 /* ExitOfferScreen.swift */,
 				FF26030C0000000000000002 /* ImportMomentScreen.swift */,
+				FF26030F0000000000000002 /* TutorialScreen.swift */,
 			);
 			path = OnboardingV2;
 			sourceTree = "<group>";
@@ -1548,6 +1551,7 @@
 				FF26030B0000000000000001 /* ExitOfferScreen.swift in Sources */,
 				FF26030C0000000000000001 /* ImportMomentScreen.swift in Sources */,
 				FF26030D0000000000000001 /* PostHogAnalyticsSink.swift in Sources */,
+				FF26030F0000000000000001 /* TutorialScreen.swift in Sources */,
 				FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */,
 				FF2308060000000000000001 /* REDSAttentionBanner.swift in Sources */,
 				FF2308050000000000000001 /* CycleStatusStrip.swift in Sources */,

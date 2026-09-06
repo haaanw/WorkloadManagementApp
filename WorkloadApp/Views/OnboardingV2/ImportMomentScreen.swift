@@ -1,11 +1,11 @@
 import SwiftUI
 
 /// OnboardingV2 — the "bring your program" moment (amendment 6, closing reorientation
-/// R10). Placed AFTER account creation because a template needs an athlete to belong to
+/// R10). Placed AFTER account creation because a program needs an athlete to belong to
 /// (the C1 law: nothing persists pre-auth), and after the paywall so both purchase
-/// outcomes pass through it. Reuses the shipped `WorkoutImportSheet` (text / PDF /
-/// photo) rather than forking a second import UI — when Lane A's plan-led import door
-/// lands, this mount swaps to it (flagged in PLAN + the board). Skippable by law.
+/// outcomes pass through it. Mounts Lane A's `ProgramImportSheet` — the plan-led one
+/// door (paste / PDF / photo / say it, duration ladder, transition compare) — never a
+/// forked second import UI. Skippable by law.
 struct ImportMomentScreen: View {
     /// Called on import success or skip — the flow moves on either way.
     let onDone: () -> Void
@@ -83,8 +83,8 @@ struct ImportMomentScreen: View {
         .padding(.top, Spacing.md)
         .padding(.bottom, Spacing.xs)
         .sheet(isPresented: $showImportSheet) {
-            WorkoutImportSheet(onImported: { template in
-                importedTemplateName = template.templateName
+            ProgramImportSheet(onActivated: { program in
+                importedTemplateName = program.name
             })
         }
     }

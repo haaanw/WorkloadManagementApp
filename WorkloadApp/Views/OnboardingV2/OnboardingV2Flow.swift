@@ -49,7 +49,7 @@ struct OnboardingV2Flow: View {
 
     /// Steps with a built screen this batch. Advancing past the last built step finishes
     /// the flow; each batch extends this frontier.
-    private static let builtFrontier: Step = .importMoment
+    private static let builtFrontier: Step = .tutorial
 
     var body: some View {
         VStack(spacing: 0) {
@@ -95,6 +95,9 @@ struct OnboardingV2Flow: View {
                 if step == .importMoment {
                     ImportMomentScreen(onDone: advance)
                 }
+                if step == .tutorial {
+                    TutorialScreen(onDone: advance)
+                }
             }
             .animation(Motion.resolved(Motion.screen, reduceMotion: reduceMotion), value: step)
 
@@ -103,7 +106,7 @@ struct OnboardingV2Flow: View {
 
                 // Screens that own their CTAs render no shared pill (one ink pill per
                 // screen): HK connect, account, paywall, and the import moment.
-                if ![.healthConnect, .account, .paywall, .importMoment].contains(step) {
+                if ![.healthConnect, .account, .paywall, .importMoment, .tutorial].contains(step) {
                     PrimaryActionButton(
                         title: continueTitle,
                         isLoading: isComputingReveal,
