@@ -304,3 +304,24 @@ single-surfaced on the card. Verification: units 1099/0/2 (9 new
 `DashboardTodayPlanCTATests`), ScreenshotTests 16/16, Home capture inspected
 by eye — the seeded accepted plan renders the pill as "Start adjusted
 workout". Slices 2–5 remain open; 2–4 wait on feature 6's direction lock.
+
+**Slice 3 BUILT 2026-09-04** (Lane C, closure plan; two commits). `f445e42`:
+the merged Trends surfaces — `Views/Trends/` (TrendsView + TrendsViewModel +
+TrendsComponents) with the retired tabs' trend/history content and their
+free-tier gating verbatim (history filter + teaser, Pro-only range control,
+Pro-only Recovery-vs-Load, 7-day free PR window, export gate); the appendix-§6
+duplicated readings retired (recovery hero, ACWR gauge, ATL/CTL/TSB grid —
+Home owns "now", Trends owns "over time"); ONE fetch path for the detail
+screens (`TrendDetailScreens.swift` — HRVDetailScreen/SleepDetailScreen own
+the 90-day fetches; both VMs' parallel arrays deleted, source-fenced in
+`TrendsMergeTests`). `1d2a176`: four tabs (Home · Log · Trends · Profile),
+the R9 seam (`AppTab` + `TabRouter` on the environment — selection is no
+longer private to MainTabView), RecoveryView/WorkloadView/both view models
+DELETED, RecoveryLoadChart → Views/Trends/, ScreenshotTests re-anchored (15
+tests, 02_Trends capture), store-plate spec renumbered — **the store set is
+8 plates; the ASO re-shoot (both device sizes, en + zh-Hans) is required
+before the next submission**. Verification (three lanes shared the working
+tree, so both commits verified in isolated worktrees at their bases): units
+1126/0 then 1148/0/2 (xcresult: Passed), ScreenshotTests 16/16 then 15/15,
+02_Trends inspected by eye. R7 and R9 CLOSED. Slices 2+4 rode the plan-led
+main build (`921ec12`); slice 5 stays on the audit-leftovers list.
