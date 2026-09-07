@@ -124,6 +124,20 @@ only `.design-explorations/` until HAN gates. `Localizable.xcstrings`
 still carries an unidentified session's WIP — nobody appends until it
 lands or is claimed.
 
+9. **Guided session mode (NEW, HAN 2026-09-07 — the last 1.7.3 feature).**
+   The execution surface after "Start this session." Preconditions: an
+   imported program + enough history for adjusted numbers (both shipped in
+   the plan-led build). The experience: a FOCUSED space showing the current
+   move and its logging numbers as the athlete proceeds; finishing a move
+   AUTO-advances to the next, with a low "up next" hint bar; supersets
+   alternate between the paired moves set-by-set (ExerciseGroup already
+   models pairing). The point is total focus: never type from scratch,
+   never remember sets/reps/weights, never leave to check what's next —
+   the schedule and the adjusted targets drive everything; one tap logs
+   the planned set, the scrub corrects, voice stays available. Demo-first
+   (HAN's description IS the direction — variants explore layout, not
+   concept), then build into ActiveWorkoutSheet's session path.
+
 ## CLOSURE PLAN (HAN "close the todos", 2026-09-03)
 
 Three build lanes, hard boundaries; xcstrings WIP is landed (05a770a) so
