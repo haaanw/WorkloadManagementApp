@@ -405,6 +405,10 @@ struct ActiveWorkoutSheet: View {
             }
             .toolbar(.hidden, for: .navigationBar)
         }
+        // v6.3 "The Area Tint": capture is the STRAIN area. Declared here, not inherited,
+        // because this sheet is presented from Home (readiness) as well as from Log — a sheet
+        // inherits its presenter's environment, and the session surface owns strain either way.
+        .metricArea(.strain)
     }
 
     // MARK: - Personal record landmark

@@ -56,6 +56,74 @@ enum Spacing {
 // DESIGN.md v3 "Ink & Grain" (2026-07-14). The old zero-valued `GeometryTokens` enum
 // (never referenced) was removed with the 0pt law it encoded.
 
+// MARK: - Area tint (DESIGN.md v6.3 "The Area Tint" — HAN locked 2026-09-06)
+
+/// The area a subtree stands in, if it has a metric identity at all.
+///
+/// `nil` is the default and the correct answer for most of the app: Profile, settings, auth,
+/// onboarding and every other surface with no metric identity stay untinted stone. A screen
+/// OPTS IN by declaring `.metricArea(.readiness)` (etc.) once at its root; the shared
+/// primitives below then read it, so the wash and the hairline tint arrive without a call site
+/// ever naming a color.
+private struct MetricAreaKey: EnvironmentKey {
+    static let defaultValue: MetricArea? = nil
+}
+
+extension EnvironmentValues {
+    /// The v6.3 area whose hue this subtree wears. See `MetricAreaKey`.
+    var metricArea: MetricArea? {
+        get { self[MetricAreaKey.self] }
+        set { self[MetricAreaKey.self] = newValue }
+    }
+}
+
+extension View {
+    /// Declare the v6.3 area this subtree stands in (DESIGN.md v6.3 area-ownership map).
+    /// Apply ONCE at a screen's root; `.raised`, `RowSeparator`, `RuledSectionHeader` and
+    /// `AreaRule` pick the tint up from there. Pass `nil` to hold a nested subtree neutral.
+    func metricArea(_ area: MetricArea?) -> some View {
+        environment(\.metricArea, area)
+    }
+}
+
+/// The area's structural hairline — the masthead rule under a screen header, a section rule,
+/// the rule between two rows of one plate. Takes the 18% area tint inside an area and plain
+/// `divider` stone outside one, so the same primitive is correct on every screen.
+///
+/// This exists so the tint has ONE hairline implementation. A hand-rolled
+/// `Rectangle().fill(...)` rule inside an area would be invisible to the tint and is a fence
+/// failure (`DesignSystemFenceTests` fence 9).
+struct AreaRule: View {
+    enum Axis {
+        /// A full-width rule, 0.5pt tall.
+        case horizontal
+        /// A column separator, 0.5pt wide.
+        case vertical
+    }
+
+    var axis: Axis = .horizontal
+    /// Leading inset, for a rule that separates rows INSIDE a plate rather than sections.
+    var inset: CGFloat = 0
+    /// The stone this rule wears OUTSIDE an area. Defaults to `divider`, the hairline tier the
+    /// v6.3 formula is written against; a section rule that has always been the heavier
+    /// `dividerStrong` passes it here so untinted screens keep the weight they ship with today.
+    /// Inside an area, every rule takes the one tinted hairline — an area has ONE rule color,
+    /// exactly as the locked demo shows.
+    var base: Color = ColorTokens.divider
+
+    @Environment(\.metricArea) private var area
+
+    var body: some View {
+        Rectangle()
+            .fill(area.map(ColorTokens.areaHairline) ?? base)
+            .frame(
+                width: axis == .vertical ? 0.5 : nil,
+                height: axis == .horizontal ? 0.5 : nil
+            )
+            .padding(.leading, inset)
+    }
+}
+
 // MARK: - Motion scale (DESIGN.md v4.2 "Machined" — Spring Motion Law D16, 2026-07-21)
 
 /// The single motion language. v4.2's Spring Motion Law (D16) moves the tokens off fixed
@@ -285,13 +353,23 @@ extension View {
 struct CardStyle: ViewModifier {
     var horizontalPadding: CGFloat = Spacing.sm
     var verticalPadding: CGFloat = Spacing.md
+    /// v6.3: when true, this card is its area's HERO and its plane takes the 4% area wash.
+    /// Ordinary cards do NOT — card washes beyond the hero plane were rejected at the gate.
+    var isHero: Bool = false
+
+    @Environment(\.metricArea) private var area
+
+    private var plane: Color {
+        guard isHero, let area else { return ColorTokens.surfaceEl }
+        return ColorTokens.areaPlane(area, over: .card)
+    }
 
     func body(content: Content) -> some View {
         content
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, horizontalPadding)
             .padding(.vertical, verticalPadding)
-            .background(ColorTokens.surfaceEl, in: RoundedRectangle(cornerRadius: CornerTokens.card))
+            .background(plane, in: RoundedRectangle(cornerRadius: CornerTokens.card))
             .overlay(
                 RoundedRectangle(cornerRadius: CornerTokens.card).stroke(ColorTokens.divider, lineWidth: 0.5)
             )
@@ -300,11 +378,19 @@ struct CardStyle: ViewModifier {
 
 extension View {
     /// Apply the standard card plane (`surfaceEl` + 0.5pt divider border, `CornerTokens.card` corners).
+    ///
+    /// Pass `isHero: true` on the ONE card that is its screen's hero: inside a declared
+    /// `.metricArea` that card's plane takes the v6.3 4% area wash.
     func cardStyle(
         horizontalPadding: CGFloat = Spacing.sm,
-        verticalPadding: CGFloat = Spacing.md
+        verticalPadding: CGFloat = Spacing.md,
+        isHero: Bool = false
     ) -> some View {
-        modifier(CardStyle(horizontalPadding: horizontalPadding, verticalPadding: verticalPadding))
+        modifier(CardStyle(
+            horizontalPadding: horizontalPadding,
+            verticalPadding: verticalPadding,
+            isHero: isHero
+        ))
     }
 }
 
@@ -351,12 +437,31 @@ extension View {
 /// flat is reserved for the base plane and text.
 struct RaisedStyle: ViewModifier {
     var cornerRadius: CGFloat = CornerTokens.card
+    /// v6.3: when true, this raised plate is its area's HERO and takes the 4% area wash.
+    /// Only a hero opts in — an ordinary raised plate (a toggle knob, a stepper key) does not,
+    /// because a card wash beyond the hero plane was rejected at the v6.3 gate.
+    var isHero: Bool = false
+
+    @Environment(\.metricArea) private var area
+
+    /// The gradient's two stops: plain stone, or the same stone washed 4% with the area hue.
+    /// Both stops move together so the milled gradient keeps its exact shape — the wash tints
+    /// the plate, it does not flatten it.
+    private var gradientStops: [Color] {
+        guard isHero, let area else {
+            return [ColorTokens.surfaceEl2, ColorTokens.surfaceEl]
+        }
+        return [
+            ColorTokens.areaPlane(area, over: .raisedTop),
+            ColorTokens.areaPlane(area, over: .card)
+        ]
+    }
 
     func body(content: Content) -> some View {
         content
             .background(
                 LinearGradient(
-                    colors: [ColorTokens.surfaceEl2, ColorTokens.surfaceEl],
+                    colors: gradientStops,
                     startPoint: .top, endPoint: .bottom
                 ),
                 in: RoundedRectangle(cornerRadius: cornerRadius)
@@ -419,12 +524,38 @@ struct DebossedStyle: ViewModifier {
 
 extension View {
     /// Milled raised plate (Relief Law). See `RaisedStyle`.
-    func raised(cornerRadius: CGFloat = CornerTokens.card) -> some View {
-        modifier(RaisedStyle(cornerRadius: cornerRadius))
+    ///
+    /// Pass `isHero: true` on the ONE plate that is its screen's hero: inside a declared
+    /// `.metricArea`, that plate takes the v6.3 4% area wash. Everywhere else the plate is
+    /// plain stone, unchanged from v6.
+    func raised(cornerRadius: CGFloat = CornerTokens.card, isHero: Bool = false) -> some View {
+        modifier(RaisedStyle(cornerRadius: cornerRadius, isHero: isHero))
     }
     /// Debossed pocket (Relief Law). See `DebossedStyle`.
     func debossed(cornerRadius: CGFloat = CornerTokens.control) -> some View {
         modifier(DebossedStyle(cornerRadius: cornerRadius))
+    }
+}
+
+// MARK: - Flat hero plane (v6.3)
+
+/// The FLAT hero plane: a hero surface that is not a milled `.raised` plate — a detail
+/// screen's stats band, a full-bleed hero strip — washed 4% with its area hue.
+///
+/// Same law as `.raised(isHero:)`: the area's hero plane only, never an ordinary card.
+/// Outside a declared area it renders plain `surfaceEl`, so the modifier is safe anywhere.
+struct HeroPlaneStyle: ViewModifier {
+    @Environment(\.metricArea) private var area
+
+    func body(content: Content) -> some View {
+        content.background(area.map { ColorTokens.areaPlane($0, over: .card) } ?? ColorTokens.surfaceEl)
+    }
+}
+
+extension View {
+    /// Wash this hero plane with its area's hue (v6.3). See `HeroPlaneStyle`.
+    func heroPlane() -> some View {
+        modifier(HeroPlaneStyle())
     }
 }
 
@@ -741,14 +872,15 @@ struct SectionContainer<Content: View>: View {
 
 /// The light tier of the separator grammar: a 0.5pt `divider` hairline inset 16pt from the
 /// leading edge, used between sibling rows inside one section.
+///
+/// v6.3: inside a declared `.metricArea` this takes the 18% area hairline tint — it IS an area
+/// hairline. Outside one it stays plain `divider` stone. Implemented by delegating to
+/// `AreaRule` so the tint has exactly one implementation.
 struct RowSeparator: View {
     var inset: CGFloat = Spacing.sm
 
     var body: some View {
-        Rectangle()
-            .fill(ColorTokens.divider)
-            .frame(height: 0.5)
-            .padding(.leading, inset)
+        AreaRule(axis: .horizontal, inset: inset)
     }
 }
 

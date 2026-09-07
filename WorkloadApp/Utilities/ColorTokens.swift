@@ -16,6 +16,25 @@ private extension UIColor {
     }
 }
 
+/// The functional areas of the app that own a metric hue (DESIGN.md v6.3 "The Area Tint").
+///
+/// An area's hue is the metric family of its PRIMARY reading, so the hue an athlete is bathed
+/// in names where they are standing. A surface with no metric identity — Profile, settings,
+/// auth, onboarding — has no `MetricArea` and stays untinted stone; that is the default, not
+/// an opt-out (see `EnvironmentValues.metricArea`, which is `nil` unless a screen declares one).
+enum MetricArea: String, CaseIterable, Sendable {
+    /// Home / Today. The day's readiness reading and the proposal built on it.
+    case readiness
+    /// Trends' recovery surfaces — HRV and the recovery physiology behind the score.
+    case recovery
+    /// Sleep detail — the night list, the per-night breakdown, the sleep charts.
+    case sleep
+    /// Log / capture — the session surfaces where strain is produced and recorded.
+    case strain
+    /// Load surfaces — ACWR, the load trend, the training-load widget.
+    case load
+}
+
 /// Semantic color tokens matching the DESIGN.md v6 "Field Notes" palette — an OVERLAY on
 /// v5 "Pavilion" (Warm Stone), ported from `design-system/tokens/colors.css`.
 /// Tuwa is intentionally light-only; the app forces light appearance.
@@ -65,17 +84,37 @@ enum ColorTokens {
     static let statusCritical = zoneDanger
     static let statusNeutral  = zoneLow
 
+    // MARK: - Raw stone + hue values (the ONE source the area-tint math mixes from)
+    // The v6.3 area tint is computed, not hand-picked, so the two ingredients it mixes —
+    // the five metric hues and the three planes/rules it washes — must exist as NUMBERS
+    // somewhere. They live here, once, and the public `Color` tokens below are derived from
+    // them. Duplicating a hex to feed the mixer would be exactly the drift the tint's
+    // single-formula law exists to prevent.
+    fileprivate enum Raw {
+        static let hueReadiness: UInt = 0x2E7D4F
+        static let hueRecovery:  UInt = 0x1D7189
+        static let hueSleep:     UInt = 0x52589E
+        static let hueStrain:    UInt = 0xA8442D
+        static let hueLoad:      UInt = 0x8A6810
+        /// The card plane — what a hero card is washed over.
+        static let planeCard:      UInt = 0xF8F7F4
+        /// The brightest plane — the top stop of a RAISED hero's gradient.
+        static let planeRaisedTop: UInt = 0xFCFBF9
+        /// The hairline rule the area tint tints.
+        static let rule: UInt = 0xD6D3CD
+    }
+
     // MARK: - Backgrounds (v5 warm stone — ascending planes of light)
     /// `#F0EFEC` — the stone base plane (page/scroll canvas).
     static let background    = Color(uiColor: .light(0xF0EFEC))
     /// `#F4F3F0` — inline strip / control plane, between base and card.
     static let surface       = Color(uiColor: .light(0xF4F3F0))
     /// `#F8F7F4` — the card plane (v5 canonical card fill).
-    static let surfaceEl     = Color(uiColor: .light(0xF8F7F4))
+    static let surfaceEl     = Color(uiColor: .light(Raw.planeCard))
     /// `#FCFBF9` — brightest plane: raised tops, active/selected surfaces.
-    static let surfaceEl2    = Color(uiColor: .light(0xFCFBF9))
+    static let surfaceEl2    = Color(uiColor: .light(Raw.planeRaisedTop))
     /// `#D6D3CD` — hairline rules on stone.
-    static let divider       = Color(uiColor: .light(0xD6D3CD))
+    static let divider       = Color(uiColor: .light(Raw.rule))
     /// `#CCC9C2` — stronger hairline: key-row container borders, high-priority boundaries.
     static let dividerStrong = Color(uiColor: .light(0xCCC9C2))
 
@@ -135,21 +174,105 @@ enum ColorTokens {
     // token addition — `DesignSystemFenceTests` enumerates this set.
     /// `#2E7D4F` — verdant green. Readiness / recovery score. (Deliberately the same value as
     /// `zoneOptimal`: a zone IS a readiness statement. Not an accident to "fix".)
-    static let metricReadiness = Color(uiColor: .light(0x2E7D4F))
+    static let metricReadiness = Color(uiColor: .light(Raw.hueReadiness))
     /// `#1D7189` — teal. HRV / recovery physiology.
-    static let metricRecovery  = Color(uiColor: .light(0x1D7189))
+    static let metricRecovery  = Color(uiColor: .light(Raw.hueRecovery))
     /// `#52589E` — indigo. Sleep. (Deliberately the same value as `zoneLow`.)
-    static let metricSleep     = Color(uiColor: .light(0x52589E))
+    static let metricSleep     = Color(uiColor: .light(Raw.hueSleep))
     /// `#A8442D` — rust. Strain / acute load.
-    static let metricStrain    = Color(uiColor: .light(0xA8442D))
+    static let metricStrain    = Color(uiColor: .light(Raw.hueStrain))
     /// `#8A6810` — ochre. Training load / ACWR.
-    static let metricLoad      = Color(uiColor: .light(0x8A6810))
+    static let metricLoad      = Color(uiColor: .light(Raw.hueLoad))
 
     /// The canonical metric-hue set, in design-system order. The fence test reads this to assert
     /// the five hues are the only colors v6 added; keep it in sync with the tokens above.
     static let metricHues: [Color] = [
         metricReadiness, metricRecovery, metricSleep, metricStrain, metricLoad
     ]
+
+    // MARK: - The Area Tint (v6.3 — HAN locked 2026-09-06, "warm and whisper")
+    // The ONE sanctioned exception to "a metric hue never dresses a surface": each functional
+    // area takes a WHISPER of its owning hue, so the hue an athlete is bathed in names the
+    // metric family they are standing in. TWO formulas, no others, and both live here — a
+    // hand-mixed color at a call site is a fence failure, not a style choice.
+    //
+    //   hero-plane wash : color-mix(in srgb, areaHue 4%,  plane)
+    //   hairline tint   : color-mix(in srgb, areaHue 18%, divider)
+    //
+    // Mirrored byte-for-byte in `design-system/tokens/colors.css` (--area-*-plane /
+    // --area-*-line); the canonical source and this iOS binding must agree.
+    //
+    // REJECTED at the same gate and NOT representable here: the cooled stone ramp, section-marker
+    // squares, the area hue on the active tab tick (travertine keeps the live-state monopoly),
+    // card washes beyond the hero plane, and any intensity above 4%/18%.
+    //
+    // Contrast is unaffected: a 4% wash moves plane luminance by less than a point, so every
+    // measured floor in DESIGN.md still holds on the washed plane.
+
+    /// The v6.3 hero-plane wash ratio. Fixed at 4% — a stronger wash was rejected at the gate.
+    static let areaWashRatio: Double = 0.04
+    /// The v6.3 hairline tint ratio. Fixed at 18% — a stronger tint was rejected at the gate.
+    static let areaHairlineRatio: Double = 0.18
+
+    /// The stone the area wash is mixed INTO. Only these two: a hero card's plane, and the
+    /// bright top stop of a RAISED hero's gradient. There is no third — the tint never reaches
+    /// the base plane, a well, or an ordinary (non-hero) card.
+    enum AreaPlane {
+        /// `surfaceEl` — the canonical card plane, and a flat hero's fill.
+        case card
+        /// `surfaceEl2` — the bright top stop of the `.raised` gradient.
+        case raisedTop
+    }
+
+    /// The hue an area owns. Identical to that metric's identity token — the tint is the SAME
+    /// hue at low strength, never a second, softer palette.
+    static func areaHue(_ area: MetricArea) -> Color {
+        Color(uiColor: .light(rawHue(area)))
+    }
+
+    /// The area's washed hero plane: `color-mix(in srgb, areaHue 4%, plane)`.
+    /// The area's hero card only — never an ordinary card, never the page canvas.
+    static func areaPlane(_ area: MetricArea, over plane: AreaPlane) -> Color {
+        let base: UInt = switch plane {
+        case .card:      Raw.planeCard
+        case .raisedTop: Raw.planeRaisedTop
+        }
+        return mix(rawHue(area), into: base, ratio: areaWashRatio)
+    }
+
+    /// The area's tinted hairline: `color-mix(in srgb, areaHue 18%, divider)`.
+    /// The area's structural rules — the masthead rule, section rules, in-card row separators.
+    static func areaHairline(_ area: MetricArea) -> Color {
+        mix(rawHue(area), into: Raw.rule, ratio: areaHairlineRatio)
+    }
+
+    private static func rawHue(_ area: MetricArea) -> UInt {
+        switch area {
+        case .readiness: Raw.hueReadiness
+        case .recovery:  Raw.hueRecovery
+        case .sleep:     Raw.hueSleep
+        case .strain:    Raw.hueStrain
+        case .load:      Raw.hueLoad
+        }
+    }
+
+    /// sRGB linear interpolation, matching CSS `color-mix(in srgb, hue R%, base)` exactly:
+    /// gamma-encoded channels, non-premultiplied, both operands opaque. This is the whole
+    /// implementation of the area tint — there is deliberately nowhere else to write one.
+    private static func mix(_ hue: UInt, into base: UInt, ratio: Double) -> Color {
+        let r = CGFloat(ratio)
+        func channel(shift: UInt) -> CGFloat {
+            let hueValue  = CGFloat((hue  >> shift) & 0xFF)
+            let baseValue = CGFloat((base >> shift) & 0xFF)
+            return (hueValue * r + baseValue * (1 - r)) / 255
+        }
+        return Color(uiColor: UIColor(
+            red:   channel(shift: 16),
+            green: channel(shift: 8),
+            blue:  channel(shift: 0),
+            alpha: 1
+        ))
+    }
 
     // MARK: - Zone colors (v6 re-tune — label-led, supplementary only)
     // More chromatic than v5's near-grays (`#3F5A46`/`#6E5624`/`#7E362E`/`#46525E`, retired) for

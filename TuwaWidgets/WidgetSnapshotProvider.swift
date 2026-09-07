@@ -89,8 +89,16 @@ extension View {
     /// light cards, and the card plane is where metric-hue/zone text below 24pt
     /// clears its 4.5:1 floor. Light-only by value: the tokens are absolute light
     /// hexes, so the stone does not invert in system dark mode.
-    func tuwaWidgetBackground() -> some View {
-        containerBackground(for: .widget) { ColorTokens.surfaceEl }
+    ///
+    /// v6.3 "The Area Tint": a widget IS a hero plane — it carries one metric's reading and
+    /// nothing else — so it takes that area's 4% wash, exactly as the in-app hero does.
+    /// The two ship with a metric identity already (readiness / load), so app and widget
+    /// agree: the same reading sits on the same stone in both places. Pass `nil` for a future
+    /// widget with no metric identity and it stays untinted, same law as the app.
+    func tuwaWidgetBackground(area: MetricArea?) -> some View {
+        containerBackground(for: .widget) {
+            area.map { ColorTokens.areaPlane($0, over: .card) } ?? ColorTokens.surfaceEl
+        }
     }
 }
 

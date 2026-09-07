@@ -26,6 +26,26 @@
 --metric-sleep:#52589E;     /* indigo */
 --metric-strain:#A8442D;    /* rust */
 --metric-load:#8A6810;      /* ochre */
+/* The Area Tint (v6.3 — locked 2026-09-06, "warm and whisper"). The ONE sanctioned exception to
+   "a metric hue never dresses a surface": each functional area takes a whisper of its owning hue.
+   TWO formulas, no others — a hero-plane wash at 4% and a hairline tint at 18%. Area ownership:
+   Home/Today = readiness, Trends recovery surfaces = recovery, sleep detail = sleep,
+   Log/capture = strain, load surfaces = load. A surface with no metric identity (profile,
+   settings, auth, onboarding) stays untinted stone. REJECTED and not tokenized here: the cooled
+   stone ramp, section-marker squares, the area hue on the active tab tick, card washes beyond the
+   hero plane, any intensity above 4%/18%. Mirrored in WorkloadApp/Utilities/ColorTokens.swift. */
+--area-wash:4%;
+--area-line-mix:18%;
+--area-readiness-plane:color-mix(in srgb, var(--metric-readiness) var(--area-wash), var(--surface-el));
+--area-recovery-plane: color-mix(in srgb, var(--metric-recovery)  var(--area-wash), var(--surface-el));
+--area-sleep-plane:    color-mix(in srgb, var(--metric-sleep)     var(--area-wash), var(--surface-el));
+--area-strain-plane:   color-mix(in srgb, var(--metric-strain)    var(--area-wash), var(--surface-el));
+--area-load-plane:     color-mix(in srgb, var(--metric-load)      var(--area-wash), var(--surface-el));
+--area-readiness-line:color-mix(in srgb, var(--metric-readiness) var(--area-line-mix), var(--divider));
+--area-recovery-line: color-mix(in srgb, var(--metric-recovery)  var(--area-line-mix), var(--divider));
+--area-sleep-line:    color-mix(in srgb, var(--metric-sleep)     var(--area-line-mix), var(--divider));
+--area-strain-line:   color-mix(in srgb, var(--metric-strain)    var(--area-line-mix), var(--divider));
+--area-load-line:     color-mix(in srgb, var(--metric-load)      var(--area-line-mix), var(--divider));
 /* Zone colors — desaturated, ≥4.5:1 on stone. Text label first; color supplementary. */
 --zone-optimal:#2E7D4F;
 --zone-caution:#8A5C08;

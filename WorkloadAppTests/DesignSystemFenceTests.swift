@@ -1,4 +1,9 @@
 import XCTest
+import SwiftUI
+import UIKit
+// v6.3: the area-tint fences assert on RESOLVED COLORS, not just on source text — a wash that
+// drifts off the CSS formula is invisible to a grep. That needs the app module.
+@testable import workload_management
 
 /// App-wide design-fence — DESIGN.md v6 "Field Notes" (2026-07-30), an overlay on v5 "Pavilion".
 ///
@@ -44,6 +49,34 @@ final class DesignSystemFenceTests: XCTestCase {
             .deletingLastPathComponent()   // WorkloadAppTests/
             .deletingLastPathComponent()   // repo root
             .appendingPathComponent("WorkloadApp")
+    }
+
+    /// The widget extension's sources. Not under `WorkloadApp/`, so `fencedSources` cannot see
+    /// them — but DESIGN.md binds widgets exactly as it binds the app, so the v6.3 fences read
+    /// them too.
+    private func widgetSources() throws -> [(name: String, text: String)] {
+        let root = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()   // WorkloadAppTests/
+            .deletingLastPathComponent()   // repo root
+            .appendingPathComponent("TuwaWidgets")
+        var results: [(String, String)] = []
+        let fm = FileManager.default
+        guard let enumerator = fm.enumerator(at: root, includingPropertiesForKeys: nil) else { return [] }
+        for case let url as URL in enumerator where url.pathExtension == "swift" {
+            let raw = try String(contentsOf: url, encoding: .utf8)
+            results.append((url.lastPathComponent, Self.strippingCommentLines(raw)))
+        }
+        XCTAssertGreaterThan(results.count, 2, "Widget fence enumeration looks broken — TuwaWidgets/ should hold several Swift sources")
+        return results
+    }
+
+    /// The canonical design-system color tokens, which the iOS binding must agree with.
+    private func designSystemColorsCSS() throws -> String {
+        let url = URL(fileURLWithPath: #filePath)
+            .deletingLastPathComponent()
+            .deletingLastPathComponent()
+            .appendingPathComponent("design-system/tokens/colors.css")
+        return try String(contentsOf: url, encoding: .utf8)
     }
 
     /// All fenced Swift sources: [(fileName, commentStrippedText)].
@@ -398,6 +431,243 @@ final class DesignSystemFenceTests: XCTestCase {
                 "\(name) references Alpino — the display face is marketing/slides only and is banned in the app (DESIGN.md v6)"
             )
         }
+    }
+
+    // MARK: - 9. v6.3 "The Area Tint": the ONE sanctioned metric-hue-on-a-surface
+
+    // v6 said a metric hue may NEVER be a plane fill. v6.3 opens exactly one door: the area
+    // tint — a 4% hero-plane wash and an 18% hairline tint, per area, from two fixed formulas.
+    // A fence that cannot tell the sanctioned wash from a violation is not a fence, so these
+    // tests do BOTH halves: they still ban hue-as-plane everywhere, and they pin the exception
+    // to one implementation at the two locked ratios.
+    //
+    // The rejected list is as binding as the sanctioned list. Cooled stone, section markers,
+    // the area hue on the tab tick, card washes beyond the hero plane, and any intensity above
+    // 4%/18% were all struck at the same gate.
+
+    /// The sole file allowed to COMPUTE an area tint. Everywhere else consumes the tokens.
+    private static let areaTintImplementationFile = "ColorTokens.swift"
+
+    /// The files allowed to APPLY an area tint to a surface: the app's primitives chokepoint,
+    /// and the widget extension's background helper (widgets cannot reach `CardStyle.swift`).
+    private static let areaTintChokepointFiles: Set<String> = [
+        "CardStyle.swift", "WidgetSnapshotProvider.swift"
+    ]
+
+    func test_areaTint_hasOneImplementationAtTheLockedRatios() throws {
+        let colorTokens = try fencedSources().first { $0.name == Self.areaTintImplementationFile }
+        let text = try XCTUnwrap(colorTokens?.text, "ColorTokens.swift not found in the fenced sources")
+
+        // The two ratios are LAW, not defaults: 4% wash / 18% hairline. Anything stronger was
+        // rejected by name at the v6.3 gate ("warm and whisper").
+        XCTAssertTrue(
+            text.contains("static let areaWashRatio: Double = 0.04"),
+            "The v6.3 hero-plane wash must be exactly 4% — a stronger wash was rejected at the gate (DESIGN.md v6.3)"
+        )
+        XCTAssertTrue(
+            text.contains("static let areaHairlineRatio: Double = 0.18"),
+            "The v6.3 hairline tint must be exactly 18% — a stronger tint was rejected at the gate (DESIGN.md v6.3)"
+        )
+
+        // The two formulas, and no third: the only mixer in the styled layer lives here.
+        XCTAssertTrue(text.contains("static func areaPlane("), "ColorTokens must expose `areaPlane(_:over:)` — the hero-plane wash token")
+        XCTAssertTrue(text.contains("static func areaHairline("), "ColorTokens must expose `areaHairline(_:)` — the tinted-hairline token")
+        XCTAssertTrue(
+            text.contains("private static func mix("),
+            "The sRGB mix must be PRIVATE to ColorTokens — a public mixer is an invitation to hand-mix a tint at a call site (DESIGN.md v6.3)"
+        )
+
+        for (name, source) in try fencedSources() + widgetSources() {
+            if name == Self.areaTintImplementationFile { continue }
+            XCTAssertFalse(
+                source.contains("areaWashRatio") || source.contains("areaHairlineRatio"),
+                "\(name) reaches for a raw v6.3 ratio — consume `ColorTokens.areaPlane`/`areaHairline`; the ratio is not a call-site knob (DESIGN.md v6.3)"
+            )
+        }
+    }
+
+    func test_areaTint_reachesSurfacesOnlyThroughTheChokepoints() throws {
+        // The tint is applied by `.metricArea(_:)` + the primitives that read it
+        // (`.raised(isHero:)`, `.cardStyle(isHero:)`, `.heroPlane()`, `AreaRule`,
+        // `RowSeparator`, `RuledSectionHeader`). A screen that calls `areaPlane`/`areaHairline`
+        // itself has hand-placed a wash, which is how "hero plane only" becomes "everywhere".
+        for (name, text) in try fencedSources() + widgetSources() {
+            if name == Self.areaTintImplementationFile { continue }
+            if Self.areaTintChokepointFiles.contains(name) { continue }
+            for token in ["ColorTokens.areaPlane(", "ColorTokens.areaHairline(", "ColorTokens.areaHue("] {
+                XCTAssertFalse(
+                    text.contains(token),
+                    "\(name) applies \(token) directly — the area tint reaches a surface only through the CardStyle primitives (or the widget background helper). Declare `.metricArea(_:)` and use `.raised(isHero:)` / `.cardStyle(isHero:)` / `.heroPlane()` / `AreaRule` (DESIGN.md v6.3)"
+                )
+            }
+        }
+    }
+
+    func test_metricHues_areNeverAPlaneFill() throws {
+        // The v6 law this fence was always meant to carry, now written down: a hue identifies a
+        // MEASUREMENT, it never dresses a SURFACE. Series lines, state dots and hero readings
+        // are `.fill`/`.foregroundStyle` and stay legal; a background is a plane, and a plane
+        // takes stone — or, since v6.3, the 4% wash through `areaPlane`, never the raw hue.
+        let bannedBackgrounds = [
+            "background(ColorTokens.metric",
+            "background(ColorTokens.zone",
+            "background { ColorTokens.metric",
+            "background(for: .widget) { ColorTokens.metric"
+        ]
+        for (name, text) in try fencedSources() + widgetSources() {
+            for banned in bannedBackgrounds {
+                XCTAssertFalse(
+                    text.contains(banned),
+                    "\(name) fills a plane with a metric/zone hue (`\(banned)…`) — a hue never dresses a surface. The ONE exception is the v6.3 area tint via `ColorTokens.areaPlane` (DESIGN.md v6/v6.3)"
+                )
+            }
+        }
+    }
+
+    func test_areaTint_matchesTheCSSColorMixExactly() throws {
+        // The formula, not a lookup table: `color-mix(in srgb, hue R%, plane)` is a straight
+        // interpolation of gamma-encoded channels. These two expected triples are computed from
+        // the published hexes by that definition, so a drifting implementation (linear-light
+        // mixing, a different rounding, a swapped operand order) fails here rather than shipping
+        // a wash nobody can trace back to the locked demo.
+        assertColor(
+            ColorTokens.areaPlane(.readiness, over: .card),
+            equals: (240, 242, 237),
+            "readiness hero plane = color-mix(in srgb, #2E7D4F 4%, #F8F7F4)"
+        )
+        assertColor(
+            ColorTokens.areaHairline(.readiness),
+            equals: (184, 196, 182),
+            "readiness hairline = color-mix(in srgb, #2E7D4F 18%, #D6D3CD)"
+        )
+    }
+
+    func test_areaWash_isAWhisper_andIsActuallyApplied() throws {
+        // Two failure modes, opposite directions, both silent: a wash so strong it becomes a
+        // colored card (rejected at the gate), and a wash so weak it does nothing (a token that
+        // exists but renders as plain stone). Every area is checked against both.
+        for area in MetricArea.allCases {
+            assertWhisper(
+                washed: ColorTokens.areaPlane(area, over: .card),
+                stone: ColorTokens.surfaceEl,
+                area: area,
+                planeLabel: "card"
+            )
+            assertWhisper(
+                washed: ColorTokens.areaPlane(area, over: .raisedTop),
+                stone: ColorTokens.surfaceEl2,
+                area: area,
+                planeLabel: "raisedTop"
+            )
+        }
+    }
+
+    private func assertWhisper(
+        washed: Color,
+        stone: Color,
+        area: MetricArea,
+        planeLabel: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let tinted = components(of: washed)
+        let plain = components(of: stone)
+        let red = abs(tinted.0 - plain.0)
+        let green = abs(tinted.1 - plain.1)
+        let blue = abs(tinted.2 - plain.2)
+        let largest = max(red, max(green, blue))
+        XCTAssertGreaterThan(
+            largest, 0.001,
+            "\(area) is not actually washed on the \(planeLabel) plane — the v6.3 tint renders as plain stone",
+            file: file, line: line
+        )
+        XCTAssertLessThanOrEqual(
+            largest, 0.05,
+            "\(area)'s \(planeLabel) wash moves a channel by more than 5% of range — the v6.3 gate locked this at a 4% WHISPER; anything stronger was rejected by name",
+            file: file, line: line
+        )
+    }
+
+    func test_rejectedAtTheV63Gate_stayRejected() throws {
+        // The tab tick keeps travertine: the area hue on the active tick was rejected by name,
+        // and live-state marks are `accent`'s exclusive territory (Reading Color Rule v6).
+        let inkTabBar = try fencedSources().first { $0.name == "InkTabBar.swift" }
+        let tabBar = try XCTUnwrap(inkTabBar?.text, "InkTabBar.swift not found in the fenced sources")
+        for banned in ["metricArea", "areaHue", "ColorTokens.metric"] {
+            XCTAssertFalse(
+                tabBar.contains(banned),
+                "InkTabBar references \(banned) — the area hue on the active tab tick was REJECTED at the v6.3 gate; travertine keeps the live-state monopoly (DESIGN.md v6.3)"
+            )
+        }
+
+        // Surfaces with NO metric identity stay untinted stone. Declaring an area on one is the
+        // v6.3 equivalent of a decorative tint. `.metricArea(nil)` is NOT a declaration — it is
+        // the neutralizer a sheet uses to refuse an inherited area, so it stays legal here.
+        let neutralDirectories = ["Profile", "Auth", "OnboardingV2", "Onboarding", "Subscription"]
+        for (name, text) in try fencedSources() where text.contains(".metricArea(.") {
+            let path = try sourcePath(named: name)
+            let neutral = neutralDirectories.first { path.contains("/Views/\($0)/") }
+            XCTAssertNil(
+                neutral,
+                "\(name) declares a v6.3 metric area, but \(neutral ?? "") has no metric identity — profile, settings, auth and onboarding stay untinted stone (DESIGN.md v6.3)"
+            )
+        }
+    }
+
+    func test_designSystemCSS_carriesTheSameTwoFormulas() throws {
+        // `design-system/` is canonical and DESIGN.md is its iOS restatement. If the two
+        // disagree on the tint, one of them is lying to whoever reads it next.
+        let css = try designSystemColorsCSS()
+        XCTAssertTrue(css.contains("--area-wash:4%;"), "design-system/tokens/colors.css must carry the 4% hero-plane wash")
+        XCTAssertTrue(css.contains("--area-line-mix:18%;"), "design-system/tokens/colors.css must carry the 18% hairline tint")
+        for area in MetricArea.allCases {
+            XCTAssertTrue(
+                css.contains("--area-\(area.rawValue)-plane:"),
+                "design-system/tokens/colors.css is missing the \(area.rawValue) hero-plane token — the canonical source and the iOS binding must agree"
+            )
+            XCTAssertTrue(
+                css.contains("--area-\(area.rawValue)-line:"),
+                "design-system/tokens/colors.css is missing the \(area.rawValue) hairline token — the canonical source and the iOS binding must agree"
+            )
+        }
+    }
+
+    // MARK: v6.3 helpers
+
+    private func components(of color: Color) -> (CGFloat, CGFloat, CGFloat) {
+        var r: CGFloat = 0, g: CGFloat = 0, b: CGFloat = 0, a: CGFloat = 0
+        UIColor(color).getRed(&r, green: &g, blue: &b, alpha: &a)
+        return (r, g, b)
+    }
+
+    private func assertColor(
+        _ color: Color,
+        equals expected: (Int, Int, Int),
+        _ formula: String,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) {
+        let (r, g, b) = components(of: color)
+        let actual = (Int((r * 255).rounded()), Int((g * 255).rounded()), Int((b * 255).rounded()))
+        XCTAssertEqual(
+            "\(actual)", "\(expected)",
+            "\(formula) — the iOS binding no longer matches the CSS formula",
+            file: file, line: line
+        )
+    }
+
+    /// The on-disk path of a fenced source, so a fence can reason about which directory a file
+    /// lives in (the enumeration itself only carries file names).
+    private func sourcePath(named name: String) throws -> String {
+        let fm = FileManager.default
+        for dir in ["Views", "Components", "Utilities", "App"] {
+            let root = appRoot().appendingPathComponent(dir)
+            guard let enumerator = fm.enumerator(at: root, includingPropertiesForKeys: nil) else { continue }
+            for case let url as URL in enumerator where url.lastPathComponent == name {
+                return url.path
+            }
+        }
+        return ""
     }
 
     func test_directionalPaddingLiterals_areOnTheGrid() throws {

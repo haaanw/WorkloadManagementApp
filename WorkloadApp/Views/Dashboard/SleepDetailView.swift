@@ -58,7 +58,7 @@ struct SleepDetailView: View {
             VStack(spacing: 0) {
                 header
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 // Stats row
                 HStack(spacing: 0) {
@@ -70,7 +70,7 @@ struct SleepDetailView: View {
                         // reading takes the sleep hue (indigo). Card plane, 6.03:1.
                         valueColor: lastNight != nil ? ColorTokens.metricSleep : ColorTokens.text1
                     )
-                    Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
+                    AreaRule(axis: .vertical)
                     statCell(
                         index: 1,
                         label: "detail.label.sevenDayAvg",
@@ -79,9 +79,9 @@ struct SleepDetailView: View {
                 }
                 // v2: the lifted stats band sits on the elevated plane (widened ladder), bounded
                 // top/bottom by the full-width section hairlines.
-                .background(ColorTokens.surfaceEl)
+                .heroPlane()
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     SleepDetailChart(
@@ -127,11 +127,11 @@ struct SleepDetailView: View {
                 .simultaneousGesture(windowPinch)
 
                 if !conditionRows.isEmpty {
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                    AreaRule()
                     ReasonTreeSection(headKey: "sleep.detail.section.condition", rows: conditionRows)
                 }
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 DetailDisclosureList(
                     eyebrowKey: "sleep.detail.section.about",
@@ -153,6 +153,9 @@ struct SleepDetailView: View {
             }
         }
         .background(ColorTokens.background)
+        // v6.3 "The Area Tint": sleep detail is the SLEEP area (indigo) — the stats band takes
+        // the 4% wash, every section rule the 18% tint.
+        .metricArea(.sleep)
         .navigationTitle(Text("recovery.label.sleep"))
         .navigationBarTitleDisplayMode(.inline)
         .task {

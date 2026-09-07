@@ -8,7 +8,7 @@ struct ReadinessWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "TuwaReadinessWidget", provider: WidgetSnapshotProvider()) { entry in
             ReadinessWidgetView(entry: entry)
-                .tuwaWidgetBackground()
+                .tuwaWidgetBackground(area: .readiness)
         }
         .configurationDisplayName(Text("widget.readiness.title", comment: "Readiness widget name"))
         .description(Text("widget.readiness.description", comment: "Readiness widget description"))

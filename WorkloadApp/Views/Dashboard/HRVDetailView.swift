@@ -55,7 +55,7 @@ struct HRVDetailView: View {
             VStack(spacing: 0) {
                 header
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 // Stats row
                 HStack(spacing: 0) {
@@ -73,14 +73,14 @@ struct HRVDetailView: View {
                         // the stats band is a CARD plane (5.19:1).
                         valueColor: latest != nil ? ColorTokens.metricRecovery : ColorTokens.text1
                     )
-                    Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
+                    AreaRule(axis: .vertical)
                     statCell(
                         index: 1,
                         label: "detail.label.sevenDayAvg",
                         value: sevenDayAvg.map { "\(Int($0))" } ?? "—",
                         unit: sevenDayAvg != nil ? "ms" : nil
                     )
-                    Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
+                    AreaRule(axis: .vertical)
                     statCell(
                         index: 2,
                         label: "hrv.detail.label.delta",
@@ -90,9 +90,9 @@ struct HRVDetailView: View {
                 }
                 // v2: the lifted stats band sits on the elevated plane (widened ladder), bounded
                 // top/bottom by the full-width section hairlines.
-                .background(ColorTokens.surfaceEl)
+                .heroPlane()
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 VStack(alignment: .leading, spacing: Spacing.xs) {
                     HRVDetailChart(data: data, selectedDate: $selectedDate, windowDays: windowDays)
@@ -117,11 +117,11 @@ struct HRVDetailView: View {
                 .simultaneousGesture(windowPinch)
 
                 if !conditionRows.isEmpty {
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                    AreaRule()
                     ReasonTreeSection(headKey: "hrv.detail.section.condition", rows: conditionRows)
                 }
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 DetailDisclosureList(
                     eyebrowKey: "hrv.detail.section.about",
@@ -147,6 +147,11 @@ struct HRVDetailView: View {
             }
         }
         .background(ColorTokens.background)
+        // v6.3 "The Area Tint": HRV is recovery physiology, so this screen stands in the
+        // RECOVERY area — the stats band takes the 4% wash, every section rule the 18% tint.
+        // Declared on the view itself, not on its fetching wrapper, so the screen carries the
+        // right hue no matter which tab pushes it.
+        .metricArea(.recovery)
         .navigationTitle(Text("recovery.label.hrv"))
         .navigationBarTitleDisplayMode(.inline)
     }

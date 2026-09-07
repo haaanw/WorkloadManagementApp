@@ -131,9 +131,11 @@ struct WorkoutLogView: View {
                 }
                 .padding(.top, Spacing.md)
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                // The masthead rules bracketing the filter rail — area hairlines (v6.3), so
+                // they take the strain tint via the one `AreaRule` implementation.
+                AreaRule()
                 SessionTypeFilterBar(selectedType: $selectedSessionType)
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 ScrollView {
                     VStack(spacing: 0) {
@@ -280,6 +282,10 @@ struct WorkoutLogView: View {
             // only non-stone surface in the app. Found by sampling a screenshot, not by
             // reading the code; the four sibling tab roots all set this correctly.
             .background(ColorTokens.background)
+            // v6.3 "The Area Tint": Log/capture is the STRAIN area (rust) — this is where
+            // strain is produced and recorded. Section rules and row separators take the 18%
+            // tint; the program door takes the 4% hero wash.
+            .metricArea(.strain)
             .toolbar(.hidden, for: .navigationBar)
             .navigationDestination(for: UUID.self) { sessionId in
                 if let session = sessions.first(where: { $0.id == sessionId }) {

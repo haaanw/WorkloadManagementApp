@@ -26,7 +26,7 @@ struct SleepNightDetailView: View {
             VStack(spacing: 0) {
                 header
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 // Stats band: duration in the sleep hue (Reading Color Rule v6 — the
                 // screen reports sleep, so its principal reading takes indigo; card
@@ -38,22 +38,22 @@ struct SleepNightDetailView: View {
                         value: sleepString(night.tstMinutes),
                         valueColor: ColorTokens.metricSleep
                     )
-                    Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
+                    AreaRule(axis: .vertical)
                     statCell(
                         index: 1,
                         label: "sleep.night.label.inBed",
                         value: night.inBedMinutes.map { sleepString($0) } ?? "—"
                     )
-                    Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
+                    AreaRule(axis: .vertical)
                     statCell(
                         index: 2,
                         label: "sleep.night.label.efficiency",
                         value: efficiencyPercent.map { "\($0)%" } ?? "—"
                     )
                 }
-                .background(ColorTokens.surfaceEl)
+                .heroPlane()
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 if !night.segments.isEmpty {
                     timeline
@@ -62,14 +62,14 @@ struct SleepNightDetailView: View {
                 }
 
                 if !stageRows.isEmpty {
-                    Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                    AreaRule()
                     ReasonTreeSection(headKey: "sleep.night.section.stages", rows: stageRows)
                 }
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
                 ReasonTreeSection(headKey: "sleep.night.section.facts", rows: factRows)
 
-                Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+                AreaRule()
 
                 DetailDisclosureList(
                     eyebrowKey: "sleep.detail.section.about",
@@ -83,6 +83,9 @@ struct SleepNightDetailView: View {
             }
         }
         .background(ColorTokens.background)
+        // v6.3 "The Area Tint": the per-night breakdown is sleep detail — same SLEEP area as
+        // the screen that pushes it.
+        .metricArea(.sleep)
         .navigationTitle(Text("sleep.night.navTitle"))
         .navigationBarTitleDisplayMode(.inline)
     }

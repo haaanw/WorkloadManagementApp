@@ -122,6 +122,10 @@ struct LogCaptureSheet: View {
             .background(ColorTokens.background)
             .toolbar(.hidden, for: .navigationBar)
         }
+        // v6.3 "The Area Tint": narrative capture is a Log/capture surface — STRAIN area.
+        // Declared here for the same reason as `ActiveWorkoutSheet`: a sheet inherits its
+        // presenter's environment, and this one is reachable from more than one tab.
+        .metricArea(.strain)
         .onChange(of: speech.transcript) { _, newValue in
             guard isRecording else { return }
             text = recordingPrefix.isEmpty ? newValue : recordingPrefix + newValue

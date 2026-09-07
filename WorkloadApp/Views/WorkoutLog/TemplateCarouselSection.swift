@@ -103,7 +103,9 @@ struct TemplateCarouselSection: View {
                 .buttonStyle(.pressable)
             }
             .frame(maxWidth: .infinity)
-            .cardStyle()
+            // v6.3: the program door is the Log tab's hero when there is nothing else on the
+            // screen — the one plate that takes the strain area's 4% wash.
+            .cardStyle(isHero: true)
             .padding(.horizontal, Spacing.sm)
         }
     }

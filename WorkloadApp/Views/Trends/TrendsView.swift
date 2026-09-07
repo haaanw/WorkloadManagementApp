@@ -156,7 +156,10 @@ struct TrendsView: View {
                     RuledSection(header: "recovery.section.hrvTrend", topGap: Spacing.sm) {
                         NavigationLink(value: TrendDestination.hrv) {
                             HRVTrendChart(data: viewModel.hrvGlance)
-                                .cardStyle()
+                                // v6.3: HRV is the recovery area's primary reading, so this is
+                                // the Trends hero — the one card here that takes the 4% wash.
+                                // The sleep and load cards below stay plain stone.
+                                .cardStyle(isHero: true)
                         }
                         .buttonStyle(.rowWell(cornerRadius: CornerTokens.card))
                         .padding(.horizontal, Spacing.sm)
@@ -204,6 +207,10 @@ struct TrendsView: View {
                         .padding(.horizontal, Spacing.sm)
                         .accessibilityIdentifier("trends.loadTrend")
                     }
+                    // v6.3: a LOAD surface sitting on a recovery screen — the section owns the
+                    // load hue, so its section rule reads as load while the rest of the screen
+                    // reads as recovery. Ownership follows the metric, not the tab.
+                    .metricArea(.load)
                     .entranceReveal(index: 2)
 
                     if lockedWeeks > 0 {
@@ -325,6 +332,11 @@ struct TrendsView: View {
             .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
+            // v6.3 "The Area Tint": Trends is the RECOVERY area — its primary readings are HRV
+            // and the recovery physiology behind the score. The load sections inside it declare
+            // `.metricArea(.load)` on themselves (a section can own a different metric family
+            // than the screen it sits on); the pushed detail screens declare their own.
+            .metricArea(.recovery)
             .toolbar(.hidden, for: .navigationBar)
             // Same destination enum Home routes on, so both tabs land on the SAME
             // self-fetching screens (`TrendDetailScreens` — the one fetch path).

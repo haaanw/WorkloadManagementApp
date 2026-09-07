@@ -131,6 +131,11 @@ extension MetricCell where Accessory == MetricDeltaLine {
 /// Carries NO horizontal padding of its own: callers place it inside an already-inset column
 /// so the rule aligns flush with the cards beneath it. Tracking/casing are Latin-only (CJK
 /// has no case and looser tracking is wrong — same rule as `ScreenHeader`).
+///
+/// v6.3 "The Area Tint": the trailing rule is an AREA HAIRLINE — inside a declared
+/// `.metricArea` it takes the 18% tint via `AreaRule`, outside one it stays plain stone. Only
+/// the RULE moves; the label keeps `text2` and takes no hue, because a hue-colored section key
+/// (the demo's section marker) was rejected at the v6.3 gate.
 struct RuledSectionHeader: View {
     let title: LocalizedStringKey
 
@@ -145,9 +150,7 @@ struct RuledSectionHeader: View {
                 .textCase(isLatin ? .uppercase : nil)
                 .foregroundStyle(ColorTokens.text2)
                 .fixedSize(horizontal: true, vertical: false)
-            Rectangle()
-                .fill(ColorTokens.dividerStrong)
-                .frame(height: 0.5)
+            AreaRule(base: ColorTokens.dividerStrong)
         }
         .accessibilityElement(children: .combine)
     }

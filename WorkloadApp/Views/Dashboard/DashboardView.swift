@@ -287,6 +287,12 @@ struct DashboardView: View {
             .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
             .background(ColorTokens.background)
+            // v6.3 "The Area Tint": Home/Today's primary reading is readiness, so this whole
+            // surface stands in the readiness area — the hero plane takes the 4% wash and every
+            // structural hairline takes the 18% tint. Pushed and presented surfaces declare
+            // their OWN area (Log/capture = strain, the detail screens = recovery / sleep), so
+            // the inherited value never leaks into a screen that owns a different metric.
+            .metricArea(.readiness)
             .toolbar(.hidden, for: .navigationBar)
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet()
@@ -553,7 +559,10 @@ struct HeroReadinessCard: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.sm)
-            .raised(cornerRadius: CornerTokens.card)
+            // v6.3: THE hero plate of the readiness area — the one surface on Home that takes
+            // the 4% wash. The supporting card below stays plain stone (card washes beyond the
+            // hero plane were rejected at the gate).
+            .raised(cornerRadius: CornerTokens.card, isHero: true)
 
             if hasSupportingContent {
                 Spacer().frame(height: Spacing.xs)

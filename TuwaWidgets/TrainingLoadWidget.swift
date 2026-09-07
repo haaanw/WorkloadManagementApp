@@ -8,7 +8,7 @@ struct TrainingLoadWidget: Widget {
     var body: some WidgetConfiguration {
         StaticConfiguration(kind: "TuwaTrainingLoadWidget", provider: WidgetSnapshotProvider()) { entry in
             TrainingLoadWidgetView(entry: entry)
-                .tuwaWidgetBackground()
+                .tuwaWidgetBackground(area: .load)
         }
         .configurationDisplayName(Text("widget.load.title", comment: "Training-load widget name"))
         .description(Text("widget.load.description", comment: "Training-load widget description"))
