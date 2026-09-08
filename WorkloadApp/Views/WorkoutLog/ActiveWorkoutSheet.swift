@@ -68,8 +68,26 @@ struct ActiveWorkoutSheet: View {
     @State private var voiceStartToken = 0
     /// Scroll target for the inline voice card — the bar brings it into view before it listens.
     private static let voiceCardID = "activeWorkout.voiceCard"
+    /// Guided mode's pair-cell jump (v1.7.3 feature 9). Held HERE, not inside the plate, so the
+    /// voice ingest resolves the same current slot the athlete is looking at.
+    @State private var guidedPriorityEntryIndex: Int?
 
     private var athlete: Athlete? { athletes.first }
+
+    /// Guided session mode (v1.7.3 feature 9) is the resolved-plan path and only that path: a
+    /// session the app already knows the shape of can be walked one move at a time. Template,
+    /// blank and voice-parsed sessions keep the ledger.
+    private var isGuided: Bool { resolvedPlan != nil }
+
+    /// The entry guided mode is standing on — the target for an utterance that names no
+    /// movement ("five more" belongs to the move on screen, not to the last card in the list).
+    private var guidedCurrentEntryIndex: Int? {
+        guard isGuided else { return nil }
+        return GuidedSessionEngine(
+            entries: entries,
+            priorityEntryIndex: guidedPriorityEntryIndex
+        ).currentEntryIndex
+    }
 
     /// Template / blank session path (unchanged). Never carries a resolved plan or a parsed session.
     /// `initialNotes` is the only addition: the voice-capture "log manually" fallback seeds the blank
@@ -140,9 +158,34 @@ struct ActiveWorkoutSheet: View {
             // controls that let you log more.
             InstrumentSheetHeader(title: "nav.workout") {
                 SheetHeaderButton(title: "action.cancel") { dismiss() }
+            } trailing: {
+                // Guided mode spends its one ink-filled pill on Log set, so Finish is a quiet
+                // header slot — reachable at any moment, and still behind the zero-done guard.
+                if isGuided {
+                    SheetHeaderButton(title: "action.finish") {
+                        showFinishConfirmation = true
+                    }
+                    .accessibilityIdentifier("activeWorkout.finish")
+                }
             }
             ScrollViewReader { scrollProxy in
             VStack(spacing: 0) {
+            if isGuided {
+                // Guided session mode (v1.7.3 feature 9): a resolved plan is walked ONE MOVE at
+                // a time on its own plate. Everything around this branch — the header, the
+                // sheets, the banners, the zero-done guard, the save path — is untouched; only
+                // the middle of the sheet is a different surface.
+                GuidedSessionView(
+                    entries: $entries,
+                    priorityEntryIndex: $guidedPriorityEntryIndex,
+                    startTime: startTime,
+                    weightUnit: athlete?.weightUnit ?? .kg,
+                    prWeightKg: prWeightKg(for:),
+                    voiceStartToken: voiceStartToken,
+                    onUtterance: { text in await ingestUtterance(text) },
+                    onFinish: { showFinishConfirmation = true }
+                )
+            } else {
             ScrollView {
                 VStack(spacing: 0) {
                     // Session info (round 6 redesign, HAN): the primary decision — what
@@ -264,6 +307,26 @@ struct ActiveWorkoutSheet: View {
                 }
             }
             .background(ColorTokens.background)
+
+            // The docked capture control (v1.7.3 feature 6, epic 10): voice is the sheet's
+            // primary capture — the round mic with the first-run coaching line, widening to
+            // the full-width speak bar once the hint retires. The card owns the microphone;
+            // this sheet owns the appending. Sits ABOVE the session bar, in the thumb zone.
+            VoiceDictationCard(
+                startToken: voiceStartToken,
+                isDocked: true,
+                planAware: resolvedPlan != nil
+            ) { text in
+                await ingestUtterance(text)
+            }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.xs)
+            .background(ColorTokens.background)
+            .id(Self.voiceCardID)
+
+            sessionBar(scrollProxy: scrollProxy)
+            }
+            }
             .sheet(isPresented: $showExercisePicker) {
                 ExercisePickerView(sportType: sportType) { name, category, muscle in
                     var draft = ExerciseEntryDraft(
@@ -381,25 +444,6 @@ struct ActiveWorkoutSheet: View {
                 withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
                     scrollProxy.scrollTo(id, anchor: .center)
                 }
-            }
-
-            // The docked capture control (v1.7.3 feature 6, epic 10): voice is the sheet's
-            // primary capture — the round mic with the first-run coaching line, widening to
-            // the full-width speak bar once the hint retires. The card owns the microphone;
-            // this sheet owns the appending. Sits ABOVE the session bar, in the thumb zone.
-            VoiceDictationCard(
-                startToken: voiceStartToken,
-                isDocked: true,
-                planAware: resolvedPlan != nil
-            ) { text in
-                await ingestUtterance(text)
-            }
-            .padding(.horizontal, Spacing.sm)
-            .padding(.vertical, Spacing.xs)
-            .background(ColorTokens.background)
-            .id(Self.voiceCardID)
-
-            sessionBar(scrollProxy: scrollProxy)
             }
             }
             }
@@ -1010,6 +1054,7 @@ struct ActiveWorkoutSheet: View {
                 return .needsFallbackChip
             }
             newSet.isDone = true
+            newSet.loggedAt = .now
             withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
                 entries[index].sets.append(newSet)
             }
@@ -1030,6 +1075,7 @@ struct ActiveWorkoutSheet: View {
             // Naming a movement with no numbers ("next up, incline bench") is a legitimate way to
             // open an exercise — it just opens an UNDONE shell, never a fabricated logged set.
             newSet.isDone = newSet.reps != nil || newSet.weightKg != nil || newSet.durationSeconds != nil
+            if newSet.isDone { newSet.loggedAt = .now }
             draft.sets = [newSet]
 
             if isUnresolved {
@@ -1058,6 +1104,10 @@ struct ActiveWorkoutSheet: View {
     private func resolveTarget(spokenName: String?) -> UtteranceTarget {
         let spoken = spokenName?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         guard !spoken.isEmpty else {
+            // Guided mode shows exactly one move, so "five more" can only mean that move —
+            // the classic "whoever owns the newest logged set" reading would send it to the
+            // movement just finished.
+            if let guided = guidedCurrentEntryIndex { return .existing(guided) }
             if let location = lastDoneSetLocation() { return .existing(location.entry) }
             if !entries.isEmpty { return .existing(entries.count - 1) }
             return .unattached
@@ -1124,6 +1174,7 @@ struct ActiveWorkoutSheet: View {
                 entries[entryIndex].sets[setIndex].rpe = rpe
             }
             entries[entryIndex].sets[setIndex].isDone = true
+            entries[entryIndex].sets[setIndex].loggedAt = .now
         }
         return .added(exerciseName: entries[entryIndex].exerciseName)
     }
@@ -1145,6 +1196,7 @@ struct ActiveWorkoutSheet: View {
         clone.rir = source.rir
         clone.isWarmup = source.isWarmup
         clone.isDone = true
+        clone.loggedAt = .now
 
         withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
             entries[location.entry].sets.append(clone)
@@ -1298,7 +1350,13 @@ struct ActiveWorkoutSheet: View {
                     distanceMeters: setDraft.distanceMeters,
                     rpe: setDraft.rpe,
                     rir: setDraft.rir,
-                    isWarmup: setDraft.isWarmup
+                    isWarmup: setDraft.isWarmup,
+                    // v1.7.3 feature 9: the moment the set was actually logged, not the moment
+                    // Finish was tapped. Every set of a session used to share one identical
+                    // `completedAt`, which made set order, rest intervals and session tempo
+                    // unrecoverable. `.now` remains the floor for a set logged before the field
+                    // existed (an in-flight sheet across an app update).
+                    completedAt: setDraft.loggedAt ?? .now
                 )
                 entry.sets.append(setRecord)
             }
@@ -1594,6 +1652,7 @@ struct ExerciseEntryCard: View {
                     }
                 }
                 entry.sets[index].isDone = true
+                entry.sets[index].loggedAt = .now
             }
             openSetID = nil
         }
@@ -2055,6 +2114,7 @@ struct SetEntryRow: View {
             let willComplete = !set.isDone
             withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
                 set.isDone.toggle()
+                set.loggedAt = set.isDone ? .now : nil
             }
             if willComplete {
                 Haptics.success()
@@ -2129,6 +2189,7 @@ struct SetEntryRow: View {
                 if set.isDone {
                     // Logged → back to editable. Recoverability without menus.
                     set.isDone = false
+                    set.loggedAt = nil
                 }
                 onRequestOpen?()
             }
@@ -2214,6 +2275,7 @@ struct SetEntryRow: View {
         }
         withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
             set.isDone = true
+            set.loggedAt = .now
         }
         Haptics.success()
     }
@@ -2397,6 +2459,7 @@ struct SetEntryRow: View {
                     Haptics.tap()
                     withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
                         set.isDone = false
+                        set.loggedAt = nil
                     }
                 } label: {
                     Text("set.action.unlog")
@@ -2442,6 +2505,7 @@ struct SetEntryRow: View {
         focusField = nil
         withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
             set.isDone = true
+            set.loggedAt = .now
             // The card closes this row and opens the next one — on the last set that means a
             // fresh carried row, which is the whole ledger loop.
             onLogged?()
@@ -2603,6 +2667,7 @@ struct SetEntryRow: View {
         guard !set.isDone else { return }
         withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
             set.isDone = true
+            set.loggedAt = .now
         }
         Haptics.success()
     }

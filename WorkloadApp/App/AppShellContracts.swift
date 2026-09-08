@@ -52,6 +52,17 @@ struct SetDraft: Identifiable {
     var isFromHistory: Bool = false
     var isDone: Bool = false
     var isSkipped: Bool = false
+    /// The moment this set was recorded as performed (v1.7.3 feature 9). Written by every path
+    /// that flips `isDone`, and carried into `SetRecord.completedAt` at save.
+    ///
+    /// Before this existed every set in a session saved with `completedAt == .now` at Finish —
+    /// one identical timestamp for the whole session — so set order, rest intervals and session
+    /// tempo were unrecoverable from the record. The guided plate's SINCE SET clock reads it
+    /// live; the density/monotony roadmap item cannot back-fill it.
+    var loggedAt: Date? = nil
+    /// This set was added beyond the plan (guided mode's "+ Extra set"), so the plate can say so
+    /// without inventing a rule about which target fields a planned set must carry.
+    var isExtra: Bool = false
 }
 
 struct ActiveWorkoutViewState: Equatable {

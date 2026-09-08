@@ -26,6 +26,19 @@ extension EnvironmentValues {
     }
 }
 
+/// How `SetEntryFields` presents its two readings. PRESENTATION ONLY — every scrub, type,
+/// commit and ghost rule below is identical in both, because the difference between the ledger
+/// row and the guided plate is what the athlete looks at, never what the app records.
+enum SetEntryLayout {
+    /// The ledger row (v1.7.2 "Bench"): the active field's label with the waiting field beside
+    /// it, then the reading over the rule.
+    case bench
+    /// The guided plate (v1.7.3 feature 9, demo round 3): two debossed readout wells side by
+    /// side — WEIGHT and REPS, each stating its own number — over a rule that carries no
+    /// reading of its own. The well that owns the rule wears the travertine ring.
+    case wells
+}
+
 /// Set entry, variant B "Bench" — HAN-gated 2026-08-22 from the v1.7.2 logging demos.
 ///
 /// **What changed and why.** Rounds 1–8 of the 1.7.1 UAT made the row correct; the value
@@ -74,6 +87,8 @@ struct SetEntryFields: View {
     /// 2026-08-13) — displayed as BW, never "0 kg"; positive values are ADDED load and
     /// read "+10". nil stays "never entered". The weight ghost defaults to BW.
     var isBodyweight: Bool = false
+    /// Which presentation to draw. Bench callers say nothing; the guided plate asks for `.wells`.
+    var layout: SetEntryLayout = .bench
 
     var focus: FocusState<SetFocusField?>.Binding? = nil
     var rowId: UUID = UUID()
@@ -246,10 +261,15 @@ struct SetEntryFields: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: Spacing.xs) {
-            HStack(alignment: .center, spacing: Spacing.xs) {
-                AnnotationLabel(activeFieldLabel, size: .small)
-                Spacer(minLength: Spacing.xs)
-                waitingField
+            switch layout {
+            case .bench:
+                HStack(alignment: .center, spacing: Spacing.xs) {
+                    AnnotationLabel(activeFieldLabel, size: .small)
+                    Spacer(minLength: Spacing.xs)
+                    waitingField
+                }
+            case .wells:
+                readoutWells
             }
 
             plate
@@ -295,7 +315,10 @@ struct SetEntryFields: View {
 
     private var plate: some View {
         VStack(spacing: 0) {
-            reading
+            // In `.wells` the reading lives in its well, so the plate is the rule alone.
+            if layout == .bench {
+                reading
+            }
             rule
         }
         .frame(maxWidth: .infinity)
@@ -303,10 +326,14 @@ struct SetEntryFields: View {
         .clipShape(RoundedRectangle(cornerRadius: CornerTokens.control))
         .overlay(
             RoundedRectangle(cornerRadius: CornerTokens.control)
-                .stroke(isEditing ? ColorTokens.accent : ColorTokens.divider,
-                        lineWidth: isEditing ? 1.5 : 0.5)
+                .stroke(plateIsRinged ? ColorTokens.accent : ColorTokens.divider,
+                        lineWidth: plateIsRinged ? 1.5 : 0.5)
         )
     }
+
+    /// The typing ring belongs to whichever surface holds the numeral: the plate in `.bench`,
+    /// the live well in `.wells`. Two accent rings on one editor would read as two live states.
+    private var plateIsRinged: Bool { layout == .bench && isEditing }
 
     /// The reading is the TYPE surface. Tapping it raises the keypad; it never scrubs.
     @ViewBuilder private var reading: some View {
@@ -474,6 +501,92 @@ struct SetEntryFields: View {
         switch bench {
         case .weight: return reps == nil
         case .reps: return weightKg == nil
+        }
+    }
+
+    // MARK: The readout wells (`.wells` layout — the guided plate)
+
+    /// Both readings at once, each in its own debossed well: the guided plate never hides the
+    /// number the athlete is not currently moving. The well that owns the rule wears the 1.5pt
+    /// travertine ring (a live-state mark — accent's exclusive territory); tapping the other
+    /// well hands the rule over, and a second tap on the live well raises the keypad, exactly as
+    /// the ledger row's reading does.
+    private var readoutWells: some View {
+        HStack(alignment: .top, spacing: Spacing.xs) {
+            readoutWell(.weight)
+            readoutWell(.reps)
+        }
+    }
+
+    private func readoutWell(_ field: BenchField) -> some View {
+        let isLive = bench == field
+        return VStack(alignment: .leading, spacing: Spacing.baselinePair) {
+            // `text2`, not the annotation default: `text3` on a well measures 2.84:1, below the
+            // contrast floor (DESIGN.md v6 rule 7).
+            AnnotationLabel(wellLabel(field), size: .small, color: ColorTokens.text2)
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.baselinePair) {
+                wellReading(field)
+                if field == .weight, showsWeightUnit {
+                    Text(unitLabel)
+                        .font(.Tokens.annoSmall)
+                        .foregroundStyle(ColorTokens.text2)
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .padding(.horizontal, Spacing.xs)
+        .padding(.vertical, Spacing.xs)
+        .contentShape(Rectangle())
+        .onTapGesture {
+            if isLive {
+                focus?.wrappedValue = field == .weight ? .weight(rowId) : .reps(rowId)
+            } else {
+                Haptics.select()
+                bench = field
+            }
+        }
+        .debossed(cornerRadius: CornerTokens.control)
+        .overlay(
+            RoundedRectangle(cornerRadius: CornerTokens.control)
+                .stroke(isLive ? ColorTokens.accent : Color.clear, lineWidth: 1.5)
+        )
+        .accessibilityHint(Text("setEntry.hint.swapField"))
+    }
+
+    /// The live well holds the real input (so typing, ghosts and commits stay the ONE
+    /// implementation); the waiting well states its number and nothing else.
+    @ViewBuilder private func wellReading(_ field: BenchField) -> some View {
+        if bench == field {
+            switch field {
+            case .weight: weightInput
+            case .reps:   repsInput
+            }
+        } else {
+            Text(waitingWellValue(field))
+                .font(.Tokens.displayAction)
+                .monospacedDigit()
+                .foregroundStyle(waitingWellIsGhost(field) ? ColorTokens.text3 : ColorTokens.text1)
+        }
+    }
+
+    private func wellLabel(_ field: BenchField) -> String {
+        switch field {
+        case .weight: return LocalePinnedStrings.localized("setEntry.label.weight", locale: locale)
+        case .reps:   return LocalePinnedStrings.localized("table.header.reps", locale: locale)
+        }
+    }
+
+    private func waitingWellValue(_ field: BenchField) -> String {
+        switch field {
+        case .weight: return (weightDisplay ?? weightGhostDisplay).map(weightLabel) ?? "—"
+        case .reps:   return "\(reps ?? repsGhost)"
+        }
+    }
+
+    private func waitingWellIsGhost(_ field: BenchField) -> Bool {
+        switch field {
+        case .weight: return weightKg == nil
+        case .reps:   return reps == nil
         }
     }
 
