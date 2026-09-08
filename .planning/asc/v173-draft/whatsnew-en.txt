@@ -1,0 +1,7 @@
+Tuwa 1.7.3 turns your program into your daily guide.
+
+Bring your training program once — text, PDF, photo, or just say it — and Tuwa runs it day by day. Each morning it proposes today's session with the volumes already adjusted to your recovery, and a quick check-in tunes the numbers before you start.
+
+New guided session mode: when you start a planned workout, the app becomes a focused space showing the current move and its target numbers. Log a set in one tap, and Tuwa advances to the next move with what's coming up always in view — supersets alternate automatically. Your session lives on the lock screen too, so a glance shows where you are without unlocking.
+
+Also new: home-screen widgets for today's readiness and training load, a rebuilt four-tab layout with a single Trends view, and the app now opens instantly — your data syncs in the background instead of making you wait.
