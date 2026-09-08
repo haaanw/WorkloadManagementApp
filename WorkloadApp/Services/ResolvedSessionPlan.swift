@@ -17,7 +17,12 @@ import Foundation
 ///  - `rpe` uses `VerdictDecisionApplier.effectiveTargetRPE` — same accept/keep semantics; authored when
 ///    no accepted adjustment exists (and there is no adjusted RPE to surface unless one was authored).
 ///  - `reps` / `rir` / `durationSeconds` / `distanceMeters` / `isWarmup` are always the authored values.
-struct ResolvedSessionPlan: Equatable {
+struct ResolvedSessionPlan: Equatable, Identifiable {
+
+    /// Identity for `.sheet(item:)` presentation — the frozen prescription IS the plan's
+    /// identity (v1.7.3: the Today-surface mount presented a blank sheet when the
+    /// `isPresented` boolean raced ahead of the optional; `item:` hands the plan atomically).
+    var id: UUID { prescriptionID }
 
     /// Stable identity of the frozen prescription this plan resolves (the verdict → session link key).
     let prescriptionID: UUID

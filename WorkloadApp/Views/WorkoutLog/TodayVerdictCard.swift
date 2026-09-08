@@ -209,7 +209,8 @@ struct TodayVerdictCard: View {
                 // action once the decision is made (no competing equal-weight choice remains).
                 if canStartWorkout, let onStartWorkout {
                     KeyRow([
-                        KeyRow.Key(title: startLabelKey, role: .cta, action: onStartWorkout)
+                        KeyRow.Key(title: startLabelKey, role: .cta,
+                                   accessibilityID: "verdict.startWorkout", action: onStartWorkout)
                     ])
                 }
             }

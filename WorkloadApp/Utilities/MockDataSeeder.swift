@@ -382,7 +382,31 @@ enum MockDataSeeder {
         VerdictDecisionApplier.applyAccept(to: working, appliedAt: .now)
 
         squat.sets = [warmup, working, backoff]
-        group.exercises = [squat]
+
+        // Two follow-on moves so guided mode's store plate shows a REAL session shape —
+        // "MOVE 1/3" with bench lined up in the next bar, not "1/1 · THEN Finish".
+        let bench = TemplateExercise(
+            exerciseName: "Barbell Bench Press",
+            exerciseCategory: .compound,
+            muscleGroup: .chest,
+            orderIndex: 1
+        )
+        bench.sets = [
+            TemplateSet(setIndex: 0, targetReps: 8, targetWeightKg: 80, targetRPE: 7, isWarmup: false),
+            TemplateSet(setIndex: 1, targetReps: 8, targetWeightKg: 80, targetRPE: 8, isWarmup: false)
+        ]
+        let row = TemplateExercise(
+            exerciseName: "Barbell Row",
+            exerciseCategory: .compound,
+            muscleGroup: .back,
+            orderIndex: 2
+        )
+        row.sets = [
+            TemplateSet(setIndex: 0, targetReps: 10, targetWeightKg: 70, targetRPE: 7, isWarmup: false),
+            TemplateSet(setIndex: 1, targetReps: 10, targetWeightKg: 70, targetRPE: 8, isWarmup: false)
+        ]
+
+        group.exercises = [squat, bench, row]
         prescription.groups = [group]
         modelContext.insert(prescription)
 

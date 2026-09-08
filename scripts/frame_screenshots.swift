@@ -212,18 +212,20 @@ let screenSpecs: [String: ScreenSpec] = [
                                    inclusion: .store(rank: 1)),
     "LogCapture":       ScreenSpec(metric: .strain,    machineKey: "input: voice · text · dictation",
                                    inclusion: .store(rank: 2)),
-    "Dashboard":        ScreenSpec(metric: .readiness, machineKey: "inputs: hrv · rhr · sleep",
+    "GuidedSession":    ScreenSpec(metric: .strain,    machineKey: "mode: guided · auto-advance",
                                    inclusion: .store(rank: 3)),
-    "Trends":           ScreenSpec(metric: .recovery,  machineKey: "trends: hrv · sleep · load",
+    "Dashboard":        ScreenSpec(metric: .readiness, machineKey: "inputs: hrv · rhr · sleep",
                                    inclusion: .store(rank: 4)),
-    "SleepDetail":      ScreenSpec(metric: .sleep,     machineKey: "sleep_target: 7.5 h",
+    "Trends":           ScreenSpec(metric: .recovery,  machineKey: "trends: hrv · sleep · load",
                                    inclusion: .store(rank: 5)),
-    "ActiveWorkout":    ScreenSpec(metric: .strain,    machineKey: "logged: sets · reps · load",
+    "SleepDetail":      ScreenSpec(metric: .sleep,     machineKey: "sleep_target: 7.5 h",
                                    inclusion: .store(rank: 6)),
-    "TemplatePicker":   ScreenSpec(metric: .load,      machineKey: "templates: user-authored",
+    "ActiveWorkout":    ScreenSpec(metric: .strain,    machineKey: "logged: sets · reps · load",
                                    inclusion: .store(rank: 7)),
-    "MovementBank":     ScreenSpec(metric: .strain,    machineKey: "catalog: 1,324 movements",
+    "TemplatePicker":   ScreenSpec(metric: .load,      machineKey: "templates: user-authored",
                                    inclusion: .store(rank: 8)),
+    "MovementBank":     ScreenSpec(metric: .strain,    machineKey: "catalog: 1,324 movements",
+                                   inclusion: .store(rank: 9)),
 
     // ── Retired with the Trends merge (v1.7.3 reorientation slice 3, 2026-09-03) ─
     //    The Recovery and Load tabs no longer exist — their trend/history content is
@@ -287,6 +289,10 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
         "LogCapture": FrameCopy(
             headline: "Say the session. Keep the sets.",
             subline: "Speak it or type it — Tuwa writes the log."
+        ),
+        "GuidedSession": FrameCopy(
+            headline: "Follow the plan, set by set",
+            subline: "One tap logs it. The next move is lined up."
         ),
         // "a 7.5-hour line", not "your own target": the shipping engine scores sleep against a
         // FIXED target. The adaptive one is designed and unbuilt (§10 claim rails). The window
@@ -356,6 +362,10 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
         "LogCapture": FrameCopy(
             headline: "说一句，训练就记好了",
             subline: "开口说或直接打字，Tuwa 帮你填好每一组。"
+        ),
+        "GuidedSession": FrameCopy(
+            headline: "跟着计划，一组一组练",
+            subline: "一次点击记好一组，下一个动作已经排好。"
         ),
         "SleepDetail": FrameCopy(
             headline: "每一晚，都对照目标",
@@ -739,6 +749,7 @@ func annotation(
 let screenPatterns: [(patterns: [String], token: String)] = [
     (["verdictmicrodose", "v21_01"],                 "VerdictMicrodose"),
     (["logcapture", "log_capture", "voicelog"],      "LogCapture"),
+    (["guidedsession", "guided_session", "guided"],  "GuidedSession"),
     (["sleepdetail", "sleep_detail"],                "SleepDetail"),
     (["strikezone", "strike_zone", "v21_02"],        "StrikeZone"),
     (["nextmatch", "next_match", "v21_03"],          "NextMatch"),

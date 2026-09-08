@@ -23,8 +23,9 @@ struct TodayProposalSection: View {
 
     @State private var verdictVM: TodayVerdictViewModel?
     @State private var verdictRepository: VerdictEventRepository?
+    // Presented via .sheet(item:) — the boolean-plus-optional pair raced under load and
+    // presented an EMPTY sheet (caught by the store-plate harness, 2026-09-09).
     @State private var resolvedPlanForSession: ResolvedSessionPlan?
-    @State private var showResolvedWorkout = false
     @State private var showUnplannedWorkout = false
     @State private var showProgramImport = false
     // Program designation repos (feature 6 wire) — held as @State (deinit trap).
@@ -51,7 +52,6 @@ struct TodayProposalSection: View {
                                 return
                             }
                             resolvedPlanForSession = plan
-                            showResolvedWorkout = true
                         }
                     )
                     .padding(.horizontal, Spacing.sm)
@@ -67,14 +67,12 @@ struct TodayProposalSection: View {
         .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
             refresh()
         }
-        .sheet(isPresented: $showResolvedWorkout, onDismiss: {
+        .sheet(item: $resolvedPlanForSession, onDismiss: {
             refresh()
             onProposalChanged()
-        }) {
-            if let plan = resolvedPlanForSession {
-                ActiveWorkoutSheet(resolvedPlan: plan)
-                    .environment(container)
-            }
+        }) { plan in
+            ActiveWorkoutSheet(resolvedPlan: plan)
+                .environment(container)
         }
         .sheet(isPresented: $showUnplannedWorkout, onDismiss: {
             refresh()

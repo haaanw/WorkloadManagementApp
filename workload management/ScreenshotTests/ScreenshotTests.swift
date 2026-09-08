@@ -207,6 +207,25 @@ final class ScreenshotTests: XCTestCase {
         saveScreenshot("AppStore_v21_01_VerdictMicrodose")
     }
 
+    /// Guided session mode (v1.7.3 feature 9) — the store plate for the release flagship.
+    /// Enters through the seeded proposal's start CTA (the same resolved plan the verdict
+    /// plate shows), logs the first set so the plate carries progress + the up-next bar.
+    func test16_GuidedSession() throws {
+        launchAuthenticatedApp()
+        tapTab("tab.home")
+        XCTAssertTrue(anyElement("workoutLog.verdict.reason").waitForExistence(timeout: 10), "Verdict reason line missing")
+        let start = app.buttons["verdict.startWorkout"]
+        XCTAssertTrue(start.waitForExistence(timeout: 5), "Proposal start CTA missing")
+        start.tap()
+        // anyElement, not app.buttons: the identifier sits on the PrimaryActionButton
+        // wrapper, which the AX tree may expose as a non-button node.
+        let logSet = anyElement("guided.logSet")
+        XCTAssertTrue(logSet.waitForExistence(timeout: 10), "Guided log-set control missing")
+        logSet.tap()
+        sleep(2)
+        saveScreenshot("16_GuidedSession")
+    }
+
     // MARK: - Logging flow smoke (start → template picker → active workout → exercise picker)
 
     func test08_StartWorkout_OpensActiveWorkout() throws {
