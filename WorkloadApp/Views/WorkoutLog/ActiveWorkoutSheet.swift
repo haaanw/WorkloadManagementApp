@@ -79,6 +79,33 @@ struct ActiveWorkoutSheet: View {
     /// blank and voice-parsed sessions keep the ledger.
     private var isGuided: Bool { resolvedPlan != nil }
 
+    /// The lock-screen Live Activity's whole state, derived from the same queue the plate reads
+    /// (v1.7.3 feature 9 batch 2, tier 1). nil for every non-guided path — the ledger sheet never
+    /// starts an activity — and nil until the plan has loaded its entries.
+    ///
+    /// `ContentState` is `Hashable`, so ONE `onChange` on this value is the entire update trigger:
+    /// a log, a skip, an advance, an extra set and the finish all change it, and nothing else does.
+    private var guidedActivityState: GuidedSessionActivityAttributes.ContentState? {
+        guard isGuided, !entries.isEmpty else { return nil }
+        return GuidedSessionActivityController.contentState(
+            engine: GuidedSessionEngine(
+                entries: entries,
+                priorityEntryIndex: guidedPriorityEntryIndex
+            ),
+            entries: entries,
+            weightUnit: athlete?.weightUnit ?? .kg,
+            locale: locale,
+            startedAt: startTime
+        )
+    }
+
+    /// The name the lock screen carries for the whole session. Attributes never change, so this
+    /// is read once at start.
+    private var guidedActivitySessionName: String {
+        let trimmed = sessionName.trimmingCharacters(in: .whitespacesAndNewlines)
+        return trimmed.isEmpty ? sportType.displayName : trimmed
+    }
+
     /// The entry guided mode is standing on — the target for an utterance that names no
     /// movement ("five more" belongs to the move on screen, not to the last card in the list).
     private var guidedCurrentEntryIndex: Int? {
@@ -157,7 +184,11 @@ struct ActiveWorkoutSheet: View {
             // bottom of a growing scroll — so the more you logged, the further away the
             // controls that let you log more.
             InstrumentSheetHeader(title: "nav.workout") {
-                SheetHeaderButton(title: "action.cancel") { dismiss() }
+                SheetHeaderButton(title: "action.cancel") {
+                    // Nothing was saved, so the lock screen has nothing to report.
+                    GuidedSessionActivityController.shared.endImmediately()
+                    dismiss()
+                }
             } trailing: {
                 // Guided mode spends its one ink-filled pill on Log set, so Finish is a quiet
                 // header slot — reachable at any moment, and still behind the zero-done guard.
@@ -418,6 +449,7 @@ struct ActiveWorkoutSheet: View {
                 titleVisibility: .visible
             ) {
                 Button(String(localized: "workout.save.noDone.discard", defaultValue: "Discard session"), role: .destructive) {
+                    GuidedSessionActivityController.shared.endImmediately()
                     dismiss()
                 }
                 Button(String(localized: "action.cancel", defaultValue: "Cancel"), role: .cancel) {}
@@ -435,6 +467,22 @@ struct ActiveWorkoutSheet: View {
                 } else if let parsedSession, entries.isEmpty {
                     loadFromParsedSession(parsedSession)
                 }
+            }
+            // Lock-screen Live Activity, tier 1 (v1.7.3 feature 9 batch 2). The plan loads into
+            // `entries` in the onAppear above, which flips this value from nil to a real state —
+            // that transition IS the start; every later change is an update. Guided mode only.
+            .onChange(of: guidedActivityState) { _, state in
+                guard let state else { return }
+                GuidedSessionActivityController.shared.startOrUpdate(
+                    sessionName: guidedActivitySessionName,
+                    state: state
+                )
+            }
+            // Safety net for the exits that do not run through Cancel or the save path — a
+            // swipe-to-dismiss, most of all. `end` is idempotent (it clears its own handle), so a
+            // finished session's 5-minute summary is NOT cut short by this.
+            .onDisappear {
+                GuidedSessionActivityController.shared.endImmediately()
             }
             // Keyboard avoidance (round 4): SwiftUI's automatic scroll surfaces only the
             // bare focused field; the row's label, rule, and chips stay buried under the
@@ -1383,6 +1431,7 @@ struct ActiveWorkoutSheet: View {
             try modelContext.save()
         } catch {
             print("Failed to save session: \(error)")
+            GuidedSessionActivityController.shared.endImmediately()
             dismiss()
             return
         }
@@ -1490,6 +1539,15 @@ struct ActiveWorkoutSheet: View {
     /// athlete landed back on the logging page. Close the child explicitly, then
     /// dismiss the sheet after the transition beat.
     private func finishAfterSave() {
+        // The session IS saved by the time this runs, so the lock screen keeps its summary for a
+        // few minutes — the athlete walking out of the gym reads what the session was without
+        // unlocking. `isComplete` state, then the system dismisses it.
+        if let state = guidedActivityState {
+            GuidedSessionActivityController.shared.end(
+                finalState: GuidedSessionActivityController.finishedState(from: state),
+                dismissAfterMinutes: 5
+            )
+        }
         showFinishConfirmation = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.35) {
             dismiss()

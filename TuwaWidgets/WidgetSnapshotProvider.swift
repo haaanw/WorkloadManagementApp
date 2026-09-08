@@ -102,6 +102,24 @@ extension View {
     }
 }
 
+/// The guided session's Live Activity stone (v1.7.3 feature 9 batch 2).
+///
+/// The lock-screen card is a HERO PLANE carrying one thing — the set in front of you — so it takes
+/// its area's 4% wash exactly as the in-app plate does. Capture is the STRAIN area
+/// (`ActiveWorkoutSheet` declares `.metricArea(.strain)`), so the lock screen and the screen stand
+/// on the same stone.
+///
+/// The tokens are read HERE rather than in `GuidedSessionLiveActivity` because this file is the
+/// widget extension's sanctioned area-tint chokepoint (`DesignSystemFenceTests`
+/// `areaTintChokepointFiles`) — the extension cannot reach `CardStyle.swift`, and a call site that
+/// mixes its own tint is how "hero plane only" becomes "everywhere".
+enum ActivityPlane {
+    /// The card's background tint — `color-mix(in srgb, strain 4%, card plane)`.
+    static var background: Color { ColorTokens.areaPlane(.strain, over: .card) }
+    /// The rule between the NOW and NEXT columns — `color-mix(in srgb, strain 18%, divider)`.
+    static var hairline: Color { ColorTokens.areaHairline(.strain) }
+}
+
 /// The annotation stamp for "when was this written": `AUG 30 · 07:12` (the uppercase
 /// transform is the annotation law's, applied by `WidgetAnnotationLabel`).
 func widgetTimestamp(_ date: Date) -> String {

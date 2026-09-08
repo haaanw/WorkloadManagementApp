@@ -14,5 +14,8 @@ struct TuwaWidgetsBundle: WidgetBundle {
     var body: some Widget {
         ReadinessWidget()
         TrainingLoadWidget()
+        // The guided session's lock-screen Live Activity (v1.7.3 feature 9 batch 2). Not a
+        // home-screen widget: it renders only while a guided session is running.
+        GuidedSessionLiveActivity()
     }
 }

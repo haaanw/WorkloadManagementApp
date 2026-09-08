@@ -39,6 +39,7 @@ struct WidgetAnnotationLabel: View {
     private enum Content {
         case key(LocalizedStringKey)
         case literal(String)
+        case text(Text)
     }
 
     private let content: Content
@@ -64,10 +65,21 @@ struct WidgetAnnotationLabel: View {
         self.color = color
     }
 
+    /// For a `Text` that must survive to the renderer rather than being snapshotted into a
+    /// String — specifically `Text(timerInterval:)`, whose whole point is that the system ticks
+    /// it with no widget or activity update. Formatting it into a String here would freeze the
+    /// clock at write time. Same law, same styling, one chokepoint.
+    init(text: Text, size: Size = .standard, color: Color = ColorTokens.text3) {
+        self.content = .text(text)
+        self.size = size
+        self.color = color
+    }
+
     private var label: Text {
         switch content {
         case .key(let key):        Text(key)
         case .literal(let string): Text(verbatim: string)
+        case .text(let text):      text
         }
     }
 

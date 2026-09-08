@@ -274,11 +274,7 @@ struct GuidedSessionView: View {
             return LocalePinnedStrings.localized("guided.pair.done", defaultValue: "Done", locale: locale)
         }
         let label = LocalePinnedStrings.localized("guided.pair.next", defaultValue: "Next", locale: locale)
-        let setNumber = String(
-            format: LocalePinnedStrings.localized("guided.pair.setNumber", defaultValue: "Set %d", locale: locale),
-            next + 1
-        )
-        return "\(label) · \(setNumber)"
+        return "\(label) · \(setNumberText(next + 1))"
     }
 
     // MARK: Set blocks
@@ -532,26 +528,16 @@ struct GuidedSessionView: View {
                 locale: locale
             )
         }
-        let entry = entries[next.entryIndex]
-        let set = entry.sets[next.setIndex]
-        let bodyweight = entry.exerciseCategory == .bodyweight
-        let weight = weightText(set.weightKg ?? set.targetWeightKg, bodyweight: bodyweight)
-        let reps = set.reps ?? set.targetReps ?? 0
-
-        if engine.block(containing: current).contains(next.entryIndex) {
-            // Inside a pair the partner is mid-flight, so the honest unit is one set.
-            let setNumber = String(
-                format: LocalePinnedStrings.localized(
-                    "guided.pair.setNumber",
-                    defaultValue: "Set %d",
-                    locale: locale
-                ),
-                next.setIndex + 1
-            )
-            return "\(setNumber) · \(weight) × \(reps)"
-        }
-        let plannedSets = entry.sets.filter { !$0.isSkipped }.count
-        return "\(plannedSets) × \(reps) · \(weight)"
+        // Inside a pair the partner is mid-flight, so the honest unit is one set — the split the
+        // shared formatter owns, because the lock screen's NEXT column states the same thing.
+        return GuidedSessionFormatting.upNextLine(
+            entry: entries[next.entryIndex],
+            set: entries[next.entryIndex].sets[next.setIndex],
+            setIndex: next.setIndex,
+            isPairPartner: engine.block(containing: current).contains(next.entryIndex),
+            unit: weightUnit,
+            locale: locale
+        )
     }
 
     // MARK: - Completion plate
@@ -699,16 +685,8 @@ struct GuidedSessionView: View {
             } ?? false
             let differs = repsDiffer || weightDiffers
             guard differs || set.isExtra else { return nil }
-            let setNumber = String(
-                format: LocalePinnedStrings.localized(
-                    "guided.pair.setNumber",
-                    defaultValue: "Set %d",
-                    locale: locale
-                ),
-                index + 1
-            )
             let glyph = set.isExtra && !differs ? "+" : "▽"
-            return "\(glyph) \(setNumber) · \(weightText(set.weightKg, bodyweight: bodyweight)) × \(set.reps ?? 0)"
+            return "\(glyph) \(setNumberText(index + 1)) · \(weightText(set.weightKg, bodyweight: bodyweight)) × \(set.reps ?? 0)"
         }
     }
 
@@ -814,25 +792,18 @@ struct GuidedSessionView: View {
 
     // MARK: - Formatting
 
-    /// mm:ss. A session longer than an hour keeps counting minutes rather than growing a third
-    /// field — the clock is a rest timer, not a duration report.
+    // The plate and the lock-screen Live Activity render the SAME set at the same moment, so the
+    // composition rules live in one place (`GuidedSessionFormatting`) and both read them.
+
     private func clock(_ seconds: TimeInterval) -> String {
-        let total = max(0, Int(seconds))
-        return String(format: "%d:%02d", total / 60, total % 60)
+        GuidedSessionFormatting.clock(seconds)
     }
 
     private func weightText(_ kg: Double?, bodyweight: Bool) -> String {
-        guard let kg else { return "—" }
-        if bodyweight, kg == 0 {
-            return LocalePinnedStrings.localized("setEntry.bw", locale: locale)
-        }
-        let display = WeightFormatter.displayValue(kg, unit: weightUnit)
-        let number = display == display.rounded()
-            ? String(format: "%.0f", display)
-            : String(format: "%.1f", display)
-        let unit = weightUnit == .kg
-            ? LocalePinnedStrings.localized("unit.kg", locale: locale)
-            : LocalePinnedStrings.localized("unit.lb", locale: locale)
-        return bodyweight ? "+\(number) \(unit)" : "\(number) \(unit)"
+        GuidedSessionFormatting.weightText(kg, bodyweight: bodyweight, unit: weightUnit, locale: locale)
+    }
+
+    private func setNumberText(_ oneBasedIndex: Int) -> String {
+        GuidedSessionFormatting.setNumber(oneBasedIndex, locale: locale)
     }
 }

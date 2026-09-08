@@ -10,6 +10,7 @@
 		0A62FC4DEF95E871C3EA1C86 /* CoachAthleteRelationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */; };
 		0B040200000000000000000A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B040100000000000000000A /* OnboardingView.swift */; };
 		0CFA7F85F177725F8A164287 /* ReadinessWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A88CEDB773F687B6F59136 /* ReadinessWidget.swift */; };
+		FA6115020000000000000001 /* GuidedSessionLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6115010000000000000001 /* GuidedSessionLiveActivity.swift */; };
 		1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000A2 /* FinishWorkoutSheet.swift */; };
 		1101010100000000000000B1 /* ToastBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000B2 /* ToastBanner.swift */; };
 		1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000C2 /* TemplateCarouselSection.swift */; };
@@ -148,6 +149,10 @@
 		FA6105020000000000000001 /* ProgramScheduleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6105010000000000000001 /* ProgramScheduleService.swift */; };
 		FA6109020000000000000001 /* ProgramInsightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6109010000000000000001 /* ProgramInsightEngine.swift */; };
 		FA6110020000000000000001 /* GuidedSessionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6110010000000000000001 /* GuidedSessionEngine.swift */; };
+		FA6112020000000000000001 /* GuidedSessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */; };
+		FA6112030000000000000001 /* GuidedSessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */; };
+		FA6113020000000000000001 /* GuidedSessionActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6113010000000000000001 /* GuidedSessionActivityController.swift */; };
+		FA6114020000000000000001 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
 		FA610A020000000000000001 /* ProgramOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA610A010000000000000001 /* ProgramOverviewView.swift */; };
 		AE4502020000000000000001 /* VerdictEventRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4502010000000000000001 /* VerdictEventRepository.swift */; };
 		AE4503020000000000000001 /* GreenLightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4503010000000000000001 /* GreenLightEngine.swift */; };
@@ -423,6 +428,7 @@
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		62F32DF65C7F3C5307D700B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		67A88CEDB773F687B6F59136 /* ReadinessWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadinessWidget.swift; sourceTree = "<group>"; };
+		FA6115010000000000000001 /* GuidedSessionLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionLiveActivity.swift; sourceTree = "<group>"; };
 		745549DC6177C8D6037899FF /* TuwaWidgetsBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TuwaWidgetsBundle.swift; sourceTree = "<group>"; };
 		8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialLoginButtons.swift; sourceTree = "<group>"; };
 		88E5A218E746FB4BD95A983E /* TrainingLoadWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrainingLoadWidget.swift; sourceTree = "<group>"; };
@@ -464,6 +470,8 @@
 		FA6105010000000000000001 /* ProgramScheduleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramScheduleService.swift; sourceTree = "<group>"; };
 		FA6109010000000000000001 /* ProgramInsightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramInsightEngine.swift; sourceTree = "<group>"; };
 		FA6110010000000000000001 /* GuidedSessionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionEngine.swift; sourceTree = "<group>"; };
+		FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionActivityAttributes.swift; sourceTree = "<group>"; };
+		FA6113010000000000000001 /* GuidedSessionActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionActivityController.swift; sourceTree = "<group>"; };
 		FA610A010000000000000001 /* ProgramOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramOverviewView.swift; sourceTree = "<group>"; };
 		AE4502010000000000000001 /* VerdictEventRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictEventRepository.swift; sourceTree = "<group>"; };
 		AE4503010000000000000001 /* GreenLightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreenLightEngine.swift; sourceTree = "<group>"; };
@@ -885,6 +893,8 @@
 				FA6105010000000000000001 /* ProgramScheduleService.swift */,
 				FA6109010000000000000001 /* ProgramInsightEngine.swift */,
 				FA6110010000000000000001 /* GuidedSessionEngine.swift */,
+				FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */,
+				FA6113010000000000000001 /* GuidedSessionActivityController.swift */,
 				AA4401010000000000000001 /* VerdictDecision.swift */,
 				AAFE00010000000000000001 /* ResolvedSessionPlan.swift */,
 				AE4503010000000000000001 /* GreenLightEngine.swift */,
@@ -1124,6 +1134,7 @@
 			isa = PBXGroup;
 			children = (
 				67A88CEDB773F687B6F59136 /* ReadinessWidget.swift */,
+				FA6115010000000000000001 /* GuidedSessionLiveActivity.swift */,
 				88E5A218E746FB4BD95A983E /* TrainingLoadWidget.swift */,
 				745549DC6177C8D6037899FF /* TuwaWidgetsBundle.swift */,
 				17B960578CAD754C23E55F41 /* WidgetAnnotationLabel.swift */,
@@ -1357,6 +1368,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				0CFA7F85F177725F8A164287 /* ReadinessWidget.swift in Sources */,
+				FA6115020000000000000001 /* GuidedSessionLiveActivity.swift in Sources */,
 				A094F3EE79A947D3BADACB70 /* TrainingLoadWidget.swift in Sources */,
 				AA2161F2966CBA62F698055E /* TuwaWidgetsBundle.swift in Sources */,
 				58646B5271E52B4781DE5A96 /* WidgetAnnotationLabel.swift in Sources */,
@@ -1366,6 +1378,8 @@
 				650050383583D66A864301BC /* ColorTokens.swift in Sources */,
 				7F58F2E2FE5CFCA756CFA16C /* FontTokens.swift in Sources */,
 				4B8CBED39ED289592599EFE8 /* Enums.swift in Sources */,
+				FA6112030000000000000001 /* GuidedSessionActivityAttributes.swift in Sources */,
+				FA6114020000000000000001 /* CornerTokens.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -1463,6 +1477,8 @@
 				FA6105020000000000000001 /* ProgramScheduleService.swift in Sources */,
 				FA6109020000000000000001 /* ProgramInsightEngine.swift in Sources */,
 				FA6110020000000000000001 /* GuidedSessionEngine.swift in Sources */,
+				FA6112020000000000000001 /* GuidedSessionActivityAttributes.swift in Sources */,
+				FA6113020000000000000001 /* GuidedSessionActivityController.swift in Sources */,
 				FA610A020000000000000001 /* ProgramOverviewView.swift in Sources */,
 				DD2601010000000000000001 /* BaselineState.swift in Sources */,
 				DD2002010000000000000001 /* ShadowPredictor.swift in Sources */,

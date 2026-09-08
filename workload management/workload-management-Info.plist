@@ -28,6 +28,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>GIDClientID</key>
 	<string>586655911402-aac4g06mefj65vv8j55pa8jdsgqnrofs.apps.googleusercontent.com</string>
 	<key>GIDServerClientID</key>
