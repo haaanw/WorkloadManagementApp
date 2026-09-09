@@ -41,6 +41,22 @@ extension Date {
         return shortString(locale: locale)
     }
 
+    /// Clock-form duration for a metric-grid VALUE slot: "7:36", "0:36" (UAT round 1, U5).
+    ///
+    /// `durationString` spells the units inside the reading ("7h 36m"), which is right in
+    /// prose but ~108pt wide at the 32pt display face — wider than an equal third of the
+    /// Today strip, so the sleep reading scaled itself down and rendered visibly smaller
+    /// than its HRV/RHR neighbours. The clock form fits at full size and hands the unit to
+    /// the cell's annotation slot, where v6 says units belong.
+    ///
+    /// Digits and the colon are universal, so this form takes no catalog string — the same
+    /// idiom as the "REC MM:SS" capture clock.
+    static func clockDurationString(seconds: Int) -> String {
+        let hours = seconds / 3600
+        let minutes = (seconds % 3600) / 60
+        return String(format: "%lld:%02lld", hours, minutes)
+    }
+
     /// Duration string from seconds (e.g., "1h 23m" / "1小时23分钟") — locale-aware via catalog.
     static func durationString(seconds: Int, locale: Locale) -> String {
         let hours = seconds / 3600

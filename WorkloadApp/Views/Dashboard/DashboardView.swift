@@ -764,13 +764,18 @@ struct HealthKitNoDataCard: View {
 
 struct MetricsStrip: View {
     let viewModel: DashboardViewModel
-    @Environment(\.locale) private var locale
 
     var body: some View {
         // Demo §3 After: RHR/HRV/Sleep as a 3-cell metric grid — individually-planed cells
         // with unit superscripts, scannable in one fixation instead of a butted strip. Each
         // cell keeps its staleness badge in the bottom accessory slot (no behaviour change).
-        HStack(alignment: .top, spacing: Spacing.xs) {
+        //
+        // UAT round 1, U5: three FLEXIBLE grid columns, not an HStack. An HStack hands each
+        // flexible child its own share only while no child asks for more, so the cell widths
+        // tracked their content; flexible columns are equal by construction, whatever any
+        // reading turns out to be. The sleep reading takes the clock form for the same
+        // finding — see `Date.clockDurationString`.
+        LazyVGrid(columns: Self.columns, alignment: .leading, spacing: 0) {
             MetricCell(
                 label: "HRV",
                 value: viewModel.latestHRV.map { String(format: "%.0f", $0) } ?? "—",
@@ -785,10 +790,18 @@ struct MetricsStrip: View {
 
             MetricCell(
                 label: "Sleep",
-                value: viewModel.latestSleepMinutes.map { sleepString($0) } ?? "—"
+                value: viewModel.latestSleepMinutes.map { sleepString($0) } ?? "—",
+                unit: viewModel.latestSleepMinutes != nil ? "h" : nil
             ) { staleAccessory(viewModel.staleness.daysAgo(viewModel.staleness.lastSleepDate)) }
         }
     }
+
+    /// Three equal columns, top-aligned so a cell that grows a staleness badge does not
+    /// stretch its neighbours' plates (the old `HStack(alignment: .top)` behaviour).
+    private static let columns: [GridItem] = Array(
+        repeating: GridItem(.flexible(), spacing: Spacing.xs, alignment: .topLeading),
+        count: 3
+    )
 
     @ViewBuilder
     private func staleAccessory(_ daysAgo: Int?) -> some View {
@@ -799,7 +812,7 @@ struct MetricsStrip: View {
     }
 
     private func sleepString(_ minutes: Double) -> String {
-        Date.durationString(seconds: Int(minutes) * 60, locale: locale)
+        Date.clockDurationString(seconds: Int(minutes) * 60)
     }
 }
 

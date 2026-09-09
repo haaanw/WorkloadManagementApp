@@ -404,6 +404,11 @@ struct ProfileView: View {
             }
             // Match the other roots' editorial top rhythm now the nav bar is hidden.
             .contentMargins(.top, Spacing.md, for: .scrollContent)
+            // UAT round 1, U6: the name field is a plain text field in a long scroller —
+            // give the keyboard the two escapes the platform expects (a downward drag and
+            // a tap on the page). The field's own toolbar Done is the third.
+            .scrollDismissesKeyboard(.interactively)
+            .dismissesKeyboardOnTap()
             .background(ColorTokens.background)
             .task {
                 let status = await container.notificationService.authorizationStatus()

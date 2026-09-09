@@ -79,10 +79,14 @@ struct TrainingProfileSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
+                // UAT round 1, U6: "Discard changes" / "Save profile" were long enough to
+                // draw straight across the centred title. The slots now say what every
+                // other sheet in the app says — the sheet's own title already names what
+                // is being cancelled or saved.
                 InstrumentSheetHeader(title: "profile.trainingProfile.navTitle") {
-                    SheetHeaderButton(title: "action.discardChanges") { dismiss() }
+                    SheetHeaderButton(title: "action.cancel") { dismiss() }
                 } trailing: {
-                    SheetHeaderButton(title: "action.saveProfile", emphasis: true, isDisabled: !isFormValid) { save() }
+                    SheetHeaderButton(title: "action.save", emphasis: true, isDisabled: !isFormValid) { save() }
                 }
                 ScrollView {
                     VStack(spacing: 0) {
@@ -166,6 +170,8 @@ struct TrainingProfileSheet: View {
                     }
                 }
                 }
+                .scrollDismissesKeyboard(.interactively)
+                .dismissesKeyboardOnTap()
                 .background(ColorTokens.background)
                 .interactiveDismissDisabled(hasChanges)
                 .onAppear {

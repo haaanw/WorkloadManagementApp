@@ -480,6 +480,20 @@ struct FormField: View {
             .foregroundStyle(ColorTokens.text1)
             .multilineTextAlignment(alignment)
             .focused($isFocused)
+            .toolbar {
+                // UAT round 1, U6: a form field's only way out used to be the Return key —
+                // and a `.vertical` field's Return inserts a newline instead. The Done key
+                // is contributed only while THIS field owns focus, so two fields on one
+                // screen never stack duplicates.
+                if isFocused {
+                    ToolbarItemGroup(placement: .keyboard) {
+                        Spacer()
+                        Button(String(localized: "action.done", defaultValue: "Done")) {
+                            isFocused = false
+                        }
+                    }
+                }
+            }
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)
             .background {
@@ -508,6 +522,29 @@ struct FormField: View {
             }
         } else {
             TextField(placeholder, text: $text)
+        }
+    }
+}
+
+// MARK: - Keyboard dismissal
+
+extension View {
+    /// Resigns the first responder on a tap that nothing inside this view claimed — the "tap
+    /// outside the field" escape every iOS user expects (UAT round 1, U6).
+    ///
+    /// A plain `.onTapGesture`, deliberately NOT `simultaneousGesture`: SwiftUI gives a
+    /// child's gesture precedence over an ancestor's, so a tap on a row, a button, or the
+    /// text field itself is consumed there and never reaches this handler. A simultaneous
+    /// gesture would recognise alongside them and resign the field the athlete was trying
+    /// to focus.
+    func dismissesKeyboardOnTap() -> some View {
+        onTapGesture {
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil,
+                from: nil,
+                for: nil
+            )
         }
     }
 }

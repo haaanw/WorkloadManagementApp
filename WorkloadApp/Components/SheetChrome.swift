@@ -74,19 +74,18 @@ struct InstrumentSheetHeader<Leading: View, Trailing: View>: View {
     }
 
     var body: some View {
-        ZStack {
+        SheetHeaderLayout(spacing: Spacing.sm) {
+            // Each slot is wrapped so it contributes EXACTLY one subview to the layout: an
+            // unwrapped `EmptyView` slot contributes none, and the three-slot placement
+            // would then address the wrong views.
+            HStack(spacing: 0) { leading }
             Text(title)
                 .font(.Tokens.screenTitle)
                 .foregroundStyle(ColorTokens.text1)
                 .lineLimit(1)
                 .minimumScaleFactor(0.72)
-                .padding(.horizontal, Spacing.xl)
                 .accessibilityAddTraits(.isHeader)
-            HStack(spacing: Spacing.sm) {
-                leading
-                Spacer(minLength: 0)
-                trailing
-            }
+            HStack(spacing: 0) { trailing }
         }
         .padding(.horizontal, Spacing.sm)
         .frame(height: 56)
@@ -97,5 +96,70 @@ struct InstrumentSheetHeader<Leading: View, Trailing: View>: View {
                 .fill(ColorTokens.divider)
                 .frame(height: 0.5)
         }
+    }
+}
+
+// MARK: - Header slot layout
+
+/// Three-slot titlebar layout: `leading`, `title`, `trailing`.
+///
+/// The two action slots are given the SAME width — the wider of the two — so the title
+/// stays optically centred in the whole bar while being physically unable to run under an
+/// action label. The earlier ZStack centred the title over a fixed 48pt inset and let long
+/// actions ("Discard changes" / "Save profile") draw straight through it (UAT round 1, U6).
+///
+/// The title takes whatever width remains; its own `minimumScaleFactor` handles the squeeze.
+/// Actions are never truncated — an action the athlete cannot read is worse than a title
+/// rendered a point smaller.
+struct SheetHeaderLayout: Layout {
+    var spacing: CGFloat
+
+    func sizeThatFits(proposal: ProposedViewSize, subviews: Subviews, cache: inout ()) -> CGSize {
+        let ideals = subviews.map { $0.sizeThatFits(.unspecified) }
+        let tallest = ideals.map(\.height).max() ?? 0
+        // A bar always wants the width it is offered. `replacingUnspecifiedDimensions` only
+        // fills in a nil, so an infinite proposal is clamped separately — a header must
+        // never report an infinite width to its container.
+        let natural = ideals.map(\.width).reduce(0, +) + spacing * 2
+        let resolved = proposal.replacingUnspecifiedDimensions(
+            by: CGSize(width: natural, height: tallest)
+        )
+        let width = resolved.width.isFinite ? resolved.width : natural
+        return CGSize(width: width, height: max(resolved.height, tallest))
+    }
+
+    func placeSubviews(
+        in bounds: CGRect,
+        proposal: ProposedViewSize,
+        subviews: Subviews,
+        cache: inout ()
+    ) {
+        guard subviews.count == 3 else { return }
+        let leading = subviews[0]
+        let title = subviews[1]
+        let trailing = subviews[2]
+
+        let slotWidth = max(
+            leading.sizeThatFits(.unspecified).width,
+            trailing.sizeThatFits(.unspecified).width
+        )
+        let titleWidth = max(0, bounds.width - 2 * slotWidth - 2 * spacing)
+        let slotProposal = ProposedViewSize(width: slotWidth, height: bounds.height)
+
+        leading.place(
+            at: CGPoint(x: bounds.minX, y: bounds.midY),
+            anchor: .leading,
+            proposal: slotProposal
+        )
+        title.place(
+            at: CGPoint(x: bounds.midX, y: bounds.midY),
+            anchor: .center,
+            proposal: ProposedViewSize(width: titleWidth, height: bounds.height)
+        )
+        trailing.place(
+            at: CGPoint(x: bounds.maxX, y: bounds.midY),
+            anchor: .trailing,
+            proposal: slotProposal
+        )
     }
 }
