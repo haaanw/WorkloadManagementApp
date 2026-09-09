@@ -23318,6 +23318,23 @@
         }
       }
     },
+    "workoutLog.session.fromWatch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "From watch"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "来自手表"
+          }
+        }
+      }
+    },
     "workoutLog.title" : {
       "extractionState" : "manual",
       "localizations" : {

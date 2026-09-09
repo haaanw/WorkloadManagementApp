@@ -162,6 +162,13 @@ final class HealthKitService: HealthDataProviding {
         }
         // HKWorkout type for auto-importing workouts
         types.insert(HKWorkoutType.workoutType())
+        // Workout Effort (iOS 18 / watchOS 11): the rating the athlete gave the session on
+        // their watch, plus Apple's estimate of it. Read so the app never asks for an RPE
+        // that has already been given (v1.7.3 · U4). Raw samples stay on device.
+        if #available(iOS 18.0, *) {
+            types.insert(HKQuantityType(.workoutEffortScore))
+            types.insert(HKQuantityType(.estimatedWorkoutEffortScore))
+        }
         return types
     }
 
@@ -176,6 +183,39 @@ final class HealthKitService: HealthDataProviding {
         guard isAvailable else { return }
         try await store.requestAuthorization(toShare: [], read: readTypes)
         hasRequestedAccess = true
+        UserDefaults.standard.set(Self.currentReadTypesGeneration, forKey: Self.readTypesGenerationKey)
+    }
+
+    /// Which revision of `readTypes` the athlete has actually been asked about.
+    ///
+    /// Adding a type to `readTypes` does nothing for anyone who already granted access: the
+    /// authorization sheet is shown once, `hasRequestedAccess` latches true, and the new type
+    /// stays undetermined forever. Bumping this generation is how a release says "there is a
+    /// type here you have not seen". iOS only renders a sheet for the undetermined types, so
+    /// an athlete who has already granted everything sees nothing at all.
+    ///
+    /// 1 — everything up to v1.7.2.
+    /// 2 — v1.7.3 adds workout Effort + Apple's estimate of it (U4).
+    private static let currentReadTypesGeneration = 2
+    private static let readTypesGenerationKey = "healthKitReadTypesGeneration"
+
+    /// True when a granted athlete has not yet been asked about the types this build reads.
+    ///
+    /// Legacy grants carry no stored generation, so `integer(forKey:)`'s 0 correctly reads as
+    /// "older than 2".
+    var needsAuthorizationRefresh: Bool {
+        guard isAvailable, hasRequestedAccess else { return false }
+        return UserDefaults.standard.integer(forKey: Self.readTypesGenerationKey) < Self.currentReadTypesGeneration
+    }
+
+    /// Re-ask for the read types this build added, at most once.
+    ///
+    /// Call this at a moment that EXPLAINS the sheet — the auto-import calls it only when it
+    /// has an actual new watch workout in hand, so the permission prompt arrives attached to
+    /// the thing it is for, not at a cold foreground.
+    func refreshAuthorizationIfNeeded() async {
+        guard needsAuthorizationRefresh else { return }
+        try? await requestAuthorization()
     }
 
     /// Non-blocking migration / liveness probe.
@@ -616,17 +656,87 @@ final class HealthKitService: HealthDataProviding {
 
     // MARK: - Auto-Import Workouts
 
-    /// Fetch recent workouts from HealthKit (logged in other apps)
-    func fetchRecentWorkouts(days: Int = 7) async throws -> [HKWorkout] {
-        let startDate = Calendar.current.date(byAdding: .day, value: -days, to: .now)!
-        let predicate = HKQuery.predicateForSamples(withStart: startDate, end: .now, options: .strictStartDate)
+    /// A batch of workouts that HealthKit has not handed us before, plus the anchor that
+    /// says so.
+    struct WorkoutBatch {
+        let workouts: [HKWorkout]
+        let anchor: HKQueryAnchor
+    }
 
-        let descriptor = HKSampleQueryDescriptor(
-            predicates: [.workout(predicate)],
-            sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)]
+    /// Workouts new since `anchor`, bounded to a rolling catch-up window.
+    ///
+    /// Replaces the retired `fetchRecentWorkouts(days:)` (v1.7.3, UAT round 1 · U4). That
+    /// function took a fixed date window and was called exactly once per app process, from
+    /// the Log tab's `.task`. A watch workout reaches the phone's HealthKit store minutes
+    /// after it ends — routinely after that single fetch has already run — and nothing ever
+    /// asked again, so the list froze with whatever had synced at launch. An anchored query
+    /// is the fix in kind, not in degree: HealthKit itself tracks what we have seen, so each
+    /// workout is handed over exactly once no matter how often this runs.
+    ///
+    /// The date window is still here and still matters. On a first run the anchor is nil, and
+    /// an unbounded anchored query would return the athlete's entire workout history — years
+    /// of walks, auto-logged. The window bounds that to a fortnight; anything older is never
+    /// back-filled, which is the correct behaviour rather than a limitation.
+    func fetchWorkouts(since anchor: HKQueryAnchor?, windowDays: Int) async throws -> WorkoutBatch {
+        let startDate = Calendar.current.date(byAdding: .day, value: -windowDays, to: .now)!
+        let predicate = HKQuery.predicateForSamples(
+            withStart: startDate,
+            end: nil,
+            options: .strictStartDate
         )
 
-        return try await descriptor.result(for: store)
+        let descriptor = HKAnchoredObjectQueryDescriptor(
+            predicates: [.workout(predicate)],
+            anchor: anchor
+        )
+        let result = try await descriptor.result(for: store)
+        return WorkoutBatch(
+            workouts: result.addedSamples.sorted { $0.startDate < $1.startDate },
+            anchor: result.newAnchor
+        )
+    }
+
+    /// The athlete's own Effort rating for a workout, or Apple's estimate of it.
+    ///
+    /// watchOS 11 lets an athlete rate a workout 1–10 right where they finish it. Asking them
+    /// again inside Tuwa is asking a question they have already answered (U4). This reads the
+    /// answer instead.
+    ///
+    /// Two types carry it and they are not the same claim: `workoutEffortScore` is what the
+    /// athlete entered, `estimatedWorkoutEffortScore` is what Apple computed for them. The
+    /// rated value always wins; the estimate is the fallback that keeps an auto-logged session
+    /// from landing with no RPE at all — a session with no RPE contributes ZERO internal load
+    /// and zero training stress (`WorkoutSession.recalculateDerivedFields`), so it would count
+    /// toward session density while carrying none of its own weight.
+    ///
+    /// Returns nil below iOS 18, when the athlete has not rated and Apple has not estimated,
+    /// or when the read is not authorized. The caller leaves the session unrated rather than
+    /// guessing a number.
+    func fetchWorkoutEffort(for workout: HKWorkout) async throws -> (score: Double, isAthleteRated: Bool)? {
+        guard #available(iOS 18.0, *) else { return nil }
+
+        if let rated = try await effortSample(.workoutEffortScore, for: workout) {
+            return (rated, true)
+        }
+        if let estimated = try await effortSample(.estimatedWorkoutEffortScore, for: workout) {
+            return (estimated, false)
+        }
+        return nil
+    }
+
+    @available(iOS 18.0, *)
+    private func effortSample(
+        _ identifier: HKQuantityTypeIdentifier,
+        for workout: HKWorkout
+    ) async throws -> Double? {
+        let predicate = HKQuery.predicateForWorkoutEffortSamplesRelated(workout: workout, activity: nil)
+        let descriptor = HKSampleQueryDescriptor(
+            predicates: [.quantitySample(type: HKQuantityType(identifier), predicate: predicate)],
+            sortDescriptors: [SortDescriptor(\.startDate, order: .reverse)],
+            limit: 1
+        )
+        let samples = try await descriptor.result(for: store)
+        return samples.first?.quantity.doubleValue(for: .appleEffortScore())
     }
 
     // MARK: - Staleness-Aware Fetches

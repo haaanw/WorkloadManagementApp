@@ -147,6 +147,11 @@ final class AppContainer {
         // so they survive the cascade. Left behind, the next signed-in account inherits
         // them and any row whose id collides would be silently refused on pull (v1.7.2).
         for tombstone in SyncTombstone.all(in: modelContext) { modelContext.delete(tombstone) }
+        // The watch-import bookmark is a UserDefaults value, so it survives the cascade the
+        // same way the overrides above do. Left behind, the next athlete on this device
+        // starts with the previous one's anchor and their first fortnight of workouts is
+        // never imported (v1.7.3 · U4).
+        WatchWorkoutImportService.resetAnchor()
         try modelContext.save()
         isAuthenticated = false
     }
@@ -170,6 +175,11 @@ final class AppContainer {
         let overrides = try modelContext.fetch(FetchDescriptor<ExerciseOverride>())
         for override in overrides { modelContext.delete(override) }
         for tombstone in SyncTombstone.all(in: modelContext) { modelContext.delete(tombstone) }
+        // The watch-import bookmark is a UserDefaults value, so it survives the cascade the
+        // same way the overrides above do. Left behind, the next athlete on this device
+        // starts with the previous one's anchor and their first fortnight of workouts is
+        // never imported (v1.7.3 · U4).
+        WatchWorkoutImportService.resetAnchor()
         try modelContext.save()
         isAuthenticated = false
     }

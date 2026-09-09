@@ -546,6 +546,17 @@ struct MainTabView: View {
             guard newPhase == .active else { return }
             Task {
                 await container.subscriptionService.refreshEntitlementAsync()
+                // Watch workouts log themselves (v1.7.3 · U4). This runs on EVERY foreground,
+                // deliberately unguarded by `shouldForegroundSync`: a watch workout lands in
+                // HealthKit minutes after it ends, so the moment the athlete opens the app is
+                // the moment to look. The anchored query makes a no-op run nearly free, and
+                // the pass ahead of the sync clock means an imported session is already in
+                // the push that follows.
+                await WatchWorkoutImportService.run(
+                    healthKit: container.healthKitService,
+                    modelContext: modelContext,
+                    syncService: container.syncService
+                )
                 guard container.syncService.shouldForegroundSync else { return }
                 await container.syncService.pushAll(context: modelContext)
                 await container.syncService.pullAll(context: modelContext)

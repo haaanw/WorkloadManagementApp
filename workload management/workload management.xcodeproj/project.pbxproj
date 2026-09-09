@@ -90,7 +90,6 @@
 		627EC18E2F75917900B89262 /* TemplateListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC18D2F75917900B89262 /* TemplateListView.swift */; };
 		627EC1902F75917900B89262 /* TemplateEditorSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC18C2F75917900B89262 /* TemplateEditorSheet.swift */; };
 		627EC1942F76620200B89262 /* CustomExercise.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1932F76620200B89262 /* CustomExercise.swift */; };
-		627EC1962F76622300B89262 /* WorkoutImportBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1952F76622300B89262 /* WorkoutImportBanner.swift */; };
 		627EC1982F76857600B89262 /* ProgressionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1972F76857600B89262 /* ProgressionEngine.swift */; };
 		627EC19A2F76858300B89262 /* TextTemplateImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1992F76858300B89262 /* TextTemplateImportSheet.swift */; };
 		627EC19C2F76917500B89262 /* MockDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC19B2F76917500B89262 /* MockDataSeeder.swift */; };
@@ -247,6 +246,8 @@
 		FF0601010000000000000001 /* PDFReportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0601010000000000000002 /* PDFReportEngine.swift */; };
 		FF0602010000000000000001 /* PDFGenerationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0602010000000000000002 /* PDFGenerationSheet.swift */; };
 		FF0801020000000000000001 /* FatigueIndexEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000001 /* FatigueIndexEngine.swift */; };
+		FF1801020000000000000001 /* WatchWorkoutMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1801010000000000000001 /* WatchWorkoutMatcher.swift */; };
+		FF1802020000000000000001 /* WatchWorkoutImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1802010000000000000001 /* WatchWorkoutImportService.swift */; };
 		FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000002 /* FatigueAttentionBanner.swift */; };
 		FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1601010000000000000002 /* WorkoutLLMImportService.swift */; };
 		FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1602010000000000000002 /* WorkoutImportSheet.swift */; };
@@ -414,7 +415,6 @@
 		627EC18C2F75917900B89262 /* TemplateEditorSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateEditorSheet.swift; sourceTree = "<group>"; };
 		627EC18D2F75917900B89262 /* TemplateListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateListView.swift; sourceTree = "<group>"; };
 		627EC1932F76620200B89262 /* CustomExercise.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CustomExercise.swift; sourceTree = "<group>"; };
-		627EC1952F76622300B89262 /* WorkoutImportBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportBanner.swift; sourceTree = "<group>"; };
 		627EC1972F76857600B89262 /* ProgressionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgressionEngine.swift; sourceTree = "<group>"; };
 		627EC1992F76858300B89262 /* TextTemplateImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextTemplateImportSheet.swift; sourceTree = "<group>"; };
 		627EC19B2F76917500B89262 /* MockDataSeeder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MockDataSeeder.swift; sourceTree = "<group>"; };
@@ -560,6 +560,8 @@
 		FF0601010000000000000002 /* PDFReportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFReportEngine.swift; sourceTree = "<group>"; };
 		FF0602010000000000000002 /* PDFGenerationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGenerationSheet.swift; sourceTree = "<group>"; };
 		FF0801010000000000000001 /* FatigueIndexEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueIndexEngine.swift; sourceTree = "<group>"; };
+		FF1801010000000000000001 /* WatchWorkoutMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWorkoutMatcher.swift; sourceTree = "<group>"; };
+		FF1802010000000000000001 /* WatchWorkoutImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWorkoutImportService.swift; sourceTree = "<group>"; };
 		FF0801010000000000000002 /* FatigueAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueAttentionBanner.swift; sourceTree = "<group>"; };
 		FF1601010000000000000002 /* WorkoutLLMImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLLMImportService.swift; sourceTree = "<group>"; };
 		FF1602010000000000000002 /* WorkoutImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportSheet.swift; sourceTree = "<group>"; };
@@ -884,6 +886,8 @@
 				CC0301010000000000000006 /* PeriodizationEngine.swift */,
 				CC0301010000000000000008 /* FatiguePatternEngine.swift */,
 				FF0801010000000000000001 /* FatigueIndexEngine.swift */,
+				FF1801010000000000000001 /* WatchWorkoutMatcher.swift */,
+				FF1802010000000000000001 /* WatchWorkoutImportService.swift */,
 				EE2701010000000000000001 /* StrengthLoadEngine.swift */,
 				EE4102010000000000000001 /* CrossModalFatigueEngine.swift */,
 				AC4103010000000000000001 /* CrossModalShadowGate.swift */,
@@ -1052,7 +1056,6 @@
 			isa = PBXGroup;
 			children = (
 				627EC1992F76858300B89262 /* TextTemplateImportSheet.swift */,
-				627EC1952F76622300B89262 /* WorkoutImportBanner.swift */,
 				62324C1B2F66CB0E00A9C2BE /* ActiveWorkoutSheet.swift */,
 				1101010100000000000000A2 /* FinishWorkoutSheet.swift */,
 				1101010100000000000000C2 /* TemplateCarouselSection.swift */,
@@ -1590,7 +1593,6 @@
 				18BA142CE5E655C75C407496 /* SubscriptionService.swift in Sources */,
 				2301010100000000000000A1 /* LocaleManager.swift in Sources */,
 				2301020100000000000000A1 /* LanguagePickerView.swift in Sources */,
-				627EC1962F76622300B89262 /* WorkoutImportBanner.swift in Sources */,
 				B8E2F5A3C9D047B6E1F3842C /* UpgradeSheet.swift in Sources */,
 				AA0201010000000000000001 /* StalenessWarningBadge.swift in Sources */,
 				AA0201010000000000000003 /* AnalyticsEngine.swift in Sources */,
@@ -1600,6 +1602,8 @@
 				CC0301010000000000000005 /* PeriodizationEngine.swift in Sources */,
 				CC0301010000000000000007 /* FatiguePatternEngine.swift in Sources */,
 				FF0801020000000000000001 /* FatigueIndexEngine.swift in Sources */,
+				FF1801020000000000000001 /* WatchWorkoutMatcher.swift in Sources */,
+				FF1802020000000000000001 /* WatchWorkoutImportService.swift in Sources */,
 				EE2701020000000000000001 /* StrengthLoadEngine.swift in Sources */,
 				EE4102020000000000000001 /* CrossModalFatigueEngine.swift in Sources */,
 				AC4103020000000000000001 /* CrossModalShadowGate.swift in Sources */,

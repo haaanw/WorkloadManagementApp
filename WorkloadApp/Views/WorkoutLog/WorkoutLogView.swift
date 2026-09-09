@@ -14,8 +14,6 @@ struct WorkoutLogView: View {
     @State private var showActiveWorkout = false
     @State private var showUpgrade = false
     @State private var selectedSessionType: SessionType? = nil
-    @State private var importSuggestions: [WorkoutImportSuggestion] = []
-    @State private var importRPESheet: WorkoutImportSuggestion?
     @State private var showMyPrograms = false
     @State private var showProgramImport = false
     @State private var pastDayLog: PastDayLogRequest?
@@ -202,26 +200,13 @@ struct WorkoutLogView: View {
                         )
                         .entranceReveal(index: 2)
 
-                        // HealthKit import suggestions
-                        if !importSuggestions.isEmpty {
-                            SectionContainer {
-                                WorkoutImportBanner(
-                                    imports: importSuggestions,
-                                    onAccept: { suggestion in
-                                        importRPESheet = suggestion
-                                    },
-                                    onDismiss: { suggestion in
-                                        WorkoutImportService.dismissSuggestion(suggestion)
-                                        withAnimation(Motion.resolved(Motion.exit, reduceMotion: reduceMotion)) {
-                                            importSuggestions.removeAll { $0.id == suggestion.id }
-                                        }
-                                    }
-                                )
-                            }
-                        }
+                        // U4: the watch-import BANNER is retired. A watch workout is not a
+                        // suggestion awaiting an Add tap and an RPE sheet — it is a session
+                        // the athlete already recorded, so it is already in the history list
+                        // below, carrying a quiet "logged from watch" mark on its row.
 
                         // Session history
-                        if visibleSessions.isEmpty && importSuggestions.isEmpty {
+                        if visibleSessions.isEmpty {
                             // Empty state: one quiet plate (card plane, the one v5 voice) —
                             // not a bare centered text stack.
                             SectionContainer {
@@ -372,11 +357,6 @@ struct WorkoutLogView: View {
                     maybeRequestReview()
                 }
             }
-            .sheet(item: $importRPESheet) { suggestion in
-                ImportRPESheet(suggestion: suggestion) { rpe in
-                    acceptImport(suggestion, rpe: rpe)
-                }
-            }
             .sheet(isPresented: $showMyPrograms, onDismiss: {
                 // Position moves / re-imports change today's proposal.
                 if let athlete = athletes.first {
@@ -431,8 +411,17 @@ struct WorkoutLogView: View {
                     .environment(container)
                 }
             }
+            // Watch workouts log themselves (v1.7.3 · U4). This is a second trigger, not the
+            // only one: `MainTabView` runs the same import on every foreground, because a
+            // `TabView` child's `.task` fires once per app process and a watch workout
+            // reaches HealthKit minutes after it ends — which is exactly how the retired
+            // banner came to show three stale walks and miss the session that mattered.
             .task {
-                await loadImportSuggestions()
+                await WatchWorkoutImportService.run(
+                    healthKit: container.healthKitService,
+                    modelContext: modelContext,
+                    syncService: container.syncService
+                )
             }
             .task(id: athletes.first?.id) {
                 // Construct the verdict VM once; refresh against the current athlete's today-plan.
@@ -587,42 +576,6 @@ struct WorkoutLogView: View {
         }
     }
 
-    private func loadImportSuggestions() async {
-        guard container.healthKitService.isAuthorized else { return }
-        importSuggestions = await WorkoutImportService.findUnmatchedWorkouts(
-            healthKit: container.healthKitService,
-            modelContext: modelContext
-        )
-    }
-
-    private func acceptImport(_ suggestion: WorkoutImportSuggestion, rpe: Double) {
-        guard let athlete = athletes.first else { return }
-        let session = WorkoutImportService.createSession(
-            from: suggestion,
-            sessionRPE: rpe,
-            athlete: athlete,
-            modelContext: modelContext
-        )
-        modelContext.insert(session)
-        try? modelContext.save()
-
-        // Run pipeline
-        do {
-            _ = try WorkoutPipeline.processSession(
-                session,
-                athlete: athlete,
-                modelContext: modelContext,
-                syncService: container.syncService
-            )
-        } catch {
-            print("Import pipeline error: \(error)")
-        }
-
-        withAnimation(Motion.resolved(Motion.exit, reduceMotion: reduceMotion)) {
-            importSuggestions.removeAll { $0.id == suggestion.id }
-        }
-    }
-
     /// The program→proposal wire (feature 6, epic 1): designate today's program day when
     /// nothing is designated yet, so the verdict card proposes it without a manual
     /// "Plan Today" step.
@@ -663,82 +616,6 @@ private func verdictActionRaw(_ action: VerdictAction) -> String {
     }
 }
 
-// MARK: - Import RPE Sheet
-
-struct ImportRPESheet: View {
-    let suggestion: WorkoutImportSuggestion
-    let onConfirm: (Double) -> Void
-    @Environment(\.dismiss) private var dismiss
-    @Environment(\.locale) private var locale
-    @State private var rpe: Double = 5
-
-    var body: some View {
-        NavigationStack {
-            VStack(spacing: Spacing.md) {
-                VStack(spacing: Spacing.xs) {
-                    Text(suggestion.name)
-                        .font(.Tokens.sectionHead)
-                        .foregroundStyle(ColorTokens.text1)
-                    // v6: timestamp + duration + unitized distance — the annotation voice.
-                    HStack(spacing: Spacing.xs) {
-                        AnnotationLabel(
-                            suggestion.date.relativeString(locale: locale),
-                            color: ColorTokens.text2
-                        )
-                        AnnotationLabel(
-                            Date.durationString(seconds: suggestion.durationSeconds, locale: locale),
-                            color: ColorTokens.text2
-                        )
-                        if let dist = suggestion.distanceMeters {
-                            AnnotationLabel(
-                                String(format: "%.1f km", dist / 1000),
-                                color: ColorTokens.text2
-                            )
-                        }
-                    }
-                }
-
-                VStack(spacing: Spacing.xs) {
-                    Text("workoutLog.rpe.prompt")
-                        .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
-                    Text(String(format: String(localized: "workoutLog.rpe.valueLabeled"), Int(rpe)))
-                        .font(.Tokens.pageTitle)
-                        .monospacedDigit()
-                        .foregroundStyle(ColorTokens.text1)
-                    Slider(value: $rpe, in: 1...10, step: 1)
-                        .tint(ColorTokens.text2)
-                    // Scale end labels — axis labels on an instrument, so the annotation voice (v6).
-                    HStack {
-                        AnnotationLabel(key: "workoutLog.rpe.easy", size: .small)
-                        Spacer()
-                        AnnotationLabel(key: "workoutLog.rpe.maximal", size: .small)
-                    }
-                }
-
-                Spacer()
-            }
-            .padding(Spacing.md)
-            .background(ColorTokens.background)
-            .navigationTitle("workoutLog.import.navTitle")
-            .navigationBarTitleDisplayMode(.inline)
-            .toolbar {
-                ToolbarItem(placement: .cancellationAction) {
-                    Button("action.cancel") { dismiss() }
-                }
-                ToolbarItem(placement: .confirmationAction) {
-                    Button("action.import") {
-                        onConfirm(rpe)
-                        dismiss()
-                    }
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text1)
-                }
-            }
-        }
-    }
-}
-
 // MARK: - Session Row
 
 struct SessionRow: View {
@@ -770,6 +647,13 @@ struct SessionRow: View {
                             String(format: String(localized: "dashboard.session.rpeValue"), Int(rpe)),
                             color: ColorTokens.text2
                         )
+                    }
+                    // U4: the whole surface a watch-logged session gets. It is a provenance
+                    // mark in the marginalia, not a prompt and not a call to action — the
+                    // session is already logged and the athlete has nothing to do about it.
+                    // It reads on `text3`, one step quieter than the readings beside it.
+                    if session.healthKitWorkoutUUID != nil {
+                        AnnotationLabel(key: "workoutLog.session.fromWatch")
                     }
                 }
             }

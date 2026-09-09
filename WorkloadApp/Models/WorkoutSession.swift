@@ -22,6 +22,18 @@ final class WorkoutSession {
     /// (the sync bridge enumerates fields explicitly) — this field never syncs.
     var matchTierRaw: String? = nil
 
+    /// The HealthKit workout this session was auto-logged from (v1.7.3, UAT round 1 · U4).
+    ///
+    /// ADDITIVE + NULLABLE, like `matchTierRaw`: every hand-logged session and every
+    /// pre-1.7.3 row decodes to nil, so there is NO SwiftData migration and NO Supabase
+    /// schema change. Deliberately excluded from `SyncService.WorkoutSessionRow` — it names
+    /// a sample in the athlete's own Health store and means nothing on the server.
+    ///
+    /// It is the auto-import's idempotency key. `WatchWorkoutMatcher` refuses any candidate
+    /// whose UUID is already on a session, so a lost query anchor, a reinstall or a second
+    /// foreground pass can never produce the same session twice.
+    var healthKitWorkoutUUID: UUID? = nil
+
     /// Typed accessor over `matchTierRaw`. nil = no tier recorded (treated as pickup).
     var matchTier: MatchTier? {
         get { matchTierRaw.flatMap(MatchTier.init(rawValue:)) }
