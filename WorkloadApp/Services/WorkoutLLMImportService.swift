@@ -216,6 +216,29 @@ enum WorkoutLLMImportService {
         return preprocessProgramText(text)
     }
 
+    // MARK: - Multi-file combination
+
+    /// Joins the extractions of several picked files into the ONE document the parser reads
+    /// (UAT round 1, U11).
+    ///
+    /// A program routinely arrives as three photos of a whiteboard or two PDFs from a coach.
+    /// Parsing each file on its own would show the model three fragments and let it stitch
+    /// the weeks back together wrong — week 1 of file 2 is not week 1 of the program. So the
+    /// texts concatenate in the athlete's own pick order behind plain position markers, and
+    /// the whole thing takes a single program-mode parse.
+    ///
+    /// The markers are machine scaffolding for the parser, not UI copy, so they stay
+    /// unlocalized — and their shape ("— file 2 of 3 —") deliberately carries words, so the
+    /// page-furniture pass below cannot mistake one for a page number and strip it. A single
+    /// file is returned unmarked: there is no position to state.
+    static func combineProgramFiles(_ texts: [String]) -> String {
+        let usable = texts.filter { !$0.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty }
+        guard usable.count > 1 else { return usable.first ?? "" }
+        return usable.enumerated()
+            .map { index, text in "— file \(index + 1) of \(usable.count) —\n\(text)" }
+            .joined(separator: "\n\n")
+    }
+
     // MARK: - Program Text Preprocessing
 
     /// Strips page furniture from a multi-page program extraction before it is sent to the

@@ -168,3 +168,60 @@ final class ProgramTextPreprocessingTests: XCTestCase {
         )
     }
 }
+
+/// U11: several photos or PDFs of ONE program reach the parser as one document.
+final class ProgramFileCombinationTests: XCTestCase {
+
+    func test_singleFile_carriesNoMarker() {
+        XCTAssertEqual(
+            WorkoutLLMImportService.combineProgramFiles(["Week 1\nBack squat 5x5"]),
+            "Week 1\nBack squat 5x5"
+        )
+    }
+
+    func test_noFiles_isEmpty() {
+        XCTAssertEqual(WorkoutLLMImportService.combineProgramFiles([]), "")
+    }
+
+    func test_marksEachFileWithItsPositionAndTheTotal() {
+        XCTAssertEqual(
+            WorkoutLLMImportService.combineProgramFiles(["W1", "W2", "W3"]),
+            "— file 1 of 3 —\nW1\n\n— file 2 of 3 —\nW2\n\n— file 3 of 3 —\nW3"
+        )
+    }
+
+    func test_preservesTheAthletesPickOrder() {
+        // The order the athlete chose IS the program's order — never sorted, never reversed.
+        let combined = WorkoutLLMImportService.combineProgramFiles(["Deload week", "Week 1"])
+        let deload = combined.range(of: "Deload week")
+        let week1 = combined.range(of: "Week 1")
+        XCTAssertNotNil(deload)
+        XCTAssertNotNil(week1)
+        XCTAssertTrue(deload!.lowerBound < week1!.lowerBound)
+    }
+
+    func test_blankExtractionsAreDroppedAndTheTotalFollows() {
+        XCTAssertEqual(
+            WorkoutLLMImportService.combineProgramFiles(["W1", "   \n\n", "W2"]),
+            "— file 1 of 2 —\nW1\n\n— file 2 of 2 —\nW2"
+        )
+    }
+
+    func test_markersSurvivePreprocessing() {
+        // The page-furniture pass strips "- 3 -"; a file marker carries words, so it must
+        // reach the parser intact — losing it would merge two files into one week sequence.
+        let combined = WorkoutLLMImportService.combineProgramFiles(["Week 1\n- 3 -", "Week 2"])
+        let processed = WorkoutLLMImportService.preprocessProgramText(combined)
+        XCTAssertTrue(processed.contains("— file 1 of 2 —"))
+        XCTAssertTrue(processed.contains("— file 2 of 2 —"))
+        XCTAssertFalse(processed.contains("- 3 -"), "page furniture should still be stripped")
+    }
+
+    func test_combinationIsUnderTheParserCapForOrdinaryBatches() {
+        // Three dense PDF extractions still fit the 60k budget; the cap only fires on a
+        // genuinely oversized batch, where the "a few weeks at a time" prompt takes over.
+        let page = String(repeating: "Back squat 5x5 @ 140\n", count: 500)
+        let combined = WorkoutLLMImportService.combineProgramFiles([page, page, page])
+        XCTAssertLessThanOrEqual(WorkoutLLMImportService.preprocessProgramText(combined).count, 60_000)
+    }
+}

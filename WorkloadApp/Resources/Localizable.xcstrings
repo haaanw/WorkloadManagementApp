@@ -72,19 +72,36 @@
         }
       }
     },
+    "error.import.filesUnreadable" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No text found in %@. Everything else is still here."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在%@中没有找到文字。其他内容仍然保留。"
+          }
+        }
+      }
+    },
     "error.import.programTooLong" : {
       "extractionState" : "manual",
       "localizations" : {
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "This file is too long to read at once. Try a few weeks at a time, or a photo of one week."
+            "value" : "That is too long to read at once. Try a few weeks at a time — fewer files, or a photo of one week."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "文件太长，无法一次读取。试试每次导入几周，或拍下某一周的照片。"
+            "value" : "内容太长，无法一次读取。试试每次导入几周——减少文件数量，或拍下某一周的照片。"
           }
         }
       }
@@ -922,23 +939,6 @@
         }
       }
     },
-    "programImport.action.back" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Back"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "返回"
-          }
-        }
-      }
-    },
     "programImport.action.read" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1245,6 +1245,142 @@
         }
       }
     },
+    "programImport.files.addFiles" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add more files"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续添加文件"
+          }
+        }
+      }
+    },
+    "programImport.files.addPhotos" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add more photos"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "继续添加照片"
+          }
+        }
+      }
+    },
+    "programImport.files.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa reads these files in this order, as one program. Remove anything that is not part of it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tuwa 按这个顺序把这些文件作为一个计划读取。移除不属于该计划的内容。"
+          }
+        }
+      }
+    },
+    "programImport.files.index" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "File %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "文件%lld"
+          }
+        }
+      }
+    },
+    "programImport.files.photoName" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Photo %lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "照片%lld"
+          }
+        }
+      }
+    },
+    "programImport.files.reading" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading %1$lld of %2$lld"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在读取第%1$lld个，共%2$lld个"
+          }
+        }
+      }
+    },
+    "programImport.files.remove" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Remove %@"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "移除%@"
+          }
+        }
+      }
+    },
+    "programImport.files.stamp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Read as one program"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "作为一个计划读取"
+          }
+        }
+      }
+    },
     "programImport.door.say" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1438,13 +1574,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "Describe your program in your own words. Tap the mic on the keyboard to speak it."
+            "value" : "Describe your program in your own words — the weeks, the days, the exercises and the numbers. Record it, or type it here."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "用你自己的话描述训练计划。点按键盘上的麦克风即可口述。"
+            "value" : "用你自己的话描述训练计划——有几周、每周哪几天、做哪些动作、多少组次重量。可以录音，也可以直接输入。"
           }
         }
       }
@@ -23442,6 +23578,102 @@
     },
     "中文" : {
 
+    },
+    "%1$d of %2$d" : {
+
+    },
+    "%1$d of %2$d moves" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
+    "%d sets logged" : {
+
+    },
+    "Adjusted · ↓ from %@ · %d%% lighter" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Adjusted · ↓ from %1$@ · %2$d%% lighter"
+          }
+        }
+      }
+    },
+    "Done" : {
+
+    },
+    "Finish" : {
+
+    },
+    "Last move" : {
+
+    },
+    "Live" : {
+
+    },
+    "Next" : {
+
+    },
+    "Say a set — \"bench press 80 for 5\"" : {
+
+    },
+    "Say only what changed — \"one thirty for five\"" : {
+
+    },
+    "Session complete" : {
+
+    },
+    "Set %d" : {
+
+    },
+    "Speak" : {
+
+    },
+    "The plan supplies the exercise and the target" : {
+
+    },
+    "programImport.say.record" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record your program"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "录下你的计划"
+          }
+        }
+      }
+    },
+    "programImport.say.record.a11y" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Record your program by voice"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "语音录制你的训练计划"
+          }
+        }
+      }
     }
   },
   "version" : "1.0"
