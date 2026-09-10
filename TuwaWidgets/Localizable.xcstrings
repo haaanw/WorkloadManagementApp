@@ -1,6 +1,9 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%lld" : {
+
+    },
     "activity.complete" : {
       "comment" : "Annotation stamp on the Live Activity's completion face (row 1). Uppercase transform is the annotation component's (Latin only).",
       "extractionState" : "manual",
@@ -195,6 +198,1403 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "接着"
+          }
+        }
+      }
+    },
+    "acwrMethod.ewma" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "EWMA"
+          }
+        }
+      }
+    },
+    "acwrMethod.rolling28day" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rolling 28-Day"
+          }
+        }
+      }
+    },
+    "bodyRegion.ankle" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ankle"
+          }
+        }
+      }
+    },
+    "bodyRegion.back" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Back"
+          }
+        }
+      }
+    },
+    "bodyRegion.elbow" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Elbow"
+          }
+        }
+      }
+    },
+    "bodyRegion.hip" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hip"
+          }
+        }
+      }
+    },
+    "bodyRegion.knee" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Knee"
+          }
+        }
+      }
+    },
+    "bodyRegion.neck" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Neck"
+          }
+        }
+      }
+    },
+    "bodyRegion.shoulder" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Shoulder"
+          }
+        }
+      }
+    },
+    "bodyRegion.wrist" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Wrist"
+          }
+        }
+      }
+    },
+    "cyclePhase.earlyFollicular" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Early Follicular"
+          }
+        }
+      }
+    },
+    "cyclePhase.earlyLuteal" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Early Luteal"
+          }
+        }
+      }
+    },
+    "cyclePhase.lateFollicular" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Late Follicular"
+          }
+        }
+      }
+    },
+    "cyclePhase.lateLuteal" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Late Luteal"
+          }
+        }
+      }
+    },
+    "cyclePhase.ovulatory" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Ovulatory"
+          }
+        }
+      }
+    },
+    "cyclePhase.unknown" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Unknown"
+          }
+        }
+      }
+    },
+    "exerciseCategory.bodyweight" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Bodyweight"
+          }
+        }
+      }
+    },
+    "exerciseCategory.cardio" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cardio"
+          }
+        }
+      }
+    },
+    "exerciseCategory.compound" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Compound"
+          }
+        }
+      }
+    },
+    "exerciseCategory.drill" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Drill"
+          }
+        }
+      }
+    },
+    "exerciseCategory.interval" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Interval"
+          }
+        }
+      }
+    },
+    "exerciseCategory.isolation" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Isolation"
+          }
+        }
+      }
+    },
+    "exerciseCategory.plyometric" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Plyometric"
+          }
+        }
+      }
+    },
+    "experience.advanced" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Advanced"
+          }
+        }
+      }
+    },
+    "experience.advanced.subtitle" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "3+ years, understands periodization"
+          }
+        }
+      }
+    },
+    "experience.beginner" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Beginner"
+          }
+        }
+      }
+    },
+    "experience.beginner.subtitle" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "New to structured training"
+          }
+        }
+      }
+    },
+    "experience.intermediate" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Intermediate"
+          }
+        }
+      }
+    },
+    "experience.intermediate.subtitle" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "1-3 years consistent training"
+          }
+        }
+      }
+    },
+    "frequency.fiveToSix" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "5-6 days/week"
+          }
+        }
+      }
+    },
+    "frequency.oneToTwo" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "1-2 days/week"
+          }
+        }
+      }
+    },
+    "frequency.sevenPlus" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "7+ days/week"
+          }
+        }
+      }
+    },
+    "frequency.threeToFour" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "3-4 days/week"
+          }
+        }
+      }
+    },
+    "loadSource.combined" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Combined"
+          }
+        }
+      }
+    },
+    "loadSource.srpe" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "sRPE"
+          }
+        }
+      }
+    },
+    "loadSource.trimp" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "TRIMP"
+          }
+        }
+      }
+    },
+    "matchTier.match" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Match"
+          }
+        }
+      }
+    },
+    "matchTier.pickup" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pickup"
+          }
+        }
+      }
+    },
+    "matchTier.scrimmage" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Scrimmage"
+          }
+        }
+      }
+    },
+    "muscleGroup.adductors" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Adductors"
+          }
+        }
+      }
+    },
+    "muscleGroup.anteriorDelts" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Front Delts"
+          }
+        }
+      }
+    },
+    "muscleGroup.arms" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Arms"
+          }
+        }
+      }
+    },
+    "muscleGroup.back" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Back"
+          }
+        }
+      }
+    },
+    "muscleGroup.biceps" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Biceps"
+          }
+        }
+      }
+    },
+    "muscleGroup.calves" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Calves"
+          }
+        }
+      }
+    },
+    "muscleGroup.chest" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Chest"
+          }
+        }
+      }
+    },
+    "muscleGroup.core" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Core"
+          }
+        }
+      }
+    },
+    "muscleGroup.erectors" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Erectors"
+          }
+        }
+      }
+    },
+    "muscleGroup.forearms" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Forearms"
+          }
+        }
+      }
+    },
+    "muscleGroup.fullBody" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Full Body"
+          }
+        }
+      }
+    },
+    "muscleGroup.glutes" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Glutes"
+          }
+        }
+      }
+    },
+    "muscleGroup.hamstrings" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hamstrings"
+          }
+        }
+      }
+    },
+    "muscleGroup.hipFlexors" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hip Flexors"
+          }
+        }
+      }
+    },
+    "muscleGroup.hipRotators" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Hip Rotators"
+          }
+        }
+      }
+    },
+    "muscleGroup.lateralDelts" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Side Delts"
+          }
+        }
+      }
+    },
+    "muscleGroup.lats" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lats"
+          }
+        }
+      }
+    },
+    "muscleGroup.legs" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Legs"
+          }
+        }
+      }
+    },
+    "muscleGroup.obliques" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Obliques"
+          }
+        }
+      }
+    },
+    "muscleGroup.pecsLower" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lower Chest"
+          }
+        }
+      }
+    },
+    "muscleGroup.pecsUpper" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Upper Chest"
+          }
+        }
+      }
+    },
+    "muscleGroup.posteriorDelts" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rear Delts"
+          }
+        }
+      }
+    },
+    "muscleGroup.psoas" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Psoas"
+          }
+        }
+      }
+    },
+    "muscleGroup.quads" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Quads"
+          }
+        }
+      }
+    },
+    "muscleGroup.rectusAbdominis" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rectus Abdominis"
+          }
+        }
+      }
+    },
+    "muscleGroup.rhomboids" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rhomboids"
+          }
+        }
+      }
+    },
+    "muscleGroup.shoulders" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Shoulders"
+          }
+        }
+      }
+    },
+    "muscleGroup.tibialisAnterior" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Tibialis Anterior"
+          }
+        }
+      }
+    },
+    "muscleGroup.transverseAbdominis" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Transverse Abdominis"
+          }
+        }
+      }
+    },
+    "muscleGroup.trapsLower" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lower Traps"
+          }
+        }
+      }
+    },
+    "muscleGroup.trapsMid" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Mid Traps"
+          }
+        }
+      }
+    },
+    "muscleGroup.trapsUpper" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Upper Traps"
+          }
+        }
+      }
+    },
+    "muscleGroup.triceps" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Triceps"
+          }
+        }
+      }
+    },
+    "muscleRegion.arms" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Arms"
+          }
+        }
+      }
+    },
+    "muscleRegion.back" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Back"
+          }
+        }
+      }
+    },
+    "muscleRegion.chest" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Chest"
+          }
+        }
+      }
+    },
+    "muscleRegion.core" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Core"
+          }
+        }
+      }
+    },
+    "muscleRegion.fullBody" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Full Body"
+          }
+        }
+      }
+    },
+    "muscleRegion.legs" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Legs"
+          }
+        }
+      }
+    },
+    "muscleRegion.shoulders" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Shoulders"
+          }
+        }
+      }
+    },
+    "niggleType.pain" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pain"
+          }
+        }
+      }
+    },
+    "niggleType.soreness" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Soreness"
+          }
+        }
+      }
+    },
+    "niggleType.tweak" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Tweak"
+          }
+        }
+      }
+    },
+    "prescriptionStatus.assigned" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Assigned"
+          }
+        }
+      }
+    },
+    "prescriptionStatus.completed" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Completed"
+          }
+        }
+      }
+    },
+    "prescriptionStatus.skipped" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skipped"
+          }
+        }
+      }
+    },
+    "programSource.manual" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Built in app"
+          }
+        }
+      }
+    },
+    "programSource.pdf" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "PDF"
+          }
+        }
+      }
+    },
+    "programSource.photo" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Photo"
+          }
+        }
+      }
+    },
+    "programSource.text" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pasted text"
+          }
+        }
+      }
+    },
+    "programSource.voice" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Described by voice"
+          }
+        }
+      }
+    },
+    "prType.fastestPace" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Fastest Pace"
+          }
+        }
+      }
+    },
+    "prType.maxReps" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Max Reps"
+          }
+        }
+      }
+    },
+    "prType.maxVolume" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Max Volume"
+          }
+        }
+      }
+    },
+    "prType.maxWeight" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Max Weight"
+          }
+        }
+      }
+    },
+    "readinessZone.high" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "High Readiness"
+          }
+        }
+      }
+    },
+    "readinessZone.low" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Low Readiness"
+          }
+        }
+      }
+    },
+    "readinessZone.moderate" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Moderate Readiness"
+          }
+        }
+      }
+    },
+    "recoveryZone.green" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Go"
+          }
+        }
+      }
+    },
+    "recoveryZone.red" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Rest / Light Only"
+          }
+        }
+      }
+    },
+    "recoveryZone.yellow" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cautious"
+          }
+        }
+      }
+    },
+    "scheduleKind.match" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Match"
+          }
+        }
+      }
+    },
+    "scheduleKind.offPlanLift" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Off-plan lift"
+          }
+        }
+      }
+    },
+    "scheduleKind.pickup" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Pickup"
+          }
+        }
+      }
+    },
+    "scheduleKind.programSession" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Planned session"
+          }
+        }
+      }
+    },
+    "scheduleKind.scrimmage" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Scrimmage"
+          }
+        }
+      }
+    },
+    "scheduleStatus.canceled" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Canceled"
+          }
+        }
+      }
+    },
+    "scheduleStatus.completed" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Done"
+          }
+        }
+      }
+    },
+    "scheduleStatus.moved" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Moved"
+          }
+        }
+      }
+    },
+    "scheduleStatus.planned" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Planned"
+          }
+        }
+      }
+    },
+    "sessionType.cardio" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cardio"
+          }
+        }
+      }
+    },
+    "sessionType.match" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Match"
+          }
+        }
+      }
+    },
+    "sessionType.recovery" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Recovery"
+          }
+        }
+      }
+    },
+    "sessionType.skill" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Skill"
+          }
+        }
+      }
+    },
+    "sessionType.strength" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Strength"
+          }
+        }
+      }
+    },
+    "sport.crossfit" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "CrossFit"
+          }
+        }
+      }
+    },
+    "sport.custom" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Custom"
+          }
+        }
+      }
+    },
+    "sport.cycling" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Cycling"
+          }
+        }
+      }
+    },
+    "sport.lifting" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Lifting"
+          }
+        }
+      }
+    },
+    "sport.running" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Running"
+          }
+        }
+      }
+    },
+    "sport.swimming" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Swimming"
+          }
+        }
+      }
+    },
+    "sport.teamSport" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Team Sport"
+          }
+        }
+      }
+    },
+    "strainRiskZone.elevated" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Elevated load-tolerance caution"
+          }
+        }
+      }
+    },
+    "strainRiskZone.high" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "High overreaching caution"
+          }
+        }
+      }
+    },
+    "strainRiskZone.low" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Low"
+          }
+        }
+      }
+    },
+    "strainRiskZone.moderate" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Moderate"
+          }
+        }
+      }
+    },
+    "weightUnit.kg" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "kg"
+          }
+        }
+      }
+    },
+    "weightUnit.lbs" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "lbs"
           }
         }
       }
@@ -429,6 +1829,61 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "正常训练"
+          }
+        }
+      }
+    },
+    "zone.caution" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Load Building"
+          }
+        }
+      }
+    },
+    "zone.danger" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "High Load"
+          }
+        }
+      }
+    },
+    "zone.low" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Load Light"
+          }
+        }
+      }
+    },
+    "zone.noData" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "No Data"
+          }
+        }
+      }
+    },
+    "zone.optimal" : {
+      "extractionState" : "extracted_with_value",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Load Steady"
           }
         }
       }
