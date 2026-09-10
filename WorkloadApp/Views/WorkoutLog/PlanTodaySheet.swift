@@ -19,9 +19,9 @@ struct PlanTodaySheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-            InstrumentSheetHeader(title: "planToday.chooser.navTitle") {
+            InstrumentSheetHeader(title: "planToday.chooser.navTitle", leading: {
                 SheetHeaderButton(title: "action.cancel") { dismiss() }
-            }
+            })
             ScrollView {
                 VStack(alignment: .leading, spacing: Spacing.md) {
                     Text("planToday.chooser.subtitle")

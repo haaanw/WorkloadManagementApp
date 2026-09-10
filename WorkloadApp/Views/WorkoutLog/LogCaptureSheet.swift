@@ -84,7 +84,7 @@ struct LogCaptureSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                InstrumentSheetHeader(title: "voice.capture.navTitle") {
+                InstrumentSheetHeader(title: "voice.capture.navTitle", leading: {
                     SheetHeaderButton(title: "action.cancel") {
                         // Explicit Cancel means the athlete chose to discard these words —
                         // unlike a swipe-dismiss or crash, the stash should not survive this.
@@ -92,7 +92,7 @@ struct LogCaptureSheet: View {
                         speech.cancel()
                         dismiss()
                     }
-                }
+                })
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.md) {

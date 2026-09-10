@@ -484,9 +484,9 @@ struct MovePositionSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                InstrumentSheetHeader(title: "program.move.title") {
+                InstrumentSheetHeader(title: "program.move.title", leading: {
                     SheetHeaderButton(title: "action.cancel") { dismiss() }
-                }
+                })
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.sm) {
                         AnnotationLabel(key: "program.move.weekStamp")

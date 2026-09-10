@@ -82,9 +82,9 @@ struct ProgramImportSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                InstrumentSheetHeader(title: "programImport.nav.title") {
+                InstrumentSheetHeader(title: "programImport.nav.title", leading: {
                     SheetHeaderButton(title: "action.cancel") { dismiss() }
-                }
+                })
 
                 ZStack {
                     ScrollView {

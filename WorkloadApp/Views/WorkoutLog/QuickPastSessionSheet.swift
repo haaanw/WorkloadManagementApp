@@ -33,9 +33,9 @@ struct QuickPastSessionSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                InstrumentSheetHeader(title: "quickPast.nav.title") {
+                InstrumentSheetHeader(title: "quickPast.nav.title", leading: {
                     SheetHeaderButton(title: "action.cancel") { dismiss() }
-                }
+                })
 
                 ScrollView {
                     VStack(alignment: .leading, spacing: Spacing.sm) {

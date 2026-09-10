@@ -62,9 +62,9 @@ struct WorkoutImportSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                InstrumentSheetHeader(title: "nav.importWorkout") {
+                InstrumentSheetHeader(title: "nav.importWorkout", leading: {
                     SheetHeaderButton(title: "action.cancel") { dismiss() }
-                }
+                })
 
                 ZStack {
                     VStack(spacing: 0) {

@@ -58,6 +58,13 @@ struct SheetHeaderButton: View {
 /// the plane stays flat and opaque — no material blur, no large-title chrome. Pair with
 /// `.toolbar(.hidden, for: .navigationBar)` on the enclosing NavigationStack.
 /// `minimumScaleFactor` guards long localized titles between the two slots.
+///
+/// **Always LABEL the slot** — `InstrumentSheetHeader(title:, leading: { … })`, never a bare
+/// unlabeled trailing closure. Swift's deprecated backward matching sends an unlabeled
+/// trailing closure to `trailing`, so seven sheets silently grew a right-hand Cancel while
+/// `TrainingProfileSheet`, which labels its slots, kept the left-hand one (UAT round 1). The
+/// label pins the slot, clears the compiler's deprecation warning, and stops a future Swift
+/// from moving every Cancel button on its own.
 struct InstrumentSheetHeader<Leading: View, Trailing: View>: View {
     let title: LocalizedStringKey
     @ViewBuilder var leading: Leading

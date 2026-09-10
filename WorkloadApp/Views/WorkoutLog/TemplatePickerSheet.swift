@@ -27,9 +27,9 @@ struct TemplatePickerSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-            InstrumentSheetHeader(title: "nav.templates") {
+            InstrumentSheetHeader(title: "nav.templates", leading: {
                 SheetHeaderButton(title: "action.cancel") { dismiss() }
-            }
+            })
             ScrollView {
                 VStack(spacing: 0) {
                     if templates.isEmpty {
