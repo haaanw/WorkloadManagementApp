@@ -19,12 +19,11 @@ import HealthKit
 /// catch-up, anything under five minutes was discarded, and the dedupe was a point match
 /// (see `WatchWorkoutMatcher`). This service replaces all four.
 ///
-/// **What it does not do.** It runs on foreground, not in the background: true background
-/// delivery needs the `com.apple.developer.healthkit.background-delivery` entitlement, which
-/// the app does not hold and which is a provisioning change, not a code change. So the
-/// import happens the moment the athlete opens Tuwa rather than while their phone is in a
-/// pocket. From the athlete's side the difference is invisible — the session is simply
-/// already there.
+/// **When it runs.** On every foreground (`AppRouter`), on the Log tab's appearance, and —
+/// since the app holds the `com.apple.developer.healthkit.background-delivery` entitlement
+/// (HAN's Xcode step, 2026-09-13) — whenever HealthKit wakes the app for a new workout while
+/// the phone is in a pocket (`WatchWorkoutBackgroundDelivery`, below). Every trigger calls
+/// this same function; the anchor and the `isRunning` guard make the order irrelevant.
 @MainActor
 enum WatchWorkoutImportService {
 
@@ -43,9 +42,10 @@ enum WatchWorkoutImportService {
 
     /// Re-entrancy guard.
     ///
-    /// Two triggers fire on the same event: `AppRouter`'s foreground handler and the Log
-    /// tab's `.task` both run this, and returning to a foregrounded app on the Log tab does
-    /// both at once. Without this flag they would each fetch with the SAME un-banked anchor,
+    /// Three triggers fire on the same event: `AppRouter`'s foreground handler, the Log
+    /// tab's `.task`, and the HealthKit observer (`WatchWorkoutBackgroundDelivery`) — and
+    /// returning to a foregrounded app on the Log tab as a workout lands does all three at
+    /// once. Without this flag they would each fetch with the SAME un-banked anchor,
     /// each get the same workouts, and each pass `decide` before the other's session existed
     /// — the UUID key cannot help, because both runs read their comparison set before either
     /// wrote. That is a double-logged session, which is the one outcome this whole lane
@@ -337,6 +337,143 @@ enum WatchWorkoutImportService {
         case .martialArts: return "Martial Arts"
         case .boxing: return "Boxing"
         default: return "Workout"
+        }
+    }
+}
+
+// MARK: - Background delivery (v1.7.3 · U4 follow-on; entitlement CHOSEN by HAN 2026-09-10)
+
+/// Runs the import while the phone is in a pocket.
+///
+/// HealthKit background delivery has two halves and both live here. `enableBackgroundDelivery`
+/// tells HealthKit this app wants launching when a new workout lands; an `HKObserverQuery`
+/// registered AT LAUNCH is what HealthKit then calls. The second half is the one that is easy
+/// to get wrong: a background launch gives the app no scene, so an observer registered from a
+/// view would never exist when HealthKit came looking. Registration therefore happens in
+/// `WorkloadApp.init` — the earliest point in the process — and waits for nothing.
+///
+/// **The completion contract.** HealthKit's completion handler is called after EVERY
+/// delivery, whether the import logged ten sessions, declined to run, or found nothing.
+/// HealthKit counts deliveries an app leaves unacknowledged and stops waking it after three,
+/// until the next launch; one forgotten path would silently turn background delivery off.
+/// `handleDelivery(completion:)` is the single funnel, and it is what the tests pin.
+///
+/// **No second dedupe layer.** The observer simply runs `WatchWorkoutImportService.run`. The
+/// anchored query hands each workout over exactly once, and the service's `isRunning` guard
+/// folds an observer run and a foreground run that fire together into one. Whichever runs
+/// first imports; the other finds nothing new. Either order is correct.
+///
+/// **The failure path.** Without the entitlement — or on the simulator — `enableDelivery`
+/// throws, `isBackgroundDeliveryEnabled` stays false, and the observer fires only while the
+/// app is running. The foreground path (`AppRouter`, the Log tab) is untouched either way.
+@MainActor
+final class WatchWorkoutBackgroundDelivery {
+
+    /// A HealthKit-style update: handle it, then call `completion` exactly once.
+    typealias UpdateHandler = (_ completion: @escaping () -> Void) -> Void
+
+    /// The three seams, so the orchestration is testable without a Health store.
+    struct Hooks {
+        /// Registers the long-running observer; `handler` is called per delivery.
+        var registerObserver: @MainActor (@escaping UpdateHandler) -> Void
+        /// Asks HealthKit for background launches; throws where unsupported.
+        var enableDelivery: @MainActor () async throws -> Void
+        /// Runs the import against the live services when the app is up, or alone.
+        var runImport: @MainActor (_ live: AppContainer?) async -> Int
+
+        /// Production seams. The observer and the enable call own one long-lived service; the
+        /// import resolves its service per run so a grant made after launch is honoured — a
+        /// fresh `HealthKitService` reads the persisted request flag, and the LIVE container's
+        /// service is preferred whenever the app is running, so an imported session rides the
+        /// same sync the foreground path uses.
+        static func production(modelContainer: ModelContainer) -> Hooks {
+            let observerService = HealthKitService()
+            return Hooks(
+                registerObserver: { handler in observerService.observeWorkouts(handler) },
+                enableDelivery: { try await observerService.enableWorkoutBackgroundDelivery() },
+                runImport: { live in
+                    await WatchWorkoutImportService.run(
+                        healthKit: live?.healthKitService ?? HealthKitService(),
+                        modelContext: modelContainer.mainContext,
+                        syncService: live?.syncService
+                    )
+                }
+            )
+        }
+    }
+
+    /// The process-wide instance, installed by `WorkloadApp.init`. Nil until then and in
+    /// any host that never installs one.
+    private(set) static var shared: WatchWorkoutBackgroundDelivery?
+
+    private let hooks: Hooks
+    /// The running app's container, attached by `AppRouter` once it exists. Weak: the
+    /// delivery object outlives every scene and must never keep one alive.
+    private weak var liveContainer: AppContainer?
+
+    private(set) var isObserving = false
+    private(set) var isBackgroundDeliveryEnabled = false
+    /// The last error `enableDelivery` threw, for the sync-status class of readouts.
+    private(set) var lastEnableError: String?
+    /// Deliveries handled so far this process (observability; the tests count it too).
+    private(set) var deliveriesHandled = 0
+
+    init(hooks: Hooks) {
+        self.hooks = hooks
+    }
+
+    /// Production entry point: register the observer and ask for background launches.
+    /// Idempotent — a second call returns the existing instance untouched.
+    @discardableResult
+    static func install(modelContainer: ModelContainer) -> WatchWorkoutBackgroundDelivery {
+        if let shared { return shared }
+        let delivery = WatchWorkoutBackgroundDelivery(hooks: .production(modelContainer: modelContainer))
+        shared = delivery
+        delivery.start()
+        return delivery
+    }
+
+    /// Let deliveries use the running app's services. Safe to call repeatedly.
+    func attach(_ container: AppContainer) {
+        liveContainer = container
+    }
+
+    /// Register once, then request background launches. The enable call is best-effort:
+    /// its failure is recorded, never raised, because the observer is still worth having
+    /// for the in-app case.
+    func start() {
+        guard !isObserving else { return }
+        isObserving = true
+        hooks.registerObserver { [weak self] completion in
+            // HealthKit calls this on its own queue; the import is main-actor work.
+            Task { @MainActor in
+                guard let self else {
+                    completion()
+                    return
+                }
+                await self.handleDelivery(completion: completion)
+            }
+        }
+        Task { await enableDeliveryIfPossible() }
+    }
+
+    /// The single funnel every delivery passes through. `completion` is called exactly once,
+    /// after the import has finished — never before, never zero times.
+    func handleDelivery(completion: @escaping () -> Void) async {
+        defer { completion() }
+        deliveriesHandled += 1
+        _ = await hooks.runImport(liveContainer)
+    }
+
+    func enableDeliveryIfPossible() async {
+        do {
+            try await hooks.enableDelivery()
+            isBackgroundDeliveryEnabled = true
+            lastEnableError = nil
+        } catch {
+            isBackgroundDeliveryEnabled = false
+            lastEnableError = error.localizedDescription
+            print("Workout background delivery not enabled: \(error)")
         }
     }
 }

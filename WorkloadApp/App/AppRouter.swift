@@ -135,6 +135,11 @@ struct AppRouter: View {
             }
         }
         .task {
+            // The launch-registered HealthKit observer (WorkloadApp.init) now has a running
+            // app to hand its deliveries to: same HealthKitService, same SyncService as the
+            // foreground import path (v1.7.3 · U4 follow-on).
+            WatchWorkoutBackgroundDelivery.shared?.attach(container)
+
             #if DEBUG && targetEnvironment(simulator)
             let args = ProcessInfo.processInfo.arguments
 

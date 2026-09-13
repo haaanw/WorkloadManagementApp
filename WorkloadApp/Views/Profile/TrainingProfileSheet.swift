@@ -3,13 +3,39 @@ import SwiftData
 
 /// Cold-start questionnaire form presented as a sheet from Dashboard or ProfileView.
 /// Contains 4 required questions (sessions/week, avg duration, typical effort, weeks at level)
-/// and 4 optional questions (training age, schedule type, movement types, injury history).
+/// and 4 optional questions (training age, schedule type, sports, injury history).
 /// On save, calls ColdStartEngine.computeSeed() and persists TrainingProfile via repository.
+///
+/// This is the way a profile is CREATED. Once one exists, Profile edits every answer in
+/// place (v1.7.3 · U10, `.planning/v173/PROFILE-IA.md`), so the sheet is no longer mounted
+/// as an editor from there; `existingProfile` remains for any caller that still re-edits.
 struct TrainingProfileSheet: View {
+
+    // MARK: - Option lists (shared with the in-place Profile rows)
+
+    static let sessionsPerWeekOptions = Array(1...14)
+    static let durationOptions = [15, 30, 45, 60, 75, 90, 120, 150, 180]
+    static let effortOptions = Array(1...10)
+    static let weeksAtLevelOptions = [1, 2, 3, 4, 6, 8, 12, 16, 24, 52]
+    static let trainingAgeOptions = Array(0...30)
+    /// Stored raw values — synced as-is, so they stay English; `scheduleTypeLabel` localizes.
+    static let scheduleTypeOptions = ["Steady", "Periodized"]
+
+    static func scheduleTypeLabel(_ raw: String, locale: Locale) -> String {
+        switch raw {
+        case "Steady":
+            return LocalePinnedStrings.localized("profile.trainingProfile.schedule.steady", defaultValue: "Steady", locale: locale)
+        case "Periodized":
+            return LocalePinnedStrings.localized("profile.trainingProfile.schedule.periodized", defaultValue: "Periodized", locale: locale)
+        default:
+            return raw
+        }
+    }
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
     @Environment(AppContainer.self) private var container
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @Environment(\.locale) private var locale
     @Query private var athletes: [Athlete]
 
     /// Pass an existing profile for re-edit from ProfileView. Nil for first-time completion.
@@ -43,17 +69,11 @@ struct TrainingProfileSheet: View {
         sessionsPerWeek != nil && avgDurationMinutes != nil && typicalSRPE != nil && weeksAtLevel != nil
     }
 
-    /// Track whether user has interacted with any field (not just pre-populated from re-edit)
+    /// Track whether user has interacted with any field (not just pre-populated: a re-edit
+    /// fills every row, and a first run pre-selects the athlete's sport).
     @State private var userHasEdited = false
 
-    private var hasChanges: Bool {
-        if existingProfile != nil {
-            return userHasEdited
-        }
-        return sessionsPerWeek != nil || avgDurationMinutes != nil || typicalSRPE != nil || weeksAtLevel != nil ||
-        trainingAgeYears != nil || scheduleType != nil || !selectedMovementTypes.isEmpty || !selectedBodyRegions.isEmpty ||
-        !injuryNotes.isEmpty
-    }
+    private var hasChanges: Bool { userHasEdited }
 
     // MARK: - sRPE Labels
 
@@ -96,7 +116,7 @@ struct TrainingProfileSheet: View {
                     pickerRow(
                         String(localized: "profile.trainingProfile.sessionsPerWeek", defaultValue: "Sessions per week"),
                         selection: $sessionsPerWeek,
-                        options: Array(1...14),
+                        options: Self.sessionsPerWeekOptions,
                         placeholder: String(localized: "profile.trainingProfile.placeholder.select", defaultValue: "Select"),
                         displayName: { "\($0)" }
                     )
@@ -105,7 +125,7 @@ struct TrainingProfileSheet: View {
                     pickerRow(
                         String(localized: "profile.trainingProfile.avgDuration", defaultValue: "Average duration"),
                         selection: $avgDurationMinutes,
-                        options: [15, 30, 45, 60, 75, 90, 120, 150, 180],
+                        options: Self.durationOptions,
                         placeholder: String(localized: "profile.trainingProfile.placeholder.select", defaultValue: "Select"),
                         displayName: { "\($0) min" }
                     )
@@ -114,7 +134,7 @@ struct TrainingProfileSheet: View {
                     pickerRow(
                         String(localized: "profile.trainingProfile.typicalEffort", defaultValue: "Typical effort"),
                         selection: $typicalSRPE,
-                        options: Array(1...10),
+                        options: Self.effortOptions,
                         placeholder: String(localized: "profile.trainingProfile.placeholder.select", defaultValue: "Select"),
                         displayName: { srpeLabel($0) }
                     )
@@ -123,7 +143,7 @@ struct TrainingProfileSheet: View {
                     pickerRow(
                         String(localized: "profile.trainingProfile.weeksAtLevel", defaultValue: "Weeks at current level"),
                         selection: $weeksAtLevel,
-                        options: [1, 2, 3, 4, 6, 8, 12, 16, 24, 52],
+                        options: Self.weeksAtLevelOptions,
                         placeholder: String(localized: "profile.trainingProfile.placeholder.select", defaultValue: "Select"),
                         displayName: { $0 == 1
                             ? String(localized: "profile.trainingProfile.weeks.one", defaultValue: "1 week")
@@ -137,7 +157,7 @@ struct TrainingProfileSheet: View {
                     pickerRow(
                         String(localized: "profile.trainingProfile.trainingAge", defaultValue: "Training age"),
                         selection: $trainingAgeYears,
-                        options: Array(0...30),
+                        options: Self.trainingAgeOptions,
                         placeholder: String(localized: "profile.trainingProfile.placeholder.dash", defaultValue: "---"),
                         displayName: { $0 == 1
                             ? String(localized: "profile.trainingProfile.years.one", defaultValue: "1 year")
@@ -148,9 +168,9 @@ struct TrainingProfileSheet: View {
                     pickerRow(
                         String(localized: "profile.trainingProfile.scheduleType", defaultValue: "Schedule type"),
                         selection: $scheduleType,
-                        options: ["Steady", "Periodized"],
+                        options: Self.scheduleTypeOptions,
                         placeholder: String(localized: "profile.trainingProfile.placeholder.dash", defaultValue: "---"),
-                        displayName: { $0 }
+                        displayName: { Self.scheduleTypeLabel($0, locale: locale) }
                     )
                     divider()
 
@@ -182,17 +202,22 @@ struct TrainingProfileSheet: View {
                     weeksAtLevel = p.weeksAtLevel
                     trainingAgeYears = p.trainingAgeYears
                     scheduleType = p.periodizationPreference
-                    if let types = p.movementTypes {
-                        selectedMovementTypes = Set(types.compactMap { SportType(rawValue: $0) })
+                    if let athlete {
+                        selectedMovementTypes = Set(SportSelection.sports(
+                            movementTypes: p.movementTypes,
+                            primary: athlete.sportType
+                        ))
                     }
-                    if let data = p.injuryHistory,
-                       let injuries = try? JSONDecoder().decode([InjuryEntry].self, from: data) {
-                        selectedBodyRegions = Set(injuries.map(\.bodyRegion))
-                        injuryNotes = injuries.first?.notes ?? ""
-                        if !selectedBodyRegions.isEmpty {
-                            showInjuryDetail = true
-                        }
+                    let injuries = TrainingProfile.decodeInjuryHistory(p.injuryHistory)
+                    selectedBodyRegions = injuries.regions
+                    injuryNotes = injuries.notes
+                    if !selectedBodyRegions.isEmpty {
+                        showInjuryDetail = true
                     }
+                } else if let athlete {
+                    // The sport chosen at sign-up is already one of the athlete's sports; the
+                    // multi-select starts from it rather than asking the question twice.
+                    selectedMovementTypes = [athlete.sportType]
                 }
             }
             }
@@ -268,10 +293,12 @@ struct TrainingProfileSheet: View {
         )
     }
 
+    /// The sports multi-select (v1.7.3 · U6, HAN: GO). Same field, same label as the Profile
+    /// row that edits it later; `save()` derives the primary from it (`SportSelection`).
     @ViewBuilder
     private func movementTypesRow() -> some View {
         InlineMultiOptionList(
-            label: "profile.trainingProfile.movementTypes",
+            label: "profile.field.sports",
             selection: $selectedMovementTypes,
             options: SportType.allCases,
             displayName: { $0.displayName },
@@ -322,36 +349,11 @@ struct TrainingProfileSheet: View {
             .buttonStyle(.pressable(scale: 1, opacity: 0.6))
 
             if showInjuryDetail {
-                // Body regions as flat outlined option cells (v1.7.1: debossed channel
-                // dropped, same grammar as the inline selects) + a machined notes field.
-                VStack(spacing: Spacing.baselinePair) {
-                    ForEach(BodyRegion.allCases) { region in
-                        MachinedOptionCell(
-                            label: region.displayName,
-                            isSelected: selectedBodyRegions.contains(region)
-                        ) {
-                            if selectedBodyRegions.contains(region) {
-                                selectedBodyRegions.remove(region)
-                            } else {
-                                selectedBodyRegions.insert(region)
-                            }
-                            userHasEdited = true
-                        }
-                    }
-                }
-                .padding(.horizontal, Spacing.sm)
-                .padding(.bottom, Spacing.xs)
-
-                FormField(
-                    placeholder: "profile.trainingProfile.injuryNotes",
-                    text: $injuryNotes,
-                    axis: .vertical,
-                    alignment: .leading,
-                    lineLimit: 2...4,
+                InjuryHistoryFields(
+                    regions: $selectedBodyRegions,
+                    notes: $injuryNotes,
                     onEdit: { userHasEdited = true }
                 )
-                .padding(.horizontal, Spacing.sm)
-                .padding(.bottom, Spacing.sm)
             }
         }
     }
@@ -373,20 +375,19 @@ struct TrainingProfileSheet: View {
         )
         let result = ColdStartEngine.computeSeed(input: input)
 
-        // Encode injury history if any regions selected
-        let injuryData: Data? = {
-            guard !selectedBodyRegions.isEmpty else { return nil }
-            let entries = selectedBodyRegions.map { region in
-                InjuryEntry(bodyRegion: region,
-                            notes: injuryNotes.isEmpty ? nil : injuryNotes,
-                            isActive: true)
-            }
-            return try? JSONEncoder().encode(entries)
-        }()
+        let injuryData = TrainingProfile.encodeInjuryHistory(regions: selectedBodyRegions, notes: injuryNotes)
 
-        let movementTypeStrings: [String]? = selectedMovementTypes.isEmpty
+        // Sports: the ordered list is the single source for BOTH fields (SportSelection).
+        // The athlete's current sport stays primary while it is still selected; deselecting
+        // it promotes the next. An empty selection leaves both fields as they were.
+        let currentSports = SportSelection.sports(
+            movementTypes: existingProfile?.movementTypes,
+            primary: athlete.sportType
+        )
+        let sports: [SportType]? = selectedMovementTypes.isEmpty
             ? nil
-            : selectedMovementTypes.map(\.rawValue)
+            : SportSelection.ordered(current: currentSports, selected: selectedMovementTypes)
+        let movementTypeStrings = sports?.map(\.rawValue)
 
         let repo = TrainingProfileRepository(modelContext: modelContext)
 
@@ -406,6 +407,7 @@ struct TrainingProfileSheet: View {
                 try repo.updateProfile(existing)
                 // WR-01: sync re-edited profile to Supabase
                 Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
+                syncPrimarySport(sports, athlete: athlete)
                 Haptics.success()
                 dismiss()
             } catch {
@@ -429,11 +431,64 @@ struct TrainingProfileSheet: View {
             do {
                 try repo.saveProfile(profile)
                 Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
+                syncPrimarySport(sports, athlete: athlete)
                 Haptics.success()
                 dismiss()
             } catch {
                 saveError = String(localized: "profile.trainingProfile.saveError", defaultValue: "Couldn't save your training profile. Please try again.")
             }
         }
+    }
+
+    /// Keep `athlete.sportType` equal to the first selected sport (the SportSelection
+    /// invariant). A no-op when the primary did not move, so no athlete push is spent.
+    private func syncPrimarySport(_ sports: [SportType]?, athlete: Athlete) {
+        guard let primary = sports?.first, primary != athlete.sportType else { return }
+        athlete.sportType = primary
+        athlete.updatedAt = .now
+        try? modelContext.save()
+        Task { await container.syncService.pushAthlete(athlete) }
+    }
+}
+
+// MARK: - Injury history fields (shared by the sheet and the Profile detail screen)
+
+/// Body regions as flat outlined option cells (v1.7.1: debossed channel dropped, same grammar
+/// as the inline selects) + a machined notes field. Owns no persistence: the sheet encodes on
+/// Save, the Profile detail screen commits on change.
+struct InjuryHistoryFields: View {
+    @Binding var regions: Set<BodyRegion>
+    @Binding var notes: String
+    var onEdit: (() -> Void)? = nil
+
+    var body: some View {
+        VStack(spacing: Spacing.baselinePair) {
+            ForEach(BodyRegion.allCases) { region in
+                MachinedOptionCell(
+                    label: region.displayName,
+                    isSelected: regions.contains(region)
+                ) {
+                    if regions.contains(region) {
+                        regions.remove(region)
+                    } else {
+                        regions.insert(region)
+                    }
+                    onEdit?()
+                }
+            }
+        }
+        .padding(.horizontal, Spacing.sm)
+        .padding(.bottom, Spacing.xs)
+
+        FormField(
+            placeholder: "profile.trainingProfile.injuryNotes",
+            text: $notes,
+            axis: .vertical,
+            alignment: .leading,
+            lineLimit: 2...4,
+            onEdit: onEdit
+        )
+        .padding(.horizontal, Spacing.sm)
+        .padding(.bottom, Spacing.sm)
     }
 }

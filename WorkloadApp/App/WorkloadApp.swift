@@ -120,6 +120,13 @@ struct WorkloadApp: App {
         } catch {
             fatalError("Failed to create ModelContainer: \(error)")
         }
+
+        // Watch workouts land while the phone is in a pocket (v1.7.3 · U4 follow-on). The
+        // HealthKit observer MUST exist before HealthKit's background launch looks for it,
+        // and a background launch builds no scene — so it is registered here, at the
+        // earliest point in the process, not from a view. `AppRouter` attaches the live
+        // container once one exists so deliveries share the foreground path's services.
+        WatchWorkoutBackgroundDelivery.install(modelContainer: container)
     }
 
     var body: some Scene {

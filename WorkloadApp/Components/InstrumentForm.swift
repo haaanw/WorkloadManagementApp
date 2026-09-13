@@ -408,6 +408,8 @@ struct InlineMultiOptionList<T: Hashable & Identifiable>: View {
     /// Builds the readout summary for the current count ("2 selected"). nil count → placeholder.
     let summary: (Int) -> String
     var placeholder: String = "—"
+    /// Optional per-cell subtitle (e.g. "Primary" under the athlete's first sport).
+    var subtitleFor: ((T) -> String?)? = nil
     var systemImageFor: ((T) -> String?)? = nil
     var onToggle: (() -> Void)? = nil
 
@@ -438,6 +440,7 @@ struct InlineMultiOptionList<T: Hashable & Identifiable>: View {
                     ForEach(options) { option in
                         MachinedOptionCell(
                             label: displayName(option),
+                            subtitle: subtitleFor?(option),
                             systemImage: systemImageFor?(option),
                             isSelected: selection.contains(option)
                         ) {

@@ -88,7 +88,6 @@ Two-tier model via RevenueCat:
 - Requires HealthKit capability + `NSHealthShareUsageDescription` in Info.plist
 - Raw HealthKit data must never be uploaded to Supabase — only composite scores
 - **Background delivery (since 2026-09-13):** the app holds `com.apple.developer.healthkit.background-delivery` (HAN's Xcode step). `WatchWorkoutBackgroundDelivery` registers an `HKObserverQuery` for workouts in `WorkloadApp.init` (a background launch builds no scene, so never from a view) and drives the same `WatchWorkoutImportService.run` the foreground path uses — the anchored query + `isRunning` guard are the only dedupe; never add a second layer. HealthKit's completion handler is called on EVERY delivery path (three unacknowledged deliveries switch background delivery off until relaunch)
-- **Background delivery (since 2026-09-13):** the app holds `com.apple.developer.healthkit.background-delivery` (HAN's Xcode step). `WatchWorkoutBackgroundDelivery` registers an `HKObserverQuery` for workouts in `WorkloadApp.init` (a background launch builds no scene, so never from a view) and drives the same `WatchWorkoutImportService.run` the foreground path uses — the anchored query + `isRunning` guard are the only dedupe; never add a second layer. HealthKit's completion handler is called on EVERY delivery path (three unacknowledged deliveries switch background delivery off until relaunch)
 
 ## Design System
 

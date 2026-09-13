@@ -45,10 +45,7 @@ struct ProfileView: View {
                             set: { athlete.displayName = $0; saveAthlete(athlete) }
                         ))
                         divider()
-                        editablePicker("profile.field.sport", selection: Binding(
-                            get: { athlete.sportType },
-                            set: { athlete.sportType = $0; saveAthlete(athlete) }
-                        ), options: SportType.allCases) { $0.displayName }
+                        sportsRow(athlete: athlete)
                         divider()
                         editablePicker("profile.field.trainingFrequency", selection: Binding(
                             get: { athlete.trainingFrequency ?? .threeToFour },
@@ -61,23 +58,62 @@ struct ProfileView: View {
                         ), options: ExperienceLevel.allCases) { $0.displayName }
                         }
 
-                        // Training Profile (D-03)
+                        // Training Profile (D-03) — edited IN PLACE (v1.7.3 · U10,
+                        // `.planning/v173/PROFILE-IA.md` §4). The cold-start questionnaire is
+                        // how a profile is CREATED; once one exists every answer is a row here,
+                        // committing on change exactly like the athlete rows above. No Save, no
+                        // Discard, no dirty state — that grammar belongs to the wizard. All nine
+                        // answers are reachable: six rows below, sports in the athlete section,
+                        // and injury history behind its own screen (a region grid and free text
+                        // do not belong in a settings list).
                         profileSection("profile.section.trainingProfile") {
                         if let profile = trainingProfiles.first {
-                            // Profile exists: show summary rows
-                            profileRow("profile.field.sessionsPerWeek", value: "\(profile.sessionsPerWeek)")
+                            editablePicker("profile.field.sessionsPerWeek", selection: Binding(
+                                get: { profile.sessionsPerWeek },
+                                set: { profile.sessionsPerWeek = $0; saveProfile(profile, athlete: athlete) }
+                            ), options: TrainingProfileSheet.sessionsPerWeekOptions) { "\($0)" }
                             divider()
-                            profileRow("profile.field.avgDuration", value: "\(profile.avgDurationMinutes)", unit: "min")
+                            editablePicker("profile.field.avgDuration", selection: Binding(
+                                get: { profile.avgDurationMinutes },
+                                set: { profile.avgDurationMinutes = $0; saveProfile(profile, athlete: athlete) }
+                            ), options: TrainingProfileSheet.durationOptions, unit: "min") { "\($0)" }
                             divider()
-                            profileRow("profile.field.typicalEffort", value: "\(Int(profile.typicalSRPE))/10")
+                            editablePicker("profile.field.typicalEffort", selection: Binding(
+                                get: { Int(profile.typicalSRPE.rounded()) },
+                                set: { profile.typicalSRPE = Double($0); saveProfile(profile, athlete: athlete) }
+                            ), options: TrainingProfileSheet.effortOptions) { effortLabel($0) }
                             divider()
-                            profileRow("profile.field.weeksAtLevel", value: "\(profile.weeksAtLevel)")
+                            editablePicker("profile.field.weeksAtLevel", selection: Binding(
+                                get: { profile.weeksAtLevel },
+                                set: { profile.weeksAtLevel = $0; saveProfile(profile, athlete: athlete) }
+                            ), options: TrainingProfileSheet.weeksAtLevelOptions) { weeksLabel($0) }
                             divider()
-                            actionButton("profile.action.editProfile") {
-                                showTrainingProfileSheet = true
-                            }
+                            InlineOptionList(
+                                "profile.trainingProfile.trainingAge",
+                                selection: Binding<Int?>(
+                                    get: { profile.trainingAgeYears },
+                                    set: { profile.trainingAgeYears = $0; saveProfile(profile, athlete: athlete) }
+                                ),
+                                options: TrainingProfileSheet.trainingAgeOptions,
+                                placeholder: dashPlaceholder,
+                                displayName: { yearsLabel($0) }
+                            )
+                            divider()
+                            InlineOptionList(
+                                "profile.trainingProfile.scheduleType",
+                                selection: Binding<String?>(
+                                    get: { profile.periodizationPreference },
+                                    set: { profile.periodizationPreference = $0; saveProfile(profile, athlete: athlete) }
+                                ),
+                                options: TrainingProfileSheet.scheduleTypeOptions,
+                                placeholder: dashPlaceholder,
+                                displayName: { TrainingProfileSheet.scheduleTypeLabel($0, locale: locale) }
+                            )
+                            divider()
+                            injuryHistoryRow(profile: profile, athlete: athlete)
                         } else {
-                            // No profile: show setup prompt
+                            // No profile: nothing to edit in place. The questionnaire is a real
+                            // sequence with a seeding step at its end, so it stays a sheet.
                             actionButton("profile.action.setupTrainingProfile") {
                                 showTrainingProfileSheet = true
                             }
@@ -156,6 +192,33 @@ struct ProfileView: View {
                                 .frame(maxWidth: .infinity, alignment: .leading)
                                 .padding(.horizontal, Spacing.sm)
                                 .padding(.bottom, Spacing.xs)
+                            divider()
+                            // Validation signals — quiet internal readout (METRIC-02). Lived in
+                            // its own "Validation" section five sections below this one; two
+                            // sections for one idea (U10 section review). NOT a hero row: no
+                            // accent, mirrors the Sync row treatment.
+                            NavigationLink {
+                                VerdictMeasurementView()
+                            } label: {
+                                HStack(spacing: Spacing.xs) {
+                                    Image(systemName: "chart.bar")
+                                        .font(.Tokens.label)
+                                        .foregroundStyle(ColorTokens.text2)
+                                        .frame(width: 24)
+                                    Text("profile.measurement.row")
+                                        .font(.Tokens.body)
+                                        .foregroundStyle(ColorTokens.text1)
+                                    Spacer()
+                                    Image(systemName: "chevron.right")
+                                        .font(.Tokens.micro)
+                                        .foregroundStyle(ColorTokens.text3)
+                                }
+                                .padding(.horizontal, Spacing.sm)
+                                .padding(.vertical, Spacing.sm)
+                                .background(Color.clear)
+                                .contentShape(Rectangle())
+                            }
+                            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         }
 
                         // NOTIFICATIONS section (NOTF-03)
@@ -333,33 +396,6 @@ struct ProfileView: View {
                         .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         }
 
-                        // Validation signals — quiet internal readout (METRIC-02). NOT a hero row:
-                        // no accent, mirrors the Sync row treatment.
-                        profileSection("profile.section.measurement") {
-                        NavigationLink {
-                            VerdictMeasurementView()
-                        } label: {
-                            HStack(spacing: Spacing.xs) {
-                                Image(systemName: "chart.bar")
-                                    .font(.Tokens.label)
-                                    .foregroundStyle(ColorTokens.text2)
-                                    .frame(width: 24)
-                                Text("profile.measurement.row")
-                                    .font(.Tokens.body)
-                                    .foregroundStyle(ColorTokens.text1)
-                                Spacer()
-                                Image(systemName: "chevron.right")
-                                    .font(.Tokens.micro)
-                                    .foregroundStyle(ColorTokens.text3)
-                            }
-                            .padding(.horizontal, Spacing.sm)
-                            .padding(.vertical, Spacing.sm)
-                            .background(Color.clear)
-                            .contentShape(Rectangle())
-                        }
-                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
-                        }
-
                         // Account — destructive actions, grouped + separated
                         profileSection("profile.section.account") {
                         InstrumentFormRow(label: "profile.signOut", action: {
@@ -419,8 +455,9 @@ struct ProfileView: View {
                 }
             }
             .toolbar(.hidden, for: .navigationBar)
+            // Reached only while no profile exists (U10): the sheet creates, the page edits.
             .sheet(isPresented: $showTrainingProfileSheet) {
-                TrainingProfileSheet(existingProfile: trainingProfiles.first)
+                TrainingProfileSheet()
                     .environment(container)
             }
             // Sign-out with unsynced local data (v1.7.1)
@@ -497,14 +534,6 @@ struct ProfileView: View {
     }
 
     @ViewBuilder
-    private func profileRow(_ label: LocalizedStringKey, value: String, unit: String? = nil) -> some View {
-        // Machined summary row: label + a debossed readout well (v4.2).
-        InstrumentFormRow(label: label) {
-            ReadoutWell(value: value, unit: unit)
-        }
-    }
-
-    @ViewBuilder
     private func actionButton(_ label: LocalizedStringKey, action: @escaping () -> Void) -> some View {
         InstrumentFormRow(label: label, showsChevron: false, action: action) {
             EmptyView()
@@ -573,6 +602,191 @@ struct ProfileView: View {
         athlete.updatedAt = .now
         try? modelContext.save()
         Task { await container.syncService.pushAthlete(athlete) }
+    }
+
+    // MARK: - Training profile, in place (U10)
+
+    /// Commit one in-place edit of a questionnaire ANSWER.
+    ///
+    /// Writes the answer fields only. `seededATL` / `seededCTL` / `seededAt` are the cold-start
+    /// estimate `ColdStartEngine` made from the ORIGINAL answers, and Home reads them only
+    /// while no workload snapshot exists yet (`DashboardViewModel`'s cold-start fallback).
+    /// Re-seeding from an edited answer would move a number that real sessions have already
+    /// superseded — so an edit does not, and must not, re-run the seed. Seeding happens once,
+    /// in `TrainingProfileSheet.save()`.
+    private func saveProfile(_ profile: TrainingProfile, athlete: Athlete) {
+        profile.updatedAt = .now
+        try? modelContext.save()
+        Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athlete.id) }
+    }
+
+    private var dashPlaceholder: String {
+        LocalePinnedStrings.localized("profile.trainingProfile.placeholder.dash", defaultValue: "---", locale: locale)
+    }
+
+    /// "8 · Very hard" — the numeral keeps its resolution, the word is Foster's anchor at or
+    /// below it (`SessionRPEScale`), read exactly as the Finish sheet reads session RPE.
+    private func effortLabel(_ rpe: Int) -> String {
+        let anchor = SessionRPEScale.anchor(for: rpe)
+        let word = LocalePinnedStrings.localized(String.LocalizationValue(anchor.keyName), locale: locale)
+        return "\(rpe) · \(word)"
+    }
+
+    private func weeksLabel(_ weeks: Int) -> String {
+        weeks == 1
+            ? LocalePinnedStrings.localized("profile.trainingProfile.weeks.one", defaultValue: "1 week", locale: locale)
+            : LocalePinnedStrings.localized("profile.trainingProfile.weeks.other", defaultValue: "\(weeks) weeks", locale: locale)
+    }
+
+    private func yearsLabel(_ years: Int) -> String {
+        years == 1
+            ? LocalePinnedStrings.localized("profile.trainingProfile.years.one", defaultValue: "1 year", locale: locale)
+            : LocalePinnedStrings.localized("profile.trainingProfile.years.other", defaultValue: "\(years) years", locale: locale)
+    }
+
+    /// Injury history is a navigation row, not inlined: a body-region grid and a free-text
+    /// field do not belong in a settings list (PROFILE-IA §4, row 8).
+    @ViewBuilder
+    private func injuryHistoryRow(profile: TrainingProfile, athlete: Athlete) -> some View {
+        let regionCount = TrainingProfile.decodeInjuryHistory(profile.injuryHistory).regions.count
+        NavigationLink {
+            InjuryHistoryDetailView(profile: profile, athleteId: athlete.id)
+        } label: {
+            HStack {
+                Text("profile.trainingProfile.injuryHistory")
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text1)
+                Spacer()
+                Text(injuryAreasLabel(regionCount))
+                    .font(.Tokens.body)
+                    .foregroundStyle(regionCount == 0 ? ColorTokens.text3 : ColorTokens.text2)
+                Image(systemName: "chevron.right")
+                    .font(.Tokens.smallLabel)
+                    .foregroundStyle(ColorTokens.text3)
+            }
+            .padding(.horizontal, Spacing.sm)
+            .padding(.vertical, Spacing.sm)
+            .background(Color.clear)
+            .contentShape(Rectangle())
+        }
+        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+        .accessibilityIdentifier("profile.injuryHistory")
+    }
+
+    private func injuryAreasLabel(_ count: Int) -> String {
+        switch count {
+        case 0: return dashPlaceholder
+        case 1: return LocalePinnedStrings.localized("profile.trainingProfile.areas.one", defaultValue: "\(count) area", locale: locale)
+        default: return LocalePinnedStrings.localized("profile.trainingProfile.areas.other", defaultValue: "\(count) areas", locale: locale)
+        }
+    }
+
+    // MARK: - Sports (U6, HAN: GO — multi-select on TrainingProfile.movementTypes)
+
+    /// The athlete's sports. Multi-select on the synced `TrainingProfile.movementTypes`
+    /// field; the FIRST selection is the primary and is mirrored to `athlete.sportType`
+    /// (`SportSelection`), so the two single-sport readers — the Movement Bank's new-exercise
+    /// default and the PDF report title — and every legacy client keep reading one sport. No
+    /// engine reads either field; the load math reads the SESSION's sport.
+    ///
+    /// The field lives on the profile, so until one exists there is nowhere to hold a second
+    /// sport: the row is the single primary picker, and the section below offers the setup.
+    @ViewBuilder
+    private func sportsRow(athlete: Athlete) -> some View {
+        if let profile = trainingProfiles.first {
+            InlineMultiOptionList(
+                label: "profile.field.sports",
+                selection: Binding(
+                    get: { Set(SportSelection.sports(movementTypes: profile.movementTypes, primary: athlete.sportType)) },
+                    set: { newSelection in
+                        let current = SportSelection.sports(movementTypes: profile.movementTypes, primary: athlete.sportType)
+                        let next = SportSelection.ordered(current: current, selected: newSelection)
+                        // `ordered` refuses an empty set by returning `current`: the last sport
+                        // stays selected and nothing is written.
+                        guard next != current, let primary = next.first else { return }
+                        profile.movementTypes = next.map(\.rawValue)
+                        saveProfile(profile, athlete: athlete)
+                        if athlete.sportType != primary {
+                            athlete.sportType = primary
+                            saveAthlete(athlete)
+                        }
+                    }
+                ),
+                options: SportType.allCases,
+                displayName: { $0.displayName },
+                summary: { count in
+                    let primary = athlete.sportType.displayName
+                    return count > 1 ? "\(primary) +\(count - 1)" : primary
+                },
+                subtitleFor: { sport in
+                    sport == athlete.sportType
+                        ? LocalePinnedStrings.localized("profile.sports.primary", defaultValue: "Primary", locale: locale)
+                        : nil
+                }
+            )
+        } else {
+            editablePicker("profile.field.sport", selection: Binding(
+                get: { athlete.sportType },
+                set: { athlete.sportType = $0; saveAthlete(athlete) }
+            ), options: SportType.allCases) { $0.displayName }
+        }
+    }
+}
+
+// MARK: - Injury history (pushed from the Profile page, U10 row 8)
+
+/// The training profile's injury answer on its own screen: the region grid and the notes
+/// field the cold-start sheet shows inline, committing in place. Regions commit on each tap;
+/// the notes commit when the field is left or the screen is popped, so a keystroke never
+/// costs a save and a sync push.
+struct InjuryHistoryDetailView: View {
+    @Environment(AppContainer.self) private var container
+    @Environment(\.modelContext) private var modelContext
+
+    let profile: TrainingProfile
+    let athleteId: UUID
+
+    @State private var regions: Set<BodyRegion> = []
+    @State private var notes: String = ""
+    @State private var isLoaded = false
+
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 0) {
+                VStack(spacing: 0) {
+                    Spacer().frame(height: Spacing.sm)
+                    InjuryHistoryFields(regions: $regions, notes: $notes)
+                }
+                .raised(cornerRadius: CornerTokens.card)
+                .padding(.horizontal, Spacing.sm)
+                .padding(.top, Spacing.md)
+            }
+        }
+        .scrollDismissesKeyboard(.interactively)
+        .dismissesKeyboardOnTap()
+        .background(ColorTokens.background)
+        .navigationTitle("profile.trainingProfile.injuryHistory")
+        .onAppear {
+            guard !isLoaded else { return }
+            let stored = TrainingProfile.decodeInjuryHistory(profile.injuryHistory)
+            regions = stored.regions
+            notes = stored.notes
+            isLoaded = true
+        }
+        .onChange(of: regions) { _, _ in commit() }
+        .onDisappear { commit() }
+    }
+
+    /// Write only when the encoded answer actually changed — `onDisappear` fires on every
+    /// pop, and an unchanged pop must not spend a save or a push.
+    private func commit() {
+        guard isLoaded else { return }
+        let encoded = TrainingProfile.encodeInjuryHistory(regions: regions, notes: notes)
+        guard encoded != profile.injuryHistory else { return }
+        profile.injuryHistory = encoded
+        profile.updatedAt = .now
+        try? modelContext.save()
+        Task { await container.syncService.pushTrainingProfile(context: modelContext, athleteId: athleteId) }
     }
 }
 

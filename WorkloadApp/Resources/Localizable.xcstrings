@@ -14344,23 +14344,6 @@
         }
       }
     },
-    "profile.action.editProfile" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Edit Profile"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "编辑档案"
-          }
-        }
-      }
-    },
     "profile.action.enterAthleteCode" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -14759,6 +14742,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Sport"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "运动项目"
+          }
+        }
+      }
+    },
+    "profile.field.sports" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sports"
           }
         },
         "zh-Hans" : {
@@ -15211,23 +15211,6 @@
         }
       }
     },
-    "profile.section.measurement" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Validation"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "验证"
-          }
-        }
-      }
-    },
     "profile.section.myAthletes" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -15394,6 +15377,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "数据未同步"
+          }
+        }
+      }
+    },
+    "profile.sports.primary" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Primary"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主项"
           }
         }
       }
@@ -15785,6 +15785,40 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "训练计划类型"
+          }
+        }
+      }
+    },
+    "profile.trainingProfile.schedule.periodized" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Periodized"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "周期化"
+          }
+        }
+      }
+    },
+    "profile.trainingProfile.schedule.steady" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Steady"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "稳定"
           }
         }
       }

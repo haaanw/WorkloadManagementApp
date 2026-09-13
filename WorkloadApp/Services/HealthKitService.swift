@@ -739,6 +739,40 @@ final class HealthKitService: HealthDataProviding {
         return samples.first?.quantity.doubleValue(for: .appleEffortScore())
     }
 
+    // MARK: - Workout background delivery (v1.7.3 · U4 follow-on)
+
+    /// Ask HealthKit to launch the app when a new workout lands, even while it is not running.
+    ///
+    /// Needs the `com.apple.developer.healthkit.background-delivery` entitlement (HAN's Xcode
+    /// step, 2026-09-13). Without it — or on the simulator — this throws, and the observer
+    /// registered by `observeWorkouts` fires only while the app is running; the foreground
+    /// import path is untouched either way. `.immediate` is the frequency a finished workout
+    /// deserves and one HealthKit permits for workouts. Idempotent; called once per launch.
+    func enableWorkoutBackgroundDelivery() async throws {
+        guard isAvailable else { return }
+        try await store.enableBackgroundDelivery(for: .workoutType(), frequency: .immediate)
+    }
+
+    /// Register the long-running workout observer.
+    ///
+    /// `onUpdate` receives HealthKit's completion handler and MUST call it once the delivery
+    /// has been handled — on every path. HealthKit counts deliveries an app leaves
+    /// unacknowledged and stops waking it after three, until the next launch. An observer
+    /// error is acknowledged here for the same reason: there is nothing to import, but the
+    /// delivery still has to be closed. The store retains the query for the life of the process.
+    func observeWorkouts(_ onUpdate: @escaping (_ completion: @escaping () -> Void) -> Void) {
+        guard isAvailable else { return }
+        let query = HKObserverQuery(sampleType: .workoutType(), predicate: nil) { _, completionHandler, error in
+            if let error {
+                print("Workout observer error: \(error)")
+                completionHandler()
+                return
+            }
+            onUpdate(completionHandler)
+        }
+        store.execute(query)
+    }
+
     // MARK: - Staleness-Aware Fetches
 
     /// Fetch the most recent HRV (SDNN) with its sample date.

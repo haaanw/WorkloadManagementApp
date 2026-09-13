@@ -32,7 +32,9 @@ enum SessionRPEScale {
         case veryHard = 7
         case maximal = 10
 
-        var labelKey: LocalizedStringKey {
+        /// The catalog key behind `labelKey`, for call sites that need the anchor as a `String`
+        /// in a pinned locale (an option list's display names, v1.7.3 Profile fold).
+        var keyName: String {
             switch self {
             case .veryEasy: "rpe.anchor.veryEasy"
             case .easy: "rpe.anchor.easy"
@@ -43,6 +45,8 @@ enum SessionRPEScale {
             case .maximal: "rpe.anchor.maximal"
             }
         }
+
+        var labelKey: LocalizedStringKey { LocalizedStringKey(keyName) }
     }
 
     /// The anchor a reading is read against: the highest published anchor at or below it.
