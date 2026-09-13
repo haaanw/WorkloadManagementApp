@@ -33,6 +33,21 @@ end-game sequence.
    `swift scripts/frame_screenshots.swift --all`; the guard fails closed —
    if Trends' captured composition changes, update the harness/specs, and
    check captions still tell the truth).
+   Two traps, both hit on 2026-09-13 (orchestrator record in UAT-ROUND1):
+   - **The zh-Hans set is selected by an ENVIRONMENT variable, not the
+     `Screenshots-zhHans` scheme.** The harness launches the app itself and
+     reads `SCREENSHOT_LANG` from the runner's environment; a scheme's
+     launch arguments never reach an XCUITest-launched app. Run
+     `TEST_RUNNER_SCREENSHOT_LANG=zh-Hans xcodebuild test -scheme "workload
+     management" -only-testing:ScreenshotTests -destination 'platform=iOS
+     Simulator,name=iPhone 17 Pro Max' …`. Without the variable the run is
+     green and every capture is English — check one capture by eye.
+   - **`xcresulttool export attachments` writes UUID filenames** plus a
+     `manifest.json`; the frame script classifies by the attachment name in
+     the filename. Rename each `exportedFileName` to its
+     `suggestedHumanReadableName` from the manifest before framing, and
+     purge the old `*.png` from `raw/` first (two captures of one screen is
+     an error).
 6. Docs: keep CLAUDE.md ⇄ AGENTS.md twins in lockstep for any
    project-wide fact; append lane outcomes to UAT-ROUND1; board entries to
    `.pair/claude.md` per PROTOCOL.md (atomic appends only).
