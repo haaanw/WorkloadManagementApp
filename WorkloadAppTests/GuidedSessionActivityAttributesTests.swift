@@ -163,12 +163,15 @@ final class GuidedSessionActivityAttributesTests: XCTestCase {
     func test_appDeclaresLiveActivitySupport() throws {
         // ActivityKit reports `areActivitiesEnabled == false` forever without this key, with no
         // error anywhere — the mode would just never show a lock screen.
-        let plist = try Data(
-            contentsOf: repoRoot()
-                .appendingPathComponent("workload management/workload-management-Info.plist")
-        )
-        let parsed = try PropertyListSerialization.propertyList(from: plist, format: nil)
-        let dictionary = try XCTUnwrap(parsed as? [String: Any])
+        //
+        // Read the BUILT app bundle, not the source plist. Since 2026-09-13 Xcode carries this
+        // key as the `INFOPLIST_KEY_NSSupportsLiveActivities` build setting (the capability
+        // step migrated it out of `workload-management-Info.plist`), and the generated plist is
+        // the only one ActivityKit ever sees. This target is hosted in the app, so `Bundle.main`
+        // IS the app.
+        let host = Bundle.main
+        XCTAssertEqual(host.bundleIdentifier, "com.tonus.app", "fence must read the app bundle")
+        let dictionary = try XCTUnwrap(host.infoDictionary)
         XCTAssertEqual(
             dictionary["NSSupportsLiveActivities"] as? Bool, true,
             "The app's Info.plist must declare NSSupportsLiveActivities — without it ActivityKit silently refuses to start the guided session's activity"

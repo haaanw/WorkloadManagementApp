@@ -10,7 +10,6 @@
 		0A62FC4DEF95E871C3EA1C86 /* CoachAthleteRelationship.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4E1712BBEDB092FD11E1CD41 /* CoachAthleteRelationship.swift */; };
 		0B040200000000000000000A /* OnboardingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0B040100000000000000000A /* OnboardingView.swift */; };
 		0CFA7F85F177725F8A164287 /* ReadinessWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 67A88CEDB773F687B6F59136 /* ReadinessWidget.swift */; };
-		FA6115020000000000000001 /* GuidedSessionLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6115010000000000000001 /* GuidedSessionLiveActivity.swift */; };
 		1101010100000000000000A1 /* FinishWorkoutSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000A2 /* FinishWorkoutSheet.swift */; };
 		1101010100000000000000B1 /* ToastBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000B2 /* ToastBanner.swift */; };
 		1101010100000000000000C1 /* TemplateCarouselSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1101010100000000000000C2 /* TemplateCarouselSection.swift */; };
@@ -94,10 +93,10 @@
 		627EC19A2F76858300B89262 /* TextTemplateImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC1992F76858300B89262 /* TextTemplateImportSheet.swift */; };
 		627EC19C2F76917500B89262 /* MockDataSeeder.swift in Sources */ = {isa = PBXBuildFile; fileRef = 627EC19B2F76917500B89262 /* MockDataSeeder.swift */; };
 		6285C7C42FB02E4300067723 /* GoogleSignIn in Frameworks */ = {isa = PBXBuildFile; productRef = 6285C7C32FB02E4300067723 /* GoogleSignIn */; };
+		62EDF1503056ACA200DC206A /* PostHog in Frameworks */ = {isa = PBXBuildFile; productRef = FF26030E0000000000000001 /* PostHog */; };
 		62F32C972F7167E000B6135F /* FontTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C962F7167E000B6135F /* FontTokens.swift */; };
 		62F32C992F7167EA00B6135F /* ReasoningEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C982F7167EA00B6135F /* ReasoningEngine.swift */; };
 		62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB72F71849300B6135F /* HRVDetailView.swift */; };
-		FF2703010000000000000001 /* RHRDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2703010000000000000002 /* RHRDetailView.swift */; };
 		62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB82F71849300B6135F /* SleepDetailView.swift */; };
 		62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CC02F72716500B6135F /* SupabaseConfig.swift */; };
 		62F32CC62F7278EA00B6135F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 62F32CC52F7278EA00B6135F /* Supabase */; };
@@ -105,6 +104,11 @@
 		62F32D76660F39C4C57800B6 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */; };
 		62F32D7DC317C2EF8C0400B6 /* SpikeAlertBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */; };
 		650050383583D66A864301BC /* ColorTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62324C042F66CB0E00A9C2BE /* ColorTokens.swift */; };
+		7ED3010100000000000000F2 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010100000000000000F1 /* TrendsView.swift */; };
+		7ED3010200000000000000F2 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010200000000000000F1 /* TrendsViewModel.swift */; };
+		7ED3010300000000000000F2 /* TrendDetailScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010300000000000000F1 /* TrendDetailScreens.swift */; };
+		7ED3010400000000000000F2 /* TrendsComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010400000000000000F1 /* TrendsComponents.swift */; };
+		7ED3010500000000000000F2 /* MorningCheckInPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010500000000000000F1 /* MorningCheckInPrompt.swift */; };
 		7F58F2E2FE5CFCA756CFA16C /* FontTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C962F7167E000B6135F /* FontTokens.swift */; };
 		867A076C23100A72D24D76B5 /* WidgetSnapshot.swift in Sources */ = {isa = PBXBuildFile; fileRef = AB1701010000000000000001 /* WidgetSnapshot.swift */; };
 		A094F3EE79A947D3BADACB70 /* TrainingLoadWidget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E5A218E746FB4BD95A983E /* TrainingLoadWidget.swift */; };
@@ -142,18 +146,6 @@
 		AC4302020000000000000001 /* VerdictReasonBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4302010000000000000001 /* VerdictReasonBuilder.swift */; };
 		AC4303020000000000000001 /* TodayVerdictService.swift in Sources */ = {isa = PBXBuildFile; fileRef = AC4303010000000000000001 /* TodayVerdictService.swift */; };
 		AE4501020000000000000001 /* VerdictEvent.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4501010000000000000001 /* VerdictEvent.swift */; };
-		FA6101020000000000000001 /* TrainingProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6101010000000000000001 /* TrainingProgram.swift */; };
-		FA6102020000000000000001 /* ScheduleEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6102010000000000000001 /* ScheduleEntry.swift */; };
-		FA6103020000000000000001 /* ProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6103010000000000000001 /* ProgramRepository.swift */; };
-		FA6104020000000000000001 /* ScheduleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6104010000000000000001 /* ScheduleRepository.swift */; };
-		FA6105020000000000000001 /* ProgramScheduleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6105010000000000000001 /* ProgramScheduleService.swift */; };
-		FA6109020000000000000001 /* ProgramInsightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6109010000000000000001 /* ProgramInsightEngine.swift */; };
-		FA6110020000000000000001 /* GuidedSessionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6110010000000000000001 /* GuidedSessionEngine.swift */; };
-		FA6112020000000000000001 /* GuidedSessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */; };
-		FA6112030000000000000001 /* GuidedSessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */; };
-		FA6113020000000000000001 /* GuidedSessionActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6113010000000000000001 /* GuidedSessionActivityController.swift */; };
-		FA6114020000000000000001 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
-		FA610A020000000000000001 /* ProgramOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA610A010000000000000001 /* ProgramOverviewView.swift */; };
 		AE4502020000000000000001 /* VerdictEventRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4502010000000000000001 /* VerdictEventRepository.swift */; };
 		AE4503020000000000000001 /* GreenLightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4503010000000000000001 /* GreenLightEngine.swift */; };
 		AE4504020000000000000001 /* VerdictOutcomeSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = AE4504010000000000000001 /* VerdictOutcomeSheet.swift */; };
@@ -190,7 +182,6 @@
 		DD0301020000000000000002 /* SleepDetailChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0301010000000000000002 /* SleepDetailChart.swift */; };
 		DD0301020000000000000003 /* HRVDetailChart.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0301010000000000000003 /* HRVDetailChart.swift */; };
 		DD0403010000000000000001 /* WelcomeActionCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0403010000000000000002 /* WelcomeActionCard.swift */; };
-		FA610B020000000000000001 /* TodayProposalSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA610B010000000000000001 /* TodayProposalSection.swift */; };
 		DD0901010000000000000001 /* TrainingProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD0901010000000000000002 /* TrainingProfile.swift */; };
 		DD1303010000000000000001 /* SharpTextFieldStyle.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1303010000000000000002 /* SharpTextFieldStyle.swift */; };
 		DD1401010000000000000001 /* SyncEntity.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD1401010000000000000002 /* SyncEntity.swift */; };
@@ -211,8 +202,6 @@
 		DD2701010000000000000001 /* SleepScoreEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2701000000000000000001 /* SleepScoreEngine.swift */; };
 		DD2702010000000000000001 /* SleepStateBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2702000000000000000001 /* SleepStateBuilder.swift */; };
 		DD2703010000000000000001 /* HRVDailyStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2703000000000000000001 /* HRVDailyStats.swift */; };
-		FF2702010000000000000001 /* FatigueHistoryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2702010000000000000002 /* FatigueHistoryEngine.swift */; };
-		FF2701010000000000000001 /* DailySignalStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2701010000000000000002 /* DailySignalStats.swift */; };
 		DD2704010000000000000001 /* RelativeTimeStamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2704000000000000000001 /* RelativeTimeStamp.swift */; };
 		DD2708010000000000000001 /* ReadinessInputReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2708000000000000000001 /* ReadinessInputReducer.swift */; };
 		DD2709010000000000000001 /* RecoveryShadowDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2709000000000000000001 /* RecoveryShadowDay.swift */; };
@@ -246,23 +235,37 @@
 		F06CF348F8DBFD49219F6436 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = E752BE5EAB399B662DB5503F /* Localizable.xcstrings */; };
 		F08C62E71BE8AC6A8D4B7192 /* SocialLoginButtons.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */; };
 		F2AAEAD8C17EB4A97EBF3401 /* TemplateSuggestionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */; };
+		FA6101020000000000000001 /* TrainingProgram.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6101010000000000000001 /* TrainingProgram.swift */; };
+		FA6102020000000000000001 /* ScheduleEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6102010000000000000001 /* ScheduleEntry.swift */; };
+		FA6103020000000000000001 /* ProgramRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6103010000000000000001 /* ProgramRepository.swift */; };
+		FA6104020000000000000001 /* ScheduleRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6104010000000000000001 /* ScheduleRepository.swift */; };
+		FA6105020000000000000001 /* ProgramScheduleService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6105010000000000000001 /* ProgramScheduleService.swift */; };
+		FA6106020000000000000001 /* ProgramImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6106010000000000000001 /* ProgramImportSheet.swift */; };
+		FA6107020000000000000001 /* ScheduleWeekSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6107010000000000000001 /* ScheduleWeekSection.swift */; };
+		FA6108020000000000000001 /* QuickPastSessionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6108010000000000000001 /* QuickPastSessionSheet.swift */; };
+		FA6109020000000000000001 /* ProgramInsightEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6109010000000000000001 /* ProgramInsightEngine.swift */; };
+		FA610A020000000000000001 /* ProgramOverviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA610A010000000000000001 /* ProgramOverviewView.swift */; };
+		FA610B020000000000000001 /* TodayProposalSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA610B010000000000000001 /* TodayProposalSection.swift */; };
+		FA6110020000000000000001 /* GuidedSessionEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6110010000000000000001 /* GuidedSessionEngine.swift */; };
+		FA6111020000000000000001 /* GuidedSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6111010000000000000001 /* GuidedSessionView.swift */; };
+		FA6112020000000000000001 /* GuidedSessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */; };
+		FA6112030000000000000001 /* GuidedSessionActivityAttributes.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */; };
+		FA6113020000000000000001 /* GuidedSessionActivityController.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6113010000000000000001 /* GuidedSessionActivityController.swift */; };
+		FA6114020000000000000001 /* CornerTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2307020100000000000000B2 /* CornerTokens.swift */; };
+		FA6115020000000000000001 /* GuidedSessionLiveActivity.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6115010000000000000001 /* GuidedSessionLiveActivity.swift */; };
 		FF0601010000000000000001 /* PDFReportEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0601010000000000000002 /* PDFReportEngine.swift */; };
 		FF0602010000000000000001 /* PDFGenerationSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0602010000000000000002 /* PDFGenerationSheet.swift */; };
 		FF0801020000000000000001 /* FatigueIndexEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000001 /* FatigueIndexEngine.swift */; };
-		FF1801020000000000000001 /* WatchWorkoutMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1801010000000000000001 /* WatchWorkoutMatcher.swift */; };
-		FF1802020000000000000001 /* WatchWorkoutImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1802010000000000000001 /* WatchWorkoutImportService.swift */; };
 		FF0801020000000000000002 /* FatigueAttentionBanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF0801010000000000000002 /* FatigueAttentionBanner.swift */; };
 		FF1601010000000000000001 /* WorkoutLLMImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1601010000000000000002 /* WorkoutLLMImportService.swift */; };
 		FF1602010000000000000001 /* WorkoutImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1602010000000000000002 /* WorkoutImportSheet.swift */; };
-		FA6106020000000000000001 /* ProgramImportSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6106010000000000000001 /* ProgramImportSheet.swift */; };
-		FA6108020000000000000001 /* QuickPastSessionSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6108010000000000000001 /* QuickPastSessionSheet.swift */; };
-		FA6107020000000000000001 /* ScheduleWeekSection.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6107010000000000000001 /* ScheduleWeekSection.swift */; };
-		FA6111020000000000000001 /* GuidedSessionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FA6111010000000000000001 /* GuidedSessionView.swift */; };
 		FF1702010000000000000001 /* SpeechCaptureService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702010000000000000002 /* SpeechCaptureService.swift */; };
 		FF1702020000000000000001 /* LogCaptureSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702020000000000000002 /* LogCaptureSheet.swift */; };
 		FF1702030000000000000001 /* WorkoutVoiceLogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702030000000000000002 /* WorkoutVoiceLogService.swift */; };
 		FF1702040000000000000001 /* VoiceSetUtteranceParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */; };
 		FF1702050000000000000001 /* VoiceDictationCard.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1702050000000000000002 /* VoiceDictationCard.swift */; };
+		FF1801020000000000000001 /* WatchWorkoutMatcher.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1801010000000000000001 /* WatchWorkoutMatcher.swift */; };
+		FF1802020000000000000001 /* WatchWorkoutImportService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF1802010000000000000001 /* WatchWorkoutImportService.swift */; };
 		FF2308010000000000000001 /* CycleTrackingService.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308010000000000000002 /* CycleTrackingService.swift */; };
 		FF2308020000000000000001 /* REDSRiskEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308020000000000000002 /* REDSRiskEngine.swift */; };
 		FF2308030000000000000001 /* CycleSnapshotRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308030000000000000002 /* CycleSnapshotRepository.swift */; };
@@ -272,11 +275,6 @@
 		FF2308070000000000000001 /* NiggleLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2308070000000000000002 /* NiggleLogSheet.swift */; };
 		FF2309010000000000000001 /* ReviewPromptGate.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2309010000000000000002 /* ReviewPromptGate.swift */; };
 		FF2401010000000000000001 /* LaunchRoutingEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2401010000000000000002 /* LaunchRoutingEngine.swift */; };
-		7ED3010100000000000000F2 /* TrendsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010100000000000000F1 /* TrendsView.swift */; };
-		7ED3010200000000000000F2 /* TrendsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010200000000000000F1 /* TrendsViewModel.swift */; };
-		7ED3010300000000000000F2 /* TrendDetailScreens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010300000000000000F1 /* TrendDetailScreens.swift */; };
-		7ED3010400000000000000F2 /* TrendsComponents.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010400000000000000F1 /* TrendsComponents.swift */; };
-		7ED3010500000000000000F2 /* MorningCheckInPrompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7ED3010500000000000000F1 /* MorningCheckInPrompt.swift */; };
 		FF2603010000000000000001 /* OnboardingV2State.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603010000000000000002 /* OnboardingV2State.swift */; };
 		FF2603020000000000000001 /* OnboardingV2Flow.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603020000000000000002 /* OnboardingV2Flow.swift */; };
 		FF2603030000000000000001 /* ColdOpenScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2603030000000000000002 /* ColdOpenScreen.swift */; };
@@ -291,6 +289,9 @@
 		FF26030C0000000000000001 /* ImportMomentScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030C0000000000000002 /* ImportMomentScreen.swift */; };
 		FF26030D0000000000000001 /* PostHogAnalyticsSink.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030D0000000000000002 /* PostHogAnalyticsSink.swift */; };
 		FF26030F0000000000000001 /* TutorialScreen.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF26030F0000000000000002 /* TutorialScreen.swift */; };
+		FF2701010000000000000001 /* DailySignalStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2701010000000000000002 /* DailySignalStats.swift */; };
+		FF2702010000000000000001 /* FatigueHistoryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2702010000000000000002 /* FatigueHistoryEngine.swift */; };
+		FF2703010000000000000001 /* RHRDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2703010000000000000002 /* RHRDetailView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -425,15 +426,18 @@
 		62F32C982F7167EA00B6135F /* ReasoningEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasoningEngine.swift; sourceTree = "<group>"; };
 		62F32CA22F71692C00B6135F /* WorkloadAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkloadAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		62F32CB72F71849300B6135F /* HRVDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailView.swift; sourceTree = "<group>"; };
-		FF2703010000000000000002 /* RHRDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RHRDetailView.swift; sourceTree = "<group>"; };
 		62F32CB82F71849300B6135F /* SleepDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailView.swift; sourceTree = "<group>"; };
 		62F32CC02F72716500B6135F /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeAlertBanner.swift; sourceTree = "<group>"; };
 		62F32DDC0D9E10E75DF500B6 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		62F32DF65C7F3C5307D700B6 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		67A88CEDB773F687B6F59136 /* ReadinessWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = ReadinessWidget.swift; sourceTree = "<group>"; };
-		FA6115010000000000000001 /* GuidedSessionLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionLiveActivity.swift; sourceTree = "<group>"; };
 		745549DC6177C8D6037899FF /* TuwaWidgetsBundle.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TuwaWidgetsBundle.swift; sourceTree = "<group>"; };
+		7ED3010100000000000000F1 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
+		7ED3010200000000000000F1 /* TrendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewModel.swift; sourceTree = "<group>"; };
+		7ED3010300000000000000F1 /* TrendDetailScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendDetailScreens.swift; sourceTree = "<group>"; };
+		7ED3010400000000000000F1 /* TrendsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsComponents.swift; sourceTree = "<group>"; };
+		7ED3010500000000000000F1 /* MorningCheckInPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInPrompt.swift; sourceTree = "<group>"; };
 		8013F7FE9CF72435A04442DC /* SocialLoginButtons.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SocialLoginButtons.swift; sourceTree = "<group>"; };
 		88E5A218E746FB4BD95A983E /* TrainingLoadWidget.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = TrainingLoadWidget.swift; sourceTree = "<group>"; };
 		A50100010000000000000001 /* AppShellContracts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppShellContracts.swift; sourceTree = "<group>"; };
@@ -467,16 +471,6 @@
 		AC4302010000000000000001 /* VerdictReasonBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictReasonBuilder.swift; sourceTree = "<group>"; };
 		AC4303010000000000000001 /* TodayVerdictService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayVerdictService.swift; sourceTree = "<group>"; };
 		AE4501010000000000000001 /* VerdictEvent.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictEvent.swift; sourceTree = "<group>"; };
-		FA6101010000000000000001 /* TrainingProgram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingProgram.swift; sourceTree = "<group>"; };
-		FA6102010000000000000001 /* ScheduleEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEntry.swift; sourceTree = "<group>"; };
-		FA6103010000000000000001 /* ProgramRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramRepository.swift; sourceTree = "<group>"; };
-		FA6104010000000000000001 /* ScheduleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleRepository.swift; sourceTree = "<group>"; };
-		FA6105010000000000000001 /* ProgramScheduleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramScheduleService.swift; sourceTree = "<group>"; };
-		FA6109010000000000000001 /* ProgramInsightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramInsightEngine.swift; sourceTree = "<group>"; };
-		FA6110010000000000000001 /* GuidedSessionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionEngine.swift; sourceTree = "<group>"; };
-		FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionActivityAttributes.swift; sourceTree = "<group>"; };
-		FA6113010000000000000001 /* GuidedSessionActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionActivityController.swift; sourceTree = "<group>"; };
-		FA610A010000000000000001 /* ProgramOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramOverviewView.swift; sourceTree = "<group>"; };
 		AE4502010000000000000001 /* VerdictEventRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictEventRepository.swift; sourceTree = "<group>"; };
 		AE4503010000000000000001 /* GreenLightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GreenLightEngine.swift; sourceTree = "<group>"; };
 		AE4504010000000000000001 /* VerdictOutcomeSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VerdictOutcomeSheet.swift; sourceTree = "<group>"; };
@@ -508,7 +502,6 @@
 		DD0301010000000000000002 /* SleepDetailChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailChart.swift; sourceTree = "<group>"; };
 		DD0301010000000000000003 /* HRVDetailChart.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailChart.swift; sourceTree = "<group>"; };
 		DD0403010000000000000002 /* WelcomeActionCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WelcomeActionCard.swift; sourceTree = "<group>"; };
-		FA610B010000000000000001 /* TodayProposalSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayProposalSection.swift; sourceTree = "<group>"; };
 		DD0901010000000000000002 /* TrainingProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingProfile.swift; sourceTree = "<group>"; };
 		DD1303010000000000000002 /* SharpTextFieldStyle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharpTextFieldStyle.swift; sourceTree = "<group>"; };
 		DD1401010000000000000002 /* SyncEntity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEntity.swift; sourceTree = "<group>"; };
@@ -529,8 +522,6 @@
 		DD2701000000000000000001 /* SleepScoreEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScoreEngine.swift; sourceTree = "<group>"; };
 		DD2702000000000000000001 /* SleepStateBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepStateBuilder.swift; sourceTree = "<group>"; };
 		DD2703000000000000000001 /* HRVDailyStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDailyStats.swift; sourceTree = "<group>"; };
-		FF2702010000000000000002 /* FatigueHistoryEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueHistoryEngine.swift; sourceTree = "<group>"; };
-		FF2701010000000000000002 /* DailySignalStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySignalStats.swift; sourceTree = "<group>"; };
 		DD2704000000000000000001 /* RelativeTimeStamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelativeTimeStamp.swift; sourceTree = "<group>"; };
 		DD2708000000000000000001 /* ReadinessInputReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessInputReducer.swift; sourceTree = "<group>"; };
 		DD2709000000000000000001 /* RecoveryShadowDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryShadowDay.swift; sourceTree = "<group>"; };
@@ -563,23 +554,35 @@
 		EE4204010000000000000001 /* ManualLiftEntrySheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ManualLiftEntrySheet.swift; sourceTree = "<group>"; };
 		EF63E99A971037B99B245FB5 /* TemplateSuggestionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TemplateSuggestionEngine.swift; sourceTree = "<group>"; };
 		F3A9D4C7E2B1058A63F7921D /* UpgradeSheet.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; name = UpgradeSheet.swift; path = Subscription/UpgradeSheet.swift; sourceTree = "<group>"; };
+		FA6101010000000000000001 /* TrainingProgram.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrainingProgram.swift; sourceTree = "<group>"; };
+		FA6102010000000000000001 /* ScheduleEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleEntry.swift; sourceTree = "<group>"; };
+		FA6103010000000000000001 /* ProgramRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramRepository.swift; sourceTree = "<group>"; };
+		FA6104010000000000000001 /* ScheduleRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleRepository.swift; sourceTree = "<group>"; };
+		FA6105010000000000000001 /* ProgramScheduleService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramScheduleService.swift; sourceTree = "<group>"; };
+		FA6106010000000000000001 /* ProgramImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramImportSheet.swift; sourceTree = "<group>"; };
+		FA6107010000000000000001 /* ScheduleWeekSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleWeekSection.swift; sourceTree = "<group>"; };
+		FA6108010000000000000001 /* QuickPastSessionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPastSessionSheet.swift; sourceTree = "<group>"; };
+		FA6109010000000000000001 /* ProgramInsightEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramInsightEngine.swift; sourceTree = "<group>"; };
+		FA610A010000000000000001 /* ProgramOverviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramOverviewView.swift; sourceTree = "<group>"; };
+		FA610B010000000000000001 /* TodayProposalSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayProposalSection.swift; sourceTree = "<group>"; };
+		FA6110010000000000000001 /* GuidedSessionEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionEngine.swift; sourceTree = "<group>"; };
+		FA6111010000000000000001 /* GuidedSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionView.swift; sourceTree = "<group>"; };
+		FA6112010000000000000001 /* GuidedSessionActivityAttributes.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionActivityAttributes.swift; sourceTree = "<group>"; };
+		FA6113010000000000000001 /* GuidedSessionActivityController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionActivityController.swift; sourceTree = "<group>"; };
+		FA6115010000000000000001 /* GuidedSessionLiveActivity.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionLiveActivity.swift; sourceTree = "<group>"; };
 		FF0601010000000000000002 /* PDFReportEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFReportEngine.swift; sourceTree = "<group>"; };
 		FF0602010000000000000002 /* PDFGenerationSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PDFGenerationSheet.swift; sourceTree = "<group>"; };
 		FF0801010000000000000001 /* FatigueIndexEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueIndexEngine.swift; sourceTree = "<group>"; };
-		FF1801010000000000000001 /* WatchWorkoutMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWorkoutMatcher.swift; sourceTree = "<group>"; };
-		FF1802010000000000000001 /* WatchWorkoutImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWorkoutImportService.swift; sourceTree = "<group>"; };
 		FF0801010000000000000002 /* FatigueAttentionBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueAttentionBanner.swift; sourceTree = "<group>"; };
 		FF1601010000000000000002 /* WorkoutLLMImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutLLMImportService.swift; sourceTree = "<group>"; };
 		FF1602010000000000000002 /* WorkoutImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutImportSheet.swift; sourceTree = "<group>"; };
-		FA6106010000000000000001 /* ProgramImportSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProgramImportSheet.swift; sourceTree = "<group>"; };
-		FA6108010000000000000001 /* QuickPastSessionSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QuickPastSessionSheet.swift; sourceTree = "<group>"; };
-		FA6107010000000000000001 /* ScheduleWeekSection.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScheduleWeekSection.swift; sourceTree = "<group>"; };
-		FA6111010000000000000001 /* GuidedSessionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GuidedSessionView.swift; sourceTree = "<group>"; };
 		FF1702010000000000000002 /* SpeechCaptureService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpeechCaptureService.swift; sourceTree = "<group>"; };
 		FF1702020000000000000002 /* LogCaptureSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogCaptureSheet.swift; sourceTree = "<group>"; };
 		FF1702030000000000000002 /* WorkoutVoiceLogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WorkoutVoiceLogService.swift; sourceTree = "<group>"; };
 		FF1702040000000000000002 /* VoiceSetUtteranceParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceSetUtteranceParser.swift; sourceTree = "<group>"; };
 		FF1702050000000000000002 /* VoiceDictationCard.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VoiceDictationCard.swift; sourceTree = "<group>"; };
+		FF1801010000000000000001 /* WatchWorkoutMatcher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWorkoutMatcher.swift; sourceTree = "<group>"; };
+		FF1802010000000000000001 /* WatchWorkoutImportService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchWorkoutImportService.swift; sourceTree = "<group>"; };
 		FF2308010000000000000002 /* CycleTrackingService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleTrackingService.swift; sourceTree = "<group>"; };
 		FF2308020000000000000002 /* REDSRiskEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = REDSRiskEngine.swift; sourceTree = "<group>"; };
 		FF2308030000000000000002 /* CycleSnapshotRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CycleSnapshotRepository.swift; sourceTree = "<group>"; };
@@ -589,11 +592,6 @@
 		FF2308070000000000000002 /* NiggleLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NiggleLogSheet.swift; sourceTree = "<group>"; };
 		FF2309010000000000000002 /* ReviewPromptGate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewPromptGate.swift; sourceTree = "<group>"; };
 		FF2401010000000000000002 /* LaunchRoutingEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LaunchRoutingEngine.swift; sourceTree = "<group>"; };
-		7ED3010100000000000000F1 /* TrendsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsView.swift; sourceTree = "<group>"; };
-		7ED3010200000000000000F1 /* TrendsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsViewModel.swift; sourceTree = "<group>"; };
-		7ED3010300000000000000F1 /* TrendDetailScreens.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendDetailScreens.swift; sourceTree = "<group>"; };
-		7ED3010400000000000000F1 /* TrendsComponents.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendsComponents.swift; sourceTree = "<group>"; };
-		7ED3010500000000000000F1 /* MorningCheckInPrompt.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MorningCheckInPrompt.swift; sourceTree = "<group>"; };
 		FF2603010000000000000002 /* OnboardingV2State.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2State.swift; sourceTree = "<group>"; };
 		FF2603020000000000000002 /* OnboardingV2Flow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = OnboardingV2Flow.swift; sourceTree = "<group>"; };
 		FF2603030000000000000002 /* ColdOpenScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColdOpenScreen.swift; sourceTree = "<group>"; };
@@ -608,6 +606,9 @@
 		FF26030C0000000000000002 /* ImportMomentScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ImportMomentScreen.swift; sourceTree = "<group>"; };
 		FF26030D0000000000000002 /* PostHogAnalyticsSink.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostHogAnalyticsSink.swift; sourceTree = "<group>"; };
 		FF26030F0000000000000002 /* TutorialScreen.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TutorialScreen.swift; sourceTree = "<group>"; };
+		FF2701010000000000000002 /* DailySignalStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySignalStats.swift; sourceTree = "<group>"; };
+		FF2702010000000000000002 /* FatigueHistoryEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueHistoryEngine.swift; sourceTree = "<group>"; };
+		FF2703010000000000000002 /* RHRDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RHRDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -655,6 +656,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				62EDF1503056ACA200DC206A /* PostHog in Frameworks */,
 				62F32CC62F7278EA00B6135F /* Supabase in Frameworks */,
 				AA1234560000000000000001 /* RevenueCat in Frameworks */,
 				6285C7C42FB02E4300067723 /* GoogleSignIn in Frameworks */,
@@ -1006,24 +1008,6 @@
 			path = Onboarding;
 			sourceTree = "<group>";
 		};
-		FF2603000000000000000003 /* OnboardingV2 */ = {
-			isa = PBXGroup;
-			children = (
-				FF2603020000000000000002 /* OnboardingV2Flow.swift */,
-				FF2603030000000000000002 /* ColdOpenScreen.swift */,
-				FF2603040000000000000002 /* GapScreen.swift */,
-				FF2603050000000000000002 /* OnboardingQuizScreen.swift */,
-				FF2603070000000000000002 /* HealthConnectScreen.swift */,
-				FF2603080000000000000002 /* RevealScreen.swift */,
-				FF2603090000000000000002 /* AccountScreen.swift */,
-				FF26030A0000000000000002 /* OnboardingPaywallScreen.swift */,
-				FF26030B0000000000000002 /* ExitOfferScreen.swift */,
-				FF26030C0000000000000002 /* ImportMomentScreen.swift */,
-				FF26030F0000000000000002 /* TutorialScreen.swift */,
-			);
-			path = OnboardingV2;
-			sourceTree = "<group>";
-		};
 		62324C152F66CB0E00A9C2BE /* Profile */ = {
 			isa = PBXGroup;
 			children = (
@@ -1048,17 +1032,6 @@
 				62324C162F66CB0E00A9C2BE /* MorningCheckInSheet.swift */,
 			);
 			path = Recovery;
-			sourceTree = "<group>";
-		};
-		7ED3010000000000000000E1 /* Trends */ = {
-			isa = PBXGroup;
-			children = (
-				7ED3010100000000000000F1 /* TrendsView.swift */,
-				7ED3010300000000000000F1 /* TrendDetailScreens.swift */,
-				7ED3010400000000000000F1 /* TrendsComponents.swift */,
-				AA0202010000000000000004 /* RecoveryLoadChart.swift */,
-			);
-			path = Trends;
 			sourceTree = "<group>";
 		};
 		62324C1F2F66CB0E00A9C2BE /* WorkoutLog */ = {
@@ -1142,6 +1115,17 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		7ED3010000000000000000E1 /* Trends */ = {
+			isa = PBXGroup;
+			children = (
+				7ED3010100000000000000F1 /* TrendsView.swift */,
+				7ED3010300000000000000F1 /* TrendDetailScreens.swift */,
+				7ED3010400000000000000F1 /* TrendsComponents.swift */,
+				AA0202010000000000000004 /* RecoveryLoadChart.swift */,
+			);
+			path = Trends;
+			sourceTree = "<group>";
+		};
 		BF1E5A88E3BD151DD92DB868 /* TuwaWidgets Sources */ = {
 			isa = PBXGroup;
 			children = (
@@ -1179,6 +1163,24 @@
 			children = (
 			);
 			path = Export;
+			sourceTree = "<group>";
+		};
+		FF2603000000000000000003 /* OnboardingV2 */ = {
+			isa = PBXGroup;
+			children = (
+				FF2603020000000000000002 /* OnboardingV2Flow.swift */,
+				FF2603030000000000000002 /* ColdOpenScreen.swift */,
+				FF2603040000000000000002 /* GapScreen.swift */,
+				FF2603050000000000000002 /* OnboardingQuizScreen.swift */,
+				FF2603070000000000000002 /* HealthConnectScreen.swift */,
+				FF2603080000000000000002 /* RevealScreen.swift */,
+				FF2603090000000000000002 /* AccountScreen.swift */,
+				FF26030A0000000000000002 /* OnboardingPaywallScreen.swift */,
+				FF26030B0000000000000002 /* ExitOfferScreen.swift */,
+				FF26030C0000000000000002 /* ImportMomentScreen.swift */,
+				FF26030F0000000000000002 /* TutorialScreen.swift */,
+			);
+			path = OnboardingV2;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -1883,10 +1885,12 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa never writes data to Apple Health. This notice is required because the sign-in flow references a HealthKit API that can request write access; Tuwa only ever requests read access.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Tuwa uses the microphone so you can log workouts by voice.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Tuwa transcribes your voice on-device to turn what you say into a workout log.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -1922,10 +1926,12 @@
 				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "Tuwa never writes data to Apple Health. This notice is required because the sign-in flow references a HealthKit API that can request write access; Tuwa only ever requests read access.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "Tuwa uses the microphone so you can log workouts by voice.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "Tuwa transcribes your voice on-device to turn what you say into a workout log.";
+				INFOPLIST_KEY_NSSupportsLiveActivities = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
