@@ -97,6 +97,7 @@
 		62F32C972F7167E000B6135F /* FontTokens.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C962F7167E000B6135F /* FontTokens.swift */; };
 		62F32C992F7167EA00B6135F /* ReasoningEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32C982F7167EA00B6135F /* ReasoningEngine.swift */; };
 		62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB72F71849300B6135F /* HRVDetailView.swift */; };
+		FF2703010000000000000001 /* RHRDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2703010000000000000002 /* RHRDetailView.swift */; };
 		62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CB82F71849300B6135F /* SleepDetailView.swift */; };
 		62F32CC32F72716500B6135F /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 62F32CC02F72716500B6135F /* SupabaseConfig.swift */; };
 		62F32CC62F7278EA00B6135F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 62F32CC52F7278EA00B6135F /* Supabase */; };
@@ -210,6 +211,8 @@
 		DD2701010000000000000001 /* SleepScoreEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2701000000000000000001 /* SleepScoreEngine.swift */; };
 		DD2702010000000000000001 /* SleepStateBuilder.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2702000000000000000001 /* SleepStateBuilder.swift */; };
 		DD2703010000000000000001 /* HRVDailyStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2703000000000000000001 /* HRVDailyStats.swift */; };
+		FF2702010000000000000001 /* FatigueHistoryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2702010000000000000002 /* FatigueHistoryEngine.swift */; };
+		FF2701010000000000000001 /* DailySignalStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2701010000000000000002 /* DailySignalStats.swift */; };
 		DD2704010000000000000001 /* RelativeTimeStamp.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2704000000000000000001 /* RelativeTimeStamp.swift */; };
 		DD2708010000000000000001 /* ReadinessInputReducer.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2708000000000000000001 /* ReadinessInputReducer.swift */; };
 		DD2709010000000000000001 /* RecoveryShadowDay.swift in Sources */ = {isa = PBXBuildFile; fileRef = DD2709000000000000000001 /* RecoveryShadowDay.swift */; };
@@ -422,6 +425,7 @@
 		62F32C982F7167EA00B6135F /* ReasoningEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReasoningEngine.swift; sourceTree = "<group>"; };
 		62F32CA22F71692C00B6135F /* WorkloadAppTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = WorkloadAppTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		62F32CB72F71849300B6135F /* HRVDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDetailView.swift; sourceTree = "<group>"; };
+		FF2703010000000000000002 /* RHRDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RHRDetailView.swift; sourceTree = "<group>"; };
 		62F32CB82F71849300B6135F /* SleepDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepDetailView.swift; sourceTree = "<group>"; };
 		62F32CC02F72716500B6135F /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
 		62F32D10EE0DE90659E700B6 /* SpikeAlertBanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SpikeAlertBanner.swift; sourceTree = "<group>"; };
@@ -525,6 +529,8 @@
 		DD2701000000000000000001 /* SleepScoreEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepScoreEngine.swift; sourceTree = "<group>"; };
 		DD2702000000000000000001 /* SleepStateBuilder.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SleepStateBuilder.swift; sourceTree = "<group>"; };
 		DD2703000000000000000001 /* HRVDailyStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HRVDailyStats.swift; sourceTree = "<group>"; };
+		FF2702010000000000000002 /* FatigueHistoryEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueHistoryEngine.swift; sourceTree = "<group>"; };
+		FF2701010000000000000002 /* DailySignalStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySignalStats.swift; sourceTree = "<group>"; };
 		DD2704000000000000000001 /* RelativeTimeStamp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RelativeTimeStamp.swift; sourceTree = "<group>"; };
 		DD2708000000000000000001 /* ReadinessInputReducer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReadinessInputReducer.swift; sourceTree = "<group>"; };
 		DD2709000000000000000001 /* RecoveryShadowDay.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RecoveryShadowDay.swift; sourceTree = "<group>"; };
@@ -861,6 +867,8 @@
 				62324BFF2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift */,
 				DD2701000000000000000001 /* SleepScoreEngine.swift */,
 				DD2703000000000000000001 /* HRVDailyStats.swift */,
+				FF2702010000000000000002 /* FatigueHistoryEngine.swift */,
+				FF2701010000000000000002 /* DailySignalStats.swift */,
 				DD2708000000000000000001 /* ReadinessInputReducer.swift */,
 				DD270A000000000000000001 /* RecoveryShadowEngine.swift */,
 				DD270B000000000000000001 /* RecoveryShadowAnalysis.swift */,
@@ -975,6 +983,7 @@
 			isa = PBXGroup;
 			children = (
 				62F32CB72F71849300B6135F /* HRVDetailView.swift */,
+				FF2703010000000000000002 /* RHRDetailView.swift */,
 				62F32CB82F71849300B6135F /* SleepDetailView.swift */,
 				AA17010100000000000000D2 /* SleepNightDetailView.swift */,
 				62324C102F66CB0E00A9C2BE /* DashboardView.swift */,
@@ -1498,6 +1507,8 @@
 				62324C3D2F66CB0E00A9C2BE /* RecoveryScoreEngine.swift in Sources */,
 				DD2701010000000000000001 /* SleepScoreEngine.swift in Sources */,
 				DD2703010000000000000001 /* HRVDailyStats.swift in Sources */,
+				FF2702010000000000000001 /* FatigueHistoryEngine.swift in Sources */,
+				FF2701010000000000000001 /* DailySignalStats.swift in Sources */,
 				DD2704010000000000000001 /* RelativeTimeStamp.swift in Sources */,
 				DD2708010000000000000001 /* ReadinessInputReducer.swift in Sources */,
 				DD270A010000000000000001 /* RecoveryShadowEngine.swift in Sources */,
@@ -1527,6 +1538,7 @@
 				AA17030100000000000000A1 /* SessionRPEScale.swift in Sources */,
 				3ECC7EF76C16FD0D0CB8809E /* ShareSheet.swift in Sources */,
 				62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */,
+				FF2703010000000000000001 /* RHRDetailView.swift in Sources */,
 				62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */,
 				AA17010100000000000000D1 /* SleepNightDetailView.swift in Sources */,
 				AA17010100000000000000E1 /* SetEntryFields.swift in Sources */,

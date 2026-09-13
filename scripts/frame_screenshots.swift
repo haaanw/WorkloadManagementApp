@@ -216,7 +216,12 @@ let screenSpecs: [String: ScreenSpec] = [
                                    inclusion: .store(rank: 3)),
     "Dashboard":        ScreenSpec(metric: .readiness, machineKey: "inputs: hrv · rhr · sleep",
                                    inclusion: .store(rank: 4)),
-    "Trends":           ScreenSpec(metric: .recovery,  machineKey: "trends: hrv · sleep · load",
+    // v1.7.3 · UAT round 1 · U9: the page was re-scoped around accumulated fatigue, so its
+    // metric owner and its machine key moved with it. It read `recovery` / "hrv · sleep · load"
+    // while the capture was the HRV and sleep glance charts; those left for Today's metric
+    // cells, and the plate is now the fatigue hero. The caption below changed for the same
+    // reason — a caption naming three lines the screenshot no longer shows is a false claim.
+    "Trends":           ScreenSpec(metric: .load,      machineKey: "fatigue: 14d accumulation",
                                    inclusion: .store(rank: 5)),
     "SleepDetail":      ScreenSpec(metric: .sleep,     machineKey: "sleep_target: 7.5 h",
                                    inclusion: .store(rank: 6)),
@@ -330,8 +335,8 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
             subline: "Watch acute and chronic load move."
         ),
         "Trends": FrameCopy(
-            headline: "Every trend, one place",
-            subline: "HRV, sleep, and training load over time."
+            headline: "See fatigue add up",
+            subline: "Two weeks of accumulation, and which way it is going."
         ),
         "WorkoutLog": FrameCopy(
             headline: "Today's call, then the log",
@@ -400,8 +405,8 @@ let copyByLanguage: [String: [String: FrameCopy]] = [
             subline: "急性与慢性负荷尽在掌握。"
         ),
         "Trends": FrameCopy(
-            headline: "所有趋势，一页看全",
-            subline: "HRV、睡眠与训练负荷的变化。"
+            headline: "看清疲劳如何累积",
+            subline: "两周的累积，以及它正在往哪个方向走。"
         ),
         "WorkoutLog": FrameCopy(
             headline: "先给结论，再看记录",

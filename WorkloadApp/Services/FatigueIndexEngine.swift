@@ -42,7 +42,10 @@ struct FatigueIndexEngine {
         let daysSinceLastInjury: Int?
     }
 
-    struct FatigueResult {
+    /// `Equatable` since v1.7.3: `FatigueHistoryEngine.Point` carries a whole result per day so
+    /// the Trends hero's reason tree reports the decomposition its number was built from, and a
+    /// series of those is worth comparing in a test. Value semantics only — nothing behavioural.
+    struct FatigueResult: Equatable {
         let index: Double           // 0-100 (higher = more fatigued)
         let zone: FatigueZone
         let loadElevation: Double   // 0-1 component score
@@ -244,15 +247,30 @@ struct FatigueIndexEngine {
         asOf now: Date = .now,
         maxHistoryDays: Int = 90
     ) -> Double? {
-        guard let earliestSessionDate = sessions.map(\.sessionDate).min() else { return nil }
+        baselineSessionsPer14Days(
+            sessionDates: sessions.map(\.sessionDate),
+            asOf: now,
+            maxHistoryDays: maxHistoryDays
+        )
+    }
 
-        let calendar = Calendar.current
+    /// The same estimate over bare dates, so a caller that has already reduced its models —
+    /// `FatigueHistoryEngine`, which walks this formula once per past day — can reach it
+    /// without a second copy of the arithmetic. The model overload above forwards here.
+    static func baselineSessionsPer14Days(
+        sessionDates: [Date],
+        asOf now: Date = .now,
+        maxHistoryDays: Int = 90,
+        calendar: Calendar = .current
+    ) -> Double? {
+        guard let earliestSessionDate = sessionDates.min() else { return nil }
+
         let start = calendar.startOfDay(for: earliestSessionDate)
         let end = calendar.startOfDay(for: now)
         let observedDays = (calendar.dateComponents([.day], from: start, to: end).day ?? 0) + 1
         let days = min(maxHistoryDays, max(14, observedDays))
 
-        return Double(sessions.count) / Double(days) * 14.0
+        return Double(sessionDates.count) / Double(days) * 14.0
     }
 
     // MARK: - Component Scoring (each returns 0-1, higher = more fatigued)

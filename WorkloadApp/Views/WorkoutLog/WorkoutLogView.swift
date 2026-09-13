@@ -7,6 +7,9 @@ struct WorkoutLogView: View {
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
     private var sessions: [WorkoutSession]
     @Query private var athletes: [Athlete]
+    /// U8: the hero plate shows only while there is no program to schedule. Reactive, so
+    /// importing one replaces it without a reload.
+    @Query private var programs: [TrainingProgram]
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
@@ -21,12 +24,8 @@ struct WorkoutLogView: View {
     @State private var designationPlannedRepo: PlannedSessionRepository?
     @State private var designationScheduleRepo: ScheduleRepository?
     @State private var designationProgramRepo: ProgramRepository?
-    @State private var selectedTemplateForPreview: WorkoutTemplate?
-    @State private var showTemplateEditor = false
-    @State private var editingTemplate: WorkoutTemplate?
     @State private var showTemplatePicker = false
     @State private var selectedTemplateForSession: WorkoutTemplate?
-    @State private var showLLMImport = false
     // Voice/text capture — LogCaptureSheet parses the captured text and hands back a reviewable
     // draft (onParsed), or the raw text when parsing cannot help (onLogManually).
     @State private var showLogCapture = false
@@ -36,7 +35,6 @@ struct WorkoutLogView: View {
     @State private var showParsedWorkout = false
     // The transcript carried into a blank session when the athlete falls back to logging by hand.
     @State private var manualLogText: String?
-    @State private var showPlanToday = false
     // The verdict's resolved workout, captured on the card's start action and launched as a
     // dedicated ActiveWorkoutSheet path (verdict → workout). Cleared when that sheet closes.
     @State private var resolvedPlanForSession: ResolvedSessionPlan?
@@ -53,6 +51,11 @@ struct WorkoutLogView: View {
     @State private var showSeanEllis = false
     @State private var showWTPUpgrade = false
     @State private var seanEllisEventCount = 0
+
+    private var activeProgram: TrainingProgram? {
+        guard let athleteId = athletes.first?.id else { return nil }
+        return programs.first { $0.isActive && !$0.isArchived && $0.athleteId == athleteId }
+    }
 
     private var visibleSessions: [WorkoutSession] {
         let base = container.subscriptionService.isPro
@@ -76,56 +79,31 @@ struct WorkoutLogView: View {
             VStack(spacing: 0) {
                 // Editorial screen header (Stage 4a) — the stock large-title nav (system
                 // font) is retired; title + actions live in the content, above the filter rail.
+                // U7 · ONE DOOR. The header carried three icons — an ellipsis menu of four
+                // flat entries, a mic, and a "+" — behind which sat four doors to two jobs:
+                // the program was offered twice (menu + template empty state), authoring three
+                // times, and "Plan Today" duplicated the calendar spine that already designates
+                // days. The header now keeps exactly one action, and it is the one this tab
+                // exists for: CAPTURE. Say it, type it, paste a workout and log by hand are all
+                // modes of that one sheet, not four doors.
+                //
+                // Where the retired entries went. The program door is the week strip's own
+                // header (it already prints the program's name and position, so a separate card
+                // would have repeated it). "Plan Today" died: tapping the day in the spine does
+                // that job. Template authoring moved down into My Programs (U8). The AI
+                // single-workout importer lost its top-level entry — pasting a workout into the
+                // capture editor is the same job, and its bulk-day job belongs to the program
+                // door; the sheet itself stays, reached from `ActiveWorkoutSheet`.
                 ScreenHeader(title: "workoutLog.nav.title") {
-                    HStack(spacing: Spacing.sm) {
-                        // One door (U1/R5): "Bring your program" leads, ungated. The legacy
-                        // Pro-gated text importer's entry is retired — its bulk-day job is
-                        // subsumed by the program door (the sheet itself stays in the target).
-                        Menu {
-                            Button {
-                                showProgramImport = true
-                            } label: {
-                                Label("workoutLog.menu.bringProgram", systemImage: "square.and.arrow.down")
-                            }
-                            Button {
-                                showPlanToday = true
-                            } label: {
-                                Label("planToday.menu.label", systemImage: "calendar.badge.plus")
-                            }
-                            Button {
-                                showMyPrograms = true
-                            } label: {
-                                Label("workoutLog.menu.myPrograms", systemImage: "doc.text.fill")
-                            }
-                            Button {
-                                showLLMImport = true
-                            } label: {
-                                Label("workoutLog.import.ai", systemImage: "sparkles")
-                            }
-                        } label: {
-                            Image(systemName: "ellipsis.circle")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text2)
-                        }
-                        Button {
-                            showLogCapture = true
-                        } label: {
-                            Image(systemName: "mic")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
-                        }
-                        .buttonStyle(.pressable)
-                        .accessibilityIdentifier("workoutLog.voiceLog")
-                        Button {
-                            showTemplatePicker = true
-                        } label: {
-                            Image(systemName: "plus")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text2)
-                        }
-                        .buttonStyle(.pressable)
-                        .accessibilityIdentifier("workoutLog.startWorkout")
+                    Button {
+                        showLogCapture = true
+                    } label: {
+                        Image(systemName: "mic")
+                            .font(.Tokens.body)
+                            .foregroundStyle(ColorTokens.text1)
                     }
+                    .buttonStyle(.pressable)
+                    .accessibilityIdentifier("workoutLog.voiceLog")
                 }
                 .padding(.top, Spacing.md)
 
@@ -163,42 +141,36 @@ struct WorkoutLogView: View {
                             }
                         }
 
-                        // Next match — the one schedule-shaped plan object (ADR-0002). Always
-                        // renders; empty state ("no scheduled match") is a normal, calm state.
-                        // Stage 2 wires the date into the verdict; here it is set/clear only.
                         // Calendar spine (feature 6): the editable training week + day sheets.
+                        // Its header doubles as the program door (U7) — name, position, chevron.
                         ScheduleWeekSection(
                             onLogPastDay: { day, kind in
                                 pastDayLog = PastDayLogRequest(day: day, kind: kind)
+                            },
+                            onOpenProgram: {
+                                showMyPrograms = true
                             }
                         )
                         .entranceReveal(index: 1)
 
-                        NextMatchSection()
-                            .entranceReveal(index: 1)
+                        // U8: the program door is the page's content when there is nothing to
+                        // schedule yet. The template CAROUSEL is gone from this tab entirely —
+                        // it sold authoring twice before the program was asked for once. What
+                        // replaces it is one hero plate, one ink pill, and one quiet line for
+                        // the athlete who has no program; templates themselves live on in My
+                        // Programs, where the things you own are listed.
+                        if activeProgram == nil {
+                            BringYourProgramSection(
+                                onBringProgram: { showProgramImport = true },
+                                onStartFromTemplate: { showTemplatePicker = true }
+                            )
+                            .entranceReveal(index: 2)
+                        }
 
-                        // Template carousel (My Templates section — header lives inside)
-                        TemplateCarouselSection(
-                            onEditTemplate: { template in
-                                editingTemplate = template
-                                showTemplateEditor = true
-                            },
-                            onStartFromTemplate: { template in
-                                selectedTemplateForSession = template
-                                showActiveWorkout = true
-                            },
-                            onCreateTemplate: {
-                                editingTemplate = nil
-                                showTemplateEditor = true
-                            },
-                            onPreviewTemplate: { template in
-                                selectedTemplateForPreview = template
-                            },
-                            onBringProgram: {
-                                showProgramImport = true
-                            }
-                        )
-                        .entranceReveal(index: 2)
+                        // Next match — the one schedule-shaped plan object (ADR-0002). Always
+                        // renders; the empty state ("no scheduled match") is a normal, calm one.
+                        NextMatchSection()
+                            .entranceReveal(index: 2)
 
                         // U4: the watch-import BANNER is retired. A watch workout is not a
                         // suggestion awaiting an Add tap and an RPE sheet — it is a session
@@ -317,10 +289,6 @@ struct WorkoutLogView: View {
                         selectedTemplateForSession = nil
                         showActiveWorkout = true
                     },
-                    onCreateTemplate: {
-                        editingTemplate = nil
-                        showTemplateEditor = true
-                    },
                     onBringProgram: {
                         showProgramImport = true
                     }
@@ -383,34 +351,10 @@ struct WorkoutLogView: View {
                 QuickPastSessionSheet(day: request.day, kind: request.kind)
                     .environment(container)
             }
-            .sheet(item: $selectedTemplateForPreview) { template in
-                TemplatePreviewSheet(
-                    template: template,
-                    onEdit: {
-                        selectedTemplateForPreview = nil
-                        editingTemplate = template
-                        showTemplateEditor = true
-                    }
-                )
-                .environment(container)
-            }
-            .sheet(isPresented: $showLLMImport) {
-                WorkoutImportSheet()
-                    .environment(container)
-            }
-            .sheet(isPresented: $showPlanToday) {
-                PlanTodaySheet()
-                    .environment(container)
-            }
-            .sheet(isPresented: $showTemplateEditor) {
-                if let athleteId = athletes.first?.id {
-                    TemplateEditorSheet(
-                        coachId: athleteId,
-                        existingTemplate: editingTemplate
-                    )
-                    .environment(container)
-                }
-            }
+            // U7/U8: the template preview + editor, the AI single-workout importer and the
+            // "Plan Today" sheet all lost their entries from this tab. Previewing and editing a
+            // template happen in My Programs, beside the templates themselves; planning a day
+            // is what tapping that day in the spine above already does.
             // Watch workouts log themselves (v1.7.3 · U4). This is a second trigger, not the
             // only one: `MainTabView` runs the same import on every foreground, because a
             // `TabView` child's `.task` fires once per app process and a watch workout
@@ -466,14 +410,6 @@ struct WorkoutLogView: View {
                 refreshFeltRightPrompt()
                 refreshOutcomePrompt()
                 refreshSeanEllisPrompt()
-            }
-            .onChange(of: showPlanToday) { _, isPresented in
-                // After planning today's session, re-read so the verdict card appears.
-                if !isPresented, let athlete = athletes.first {
-                    verdictVM?.refresh(athlete: athlete)
-                    refreshFeltRightPrompt()
-                    refreshOutcomePrompt()
-                }
             }
             // Day change while mounted (mirrors NextMatchSection's NSCalendarDayChanged idiom):
             // "today" moved, so re-derive everything day-scoped — the verdict card and the two
@@ -594,6 +530,53 @@ struct WorkoutLogView: View {
             scheduleRepo: scheduleRepo,
             programRepo: programRepo
         )
+    }
+}
+
+// MARK: - Bring your program (U8)
+
+/// The Log tab's one plate when there is no program yet: a sentence that states the trade the
+/// product is actually making, the screen's ONE ink pill, and a quiet second line for the
+/// athlete who has no program to bring.
+///
+/// It replaces a card that sold template authoring TWICE — as a hero key and again as the
+/// section header's action — while offering the program once, as the smaller of two equal keys.
+/// Authoring did not die with it: it survives as the last row of My Programs, on the screen
+/// that already lists what you own. What left is the CREATION surface's claim on the top level.
+struct BringYourProgramSection: View {
+    let onBringProgram: () -> Void
+    let onStartFromTemplate: () -> Void
+
+    var body: some View {
+        SectionContainer {
+            VStack(alignment: .leading, spacing: Spacing.sm) {
+                Text("workoutLog.program.pitch")
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text1)
+                    .fixedSize(horizontal: false, vertical: true)
+
+                PrimaryActionButton(title: "workoutLog.menu.bringProgram") {
+                    onBringProgram()
+                }
+                .accessibilityIdentifier("workoutLog.bringProgram")
+
+                Button {
+                    Haptics.tap()
+                    onStartFromTemplate()
+                } label: {
+                    Text("workoutLog.program.orTemplate")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                }
+                .buttonStyle(.pressable)
+                .accessibilityIdentifier("workoutLog.startWorkout")
+            }
+            // v6.3: with nothing else on the screen this plate is the Log tab's hero — the one
+            // card that takes the strain area's 4% wash.
+            .cardStyle(isHero: true)
+            .padding(.horizontal, Spacing.sm)
+        }
     }
 }
 

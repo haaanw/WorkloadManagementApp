@@ -26,6 +26,8 @@ final class TrendsMergeTests: XCTestCase {
             WellnessCheckIn.self,
             PersonalRecord.self,
             BehaviorTag.self,
+            // The fatigue series reads the niggle log for its soft-tissue component.
+            SorenessLog.self,
         ])
         let config = ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)
         let container = try ModelContainer(for: schema, configurations: config)
@@ -45,13 +47,30 @@ final class TrendsMergeTests: XCTestCase {
         calendar.date(byAdding: .day, value: -offset, to: calendar.startOfDay(for: .now))!
     }
 
-    // MARK: - TimeRange survived the move
+    // MARK: - The range rail
 
-    func test_timeRange_daysMapping_unchanged() {
-        XCTAssertEqual(TimeRange.fourWeeks.days, 28)
-        XCTAssertEqual(TimeRange.twelveWeeks.days, 84)
-        XCTAssertEqual(TimeRange.sixMonths.days, 180)
+    /// v1.7.3 (UAT round 1 · U9): the windows changed with the page's question. 4W/12W/6M
+    /// belonged to "how has my load moved"; the fatigue narrative is answered over a fortnight,
+    /// because the model's own windows are 14 days (density, wellness) and 7 (recovery trend).
+    func test_timeRange_isTheFatigueWindowSet() {
+        XCTAssertEqual(TimeRange.oneWeek.days, 7)
+        XCTAssertEqual(TimeRange.twoWeeks.days, 14)
+        XCTAssertEqual(TimeRange.oneMonth.days, 30)
         XCTAssertEqual(TimeRange.allCases.count, 3)
+    }
+
+    /// The default is the fortnight, and it is load-bearing: the range rail stays Pro, so this
+    /// is the ONLY window a free athlete ever reads. It has to be the one the engine is built on.
+    ///
+    /// The view model is held for the PROCESS rather than constructed inline: a transient
+    /// `@MainActor`-isolated object deallocating in a synchronous test aborts the host through
+    /// `swift_task_deinitOnExecutorMainActorBackDeploy` — a zero-second failure with no message
+    /// (the C-wdg-002 family, documented in `AnalyticsSinkTests`). Held, it never deinits here.
+    private static let defaultRangeProbe = TrendsViewModel()
+
+    func test_defaultRange_isTheFortnight_whichFreeAthletesAreStuckWith() {
+        XCTAssertEqual(Self.defaultRangeProbe.selectedRange, .twoWeeks)
+        XCTAssertEqual(TimeRange.twoWeeks.days, FatigueHistoryEngine.minimumHistoryDays)
     }
 
     // MARK: - The merged load
@@ -89,28 +108,75 @@ final class TrendsMergeTests: XCTestCase {
         XCTAssertFalse(viewModel.isLoading)
     }
 
-    func test_load_hrvGlance_fromHealthKit_isDailyMorningSeries() async throws {
+    // MARK: - The fatigue narrative (U9)
+
+    /// With enough history the page has a series, a reading, and a story to tell about it.
+    func test_load_buildsTheFatigueSeries_overTheSelectedWindow() async throws {
         let context = try makeContext()
         let athlete = makeAthlete(in: context)
 
-        // Three samples on one morning must reduce to ONE daily value (the v1.7.1
-        // morning-window reduction the glance charts contract on).
-        let morning = calendar.date(byAdding: .hour, value: 7, to: day(1))!
-        let samples = [
-            (date: morning, value: 60.0),
-            (date: morning.addingTimeInterval(600), value: 70.0),
-            (date: morning.addingTimeInterval(1200), value: 80.0),
-        ]
-        let stub = StubHealthDataProvider.reporting(hrv: samples)
+        // 40 days of daily training + recovery: more than any window, so the slice is real.
+        for offset in 0..<40 {
+            let session = WorkoutSession(sessionDate: day(offset), sportType: .lifting)
+            session.sessionRPE = 8
+            session.durationSeconds = 3600
+            // `trainingStress` is written by `recalculateDerivedFields()` at save time; these
+            // rows are hand-built, so the load the engine reads is set explicitly.
+            session.trainingStress = 80
+            session.athlete = athlete
+            context.insert(session)
+            let recovery = RecoverySnapshot(date: day(offset), recoveryScore: 60)
+            recovery.athlete = athlete
+            context.insert(recovery)
+        }
+        try context.save()
 
         let viewModel = TrendsViewModel()
-        await viewModel.load(athlete: athlete, healthKitService: stub, modelContext: context)
+        await viewModel.load(
+            athlete: athlete,
+            healthKitService: StubHealthDataProvider.silent(),
+            modelContext: context
+        )
 
-        XCTAssertEqual(viewModel.hrvGlance.count, 1, "three same-morning samples must bucket to one daily value")
-        XCTAssertEqual(viewModel.hrvGlance.first?.value ?? 0, 70.0, accuracy: 0.001, "daily value is the morning median")
+        XCTAssertEqual(viewModel.selectedRange, .twoWeeks)
+        XCTAssertEqual(viewModel.fatiguePoints.count, TimeRange.twoWeeks.days,
+                       "the series covers the whole selected window when history allows")
+        XCTAssertTrue(viewModel.hasEnoughHistory)
+        XCTAssertEqual(viewModel.sessionsInRange, TimeRange.twoWeeks.days,
+                       "a session a day for 40 days means a session a day inside the window")
+        XCTAssertEqual(viewModel.dailyLoadBars.count, TimeRange.twoWeeks.days,
+                       "rest days are present-and-zero, so the bar count is the window length")
+        XCTAssertNotNil(viewModel.baselineSessionsInRange)
     }
 
-    func test_load_withoutHealthKit_leavesGlanceEmpty_notCrashing() async throws {
+    /// The honest empty state. A young account must NOT get a chart of its own warm-up.
+    func test_load_withThinHistory_reportsNotEnough_ratherThanGuessing() async throws {
+        let context = try makeContext()
+        let athlete = makeAthlete(in: context)
+
+        for offset in 0..<4 {
+            let session = WorkoutSession(sessionDate: day(offset), sportType: .lifting)
+            session.sessionRPE = 7
+            session.durationSeconds = 3600
+            session.trainingStress = 60
+            session.athlete = athlete
+            context.insert(session)
+        }
+        try context.save()
+
+        let viewModel = TrendsViewModel()
+        await viewModel.load(
+            athlete: athlete,
+            healthKitService: StubHealthDataProvider.silent(),
+            modelContext: context
+        )
+
+        XCTAssertFalse(viewModel.hasEnoughHistory)
+        XCTAssertLessThan(viewModel.observedHistoryDays, FatigueHistoryEngine.minimumHistoryDays)
+    }
+
+    /// No sessions at all: no series, no crash, and nothing invented.
+    func test_load_withNoSessions_leavesTheNarrativeEmpty() async throws {
         let context = try makeContext()
         let athlete = makeAthlete(in: context)
 
@@ -121,7 +187,11 @@ final class TrendsMergeTests: XCTestCase {
             modelContext: context
         )
 
-        XCTAssertTrue(viewModel.hrvGlance.isEmpty, "no HealthKit and no SCREENSHOT_MODE — the glance stays honestly empty")
+        XCTAssertTrue(viewModel.fatiguePoints.isEmpty)
+        XCTAssertFalse(viewModel.hasEnoughHistory)
+        XCTAssertEqual(viewModel.observedHistoryDays, 0)
+        XCTAssertEqual(viewModel.sessionsInRange, 0)
+        XCTAssertNil(viewModel.baselineSessionsInRange)
         XCTAssertFalse(viewModel.isLoading)
     }
 
@@ -178,6 +248,8 @@ final class TrendsMergeTests: XCTestCase {
             guard source.contains("navigationDestination(for: TrendDestination.self)") else { continue }
             XCTAssertTrue(source.contains("HRVDetailScreen()"),
                           "\(path): TrendDestination.hrv must land on HRVDetailScreen")
+            XCTAssertTrue(source.contains("RHRDetailScreen()"),
+                          "\(path): TrendDestination.rhr must land on RHRDetailScreen")
             XCTAssertTrue(source.contains("SleepDetailScreen()"),
                           "\(path): TrendDestination.sleep must land on SleepDetailScreen")
             XCTAssertFalse(source.contains("HRVDetailView(data:"),
@@ -185,6 +257,43 @@ final class TrendsMergeTests: XCTestCase {
             XCTAssertFalse(source.contains("SleepDetailView(snapshots:"),
                            "\(path): no caller may feed SleepDetailView its own window any more")
         }
+    }
+
+    /// U9's receiving half: each of Today's three body-signal cells is a DOOR. This is what
+    /// makes it safe for Trends to stop plotting the same three lines — the physiology now
+    /// lives behind the number that names it. Source-level, because a cell that renders but
+    /// does not navigate is exactly the defect this closed and a green suite could not see it.
+    func test_fence_todayMetricCells_eachPushTheirOwnDetailScreen() {
+        let source = readSource("WorkloadApp/Views/Dashboard/DashboardView.swift")
+        for destination in ["destination: .hrv", "destination: .rhr", "destination: .sleep"] {
+            XCTAssertTrue(source.contains(destination),
+                          "MetricsStrip must wire a cell for \(destination) — the strip is three doors, not a readout")
+        }
+        XCTAssertTrue(source.contains("indicatesNavigation: true"),
+                      "a cell that navigates must carry the caret; an unmarked door reads as a readout")
+    }
+
+    /// The physiology glances LEFT Trends. If either returns, the page is re-plotting readings
+    /// Today already prints one tap from their own detail screens — the U9 finding verbatim.
+    func test_fence_trendsView_noLongerRePlotsTodaysReadings() {
+        let source = readSource("WorkloadApp/Views/Trends/TrendsView.swift")
+        XCTAssertFalse(source.contains("HRVTrendChart("),
+                       "the HRV glance belongs behind Today's HRV cell, not on Trends")
+        XCTAssertFalse(source.contains("SleepTrendChart("),
+                       "the sleep glance belongs behind Today's sleep cell, not on Trends")
+        XCTAssertTrue(source.contains("TrendsFatigueSection("),
+                      "the fatigue narrative is the page's spine")
+    }
+
+    /// v6.3 area ownership follows the METRIC. The re-scoped page's hero is the fatigue index —
+    /// a load reading — so the page is a load surface, and the recovery-vs-load section declares
+    /// recovery on itself. (It was the other way round while the page was fronted by HRV.)
+    func test_fence_trendsView_standsInTheLoadArea() {
+        let source = readSource("WorkloadApp/Views/Trends/TrendsView.swift")
+        XCTAssertTrue(source.contains(".metricArea(.load)"),
+                      "the re-scoped Trends page is a LOAD surface — its hero is the fatigue index")
+        XCTAssertTrue(source.contains(".metricArea(.recovery)"),
+                      "the recovery-vs-load section must declare its own hue")
     }
 
     /// The Pro chart stays Pro (closure-plan law): the merged Trends screen must gate the

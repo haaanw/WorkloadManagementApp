@@ -58,19 +58,34 @@ struct NiggleInjuryDeriver {
         return calendar.dateComponents([.day], from: from, to: to).day
     }
 
+    /// The dates of every log that qualifies on TYPE and IMPACT, **ignoring the recency
+    /// window** — ascending, so a caller can apply the window itself.
+    ///
+    /// Added for `FatigueHistoryEngine` (v1.7.3 · U9), which walks the fatigue index once per
+    /// past day: each of those days needs the window measured relative to ITSELF, not to now,
+    /// and the alternative — re-deriving the D-10 predicate in the history engine — would leave
+    /// the app with two definitions of what counts as a soft-tissue signal.
+    static func qualifyingDates(logs: [SorenessLog]) -> [Date] {
+        logs.filter(qualifiesOnMerit).map(\.date).sorted()
+    }
+
     // MARK: - Qualification predicate (D-10)
 
     /// Encodes the D-10 rule: type ∈ {pain, tweak} AND (limitedTraining OR severity ≥ cut) AND
     /// within `injuryWindowDays` of `asOf` (boundary day -`injuryWindowDays` inclusive). `soreness`
     /// (DOMS) is excluded by the type gate.
     private static func isQualifying(_ log: SorenessLog, asOf: Date) -> Bool {
+        qualifiesOnMerit(log) && isWithinWindow(log.date, asOf: asOf)
+    }
+
+    /// The type + impact half of D-10, with no recency test. Split out so `qualifyingDates`
+    /// and `isQualifying` cannot disagree about what a soft-tissue signal is.
+    private static func qualifiesOnMerit(_ log: SorenessLog) -> Bool {
         guard let type = NiggleType(rawValue: log.typeRaw),
               type == .pain || type == .tweak else {
             return false  // soreness (DOMS) and any unknown type → excluded
         }
-        let functionallyImpactful = log.limitedTraining || log.severity >= qualifyingSeverityCut
-        guard functionallyImpactful else { return false }
-        return isWithinWindow(log.date, asOf: asOf)
+        return log.limitedTraining || log.severity >= qualifyingSeverityCut
     }
 
     /// True when `date` falls within the last `injuryWindowDays` of `asOf`, comparing on

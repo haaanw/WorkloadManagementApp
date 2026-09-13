@@ -50,6 +50,43 @@ struct HRVDetailScreen: View {
     }
 }
 
+/// The resting-heart-rate screen's fetch (v1.7.3 · UAT round 1 · U9). It is the HRV screen's
+/// twin with one reduction swapped: `RHRDailyStats` buckets ALL DAY, because Apple derives RHR
+/// as a daily aggregate and an hour filter would admit or drop a day at random.
+struct RHRDetailScreen: View {
+    @Environment(AppContainer.self) private var container
+    @Query private var athletes: [Athlete]
+    @Query(sort: \RecoverySnapshot.date, order: .reverse)
+    private var recoverySnapshots: [RecoverySnapshot]
+
+    /// 90 days of DAILY values, matching the pinch window's maximum.
+    @State private var data: [(date: Date, value: Double)] = []
+
+    var body: some View {
+        RHRDetailView(data: data)
+            .task { await load() }
+    }
+
+    private func load() async {
+        let rawSamples = (try? await container.healthKitService.fetchRestingHRHistory(days: 90)) ?? []
+        data = RHRDailyStats
+            .dailyValues(samples: rawSamples, days: 90)
+            .map { (date: $0.date, value: $0.value) }
+        #if DEBUG
+        // SCREENSHOT_MODE: HealthKit unauthorized — derive the series from seeded snapshots,
+        // which are already one value per day (no bucketing needed). The HRV screen's idiom.
+        if data.isEmpty,
+           ProcessInfo.processInfo.arguments.contains("SCREENSHOT_MODE") {
+            let athleteId = athletes.first?.id
+            data = recoverySnapshots
+                .filter { $0.athlete?.id == athleteId }
+                .compactMap { snap in snap.restingHR.map { (date: snap.date, value: $0) } }
+                .sorted { $0.date < $1.date }
+        }
+        #endif
+    }
+}
+
 /// `SleepDetailView` fetches its own HealthKit nights already; what callers were
 /// duplicating was the 90-day snapshot FALLBACK window (pre-fix persisted values, used
 /// only when HealthKit has no nights). That window is now built here, once, reactively.

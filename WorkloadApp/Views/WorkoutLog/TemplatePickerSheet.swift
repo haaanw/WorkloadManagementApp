@@ -10,7 +10,6 @@ struct TemplatePickerSheet: View {
 
     let onSelectTemplate: (WorkoutTemplate) -> Void
     let onStartBlank: () -> Void
-    let onCreateTemplate: () -> Void
     /// Opens the program door (R6: empty states sell import first).
     var onBringProgram: () -> Void = {}
 
@@ -64,8 +63,9 @@ struct TemplatePickerSheet: View {
 
     // MARK: - Empty State
 
-    // Import-first empty state (R6). Also retires the stale "Templates tab" copy —
-    // `empty.noTemplates.hint` named a tab that does not exist in the five-tab app.
+    // Import-first empty state (R6). U8 (v1.7.3): the "Create template" key is gone from here
+    // too — the picker is a place to START from something you already have, and authoring now
+    // lives in one place, as the last row of My Programs.
     private var emptyState: some View {
         VStack(spacing: Spacing.sm) {
             Text("empty.noTemplates")
@@ -86,16 +86,6 @@ struct TemplatePickerSheet: View {
                     .padding(.horizontal, Spacing.md)
                     .padding(.vertical, Spacing.xs)
                     .overlay(Capsule().stroke(ColorTokens.divider, lineWidth: 0.5))
-            }
-            .buttonStyle(.pressable)
-            Button {
-                Haptics.tap()
-                dismiss()
-                onCreateTemplate()
-            } label: {
-                Text("action.createTemplate")
-                    .font(.Tokens.label)
-                    .foregroundStyle(ColorTokens.text2)
             }
             .buttonStyle(.pressable)
         }

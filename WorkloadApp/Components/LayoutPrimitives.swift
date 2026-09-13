@@ -37,6 +37,13 @@ struct MetricCell<Accessory: View>: View {
     let value: String
     var unit: String?
     var valueColor: Color
+    /// Marks the cell as a door: a `text3` caret in the plate's top-trailing corner.
+    ///
+    /// v1.7.3 (UAT round 1 · U9): Today's three body-signal cells each push their own detail
+    /// screen, and the affordance has to be ON the plate that prints the number — a cell that
+    /// navigates with no mark reads as a readout, which is how HRV and sleep ended up reachable
+    /// only through a reason-tree row nobody looks in for a chart.
+    var indicatesNavigation: Bool = false
     private let accessory: Accessory
 
     init(
@@ -44,12 +51,14 @@ struct MetricCell<Accessory: View>: View {
         value: String,
         unit: String? = nil,
         valueColor: Color = ColorTokens.text1,
+        indicatesNavigation: Bool = false,
         @ViewBuilder accessory: () -> Accessory
     ) {
         self.label = label
         self.value = value
         self.unit = unit
         self.valueColor = valueColor
+        self.indicatesNavigation = indicatesNavigation
         self.accessory = accessory()
     }
 
@@ -83,6 +92,15 @@ struct MetricCell<Accessory: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .dataPlate(horizontalPadding: Spacing.sm, verticalPadding: Spacing.sm)
+        .overlay(alignment: .topTrailing) {
+            if indicatesNavigation {
+                Image(systemName: "chevron.right")
+                    .font(.Tokens.smallLabel)
+                    .foregroundStyle(ColorTokens.text3)
+                    .padding(Spacing.xs)
+                    .accessibilityHidden(true)
+            }
+        }
     }
 }
 

@@ -57,9 +57,6 @@ struct PlanTodaySheet: View {
                     onStartBlank: {
                         // No blank "plan" — funnel to the manual one-off entry instead.
                         showManual = true
-                    },
-                    onCreateTemplate: {
-                        // Template authoring lives elsewhere; just close the picker.
                     }
                 )
                 .environment(container)

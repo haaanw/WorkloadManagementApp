@@ -21,6 +21,11 @@ struct ScheduleWeekSection: View {
     /// Opens retroactive logging for a past day (pickup / scrimmage / off-plan lift).
     var onLogPastDay: (Date, ScheduleEntryKind) -> Void = { _, _ in }
 
+    /// Opens the program screen. The header already prints the program's name and position, so
+    /// it IS the program door (v1.7.3 · U7): "My Programs" left the retired "+"-menu rather than
+    /// reappearing as a second card that repeats what this strip already says.
+    var onOpenProgram: () -> Void = {}
+
     @State private var selectedDay: Date?
     @State private var showDayPicker = false
     @State private var scheduleRepo: ScheduleRepository?
@@ -75,17 +80,39 @@ struct ScheduleWeekSection: View {
         }
     }
 
+    /// The strip's header. With a program it is the PROGRAM DOOR — name, position, chevron —
+    /// because it already prints the two facts a "my program" card would have repeated. Without
+    /// one it stays the plain "This week" title it has always been.
+    @ViewBuilder
     private var header: some View {
-        HStack(alignment: .firstTextBaseline) {
-            Text(verbatim: activeProgram?.name ?? String(localized: "schedule.header.week", defaultValue: "This week"))
-                .font(.Tokens.sectionHead)
-                .foregroundStyle(ColorTokens.text1)
-            Spacer()
-            if let program = activeProgram {
-                AnnotationLabel(String(
-                    format: String(localized: "schedule.header.position", defaultValue: "W%lld OF %lld"),
-                    program.positionWeek, program.durationWeeks
-                ))
+        if let program = activeProgram {
+            Button {
+                Haptics.tap()
+                onOpenProgram()
+            } label: {
+                HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                    Text(verbatim: program.name)
+                        .font(.Tokens.sectionHead)
+                        .foregroundStyle(ColorTokens.text1)
+                        .lineLimit(1)
+                    Spacer()
+                    AnnotationLabel(String(
+                        format: String(localized: "schedule.header.position", defaultValue: "W%lld OF %lld"),
+                        program.positionWeek, program.durationWeeks
+                    ))
+                    Image(systemName: "chevron.right")
+                        .font(.Tokens.smallLabel)
+                        .foregroundStyle(ColorTokens.text3)
+                }
+            }
+            .buttonStyle(.pressable(scale: 1, opacity: 0.6))
+            .accessibilityIdentifier("workoutLog.openProgram")
+        } else {
+            HStack(alignment: .firstTextBaseline) {
+                Text("schedule.header.week")
+                    .font(.Tokens.sectionHead)
+                    .foregroundStyle(ColorTokens.text1)
+                Spacer()
             }
         }
     }

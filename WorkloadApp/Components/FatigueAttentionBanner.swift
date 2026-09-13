@@ -1,5 +1,24 @@
 import SwiftUI
 
+extension ColorTokens {
+    /// The fatigue zone's color — one mapping, shared by this banner and the re-scoped Trends
+    /// fatigue hero (v1.7.3 · U9). A second copy of it would be a second answer to "what colour
+    /// is high fatigue".
+    ///
+    /// It lives HERE rather than in `ColorTokens.swift` because that file also compiles into the
+    /// widget extension, which carries no engines — a token keyed on an engine's zone type
+    /// cannot sit in the shared file. Zone colour stays SUPPLEMENTARY at every call site: the
+    /// surface states the zone in words first (Zone Color Rule).
+    static func fatigueZoneColor(_ zone: FatigueIndexEngine.FatigueZone) -> Color {
+        switch zone {
+        case .low:        zoneOptimal
+        case .elevated:   zoneCaution
+        case .high:       zoneDanger
+        case .saturation: zoneDanger
+        }
+    }
+}
+
 /// Dashboard banner shown when accumulated fatigue is elevated.
 /// Not a medical or injury prediction — a load-attention signal.
 /// Design system: shared attention-banner plane (CornerTokens.card, zone-colored leading rule).
@@ -9,14 +28,9 @@ struct FatigueAttentionBanner: View {
     /// Fire the caution haptic only on first surfacing — not on every dashboard re-render.
     @State private var didSignal = false
 
-    private var borderColor: Color {
-        switch zone {
-        case .low: ColorTokens.zoneOptimal
-        case .elevated: ColorTokens.zoneCaution
-        case .high: ColorTokens.zoneDanger
-        case .saturation: ColorTokens.zoneDanger
-        }
-    }
+    /// One mapping, shared with the Trends fatigue hero (v1.7.3) — see
+    /// `ColorTokens.fatigueZoneColor`.
+    private var borderColor: Color { ColorTokens.fatigueZoneColor(zone) }
 
     private var zoneLabel: String {
         switch zone {

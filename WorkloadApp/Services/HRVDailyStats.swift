@@ -38,22 +38,24 @@ import Foundation
 /// Also note the app records Apple's automatically-sampled **SDNN**, while most athlete
 /// readiness research uses standardised LnRMSSD recordings. This reduction is defensible
 /// noise control; it is not a validation of the readiness algorithm itself.
+/// ## Where the arithmetic lives (v1.7.3)
+///
+/// The baseline / spread / deviation functions moved to `DailySignalStats` when the RHR detail
+/// screen needed the same five over an all-day series. Everything below still reads as HRV and
+/// every call site is unchanged; only the implementations now point at the shared maths, so the
+/// two signals can never drift apart on what "my normal" means. What stays HERE is what is
+/// genuinely HRV's: the morning-window reduction above, and the availability cases that exist
+/// because that window can be empty on a day that has samples.
 struct HRVDailyStats {
 
-    /// Minimum number of prior daily values required before a baseline (and therefore a
-    /// deviation) is reported. Below this the "baseline" would be one or two mornings, and
-    /// a deviation against it is noise wearing a percentage sign — most visibly at n = 1,
-    /// where the latest day IS the baseline and the deviation is always exactly 0%.
-    static let minimumBaselineDays: Int = 3
+    /// See `DailySignalStats.minimumBaselineDays`.
+    static let minimumBaselineDays: Int = DailySignalStats.minimumBaselineDays
 
     /// Number of trailing calendar days the baseline is drawn from.
-    static let baselineWindowDays: Int = 7
+    static let baselineWindowDays: Int = DailySignalStats.baselineWindowDays
 
     /// One calendar day's HRV value (gaps excluded — this array is sparse by design).
-    struct DailyValue: Equatable {
-        let date: Date
-        let value: Double
-    }
+    typealias DailyValue = DailySignalStats.DailyValue
 
     /// Reduce raw samples to one value per calendar day, morning window only, gaps dropped.
     ///
@@ -86,7 +88,7 @@ struct HRVDailyStats {
 
     /// The reading the screen reports: the most recent day that has a value.
     static func latest(_ daily: [DailyValue]) -> DailyValue? {
-        daily.last
+        DailySignalStats.latest(daily)
     }
 
     /// Days inside the trailing baseline window that are STRICTLY EARLIER than `latest`.
@@ -99,31 +101,16 @@ struct HRVDailyStats {
         now: Date = .now,
         calendar: Calendar = .current
     ) -> [DailyValue] {
-        guard let latest = latest(daily) else { return [] }
-        let latestDay = calendar.startOfDay(for: latest.date)
-        guard let windowStart = calendar.date(
-            byAdding: .day, value: -baselineWindowDays, to: latestDay
-        ) else { return [] }
-        return daily.filter { entry in
-            let day = calendar.startOfDay(for: entry.date)
-            return day >= windowStart && day < latestDay
-        }
+        DailySignalStats.baselineDays(daily, calendar: calendar)
     }
 
     /// Mean of the baseline days, or nil when fewer than `minimumBaselineDays` exist.
-    ///
-    /// Mean rather than a second median: the day values are already medians, so intra-day
-    /// robustness is handled; the outer figure is the ordinary central tendency an athlete
-    /// reads as "my normal", and it matches the mean `RecoveryScoreEngine.computeBaseline`
-    /// uses so the two do not tell different stories.
     static func baseline(
         _ daily: [DailyValue],
         now: Date = .now,
         calendar: Calendar = .current
     ) -> Double? {
-        let days = baselineDays(daily, now: now, calendar: calendar)
-        guard days.count >= minimumBaselineDays else { return nil }
-        return days.map(\.value).reduce(0, +) / Double(days.count)
+        DailySignalStats.baseline(daily, calendar: calendar)
     }
 
     /// Population SD of the baseline days; nil whenever the baseline itself is nil.
@@ -132,13 +119,7 @@ struct HRVDailyStats {
         now: Date = .now,
         calendar: Calendar = .current
     ) -> Double? {
-        let days = baselineDays(daily, now: now, calendar: calendar)
-        guard days.count >= minimumBaselineDays,
-              let mean = baseline(daily, now: now, calendar: calendar) else { return nil }
-        let variance = days
-            .map { ($0.value - mean) * ($0.value - mean) }
-            .reduce(0, +) / Double(days.count)
-        return variance.squareRoot()
+        DailySignalStats.standardDeviation(daily, calendar: calendar)
     }
 
     /// Percent deviation of the latest day from the baseline; nil when either is missing.
@@ -147,10 +128,7 @@ struct HRVDailyStats {
         now: Date = .now,
         calendar: Calendar = .current
     ) -> Double? {
-        guard let latest = latest(daily),
-              let baseline = baseline(daily, now: now, calendar: calendar),
-              baseline > 0 else { return nil }
-        return ((latest.value - baseline) / baseline) * 100
+        DailySignalStats.deviationPercent(daily, calendar: calendar)
     }
 
     /// What the HRV surfaces should render, so "no data" is never silent.

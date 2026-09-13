@@ -347,3 +347,7 @@ enum ColorTokens {
         }
     }
 }
+
+// `ColorTokens.fatigueZoneColor` lives in `Components/FatigueAttentionBanner.swift`, not here:
+// this file also compiles into the widget extension, which carries no engines, so a token
+// keyed on `FatigueIndexEngine.FatigueZone` cannot sit in the shared file.

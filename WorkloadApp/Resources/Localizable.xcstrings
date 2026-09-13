@@ -1381,6 +1381,839 @@
         }
       }
     },
+    "rhr.chart.annotation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7d avg: %d bpm"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 日平均：%d bpm"
+          }
+        }
+      }
+    },
+    "rhr.chart.annotation.band" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7d avg: %1$d bpm · ±1SD %2$d–%3$d"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "7 日平均：%1$d bpm · ±1SD %2$d–%3$d"
+          }
+        }
+      }
+    },
+    "rhr.chart.empty.message" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No resting heart rate data available. Connect a wearable device through Apple Health."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "无可用的静息心率数据。通过 Apple 健康连接穿戴设备。"
+          }
+        }
+      }
+    },
+    "rhr.detail.about.baseline.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resting heart rate varies enormously between people — 45 bpm can be ordinary for one athlete and unusually low for another. Tuwa compares you only against your own rolling 7-day average, so the number that matters is the deviation, not the reading."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "不同人的静息心率差异极大——45 次/分对一个运动员可能很平常，对另一个人则异常地低。Tuwa 只将你与自己的 7 日滚动平均值比较，所以真正重要的是偏离幅度，而不是数据本身的高低。"
+          }
+        }
+      }
+    },
+    "rhr.detail.about.baseline.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Why your baseline is personal"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为什么基准线因人而异"
+          }
+        }
+      }
+    },
+    "rhr.detail.about.direction.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resting heart rate reads the opposite way to HRV: a rise above your baseline is the fatigue direction, a fall is the rested one. One raised morning is usually noise — alcohol, a late meal, a hard session the day before. Two or three in a row alongside a falling HRV is the pattern, and that is what your readiness score is already weighing."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "静息心率的方向与心率变异性相反：高于基准线是疲劳的方向，低于基准线是恢复的方向。单次升高通常只是噪音——饮酒、晚餐吃太晚、前一天练得重。连续两三次且伴随心率变异性下降，才是真正的模式，而这正是你的准备度评分在监测的内容。"
+          }
+        }
+      }
+    },
+    "rhr.detail.about.direction.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Which direction matters"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "哪个方向值得注意"
+          }
+        }
+      }
+    },
+    "rhr.detail.about.measures.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What resting heart rate measures"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "静息心率是在测量什么"
+          }
+        }
+      }
+    },
+    "rhr.detail.about.window.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Watch computes resting heart rate as a daily figure over your rest periods and refines it through the day, so its timestamp does not mark a morning reading. Tuwa therefore takes one value per calendar day with no time-of-day filter. HRV is the opposite — a momentary measurement whose time of day changes what it means — and keeps its morning window."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Apple Watch 会在你的休息时段上计算出一个每日静息心率，并在一天中不断修正，所以它的时间戳并不代表这是一个晨间读数。因此 Tuwa 每个日历日只取一个值，不做时段筛选。心率变异性正好相反——它是瞬时测量，测量时间会改变它的含义——所以它保留晨间窗口。"
+          }
+        }
+      }
+    },
+    "rhr.detail.about.window.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Why this uses the whole day"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "为什么使用整天的数据"
+          }
+        }
+      }
+    },
+    "rhr.detail.delta.vsAvg" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ vs 7-day avg"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%@ 相对 7 日平均"
+          }
+        }
+      }
+    },
+    "rhr.detail.explanation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resting heart rate is the lowest sustained rate your heart holds while you are at rest. A lower figure usually means better recovery. The dashed line shows your 7-day rolling average."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "静息心率是你在休息状态下心脏维持的最低持续心率。数值越低通常表示恢复越好。虚线显示你的 7 日滚动平均值。"
+          }
+        }
+      }
+    },
+    "rhr.detail.header.subtitleFormat" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld-day resting heart rate"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%lld 日静息心率"
+          }
+        }
+      }
+    },
+    "rhr.detail.header.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resting HR trend"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "静息心率趋势"
+          }
+        }
+      }
+    },
+    "rhr.detail.label.daily" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Daily"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "每日"
+          }
+        }
+      }
+    },
+    "rhr.detail.label.delta" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "DELTA"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "变化"
+          }
+        }
+      }
+    },
+    "rhr.detail.note.building" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Building baseline — %1$lld of %2$lld days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "正在建立基线——已有 %1$lld 天，共需 %2$lld 天。"
+          }
+        }
+      }
+    },
+    "rhr.detail.readout.vsBase" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ %2$+.1f%% vs base"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "%1$@ 相对基准线 %2$+.1f%%"
+          }
+        }
+      }
+    },
+    "rhr.detail.section.about" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ABOUT RESTING HR"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "关于静息心率"
+          }
+        }
+      }
+    },
+    "rhr.detail.section.condition" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Resting HR condition"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "静息心率详情"
+          }
+        }
+      }
+    },
+    "trends.activity.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No sessions in this window."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个窗口内没有训练记录。"
+          }
+        }
+      }
+    },
+    "trends.activity.sentence.baseline" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your own average for %1$lld days is %2$@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你自己 %1$lld 天的平均是 %2$@ 次。"
+          }
+        }
+      }
+    },
+    "trends.activity.unit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "sessions · %lld days"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "次训练 · %lld 天"
+          }
+        }
+      }
+    },
+    "trends.fatigue.component.loadElevation" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "load elevation"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负荷升高"
+          }
+        }
+      }
+    },
+    "trends.fatigue.component.recoveryTrend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "recovery trend"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复趋势"
+          }
+        }
+      }
+    },
+    "trends.fatigue.component.restDebt" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "rest debt"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息负债"
+          }
+        }
+      }
+    },
+    "trends.fatigue.component.sessionDensity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "session density"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练密度"
+          }
+        }
+      }
+    },
+    "trends.fatigue.component.softTissue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "soft tissue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "软组织"
+          }
+        }
+      }
+    },
+    "trends.fatigue.component.wellnessTrend" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "wellness trend"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "主观状态趋势"
+          }
+        }
+      }
+    },
+    "trends.fatigue.empty" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough history yet — %1$lld of %2$lld days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "历史还不够——已有 %1$lld 天，共需 %2$lld 天。"
+          }
+        }
+      }
+    },
+    "trends.fatigue.sentence.held" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your fatigue has held near %1$lld across the last %2$lld days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "过去 %2$lld 天，你的疲劳指数一直在 %1$lld 附近。"
+          }
+        }
+      }
+    },
+    "trends.fatigue.sentence.moved" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your fatigue has moved from %1$lld to %2$lld across the last %3$lld days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "过去 %3$lld 天，你的疲劳指数从 %1$lld 变到 %2$lld。"
+          }
+        }
+      }
+    },
+    "trends.fatigue.sentence.noRelief" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It has not come down on any of the last %lld days."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "最近 %lld 天里，它没有一天下降。"
+          }
+        }
+      }
+    },
+    "trends.fatigue.unit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "index"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "指数"
+          }
+        }
+      }
+    },
+    "trends.fatigue.zone.elevated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Elevated"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "偏高"
+          }
+        }
+      }
+    },
+    "trends.fatigue.zone.high" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "High"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "高"
+          }
+        }
+      }
+    },
+    "trends.fatigue.zone.low" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Low"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低"
+          }
+        }
+      }
+    },
+    "trends.fatigue.zone.veryHigh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Very high"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "很高"
+          }
+        }
+      }
+    },
+    "trends.load.sentence" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acute load is %@× your chronic load."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "急性负荷是你慢性负荷的 %@ 倍。"
+          }
+        }
+      }
+    },
+    "trends.load.sentence.heldRange" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You have held %1$@–%2$@ across this window."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这个窗口内，你一直保持在 %1$@–%2$@。"
+          }
+        }
+      }
+    },
+    "trends.load.unit" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "acute ÷ chronic"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "急性 ÷ 慢性"
+          }
+        }
+      }
+    },
+    "trends.range.oneMonth" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 month"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 个月"
+          }
+        }
+      }
+    },
+    "trends.range.oneWeek" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 week"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "1 周"
+          }
+        }
+      }
+    },
+    "trends.range.twoWeeks" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 weeks"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "2 周"
+          }
+        }
+      }
+    },
+    "trends.section.activity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What you did"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你练了什么"
+          }
+        }
+      }
+    },
+    "trends.section.fatigue" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Fatigue"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "疲劳"
+          }
+        }
+      }
+    },
+    "trends.section.load" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负荷"
+          }
+        }
+      }
+    },
+    "workoutLog.program.orTemplate" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "No program? Start from a template"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还没有训练计划？从模板开始"
+          }
+        }
+      }
+    },
+    "workoutLog.program.pitch" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bring the program you already train on. Tuwa reads it, keeps its position, and adjusts the numbers to how you wake up."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "导入你正在练的训练计划。Tuwa 会读懂它、记住它的进度，并根据你每天醒来的状态调整数字。"
+          }
+        }
+      }
+    },
     "programImport.door.say" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -5714,23 +6547,6 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "创建您的第一个模板以加快训练记录。"
-          }
-        }
-      }
-    },
-    "empty.noTemplates.hint" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Create a template from the Templates tab, or start a blank workout."
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "从“模板”选项卡创建模板，或开始空白训练。"
           }
         }
       }

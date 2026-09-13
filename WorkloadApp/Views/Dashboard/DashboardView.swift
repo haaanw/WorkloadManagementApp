@@ -1,8 +1,15 @@
 import SwiftUI
 import SwiftData
 
+/// The three body signals Today prints, each with a screen behind it.
+///
+/// `.rhr` joined in v1.7.3 (UAT round 1 · U9). Until then RHR was the one cell with no
+/// destination, which is what made it safe for Trends to keep re-plotting all three lines —
+/// with a screen behind every cell, the physiology lives where its number is shown and the
+/// Trends surface is free to answer the question its name asks.
 enum TrendDestination: Hashable {
     case hrv
+    case rhr
     case sleep
 }
 
@@ -328,6 +335,7 @@ struct DashboardView: View {
             .navigationDestination(for: TrendDestination.self) { dest in
                 switch dest {
                 case .hrv:   HRVDetailScreen()
+                case .rhr:   RHRDetailScreen()
                 case .sleep: SleepDetailScreen()
                 }
             }
@@ -681,11 +689,23 @@ struct HeroReadinessCard: View {
         }
     }
 
+    /// Map a reason-tree factor to the screen behind it.
+    ///
+    /// Matched against the LOCALIZED factor labels, not English literals. `ReasoningEngine`
+    /// builds `Factor.label` with `String(localized:)`, so the previous English-literal switch
+    /// returned nil for every factor in zh-Hans — the chevrons and the whole reason-tree
+    /// tap-through silently did not exist in Chinese. Found while adding `.rhr`; the keys are
+    /// the same ones the engine writes.
     private func trendDestination(for factor: ReasoningEngine.Factor) -> TrendDestination? {
         switch factor.label {
-        case "Heart Rate Variability": return .hrv
-        case "Sleep Duration":         return .sleep
-        default:                       return nil
+        case String(localized: "factor.heartRateVariability", defaultValue: "Heart Rate Variability"):
+            return .hrv
+        case String(localized: "factor.restingHeartRate", defaultValue: "Resting Heart Rate"):
+            return .rhr
+        case String(localized: "factor.sleepDuration", defaultValue: "Sleep Duration"):
+            return .sleep
+        default:
+            return nil
         }
     }
 
@@ -776,24 +796,59 @@ struct MetricsStrip: View {
         // reading turns out to be. The sleep reading takes the clock form for the same
         // finding — see `Date.clockDurationString`.
         LazyVGrid(columns: Self.columns, alignment: .leading, spacing: 0) {
-            MetricCell(
+            cell(
+                destination: .hrv,
                 label: "HRV",
                 value: viewModel.latestHRV.map { String(format: "%.0f", $0) } ?? "—",
-                unit: viewModel.latestHRV != nil ? "ms" : nil
-            ) { staleAccessory(viewModel.staleness.daysAgo(viewModel.staleness.lastHRVDate)) }
+                unit: viewModel.latestHRV != nil ? "ms" : nil,
+                identifier: "dashboard.metric.hrv",
+                daysAgo: viewModel.staleness.daysAgo(viewModel.staleness.lastHRVDate)
+            )
 
-            MetricCell(
+            cell(
+                destination: .rhr,
                 label: "RHR",
                 value: viewModel.latestRHR.map { String(format: "%.0f", $0) } ?? "—",
-                unit: viewModel.latestRHR != nil ? "bpm" : nil
-            ) { staleAccessory(viewModel.staleness.daysAgo(viewModel.staleness.lastRHRDate)) }
+                unit: viewModel.latestRHR != nil ? "bpm" : nil,
+                identifier: "dashboard.metric.rhr",
+                daysAgo: viewModel.staleness.daysAgo(viewModel.staleness.lastRHRDate)
+            )
 
-            MetricCell(
+            cell(
+                destination: .sleep,
                 label: "Sleep",
                 value: viewModel.latestSleepMinutes.map { sleepString($0) } ?? "—",
-                unit: viewModel.latestSleepMinutes != nil ? "h" : nil
-            ) { staleAccessory(viewModel.staleness.daysAgo(viewModel.staleness.lastSleepDate)) }
+                unit: viewModel.latestSleepMinutes != nil ? "h" : nil,
+                identifier: "dashboard.metric.sleep",
+                daysAgo: viewModel.staleness.daysAgo(viewModel.staleness.lastSleepDate)
+            )
         }
+    }
+
+    /// One cell, wrapped as the door to its own detail screen (U9's receiving half).
+    ///
+    /// Primitive 2 (Row): a well on press, no scale — a surface that navigates, not a key that
+    /// commits. Same treatment the Trends cards carry, so the two tabs press alike.
+    @ViewBuilder
+    private func cell(
+        destination: TrendDestination,
+        label: String,
+        value: String,
+        unit: String?,
+        identifier: String,
+        daysAgo: Int?
+    ) -> some View {
+        NavigationLink(value: destination) {
+            MetricCell(
+                label: label,
+                value: value,
+                unit: unit,
+                indicatesNavigation: true
+            ) { staleAccessory(daysAgo) }
+        }
+        .buttonStyle(.rowWell(cornerRadius: CornerTokens.card))
+        .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
+        .accessibilityIdentifier(identifier)
     }
 
     /// Three equal columns, top-aligned so a cell that grows a staleness badge does not

@@ -7,11 +7,19 @@ import XCTest
 /// (tab.athlete.*, workoutStart.*, activeWorkout.settings.*, coach surfaces) and failed by
 /// design after the Stage R rehost (36747b8). This suite targets the SwiftUI tree via the
 /// stable IDs added in Stages R/4a/4b: app.loading(.view), tabbar.ink, tab.*,
-/// dashboard.hero, workoutLog.verdictCard/.reason/.strikeZone, workoutLog.startWorkout,
-/// templatePicker.startBlank, activeWorkout.addExercise, trends.hrvTrend, trends.loadTrend,
-/// export.workoutData, profile.movementBank. Coach-mode tests were deleted (coach UI is
-/// intentionally absent from the rehosted app), not ported. The Recovery and Load tabs
-/// (recovery.scoreCard / workload.acwr) retired into Trends — v1.7.3 reorientation slice 3.
+/// dashboard.hero, dashboard.metric.{hrv,rhr,sleep}, workoutLog.verdictCard/.reason/.strikeZone,
+/// workoutLog.voiceLog, workoutLog.startWorkout, templatePicker.startBlank,
+/// activeWorkout.addExercise, trends.fatigue, trends.loadTrend, export.workoutData,
+/// profile.movementBank. Coach-mode tests were deleted (coach UI is intentionally absent from
+/// the rehosted app), not ported. The Recovery and Load tabs (recovery.scoreCard /
+/// workload.acwr) retired into Trends — v1.7.3 reorientation slice 3.
+///
+/// **v1.7.3 · UAT round 1 (U7/U8/U9) moved two routes**, and both are walked below rather than
+/// worked around: the Log header lost its "+" and its ellipsis menu (one door — the mic), so the
+/// template picker is reached from the page's "No program? Start from a template" line, which
+/// still carries `workoutLog.startWorkout`; and the sleep detail is reached from Today's sleep
+/// METRIC CELL, because the Trends glance that used to lead there was retired for re-plotting a
+/// reading Today already prints.
 ///
 /// Run on two simulators for both required App Store device sizes (ASO-03):
 ///   - 6.7" (iPhone 15 Pro Max class)
@@ -122,6 +130,39 @@ final class ScreenshotTests: XCTestCase {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
 
+    /// Scroll until `identifier` is in the accessibility tree, then return it.
+    ///
+    /// Needed because `MetricsStrip` is a `LazyVGrid` well below Today's fold: a lazy container
+    /// does not instantiate off-screen content, so its cells are not merely invisible — they do
+    /// not EXIST to query until something brings them on screen. A plain `waitForExistence` on
+    /// one of them waits out its whole timeout and then fails with "missing", which is what this
+    /// helper exists to stop being mistaken for a broken screen.
+    @discardableResult
+    private func scrollToElement(_ identifier: String, swipes: Int = 6) -> XCUIElement {
+        let element = anyElement(identifier)
+        if element.waitForExistence(timeout: 3) { return element }
+        for _ in 0..<swipes {
+            app.swipeUp()
+            if element.waitForExistence(timeout: 1) { return element }
+        }
+        return element
+    }
+
+    /// The Log tab's door into `TemplatePickerSheet`.
+    ///
+    /// U7 retired the header "+"; the picker is now reached from the page's "No program? Start
+    /// from a template" line, which shows while no program is active — and SCREENSHOT_MODE seeds
+    /// templates, not a program. Resolved through `scrollToElement` rather than
+    /// `app.buttons[...]`: the line is a plain `Button` over a `Text`, which SwiftUI sometimes
+    /// publishes as a StaticText, and it sits under the week strip so a long schedule can push it
+    /// past the fold. One of the four tests entering here failed on exactly that while the other
+    /// three passed in the same run — a type-and-position-agnostic lookup removes both variables.
+    private func templateDoor() -> XCUIElement {
+        let door = scrollToElement("workoutLog.startWorkout")
+        XCTAssertTrue(door.exists, "Start-from-a-template line missing")
+        return door
+    }
+
     // MARK: - Launch surface
 
     func test00_LoadingSurface() throws {
@@ -138,11 +179,11 @@ final class ScreenshotTests: XCTestCase {
         XCTAssertTrue(anyElement("dashboard.hero").waitForExistence(timeout: 10), "Dashboard hero missing on launch")
 
         tapTab("tab.log")
-        XCTAssertTrue(app.buttons["workoutLog.startWorkout"].waitForExistence(timeout: 10), "Log tab content missing")
+        XCTAssertTrue(app.buttons["workoutLog.voiceLog"].waitForExistence(timeout: 10), "Log tab content missing")
 
         tapTab("tab.trends")
-        XCTAssertTrue(anyElement("trends.hrvTrend").waitForExistence(timeout: 10), "Trends HRV card missing")
-        XCTAssertTrue(anyElement("trends.loadTrend").waitForExistence(timeout: 10), "Trends load-trend section missing")
+        XCTAssertTrue(anyElement("trends.fatigue").waitForExistence(timeout: 10), "Trends fatigue hero missing")
+        XCTAssertTrue(anyElement("trends.loadTrend").waitForExistence(timeout: 10), "Trends load section missing")
 
         tapTab("tab.profile")
         XCTAssertTrue(app.buttons["profile.movementBank"].waitForExistence(timeout: 10), "Profile movement-bank row missing")
@@ -163,19 +204,20 @@ final class ScreenshotTests: XCTestCase {
     func test03_WorkoutLog() throws {
         launchAuthenticatedApp()
         tapTab("tab.log")
-        XCTAssertTrue(app.buttons["workoutLog.startWorkout"].waitForExistence(timeout: 10), "Workout start action missing")
+        XCTAssertTrue(app.buttons["workoutLog.voiceLog"].waitForExistence(timeout: 10), "Log capture action missing")
         sleep(2)
         saveScreenshot("04_WorkoutLog")
     }
 
-    /// The merged Trends tab (v1.7.3 reorientation slice 3) — replaces the retired
-    /// Recovery + Load captures (`03_Recovery` / `02_Workload`). One capture: the tab's
-    /// top — HRV and sleep glance charts with the load-trend section entering. The store
-    /// set is 8 plates until the ASO re-shoot re-decides it.
+    /// The re-scoped Trends tab (v1.7.3 · UAT round 1 · U9). The capture is the tab's top:
+    /// the FATIGUE hero — index, zone, accumulation chart, trajectory sentence and the
+    /// engine's component reason tree — with the load section entering under it. It used to
+    /// be the HRV and sleep glance charts; those readings moved behind Today's metric cells,
+    /// so the caption changed with the composition (`scripts/frame_screenshots.swift`).
     func test04_Trends() throws {
         launchAuthenticatedApp()
         tapTab("tab.trends")
-        XCTAssertTrue(anyElement("trends.hrvTrend").waitForExistence(timeout: 10), "Trends HRV card missing")
+        XCTAssertTrue(anyElement("trends.fatigue").waitForExistence(timeout: 10), "Trends fatigue hero missing")
         sleep(2)
         saveScreenshot("02_Trends")
     }
@@ -232,8 +274,7 @@ final class ScreenshotTests: XCTestCase {
         launchAuthenticatedApp()
         tapTab("tab.log")
 
-        let start = app.buttons["workoutLog.startWorkout"]
-        XCTAssertTrue(start.waitForExistence(timeout: 10), "Workout start action missing")
+        let start = templateDoor()
         start.tap()
 
         let startBlank = app.buttons["templatePicker.startBlank"]
@@ -247,7 +288,7 @@ final class ScreenshotTests: XCTestCase {
     func test09_ExercisePicker_SearchesCatalog() throws {
         launchAuthenticatedApp()
         tapTab("tab.log")
-        app.buttons["workoutLog.startWorkout"].tap()
+        templateDoor().tap()
         let startBlank = app.buttons["templatePicker.startBlank"]
         XCTAssertTrue(startBlank.waitForExistence(timeout: 10), "Template picker blank-start action missing")
         startBlank.tap()
@@ -298,7 +339,7 @@ final class ScreenshotTests: XCTestCase {
     func test12_TemplatePicker_ShowsTemplates() throws {
         launchAuthenticatedApp()
         tapTab("tab.log")
-        app.buttons["workoutLog.startWorkout"].tap()
+        templateDoor().tap()
 
         XCTAssertTrue(app.buttons["templatePicker.startBlank"].waitForExistence(timeout: 10), "Template picker missing")
         // Seeded data includes at least one template row in SCREENSHOT_MODE; tolerate zero
@@ -318,8 +359,7 @@ final class ScreenshotTests: XCTestCase {
         launchAuthenticatedApp()
         tapTab("tab.log")
 
-        let start = app.buttons["workoutLog.startWorkout"]
-        XCTAssertTrue(start.waitForExistence(timeout: 10), "Workout start action missing")
+        let start = templateDoor()
         start.tap()
 
         // Selecting a template dismisses the picker and opens the active sheet pre-filled.
@@ -399,25 +439,18 @@ final class ScreenshotTests: XCTestCase {
 
     // MARK: - Sleep detail (the only surface carrying the sleep hue)
 
-    /// Reached from the Trends tab's sleep-trend card (the Recovery tab retired into
-    /// Trends, v1.7.3 reorientation slice 3). The NavigationLink carries no accessibility
-    /// identifier, so the card is matched on what it renders instead.
-    ///
-    /// The needle is `7.5`, from `sleep.chart.annotation` ("7.5h target" / "7.5 小时目标"): it is
-    /// the one string on that card that survives translation intact. Matching the word "Sleep"
-    /// does NOT work — SwiftUI composes the NavigationLink's accessibility label out of the
-    /// chart's own annotations, so the button reads `7.5h target`, and the only element on the
-    /// screen labelled "Sleep" is a StaticText inside the score card, which is not tappable.
+    /// Reached from **Today's sleep metric cell** (v1.7.3 · UAT round 1 · U9). It used to be
+    /// reached from the Trends tab's sleep-trend glance card; that glance re-plotted a reading
+    /// Today already prints, so it was retired and the cell that prints the number became the
+    /// door to its history. This test walks the new route, which is also the route an athlete
+    /// now has — so a broken tap-through fails here rather than in the next UAT round.
     func test15_SleepDetail_Opens() throws {
         launchAuthenticatedApp()
-        tapTab("tab.trends")
-        XCTAssertTrue(anyElement("trends.hrvTrend").waitForExistence(timeout: 10), "Trends HRV card missing")
+        tapTab("tab.home")
 
-        let sleepLink = app.buttons
-            .matching(NSPredicate(format: "label CONTAINS %@", "7.5"))
-            .firstMatch
-        XCTAssertTrue(sleepLink.waitForExistence(timeout: 10), "Sleep trend card missing")
-        sleepLink.tap()
+        let sleepCell = scrollToElement("dashboard.metric.sleep")
+        XCTAssertTrue(sleepCell.exists, "Today's sleep metric cell missing")
+        sleepCell.tap()
 
         // `SleepDetailView` falls back to persisted RecoverySnapshots when HealthKit has no
         // nights — which is always true on a SCREENSHOT_MODE simulator — so the seeded 12
@@ -430,5 +463,24 @@ final class ScreenshotTests: XCTestCase {
         )
         sleep(2)
         saveScreenshot("12_SleepDetail")
+    }
+
+    /// The third cell, and the one that did not exist before this pass. `TrendDestination` had
+    /// two cases; wiring three cells needed a third screen, and without it the RHR cell would
+    /// have been an inert door with a caret on it.
+    func test17_RHRDetail_Opens() throws {
+        launchAuthenticatedApp()
+        tapTab("tab.home")
+
+        let rhrCell = scrollToElement("dashboard.metric.rhr")
+        XCTAssertTrue(rhrCell.exists, "Today's RHR metric cell missing")
+        rhrCell.tap()
+
+        let lang = ProcessInfo.processInfo.environment["SCREENSHOT_LANG"] ?? "en"
+        let detailTitle = lang == "zh-Hans" ? "静息心率趋势" : "Resting HR trend"
+        XCTAssertTrue(
+            app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@", detailTitle)).firstMatch.waitForExistence(timeout: 10),
+            "Resting-HR detail did not open"
+        )
     }
 }

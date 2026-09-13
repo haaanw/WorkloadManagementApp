@@ -56,26 +56,36 @@ struct TemplateListView: View {
                 } else {
                     ForEach(templates, id: \.id) { template in
                         Button {
+                            Haptics.tap()
                             selectedTemplate = template
                             showEditor = true
                         } label: {
                             templateRow(template)
                         }
+                        .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                         Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
                     }
                 }
 
+                // U8 · authoring, DEMOTED not deleted. This is where the "Create template"
+                // key went when it left the Log header and the Log empty-state hero: the LAST
+                // row of the screen that already lists what the athlete owns. Templates remain
+                // the storage format a parsed program resolves into, so the surface has to
+                // exist — it just stops being sold ahead of the program.
                 Button {
+                    Haptics.tap()
                     selectedTemplate = nil
                     showEditor = true
                 } label: {
                     Label("template.nav.newTemplate", systemImage: "plus")
                         .font(.Tokens.body)
-                        .foregroundStyle(ColorTokens.text1)
+                        .foregroundStyle(ColorTokens.text2)
                         .frame(maxWidth: .infinity)
                         .padding(.vertical, 16)
                 }
+                .buttonStyle(.pressable(scale: 1, opacity: 0.6))
                 .background(ColorTokens.surface)
+                .accessibilityIdentifier("templates.newTemplate")
 
                 Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
             }

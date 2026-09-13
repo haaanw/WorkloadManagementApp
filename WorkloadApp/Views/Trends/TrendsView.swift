@@ -1,16 +1,28 @@
 import SwiftUI
 import SwiftData
 
-/// The merged Trends tab (v1.7.3 reorientation slice 3 — APP-REORIENTATION §4.2
-/// Option A). The Recovery and Load tabs were read-only exhibits that duplicated Home's
-/// readings (appendix §6): the recovery hero re-rendered Home's hero, the ACWR gauge and
-/// ATL/CTL/TSB grid re-rendered Home's `TrainingLoadSection` cells. This screen keeps
-/// what those tabs alone carried — the trend charts, histories, and insights — and
-/// retires the duplicated current-readings; Home owns "now", Trends owns "over time".
+/// The Trends tab, re-scoped in v1.7.3 (UAT round 1 · U9) around the FATIGUE NARRATIVE.
 ///
-/// Free-tier gating carries over from the retired tabs EXACTLY: the history window
-/// filter + teaser, the Pro-only range control, the Pro-only Recovery-vs-Load chart,
-/// the 7-day free PR window, and the export gate.
+/// It arrived here in two steps. Slice 3 merged the Recovery and Load tabs, which were
+/// read-only exhibits duplicating Home's readings, into one page of trend charts. HAN's round-1
+/// verdict on that page was that it carried no insight: seven charts and not one sentence, two
+/// of them re-plotting HRV and sleep readings Today already prints. So the page now answers the
+/// one over-time question the product is built for — **what have the last weeks added up to in
+/// my fatigue budget** — and the physiology lines left for the metric cells that name them
+/// (Today's HRV / RHR / sleep cells each push their own detail screen since this same pass).
+///
+/// Order: range rail → fatigue (hero, with its accumulation series and trajectory) → load →
+/// what you did → the carried-over sections (Pro recovery-vs-load, check-ins, insights, PRs).
+///
+/// **Claim rails.** The fatigue copy describes accumulation and trajectory — readings of stored
+/// values and counts against the athlete's own baseline. It never names an injury risk, never
+/// forecasts, and never prescribes: Trends describes, Today decides.
+///
+/// Free-tier gating carries over EXACTLY, and nothing here re-prices anything: the history
+/// window filter + teaser, the Pro-only range control, the Pro-only Recovery-vs-Load chart, the
+/// 7-day free PR window, and the export gate. The fatigue series deliberately reads the
+/// athlete's full history — Today's fatigue banner already does, and a filtered hero would make
+/// the two tabs contradict each other about the same number on the same day.
 struct TrendsView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
@@ -18,8 +30,6 @@ struct TrendsView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Environment(\.scenePhase) private var scenePhase
     @Query private var athletes: [Athlete]
-    @Query(sort: \RecoverySnapshot.date, order: .reverse)
-    private var recoverySnapshots: [RecoverySnapshot]
     @Query(sort: \WellnessCheckIn.date, order: .reverse)
     private var wellnessCheckIns: [WellnessCheckIn]
     @Query(sort: \WorkloadSnapshot.snapshotDate, order: .reverse)
@@ -37,20 +47,10 @@ struct TrendsView: View {
     @State private var showUpgradeForExport = false
     @State private var exportFileURL: URL?
     @State private var showPDFSheet = false
-    /// HealthKit-derived nights (v1.7.1 round 2) — the sleep glance draws these when
-    /// present; persisted snapshots (pre-fix inflated values and gaps) are the fallback.
-    /// `fetchSleepNights` is not on the `HealthDataProviding` seam, so the fetch lives
-    /// at the call site (the RecoveryView precedent).
-    @State private var hkSleepNights: [SleepSessionMath.NightSummary] = []
 
     private var athlete: Athlete? { athletes.first }
 
     // MARK: Scoped queries
-
-    private var scopedRecoverySnapshots: [RecoverySnapshot] {
-        guard let athleteId = athlete?.id else { return [] }
-        return recoverySnapshots.filter { $0.athlete?.id == athleteId }
-    }
 
     private var scopedWellnessCheckIns: [WellnessCheckIn] {
         guard let athleteId = athlete?.id else { return [] }
@@ -100,249 +100,227 @@ struct TrendsView: View {
         Array(visibleSnapshots.prefix(viewModel.selectedRange.days).reversed())
     }
 
-    // MARK: Sleep glance window (carried over from the retired Recovery tab)
-
-    /// The 28-day window (oldest first) the sleep glance chart reads as its snapshot
-    /// fallback — the detail screen (`SleepDetailScreen`) builds its own window.
-    private var sleepWindow: [RecoverySnapshot] {
-        Array(scopedRecoverySnapshots.prefix(28).reversed())
-    }
-
-    private var sleepGlancePoints: [SleepNightPoint] {
-        if !hkSleepNights.isEmpty {
-            let calendar = Calendar.current
-            let cutoff = calendar.date(
-                byAdding: .day, value: -28,
-                to: calendar.startOfDay(for: .now)
-            )!
-            return hkSleepNights
-                .filter { $0.wakeDay >= cutoff }
-                .map { SleepNightPoint(date: $0.wakeDay, minutes: $0.tstMinutes) }
-        }
-        return sleepWindow.compactMap { snapshot in
-            guard let minutes = snapshot.sleepDurationMinutes else { return nil }
-            return SleepNightPoint(date: snapshot.date, minutes: minutes)
-        }
-    }
+    // The sleep-glance window and its HealthKit-nights fetch left with the glance chart
+    // (v1.7.3 · U9). `SleepDetailScreen` — reached from Today's sleep cell — builds its own.
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(spacing: 0) {
-                    // Editorial screen header — in-content title; the export action rides
-                    // its baseline (carried from the retired Load tab, gate unchanged).
-                    ScreenHeader(title: "trends.nav.title") {
-                        Button {
-                            Haptics.tap()
-                            if container.subscriptionService.isPro {
-                                showExportOptions = true
-                            } else {
-                                showUpgradeForExport = true
+            VStack(spacing: 0) {
+                // Editorial screen header — in-content title; the export action rides
+                // its baseline (carried from the retired Load tab, gate unchanged).
+                ScreenHeader(title: "trends.nav.title") {
+                    Button {
+                        Haptics.tap()
+                        if container.subscriptionService.isPro {
+                            showExportOptions = true
+                        } else {
+                            showUpgradeForExport = true
+                        }
+                    } label: {
+                        Image(systemName: "square.and.arrow.up")
+                            .font(.Tokens.body)
+                            .foregroundStyle(ColorTokens.text1)
+                    }
+                    .accessibilityLabel("a11y.exportWorkoutData")
+                    .accessibilityIdentifier("export.workoutData")
+                    .buttonStyle(.pressable)
+                }
+                .padding(.top, Spacing.md)
+
+                // The range rail is the page's spine, so it sits under the header rather than
+                // inside a section — the Log tab's filter-rail position, bracketed by the same
+                // area hairlines. It stays PRO, exactly as the retired Load tab's range control
+                // was: a free athlete reads the default fortnight, which is the fatigue model's
+                // own window.
+                if container.subscriptionService.isPro {
+                    AreaRule()
+                    TrendsRangeRail(selected: $viewModel.selectedRange)
+                    AreaRule()
+                }
+
+                ScrollView {
+                    VStack(spacing: 0) {
+                        // 1. Fatigue — the hero, and the reason this page exists.
+                        RuledSection(header: "trends.section.fatigue", topGap: Spacing.sm) {
+                            TrendsFatigueSection(
+                                points: viewModel.fatiguePoints,
+                                trajectory: viewModel.trajectory,
+                                daysWithoutRelief: viewModel.daysWithoutRelief,
+                                observedHistoryDays: viewModel.observedHistoryDays,
+                                hasEnoughHistory: viewModel.hasEnoughHistory,
+                                rangeDays: viewModel.selectedRange.days
+                            )
+                            .padding(.horizontal, Spacing.sm)
+                        }
+                        .entranceReveal()
+
+                        // 2. Load — acute ÷ chronic, its chart, and the range actually held.
+                        RuledSection(header: "trends.section.load") {
+                            TrendsLoadSection(
+                                snapshot: viewModel.latestLoadSnapshot,
+                                acwrRange: viewModel.acwrRange,
+                                trendSnapshots: trendData,
+                                selectedTrendDate: $selectedTrendDate
+                            )
+                            .padding(.horizontal, Spacing.sm)
+                        }
+                        .entranceReveal(index: 1)
+
+                        // 3. What you did — sessions against the athlete's own average.
+                        RuledSection(header: "trends.section.activity") {
+                            TrendsWhatYouDidSection(
+                                sessionCount: viewModel.sessionsInRange,
+                                baselineSessions: viewModel.baselineSessionsInRange,
+                                bars: viewModel.dailyLoadBars,
+                                typeCounts: viewModel.sessionTypeCounts,
+                                rangeDays: viewModel.selectedRange.days
+                            )
+                            .padding(.horizontal, Spacing.sm)
+                        }
+                        .entranceReveal(index: 2)
+
+                        if lockedWeeks > 0 {
+                            SectionContainer {
+                                HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
+                                    showUpgrade = true
+                                }
+                                .padding(.horizontal, Spacing.sm)
                             }
-                        } label: {
-                            Image(systemName: "square.and.arrow.up")
-                                .font(.Tokens.body)
-                                .foregroundStyle(ColorTokens.text1)
+                            .transition(.opacity)
+                            .entranceReveal(index: 3)
                         }
-                        .accessibilityLabel("a11y.exportWorkoutData")
-                        .accessibilityIdentifier("export.workoutData")
-                        .buttonStyle(.pressable)
-                    }
 
-                    // HRV + sleep glance charts, each navigating to its zoomed screen.
-                    // Primitive 2 (Row): a well on press, no scale — surfaces that
-                    // navigate, not keys that commit. The 16pt page margin is on the LINK,
-                    // not its label, so the pressed well's rect is the card's rect.
-                    RuledSection(header: "recovery.section.hrvTrend", topGap: Spacing.sm) {
-                        NavigationLink(value: TrendDestination.hrv) {
-                            HRVTrendChart(data: viewModel.hrvGlance)
-                                // v6.3: HRV is the recovery area's primary reading, so this is
-                                // the Trends hero — the one card here that takes the 4% wash.
-                                // The sleep and load cards below stay plain stone.
-                                .cardStyle(isHero: true)
-                        }
-                        .buttonStyle(.rowWell(cornerRadius: CornerTokens.card))
-                        .padding(.horizontal, Spacing.sm)
-                        .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
-                        .accessibilityIdentifier("trends.hrvTrend")
-                    }
-                    .entranceReveal()
-
-                    RuledSection(header: "recovery.section.sleepTrend") {
-                        NavigationLink(value: TrendDestination.sleep) {
-                            SleepTrendChart(nights: sleepGlancePoints)
-                                .cardStyle()
-                        }
-                        .buttonStyle(.rowWell(cornerRadius: CornerTokens.card))
-                        .padding(.horizontal, Spacing.sm)
-                        .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
-                    }
-                    .entranceReveal(index: 1)
-
-                    // Load trend (carried from the retired Load tab; range control Pro).
-                    RuledSection(header: "workload.section.loadTrend") {
-                        VStack(spacing: 0) {
-                            if container.subscriptionService.isPro {
-                                TimeRangeSegmentedControl(selected: $viewModel.selectedRange)
-                                    .padding(.bottom, Spacing.sm)
-                            }
-
-                            if trendData.count > 1 {
-                                LoadTrendChartView(
-                                    snapshots: trendData,
-                                    selectedDate: $selectedTrendDate
+                        // The Pro chart stays Pro (closure-plan law).
+                        if container.subscriptionService.isPro {
+                            RuledSection(header: "workload.section.recoveryVsLoad") {
+                                RecoveryLoadChart(
+                                    loadSnapshots: viewModel.correlationLoadSnapshots,
+                                    recoverySnapshots: viewModel.correlationRecoverySnapshots
                                 )
                                 .cardStyle()
-                            } else {
-                                // Say why there is no chart (v1.7.2 / audit M10) — a young
-                                // history, not a rendering failure.
-                                Text("workload.chart.insufficientData")
-                                    .font(.Tokens.label)
-                                    .foregroundStyle(ColorTokens.text2)
-                                    .frame(maxWidth: .infinity, alignment: .leading)
-                                    .padding(Spacing.md)
-                                    .cardStyle()
-                            }
-                        }
-                        .padding(.horizontal, Spacing.sm)
-                        .accessibilityIdentifier("trends.loadTrend")
-                    }
-                    // v6.3: a LOAD surface sitting on a recovery screen — the section owns the
-                    // load hue, so its section rule reads as load while the rest of the screen
-                    // reads as recovery. Ownership follows the metric, not the tab.
-                    .metricArea(.load)
-                    .entranceReveal(index: 2)
-
-                    if lockedWeeks > 0 {
-                        SectionContainer {
-                            HistoryTeaserBanner(lockedWeeks: lockedWeeks) {
-                                showUpgrade = true
-                            }
-                            .padding(.horizontal, Spacing.sm)
-                        }
-                        .transition(.opacity)
-                        .entranceReveal(index: 3)
-                    }
-
-                    // The Pro chart stays Pro (closure-plan law).
-                    if container.subscriptionService.isPro {
-                        RuledSection(header: "workload.section.recoveryVsLoad") {
-                            RecoveryLoadChart(
-                                loadSnapshots: viewModel.correlationLoadSnapshots,
-                                recoverySnapshots: viewModel.correlationRecoverySnapshots
-                            )
-                            .cardStyle()
-                            .padding(.horizontal, Spacing.sm)
-                        }
-                        .transition(.opacity)
-                        .entranceReveal(index: 4)
-                    }
-
-                    if !scopedWellnessCheckIns.isEmpty {
-                        RuledSection(header: "recovery.section.wellnessCheckIns") {
-                            WellnessHistorySection(checkIns: Array(scopedWellnessCheckIns.prefix(7)))
                                 .padding(.horizontal, Spacing.sm)
+                            }
+                            // v6.3: a RECOVERY surface sitting on a load screen — the section
+                            // owns the recovery hue, so its rule reads as recovery while the
+                            // page around it reads as load. Ownership follows the metric, not
+                            // the tab. (This is the inversion of what the load trend used to do
+                            // here, and it moved for the same reason: the page's hero changed.)
+                            .metricArea(.recovery)
+                            .transition(.opacity)
+                            .entranceReveal(index: 4)
                         }
-                        .transition(.opacity)
-                        .entranceReveal(index: 5)
-                    }
 
-                    // INSIGHTS section (INTEL-05, D-07) — carried from the retired
-                    // Recovery tab unchanged.
-                    if !viewModel.fatigueInsights.isEmpty || !viewModel.behaviorCorrelations.isEmpty || !viewModel.behaviorSufficiency.isEmpty {
-                        if !viewModel.fatigueInsights.isEmpty {
-                            RuledSection(header: "recovery.section.insights") {
-                                VStack(alignment: .leading, spacing: Spacing.sm) {
-                                    ForEach(Array(viewModel.fatigueInsights.prefix(5).enumerated()), id: \.offset) { _, insight in
-                                        InsightCard(text: insight.text, sampleSize: insight.sampleSize)
+                        if !scopedWellnessCheckIns.isEmpty {
+                            RuledSection(header: "recovery.section.wellnessCheckIns") {
+                                WellnessHistorySection(checkIns: Array(scopedWellnessCheckIns.prefix(7)))
+                                    .padding(.horizontal, Spacing.sm)
+                            }
+                            .transition(.opacity)
+                            .entranceReveal(index: 5)
+                        }
+
+                        // INSIGHTS section (INTEL-05, D-07) — carried from the retired
+                        // Recovery tab unchanged.
+                        if !viewModel.fatigueInsights.isEmpty || !viewModel.behaviorCorrelations.isEmpty || !viewModel.behaviorSufficiency.isEmpty {
+                            if !viewModel.fatigueInsights.isEmpty {
+                                RuledSection(header: "recovery.section.insights") {
+                                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                                        ForEach(Array(viewModel.fatigueInsights.prefix(5).enumerated()), id: \.offset) { _, insight in
+                                            InsightCard(text: insight.text, sampleSize: insight.sampleSize)
+                                        }
                                     }
+                                    .padding(.horizontal, Spacing.sm)
                                 }
+                                .transition(.opacity)
+                                .entranceReveal(index: 6)
+                            }
+
+                            if !viewModel.behaviorCorrelations.isEmpty || !viewModel.behaviorSufficiency.isEmpty {
+                                RuledSection(header: "recovery.section.behaviorImpact") {
+                                    VStack(alignment: .leading, spacing: Spacing.sm) {
+                                        // Sufficient correlations first
+                                        ForEach(viewModel.behaviorCorrelations.filter { $0.isSufficient }, id: \.tagName) { correlation in
+                                            BehaviorCorrelationRow(
+                                                tagName: correlation.tagName,
+                                                impactPercentage: correlation.impactPercentage,
+                                                sampleCountWith: correlation.sampleCountWith,
+                                                sampleCountWithout: correlation.sampleCountWithout,
+                                                isSufficient: true,
+                                                neededDays: 0
+                                            )
+                                        }
+
+                                        // Insufficient tags below
+                                        ForEach(viewModel.behaviorSufficiency.filter { $0.neededWith > 0 || $0.neededWithout > 0 }, id: \.tagName) { info in
+                                            BehaviorCorrelationRow(
+                                                tagName: info.tagName,
+                                                impactPercentage: 0,
+                                                sampleCountWith: info.daysWithTag,
+                                                sampleCountWithout: info.daysWithoutTag,
+                                                isSufficient: false,
+                                                neededDays: max(info.neededWith, info.neededWithout)
+                                            )
+                                        }
+                                    }
+                                    .padding(.horizontal, Spacing.sm)
+                                }
+                                .transition(.opacity)
+                                .entranceReveal(index: 7)
+                            }
+                        } else if viewModel.recoveryHistory.count > 7 {
+                            // Has some recovery data but no insights yet — show encouragement
+                            RuledSection(header: "recovery.section.insights") {
+                                DataSufficiencyRing(
+                                    progress: 0,
+                                    label: String(localized: "recovery.section.insights.prompt", defaultValue: "Tag behaviors in your morning check-in to see recovery impact"),
+                                    message: ""
+                                )
+                                .frame(maxWidth: .infinity)
+                                .cardStyle(verticalPadding: Spacing.sm)
                                 .padding(.horizontal, Spacing.sm)
                             }
                             .transition(.opacity)
                             .entranceReveal(index: 6)
                         }
 
-                        if !viewModel.behaviorCorrelations.isEmpty || !viewModel.behaviorSufficiency.isEmpty {
-                            RuledSection(header: "recovery.section.behaviorImpact") {
-                                VStack(alignment: .leading, spacing: Spacing.sm) {
-                                    // Sufficient correlations first
-                                    ForEach(viewModel.behaviorCorrelations.filter { $0.isSufficient }, id: \.tagName) { correlation in
-                                        BehaviorCorrelationRow(
-                                            tagName: correlation.tagName,
-                                            impactPercentage: correlation.impactPercentage,
-                                            sampleCountWith: correlation.sampleCountWith,
-                                            sampleCountWithout: correlation.sampleCountWithout,
-                                            isSufficient: true,
-                                            neededDays: 0
-                                        )
-                                    }
-
-                                    // Insufficient tags below
-                                    ForEach(viewModel.behaviorSufficiency.filter { $0.neededWith > 0 || $0.neededWithout > 0 }, id: \.tagName) { info in
-                                        BehaviorCorrelationRow(
-                                            tagName: info.tagName,
-                                            impactPercentage: 0,
-                                            sampleCountWith: info.daysWithTag,
-                                            sampleCountWithout: info.daysWithoutTag,
-                                            isSufficient: false,
-                                            neededDays: max(info.neededWith, info.neededWithout)
-                                        )
-                                    }
-                                }
-                                .padding(.horizontal, Spacing.sm)
+                        if !visibleRecords.isEmpty {
+                            RuledSection(header: "workload.section.recentPRs") {
+                                PRHistorySection(records: visibleRecords)
+                                    .padding(.horizontal, Spacing.sm)
                             }
                             .transition(.opacity)
-                            .entranceReveal(index: 7)
+                            .entranceReveal(index: 8)
                         }
-                    } else if viewModel.recoveryHistory.count > 7 {
-                        // Has some recovery data but no insights yet — show encouragement
-                        RuledSection(header: "recovery.section.insights") {
-                            DataSufficiencyRing(
-                                progress: 0,
-                                label: String(localized: "recovery.section.insights.prompt", defaultValue: "Tag behaviors in your morning check-in to see recovery impact"),
-                                message: ""
-                            )
-                            .frame(maxWidth: .infinity)
-                            .cardStyle(verticalPadding: Spacing.sm)
-                            .padding(.horizontal, Spacing.sm)
-                        }
-                        .transition(.opacity)
-                        .entranceReveal(index: 6)
-                    }
 
-                    if !visibleRecords.isEmpty {
-                        RuledSection(header: "workload.section.recentPRs") {
-                            PRHistorySection(records: visibleRecords)
-                                .padding(.horizontal, Spacing.sm)
-                        }
-                        .transition(.opacity)
-                        .entranceReveal(index: 8)
+                        Spacer().frame(height: Spacing.lg)
                     }
-
-                    Spacer().frame(height: Spacing.lg)
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.isLoading)
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: lockedWeeks)
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: visibleRecords.count)
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: scopedWellnessCheckIns.isEmpty)
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.fatigueInsights.count)
+                    .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.behaviorCorrelations.count)
                 }
-                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.isLoading)
-                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: lockedWeeks)
-                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: visibleRecords.count)
-                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: scopedWellnessCheckIns.isEmpty)
-                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.fatigueInsights.count)
-                .animation(Motion.resolved(Motion.state, reduceMotion: reduceMotion), value: viewModel.behaviorCorrelations.count)
+                .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
+                .background(ColorTokens.background)
             }
-            .contentMargins(.top, Spacing.md, for: .scrollContent)
-            .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
+            // On the VStack, not just the ScrollView: the header and the range rail above it
+            // would otherwise render on the system's pure white (the Log tab's own finding).
             .background(ColorTokens.background)
-            // v6.3 "The Area Tint": Trends is the RECOVERY area — its primary readings are HRV
-            // and the recovery physiology behind the score. The load sections inside it declare
-            // `.metricArea(.load)` on themselves (a section can own a different metric family
-            // than the screen it sits on); the pushed detail screens declare their own.
-            .metricArea(.recovery)
+            // v6.3 "The Area Tint": with the re-scope this became a LOAD surface. The page's
+            // hero is the fatigue index — an accumulation reading in the load hue — so the tint
+            // follows the metric, as the ownership map requires. It was `.recovery` while the
+            // page was a chart exhibit fronted by HRV; that reading left with the glance charts.
+            // The recovery-vs-load section declares `.metricArea(.recovery)` on ITSELF below,
+            // the way the load trend used to declare its own hue here.
+            .metricArea(.load)
             .toolbar(.hidden, for: .navigationBar)
             // Same destination enum Home routes on, so both tabs land on the SAME
             // self-fetching screens (`TrendDetailScreens` — the one fetch path).
             .navigationDestination(for: TrendDestination.self) { destination in
                 switch destination {
                 case .hrv:   HRVDetailScreen()
+                case .rhr:   RHRDetailScreen()
                 case .sleep: SleepDetailScreen()
                 }
             }
@@ -387,15 +365,16 @@ struct TrendsView: View {
                 Task { await loadData() }
             }
             .onChange(of: viewModel.selectedRange) { _, _ in
-                // `trendData` re-slices reactively from the query; the haptic marks the
-                // commit and the animation settles the re-scaled chart.
-                Haptics.select()
+                // `trendData` re-slices reactively from the query, but the fatigue series and
+                // the activity read are COMPUTED over the window — they have to be rebuilt, or
+                // the rail would move the load chart and leave the hero on the old fortnight.
+                // The rail's own haptic marks the commit; this is the work behind it.
+                Task { await loadData() }
             }
         }
     }
 
     private func loadData() async {
-        hkSleepNights = (try? await container.healthKitService.fetchSleepNights(days: 28)) ?? []
         guard let athlete else { return }
         await viewModel.load(
             athlete: athlete,
