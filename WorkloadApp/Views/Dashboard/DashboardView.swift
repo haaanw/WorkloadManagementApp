@@ -17,6 +17,8 @@ struct DashboardView: View {
     @Environment(AppContainer.self) private var container
     @Environment(\.modelContext) private var modelContext
     @Environment(\.scenePhase) private var scenePhase
+    /// R9 seam — read here for `pendingAnchor` (U12: a notification tap's destination).
+    @Environment(TabRouter.self) private var router
     /// Opt-in: a daily question ahead of the score is a real cost, so it is never imposed.
     @AppStorage("morningProbeEnabled") private var morningProbeEnabled: Bool = false
     @State private var showMorningProbe = false
@@ -30,10 +32,6 @@ struct DashboardView: View {
     @State private var showActiveWorkout = false
     @State private var showWellnessCheckIn = false
     @State private var showTrainingProfile = false
-    // Reorientation slice 1 (R2) — the CTA's start-ready plan, launched as its own
-    // ActiveWorkoutSheet path exactly like WorkoutLogView's verdict-card start.
-    @State private var resolvedPlanForSession: ResolvedSessionPlan?
-    @State private var showResolvedWorkout = false
     @State private var viewModel = DashboardViewModel()
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
 
@@ -60,6 +58,9 @@ struct DashboardView: View {
 
     var body: some View {
         NavigationStack {
+            // U12: a weekly-review notification tap sets `router.pendingAnchor`; the reader
+            // is what lets this screen scroll to the card the notification is about.
+            ScrollViewReader { proxy in
             ScrollView {
                 VStack(spacing: 0) {
                     // 0. Editorial screen header (Stage 4a) — the visible title lives in the
@@ -183,10 +184,13 @@ struct DashboardView: View {
 
                         Spacer().frame(height: Spacing.lg)
 
-                        // Weekly Summary (ANLYT-02, ANLYT-03, D-03)
+                        // Weekly Summary (ANLYT-02, ANLYT-03, D-03). U12: this is where the
+                        // weekly-review notification lands — both branches carry the anchor id
+                        // so the tap reaches the card OR its empty state, never nothing.
                         if let summary = viewModel.weeklySummary, summary.sessionCount > 0 {
                             WeeklySummaryCard(summary: summary, streak: viewModel.currentStreak)
                                 .padding(.horizontal, Spacing.sm)
+                                .id(NotificationService.weeklySummaryRoute)
                             // Bordered card planes separate by grid gap, not a jammed hairline
                             // (hairlines are for rows INSIDE a plane — Separator Grammar).
                             Spacer().frame(height: Spacing.sm)
@@ -199,18 +203,18 @@ struct DashboardView: View {
                                         Task {
                                             let granted = await container.notificationService.requestAuthorization()
                                             if granted {
-                                                container.notificationService.scheduleWeeklySummary(
-                                                    weekday: 1,
-                                                    hour: 19,
-                                                    minute: 0,
-                                                    sessionCount: viewModel.weeklySummary?.sessionCount ?? 0,
-                                                    streak: viewModel.currentStreak,
-                                                    prCount: 0,
-                                                    volumeDelta: viewModel.weeklySummary?.volumeDelta ?? 0
-                                                )
                                                 UserDefaults.standard.set(true, forKey: "notificationsEnabled")
                                                 UserDefaults.standard.set(1, forKey: "notificationDay")
                                                 UserDefaults.standard.set("19:00", forKey: "notificationTime")
+                                                // U12: the trigger REPEATS, so whatever is
+                                                // scheduled here is what the body says every
+                                                // week. One scheduling path, the one that
+                                                // reads the athlete's real numbers — the old
+                                                // inline call shipped `prCount: 0` forever.
+                                                viewModel.refreshNotificationContent(
+                                                    notificationService: container.notificationService,
+                                                    modelContext: modelContext
+                                                )
                                             }
                                         }
                                     },
@@ -228,6 +232,7 @@ struct DashboardView: View {
                                 .foregroundStyle(ColorTokens.text2)
                                 .cardStyle(verticalPadding: Spacing.sm)
                                 .padding(.horizontal, Spacing.sm)
+                                .id(NotificationService.weeklySummaryRoute)
                             Spacer().frame(height: Spacing.lg)
                         }
 
@@ -304,20 +309,10 @@ struct DashboardView: View {
             .sheet(isPresented: $showActiveWorkout) {
                 ActiveWorkoutSheet()
             }
-            // Slice 1 (R2) — the decided plan's workout, mirroring WorkoutLogView's
-            // showResolvedWorkout path. The reload on dismiss re-derives the CTA: a
-            // completed prescription leaves `.assigned`, so the pill returns to blank.
-            .sheet(isPresented: $showResolvedWorkout) {
-                if let plan = resolvedPlanForSession {
-                    ActiveWorkoutSheet(resolvedPlan: plan)
-                }
-            }
-            .onChange(of: showResolvedWorkout) { _, isPresented in
-                if !isPresented {
-                    resolvedPlanForSession = nil
-                    Task { await loadData() }
-                }
-            }
+            // Slice 1 (R2) mounted a second resolved-plan sheet here; nothing ever assigned
+            // its state after the proposal moved into `TodayProposalSection`, which owns the
+            // plan-led start on this surface through its own `.sheet(item:)`. Removed rather
+            // than left as a branch that can only present nothing (U17 diagnosis).
             .sheet(isPresented: $showWellnessCheckIn) {
                 // Slice 1 (R3) — a saved check-in re-runs the pipeline so the reading and
                 // the recommendation absorb it immediately (same contract as RecoveryView's
@@ -346,6 +341,13 @@ struct DashboardView: View {
                 // records whether blinding actually held.
                 presentMorningProbeIfDue()
                 await loadData()
+                // A launch FROM the notification records its anchor before this screen
+                // exists, so the pending route is consumed after the first load — by then
+                // the card it points at has been built.
+                consumePendingAnchor(proxy)
+            }
+            .onChange(of: router.pendingAnchor) { _, _ in
+                consumePendingAnchor(proxy)
             }
             .onAppear { Haptics.prepare() }
             .sheet(isPresented: $showMorningProbe) {
@@ -364,6 +366,19 @@ struct DashboardView: View {
             .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
                 Task { await loadData() }
             }
+            }
+        }
+    }
+
+    /// Scroll to the surface a notification tap asked for, then clear the request so a tab
+    /// revisit does not jump the page again. An unknown or already-consumed anchor is a
+    /// no-op; `scrollTo` on an id that is not on screen is harmless.
+    private func consumePendingAnchor(_ proxy: ScrollViewProxy) {
+        guard let anchor = router.pendingAnchor else { return }
+        router.pendingAnchor = nil
+        guard anchor == NotificationService.weeklySummaryRoute else { return }
+        withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+            proxy.scrollTo(NotificationService.weeklySummaryRoute, anchor: .top)
         }
     }
 

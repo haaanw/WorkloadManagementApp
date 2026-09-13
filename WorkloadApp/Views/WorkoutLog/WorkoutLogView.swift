@@ -38,7 +38,6 @@ struct WorkoutLogView: View {
     // The verdict's resolved workout, captured on the card's start action and launched as a
     // dedicated ActiveWorkoutSheet path (verdict → workout). Cleared when that sheet closes.
     @State private var resolvedPlanForSession: ResolvedSessionPlan?
-    @State private var showResolvedWorkout = false
     @State private var verdictVM: TodayVerdictViewModel?
     // Phase 45 — held stably so the onDecisionRecorded closure logs into one instance (SC4 seam).
     @State private var verdictRepository: VerdictEventRepository?
@@ -149,6 +148,11 @@ struct WorkoutLogView: View {
                             },
                             onOpenProgram: {
                                 showMyPrograms = true
+                            },
+                            // U17: the plan-led start was reachable only from Today's verdict
+                            // card. The day cell that already names the session now starts it.
+                            onStartPlannedSession: { plan in
+                                resolvedPlanForSession = plan
                             }
                         )
                         .entranceReveal(index: 1)
@@ -262,22 +266,19 @@ struct WorkoutLogView: View {
                     maybeRequestReview()
                 }
             }
-            .sheet(isPresented: $showResolvedWorkout) {
-                if let plan = resolvedPlanForSession {
-                    ActiveWorkoutSheet(resolvedPlan: plan)
+            // Presented via .sheet(item:) — the boolean-plus-optional pair raced under load
+            // and presented an EMPTY sheet (the Today-surface class, fixed 2026-09-09). The
+            // Log-tab door (U17) is the first live writer of this state.
+            .sheet(item: $resolvedPlanForSession, onDismiss: {
+                maybeRequestReview()
+                // The prescription may now be completed — refresh the card + prompts.
+                if let athlete = athletes.first {
+                    verdictVM?.refresh(athlete: athlete)
+                    refreshFeltRightPrompt()
+                    refreshOutcomePrompt()
                 }
-            }
-            .onChange(of: showResolvedWorkout) { _, isPresented in
-                if !isPresented {
-                    maybeRequestReview()
-                    resolvedPlanForSession = nil
-                    // The verdict's prescription may now be completed — refresh the card + prompts.
-                    if let athlete = athletes.first {
-                        verdictVM?.refresh(athlete: athlete)
-                        refreshFeltRightPrompt()
-                        refreshOutcomePrompt()
-                    }
-                }
+            }) { plan in
+                ActiveWorkoutSheet(resolvedPlan: plan)
             }
             .sheet(isPresented: $showTemplatePicker) {
                 TemplatePickerSheet(

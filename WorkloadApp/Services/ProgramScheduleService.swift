@@ -38,6 +38,23 @@ struct ProgramScheduleService {
         return interval?.start ?? day
     }
 
+    /// Where a block STARTS by default: this Monday when `date` is a Monday, otherwise the
+    /// NEXT Monday (UAT round 2 · U15).
+    ///
+    /// The old default anchored week 1 to the Monday of the import week, so a program brought
+    /// in on a Sunday had its whole first week already behind it — the app printed `W1 OF 8`
+    /// over a week it had silently spent. A program week is a week you get to train, so unless
+    /// today IS the start of one, week 1 opens on the next.
+    static func defaultAnchor(
+        for date: Date,
+        calendar: Calendar = Calendar(identifier: .iso8601)
+    ) -> Date {
+        let day = calendar.startOfDay(for: date)
+        let monday = calendar.dateInterval(of: .weekOfYear, for: day)?.start ?? day
+        guard monday != day else { return day }
+        return calendar.date(byAdding: .day, value: 7, to: monday) ?? day
+    }
+
     /// The calendar date of program week `week`, day-slot `day` (both 1-based), given the
     /// anchor Monday of `anchorWeek`. Day slots take the sorted training weekdays in order;
     /// overflow days (a week with more sessions than weekdays) land on the days after the
@@ -109,23 +126,37 @@ struct ProgramScheduleService {
     /// Repositories are parameters, never method locals: a `@MainActor` class deallocated
     /// mid-synchronous-call trips the iOS 26.1 back-deploy deinit SIGABRT. Callers own the
     /// instances (stored/`@State` properties, the ActiveWorkoutSheet pattern).
+    ///
+    /// `startDate` nil takes `defaultAnchor(for: .now)` — the next Monday unless today is one.
+    /// An explicit date is honoured verbatim: the import sheet's "Starts today" cell hands
+    /// today in, and the current week then counts as week 1 (UAT round 2 · U15).
     static func activate(
         _ program: TrainingProgram,
-        startDate: Date = .now,
+        startDate: Date? = nil,
         trainingWeekdays: [Int]? = nil,
         programRepo: ProgramRepository,
         scheduleRepo: ScheduleRepository
     ) throws {
+        let start = startDate ?? defaultAnchor(for: .now)
         let weekdays = trainingWeekdays ?? inferredWeekdays(for: program)
+        // Week 1 is materialized WHOLE, from its own Monday — never from `start`. Starting
+        // mid-week (an explicit "starts today") must not amputate the days the week already
+        // holds; that amputation is what made an imported block read as "week 1 finished".
+        let materializeFrom = weekAnchor(containing: start)
         if let predecessor = try programRepo.activate(
-            program, startDate: startDate, trainingWeekdays: weekdays
+            program, startDate: start, trainingWeekdays: weekdays
         ) {
             // The old block's future plans dissolve; its records stay.
             try scheduleRepo.deletePlannedProgramEntries(
-                programId: predecessor.id, from: startDate, athleteId: program.athleteId
+                programId: predecessor.id, from: materializeFrom, athleteId: program.athleteId
             )
         }
-        try scheduleRepo.insert(materializedEntries(for: program, asOf: startDate))
+        // Idempotent: re-activating the SAME block (the import sheet's start choice) dissolves
+        // its own still-planned entries first, so a second pass cannot double-materialize.
+        try scheduleRepo.deletePlannedProgramEntries(
+            programId: program.id, from: .distantPast, athleteId: program.athleteId
+        )
+        try scheduleRepo.insert(materializedEntries(for: program, asOf: materializeFrom))
     }
 
     /// Move the position cursor and re-materialize the still-planned future.
@@ -138,12 +169,21 @@ struct ProgramScheduleService {
         scheduleRepo: ScheduleRepository
     ) throws {
         try programRepo.movePosition(program, toWeek: week, day: day)
-        // Re-anchor the block so the new position week is the current week.
-        program.startDate = isoCalendar.startOfDay(for: today)
+        // A position move says "I am HERE NOW" — the athlete is mid-week inside that program
+        // week — so the block re-anchors on the CURRENT week's Monday. `defaultAnchor` is for
+        // a block that has not started yet; using it here would empty the week being worked,
+        // which is the same shape as the U15 bug it fixes.
+        //
+        // The week is then re-materialized WHOLE from its own Monday, so a Wednesday move
+        // keeps that week's Monday and Tuesday as planned days — past, not deleted. Deleting
+        // from the same Monday is what keeps the rebuild from duplicating them; decided
+        // states (canceled / moved / completed) are untouched history either way.
+        let anchor = weekAnchor(containing: today)
+        program.startDate = anchor
         try scheduleRepo.deletePlannedProgramEntries(
-            programId: program.id, from: today, athleteId: program.athleteId
+            programId: program.id, from: anchor, athleteId: program.athleteId
         )
-        try scheduleRepo.insert(materializedEntries(for: program, asOf: today))
+        try scheduleRepo.insert(materializedEntries(for: program, asOf: anchor))
     }
 
     /// The connection wire (epic 1 → verdict): if today has a planned program entry and no

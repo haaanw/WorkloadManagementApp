@@ -583,18 +583,26 @@ struct ProfileView: View {
         )
     }
 
+    /// U12: the weekly trigger REPEATS, so the numbers handed over here are the ones the
+    /// notification states every week until something reschedules it. This surface passed
+    /// four zeros, which froze a body reading "0 sessions logged — 0 week streak" into every
+    /// future delivery. It now reads the athlete's real week from the store.
     private func scheduleNotification() {
         let timeParts = notificationTime.split(separator: ":").compactMap { Int($0) }
         let hour = timeParts.first ?? 19
         let minute = timeParts.count > 1 ? timeParts[1] : 0
+        let numbers = WeeklyNotificationNumbers.compute(
+            modelContext: modelContext,
+            athleteId: athlete?.id
+        )
         container.notificationService.scheduleWeeklySummary(
             weekday: notificationDay,
             hour: hour,
             minute: minute,
-            sessionCount: 0,
-            streak: 0,
-            prCount: 0,
-            volumeDelta: 0
+            sessionCount: numbers.sessionCount,
+            streak: numbers.streak,
+            prCount: numbers.prCount,
+            volumeDelta: numbers.volumeDelta
         )
     }
 

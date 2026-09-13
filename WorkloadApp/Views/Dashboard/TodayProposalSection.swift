@@ -32,6 +32,12 @@ struct TodayProposalSection: View {
     @State private var designationPlannedRepo: PlannedSessionRepository?
     @State private var designationScheduleRepo: ScheduleRepository?
     @State private var designationProgramRepo: ProgramRepository?
+    /// UAT round 2 · U14: the bring-card used to stand in for "nothing designated today",
+    /// so it sat under the readiness score on every rest day of an ACTIVE program. These two
+    /// separate "no plan at all" from "no session today", read once per refresh.
+    @State private var hasActiveProgram = false
+    @State private var todayHasProgramSession = false
+    @State private var nextPlannedSessionDate: Date?
 
     private var athlete: Athlete? { athletes.first }
 
@@ -57,7 +63,19 @@ struct TodayProposalSection: View {
                     .padding(.horizontal, Spacing.sm)
                 }
             } else if athlete != nil, showsNoPlanFallback {
-                noPlanCard
+                // Three states, not two (U14): a block is running and today is simply not a
+                // training day → say so; no block at all → offer the door.
+                if hasActiveProgram {
+                    // Today DOES carry a program session but the card could not be built
+                    // (a missing template, a verdict the engine cannot yet form). Saying
+                    // "rest day" there would be a lie, so this states nothing instead —
+                    // the Log tab's day cell still starts the session.
+                    if !todayHasProgramSession {
+                        restDayCard
+                    }
+                } else {
+                    noPlanCard
+                }
             }
         }
         .task(id: athletes.first?.id) {
@@ -88,6 +106,59 @@ struct TodayProposalSection: View {
             ProgramImportSheet()
                 .environment(container)
         }
+    }
+
+    // MARK: - Rest day (U14: a running block, nothing scheduled today)
+
+    /// One quiet line and one quiet way out. No ink pill — a rest day is not a call to
+    /// action, and the day's one pill belongs to the surface below when there is a session
+    /// to start. "Start unplanned" stays reachable because an unscheduled session is still
+    /// an athlete's own business.
+    private var restDayCard: some View {
+        SectionContainer {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                AnnotationLabel(key: "todayProposal.restDay.stamp")
+                Text(verbatim: restDayLine)
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text1)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button {
+                    Haptics.tap()
+                    showUnplannedWorkout = true
+                } label: {
+                    Text("todayProposal.startUnplanned")
+                        .font(.Tokens.label)
+                        .foregroundStyle(ColorTokens.text2)
+                        .frame(minHeight: 32, alignment: .leading)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.pressable)
+                .accessibilityIdentifier("dashboard.proposal.startUnplanned")
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(Spacing.sm)
+            .cardStyle(horizontalPadding: 0, verticalPadding: 0)
+            .padding(.horizontal, Spacing.sm)
+        }
+    }
+
+    private var restDayLine: String {
+        guard let next = nextPlannedSessionDate else {
+            return String(
+                localized: "todayProposal.restDay.noneThisWeek",
+                defaultValue: "Rest day — no session scheduled this week."
+            )
+        }
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.setLocalizedDateFormatFromTemplate("EEEdMMM")
+        return String(
+            format: String(
+                localized: "todayProposal.restDay.next",
+                defaultValue: "Rest day — next session %@."
+            ),
+            formatter.string(from: next)
+        )
     }
 
     // MARK: - No-plan proposal (R5/R6: the door lives on the Today surface)
@@ -160,7 +231,34 @@ struct TodayProposalSection: View {
     private func refresh() {
         guard let athlete else { return }
         ensureProgramDesignation(athleteId: athlete.id)
+        refreshProgramState(athleteId: athlete.id)
         verdictVM?.refresh(athlete: athlete)
+    }
+
+    /// Reads the two facts the three-way branch needs (U14). `fetchActiveProgram` is the
+    /// ONLY thing that answers "does this athlete have a plan" — `vm.display == nil` only
+    /// ever meant "nothing designated today", which is true on every rest day.
+    private func refreshProgramState(athleteId: UUID) {
+        guard let programRepo = designationProgramRepo,
+              let scheduleRepo = designationScheduleRepo else { return }
+        hasActiveProgram = programRepo.fetchActiveProgram(athleteId: athleteId) != nil
+        guard hasActiveProgram else {
+            todayHasProgramSession = false
+            nextPlannedSessionDate = nil
+            return
+        }
+        todayHasProgramSession = scheduleRepo
+            .entries(on: .now, athleteId: athleteId)
+            .contains { $0.kind == .programSession && ($0.status == .planned || $0.status == .completed) }
+        let calendar = Calendar.current
+        let tomorrow = calendar.date(
+            byAdding: .day, value: 1, to: calendar.startOfDay(for: .now)
+        ) ?? .now
+        let horizon = calendar.date(byAdding: .day, value: 14, to: tomorrow) ?? tomorrow
+        nextPlannedSessionDate = scheduleRepo
+            .entries(from: tomorrow, to: horizon, athleteId: athleteId)
+            .first { $0.kind == .programSession && $0.status == .planned }?
+            .date
     }
 
     /// The program→proposal wire (feature 6, epic 1): designate today's program day when

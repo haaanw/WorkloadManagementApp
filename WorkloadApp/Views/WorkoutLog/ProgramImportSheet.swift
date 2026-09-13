@@ -55,9 +55,14 @@ struct ProgramImportSheet: View {
     @State private var recordingPrefix = ""
     @FocusState private var isEditorFocused: Bool
     @State private var isLoading = false
+    /// When the current wait started — the overlay counts from it and stages its copy
+    /// (UAT round 2 · U13: a text import runs 30–40 s behind one opaque spinner).
+    @State private var loadingStartedAt: Date?
     /// Position inside a multi-file extraction ("READING 2 OF 5"). OCR over five photos is
     /// slow enough that a bare spinner reads as a hang.
     @State private var loadingDetail: String?
+    /// The start choice on the done step (U15). False = the default next-Monday anchor.
+    @State private var startsToday = false
     @State private var errorMessage: String?
     @State private var showDocumentPicker = false
     @State private var showCamera = false
@@ -878,13 +883,67 @@ struct ProgramImportSheet: View {
             .padding(Spacing.sm)
             .emphasisCardStyle()
 
+            startChoiceRow
+
             PrimaryActionButton(title: "action.done") {
                 dismiss()
             }
         }
     }
 
+    /// When week 1 opens (U15). Equal-weight butted cells, no ink fill — the sheet's one
+    /// pill is Done. The default is already applied when this renders; the row states which
+    /// one is live and lets the other be chosen in one tap.
+    @ViewBuilder
+    private var startChoiceRow: some View {
+        let nextMonday = ProgramScheduleService.defaultAnchor(for: .now)
+        let today = Calendar(identifier: .iso8601).startOfDay(for: .now)
+        // On a Monday the default already IS today — there is no choice to put on screen.
+        if nextMonday != today {
+            VStack(alignment: .leading, spacing: Spacing.xs) {
+                AnnotationLabel(key: "programImport.start.stamp")
+                KeyRow([
+                    KeyRow.Key(
+                        title: "programImport.start.nextWeek",
+                        accessibilityID: "programImport.start.nextWeek",
+                        subtitle: startStamp(for: nextMonday, chosen: !startsToday)
+                    ) {
+                        guard startsToday else { return }
+                        startsToday = false
+                        finishActivation(entryMode: activatedProgram?.entryMode, startDate: nextMonday)
+                    },
+                    KeyRow.Key(
+                        title: "programImport.start.today",
+                        accessibilityID: "programImport.start.today",
+                        subtitle: startStamp(for: today, chosen: startsToday)
+                    ) {
+                        guard !startsToday else { return }
+                        startsToday = true
+                        finishActivation(entryMode: activatedProgram?.entryMode, startDate: today)
+                    }
+                ])
+            }
+        }
+    }
+
+    /// "MON 15 SEP" — marked with a leading ● while it is the live choice (state in a mark
+    /// plus the words beside it, never colour alone).
+    private func startStamp(for date: Date, chosen: Bool) -> String {
+        let formatter = DateFormatter()
+        formatter.locale = .current
+        formatter.setLocalizedDateFormatFromTemplate("EEEdMMM")
+        let stamp = formatter.string(from: date).uppercased()
+        return chosen ? "● " + stamp : stamp
+    }
+
     // MARK: - Chrome
+
+    /// A long wait must SAY it is long (U13). The program parse is one non-streaming model
+    /// call that routinely runs half a minute, so the overlay counts out loud: the working
+    /// voice stages from "reading" to "still reading" at `longWaitSeconds`, and an elapsed
+    /// stamp in the annotation voice proves the app is still moving. The sentence stays in
+    /// the working voice — the Two-Voice Type Law keeps sentences out of the mono face.
+    private static let longWaitSeconds = 8
 
     private var loadingOverlay: some View {
         ZStack {
@@ -892,14 +951,35 @@ struct ProgramImportSheet: View {
             VStack(spacing: Spacing.sm) {
                 ProgressView()
                     .tint(ColorTokens.text2)
-                Text("programImport.reading")
-                    .font(.Tokens.body)
-                    .foregroundStyle(ColorTokens.text2)
+                if let start = loadingStartedAt {
+                    TimelineView(.periodic(from: start, by: 1)) { context in
+                        let elapsed = max(0, Int(context.date.timeIntervalSince(start)))
+                        VStack(spacing: Spacing.xs) {
+                            Text(elapsed >= Self.longWaitSeconds
+                                 ? "programImport.reading.long"
+                                 : "programImport.reading")
+                                .font(.Tokens.body)
+                                .foregroundStyle(ColorTokens.text2)
+                                .multilineTextAlignment(.center)
+                            AnnotationLabel(elapsedStamp(elapsed), color: ColorTokens.text3)
+                        }
+                    }
+                } else {
+                    Text("programImport.reading")
+                        .font(.Tokens.body)
+                        .foregroundStyle(ColorTokens.text2)
+                }
                 if let loadingDetail {
                     AnnotationLabel(loadingDetail, color: ColorTokens.text3)
                 }
             }
+            .padding(Spacing.md)
         }
+    }
+
+    /// "0:42" — a machine stamp, so it stays in the annotation voice and monospaces.
+    private func elapsedStamp(_ seconds: Int) -> String {
+        String(format: "%d:%02d", seconds / 60, seconds % 60)
     }
 
     private func errorBanner(message: String) -> some View {
@@ -940,7 +1020,7 @@ struct ProgramImportSheet: View {
         let captured = isRecording ? stopRecording() : inputText
         guard !captured.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         parseProgram {
-            WorkoutLLMImportService.preprocessProgramText(captured)
+            await preprocessedOffMain(captured)
         }
     }
 
@@ -950,6 +1030,7 @@ struct ProgramImportSheet: View {
         guard !urls.isEmpty else { return }
         parsedSource = .pdf
         isLoading = true
+        loadingStartedAt = .now
         errorMessage = nil
         Task {
             var unreadable: [String] = []
@@ -965,6 +1046,7 @@ struct ProgramImportSheet: View {
                 }
             }
             isLoading = false
+            loadingStartedAt = nil
             loadingDetail = nil
             finishPicking(unreadable: unreadable)
         }
@@ -979,6 +1061,7 @@ struct ProgramImportSheet: View {
     private func appendPhotos(_ items: [PhotosPickerItem]) {
         parsedSource = .photo
         isLoading = true
+        loadingStartedAt = .now
         errorMessage = nil
         let firstNumber = pickedFiles.count + 1
         Task {
@@ -1002,6 +1085,7 @@ struct ProgramImportSheet: View {
                 }
             }
             isLoading = false
+            loadingStartedAt = nil
             loadingDetail = nil
             finishPicking(unreadable: unreadable)
         }
@@ -1021,6 +1105,7 @@ struct ProgramImportSheet: View {
     private func appendCameraPhoto(_ image: UIImage) {
         parsedSource = .photo
         isLoading = true
+        loadingStartedAt = .now
         errorMessage = nil
         let name = String(
             format: String(localized: "programImport.files.photoName", defaultValue: "Photo %lld"),
@@ -1036,6 +1121,7 @@ struct ProgramImportSheet: View {
                 unreadable.append(name)
             }
             isLoading = false
+            loadingStartedAt = nil
             loadingDetail = nil
             finishPicking(unreadable: unreadable)
         }
@@ -1072,12 +1158,23 @@ struct ProgramImportSheet: View {
         guard !pickedFiles.isEmpty else { return }
         let combined = WorkoutLLMImportService.combineProgramFiles(pickedFiles.map(\.text))
         parseProgram {
-            WorkoutLLMImportService.preprocessProgramText(combined)
+            await preprocessedOffMain(combined)
         }
+    }
+
+    /// The furniture-strip pass is pure string work over a whole program — several regex
+    /// sweeps across every line — and it ran on the main actor between the tap and the
+    /// network call, freezing even the spinner (U13). It has no isolation of its own, so a
+    /// detached task moves it to a background thread; the parse itself is unchanged.
+    private nonisolated func preprocessedOffMain(_ text: String) async -> String {
+        await Task.detached(priority: .userInitiated) {
+            WorkoutLLMImportService.preprocessProgramText(text)
+        }.value
     }
 
     private func parseProgram(_ extract: @escaping () async throws -> String) {
         isLoading = true
+        loadingStartedAt = .now
         errorMessage = nil
         Task {
             do {
@@ -1087,6 +1184,7 @@ struct ProgramImportSheet: View {
                 )
                 parsedResponse = response
                 isLoading = false
+                loadingStartedAt = nil
                 Haptics.success()
                 if let stated = WorkoutLLMImportService.statedDurationWeeks(of: response) {
                     activateParsed(durationWeeks: stated, durationSource: .readFromFile)
@@ -1096,6 +1194,7 @@ struct ProgramImportSheet: View {
             } catch {
                 errorMessage = error.localizedDescription
                 isLoading = false
+                loadingStartedAt = nil
                 Haptics.warning()
             }
         }
@@ -1132,19 +1231,29 @@ struct ProgramImportSheet: View {
         }
     }
 
-    private func finishActivation(entryMode: ProgramEntryMode?) {
+    /// Activate the built block. `startDate` nil takes `ProgramScheduleService.defaultAnchor`
+    /// — the next Monday unless today is one (UAT round 2 · U15). The done step re-calls this
+    /// with an explicit date when the athlete picks the other start; `activate` is idempotent
+    /// for the same block, so the schedule is rebuilt rather than duplicated.
+    private func finishActivation(entryMode: ProgramEntryMode?, startDate: Date? = nil) {
         guard let program = builtProgram,
               let athleteId = athlete?.id,
               let programRepo, let scheduleRepo else { return }
         do {
             program.entryMode = entryMode
-            archivedPredecessorName = programRepo.fetchActiveProgram(athleteId: athleteId)?.name
+            // Never name the block itself as its own archived predecessor — the start-choice
+            // re-activation runs when this program is already the active one.
+            let predecessor = programRepo.fetchActiveProgram(athleteId: athleteId)
+            if let predecessor, predecessor.id != program.id {
+                archivedPredecessorName = predecessor.name
+            }
             for template in builtTemplates {
                 modelContext.insert(template)
             }
             try programRepo.save(program)
             try ProgramScheduleService.activate(
                 program,
+                startDate: startDate,
                 programRepo: programRepo,
                 scheduleRepo: scheduleRepo
             )

@@ -455,6 +455,12 @@ enum AppTab: Hashable, CaseIterable {
 @Observable
 final class TabRouter {
     var selection: AppTab = .home
+
+    /// A within-tab destination a notification tap asked for, consumed by the tab that owns
+    /// it and then cleared (U12: the weekly-review tap has to land on the weekly-review
+    /// card, not merely on the tab it lives in). A plain anchor string, not a deep-link
+    /// grammar — the seam stays a seam.
+    var pendingAnchor: String?
 }
 
 /// The live app shell: four athlete tabs over the SwiftUI tree.
@@ -521,6 +527,10 @@ struct MainTabView: View {
         // R9: the router rides the environment so any tab child can hand off to another
         // tab (e.g. a future "see the trend" row switching to Trends) without a sheet.
         .environment(router)
+        // U12: the notification delegate exists from process start (a cold-launch tap is
+        // delivered before any scene). Handing it the router here flushes a route that
+        // arrived first, so a tap on a launch-from-notification is not lost.
+        .task { NotificationRouteDelegate.shared.attach(router: router) }
         // Stage 4a (D6): the stock tab bar is hidden per tab (inkTabChild); the app renders
         // its own Ink & Grain bar as a bottom safe-area inset. The TabView hosts its tabs in
         // UIKit, so the inset does NOT reach their safe areas — each child carries a matching

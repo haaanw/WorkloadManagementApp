@@ -127,6 +127,11 @@ struct WorkloadApp: App {
         // earliest point in the process, not from a view. `AppRouter` attaches the live
         // container once one exists so deliveries share the foreground path's services.
         WatchWorkoutBackgroundDelivery.install(modelContainer: container)
+
+        // A tap on the weekly review must reach the weekly review (v1.7.3 · U12). iOS
+        // delivers a cold-launch tap as soon as the app finishes launching, so the delegate
+        // is installed here — the route it records waits for the shell to attach its router.
+        MainActor.assumeIsolated { NotificationRouteDelegate.install() }
     }
 
     var body: some Scene {

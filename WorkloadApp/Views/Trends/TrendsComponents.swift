@@ -90,6 +90,21 @@ struct TrendsFatigueSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            card
+            // The meaning layer's second half (UAT round 2 · U16): the number is explained in one
+            // sentence on the card; everything an athlete might want BEHIND that sentence lives
+            // here, collapsed. Progressive disclosure — the hero answers the question, the prose
+            // is for the curious. The mono reason tree above stays inert: annotation is
+            // marginalia, never a control.
+            DetailDisclosureList(
+                eyebrowKey: "trends.meaning.about.eyebrow",
+                items: Self.aboutItems
+            )
+        }
+    }
+
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 0) {
             if hasEnoughHistory, let latest {
                 HStack(alignment: .firstTextBaseline) {
                     HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
@@ -111,6 +126,21 @@ struct TrendsFatigueSection: View {
                         color: ColorTokens.fatigueZoneColor(latest.zone)
                     )
                 }
+
+                // (U16) The plain-language reading, directly under the hero: number, then what
+                // the number means, then the plot. Working voice — a sentence is never
+                // annotation. It composes zone + trajectory, both DESCRIPTIONS of stored
+                // values, and for anything above Low it points at the one surface that
+                // actually decides.
+                Text(Self.fatigueReading(
+                    zone: latest.zone,
+                    trajectory: Self.readingTrajectory(points: points, trajectory: trajectory),
+                    locale: locale
+                ))
+                .font(.Tokens.body)
+                .foregroundStyle(ColorTokens.text2)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.top, Spacing.sm)
 
                 FatigueAccumulationChart(points: points)
 
@@ -211,6 +241,120 @@ struct TrendsFatigueSection: View {
         return "\u{25CF}"
     }
 
+    // MARK: - Meaning layer (UAT round 2 · U16)
+
+    /// Index points of first-to-last movement below which a window reads as level rather than
+    /// as climbing or coming down. Two points is inside the day-to-day jitter of the component
+    /// scores, so calling that a direction would be reporting noise as a trend.
+    static let readingDeadBand: Double = 2
+
+    /// The window's direction, for the reading only.
+    ///
+    /// The engine's own slope classification is preferred when it has one — it fits every point
+    /// rather than two. Below the two points a slope needs, first-versus-last with the dead band
+    /// above stands in, so the reading is never silently missing its second clause.
+    static func readingTrajectory(
+        points: [FatigueHistoryEngine.Point],
+        trajectory: FatigueHistoryEngine.Trajectory?
+    ) -> FatigueHistoryEngine.Trajectory {
+        if let trajectory { return trajectory }
+        guard let first = points.first, let last = points.last else { return .steady }
+        let delta = last.index - first.index
+        if delta > readingDeadBand { return .rising }
+        if delta < -readingDeadBand { return .falling }
+        return .steady
+    }
+
+    /// One plain-language reading of the hero: what the zone means, which way the window went,
+    /// and — above Low only — where the decision actually gets made.
+    ///
+    /// ## Claim rails (U16, HAN)
+    ///
+    /// Every clause describes values the app already holds. None of them names an injury, none
+    /// of them says what happens next, none of them prescribes, and none of them calls any part
+    /// of the scale a safe range. Trends describes; Today decides.
+    static func fatigueReading(
+        zone: FatigueIndexEngine.FatigueZone,
+        trajectory: FatigueHistoryEngine.Trajectory,
+        locale: Locale
+    ) -> String {
+        var reading = zoneReading(zone, locale: locale)
+        reading += " " + trajectoryClause(trajectory, locale: locale)
+        if zone != .low {
+            reading += " " + LocalePinnedStrings.localized("trends.meaning.fatigue.pointer", locale: locale)
+        }
+        return reading
+    }
+
+    /// What the zone means, in words an athlete who has never met the index can act on.
+    static func zoneReading(_ zone: FatigueIndexEngine.FatigueZone, locale: Locale) -> String {
+        switch zone {
+        case .low:        LocalePinnedStrings.localized("trends.meaning.fatigue.zone.low", locale: locale)
+        case .elevated:   LocalePinnedStrings.localized("trends.meaning.fatigue.zone.elevated", locale: locale)
+        case .high:       LocalePinnedStrings.localized("trends.meaning.fatigue.zone.high", locale: locale)
+        case .saturation: LocalePinnedStrings.localized("trends.meaning.fatigue.zone.veryHigh", locale: locale)
+        }
+    }
+
+    /// Which way the window went, as the reading's second clause.
+    static func trajectoryClause(_ trajectory: FatigueHistoryEngine.Trajectory, locale: Locale) -> String {
+        switch trajectory {
+        case .rising:  LocalePinnedStrings.localized("trends.meaning.fatigue.trajectory.rising", locale: locale)
+        case .steady:  LocalePinnedStrings.localized("trends.meaning.fatigue.trajectory.steady", locale: locale)
+        case .falling: LocalePinnedStrings.localized("trends.meaning.fatigue.trajectory.falling", locale: locale)
+        }
+    }
+
+    /// The collapsed explanation set: what the index is, how its bands are cut, what kind of
+    /// scale it is, what moves it, how to read the tree's glyphs, then one row per component in
+    /// the same order the tree prints them, each carrying the engine's own weight.
+    static let aboutItems: [DetailDisclosureItem] = [
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.what.title",
+            bodyKey: "trends.meaning.about.fatigue.what.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.cutpoints.title",
+            bodyKey: "trends.meaning.about.fatigue.cutpoints.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.absolute.title",
+            bodyKey: "trends.meaning.about.fatigue.absolute.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.moves.title",
+            bodyKey: "trends.meaning.about.fatigue.moves.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.glyphs.title",
+            bodyKey: "trends.meaning.about.fatigue.glyphs.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.component.loadElevation.title",
+            bodyKey: "trends.meaning.about.fatigue.component.loadElevation.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.component.sessionDensity.title",
+            bodyKey: "trends.meaning.about.fatigue.component.sessionDensity.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.component.restDebt.title",
+            bodyKey: "trends.meaning.about.fatigue.component.restDebt.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.component.recoveryTrend.title",
+            bodyKey: "trends.meaning.about.fatigue.component.recoveryTrend.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.component.wellnessTrend.title",
+            bodyKey: "trends.meaning.about.fatigue.component.wellnessTrend.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.fatigue.component.softTissue.title",
+            bodyKey: "trends.meaning.about.fatigue.component.softTissue.body"
+        )
+    ]
+
     /// The zone in words. `FatigueZone.displayName` is an untranslated English literal used for
     /// diagnostics; a badge an athlete reads takes a localized key.
     static func zoneLabel(_ zone: FatigueIndexEngine.FatigueZone, locale: Locale) -> String {
@@ -298,6 +442,16 @@ struct TrendsLoadSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            card
+            DetailDisclosureList(
+                eyebrowKey: "trends.meaning.about.eyebrow",
+                items: Self.aboutItems
+            )
+        }
+    }
+
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 0) {
             if let snapshot {
                 HStack(alignment: .firstTextBaseline) {
                     HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
@@ -314,6 +468,14 @@ struct TrendsLoadSection: View {
                         color: ColorTokens.acwrZoneColor(snapshot.zone)
                     )
                 }
+
+                // (U16) What the ratio means, under the ratio. `LOAD STEADY` is a label; this
+                // says what the label is a label FOR.
+                Text(Self.loadReading(snapshot.zone, locale: locale))
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, Spacing.sm)
             }
 
             if trendSnapshots.count > 1 {
@@ -339,6 +501,47 @@ struct TrendsLoadSection: View {
         .cardStyle()
         .accessibilityIdentifier("trends.loadTrend")
     }
+
+    // MARK: - Meaning layer (UAT round 2 · U16)
+
+    /// What the acute-to-chronic ratio means in words. Each sentence compares the last week with
+    /// the month behind it and stops there: no injury claim, no forecast, no prescription, and
+    /// no band called safe — 0.8–1.3 is described as a CONTINUATION of work already done, which
+    /// is what the arithmetic actually supports.
+    static func loadReading(_ zone: ACWRZone, locale: Locale) -> String {
+        switch zone {
+        case .undertrained: LocalePinnedStrings.localized("trends.meaning.load.light", locale: locale)
+        case .optimal:      LocalePinnedStrings.localized("trends.meaning.load.steady", locale: locale)
+        case .caution:      LocalePinnedStrings.localized("trends.meaning.load.building", locale: locale)
+        case .danger:       LocalePinnedStrings.localized("trends.meaning.load.high", locale: locale)
+        case .noData:       LocalePinnedStrings.localized("trends.meaning.load.noData", locale: locale)
+        }
+    }
+
+    /// The collapsed explanation set: the two loads, the ratio they form, where it is cut, and
+    /// the three abbreviations the series key under the plot prints untranslated.
+    static let aboutItems: [DetailDisclosureItem] = [
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.load.acute.title",
+            bodyKey: "trends.meaning.about.load.acute.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.load.chronic.title",
+            bodyKey: "trends.meaning.about.load.chronic.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.load.ratio.title",
+            bodyKey: "trends.meaning.about.load.ratio.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.load.cutpoints.title",
+            bodyKey: "trends.meaning.about.load.cutpoints.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.load.terms.title",
+            bodyKey: "trends.meaning.about.load.terms.body"
+        )
+    ]
 
     /// A ratio and its own history — both readings of stored values.
     private var loadSentence: String? {
@@ -373,6 +576,16 @@ struct TrendsWhatYouDidSection: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
+            card
+            DetailDisclosureList(
+                eyebrowKey: "trends.meaning.about.eyebrow",
+                items: Self.aboutItems
+            )
+        }
+    }
+
+    private var card: some View {
+        VStack(alignment: .leading, spacing: 0) {
             HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
                 Text("\(sessionCount)")
                     .font(.Tokens.displayAction)
@@ -389,6 +602,14 @@ struct TrendsWhatYouDidSection: View {
             }
 
             if sessionCount > 0 {
+                // (U16) The count is the only number on this card that a non-expert cannot place.
+                // One line ties it to the number the page opened with.
+                Text(Self.activityReading(locale: locale))
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, Spacing.sm)
+
                 DailyLoadBars(bars: bars)
 
                 if let sentence = baselineSentence {
@@ -414,6 +635,26 @@ struct TrendsWhatYouDidSection: View {
         .cardStyle()
         .accessibilityIdentifier("trends.activity")
     }
+
+    // MARK: - Meaning layer (UAT round 2 · U16)
+
+    /// The one line that ties the session count to the fatigue hero above it. A statement of
+    /// where the number upstream came from — not a judgement of the count.
+    static func activityReading(locale: Locale) -> String {
+        LocalePinnedStrings.localized("trends.meaning.activity", locale: locale)
+    }
+
+    /// The collapsed explanation set: what a bar is, and whose average the comparison uses.
+    static let aboutItems: [DetailDisclosureItem] = [
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.activity.bars.title",
+            bodyKey: "trends.meaning.about.activity.bars.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.activity.average.title",
+            bodyKey: "trends.meaning.about.activity.average.body"
+        )
+    ]
 
     private var baselineSentence: String? {
         guard let baselineSessions else { return nil }

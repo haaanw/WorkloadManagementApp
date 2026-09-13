@@ -26,9 +26,17 @@ struct ScheduleWeekSection: View {
     /// reappearing as a second card that repeats what this strip already says.
     var onOpenProgram: () -> Void = {}
 
+    /// Starts today's planned program session (UAT round 2 · U17). The day is designated
+    /// here — the same `ensureTodayDesignation` wire the Today surface uses — and the frozen
+    /// plan is handed up, so the host presents ONE `ActiveWorkoutSheet(resolvedPlan:)`.
+    var onStartPlannedSession: (ResolvedSessionPlan) -> Void = { _ in }
+
     @State private var selectedDay: Date?
     @State private var showDayPicker = false
+    // Repositories are held, never method locals (the @MainActor deinit SIGABRT trap).
     @State private var scheduleRepo: ScheduleRepository?
+    @State private var plannedSessionRepo: PlannedSessionRepository?
+    @State private var programRepo: ProgramRepository?
 
     private var calendar: Calendar { Calendar(identifier: .iso8601) }
     private var athlete: Athlete? { athletes.first }
@@ -76,6 +84,8 @@ struct ScheduleWeekSection: View {
         .onAppear {
             if scheduleRepo == nil {
                 scheduleRepo = ScheduleRepository(modelContext: modelContext)
+                plannedSessionRepo = PlannedSessionRepository(modelContext: modelContext)
+                programRepo = ProgramRepository(modelContext: modelContext)
             }
         }
     }
@@ -253,6 +263,16 @@ struct ScheduleWeekSection: View {
             if dayStart < today {
                 pastDayActions(day: day)
             } else if calendar.isDate(day, inSameDayAs: today) {
+                // U17: the plan-led start, on the surface that already names the session.
+                // Today only — a future day's session would save under today's date while
+                // its own schedule entry stayed planned, so the door opens on the day it
+                // belongs to.
+                if let planned, planned.status == .planned {
+                    actionRow(title: "schedule.action.startSession", kicker: "schedule.kicker.asPlanned") {
+                        startTodaysPlannedSession()
+                    }
+                    RowSeparator()
+                }
                 actionRow(title: "schedule.action.openProposal", kicker: "schedule.kicker.today") {
                     selectedDay = nil
                     // The proposal lives on the Today surface (slice 2) — hand off via the
@@ -357,6 +377,22 @@ struct ScheduleWeekSection: View {
             try? scheduleRepo.remove(match)
             selectedDay = nil
         }
+    }
+
+    /// Designate today's program day (idempotent — an existing designation is returned as-is)
+    /// and hand its frozen plan up. One designation path app-wide: `ensureTodayDesignation`,
+    /// the same wire the Today surface runs on appear.
+    private func startTodaysPlannedSession() {
+        guard let athleteId = athlete?.id,
+              let scheduleRepo, let plannedSessionRepo, let programRepo else { return }
+        guard let prescription = ProgramScheduleService.ensureTodayDesignation(
+            athleteId: athleteId,
+            plannedSessionRepo: plannedSessionRepo,
+            scheduleRepo: scheduleRepo,
+            programRepo: programRepo
+        ) else { return }
+        selectedDay = nil
+        onStartPlannedSession(ResolvedSessionPlan.resolve(from: prescription))
     }
 
     private func addAdHoc(_ kind: ScheduleEntryKind, on day: Date) {

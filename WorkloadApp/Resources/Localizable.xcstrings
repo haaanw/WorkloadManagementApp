@@ -8244,13 +8244,13 @@
         "en" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "%1$lld sessions logged — %2$lld week streak. %3$lld new PRs. %4$lld%% volume vs. last week."
+            "value" : "%1$@ sessions logged — %2$@ week streak. %3$@ new PRs. %4$@%% volume vs. last week."
           }
         },
         "zh-Hans" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "本周记录 %1$lld 次训练 — 已连续 %2$lld 周。新增 %3$lld 项个人最佳。训练量较上周 %4$lld%%。"
+            "value" : "本周记录 %1$@ 次训练 — 已连续 %2$@ 周。新增 %3$@ 项个人最佳。训练量较上周 %4$@%%。"
           }
         }
       }
@@ -13792,6 +13792,23 @@
         }
       }
     },
+    "programImport.reading.long" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Still reading. Long programs take a minute."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "还在读取。较长的计划需要一分钟左右。"
+          }
+        }
+      }
+    },
     "programImport.say.instruction" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -13839,6 +13856,57 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "语音录制你的训练计划"
+          }
+        }
+      }
+    },
+    "programImport.start.nextWeek" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starts next Monday"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "下周一开始"
+          }
+        }
+      }
+    },
+    "programImport.start.stamp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "WEEK 1 STARTS"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "第 1 周开始"
+          }
+        }
+      }
+    },
+    "programImport.start.today" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Starts today"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天开始"
           }
         }
       }
@@ -16382,6 +16450,23 @@
         }
       }
     },
+    "schedule.action.startSession" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Start this session"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "开始这次训练"
+          }
+        }
+      }
+    },
     "schedule.header.position" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -16412,6 +16497,23 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "本周"
+          }
+        }
+      }
+    },
+    "schedule.kicker.asPlanned" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "AS PLANNED"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "按计划"
           }
         }
       }
@@ -20038,6 +20140,57 @@
         }
       }
     },
+    "todayProposal.restDay.next" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest day — next session %@."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息日 — 下次训练 %@。"
+          }
+        }
+      }
+    },
+    "todayProposal.restDay.noneThisWeek" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest day — no session scheduled this week."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息日 — 本周没有安排训练。"
+          }
+        }
+      }
+    },
+    "todayProposal.restDay.stamp" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "REST DAY"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息日"
+          }
+        }
+      }
+    },
     "todayProposal.startUnplanned" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -20544,6 +20697,873 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "急性 ÷ 慢性"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.activity.average.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The comparison number comes from your own history — up to ninety days of it — scaled to the length of the window you are looking at. It is never a comparison with anybody else."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用来对比的数字来自你自己的历史，最多取九十天，并换算到你当前查看的窗口长度。它从来不是和别人的比较。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.activity.average.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your own average"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你自己的平均"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.activity.bars.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "One bar per day of the window, each the training stress you logged that day. Rest days are drawn as present and empty, so the rhythm of a week reads straight off the plot."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "窗口内每天一根柱子，高度是你那天记录的训练压力。休息日画成存在但为空，所以一周的节奏可以直接从图上读出来。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.activity.bars.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The bars"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这些柱子"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.eyebrow" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "HOW TO READ THIS"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "如何解读"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.absolute.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The 0–100 scale is fixed. It is not a percentage of your own baseline, so 40 means the same thing in a heavy block as it does in a light one. Your own history enters through the six components, not through the scale."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "0–100 这把尺子是固定的。它不是你个人基线的百分比，所以在大负荷周期和小负荷周期里，40 都代表同一件事。你自己的历史是通过六项分量进入的，不是通过这把尺子。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.absolute.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "An absolute scale"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一把绝对的尺子"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.loadElevation.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compares the average training stress of your recent sessions with your own longer-term average session. Sessions heavier than usual raise it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把你最近几次训练的平均训练压力，和你自己长期的平均单次训练相比。比平时更重就会让它升高。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.loadElevation.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Load elevation · 20%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "负荷升高 · 20%"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.recoveryTrend.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reads the slope of your last seven recovery scores. A falling slope raises it; a rising slope lowers it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读取你最近七天恢复分数的斜率。斜率下滑会让它升高，斜率回升会让它降低。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.recoveryTrend.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Recovery trend · 20%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "恢复趋势 · 20%"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.restDebt.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Counts your consecutive training days without a rest day, and how long it has been since a rest period of two days or more."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "统计你连续训练而没有休息日的天数，以及距离上一次两天或更长的休息期有多久。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.restDebt.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Rest debt · 15%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "休息欠账 · 15%"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.sessionDensity.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Compares how many sessions you did in the last fortnight with how many you usually fit into a fortnight."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "把你最近两周完成的训练次数，和你平时两周的训练次数相比。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.sessionDensity.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Session density · 20%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "训练密度 · 20%"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.softTissue.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Counts the soft-tissue episodes you have logged in the last twelve months, weighted by how recent they are. Older episodes count for less."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "统计你在过去十二个月里记录的软组织事件，并按时间远近加权。越久远的事件，权重越小。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.softTissue.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Soft tissue · 10%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "软组织 · 10%"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.wellnessTrend.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reads the slope of your last seven wellness check-ins the same way the recovery trend is read."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "用读取恢复趋势的同样方式，读取你最近七次自评打卡的斜率。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.component.wellnessTrend.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Wellness trend · 15%"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "自评趋势 · 15%"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.cutpoints.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Under 35 reads as Low. 35 to 55 reads as Elevated. 55 to 75 reads as High. Above 75 reads as Very high. The band is a label on the same number, not a second measure."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低于 35 读作“低”。35 到 55 读作“偏高”。55 到 75 读作“高”。高于 75 读作“很高”。区间只是同一个数值的标签，不是第二项测量。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.cutpoints.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The four bands"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "四个区间"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.glyphs.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Each line under the chart prints one component and its 0–100 contribution. ▲ marks a component above its neutral middle, ▼ below it, ● at it. A component above the middle is a reading, not a verdict."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "图下方每一行印出一项分量和它 0–100 的贡献值。▲ 表示这项分量高于中位，▼ 表示低于中位，● 表示正好在中位。高于中位只是一个读数，不是结论。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.glyphs.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Reading the component lines"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "读懂分量行"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.moves.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Sessions heavier than your own average, more sessions than you usually fit into a fortnight, and days in a row without a rest day all push it up. So does a falling recovery or wellness trend. Rest days and a rising recovery trend bring it down."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "比你自己平均更重的训练、两周内比平时更多的训练次数、连续多天没有休息日，都会把它推高。恢复趋势或自评趋势下滑也一样。休息日和回升的恢复趋势会把它拉低。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.moves.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What moves it"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "什么会让它变动"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.what.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "A 0–100 reading of accumulated fatigue. It is a weighted blend of six signals the app already holds: your load, your session density, your rest, your recovery trend, your wellness answers and your soft-tissue history. Higher means more fatigue carried."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "一个 0–100 的累积疲劳读数。它由应用已经掌握的六项信号加权合成：负荷、训练密度、休息、恢复趋势、自评答案和软组织历史。数值越高，说明你背着的疲劳越多。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.fatigue.what.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "What this index is"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个指数是什么"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.acute.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The weighted total of your training stress over roughly the last seven days, with the most recent days counting for most. It is the work your body is still working through."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你大约最近七天训练压力的加权总和，越近的日子权重越大。它代表你的身体还在消化的那部分训练。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.acute.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acute load"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "急性负荷"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.chronic.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The same weighted total over roughly the last twenty-eight days. It is the work you have made a habit of, and the base your recent week is compared against."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "同样的加权总和，窗口约为最近二十八天。它代表你已经养成习惯的训练量，也是用来和最近一周对比的底子。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.chronic.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Chronic load"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "慢性负荷"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.cutpoints.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Below 0.80 the week reads as Load light. 0.80 to 1.30 reads as Load steady. 1.30 to 1.50 reads as Load building. 1.50 and above reads as High load."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "低于 0.80 读作“负荷偏轻”。0.80 到 1.30 读作“负荷平稳”。1.30 到 1.50 读作“负荷上升”。1.50 及以上读作“高负荷”。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.cutpoints.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The three cut-points"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "三个分界点"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.ratio.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Acute divided by chronic. 1.00 means your last week matches the daily average of the month behind it. 1.20 means it ran a fifth ahead of that average. 0.70 means it ran three tenths behind it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "急性除以慢性。1.00 表示你最近一周与它前面一个月的日均值相当。1.20 表示高出五分之一。0.70 表示低了十分之三。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.ratio.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "The ratio"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个比值"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.terms.body" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ATL is the acute load and CTL the chronic load, keyed under the plot in their own colours. TSB is CTL minus ATL: positive when the base is bigger than the recent week, negative when the recent week is bigger."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ATL 是急性负荷，CTL 是慢性负荷，二者以各自的颜色标在图下方。TSB 是 CTL 减 ATL：底子大于最近一周时为正，最近一周更大时为负。"
+          }
+        }
+      }
+    },
+    "trends.meaning.about.load.terms.title" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ATL, CTL and TSB"
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "ATL、CTL 和 TSB"
+          }
+        }
+      }
+    },
+    "trends.meaning.activity" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "These sessions are what built the fatigue reading above."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "上面的疲劳读数，就是由这些训练累积出来的。"
+          }
+        }
+      }
+    },
+    "trends.meaning.fatigue.pointer" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Today's proposal already accounts for this."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "今天的训练提案已经把这一点算进去了。"
+          }
+        }
+      }
+    },
+    "trends.meaning.fatigue.trajectory.falling" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It has been coming down across this window."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这个窗口里，它一直在下降。"
+          }
+        }
+      }
+    },
+    "trends.meaning.fatigue.trajectory.rising" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It has been climbing across this window."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这个窗口里，它一直在上升。"
+          }
+        }
+      }
+    },
+    "trends.meaning.fatigue.trajectory.steady" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "It has been level across this window."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这个窗口里，它一直保持平稳。"
+          }
+        }
+      }
+    },
+    "trends.meaning.fatigue.zone.elevated" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your body is carrying more than it has cleared over this window."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "在这个窗口里，你的身体背着的比它消化掉的更多。"
+          }
+        }
+      }
+    },
+    "trends.meaning.fatigue.zone.high" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Accumulated fatigue is well above your usual sitting point, and several of the six signals are elevated at once."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "累积疲劳明显高于你平时所处的位置，六项信号中有几项同时偏高。"
+          }
+        }
+      }
+    },
+    "trends.meaning.fatigue.zone.low" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "You are carrying little accumulated fatigue: the six signals behind this index are near or below where they usually sit for you."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你身上累积的疲劳很少：这个指数背后的六项信号，都接近或低于你平时的水平。"
+          }
+        }
+      }
+    },
+    "trends.meaning.fatigue.zone.veryHigh" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "This sits near the top of the 0–100 scale: load, rest and recovery signals are all elevated together."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "这个读数接近 0–100 量表的顶端：负荷、休息和恢复信号同时偏高。"
+          }
+        }
+      }
+    },
+    "trends.meaning.load.building" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your last week has run ahead of the month behind it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你最近一周走在了它前面那一个月的前面。"
+          }
+        }
+      }
+    },
+    "trends.meaning.load.high" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your last week is at least half again the daily average of the month behind it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你最近一周至少是它前面一个月日均值的一倍半。"
+          }
+        }
+      }
+    },
+    "trends.meaning.load.light" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your last week has been lighter than the month behind it."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你最近一周比它前面的一个月更轻。"
+          }
+        }
+      }
+    },
+    "trends.meaning.load.noData" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Not enough chronic load yet to form a ratio."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "慢性负荷还不够，暂时形成不了比值。"
+          }
+        }
+      }
+    },
+    "trends.meaning.load.steady" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your last week is in line with the month behind it. 0.8–1.3 is the band that reads as a continuation of work you have already done."
+          }
+        },
+        "zh-Hans" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "你最近一周和它前面的一个月一致。0.8–1.3 这个区间读起来，是你已经做过的训练的延续。"
           }
         }
       }
