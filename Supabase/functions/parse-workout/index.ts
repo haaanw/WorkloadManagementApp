@@ -271,7 +271,7 @@ Rules:
 - Each day gets its own entry with a short title taken from the text's own words ("Upper", "Heavy lower", "Day 3 - Full body"). Number days within their week from 1 in order of appearance.
 - duration_weeks: the block length in weeks ONLY when the text states or clearly implies it (e.g. it lists 6 distinct weeks, or says "8-week block"); otherwise null.
 - phases: ONLY when the text names phase/block bands (e.g. intro, build, peak, deload, accumulation, intensification, taper, test). Use the text's own phase names and 1-based inclusive week ranges. An unnamed program gets an empty array.
-- A week described as identical to a previous week ("weeks 2-4 same as week 1", "repeat") still gets its own week entries with the repeated content.
+- Emit one entry per training week in order, but write out the days ONLY for a week whose content differs from every earlier week. A week that repeats an earlier week EXACTLY (same days, same exercises, same sets, same numbers — "weeks 2-4 same as week 1", "repeat week 1") gets an empty days array and repeat_of_week set to that earlier week's number. Write out the days and set repeat_of_week to null whenever anything at all changes (a different weight, one added set, a different day title). repeat_of_week must always point to an EARLIER week, never to itself and never to a later one.
 - Mark sets as warmup only if explicitly labeled as warmup in the text.
 - exercise_category should reflect the movement type: compound (multi-joint), isolation (single-joint), cardio, bodyweight, plyometric, drill, or interval.
 - muscle_group should be the most specific primary muscle targeted when identifiable. Fall back to the coarse region value only when the specific muscle is ambiguous, or use null.`;
@@ -346,6 +346,11 @@ const PROGRAM_SCHEMA = {
         type: "object" as const,
         properties: {
           week_number: { type: "integer" as const },
+          // Compact output (U13): a week identical to an earlier one carries
+          // no days and points at that week's 1-based number instead. The
+          // Swift decoder expands it back before anything is built, so the
+          // athlete's program is unchanged — only the tokens are saved.
+          repeat_of_week: { type: ["integer", "null"] as const },
           days: {
             type: "array" as const,
             items: {
@@ -363,7 +368,7 @@ const PROGRAM_SCHEMA = {
             },
           },
         },
-        required: ["week_number", "days"],
+        required: ["week_number", "repeat_of_week", "days"],
         additionalProperties: false,
       },
     },
@@ -379,6 +384,20 @@ const PROGRAM_SCHEMA = {
   additionalProperties: false,
 };
 
+// Program mode is output-bound, not input-bound: the wait an athlete feels is
+// the model writing the weeks out one token at a time (U13). These three
+// settings are the lever — the model, the ceiling on what it may write, and a
+// low temperature so it writes the program once instead of wandering.
+const PROGRAM_MODEL = "gpt-4o-mini";
+// A 4-day / 6-exercise / 4-set week costs ~3,600 output tokens. With repeats
+// collapsed into repeat_of_week, a typical block emits 2-3 DISTINCT weeks, so
+// 8,000 covers it with room to spare while halving the worst-case wait against
+// the model's own 16k ceiling. A response that still hits the cap is truncated
+// mid-JSON — we say what to do about it instead of failing on JSON.parse.
+const PROGRAM_MAX_COMPLETION_TOKENS = 8000;
+const PROGRAM_TRUNCATED_MESSAGE =
+  "program too long for one read — import a few weeks at a time";
+
 async function handleProgramMode(workout_text: string): Promise<Response> {
   const apiKey = Deno.env.get("OPENAI_API_KEY");
   if (!apiKey) {
@@ -388,6 +407,9 @@ async function handleProgramMode(workout_text: string): Promise<Response> {
     );
   }
 
+  // Timing instrumentation. Sizes and durations only — the program text and
+  // the parsed program never reach the log.
+  const startedAt = performance.now();
   const openaiResponse = await fetch(
     "https://api.openai.com/v1/chat/completions",
     {
@@ -397,7 +419,9 @@ async function handleProgramMode(workout_text: string): Promise<Response> {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini",
+        model: PROGRAM_MODEL,
+        temperature: 0.2,
+        max_completion_tokens: PROGRAM_MAX_COMPLETION_TOKENS,
         messages: [
           { role: "system", content: PROGRAM_SYSTEM_PROMPT },
           { role: "user", content: workout_text },
@@ -413,10 +437,14 @@ async function handleProgramMode(workout_text: string): Promise<Response> {
       }),
     }
   );
+  const elapsedMs = Math.round(performance.now() - startedAt);
 
   if (!openaiResponse.ok) {
     const errorBody = await openaiResponse.text();
     console.error("OpenAI API error (program):", openaiResponse.status, errorBody);
+    console.log(
+      `[timing] program model=${PROGRAM_MODEL} input_chars=${workout_text.length} openai_ms=${elapsedMs} http_status=${openaiResponse.status}`
+    );
     return new Response(
       JSON.stringify({ error: "Failed to parse program" }),
       { status: 502, headers: JSON_HEADERS }
@@ -424,8 +452,25 @@ async function handleProgramMode(workout_text: string): Promise<Response> {
   }
 
   const data = await openaiResponse.json();
-  const content = data.choices?.[0]?.message?.content;
+  const choice = data.choices?.[0];
+  const usage = data.usage ?? {};
+  console.log(
+    `[timing] program model=${PROGRAM_MODEL} input_chars=${workout_text.length}` +
+      ` openai_ms=${elapsedMs} prompt_tokens=${usage.prompt_tokens ?? "?"}` +
+      ` completion_tokens=${usage.completion_tokens ?? "?"}` +
+      ` finish_reason=${choice?.finish_reason ?? "?"}`
+  );
 
+  // The cap was hit: the JSON stops mid-object. Tell the athlete what to do
+  // rather than letting JSON.parse throw into the generic 502.
+  if (choice?.finish_reason === "length") {
+    return new Response(
+      JSON.stringify({ error: PROGRAM_TRUNCATED_MESSAGE }),
+      { status: 422, headers: JSON_HEADERS }
+    );
+  }
+
+  const content = choice?.message?.content;
   if (!content) {
     return new Response(
       JSON.stringify({ error: "Failed to parse program" }),
@@ -433,7 +478,18 @@ async function handleProgramMode(workout_text: string): Promise<Response> {
     );
   }
 
-  const parsed = JSON.parse(content);
+  // strict json_schema guarantees the shape, so a parse failure here is a
+  // truncated body in practice — same actionable copy, not a 502.
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(content);
+  } catch (error) {
+    console.error("Program content was not valid JSON:", error);
+    return new Response(
+      JSON.stringify({ error: PROGRAM_TRUNCATED_MESSAGE }),
+      { status: 422, headers: JSON_HEADERS }
+    );
+  }
 
   return new Response(JSON.stringify(parsed), { headers: JSON_HEADERS });
 }
@@ -907,8 +963,11 @@ Deno.serve(async (req: Request) => {
     }
 
     // JWT verification (both modes)
+    const authStartedAt = performance.now();
     const userId = await authenticateRequest(req);
+    const authMs = Math.round(performance.now() - authStartedAt);
     if (!userId) {
+      console.log(`[timing] mode=${mode} auth_ms=${authMs} outcome=unauthorized`);
       return new Response(JSON.stringify({ error: "unauthorized" }), {
         status: 401,
         headers: JSON_HEADERS,
@@ -916,7 +975,13 @@ Deno.serve(async (req: Request) => {
     }
 
     // Per-user daily quota (both modes)
+    const quotaStartedAt = performance.now();
     const withinQuota = await checkQuota(userId);
+    const quotaMs = Math.round(performance.now() - quotaStartedAt);
+    console.log(
+      `[timing] mode=${mode} input_chars=${workout_text.length}` +
+        ` auth_ms=${authMs} quota_ms=${quotaMs} within_quota=${withinQuota}`
+    );
     if (!withinQuota) {
       return new Response(JSON.stringify({ error: "quota_exceeded" }), {
         status: 429,
@@ -925,13 +990,20 @@ Deno.serve(async (req: Request) => {
     }
 
     // Provider routing
+    const routeStartedAt = performance.now();
+    let response: Response;
     if (mode === "plan") {
-      return await handlePlanMode(workout_text);
+      response = await handlePlanMode(workout_text);
+    } else if (mode === "program") {
+      response = await handleProgramMode(workout_text);
+    } else {
+      response = await handleLogMode(workout_text);
     }
-    if (mode === "program") {
-      return await handleProgramMode(workout_text);
-    }
-    return await handleLogMode(workout_text);
+    console.log(
+      `[timing] mode=${mode} provider_ms=${Math.round(performance.now() - routeStartedAt)}` +
+        ` status=${response.status}`
+    );
+    return response;
   } catch (error) {
     console.error("parse-workout error:", error);
     return new Response(

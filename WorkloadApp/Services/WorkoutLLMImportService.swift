@@ -58,6 +58,19 @@ enum WorkoutLLMImportService {
         struct ParsedWeek: Decodable {
             let week_number: Int
             let days: [ParsedDay]
+            /// The 1-based number of an EARLIER week this week repeats exactly, when the
+            /// parser chose to send the repeat as a pointer instead of writing the weeks
+            /// out again (U13 — output volume was the 30-40s wait). Such a week carries no
+            /// days; `expandedWeeks(of:)` fills them back in before anything is built.
+            /// Absent (`nil`) means a full week, which is how every pre-U13 response and
+            /// every response with nothing to repeat decodes — the field is additive.
+            let repeat_of_week: Int?
+
+            init(week_number: Int, days: [ParsedDay], repeat_of_week: Int? = nil) {
+                self.week_number = week_number
+                self.days = days
+                self.repeat_of_week = repeat_of_week
+            }
         }
 
         struct ParsedDay: Decodable {
@@ -389,8 +402,51 @@ enum WorkoutLLMImportService {
     /// stated — the weeks themselves document the length.
     static func statedDurationWeeks(of response: ParsedProgramResponse) -> Int? {
         if let stated = response.duration_weeks, stated >= 1 { return stated }
+        // Counts the RAW weeks on purpose: a repeat-pointer week is still a week the file
+        // states. Never swap this for `expandedWeeks(of:)`, which drops unresolvable ones.
         let structural = response.weeks.count
         return structural > 1 ? structural : nil
+    }
+
+    /// Expands the parser's COMPACT week list back into week-by-week content.
+    ///
+    /// Writing every week out in full is what made a program read take 30-40 seconds per
+    /// block (UAT round 2, U13): the wait is the model typing, and a repeated week is
+    /// typing the athlete already paid for. The parser now sends a repeated week as a
+    /// pointer (`repeat_of_week`) with no days, and this restores it here — so the
+    /// `WorkoutTemplate` graph is identical to the one a fully-written response produced.
+    ///
+    /// Resolution runs in week order and reads only ALREADY-RESOLVED weeks, so a chain
+    /// (week 3 repeats week 2, which repeats week 1) resolves. A pointer that names the
+    /// week itself or a LATER week is ignored rather than followed: honouring it would
+    /// need content that does not exist yet, and inventing content is exactly what this
+    /// service must never do. Such a week carries no days, so it drops out here the same
+    /// way an empty week always has, and `buildProgram`'s cycling then covers its slot
+    /// with real parsed content.
+    static func expandedWeeks(
+        of response: ParsedProgramResponse
+    ) -> [ParsedProgramResponse.ParsedWeek] {
+        var resolvedDays: [Int: [ParsedProgramResponse.ParsedDay]] = [:]
+        var expanded: [ParsedProgramResponse.ParsedWeek] = []
+
+        for week in response.weeks.sorted(by: { $0.week_number < $1.week_number }) {
+            var days = week.days
+            // Stated content always wins over a pointer; the pointer is only a way to
+            // avoid restating it.
+            if days.isEmpty,
+               let repeatOf = week.repeat_of_week,
+               repeatOf < week.week_number {
+                days = resolvedDays[repeatOf] ?? []
+            }
+            guard !days.isEmpty else { continue }
+
+            resolvedDays[week.week_number] = days
+            expanded.append(ParsedProgramResponse.ParsedWeek(
+                week_number: week.week_number,
+                days: days
+            ))
+        }
+        return expanded
     }
 
     /// Builds the unsaved model graph for an imported program: the `TrainingProgram` with its
@@ -426,9 +482,8 @@ enum WorkoutLLMImportService {
             )
         }
 
-        let parsedWeeks = response.weeks
-            .sorted { $0.week_number < $1.week_number }
-            .filter { !$0.days.isEmpty }
+        // Repeats expand FIRST, so the cycling below sees the program as written.
+        let parsedWeeks = expandedWeeks(of: response)
         guard !parsedWeeks.isEmpty else { return (program, []) }
 
         var dayTemplates: [WorkoutTemplate] = []
