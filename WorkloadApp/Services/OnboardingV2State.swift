@@ -2,12 +2,17 @@ import Foundation
 
 // MARK: - Feature flag (BUILD-PLAN §5)
 
-/// `OnboardingV2` gate — read once at router level. Default **false**: while off, the
-/// shipped 4-step `OnboardingView` and the login-first route are behaviorally identical
-/// to today. HAN flips by a one-line default change (their explicit go), which is also
-/// the moment the §4 release gate (ASC privacy label + PostHog manifest) applies.
+/// `OnboardingV2` gate — read once at router level. Default **true** since 2026-09-14
+/// (HAN's explicit go, v1.7.3 UAT round 2): a fresh install routes through the 12-screen
+/// flow. A stored `false` under `key` turns it back off — the kill switch keeps working
+/// without a build. Flipping ON is also the moment the BUILD-PLAN §4 release gate applies:
+/// ASC privacy label reconciled and PostHog disclosed before the archive is submitted.
+///
+/// Was default **false** from 3e6bdb8 (2026-09-03) until this flip; while off, the shipped
+/// 4-step `OnboardingView` and the login-first route were behaviorally identical to 1.7.2.
 enum OnboardingV2Flag {
     static let key = "flag.onboardingV2"
+    static let defaultValue = true
 
     static func isEnabled(
         defaults: UserDefaults = .standard,
@@ -17,7 +22,8 @@ enum OnboardingV2Flag {
         // Launch argument for demos, screenshots, and UAT — DEBUG builds only.
         if arguments.contains("ONBOARDING_V2") { return true }
         #endif
-        return defaults.bool(forKey: key)
+        if let stored = defaults.object(forKey: key) as? Bool { return stored }
+        return defaultValue
     }
 }
 

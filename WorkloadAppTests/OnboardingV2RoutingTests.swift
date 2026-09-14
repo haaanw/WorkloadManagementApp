@@ -22,7 +22,17 @@ final class OnboardingV2RoutingTests: XCTestCase {
 
     // MARK: - Flag
 
-    func test_flagDefaultsOff() {
+    /// Default ON since 2026-09-14 (HAN's go). The test pins the constant rather than a
+    /// literal so a future flip is one line in the source and zero here.
+    func test_flagDefaultsToTheDeclaredValue() {
+        XCTAssertTrue(OnboardingV2Flag.defaultValue)
+        XCTAssertEqual(OnboardingV2Flag.isEnabled(defaults: suite, arguments: []),
+                       OnboardingV2Flag.defaultValue)
+    }
+
+    /// The kill switch: a stored `false` beats the ON default without a build.
+    func test_storedFalseTurnsTheFlagOff() {
+        suite.set(false, forKey: OnboardingV2Flag.key)
         XCTAssertFalse(OnboardingV2Flag.isEnabled(defaults: suite, arguments: []))
     }
 
