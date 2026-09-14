@@ -267,8 +267,12 @@ final class TrendsMeaningTests: XCTestCase {
         referenced += ["rising", "steady", "falling"].map { "trends.meaning.fatigue.trajectory.\($0)" }
         referenced += ["light", "steady", "building", "high", "noData"].map { "trends.meaning.load.\($0)" }
 
+        // Both halves of each set: what stayed collapsed on the detail screens, and what the
+        // detail screens print expanded under their tree rows (UAT round 3 · U20).
         for item in TrendsFatigueSection.aboutItems
+            + TrendsFatigueSection.componentAboutItems
             + TrendsLoadSection.aboutItems
+            + TrendsLoadSection.componentAboutItems
             + TrendsWhatYouDidSection.aboutItems {
             referenced.append(String(describing: item.titleKey))
             referenced.append(String(describing: item.bodyKey))

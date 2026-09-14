@@ -148,7 +148,8 @@ struct TrendsView: View {
                                 daysWithoutRelief: viewModel.daysWithoutRelief,
                                 observedHistoryDays: viewModel.observedHistoryDays,
                                 hasEnoughHistory: viewModel.hasEnoughHistory,
-                                rangeDays: viewModel.selectedRange.days
+                                rangeDays: viewModel.selectedRange.days,
+                                destination: .fatigue(range: viewModel.selectedRange)
                             )
                             .padding(.horizontal, Spacing.sm)
                         }
@@ -160,7 +161,8 @@ struct TrendsView: View {
                                 snapshot: viewModel.latestLoadSnapshot,
                                 acwrRange: viewModel.acwrRange,
                                 trendSnapshots: trendData,
-                                selectedTrendDate: $selectedTrendDate
+                                selectedTrendDate: $selectedTrendDate,
+                                destination: .load(range: viewModel.selectedRange)
                             )
                             .padding(.horizontal, Spacing.sm)
                         }
@@ -322,6 +324,8 @@ struct TrendsView: View {
                 case .hrv:   HRVDetailScreen()
                 case .rhr:   RHRDetailScreen()
                 case .sleep: SleepDetailScreen()
+                case .fatigue(let range): FatigueDetailScreen(range: range)
+                case .load(let range):    LoadDetailScreen(range: range)
                 }
             }
             .confirmationDialog("workload.export.title", isPresented: $showExportOptions, titleVisibility: .visible) {

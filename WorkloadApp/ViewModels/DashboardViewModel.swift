@@ -108,6 +108,48 @@ final class DashboardViewModel {
     /// skipped prescriptions, so finishing the workout returns the CTA to `.none` on reload.
     var todayPlanCTA: TodayPlanCTA = .none
 
+    /// Pull-to-refresh on Today: bring EVERYTHING current, in order, awaited (v1.7.3 · U18).
+    ///
+    /// **Why order matters.** The four steps are not independent. The watch import can add
+    /// sessions the pipeline's own load reads; the pipeline re-reads HealthKit and rewrites
+    /// today's snapshot; only then is there anything new worth pushing. Racing the pipeline
+    /// against `pushAll` would push the row the pipeline is in the middle of replacing, and a
+    /// `pullAll` overlapping a `pushAll` is a no-op anyway (both take the same `isSyncing`
+    /// latch), so the sequence is awaited end to end rather than fanned out.
+    ///
+    /// A mid-morning re-run is SAFE by the 2026-08-05 rules: baselines are built strictly from
+    /// days before today, the authoritative HRV write replaces a nil with the morning reading
+    /// that has since arrived, RHR keeps its coalesce, and both shadow folds are idempotent.
+    ///
+    /// `importWatchWorkouts` is a seam, not a convenience: `WatchWorkoutImportService.run`
+    /// takes the concrete `HealthKitService` while everything else here takes the
+    /// `HealthDataProviding` protocol, and a test must be able to record that the import ran
+    /// BEFORE the pipeline without a Health store.
+    func refreshAll(
+        athlete: Athlete,
+        healthKitService: any HealthDataProviding,
+        modelContext: ModelContext,
+        syncService: SyncService?,
+        importWatchWorkouts: () async -> Void
+    ) async {
+        // 1. Watch workouts first — a session imported now is history the load can read.
+        await importWatchWorkouts()
+
+        // 2. The pipeline, AWAITED. Everything below depends on the row it writes.
+        await load(
+            athlete: athlete,
+            healthKitService: healthKitService,
+            modelContext: modelContext,
+            syncService: syncService
+        )
+
+        // 3. Then the round trip, push before pull, each already a no-op while the other runs.
+        if let syncService {
+            await syncService.pushAll(context: modelContext)
+            await syncService.pullAll(context: modelContext)
+        }
+    }
+
     func load(
         athlete: Athlete,
         healthKitService: any HealthDataProviding,

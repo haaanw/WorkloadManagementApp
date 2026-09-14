@@ -62,6 +62,23 @@ struct TrendsRangeRail: View {
     }
 }
 
+// MARK: - Door caret
+
+/// The `text3` caret that marks a card as a DOOR (UAT round 3 · U20).
+///
+/// The same mark `MetricCell.indicatesNavigation` puts on Today's three body-signal plates, and
+/// for the same reason: a surface that navigates with no mark reads as a readout. It sits in the
+/// hero row beside the zone capsule rather than in the plate's corner, because the capsule is
+/// already there and two marks in one corner read as a collision.
+private struct CardDoorCaret: View {
+    var body: some View {
+        Image(systemName: "chevron.right")
+            .font(.Tokens.smallLabel)
+            .foregroundStyle(ColorTokens.text3)
+            .accessibilityHidden(true)
+    }
+}
+
 // MARK: - Fatigue (the page's hero)
 
 /// Accumulated fatigue across the window: the index as a hero reading in the load hue, its zone
@@ -83,24 +100,25 @@ struct TrendsFatigueSection: View {
     let observedHistoryDays: Int
     let hasEnoughHistory: Bool
     let rangeDays: Int
+    /// Where the card leads. The whole card is a DOOR (UAT round 3 · U20): the explanations
+    /// used to sit under it as eleven collapsed rows, which cost the page more height than the
+    /// hero itself. They moved to `FatigueDetailScreen`, and this is the way in.
+    let destination: TrendDestination
 
     @Environment(\.locale) private var locale
 
     private var latest: FatigueHistoryEngine.Point? { points.last }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
+        // Primitive 2 (Row): a well on press, no scale — a surface that navigates, not a key
+        // that commits. The same treatment Today's metric cells carry, so the two tabs press
+        // alike. Nothing inside this card takes a gesture of its own, so the whole plate can be
+        // the tap target (the load card below cannot say the same — its plot scrubs).
+        NavigationLink(value: destination) {
             card
-            // The meaning layer's second half (UAT round 2 · U16): the number is explained in one
-            // sentence on the card; everything an athlete might want BEHIND that sentence lives
-            // here, collapsed. Progressive disclosure — the hero answers the question, the prose
-            // is for the curious. The mono reason tree above stays inert: annotation is
-            // marginalia, never a control.
-            DetailDisclosureList(
-                eyebrowKey: "trends.meaning.about.eyebrow",
-                items: Self.aboutItems
-            )
         }
+        .buttonStyle(.rowWell(cornerRadius: CornerTokens.card))
+        .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
     }
 
     private var card: some View {
@@ -125,6 +143,7 @@ struct TrendsFatigueSection: View {
                         label: Self.zoneLabel(latest.zone, locale: locale),
                         color: ColorTokens.fatigueZoneColor(latest.zone)
                     )
+                    CardDoorCaret()
                 }
 
                 // (U16) The plain-language reading, directly under the hero: number, then what
@@ -158,14 +177,19 @@ struct TrendsFatigueSection: View {
                 }
                 .padding(.top, Spacing.sm)
             } else {
-                Text(String(
-                    format: LocalePinnedStrings.localized("trends.fatigue.empty", locale: locale),
-                    observedHistoryDays,
-                    FatigueHistoryEngine.minimumHistoryDays
-                ))
-                .font(.Tokens.body)
-                .foregroundStyle(ColorTokens.text2)
-                .fixedSize(horizontal: false, vertical: true)
+                HStack(alignment: .firstTextBaseline) {
+                    Text(String(
+                        format: LocalePinnedStrings.localized("trends.fatigue.empty", locale: locale),
+                        observedHistoryDays,
+                        FatigueHistoryEngine.minimumHistoryDays
+                    ))
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    // The door stands even with no series: what the index IS is exactly what an
+                    // athlete who cannot see one yet wants to read.
+                    CardDoorCaret()
+                }
             }
         }
         // The one card on this page that takes the area's 4% wash.
@@ -175,7 +199,25 @@ struct TrendsFatigueSection: View {
 
     /// The window's story in one or two sentences, both readings of stored values.
     private var trajectorySentence: String {
-        guard let first = points.first, let latest else { return "" }
+        Self.trajectorySentence(
+            points: points,
+            trajectory: trajectory,
+            daysWithoutRelief: daysWithoutRelief,
+            rangeDays: rangeDays,
+            locale: locale
+        )
+    }
+
+    /// The same two sentences, for any surface that draws the same series — the card and the
+    /// detail screen both say where the window started and where it ended.
+    static func trajectorySentence(
+        points: [FatigueHistoryEngine.Point],
+        trajectory: FatigueHistoryEngine.Trajectory?,
+        daysWithoutRelief: Int,
+        rangeDays: Int,
+        locale: Locale
+    ) -> String {
+        guard let first = points.first, let latest = points.last else { return "" }
         let from = Int(first.index.rounded())
         let to = Int(latest.index.rounded())
 
@@ -211,7 +253,13 @@ struct TrendsFatigueSection: View {
     /// and the six scores in one visible order.
     private var componentRows: [String] {
         guard let components = latest?.components else { return [] }
-        let names = [
+        return Self.componentRows(components: components, names: Self.componentNames(locale: locale))
+    }
+
+    /// The six component names the CARD prints — short, because the card has one line per
+    /// component and no room to say more.
+    static func componentNames(locale: Locale) -> [String] {
+        [
             LocalePinnedStrings.localized("trends.fatigue.component.loadElevation", locale: locale),
             LocalePinnedStrings.localized("trends.fatigue.component.sessionDensity", locale: locale),
             LocalePinnedStrings.localized("trends.fatigue.component.restDebt", locale: locale),
@@ -219,6 +267,31 @@ struct TrendsFatigueSection: View {
             LocalePinnedStrings.localized("trends.fatigue.component.wellnessTrend", locale: locale),
             LocalePinnedStrings.localized("trends.fatigue.component.softTissue", locale: locale)
         ]
+    }
+
+    /// The same six names as the DETAIL screen prints them, each carrying the engine's own
+    /// weight. Resolved from the About titles, so the weights are authored in exactly one place
+    /// and the tree can never disagree with the explanation beside it.
+    static func componentWeightedNames(locale: Locale) -> [String] {
+        [
+            LocalePinnedStrings.localized("trends.meaning.about.fatigue.component.loadElevation.title", locale: locale),
+            LocalePinnedStrings.localized("trends.meaning.about.fatigue.component.sessionDensity.title", locale: locale),
+            LocalePinnedStrings.localized("trends.meaning.about.fatigue.component.restDebt.title", locale: locale),
+            LocalePinnedStrings.localized("trends.meaning.about.fatigue.component.recoveryTrend.title", locale: locale),
+            LocalePinnedStrings.localized("trends.meaning.about.fatigue.component.wellnessTrend.title", locale: locale),
+            LocalePinnedStrings.localized("trends.meaning.about.fatigue.component.softTissue.title", locale: locale)
+        ]
+    }
+
+    /// The stemmed annotation rows for a set of component scores, in the engine's order.
+    ///
+    /// Static and name-parameterised because two surfaces print the same six rows with two name
+    /// forms: the card's short names, and the detail screen's weighted ones. The arithmetic and
+    /// the stem live here once.
+    static func componentRows(
+        components: FatigueIndexEngine.FatigueResult,
+        names: [String]
+    ) -> [String] {
         let scores = [
             components.loadElevation,
             components.sessionDensity,
@@ -229,7 +302,7 @@ struct TrendsFatigueSection: View {
         ]
         return zip(names, scores).enumerated().map { index, row in
             let branch = index == names.count - 1 ? "\u{2514}\u{2500}" : "\u{251C}\u{2500}"
-            return "\(branch) \(row.0) \(Self.componentGlyph(row.1)) \(Int((row.1 * 100).rounded()))"
+            return "\(branch) \(row.0) \(componentGlyph(row.1)) \(Int((row.1 * 100).rounded()))"
         }
     }
 
@@ -306,8 +379,10 @@ struct TrendsFatigueSection: View {
     }
 
     /// The collapsed explanation set: what the index is, how its bands are cut, what kind of
-    /// scale it is, what moves it, how to read the tree's glyphs, then one row per component in
-    /// the same order the tree prints them, each carrying the engine's own weight.
+    /// scale it is, what moves it, and how to read the tree's glyphs.
+    ///
+    /// It lives on `FatigueDetailScreen` now, not on the card (UAT round 3 · U20). The six
+    /// per-component explanations left this list at the same time — see `componentAboutItems`.
     static let aboutItems: [DetailDisclosureItem] = [
         DetailDisclosureItem(
             titleKey: "trends.meaning.about.fatigue.what.title",
@@ -328,7 +403,16 @@ struct TrendsFatigueSection: View {
         DetailDisclosureItem(
             titleKey: "trends.meaning.about.fatigue.glyphs.title",
             bodyKey: "trends.meaning.about.fatigue.glyphs.body"
-        ),
+        )
+    ]
+
+    /// One explanation per component, in the order the tree prints them, each carrying the
+    /// engine's own weight in its title.
+    ///
+    /// Held apart from `aboutItems` because the detail screen does not COLLAPSE these: it
+    /// prints each one under the component row it explains, which is what "expand the tree"
+    /// means. Two copies of the same six sentences on one page would be worse than none.
+    static let componentAboutItems: [DetailDisclosureItem] = [
         DetailDisclosureItem(
             titleKey: "trends.meaning.about.fatigue.component.loadElevation.title",
             bodyKey: "trends.meaning.about.fatigue.component.loadElevation.body"
@@ -437,45 +521,26 @@ struct TrendsLoadSection: View {
     let acwrRange: (low: Double, high: Double)?
     let trendSnapshots: [WorkloadSnapshot]
     @Binding var selectedTrendDate: Date?
+    /// Where the hero leads (UAT round 3 · U20).
+    let destination: TrendDestination
 
     @Environment(\.locale) private var locale
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            card
-            DetailDisclosureList(
-                eyebrowKey: "trends.meaning.about.eyebrow",
-                items: Self.aboutItems
-            )
-        }
+        card
     }
 
     private var card: some View {
         VStack(alignment: .leading, spacing: 0) {
-            if let snapshot {
-                HStack(alignment: .firstTextBaseline) {
-                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
-                        Text(String(format: "%.2f", snapshot.acwr))
-                            .font(.Tokens.displayAction)
-                            .monospacedDigit()
-                            .foregroundStyle(ColorTokens.text1)
-                        AnnotationLabel(key: "trends.load.unit", size: .small)
-                            .annotationReveal()
-                    }
-                    Spacer()
-                    ZoneBadge(
-                        label: snapshot.zone.displayName,
-                        color: ColorTokens.acwrZoneColor(snapshot.zone)
-                    )
+            if snapshot != nil {
+                // The DOOR is the hero block, not the whole plate: the plot below it scrubs, and
+                // a card-wide button would eat the scrub's taps. So the reading navigates and the
+                // chart keeps its gesture.
+                NavigationLink(value: destination) {
+                    hero
                 }
-
-                // (U16) What the ratio means, under the ratio. `LOAD STEADY` is a label; this
-                // says what the label is a label FOR.
-                Text(Self.loadReading(snapshot.zone, locale: locale))
-                    .font(.Tokens.body)
-                    .foregroundStyle(ColorTokens.text2)
-                    .fixedSize(horizontal: false, vertical: true)
-                    .padding(.top, Spacing.sm)
+                .buttonStyle(.rowWell(cornerRadius: CornerTokens.control))
+                .simultaneousGesture(TapGesture().onEnded { Haptics.tap() })
             }
 
             if trendSnapshots.count > 1 {
@@ -502,6 +567,40 @@ struct TrendsLoadSection: View {
         .accessibilityIdentifier("trends.loadTrend")
     }
 
+    /// The ratio, its zone and what the ratio means — the block that navigates.
+    @ViewBuilder
+    private var hero: some View {
+        if let snapshot {
+            VStack(alignment: .leading, spacing: 0) {
+                HStack(alignment: .firstTextBaseline) {
+                    HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                        Text(String(format: "%.2f", snapshot.acwr))
+                            .font(.Tokens.displayAction)
+                            .monospacedDigit()
+                            .foregroundStyle(ColorTokens.text1)
+                        AnnotationLabel(key: "trends.load.unit", size: .small)
+                            .annotationReveal()
+                    }
+                    Spacer()
+                    ZoneBadge(
+                        label: snapshot.zone.displayName,
+                        color: ColorTokens.acwrZoneColor(snapshot.zone)
+                    )
+                    CardDoorCaret()
+                }
+
+                // (U16) What the ratio means, under the ratio. `LOAD STEADY` is a label; this
+                // says what the label is a label FOR.
+                Text(Self.loadReading(snapshot.zone, locale: locale))
+                    .font(.Tokens.body)
+                    .foregroundStyle(ColorTokens.text2)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.top, Spacing.sm)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
     // MARK: - Meaning layer (UAT round 2 · U16)
 
     /// What the acute-to-chronic ratio means in words. Each sentence compares the last week with
@@ -518,9 +617,25 @@ struct TrendsLoadSection: View {
         }
     }
 
-    /// The collapsed explanation set: the two loads, the ratio they form, where it is cut, and
-    /// the three abbreviations the series key under the plot prints untranslated.
+    /// The collapsed explanation set: the ratio the two loads form, and where it is cut.
+    ///
+    /// It lives on `LoadDetailScreen` now (UAT round 3 · U20). The three per-load explanations
+    /// left this list at the same time — see `componentAboutItems`.
     static let aboutItems: [DetailDisclosureItem] = [
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.load.ratio.title",
+            bodyKey: "trends.meaning.about.load.ratio.body"
+        ),
+        DetailDisclosureItem(
+            titleKey: "trends.meaning.about.load.cutpoints.title",
+            bodyKey: "trends.meaning.about.load.cutpoints.body"
+        )
+    ]
+
+    /// One explanation per load, in the order the detail screen's tree prints them: acute,
+    /// chronic, and the balance between them. Printed UNDER their rows rather than collapsed, so
+    /// the number and the sentence that defines it stand together.
+    static let componentAboutItems: [DetailDisclosureItem] = [
         DetailDisclosureItem(
             titleKey: "trends.meaning.about.load.acute.title",
             bodyKey: "trends.meaning.about.load.acute.body"
@@ -530,18 +645,30 @@ struct TrendsLoadSection: View {
             bodyKey: "trends.meaning.about.load.chronic.body"
         ),
         DetailDisclosureItem(
-            titleKey: "trends.meaning.about.load.ratio.title",
-            bodyKey: "trends.meaning.about.load.ratio.body"
-        ),
-        DetailDisclosureItem(
-            titleKey: "trends.meaning.about.load.cutpoints.title",
-            bodyKey: "trends.meaning.about.load.cutpoints.body"
-        ),
-        DetailDisclosureItem(
-            titleKey: "trends.meaning.about.load.terms.title",
+            titleKey: "trends.detail.load.tsb.title",
             bodyKey: "trends.meaning.about.load.terms.body"
         )
     ]
+
+    /// The three stemmed annotation rows the detail screen's tree prints: each load's own name,
+    /// the machine abbreviation the plot keys it by, and its stored value.
+    ///
+    /// ATL / CTL / TSB are untranslated scientific abbreviations — the same ones the series key
+    /// under the plot already prints — so they are literals here, exactly as they are there.
+    static func loadRows(acute: Double, chronic: Double, tsb: Double, locale: Locale) -> [String] {
+        let names = [
+            LocalePinnedStrings.localized("trends.meaning.about.load.acute.title", locale: locale),
+            LocalePinnedStrings.localized("trends.meaning.about.load.chronic.title", locale: locale),
+            LocalePinnedStrings.localized("trends.detail.load.tsb.title", locale: locale)
+        ]
+        let keys = ["ATL", "CTL", "TSB"]
+        let values = [acute, chronic, tsb]
+
+        return zip(zip(names, keys), values).enumerated().map { index, row in
+            let branch = index == names.count - 1 ? "\u{2514}\u{2500}" : "\u{251C}\u{2500}"
+            return "\(branch) \(row.0.0) · \(row.0.1) \(String(format: "%.0f", row.1))"
+        }
+    }
 
     /// A ratio and its own history — both readings of stored values.
     private var loadSentence: String? {
@@ -575,13 +702,7 @@ struct TrendsWhatYouDidSection: View {
     @Environment(\.locale) private var locale
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 0) {
-            card
-            DetailDisclosureList(
-                eyebrowKey: "trends.meaning.about.eyebrow",
-                items: Self.aboutItems
-            )
-        }
+        card
     }
 
     private var card: some View {
@@ -645,6 +766,10 @@ struct TrendsWhatYouDidSection: View {
     }
 
     /// The collapsed explanation set: what a bar is, and whose average the comparison uses.
+    ///
+    /// This card carries no list of its own any more (UAT round 3 · U20). The two items ride the
+    /// LOAD detail screen under a "what you did" head — the bars ARE the load the ratio is built
+    /// from, so that is where a reader who wants them is already standing.
     static let aboutItems: [DetailDisclosureItem] = [
         DetailDisclosureItem(
             titleKey: "trends.meaning.about.activity.bars.title",

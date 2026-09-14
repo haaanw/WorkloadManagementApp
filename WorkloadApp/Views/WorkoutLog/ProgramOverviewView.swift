@@ -18,7 +18,10 @@ struct ProgramOverviewView: View {
     @Query private var entries: [ScheduleEntry]
     @Query private var sessions: [WorkoutSession]
 
-    @State private var expandedWeek: Int?
+    /// Which weeks are open. A SET rather than a single week (U21): "expand all" is how the
+    /// athlete reads the whole block at once, and one-week-at-a-time made that impossible.
+    @State private var expandedWeeks: Set<Int> = []
+    @State private var didSeedExpansion = false
     @State private var showMovePosition = false
     @State private var showReimport = false
     @State private var programRepo: ProgramRepository?
@@ -94,7 +97,10 @@ struct ProgramOverviewView: View {
                 programRepo = ProgramRepository(modelContext: modelContext)
                 scheduleRepo = ScheduleRepository(modelContext: modelContext)
             }
-            if expandedWeek == nil { expandedWeek = program?.positionWeek }
+            if !didSeedExpansion {
+                didSeedExpansion = true
+                if let week = program?.positionWeek { expandedWeeks = [week] }
+            }
         }
         .sheet(isPresented: $showMovePosition) {
             if let program {
@@ -134,10 +140,19 @@ struct ProgramOverviewView: View {
         let adherence = ProgramInsightEngine.adherence(program: program, entries: programEntries)
         let volumeRatio = loggedVsPlannedVolume(program)
         return HStack(spacing: Spacing.xs) {
-            statCell(
-                value: "W\(program.positionWeek) · D\(program.positionDay)",
-                key: "program.stat.position"
-            )
+            // U23: the cell's key used to read "POSITION · MOVABLE" while the only way to
+            // move it was a separate text button further down the page. It now says TAP TO
+            // MOVE and is itself the door.
+            Button {
+                Haptics.select()
+                showMovePosition = true
+            } label: {
+                statCell(
+                    value: "W\(program.positionWeek) · D\(program.positionDay)",
+                    key: "program.stat.position"
+                )
+            }
+            .buttonStyle(.pressable)
             statCell(
                 value: "\(adherence.trained) / \(adherence.planned)",
                 key: "program.stat.trained"
@@ -192,6 +207,7 @@ struct ProgramOverviewView: View {
         }
         let maxVolume = max(volumes.max() ?? 1, 1)
         return VStack(spacing: 0) {
+            weeksKeyRow(program)
             ForEach(1...max(1, program.durationWeeks), id: \.self) { week in
                 if let phase = program.phase(forWeek: week), phase.startWeek == week {
                     HStack {
@@ -205,12 +221,45 @@ struct ProgramOverviewView: View {
                     }
                 }
                 weekRow(program, week: week, volume: volumes[week - 1], maxVolume: maxVolume)
-                if expandedWeek == week {
+                if expandedWeeks.contains(week) {
                     weekDays(program, week: week)
                 }
             }
         }
         .emphasisCardStyle(horizontalPadding: 0, verticalPadding: 0)
+    }
+
+    /// The card's own key row (U23). The bars are a RELATIVE comparison of planned tonnage
+    /// week against week — there is no axis and no scale, so the key says which of the two
+    /// things a bar could mean it means, and says that it is relative rather than absolute.
+    /// Beside it, the control that opens the whole block at once (U21).
+    private func weeksKeyRow(_ program: TrainingProgram) -> some View {
+        let allWeeks = Set(1...max(1, program.durationWeeks))
+        let allOpen = expandedWeeks.isSuperset(of: allWeeks)
+        let toggleTitle: LocalizedStringKey = allOpen
+            ? "program.weeks.collapseAll"
+            : "program.weeks.expandAll"
+        return HStack {
+            AnnotationLabel(key: "program.weeks.key", size: .small)
+            Spacer()
+            Button {
+                Haptics.select()
+                withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
+                    expandedWeeks = allOpen ? [] : allWeeks
+                }
+            } label: {
+                Text(toggleTitle)
+                    .font(.Tokens.label)
+                    .foregroundStyle(ColorTokens.text2)
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
+            }
+            .buttonStyle(.pressable)
+        }
+        .padding(.horizontal, Spacing.sm)
+        .overlay(alignment: .bottom) {
+            Rectangle().fill(ColorTokens.divider).frame(height: 0.5)
+        }
     }
 
     private func phaseStamp(_ phase: ProgramPhase) -> String {
@@ -226,7 +275,11 @@ struct ProgramOverviewView: View {
         return Button {
             Haptics.select()
             withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
-                expandedWeek = expandedWeek == week ? nil : week
+                if expandedWeeks.contains(week) {
+                    expandedWeeks.remove(week)
+                } else {
+                    expandedWeeks.insert(week)
+                }
             }
         } label: {
             HStack(spacing: Spacing.xs) {
@@ -283,17 +336,35 @@ struct ProgramOverviewView: View {
         return parts.joined(separator: " · ")
     }
 
+    /// The days of one open week. Each row PUSHES the day's own plate (U21 + U24) — before
+    /// this the rows were inert HStacks and the imported program's actual content (the
+    /// exercises, the sets, the loads) appeared nowhere in the app at all.
     private func weekDays(_ program: TrainingProgram, week: Int) -> some View {
         VStack(spacing: 0) {
             ForEach(program.days(inWeek: week), id: \.id) { day in
-                HStack {
-                    Text(verbatim: "D\(day.dayNumber) · \(day.title)")
-                        .font(.Tokens.label)
-                        .foregroundStyle(ColorTokens.text2)
-                    Spacer()
-                    AnnotationLabel(dayStatus(program, day: day), size: .small)
+                NavigationLink {
+                    ProgramDayDetailView(
+                        day: day,
+                        template: day.templateId.flatMap { templatesById[$0] },
+                        status: dayStatus(program, day: day),
+                        unit: athlete?.weightUnit ?? .kg
+                    )
+                } label: {
+                    HStack {
+                        Text(verbatim: "D\(day.dayNumber) · \(day.title)")
+                            .font(.Tokens.label)
+                            .foregroundStyle(ColorTokens.text2)
+                        Spacer()
+                        AnnotationLabel(dayStatus(program, day: day), size: .small)
+                        Image(systemName: "chevron.right")
+                            .font(.Tokens.micro)
+                            .foregroundStyle(ColorTokens.text3)
+                            .accessibilityHidden(true)
+                    }
+                    .frame(minHeight: 44)
+                    .contentShape(Rectangle())
                 }
-                .padding(.vertical, Spacing.xs)
+                .buttonStyle(.pressable)
                 .overlay(alignment: .top) {
                     if day.dayNumber > 1 { Rectangle().fill(ColorTokens.divider).frame(height: 0.5) }
                 }
@@ -348,6 +419,9 @@ struct ProgramOverviewView: View {
                     Spacer()
                     AnnotationLabel(key: "program.lift.source", size: .small)
                 }
+                // U23: filled vs outlined was the strip's whole grammar and nothing said so.
+                // Two glyphs from the sanctioned annotation set, named.
+                AnnotationLabel(key: "program.lift.key", size: .small)
                 HStack(alignment: .bottom, spacing: 4) {
                     ForEach(points, id: \.week) { point in
                         RoundedRectangle(cornerRadius: 2)
@@ -387,13 +461,12 @@ struct ProgramOverviewView: View {
 
     /// Bare numeral in the athlete's display unit (the unit rides in the strip's stamp).
     private func weightLabel(_ kg: Double) -> String {
-        let value = WeightFormatter.displayValue(kg, unit: athlete?.weightUnit ?? .kg)
-        return value.truncatingRemainder(dividingBy: 1) == 0
-            ? String(format: "%.0f", value)
-            : String(format: "%.1f", value)
+        WeightFormatter.displayNumeral(kg, unit: athlete?.weightUnit ?? .kg)
     }
 
     /// The block's most frequent exercise — the "main lift" whose arc the strip shows.
+    /// The strip's stamp NAMES this rule (U23): the athlete never chose this lift, and a
+    /// chart of a lift you did not pick is unreadable until it says how it was picked.
     private func mainLift(_ program: TrainingProgram) -> String? {
         var counts: [String: Int] = [:]
         for day in program.days {

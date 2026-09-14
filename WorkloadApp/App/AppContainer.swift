@@ -103,6 +103,9 @@ final class AppContainer {
         // UserDefaults with the current schema version on first run.
         self.notificationService.migrateWeeklySummaryIfNeeded()
 
+        // U18: tell Today when the body reports something new while the app is up.
+        registerRecoverySignalObserver()
+
         // Subscribe to session-loss events only.
         // Sign-in/sign-up transitions set isAuthenticated manually (after sync completes).
         Task {
@@ -114,6 +117,49 @@ final class AppContainer {
                     break
                 }
             }
+        }
+    }
+
+    // MARK: - Recovery-signal observation (v1.7.3 · U18)
+
+    /// Coalesces a burst of HealthKit deliveries into one notice. Cancelled and re-armed on
+    /// every delivery, so three types landing together (a watch syncing the night's HRV,
+    /// resting heart rate and sleep at once) re-run the pipeline once, not three times.
+    /// `@ObservationIgnored` on purpose: this is bookkeeping, not state any view reads, and
+    /// re-arming it on every HealthKit delivery must not invalidate the whole tree.
+    @ObservationIgnored private var recoverySignalNotice: Task<Void, Never>?
+
+    /// How long a delivery waits for its neighbours before Today is told.
+    private static let recoverySignalDebounce: Duration = .seconds(2)
+
+    /// Register the HRV / RHR / sleep observers and post `recoverySignalsChanged`, debounced.
+    ///
+    /// Foreground-only by design: nothing here asks HealthKit to launch the app for these
+    /// types, and no entitlement is added. A reading that lands while the app is not running
+    /// is picked up by the next foreground pipeline run, which is soon enough for a number the
+    /// athlete only reads when they open the app. Registration lives here rather than in a
+    /// view because the container outlives every scene — a view-registered observer would be
+    /// re-created on each appearance.
+    ///
+    /// The completion handler HealthKit passes is called on EVERY path, via `defer`. Three
+    /// unacknowledged deliveries and HealthKit stops waking the app until the next launch.
+    private func registerRecoverySignalObserver() {
+        healthKitService.observeRecoverySignals { [weak self] completion in
+            // HealthKit calls back on its own queue; everything below is main-actor work.
+            Task { @MainActor in
+                defer { completion() }
+                guard let self else { return }
+                self.scheduleRecoverySignalNotice()
+            }
+        }
+    }
+
+    private func scheduleRecoverySignalNotice() {
+        recoverySignalNotice?.cancel()
+        recoverySignalNotice = Task { @MainActor in
+            try? await Task.sleep(for: Self.recoverySignalDebounce)
+            guard !Task.isCancelled else { return }
+            NotificationCenter.default.post(name: .recoverySignalsChanged, object: nil)
         }
     }
 

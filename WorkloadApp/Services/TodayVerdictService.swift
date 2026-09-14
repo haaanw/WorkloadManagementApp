@@ -40,6 +40,17 @@ final class TodayVerdictService {
     /// same iOS 26.1-sim deinit-safety reason as `plannedSessionRepository`.
     private let verdictEventRepository: VerdictEventRepository
 
+    /// v1.7.3 UAT round 3 (U25 / U26) — the session cap the LAST `evaluateAndWrite` produced for a
+    /// planned day that carries no weighted top set, or nil when the day had one (the lift path is
+    /// untouched). Read by `TodayVerdictViewModel` right after the call, the way `results` is.
+    ///
+    /// **Nothing about the synced schema changed to carry this.** The cap is a pure function of
+    /// today's live signals, so it is recomputed on every refresh and lives only here and on the
+    /// in-memory `ResolvedSessionPlan`. What DOES persist is the athlete's DECISION, and that uses
+    /// the `TemplateSet` verdict slots that already exist and are already excluded from the synced
+    /// payload (`WorkoutTemplate.swift:179-192`).
+    private(set) var lastSessionCap: SessionCapEngine.SessionCap?
+
     init(modelContext: ModelContext) {
         self.modelContext = modelContext
         self.plannedSessionRepository = PlannedSessionRepository(modelContext: modelContext)
@@ -99,6 +110,7 @@ final class TodayVerdictService {
                 crossModalResult: nil,
                 plateStepKg: TodayVerdictEngine.Constants.plateStepKg,
                 nextMatchDate: nextMatchDate,
+                fatigueZone: fatigueResult?.zone,
                 asOf: asOf,
                 calendar: calendar
             )
@@ -119,6 +131,7 @@ final class TodayVerdictService {
             crossModalResult: crossModal,
             plateStepKg: TodayVerdictEngine.Constants.plateStepKg,
             nextMatchDate: nextMatchDate,
+            fatigueZone: fatigueResult?.zone,
             asOf: asOf,
             calendar: calendar
         )
@@ -152,10 +165,15 @@ final class TodayVerdictService {
         crossModalResult: CrossModalFatigueEngine.CrossModalResult?,
         plateStepKg: Double = 2.5,
         nextMatchDate: Date? = nil,
+        fatigueZone: FatigueIndexEngine.FatigueZone? = nil,
         asOf: Date = .now,
         calendar: Calendar = .current
     ) -> [TodayVerdictEngine.VerdictResult] {
         var results: [TodayVerdictEngine.VerdictResult] = []
+        // v1.7.3 UAT round 3 (U25/U26): a day with no weighted top set used to fall out of every
+        // branch below and get NO verdict. This tracks whether the lift path ever engaged, so the
+        // session-cap branch after the loop can take the day the lift path could not.
+        var sawWeightedTopSet = false
 
         // Match proximity, computed ONCE (expired dates read as absent — the engine never mutates).
         let matchDaysAway = TodayVerdictEngine.matchDaysAway(
@@ -177,6 +195,7 @@ final class TodayVerdictService {
             let working = exercise.sortedSets.filter { !$0.isWarmup && ($0.targetWeightKg ?? 0) > 0 }
             guard let top = working.max(by: { ($0.targetWeightKg ?? 0) < ($1.targetWeightKg ?? 0) }),
                   let plannedKg = top.targetWeightKg else { continue }
+            sawWeightedTopSet = true
 
             // DECIDED sets are FROZEN: once the athlete has accepted or kept this top set, a later
             // refresh must NOT recompute/overwrite its suggestion — that would silently change an
@@ -284,7 +303,121 @@ final class TodayVerdictService {
             results.append(result)
         }
 
+        // --- Session-cap branch: the planned day with no weighted top set (U25 / U26). -----------
+        // A run, a court session, a conditioning block. The lift path above skipped every one of
+        // its exercises, so without this the day has no verdict, no brief and no start door.
+        lastSessionCap = sawWeightedTopSet
+            ? nil
+            : writeSessionCap(
+                prescribedWorkout: prescribedWorkout,
+                decisionInput: decisionInput,
+                crossModalResult: crossModalResult,
+                fatigueZone: fatigueZone,
+                matchDaysAway: matchDaysAway,
+                nextMatchDate: nextMatchDate,
+                calendar: calendar
+            )
+
         try? modelContext.save()
         return results
+    }
+
+    // MARK: - Session cap (the non-strength planned day)
+
+    /// Compute today's `SessionCap` for a plan with no weighted top set and write what PERSISTS of
+    /// it into the EXISTING local-only `TemplateSet` verdict slots — the reason line on every
+    /// non-warm-up set, and an RPE cap only where the plan itself wrote an RPE (the NIL-RPE rule
+    /// holds here exactly as it does on the lift path: a bare cap is never fabricated into a slot).
+    /// The duration cap is NOT persisted — it is a pure function of today's live signals and is
+    /// recomputed on every refresh, carried in memory on `ResolvedSessionPlan.sessionCap`.
+    ///
+    /// Returns nil when the day is not a cap day at all: no duration anywhere AND a `.strength`
+    /// session type means there is nothing honest to cap (an empty or malformed plan), so the
+    /// surface keeps its existing no-card behaviour rather than inventing a session.
+    private func writeSessionCap(
+        prescribedWorkout: PrescribedWorkout,
+        decisionInput: ReasoningEngine.DecisionInput?,
+        crossModalResult: CrossModalFatigueEngine.CrossModalResult?,
+        fatigueZone: FatigueIndexEngine.FatigueZone?,
+        matchDaysAway: Int?,
+        nextMatchDate: Date?,
+        calendar: Calendar
+    ) -> SessionCapEngine.SessionCap? {
+
+        let nonWarmupSets = prescribedWorkout.allExercises
+            .flatMap { $0.sortedSets }
+            .filter { !$0.isWarmup }
+        guard !nonWarmupSets.isEmpty else { return nil }
+
+        let plannedDurationSeconds: Int? = {
+            let total = nonWarmupSets.compactMap(\.targetDurationSeconds).reduce(0, +)
+            return total > 0 ? total : nil
+        }()
+        let plannedRPE = nonWarmupSets.compactMap(\.targetRPE).max()
+        let sessionType = prescribedWorkout.sessionType
+
+        // The day qualifies when it has a duration OR it is simply not a strength day.
+        guard plannedDurationSeconds != nil || sessionType != .strength else { return nil }
+
+        // Cold start defers here exactly as it does on the lift path: no real decision input means
+        // no honest cap, so the plan stands and the reason says so. Never trim on a guess.
+        guard let decisionInput else {
+            let deferReason = VerdictReasonBuilder.build(
+                decisionInput: nil,
+                crossModalResult: crossModalResult,
+                plannedRegion: .fullBody,
+                deferToPlan: true
+            ).reasonLine
+            for set in nonWarmupSets where set.verdictAppliedAt == nil && !set.athleteOverrode {
+                set.adjustedTargetRPE = nil
+                set.verdictReason = deferReason
+            }
+            return SessionCapEngine.SessionCap(
+                maxRPE: plannedRPE.map { Int($0.rounded(.down)) },
+                maxDurationSeconds: plannedDurationSeconds,
+                loadBudgetAU: nil,
+                shape: .asPlanned
+            )
+        }
+
+        let cap = SessionCapEngine.evaluate(
+            recommendation: decisionInput.recommendation,
+            fatigueZone: fatigueZone,
+            strainRiskZone: decisionInput.strainRisk.zone,
+            matchDaysAway: matchDaysAway,
+            plannedDurationSeconds: plannedDurationSeconds,
+            plannedRPE: plannedRPE,
+            sessionType: sessionType
+        )
+
+        // The reason line uses the SAME builder the lift path uses, so a capped run is explained
+        // in the same voice as a trimmed squat. A taper leads with the match, as it does there.
+        let matchContext: VerdictReasonBuilder.MatchContext? = {
+            guard cap.shape == .taper, let daysAway = matchDaysAway,
+                  let matchDate = nextMatchDate else { return nil }
+            return VerdictReasonBuilder.MatchContext(daysAway: daysAway, matchDate: matchDate)
+        }()
+        let reason = VerdictReasonBuilder.build(
+            decisionInput: decisionInput,
+            crossModalResult: crossModalResult,
+            plannedRegion: .fullBody,
+            deferToPlan: false,
+            matchContext: matchContext,
+            calendar: calendar
+        ).reasonLine
+
+        for set in nonWarmupSets {
+            // DECIDED sets stay frozen — the same rule the lift path keeps above.
+            guard set.verdictAppliedAt == nil, !set.athleteOverrode else { continue }
+            set.verdictReason = reason
+            // NIL-RPE RULE: cap only where the plan wrote an RPE (downward only).
+            if let plannedSetRPE = set.targetRPE, let maxRPE = cap.maxRPE {
+                set.adjustedTargetRPE = Swift.min(plannedSetRPE, Double(maxRPE))
+            } else {
+                set.adjustedTargetRPE = nil
+            }
+        }
+
+        return cap
     }
 }

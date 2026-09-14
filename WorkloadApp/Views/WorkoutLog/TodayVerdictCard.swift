@@ -79,6 +79,9 @@ struct TodayVerdictCard: View {
 
             // 2. Action-on-the-plan hero — NUMBER-LED with a strike-zone bar (lead with today's
             //    number + where it lands in today's productive zone; never a bare readiness score).
+            if display.kind == .sessionCap {
+                sessionCapHero
+            } else {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 // Today's number leads (the lift target, NOT the hero readiness score → the
                 // accent stays off it). One-voice display value in ink; tabular digits.
@@ -115,6 +118,7 @@ struct TodayVerdictCard: View {
                     AnnotationLabel(zoneCaption)
                         .annotationReveal(index: 3)
                 }
+            }
             }
 
             // 3. Reason line — the one-line why, in the one v5 voice (`body`).
@@ -164,6 +168,134 @@ struct TodayVerdictCard: View {
         // (workoutLog.verdict.reason / .strikeZone) the UI tests anchor on.
     }
 
+    // MARK: - Session-cap hero (v1.7.3 UAT round 3 · U25 / U26)
+
+    /// The non-strength planned day leads with the units it actually has: the session's DURATION
+    /// and its RPE ceiling. Same grammar as the lift hero — today's number in ink, the reference to
+    /// the plan as a signed annotation beside it — with no strike-zone bar, because there is no
+    /// weight for a bar to place.
+    private var sessionCapHero: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack(alignment: .firstTextBaseline, spacing: Spacing.xs) {
+                Text(verbatim: capHeroValue)
+                    .font(.Tokens.displayAction)
+                    .monospacedDigit()
+                    .foregroundStyle(ColorTokens.text1)
+                if let delta = capFromPlannedCaption {
+                    AnnotationLabel(delta)
+                        .annotationReveal(index: 2)
+                }
+            }
+            AnnotationLabel(capCeilingCaption)
+                .annotationReveal(index: 3)
+        }
+        .accessibilityIdentifier("workoutLog.verdict.sessionCap")
+    }
+
+    /// "60 min" when the plan has a duration, otherwise the RPE ceiling itself — never a blank hero.
+    private var capHeroValue: String {
+        if let minutes = display.sessionCap?.maxDurationMinutes {
+            return String(
+                format: LocalePinnedStrings.localized(
+                    "verdictCard.cap.minutes", defaultValue: "%lld min", locale: locale
+                ),
+                minutes
+            )
+        }
+        if let rpe = display.sessionCap?.maxRPE {
+            return String(
+                format: LocalePinnedStrings.localized(
+                    "verdictCard.cap.rpeValue", defaultValue: "RPE %lld", locale: locale
+                ),
+                rpe
+            )
+        }
+        return LocalePinnedStrings.localized(
+            "verdictCard.cap.asPlannedValue", defaultValue: "As planned", locale: locale
+        )
+    }
+
+    /// The signed reference to THEIR plan — the marginalia that makes this a modulation of the
+    /// session they wrote rather than a session handed to them. Absent when nothing was shortened.
+    private var capFromPlannedCaption: String? {
+        guard let planned = display.plannedDurationMinutes,
+              let capped = display.sessionCap?.maxDurationMinutes,
+              capped < planned else { return nil }
+        return String(
+            format: LocalePinnedStrings.localized(
+                "verdictCard.cap.fromPlanned", defaultValue: "↓ from %lld min", locale: locale
+            ),
+            planned
+        )
+    }
+
+    /// The RPE ceiling under the hero — or the as-planned key when the day stands unchanged.
+    private var capCeilingCaption: String {
+        guard let cap = display.sessionCap else { return "" }
+        guard let rpe = cap.maxRPE, cap.maxDurationMinutes != nil else {
+            return LocalePinnedStrings.localized(
+                "verdictCard.cap.noCeiling", defaultValue: "No intensity ceiling today", locale: locale
+            )
+        }
+        return String(
+            format: LocalePinnedStrings.localized(
+                "verdictCard.cap.ceiling", defaultValue: "RPE %lld ceiling", locale: locale
+            ),
+            rpe
+        )
+    }
+
+    /// The decision cells for a cap day: take the cap, or keep the session as written. Equal
+    /// weight, same nocebo grammar as the lift day — neither cell is dressed as the endorsed one.
+    private var capAcceptSublabel: String? {
+        guard let cap = display.sessionCap else { return nil }
+        var parts: [String] = []
+        if let minutes = cap.maxDurationMinutes {
+            parts.append(String(
+                format: LocalePinnedStrings.localized(
+                    "verdictCard.cap.minutes", defaultValue: "%lld min", locale: locale
+                ),
+                minutes
+            ))
+        }
+        if let rpe = cap.maxRPE {
+            parts.append(String(
+                format: LocalePinnedStrings.localized(
+                    "verdictCard.cap.rpeValue", defaultValue: "RPE %lld", locale: locale
+                ),
+                rpe
+            ))
+        }
+        return parts.isEmpty ? nil : parts.joined(separator: " · ")
+    }
+
+    private var capKeepSublabel: String? {
+        guard let minutes = display.plannedDurationMinutes else {
+            return LocalePinnedStrings.localized(
+                "verdictCard.cap.asWritten", defaultValue: "As written", locale: locale
+            )
+        }
+        let duration = String(
+            format: LocalePinnedStrings.localized(
+                "verdictCard.cap.minutes", defaultValue: "%lld min", locale: locale
+            ),
+            minutes
+        )
+        let written = LocalePinnedStrings.localized(
+            "verdictCard.cap.asWritten", defaultValue: "As written", locale: locale
+        )
+        return "\(duration) · \(written)"
+    }
+
+    /// The accept cell's verb, shaped by what the cap did.
+    private var capAcceptTitle: LocalizedStringKey {
+        switch display.sessionCap?.shape {
+        case .taper: return "verdictCard.cap.cell.taper"
+        case .hold:  return "verdictCard.cap.cell.hold"
+        default:     return "verdictCard.cap.cell.take"
+        }
+    }
+
     // MARK: - Number-led captions (the "from planned" reference + the zone caption)
 
     /// The delta annotation beside today's number, shaped by the proposal (epic 9):
@@ -190,6 +322,8 @@ struct TodayVerdictCard: View {
         case .adjusted:  return String(localized: "verdictCard.zone.in", defaultValue: "IN TODAY'S ZONE")
         case .asPlanned: return String(localized: "verdictCard.zone.right", defaultValue: "RIGHT IN YOUR ZONE")
         case .deferred:  return ""
+        // The cap day never draws a strike-zone bar, so it never asks for its caption.
+        case .sessionCap: return ""
         }
     }
 
@@ -213,6 +347,31 @@ struct TodayVerdictCard: View {
                                    accessibilityID: "verdict.startWorkout", action: onStartWorkout)
                     ])
                 }
+            }
+        } else if display.kind == .sessionCap {
+            // U25/U26 — the cap day's decision. Two equal cells when the cap actually pulls the
+            // session in; one friction-free acknowledge when it does not.
+            if display.capModulatesPlan {
+                KeyRow([
+                    KeyRow.Key(
+                        title: capAcceptTitle,
+                        subtitle: capAcceptSublabel,
+                        action: onAccept
+                    ),
+                    KeyRow.Key(
+                        title: "verdictCard.action.keep",
+                        subtitle: capKeepSublabel,
+                        action: onKeepPlan
+                    )
+                ])
+            } else {
+                KeyRow([
+                    KeyRow.Key(
+                        title: "verdictCard.action.gotIt",
+                        subtitle: capKeepSublabel,
+                        action: onKeepPlan
+                    )
+                ])
             }
         } else if display.kind == .asPlanned {
             // Nothing to accept/decline — a single friction-free acknowledge (plain cell).
@@ -375,6 +534,14 @@ struct TodayVerdictCard: View {
                 : String(localized: "verdictCard.state.adjust", defaultValue: "Adjust")
         case .asPlanned: return String(localized: "verdictCard.state.steady", defaultValue: "Steady")
         case .deferred: return String(localized: "verdictCard.state.learning", defaultValue: "Learning")
+        case .sessionCap:
+            // The state word names what the cap DID — still a text label, never colour alone.
+            switch display.sessionCap?.shape {
+            case .taper:  return String(localized: "verdictCard.cap.state.taper", defaultValue: "Taper")
+            case .hold:   return String(localized: "verdictCard.cap.state.hold", defaultValue: "Hold")
+            case .capped: return String(localized: "verdictCard.cap.state.capped", defaultValue: "Capped")
+            default:      return String(localized: "verdictCard.state.steady", defaultValue: "Steady")
+            }
         }
     }
 
@@ -383,6 +550,7 @@ struct TodayVerdictCard: View {
         case .adjusted: return String(localized: "verdictCard.action.adjusted", defaultValue: "Suggested adjustment")
         case .asPlanned: return String(localized: "verdictCard.action.asPlanned", defaultValue: "Train as planned")
         case .deferred: return String(localized: "verdictCard.action.deferred", defaultValue: "Going with your plan")
+        case .sessionCap: return String(localized: "verdictCard.cap.action", defaultValue: "Suggested session cap")
         }
     }
 
@@ -402,7 +570,7 @@ struct TodayVerdictCard: View {
         case .accepted:
             return "verdictCard.start.adjusted"
         case .keptPlan:
-            return display.kind == .adjusted
+            return (display.kind == .adjusted || display.capModulatesPlan)
                 ? "verdictCard.start.plan"
                 : "verdictCard.start.workout"
         case .pending:
@@ -416,6 +584,7 @@ struct TodayVerdictCard: View {
         case .adjusted: return ColorTokens.zoneCaution
         case .deferred: return ColorTokens.zoneLow
         case .asPlanned: return nil
+        case .sessionCap: return display.capModulatesPlan ? ColorTokens.zoneCaution : nil
         }
     }
 }

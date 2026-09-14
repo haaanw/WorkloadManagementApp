@@ -213,6 +213,9 @@ struct ActiveWorkoutSheet: View {
                     weightUnit: athlete?.weightUnit ?? .kg,
                     prWeightKg: prWeightKg(for:),
                     voiceStartToken: voiceStartToken,
+                    // U26: the session cap rides in memory on the resolved plan — no @Model
+                    // carries it, so nothing about the synced schema changed to show it here.
+                    sessionCap: resolvedPlan?.sessionCap,
                     onUtterance: { text in await ingestUtterance(text) },
                     onFinish: { showFinishConfirmation = true }
                 )
@@ -2080,12 +2083,15 @@ struct SetEntryRow: View {
 
     private var suggestionText: String? {
         guard showSuggestion, let s = suggestion, let weight = s.weightKg else { return nil }
-        let formatted = String(format: "%.1f", weight)
+        // U22's neighbour: the suggestion printed the stored kilogram number under a
+        // hard-coded "kg" while the field beside it was showing pounds. The numeral and
+        // its symbol now both follow the athlete's unit.
+        let formatted = "\(WeightFormatter.displayNumeral(weight, unit: weightUnit)) \(weightPlaceholder)"
         switch progressionType {
         case .increase:
-            return String(format: String(localized: "set.suggestion.increase", defaultValue: "%@kg suggested"), formatted)
+            return String(format: String(localized: "set.suggestion.increase", defaultValue: "%@ suggested"), formatted)
         case .maintain, .deload, .returnFromBreak, .none:
-            return String(format: String(localized: "set.suggestion.maintain", defaultValue: "maintain %@kg"), formatted)
+            return String(format: String(localized: "set.suggestion.maintain", defaultValue: "maintain %@"), formatted)
         }
     }
 

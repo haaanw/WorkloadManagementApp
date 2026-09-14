@@ -28,6 +28,10 @@ struct TodayProposalSection: View {
     @State private var resolvedPlanForSession: ResolvedSessionPlan?
     @State private var showUnplannedWorkout = false
     @State private var showProgramImport = false
+    /// UAT round 3 · U25: the day's ONE action. The verdict card stays on Today as a preview of
+    /// what the app sees; the decision, the readings behind it and the numbers all live one tap
+    /// away in the brief, which is also the only door to the session from here.
+    @State private var showPreSessionBrief = false
     // Program designation repos (feature 6 wire) — held as @State (deinit trap).
     @State private var designationPlannedRepo: PlannedSessionRepository?
     @State private var designationScheduleRepo: ScheduleRepository?
@@ -45,21 +49,29 @@ struct TodayProposalSection: View {
         Group {
             if let vm = verdictVM, let display = vm.display, let athlete {
                 SectionContainer {
-                    TodayVerdictCard(
-                        display: display,
-                        weightUnit: athlete.weightUnit,
-                        canStartWorkout: vm.canStartResolvedWorkout,
-                        onAccept: { vm.accept(); onProposalChanged() },
-                        onKeepPlan: { vm.keepPlan(); onProposalChanged() },
-                        onFeel: { vm.feelOverride($0); onProposalChanged() },
-                        onStartWorkout: {
-                            guard let plan = vm.resolvedPlanForWorkout else {
-                                assertionFailure("Start tapped without a resolvable plan — canStartWorkout/resolvedPlanForWorkout drifted")
-                                return
-                            }
-                            resolvedPlanForSession = plan
+                    VStack(spacing: Spacing.sm) {
+                        // The card is a PREVIEW of the day: it still carries the state, the
+                        // number and the reason, and its inline cells still decide. What it no
+                        // longer carries is the start door — `onStartWorkout` is nil here, so
+                        // the section has exactly ONE ink pill (U25 / the CTA Law).
+                        TodayVerdictCard(
+                            display: display,
+                            weightUnit: athlete.weightUnit,
+                            canStartWorkout: false,
+                            onAccept: { vm.accept(); onProposalChanged() },
+                            onKeepPlan: { vm.keepPlan(); onProposalChanged() },
+                            onFeel: { vm.feelOverride($0); onProposalChanged() },
+                            onStartWorkout: nil
+                        )
+
+                        // U25: "Start today" — the day's one action. It opens the brief, which
+                        // states what the app sees, what it therefore suggests, and the numbers
+                        // the session will start with.
+                        PrimaryActionButton(title: "todayProposal.startToday") {
+                            showPreSessionBrief = true
                         }
-                    )
+                        .accessibilityIdentifier("dashboard.proposal.startToday")
+                    }
                     .padding(.horizontal, Spacing.sm)
                 }
             } else if athlete != nil, showsNoPlanFallback {
@@ -84,6 +96,19 @@ struct TodayProposalSection: View {
         }
         .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
             refresh()
+        }
+        .sheet(isPresented: $showPreSessionBrief, onDismiss: {
+            refresh()
+            onProposalChanged()
+        }) {
+            if let vm = verdictVM, let athlete {
+                PreSessionBriefView(
+                    viewModel: vm,
+                    weightUnit: athlete.weightUnit,
+                    onProposalChanged: onProposalChanged
+                )
+                .environment(container)
+            }
         }
         .sheet(item: $resolvedPlanForSession, onDismiss: {
             refresh()

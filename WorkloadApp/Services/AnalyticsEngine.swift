@@ -23,6 +23,15 @@ struct AnalyticsEngine {
         let recoveryDelta: Double       // percentage vs previous week
     }
 
+    // MARK: - Tonnage
+
+    /// Kilogram tonnage over a set of sessions, distance-mode sessions excluded (U22).
+    /// `WorkoutSession.volumeIsDistance` is the discriminator; see that property for why
+    /// one stored field carries two units.
+    static func tonnage(of sessions: [WorkoutSession]) -> Double {
+        sessions.filter { !$0.volumeIsDistance }.reduce(0.0) { $0 + $1.totalVolume }
+    }
+
     // MARK: - Weekly Summary (ANLYT-02, ANLYT-03)
 
     /// Compute weekly summary comparing current 7-day window to previous 7-day window.
@@ -34,7 +43,12 @@ struct AnalyticsEngine {
         currentWeekWorkloadSnapshots: [WorkloadSnapshot]
     ) -> WeeklySummary {
         let sessionCount = currentWeekSessions.count
-        let totalVolume = currentWeekSessions.reduce(0.0) { $0 + $1.totalVolume }
+        // U22: `totalVolume` is METRES on a cardio session, so summing every session mixed
+        // 1,106 m of walking into the week's kilogram tonnage and the card printed the sum
+        // as one bare number. This is a TONNAGE reading — distance-mode sessions are not
+        // part of it. They still count in `sessionCount`, and their real cost still reaches
+        // the athlete through the load/ACWR path, which runs on sRPE rather than volume.
+        let totalVolume = Self.tonnage(of: currentWeekSessions)
         let avgRecovery = currentWeekRecoverySnapshots.isEmpty ? 0 :
             currentWeekRecoverySnapshots.reduce(0.0) { $0 + $1.recoveryScore } / Double(currentWeekRecoverySnapshots.count)
 
@@ -58,7 +72,7 @@ struct AnalyticsEngine {
 
         // Week-over-week deltas (ANLYT-03)
         let prevSessionCount = previousWeekSessions.count
-        let prevVolume = previousWeekSessions.reduce(0.0) { $0 + $1.totalVolume }
+        let prevVolume = Self.tonnage(of: previousWeekSessions)
         let prevAvgRecovery = previousWeekRecoverySnapshots.isEmpty ? 0 :
             previousWeekRecoverySnapshots.reduce(0.0) { $0 + $1.recoveryScore } / Double(previousWeekRecoverySnapshots.count)
 

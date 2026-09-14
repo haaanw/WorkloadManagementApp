@@ -49,6 +49,18 @@ final class TodayVerdictViewModel {
     /// the last `refresh`. Drives the card's "microdose" framing (never the numbers).
     private(set) var lastHeadlineMatchProximity: Bool = false
 
+    /// v1.7.3 UAT round 3 (U25) — the readings the pre-session brief opens with. Assembled from
+    /// the SAME inputs this refresh already gathered for the verdict; nil before the first refresh.
+    private(set) var briefReadings: TodayBriefReadings?
+
+    /// v1.7.3 UAT round 3 (U25 / U26) — today's session cap for a non-strength planned day.
+    /// Recomputed on every refresh from live signals and held in memory only; nil on a lift day.
+    private(set) var sessionCap: SessionCapEngine.SessionCap?
+
+    /// v1.7.3 UAT round 3 (U25) — the brief's "Your numbers" block, one line per movement.
+    /// Empty on a session-cap day, which states the cap instead.
+    private(set) var briefExerciseLines: [BriefExerciseLine] = []
+
     // MARK: - Stored dependencies (created once in init — see deinit-safety note)
 
     private let modelContext: ModelContext
@@ -73,7 +85,7 @@ final class TodayVerdictViewModel {
     /// no transient gating flag.
     var decisionState: PersistedVerdictDecisionState {
         guard let plan else { return .pending }
-        return VerdictDecisionApplier.persistedDecisionState(forTopSets: perExerciseTopSets(in: plan))
+        return VerdictDecisionApplier.persistedDecisionState(forTopSets: decisionSets(in: plan))
     }
 
     /// The exact, immutable workout to start — resolved through `VerdictDecisionApplier`:
@@ -83,7 +95,9 @@ final class TodayVerdictViewModel {
     /// Pure read — never mutates the prescription or the source template.
     var resolvedPlanForWorkout: ResolvedSessionPlan? {
         guard let plan, decisionState != .pending else { return nil }
-        return ResolvedSessionPlan.resolve(from: plan)
+        // The cap rides along in memory (U25/U26) so the guided session can print "planned →
+        // capped" without a schema field and without recomputing anything.
+        return ResolvedSessionPlan.resolve(from: plan).withSessionCap(sessionCap)
     }
 
     /// Whether the Start CTA may render: true exactly when a resolved plan can be produced. The card
@@ -165,20 +179,69 @@ final class TodayVerdictViewModel {
                 prescribedWorkout: plan,
                 decisionInput: decisionInput,
                 crossModalResult: nil,
-                nextMatchDate: athlete.nextMatchDate   // ADR-0002 match-proximity input (nil-safe)
+                nextMatchDate: athlete.nextMatchDate,  // ADR-0002 match-proximity input (nil-safe)
+                fatigueZone: fatigueResult?.zone       // U25/U26 session-cap input; nil ⇒ rows idle
             )
         } else {
             results = verdictService.evaluateAndWrite(
                 prescribedWorkout: plan,
                 decisionInput: nil,            // cold-start ⇒ honest defer (suggestion == plan)
                 crossModalResult: nil,
-                nextMatchDate: athlete.nextMatchDate   // zero effect on defer — never trim on a guess
+                nextMatchDate: athlete.nextMatchDate,  // zero effect on defer — never trim on a guess
+                fatigueZone: fatigueResult?.zone
             )
         }
 
         deferredToPlan = (built == nil)
+        // U25/U26: the cap the service just computed, if today is a non-strength planned day.
+        sessionCap = verdictService.lastSessionCap
+        briefReadings = assembleBriefReadings(
+            built: built,
+            fatigueResult: fatigueResult,
+            todaySnapshot: todaySnapshot,
+            recentSnapshots: recentSnapshots,
+            nextMatchDate: athlete.nextMatchDate
+        )
         captureHeadlineVerdict(plan: plan, results: results)
         rebuildDisplay()
+    }
+
+    // MARK: - Brief readings (U25 — what today looks like, readings only)
+
+    /// Package the inputs this refresh already gathered into the brief's opening block. No second
+    /// fetch and no second engine: every field is either a snapshot value the app already prints
+    /// or an engine output the verdict itself was built from.
+    private func assembleBriefReadings(
+        built: PRSReadinessInputBuilder.BuiltReadiness?,
+        fatigueResult: FatigueIndexEngine.FatigueResult?,
+        todaySnapshot: RecoverySnapshot?,
+        recentSnapshots: [RecoverySnapshot],
+        nextMatchDate: Date?
+    ) -> TodayBriefReadings {
+        let sleepSeries = recentSnapshots
+            .sorted { $0.date < $1.date }
+            .suffix(14)
+            .compactMap(\.sleepDurationMinutes)
+        let sleepMean: Double? = sleepSeries.isEmpty
+            ? nil
+            : sleepSeries.reduce(0, +) / Double(sleepSeries.count)
+
+        return TodayBriefReadings(
+            readinessScore: built.map { Int($0.readiness.readiness.rounded()) },
+            readinessZone: built?.readiness.zone,
+            fatigueIndex: fatigueResult?.index,
+            fatigueZone: fatigueResult?.zone,
+            hrvMs: todaySnapshot?.hrvSDNN,
+            hrvBaselineMs: todaySnapshot?.hrvBaseline,
+            rhrBpm: todaySnapshot?.restingHR,
+            rhrBaselineBpm: todaySnapshot?.restingHRBaseline,
+            sleepMinutes: todaySnapshot?.sleepDurationMinutes,
+            sleepRecentMeanMinutes: sleepMean,
+            matchDaysAway: TodayVerdictEngine.matchDaysAway(
+                nextMatchDate: nextMatchDate, asOf: .now, calendar: .current
+            ),
+            isLearning: built == nil
+        )
     }
 
     // MARK: - Phase 45: headline verdict/region capture (non-visual, for the logged VerdictEvent)
@@ -231,7 +294,7 @@ final class TodayVerdictViewModel {
     func accept() {
         guard let plan else { return }
         let decidedAt = Date.now
-        for top in perExerciseTopSets(in: plan) {
+        for top in decisionSets(in: plan) {
             VerdictDecisionApplier.applyAccept(to: top, appliedAt: decidedAt)
         }
         persistRebuildEmit(action: .accepted, decidedAt: decidedAt)
@@ -241,7 +304,7 @@ final class TodayVerdictViewModel {
     func keepPlan() {
         guard let plan else { return }
         let decidedAt = Date.now
-        for top in perExerciseTopSets(in: plan) {
+        for top in decisionSets(in: plan) {
             VerdictDecisionApplier.applyKeepPlan(to: top)
         }
         persistRebuildEmit(action: .keptPlan, decidedAt: decidedAt)
@@ -259,11 +322,11 @@ final class TodayVerdictViewModel {
         let decidedAt = Date.now
         switch feel {
         case .feelingStrong:
-            for top in perExerciseTopSets(in: plan) {
+            for top in decisionSets(in: plan) {
                 VerdictDecisionApplier.applyKeepPlan(to: top)
             }
         case .feelingRough:
-            for top in perExerciseTopSets(in: plan) {
+            for top in decisionSets(in: plan) {
                 if VerdictDecisionApplier.hasSuggestion(top) {
                     VerdictDecisionApplier.applyAccept(to: top, appliedAt: decidedAt)
                 } else {
@@ -282,6 +345,11 @@ final class TodayVerdictViewModel {
         emitDecision(action: action, decidedAt: decidedAt)
     }
 
+    /// NOTE (U25/U26): a session-cap day emits NO `VerdictDecision`. The `VerdictEvent` schema is
+    /// kilogram-shaped (planned/adjusted top set, delta kg) and the WTP analysis reads it as such;
+    /// logging a run as a 0 kg row would corrupt that series to record a decision that is already
+    /// persisted on the set markers. Wiring the cap into the event schema is a deliberate deferral,
+    /// not an oversight.
     private func emitDecision(action: VerdictAction, decidedAt: Date) {
         guard let plan, let headline = sessionHeadline(in: plan) else { return }
         let planned = headline.targetWeightKg ?? 0
@@ -311,8 +379,17 @@ final class TodayVerdictViewModel {
     // MARK: - Display assembly
 
     private func rebuildDisplay() {
-        guard let plan, let headline = sessionHeadline(in: plan) else {
+        guard let plan else {
             display = nil
+            briefExerciseLines = []
+            return
+        }
+        briefExerciseLines = buildBriefExerciseLines(in: plan)
+        // U25/U26: the non-strength planned day. There is no headline top set to lead with, so the
+        // surface leads with the day's duration + RPE ceiling instead. Before this branch existed
+        // the method returned nil here and the day showed NOTHING — no verdict, no start door.
+        guard let headline = sessionHeadline(in: plan) else {
+            display = sessionCapDisplay(for: plan)
             return
         }
         let plannedTopSetKg = headline.targetWeightKg ?? 0
@@ -357,7 +434,98 @@ final class TodayVerdictViewModel {
         )
     }
 
+    /// The brief's "Your numbers" block: for each movement that has a working top set, the
+    /// athlete's planned numbers and the suggestion beside them. Pure read — never mutates the
+    /// prescription. Movements without a working weighted set contribute no line (a cap day
+    /// therefore produces none, and states the session cap instead).
+    private func buildBriefExerciseLines(in plan: PrescribedWorkout) -> [BriefExerciseLine] {
+        plan.allExercises.compactMap { exercise in
+            let working = exercise.sortedSets.filter { !$0.isWarmup && ($0.targetWeightKg ?? 0) > 0 }
+            guard let top = working.max(by: { ($0.targetWeightKg ?? 0) < ($1.targetWeightKg ?? 0) })
+            else { return nil }
+
+            let cut = max(0, top.adjustedBackoffSetCut ?? 0)
+            let suggestedKg: Double? = {
+                guard let planned = top.targetWeightKg, let adjusted = top.adjustedTargetWeightKg,
+                      adjusted < planned - 0.001 else { return nil }
+                return adjusted
+            }()
+            return BriefExerciseLine(
+                id: exercise.id,
+                exerciseName: exercise.exerciseName,
+                plannedTopSetKg: top.targetWeightKg,
+                suggestedTopSetKg: suggestedKg,
+                plannedWorkingSets: working.count,
+                suggestedWorkingSets: max(1, working.count - cut),
+                plannedRPE: top.targetRPE,
+                suggestedRPE: top.adjustedTargetRPE
+            )
+        }
+    }
+
+    /// Build the session-cap display for a non-strength planned day (U25/U26).
+    ///
+    /// Returns nil — and so keeps the pre-round-3 "no card" behaviour — when the service produced
+    /// no cap, which means the day is not honestly a cap day (an empty plan, or a strength day
+    /// with neither weights nor duration). Nothing is invented to fill the slot.
+    private func sessionCapDisplay(for plan: PrescribedWorkout) -> TodayVerdictDisplay? {
+        guard let cap = sessionCap else { return nil }
+
+        let nonWarmupSets = sessionCapSets(in: plan)
+        let plannedDuration: Int? = {
+            let total = nonWarmupSets.compactMap(\.targetDurationSeconds).reduce(0, +)
+            return total > 0 ? total : nil
+        }()
+        let plannedRPE = nonWarmupSets.compactMap(\.targetRPE).max()
+        let reason = nonWarmupSets.compactMap(\.verdictReason).first ?? ""
+
+        let appliedState: TodayVerdictDisplay.AppliedState = {
+            switch decisionState {
+            case .pending:  return .pending
+            case .keptPlan: return .keptPlan
+            case .accepted, .mixed: return .accepted
+            }
+        }()
+
+        return TodayVerdictDisplay(
+            // The session name, not an exercise: a court session's identity is the session.
+            headlineExerciseName: plan.templateName,
+            plannedTopSetKg: 0,
+            adjustedTopSetKg: 0,
+            hasAdjustment: cap.modulatesPlan,
+            reasonLine: reason,
+            kind: .sessionCap,
+            confidenceNote: deferredToPlan
+                ? String(localized: "verdictCard.confidence.learning", defaultValue: "Still learning your baseline")
+                : nil,
+            appliedState: appliedState,
+            isMicrodose: false,
+            backoffSetCut: 0,
+            workingSetCount: nonWarmupSets.count,
+            sessionCap: cap,
+            plannedDurationSeconds: plannedDuration,
+            plannedSessionRPE: plannedRPE
+        )
+    }
+
     // MARK: - Headline selection (same rule the Phase-43 service uses)
+
+    /// The sets a decision is RECORDED on. On a lift day these are the per-exercise top working
+    /// sets — unchanged. On a session-cap day (no weighted top set anywhere) there are none, so
+    /// the decision is recorded on every non-warm-up set instead: the cap applies to the whole
+    /// session, and the accept/keep markers are exactly the same local-only `TemplateSet` slots
+    /// the lift path uses, so the decision survives a refresh and a relaunch the same way.
+    /// **No new persisted field, no synced-schema change** (U25/U26).
+    private func decisionSets(in plan: PrescribedWorkout) -> [TemplateSet] {
+        let tops = perExerciseTopSets(in: plan)
+        guard tops.isEmpty else { return tops }
+        return sessionCapSets(in: plan)
+    }
+
+    /// Every non-warm-up set of the plan — the cap day's decision surface.
+    private func sessionCapSets(in plan: PrescribedWorkout) -> [TemplateSet] {
+        plan.allExercises.flatMap { $0.sortedSets.filter { !$0.isWarmup } }
+    }
 
     /// Per-exercise top working set = the non-warmup set with the max `targetWeightKg > 0`.
     private func perExerciseTopSets(in plan: PrescribedWorkout) -> [TemplateSet] {

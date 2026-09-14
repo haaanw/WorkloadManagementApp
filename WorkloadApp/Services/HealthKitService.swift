@@ -1,6 +1,18 @@
 import Foundation
 import HealthKit
 
+// MARK: - Recovery-signal notice (v1.7.3 · U18)
+
+extension Notification.Name {
+    /// Posted when HealthKit reports that HRV, resting heart rate or sleep has changed.
+    ///
+    /// `AppContainer` registers the observer (`HealthKitService.observeRecoverySignals`) and
+    /// posts this, debounced; Today listens for it exactly as it listens for
+    /// `NSCalendarDayChanged` and re-runs its load. Carries no payload — the reading is
+    /// re-derived by the pipeline, never handed around in a notification.
+    static let recoverySignalsChanged = Notification.Name("TuwaRecoverySignalsChanged")
+}
+
 // MARK: - Staleness Detection
 
 /// Tracks freshness of HealthKit data sources. Data older than 24h is considered stale.
@@ -771,6 +783,54 @@ final class HealthKitService: HealthDataProviding {
             onUpdate(completionHandler)
         }
         store.execute(query)
+    }
+
+    // MARK: - Recovery-signal observation (v1.7.3 · U18)
+
+    /// The three sample types Today's reading is built from.
+    ///
+    /// Deliberately NOT the pipeline's full read set. Wrist temperature, VO2 max, body mass
+    /// and respiratory rate never move the number on the screen, so waking the app for them
+    /// would buy a re-run nobody can see.
+    private static var recoverySignalTypes: [HKSampleType] {
+        [
+            HKQuantityType(.heartRateVariabilitySDNN),
+            HKQuantityType(.restingHeartRate),
+            HKCategoryType(.sleepAnalysis),
+        ]
+    }
+
+    /// Register the long-running observers over HRV, resting heart rate and sleep.
+    ///
+    /// **Why this exists (U18).** Today prints a PERSISTED snapshot; the HRV and RHR detail
+    /// screens re-query HealthKit on every push. So an app foregrounded before the watch had
+    /// synced wrote `hrvSDNN = nil`, and nothing re-ran while it stayed resident — the detail
+    /// page showed this morning's reading and Today did not. Until now the only observer in
+    /// the app was `observeWorkouts`.
+    ///
+    /// Foreground only, on purpose: there is no `enableBackgroundDelivery` call beside this
+    /// one and no new entitlement. A recovery reading that lands while the app is not running
+    /// is picked up by the next foreground run of the pipeline, which is soon enough for a
+    /// number the athlete only reads when they open the app.
+    ///
+    /// `onUpdate` receives HealthKit's completion handler and MUST call it once the delivery
+    /// has been handled — on EVERY path, error included. HealthKit counts deliveries an app
+    /// leaves unacknowledged and stops waking it after three, until the next launch (the
+    /// discipline `WatchWorkoutBackgroundDelivery` documents). The store retains each query
+    /// for the life of the process.
+    func observeRecoverySignals(_ onUpdate: @escaping (_ completion: @escaping () -> Void) -> Void) {
+        guard isAvailable else { return }
+        for type in Self.recoverySignalTypes {
+            let query = HKObserverQuery(sampleType: type, predicate: nil) { _, completionHandler, error in
+                if let error {
+                    print("Recovery signal observer error: \(error)")
+                    completionHandler()
+                    return
+                }
+                onUpdate(completionHandler)
+            }
+            store.execute(query)
+        }
     }
 
     // MARK: - Staleness-Aware Fetches

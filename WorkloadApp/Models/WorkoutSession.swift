@@ -66,6 +66,31 @@ final class WorkoutSession {
         exerciseEntries.sorted { $0.orderIndex < $1.orderIndex }
     }
 
+    /// True when `totalVolume` holds METRES rather than kilogram-tonnage
+    /// (v1.7.3 · UAT round 3 · U22).
+    ///
+    /// `totalVolume` is a dual-meaning field by construction: `recalculateDerivedFields`
+    /// falls back to summed distance whenever the session moved no weight. A render site
+    /// that prints the number with a literal " kg" therefore tells a 1.1 km walk that it
+    /// moved 1,106 kilograms. This is the discriminator every such site must consult, and
+    /// `SessionWorkReading` (WeightFormatter.swift) is the one place that consults it.
+    ///
+    /// The test is POSITIVE, not a fallback: some set must actually carry a distance, and no
+    /// set may have produced strength volume. A session with NO local sets at all — a legacy
+    /// row, a session pulled down by sync, a fixture — keeps its `totalVolume` as tonnage.
+    /// The absence of sets says nothing about what the number means, and reading it as
+    /// distance silently dropped such sessions out of the weekly tonnage sum.
+    ///
+    /// A session that moved nothing at all has a zero `totalVolume` and is neither tonnage
+    /// nor distance — `false` here, and the caller falls through to the sRPE load.
+    var volumeIsDistance: Bool {
+        guard totalVolume > 0 else { return false }
+        let sets = exerciseEntries.flatMap(\.sets)
+        guard sets.contains(where: { $0.distanceMeters != nil }) else { return false }
+        let strengthVolume = sets.filter { !$0.isWarmup }.reduce(0.0) { $0 + $1.volume }
+        return strengthVolume <= 0
+    }
+
     /// Duration in minutes
     var durationMinutes: Double {
         Double(durationSeconds) / 60.0

@@ -30,6 +30,10 @@ struct GuidedSessionView: View {
     /// sheet from the athlete's records; this view stays pure presentation and never fetches.
     let prWeightKg: (String) -> Double?
     let voiceStartToken: Int
+    /// Today's session cap (v1.7.3 UAT round 3 · U26), carried in memory on the resolved plan.
+    /// Present only on a non-strength planned day; nil everywhere else, which leaves the plate
+    /// byte-identical to what it was.
+    var sessionCap: SessionCapEngine.SessionCap? = nil
     let onUtterance: (String) async -> UtteranceOutcome
     /// Open the existing finish sheet (RPE + save-as-template). The zero-done guard still runs.
     let onFinish: () -> Void
@@ -190,11 +194,23 @@ struct GuidedSessionView: View {
                     pairCells(current: slot.entryIndex)
                 }
 
-                setBlocks(entryIndex: slot.entryIndex)
+                // U26: a move with no weighted sets has no set slots worth drawing — a 90-minute
+                // run is one dose, not five rows. It gets the readout its units actually have:
+                // planned → capped, the clock against that cap, and the RPE ceiling with its
+                // published CR-10 word.
+                if isDurationOnly(entry) {
+                    capReadout
+                } else {
+                    setBlocks(entryIndex: slot.entryIndex)
 
-                editor(for: slot, entry: entry)
+                    editor(for: slot, entry: entry)
+                }
 
-                PrimaryActionButton(title: "guided.action.logSet") { logCurrent() }
+                // A run is not a set. The one pill keeps its place and its job; only the word
+                // changes, so the mode's grammar stays one pill per plate.
+                PrimaryActionButton(
+                    title: isDurationOnly(entry) ? "guided.cap.logSession" : "guided.action.logSet"
+                ) { logCurrent() }
                     .accessibilityIdentifier("guided.logSet")
 
                 actionPair(entryIndex: slot.entryIndex)
@@ -206,6 +222,93 @@ struct GuidedSessionView: View {
             .id(plateIdentity)
             .transition(.opacity)
         }
+    }
+
+    // MARK: Duration / RPE readout (U26 — the non-strength move)
+
+    /// A move with no weighted sets: `.distanceDuration` or `.durationOnly`, and nothing on it
+    /// carries a target weight. Bodyweight work stays on the set blocks — it has real sets.
+    private func isDurationOnly(_ entry: ExerciseEntryDraft) -> Bool {
+        let mode = entry.exerciseCategory.inputMode
+        guard mode == .durationOnly || mode == .distanceDuration else { return false }
+        return !entry.sets.contains { ($0.targetWeightKg ?? 0) > 0 }
+    }
+
+    /// Two readout wells — what the plan asked for, what today caps it at — over a live clock and
+    /// the RPE ceiling. The clock ticks on the same `TimelineView` cadence as the stat strip.
+    private var capReadout: some View {
+        VStack(alignment: .leading, spacing: Spacing.xs) {
+            HStack(spacing: Spacing.xs) {
+                statWell(value: plannedDurationText, key: "guided.cap.planned")
+                statWell(value: cappedDurationText, key: "guided.cap.today")
+            }
+            TimelineView(.periodic(from: startTime, by: 1)) { context in
+                AnnotationLabel(elapsedAgainstCapText(now: context.date), color: ColorTokens.text2)
+            }
+            if let anchor = rpeCeilingText {
+                AnnotationLabel(anchor, color: ColorTokens.text2)
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .accessibilityIdentifier("guided.cap.readout")
+    }
+
+    /// The plan's own duration for the move on screen — their session, stated first.
+    private var plannedDurationSeconds: Int? {
+        guard let index = engine.currentEntryIndex, entries.indices.contains(index) else { return nil }
+        let total = entries[index].sets
+            .filter { !$0.isWarmup }
+            .compactMap { $0.targetDurationSeconds }
+            .reduce(0, +)
+        return total > 0 ? total : nil
+    }
+
+    private var plannedDurationText: String {
+        guard let seconds = plannedDurationSeconds else { return "—" }
+        return minutesText(seconds)
+    }
+
+    private var cappedDurationText: String {
+        guard let seconds = sessionCap?.maxDurationSeconds else { return plannedDurationText }
+        return minutesText(seconds)
+    }
+
+    private func elapsedAgainstCapText(now: Date) -> String {
+        let elapsed = clock(now.timeIntervalSince(startTime))
+        guard let capSeconds = sessionCap?.maxDurationSeconds ?? plannedDurationSeconds else {
+            return "\(LocalePinnedStrings.localized("guided.stat.elapsed", locale: locale)) \(elapsed)"
+        }
+        return String(
+            format: LocalePinnedStrings.localized(
+                "guided.cap.elapsedOf", defaultValue: "%1$@ OF %2$@", locale: locale
+            ),
+            elapsed, minutesText(capSeconds)
+        )
+    }
+
+    /// "RPE 7 CEILING · VERY HARD" — the published CR-10 anchor, the same instrument the finish
+    /// sheet reads, so one RPE means one thing across the app.
+    private var rpeCeilingText: String? {
+        guard let rpe = sessionCap?.maxRPE else { return nil }
+        let word = LocalePinnedStrings.localized(
+            String.LocalizationValue(SessionRPEScale.anchor(for: rpe).keyName),
+            locale: locale
+        )
+        return String(
+            format: LocalePinnedStrings.localized(
+                "guided.cap.ceiling", defaultValue: "RPE %1$lld ceiling · %2$@", locale: locale
+            ),
+            rpe, word
+        )
+    }
+
+    private func minutesText(_ seconds: Int) -> String {
+        String(
+            format: LocalePinnedStrings.localized(
+                "guided.cap.minutes", defaultValue: "%lld min", locale: locale
+            ),
+            seconds / 60
+        )
     }
 
     // MARK: Pair cells
@@ -712,6 +815,24 @@ struct GuidedSessionView: View {
         guard let slot = engine.current, entries.indices.contains(slot.entryIndex) else { return }
         let entry = entries[slot.entryIndex]
         let set = entry.sets[slot.setIndex]
+
+        // U26: a duration move has no reps to fill in — stamping the universal 8 onto a run
+        // would invent a number the athlete never did. It records the clock instead, which is
+        // what the session actually produced.
+        if isDurationOnly(entry) {
+            let elapsedSeconds = Int(Date.now.timeIntervalSince(startTime).rounded())
+            focusField = nil
+            withAnimation(Motion.resolved(Motion.entrance, reduceMotion: reduceMotion)) {
+                priorityEntryIndex = nil
+                GuidedSessionEngine.log(
+                    &entries,
+                    slot: slot,
+                    durationSeconds: set.durationSeconds ?? max(elapsedSeconds, 0)
+                )
+            }
+            Haptics.success()
+            return
+        }
 
         let reps = set.reps ?? suggestedReps(for: slot) ?? 8
         var weight = set.weightKg

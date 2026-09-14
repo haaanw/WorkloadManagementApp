@@ -237,9 +237,12 @@ struct WeeklyNotificationNumbers {
                 calendar: calendar
             ),
             prCount: records.count,
+            // U22: the push says "volume vs last week", so it is a TONNAGE comparison —
+            // `AnalyticsEngine.tonnage` drops the distance-mode sessions whose
+            // `totalVolume` is metres. Summing raw made a walk a tonnage swing.
             volumeDelta: volumeDelta(
-                current: thisWeek.reduce(0) { $0 + $1.totalVolume },
-                previous: lastWeek.reduce(0) { $0 + $1.totalVolume }
+                current: AnalyticsEngine.tonnage(of: thisWeek),
+                previous: AnalyticsEngine.tonnage(of: lastWeek)
             )
         )
     }

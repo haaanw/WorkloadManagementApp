@@ -48,11 +48,19 @@ struct SessionDetailView: View {
                             color: rpe >= 8 ? ColorTokens.zoneDanger : rpe >= 6 ? ColorTokens.zoneCaution : ColorTokens.zoneOptimal
                         )
                     }
-                    if session.totalVolume > 0 {
+                    // U22: one tile, three possible readings — tonnage, distance, or the
+                    // sRPE load when the session moved no external work at all. Both the
+                    // name and the unit come from `SessionWorkReading`; the view never
+                    // reaches for the dual-meaning `totalVolume` itself.
+                    if let work = SessionWorkReading.label(
+                        for: session,
+                        unit: session.athlete?.weightUnit ?? .kg,
+                        locale: locale
+                    ) {
                         Rectangle().fill(ColorTokens.divider).frame(width: 0.5)
                         MetricTile(
-                            title: String(localized: "metric.volume", defaultValue: "Volume"),
-                            value: String(format: "%.0f kg", session.totalVolume)
+                            title: SessionWorkReading.title(for: session),
+                            value: work
                         )
                     }
                 }
@@ -110,6 +118,12 @@ struct SessionDetailView: View {
 
 struct ExerciseDetailCard: View {
     let entry: ExerciseEntry
+    @Environment(\.locale) private var locale
+
+    /// The athlete's own unit, walked up through the session. An lb athlete used to read
+    /// this whole table in kilograms (U22's neighbour defect): the numbers were right and
+    /// the unit was a lie.
+    private var unit: WeightUnit { entry.session?.athlete?.weightUnit ?? .kg }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 0) {
@@ -152,7 +166,7 @@ struct ExerciseDetailCard: View {
                     Text("\(set.setIndex + 1)")
                         .frame(width: 32, alignment: .leading)
                         .foregroundStyle(set.isWarmup ? ColorTokens.zoneCaution : ColorTokens.text2)
-                    Text(set.weightKg.map { String(format: "%.1f kg", $0) } ?? "—")
+                    Text(set.weightKg.map { WeightFormatter.display($0, unit: unit, locale: locale) } ?? "—")
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .foregroundStyle(ColorTokens.text1)
                     Text(set.reps.map { "\($0)" } ?? "—")
@@ -178,7 +192,10 @@ struct ExerciseDetailCard: View {
             if entry.totalVolume > 0 {
                 HStack {
                     Spacer()
-                    Text(String(format: String(localized: "exercise.totalVolume", defaultValue: "Total: %.0f kg"), entry.totalVolume))
+                    Text(String(
+                        format: String(localized: "exercise.totalVolume", defaultValue: "Total: %@"),
+                        WeightFormatter.displayVolume(entry.totalVolume, unit: unit, locale: locale)
+                    ))
                         .font(.Tokens.labelMedium)
                         .monospacedDigit()
                         .foregroundStyle(ColorTokens.text1)

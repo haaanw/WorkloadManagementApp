@@ -68,7 +68,13 @@ enum PersistedVerdictDecisionState: Equatable {
 /// the ViewModel builds it from the slots the Phase-43 service wrote.
 struct TodayVerdictDisplay: Equatable {
     /// What the surface is leading with — never a bare readiness number.
-    enum Kind { case adjusted, asPlanned, deferred }
+    ///
+    /// `.sessionCap` (v1.7.3 UAT round 3 · U25/U26) is the non-strength planned day: a run, a
+    /// court session, conditioning. It leads with the day's DURATION and its RPE ceiling instead
+    /// of a top-set weight, because those are the units that day actually has. Everything else
+    /// about the surface — the reason line, the equal-weight Accept / Keep as planned pair, the
+    /// nocebo guard — is identical.
+    enum Kind { case adjusted, asPlanned, deferred, sessionCap }
     /// Whether the athlete has decided yet (drives the decision-row vs confirmed-line swap).
     enum AppliedState { case pending, accepted, keptPlan }
 
@@ -105,6 +111,25 @@ struct TodayVerdictDisplay: Equatable {
     /// Working (non-warmup) sets on the headline exercise — the "ALL 4 SETS" number.
     var workingSetCount: Int = 0
 
+    // MARK: Session cap (v1.7.3 UAT round 3 · U25 / U26)
+
+    /// Today's cap for a non-strength planned day. Non-nil exactly when `kind == .sessionCap`.
+    /// A pure value recomputed every refresh — no `@Model` carries it, so nothing about the
+    /// synced schema changed to make this surface exist.
+    var sessionCap: SessionCapEngine.SessionCap? = nil
+    /// The plan's own duration in seconds, so the card can say "your 90-minute run, capped at 60".
+    /// nil when the plan wrote no duration — the card then states the RPE ceiling alone.
+    var plannedDurationSeconds: Int? = nil
+    /// The plan's own RPE target, when it wrote one.
+    var plannedSessionRPE: Double? = nil
+
+    /// The plan's duration in whole minutes.
+    var plannedDurationMinutes: Int? { plannedDurationSeconds.map { $0 / 60 } }
+
+    /// True when the cap actually pulls the day in — the surfaces show the equal-weight
+    /// Accept / Keep as planned pair only then, and a single acknowledge otherwise.
+    var capModulatesPlan: Bool { sessionCap?.modulatesPlan ?? false }
+
     /// Derived shape per the frozen S4 spec. Order matters: microdose outranks the others;
     /// a real load ease reads as a load trim (any cut rides in the sublabel); a cut with no
     /// load ease is a volume day; anything else — including an RPE-cap-only nudge, which has
@@ -122,6 +147,70 @@ struct TodayVerdictDisplay: Equatable {
         guard plannedTopSetKg > 0, adjustedTopSetKg < plannedTopSetKg - 0.001 else { return nil }
         let percent = Int(((plannedTopSetKg - adjustedTopSetKg) / plannedTopSetKg * 100).rounded())
         return max(percent, 1)
+    }
+}
+
+// MARK: - TodayBriefReadings (what today looks like — readings only)
+
+/// The pure readings block the pre-session brief opens with (v1.7.3 UAT round 3 · U25).
+///
+/// Nothing here is a recommendation: it is the evidence the day's verdict was built on, stated
+/// once so the athlete can see WHY before they see WHAT. Assembled by `TodayVerdictViewModel`
+/// from the exact inputs it already gathers for the verdict — no second fetch, no second engine,
+/// and no number that is not already on the Today surface.
+///
+/// Composite + already-displayed values only. Raw HealthKit never leaves the device and never
+/// reaches a log; these three signals are the same ones `MetricsStrip` prints.
+struct TodayBriefReadings: Equatable {
+    /// 0…100 readiness and its zone, or nil while the baseline is still learning.
+    let readinessScore: Int?
+    let readinessZone: ReadinessZone?
+    let fatigueIndex: Double?
+    let fatigueZone: FatigueIndexEngine.FatigueZone?
+    /// Today's HRV in ms beside the personal baseline the snapshot carries.
+    let hrvMs: Double?
+    let hrvBaselineMs: Double?
+    let rhrBpm: Double?
+    let rhrBaselineBpm: Double?
+    let sleepMinutes: Double?
+    /// The plain 14-day mean of the athlete's own sleep series — a descriptive statistic,
+    /// labelled as such, not a second baseline engine.
+    let sleepRecentMeanMinutes: Double?
+    /// Calendar days to the next scheduled match; nil when none is scheduled or it has passed.
+    let matchDaysAway: Int?
+    /// True while the readiness build deferred (cold start) — the brief then says so plainly
+    /// rather than printing a number it does not have.
+    let isLearning: Bool
+}
+
+// MARK: - BriefExerciseLine (your numbers — planned → adjusted, per movement)
+
+/// One movement's line in the pre-session brief's "Your numbers" block (v1.7.3 UAT round 3 · U25).
+///
+/// It states the athlete's OWN planned number first and the suggestion beside it, so the brief
+/// reads as a modulation of their session rather than a session handed to them. Every field is
+/// read from the frozen prescription — nothing is recomputed and nothing is written.
+struct BriefExerciseLine: Identifiable, Equatable {
+    /// The authored `TemplateExercise` id (stable across refreshes).
+    let id: UUID
+    let exerciseName: String
+    let plannedTopSetKg: Double?
+    /// The verdict's suggested top-set weight, or nil when it suggested none.
+    let suggestedTopSetKg: Double?
+    let plannedWorkingSets: Int
+    /// Working sets left after an accepted-or-suggested back-off cut.
+    let suggestedWorkingSets: Int
+    let plannedRPE: Double?
+    /// The suggested RPE ceiling, only ever present when the plan wrote an RPE (the NIL-RPE rule).
+    let suggestedRPE: Double?
+
+    /// True when any of the three dimensions actually moved — the brief marks only those.
+    var hasChange: Bool {
+        if let planned = plannedTopSetKg, let suggested = suggestedTopSetKg,
+           suggested < planned - 0.001 { return true }
+        if let planned = plannedRPE, let suggested = suggestedRPE,
+           suggested < planned - 0.001 { return true }
+        return suggestedWorkingSets < plannedWorkingSets
     }
 }
 

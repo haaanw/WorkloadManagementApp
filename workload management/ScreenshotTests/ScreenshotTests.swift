@@ -256,9 +256,27 @@ final class ScreenshotTests: XCTestCase {
         launchAuthenticatedApp()
         tapTab("tab.home")
         XCTAssertTrue(anyElement("workoutLog.verdict.reason").waitForExistence(timeout: 10), "Verdict reason line missing")
-        let start = app.buttons["verdict.startWorkout"]
-        XCTAssertTrue(start.waitForExistence(timeout: 5), "Proposal start CTA missing")
-        start.tap()
+
+        // UAT round 3 · U25: the card no longer carries the start door. Today's ONE pill opens
+        // the pre-session brief, and the brief's own pill starts the session. Two taps where
+        // there used to be one; the plate at the end is the same guided session.
+        // anyElement, not app.buttons: the identifier sits on the PrimaryActionButton wrapper,
+        // which the AX tree may expose as a non-button node.
+        let startToday = anyElement("dashboard.proposal.startToday")
+        XCTAssertTrue(startToday.waitForExistence(timeout: 5), "Today's start pill missing")
+        startToday.tap()
+
+        // The brief's Start is gated on a decision existing. The seeded plate is already
+        // decided, so this is normally a no-op — but deciding here keeps the plate reproducible
+        // if the seed ever changes, rather than tapping a disabled pill and timing out later.
+        let accept = anyElement("brief.accept")
+        if accept.waitForExistence(timeout: 3), accept.isHittable {
+            accept.tap()
+        }
+
+        let briefStart = anyElement("brief.start")
+        XCTAssertTrue(briefStart.waitForExistence(timeout: 10), "Brief start CTA missing")
+        briefStart.tap()
         // anyElement, not app.buttons: the identifier sits on the PrimaryActionButton
         // wrapper, which the AX tree may expose as a non-button node.
         let logSet = anyElement("guided.logSet")

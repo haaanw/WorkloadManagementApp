@@ -7,10 +7,15 @@ import SwiftData
 /// destination, which is what made it safe for Trends to keep re-plotting all three lines —
 /// with a screen behind every cell, the physiology lives where its number is shown and the
 /// Trends surface is free to answer the question its name asks.
+/// `.fatigue` and `.load` joined in v1.7.3 (UAT round 3 · U20). They are the Trends page's own
+/// two heroes, and they carry the window the card was showing: a breakdown of a fortnight that
+/// silently re-read a month would be a different number than the one the athlete tapped.
 enum TrendDestination: Hashable {
     case hrv
     case rhr
     case sleep
+    case fatigue(range: TimeRange)
+    case load(range: TimeRange)
 }
 
 struct DashboardView: View {
@@ -21,8 +26,6 @@ struct DashboardView: View {
     @Environment(TabRouter.self) private var router
     /// Opt-in: a daily question ahead of the score is a real cost, so it is never imposed.
     @AppStorage("morningProbeEnabled") private var morningProbeEnabled: Bool = false
-    @State private var showMorningProbe = false
-    @State private var probeWasBlinded = true
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
@@ -30,7 +33,11 @@ struct DashboardView: View {
     @Query private var allCheckIns: [WellnessCheckIn]
     @Query private var trainingProfiles: [TrainingProfile]
     @State private var showActiveWorkout = false
-    @State private var showWellnessCheckIn = false
+    /// The ONE morning sheet (U19). `morningProbeBlinding` decides where it opens: non-nil
+    /// means the blinded probe is due and is step 1, carrying the blinding stamp; nil means
+    /// the ratings alone, which is what the prompt row opens on an ordinary morning.
+    @State private var showMorningCheckIn = false
+    @State private var morningProbeBlinding: Bool? = nil
     @State private var showTrainingProfile = false
     @State private var viewModel = DashboardViewModel()
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
@@ -83,7 +90,11 @@ struct DashboardView: View {
                     //     check-in button; two affordances for one action is noise).
                     if athlete != nil, !showWelcomeCard, todayCheckIn == nil {
                         MorningCheckInPrompt {
-                            showWellnessCheckIn = true
+                            // The probe is never due here — this row only shows on a morning
+                            // with no check-in yet, and a due probe has already presented the
+                            // sheet from `.task`. So the row opens the ratings step alone.
+                            morningProbeBlinding = nil
+                            showMorningCheckIn = true
                         }
                         .padding(.horizontal, Spacing.sm)
                         .padding(.bottom, Spacing.sm)
@@ -91,15 +102,13 @@ struct DashboardView: View {
                         .entranceReveal()
                     }
 
-                    // 1. Fatigue caution ABOVE the proposal's start affordance (slice 2, R4):
-                    //    a warning that reads below the button arrives after the decision.
-                    if !viewModel.isColdStartActive,
-                       let fi = viewModel.fatigueIndex, let zone = viewModel.fatigueZone,
-                       zone != .low {
-                        FatigueAttentionBanner(fatigueIndex: fi, zone: zone)
-                            .padding(.horizontal, Spacing.sm)
-                            .padding(.bottom, Spacing.sm)
-                    }
+                    // 1. (UAT round 3 · U25) The fatigue caution banner is GONE from Today. It
+                    //    opened the screen with "deload day / active recovery recommended" —
+                    //    a second advisory voice above the proposal, and advice with no action
+                    //    attached. Its reading now lives in the pre-session brief's "What today
+                    //    looks like" block, where it belongs: evidence for the day's one action.
+                    //    `FatigueAttentionBanner` itself is retained (other surfaces may mount
+                    //    it); only Today's mount was removed.
 
                     // 2. THE PROPOSAL (slice 2, R1): the day's plan-aware verdict — plan name,
                     //    adjusted numbers, reason, decision, start — is Home's centerpiece.
@@ -249,7 +258,12 @@ struct DashboardView: View {
                     if showWelcomeCard {
                         WelcomeActionCard(
                             onLogWorkout: { showActiveWorkout = true },
-                            onWellnessCheckIn: { showWellnessCheckIn = true }
+                            onWellnessCheckIn: {
+                                // The welcome card's own check-in button — ratings only, for
+                                // the same reason the prompt row's is (U19).
+                                morningProbeBlinding = nil
+                                showMorningCheckIn = true
+                            }
                         )
                         .padding(.horizontal, Spacing.sm)
                     }
@@ -298,6 +312,13 @@ struct DashboardView: View {
             // nav bars (and back buttons) untouched.
             .contentMargins(.top, Spacing.md, for: .scrollContent)
             .contentMargins(.bottom, Spacing.lg, for: .scrollContent)
+            // U18 — pull down to bring EVERYTHING current: watch workouts, then the recovery
+            // pipeline with a fresh HealthKit read, then push and pull. Today prints a
+            // persisted snapshot, so an app foregrounded before the watch had synced showed a
+            // blank HRV while the detail page one tap away showed this morning's reading, and
+            // nothing re-ran while the app stayed resident. The system control is the whole
+            // affordance — no custom spinner, and the order lives in `refreshAll`.
+            .refreshable { await refreshAll() }
             .background(ColorTokens.background)
             // v6.3 "The Area Tint": Home/Today's primary reading is readiness, so this whole
             // surface stands in the readiness area — the hero plane takes the 4% wash and every
@@ -313,11 +334,12 @@ struct DashboardView: View {
             // its state after the proposal moved into `TodayProposalSection`, which owns the
             // plan-led start on this surface through its own `.sheet(item:)`. Removed rather
             // than left as a branch that can only present nothing (U17 diagnosis).
-            .sheet(isPresented: $showWellnessCheckIn) {
-                // Slice 1 (R3) — a saved check-in re-runs the pipeline so the reading and
-                // the recommendation absorb it immediately (same contract as RecoveryView's
-                // onSaved → onWellnessCheckInSaved).
-                MorningCheckInSheet(onSaved: {
+            // U19 — ONE morning sheet. Step 1 is the blinded probe when it is due, step 2 the
+            // wellness ratings, and its single Save writes both rows. Slice 1 (R3) — a saved
+            // check-in re-runs the pipeline so the reading and the recommendation absorb it
+            // immediately (same contract as RecoveryView's onSaved → onWellnessCheckInSaved).
+            .sheet(isPresented: $showMorningCheckIn) {
+                MorningCheckInSheet(probeBlinding: morningProbeBlinding, onSaved: {
                     Task { await loadData() }
                 })
             }
@@ -332,14 +354,17 @@ struct DashboardView: View {
                 case .hrv:   HRVDetailScreen()
                 case .rhr:   RHRDetailScreen()
                 case .sleep: SleepDetailScreen()
+                case .fatigue(let range): FatigueDetailScreen(range: range)
+                case .load(let range):    LoadDetailScreen(range: range)
                 }
             }
             .task {
                 // The blinded probe must be asked BEFORE the reading is on screen — an answer
                 // given after seeing a score is a reaction to that score, not an independent
                 // judgement. So it is presented ahead of the load, and the row it writes
-                // records whether blinding actually held.
-                presentMorningProbeIfDue()
+                // records whether blinding actually held. This ordering is what makes
+                // `wasBlinded` truthful; do not move the load above it.
+                presentMorningCheckInIfProbeDue()
                 await loadData()
                 // A launch FROM the notification records its anchor before this screen
                 // exists, so the pending route is consumed after the first load — by then
@@ -350,9 +375,6 @@ struct DashboardView: View {
                 consumePendingAnchor(proxy)
             }
             .onAppear { Haptics.prepare() }
-            .sheet(isPresented: $showMorningProbe) {
-                MorningProbeSheet(athlete: athlete, isBlinded: probeWasBlinded)
-            }
             .onChange(of: scenePhase) { _, newPhase in
                 if newPhase == .active {
                     Task { await loadData() }
@@ -364,6 +386,13 @@ struct DashboardView: View {
             // planned-session weekday lookup kept resolving to yesterday. Same idiom as
             // RecoveryView and NextMatchSection.
             .onReceive(NotificationCenter.default.publisher(for: .NSCalendarDayChanged)) { _ in
+                Task { await loadData() }
+            }
+            // U18 — HealthKit reported new HRV, resting heart rate or sleep while the app was
+            // up (`AppContainer` registers the observer and debounces the notice). Same idiom
+            // as the day-change hook above: re-run the load and let the pipeline decide what
+            // actually changed.
+            .onReceive(NotificationCenter.default.publisher(for: .recoverySignalsChanged)) { _ in
                 Task { await loadData() }
             }
             }
@@ -382,27 +411,56 @@ struct DashboardView: View {
         }
     }
 
-    /// Show the probe when validation is on, today has no probe yet, and — crucially — no
-    /// score has been rendered for this athlete yet in this appearance.
+    /// Open the morning sheet ON THE PROBE when validation is on, today has no probe yet, and
+    /// — crucially — no score has been rendered for this athlete yet in this appearance.
     ///
-    /// `probeWasBlinded` is set from `hasLoadedOnce`: on the very first appearance of the day
-    /// the dashboard has not yet drawn a reading, so the answer is genuinely blind. If the
+    /// The blinding stamp is `!viewModel.hasLoadedOnce`: on the very first appearance of the
+    /// day the dashboard has not yet drawn a reading, so the answer is genuinely blind. If the
     /// view has already shown a score this session, the probe still appears (the data is worth
-    /// having) but is stamped unblinded so the analysis can exclude it.
-    private func presentMorningProbeIfDue() {
+    /// having) but is stamped unblinded so the analysis can exclude it
+    /// (VALIDATION-PROTOCOL §blinding).
+    ///
+    /// When the probe is NOT due this does nothing: the sheet then opens only from the
+    /// `MorningCheckInPrompt` row, on the ratings step alone.
+    private func presentMorningCheckInIfProbeDue() {
         guard morningProbeEnabled, let athlete else { return }
         let day = Calendar.current.startOfDay(for: Date())
-        // A skipped morning stays skipped (round 8, HAN): the sheet stamps the day on
+        // A skipped morning stays skipped (round 8, HAN): the probe step stamps the day on
         // skip, and re-asking on every Home appearance after an explicit "not today"
         // is exactly the nagging that gets the toggle turned off.
-        let skippedDay = UserDefaults.standard.double(forKey: "morningProbeSkippedDay")
-        guard skippedDay != day.timeIntervalSinceReferenceDate else { return }
+        guard !MorningProbeRecorder.isSkippedToday() else { return }
         let existing = (try? modelContext.fetch(
             FetchDescriptor<MorningReadinessProbe>(predicate: #Predicate { $0.date == day })
         ))?.contains { $0.athlete?.id == athlete.id } ?? false
         guard !existing else { return }
-        probeWasBlinded = !viewModel.hasLoadedOnce
-        showMorningProbe = true
+        morningProbeBlinding = !viewModel.hasLoadedOnce
+        showMorningCheckIn = true
+    }
+
+    /// U18 — the pull-to-refresh action. The watch import needs the CONCRETE HealthKit
+    /// service, which is why the VM takes it as a seam rather than reaching for it.
+    private func refreshAll() async {
+        guard let athlete else { return }
+        await viewModel.refreshAll(
+            athlete: athlete,
+            healthKitService: container.healthKitService,
+            modelContext: modelContext,
+            syncService: container.syncService,
+            importWatchWorkouts: {
+                _ = await WatchWorkoutImportService.run(
+                    healthKit: container.healthKitService,
+                    modelContext: modelContext,
+                    syncService: container.syncService
+                )
+            }
+        )
+        // The same two post-load steps `loadData()` runs — the refresh must not leave the
+        // verdict surface un-activated or the weekly notification stale.
+        viewModel.activateVerdictSurface()
+        viewModel.refreshNotificationContent(
+            notificationService: container.notificationService,
+            modelContext: modelContext
+        )
     }
 
     private func loadData() async {

@@ -1,6 +1,48 @@
 import SwiftUI
 import SwiftData
 
+// MARK: - The morning flow (v1.7.3 · U19)
+
+/// The two things the app asks on a morning, in the one order that keeps the first one usable.
+///
+/// They were two sheets — the blinded 1–10 probe and the wellness ratings — presented
+/// independently, both titled "Morning check". HAN met both on the same morning and read them
+/// as duplicates. They are the opposite of duplicates: the ratings are 25% of the readiness
+/// composite, while the probe is held-out evidence that no scoring engine may read
+/// (`MorningReadinessProbeTests`). So they merge into one sheet rather than one of them being
+/// deleted.
+enum MorningCheckInStep: Equatable {
+    /// The blinded 1–10 judgement (+ optional grip). Only ever first.
+    case probe
+    /// The wellness ratings that feed the score.
+    case ratings
+}
+
+/// The step rules, pure so they can be tested without a view.
+enum MorningCheckInFlow {
+
+    /// `probeBlinding` is nil when the probe is not due this morning — validation off, already
+    /// answered, or already skipped — and the sheet opens straight on the ratings.
+    ///
+    /// When it IS due the probe comes first, and that order is load-bearing: `wasBlinded`
+    /// records only whether the DASHBOARD had drawn a score, so a ratings-first sheet (which
+    /// carries its own wellness preview) would stamp a contaminated answer as blinded.
+    static func initialStep(probeBlinding: Bool?) -> MorningCheckInStep {
+        probeBlinding == nil ? .ratings : .probe
+    }
+
+    /// Answering and skipping both land on the ratings — a skipped probe is still a morning
+    /// check-in. Skip stamps the day so the probe is not re-asked (round 8, HAN).
+    static func stepAfterProbe() -> MorningCheckInStep { .ratings }
+
+    /// The probe row is written only when the probe was due AND answered; a skip writes none.
+    static func writesProbeRow(probeBlinding: Bool?, probeAnswered: Bool) -> Bool {
+        probeBlinding != nil && probeAnswered
+    }
+}
+
+// MARK: - The sheet
+
 struct MorningCheckInSheet: View {
     @Environment(\.dismiss) private var dismiss
     @Environment(\.modelContext) private var modelContext
@@ -18,12 +60,31 @@ struct MorningCheckInSheet: View {
     @State private var didSeed = false
     @State private var seedSource: SeedSource? = nil
 
+    // Step 1 — the probe. Nil `probeBlinding` means "not due"; the sheet is then the ratings
+    // alone, which is what the `MorningCheckInPrompt` row opens on an ordinary morning.
+    let probeBlinding: Bool?
+    @State private var step: MorningCheckInStep
+    @State private var probeAnswered = false
+    @State private var probeReadiness = 6
+    @State private var probeGripText = ""
+    @State private var probeGripHand: MorningReadinessProbe.GripHand = .right
+    @State private var probeShowGrip = false
+
     private enum SeedSource { case today, prior }
 
     private let defaultTags = ["Caffeine", "Alcohol", "Travel", "Stress"]
 
     private var athlete: Athlete? { athletes.first }
     var onSaved: (() -> Void)?
+
+    /// The step is resolved in `init` rather than in `.task` so the probe is on screen from
+    /// the first frame — a flash of the ratings would put a wellness preview in front of the
+    /// blinded question.
+    init(probeBlinding: Bool? = nil, onSaved: (() -> Void)? = nil) {
+        self.probeBlinding = probeBlinding
+        self.onSaved = onSaved
+        _step = State(initialValue: MorningCheckInFlow.initialStep(probeBlinding: probeBlinding))
+    }
 
     private var wellnessScore: Double {
         Double(sleepQuality + soreness + energy + stress) / 20.0 * 100.0
@@ -32,11 +93,91 @@ struct MorningCheckInSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                InstrumentSheetHeader(title: "morning.nav.title") {
-                    SheetHeaderButton(title: "action.cancel") { dismiss() }
-                } trailing: {
-                    SheetHeaderButton(title: "action.save", emphasis: true, isDisabled: athlete == nil) { save() }
+                switch step {
+                case .probe:  probeHeader
+                case .ratings: ratingsHeader
                 }
+                switch step {
+                case .probe:
+                    ScrollView {
+                        MorningProbeFields(
+                            readiness: $probeReadiness,
+                            gripText: $probeGripText,
+                            gripHand: $probeGripHand,
+                            showGrip: $probeShowGrip
+                        )
+                    }
+                    .background(ColorTokens.background)
+                case .ratings:
+                    ratingsBody
+                }
+            }
+            .toolbar(.hidden, for: .navigationBar)
+        }
+        .task {
+            Haptics.prepare()
+            if let athlete = athlete {
+                let repo = BehaviorTagRepository(modelContext: modelContext)
+                customTagNames = (try? repo.fetchCustomTagNames(for: athlete)) ?? []
+            }
+            seedFromPriorCheckIn()
+        }
+        .sheet(isPresented: $showingTagManagement) {
+            CustomTagManagementSheet(
+                customTagNames: $customTagNames,
+                athlete: athlete,
+                modelContext: modelContext
+            )
+        }
+    }
+
+    /// Step 1's titlebar. Skip stamps the day and moves on; Next carries the answer forward to
+    /// the one Save. The probe has its OWN title so the two steps never read alike (U19).
+    private var probeHeader: some View {
+        // Both slots LABELLED: an unlabeled trailing closure goes to `trailing` under Swift's
+        // backward matching, which is how seven sheets silently grew a right-hand Cancel
+        // (UAT round 1, U6).
+        InstrumentSheetHeader(
+            title: "probe.nav.title",
+            leading: {
+                SheetHeaderButton(title: "probe.action.skip") {
+                    MorningProbeRecorder.stampSkippedToday()
+                    probeAnswered = false
+                    step = MorningCheckInFlow.stepAfterProbe()
+                }
+            },
+            trailing: {
+                SheetHeaderButton(title: "morning.action.next", emphasis: true) {
+                    probeAnswered = true
+                    step = MorningCheckInFlow.stepAfterProbe()
+                }
+            }
+        )
+    }
+
+    /// Step 2's titlebar. The leading slot goes back to the probe when there was one, so an
+    /// answer can be corrected before it is written; otherwise it dismisses.
+    private var ratingsHeader: some View {
+        InstrumentSheetHeader(
+            title: "morning.nav.title",
+            leading: {
+                if probeBlinding == nil {
+                    SheetHeaderButton(title: "action.cancel") { dismiss() }
+                } else {
+                    SheetHeaderButton(title: "morning.action.back") { step = .probe }
+                }
+            },
+            trailing: {
+                SheetHeaderButton(
+                    title: "action.save",
+                    emphasis: true,
+                    isDisabled: athlete == nil
+                ) { save() }
+            }
+        )
+    }
+
+    private var ratingsBody: some View {
                 ScrollView {
                     VStack(spacing: 0) {
                         Text("morning.checkin.heading")
@@ -188,24 +329,6 @@ struct MorningCheckInSheet: View {
                 }
                 }
                 .background(ColorTokens.background)
-            }
-            .toolbar(.hidden, for: .navigationBar)
-        }
-        .task {
-            Haptics.prepare()
-            if let athlete = athlete {
-                let repo = BehaviorTagRepository(modelContext: modelContext)
-                customTagNames = (try? repo.fetchCustomTagNames(for: athlete)) ?? []
-            }
-            seedFromPriorCheckIn()
-        }
-        .sheet(isPresented: $showingTagManagement) {
-            CustomTagManagementSheet(
-                customTagNames: $customTagNames,
-                athlete: athlete,
-                modelContext: modelContext
-            )
-        }
     }
 
     /// Seed sliders + active behavior tags from today's check-in (editing today) or, failing that,
@@ -243,6 +366,9 @@ struct MorningCheckInSheet: View {
         isPrefilled = true
     }
 
+    /// The sheet's ONE Save. It writes the wellness row and — when the probe was due and
+    /// answered — the probe row, in a single pass, then re-runs the pipeline through `onSaved`
+    /// exactly as the ratings-only save always has.
     private func save() {
         // Never persist a check-in without a resolved athlete: with athlete == nil the
         // today-upsert query is unscoped (could update another athlete's row) and a new
@@ -250,14 +376,112 @@ struct MorningCheckInSheet: View {
         // the already athlete-gated seed path.
         guard let athlete else { return }
 
-        let repo = RecoveryRepository(modelContext: modelContext)
+        let probe: MorningCheckInRecorder.ProbeAnswer? = {
+            guard MorningCheckInFlow.writesProbeRow(
+                probeBlinding: probeBlinding,
+                probeAnswered: probeAnswered
+            ), let wasBlinded = probeBlinding else { return nil }
+            return MorningCheckInRecorder.ProbeAnswer(
+                readiness: probeReadiness,
+                gripText: probeGripText,
+                gripHand: probeGripHand,
+                includeGrip: probeShowGrip,
+                wasBlinded: wasBlinded
+            )
+        }()
+
+        MorningCheckInRecorder.save(
+            ratings: MorningCheckInRecorder.Ratings(
+                sleepQuality: sleepQuality,
+                soreness: soreness,
+                energy: energy,
+                stress: stress,
+                notes: notes
+            ),
+            tags: MorningCheckInRecorder.TagSelection(
+                selected: selectedTags,
+                defaults: defaultTags,
+                custom: customTagNames
+            ),
+            probe: probe,
+            athlete: athlete,
+            modelContext: modelContext
+        )
+
+        Haptics.success()
+        onSaved?()
+        dismiss()
+    }
+
+    private func toggleTag(_ tag: String) {
+        Haptics.tap()
+        if selectedTags.contains(tag) {
+            selectedTags.remove(tag)
+        } else {
+            selectedTags.insert(tag)
+        }
+    }
+}
+
+// MARK: - The morning write
+
+/// Both morning rows, written together.
+///
+/// Extracted from the sheet's `save()` when the two morning sheets merged (v1.7.3 · U19), so
+/// the "one Save writes both rows" contract is a thing a test can run rather than a thing the
+/// view body happens to do.
+@MainActor
+enum MorningCheckInRecorder {
+
+    struct Ratings {
+        var sleepQuality: Int
+        var soreness: Int
+        var energy: Int
+        var stress: Int
+        var notes: String
+    }
+
+    struct TagSelection {
+        var selected: Set<String>
+        var defaults: [String]
+        var custom: [String]
+    }
+
+    struct ProbeAnswer {
+        var readiness: Int
+        var gripText: String
+        var gripHand: MorningReadinessProbe.GripHand
+        var includeGrip: Bool
+        var wasBlinded: Bool
+    }
+
+    /// Write today's wellness check-in, and the probe row when one was answered. One
+    /// `modelContext.save()` covers both.
+    static func save(
+        ratings: Ratings,
+        tags: TagSelection,
+        probe: ProbeAnswer?,
+        athlete: Athlete,
+        modelContext: ModelContext
+    ) {
+        if let probe {
+            MorningProbeRecorder.record(
+                readiness: probe.readiness,
+                gripText: probe.gripText,
+                gripHand: probe.gripHand,
+                includeGrip: probe.includeGrip,
+                wasBlinded: probe.wasBlinded,
+                athlete: athlete,
+                modelContext: modelContext
+            )
+        }
 
         // Upsert keyed on today's record so re-opening the sheet on a day the
         // user already checked in UPDATES that row instead of inserting a
         // duplicate same-day WellnessCheckIn (which would shadow the edit and
         // feed an arbitrary stale row into the recovery score).
         let checkIn: WellnessCheckIn
-        if let existing = try? repo.fetchTodayWellnessCheckIn(athlete: athlete) {
+        if let existing = todayCheckIn(athlete: athlete, modelContext: modelContext) {
             checkIn = existing
         } else {
             checkIn = WellnessCheckIn(date: .now)
@@ -265,11 +489,11 @@ struct MorningCheckInSheet: View {
             modelContext.insert(checkIn)
         }
 
-        checkIn.sleepQuality = sleepQuality
-        checkIn.soreness = soreness
-        checkIn.energy = energy
-        checkIn.stress = stress
-        checkIn.notes = notes.isEmpty ? nil : notes
+        checkIn.sleepQuality = ratings.sleepQuality
+        checkIn.soreness = ratings.soreness
+        checkIn.energy = ratings.energy
+        checkIn.stress = ratings.stress
+        checkIn.notes = ratings.notes.isEmpty ? nil : ratings.notes
         checkIn.updatedAt = .now
 
         // Reconcile today's behavior tags IN PLACE (v1.7.2 / audit M3).
@@ -280,15 +504,15 @@ struct MorningCheckInSheet: View {
         // without bound, and `BehaviorCorrelationEngine` — which counts rows — read the
         // orphans as real behaviour. Keeping the row and editing it means one row per
         // (day, tag) for good.
-        let allTagNames = defaultTags + customTagNames
+        let allTagNames = tags.defaults + tags.custom
         var carriedOver = Dictionary(
             checkIn.behaviorTags.map { ($0.tagName, $0) },
             uniquingKeysWith: { first, _ in first }
         )
         for tagName in allTagNames {
             if let existingTag = carriedOver.removeValue(forKey: tagName) {
-                existingTag.isActive = selectedTags.contains(tagName)
-                existingTag.isCustom = !defaultTags.contains(tagName)
+                existingTag.isActive = tags.selected.contains(tagName)
+                existingTag.isCustom = !tags.defaults.contains(tagName)
                 existingTag.wellnessCheckIn = checkIn
                 existingTag.athlete = athlete
                 existingTag.updatedAt = .now
@@ -296,8 +520,8 @@ struct MorningCheckInSheet: View {
                 let tag = BehaviorTag(
                     date: .now,
                     tagName: tagName,
-                    isActive: selectedTags.contains(tagName),
-                    isCustom: !defaultTags.contains(tagName)
+                    isActive: tags.selected.contains(tagName),
+                    isCustom: !tags.defaults.contains(tagName)
                 )
                 tag.wellnessCheckIn = checkIn
                 tag.athlete = athlete
@@ -318,18 +542,30 @@ struct MorningCheckInSheet: View {
         }
 
         try? modelContext.save()
-        Haptics.success()
-        onSaved?()
-        dismiss()
     }
 
-    private func toggleTag(_ tag: String) {
-        Haptics.tap()
-        if selectedTags.contains(tag) {
-            selectedTags.remove(tag)
-        } else {
-            selectedTags.insert(tag)
-        }
+    /// Today's check-in for this athlete, newest write first.
+    ///
+    /// Fetches directly instead of constructing a `RecoveryRepository`: a `@MainActor`
+    /// repository deallocated inside a SYNCHRONOUS call trips the libswift_Concurrency
+    /// back-deploy deinit SIGABRT (the C-wdg-002 trap — the same reason
+    /// `DashboardViewModel.deriveTodayPlanCTA` and `TodayVerdictViewModel` avoid it), and this
+    /// save runs synchronously from a button. The filter mirrors
+    /// `RecoveryRepository.fetchTodayWellnessCheckIn` — keep the two in step.
+    private static func todayCheckIn(
+        athlete: Athlete,
+        modelContext: ModelContext
+    ) -> WellnessCheckIn? {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: .now)
+        guard let tomorrow = calendar.date(byAdding: .day, value: 1, to: today) else { return nil }
+        let athleteId = athlete.id
+        let descriptor = FetchDescriptor<WellnessCheckIn>(
+            predicate: #Predicate { $0.date >= today && $0.date < tomorrow },
+            sortBy: [SortDescriptor(\.updatedAt, order: .reverse)]
+        )
+        return ((try? modelContext.fetch(descriptor)) ?? [])
+            .first { $0.athlete?.id == athleteId }
     }
 }
 

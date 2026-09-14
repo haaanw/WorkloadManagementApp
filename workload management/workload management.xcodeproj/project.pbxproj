@@ -292,6 +292,8 @@
 		FF2701010000000000000001 /* DailySignalStats.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2701010000000000000002 /* DailySignalStats.swift */; };
 		FF2702010000000000000001 /* FatigueHistoryEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2702010000000000000002 /* FatigueHistoryEngine.swift */; };
 		FF2703010000000000000001 /* RHRDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2703010000000000000002 /* RHRDetailView.swift */; };
+		FF2801010000000000000001 /* SessionCapEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2801010000000000000002 /* SessionCapEngine.swift */; };
+		FF2802010000000000000001 /* PreSessionBriefView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FF2802010000000000000002 /* PreSessionBriefView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -609,6 +611,8 @@
 		FF2701010000000000000002 /* DailySignalStats.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySignalStats.swift; sourceTree = "<group>"; };
 		FF2702010000000000000002 /* FatigueHistoryEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FatigueHistoryEngine.swift; sourceTree = "<group>"; };
 		FF2703010000000000000002 /* RHRDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RHRDetailView.swift; sourceTree = "<group>"; };
+		FF2801010000000000000002 /* SessionCapEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionCapEngine.swift; sourceTree = "<group>"; };
+		FF2802010000000000000002 /* PreSessionBriefView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PreSessionBriefView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
@@ -870,6 +874,7 @@
 				DD2701000000000000000001 /* SleepScoreEngine.swift */,
 				DD2703000000000000000001 /* HRVDailyStats.swift */,
 				FF2702010000000000000002 /* FatigueHistoryEngine.swift */,
+				FF2801010000000000000002 /* SessionCapEngine.swift */,
 				FF2701010000000000000002 /* DailySignalStats.swift */,
 				DD2708000000000000000001 /* ReadinessInputReducer.swift */,
 				DD270A000000000000000001 /* RecoveryShadowEngine.swift */,
@@ -986,6 +991,7 @@
 			children = (
 				62F32CB72F71849300B6135F /* HRVDetailView.swift */,
 				FF2703010000000000000002 /* RHRDetailView.swift */,
+				FF2802010000000000000002 /* PreSessionBriefView.swift */,
 				62F32CB82F71849300B6135F /* SleepDetailView.swift */,
 				AA17010100000000000000D2 /* SleepNightDetailView.swift */,
 				62324C102F66CB0E00A9C2BE /* DashboardView.swift */,
@@ -1541,6 +1547,8 @@
 				3ECC7EF76C16FD0D0CB8809E /* ShareSheet.swift in Sources */,
 				62F32CB92F71849300B6135F /* HRVDetailView.swift in Sources */,
 				FF2703010000000000000001 /* RHRDetailView.swift in Sources */,
+				FF2802010000000000000001 /* PreSessionBriefView.swift in Sources */,
+				FF2801010000000000000001 /* SessionCapEngine.swift in Sources */,
 				62F32CBA2F71849300B6135F /* SleepDetailView.swift in Sources */,
 				AA17010100000000000000D1 /* SleepNightDetailView.swift in Sources */,
 				AA17010100000000000000E1 /* SetEntryFields.swift in Sources */,

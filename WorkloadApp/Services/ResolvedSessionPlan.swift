@@ -36,6 +36,52 @@ struct ResolvedSessionPlan: Equatable, Identifiable {
     /// Ordered exercises (group order → exercise order), each with its ordered resolved sets.
     let exercises: [ResolvedExercise]
 
+    /// v1.7.3 UAT round 3 (U25 / U26) — today's **session cap** for a planned day with no weighted
+    /// top set (a run, a court session, conditioning). IN-MEMORY ONLY and deliberately so: the cap
+    /// is a pure function of today's live readiness/fatigue/strain signals, so it is recomputed on
+    /// every refresh rather than stored. **No `@Model` gained a field for it** — nothing about the
+    /// synced schema changed. `resolve(from:)` leaves it nil; `TodayVerdictViewModel` attaches the
+    /// cap it just computed via `withSessionCap(_:)` before handing the plan to the sheet.
+    var sessionCap: SessionCapEngine.SessionCap? = nil
+
+    /// The plan's own planned duration: the sum of every non-warm-up set's `durationSeconds`.
+    /// nil when the plan carries no duration at all — the cap engine then states an RPE ceiling
+    /// only, never a duration it was not given.
+    var plannedDurationSeconds: Int? {
+        let total = exercises
+            .flatMap(\.sets)
+            .filter { !$0.isWarmup }
+            .compactMap(\.durationSeconds)
+            .reduce(0, +)
+        return total > 0 ? total : nil
+    }
+
+    /// The plan's own RPE target for a capped day: the highest RPE any non-warm-up set asks for.
+    /// nil when the plan wrote none — a bare ceiling is then the app's own, stated as such.
+    var plannedSessionRPE: Double? {
+        exercises
+            .flatMap(\.sets)
+            .filter { !$0.isWarmup }
+            .compactMap(\.rpe)
+            .max()
+    }
+
+    /// True when NO exercise carries a working weighted set — the condition that used to leave the
+    /// day with no verdict at all. The same predicate `TodayVerdictService` selects the cap branch
+    /// with, so the two can never drift.
+    var hasNoWeightedTopSet: Bool {
+        !exercises.contains { exercise in
+            exercise.sets.contains { !$0.isWarmup && ($0.weightKg ?? 0) > 0 }
+        }
+    }
+
+    /// Attach a freshly computed cap. Pure — returns a copy, mutates nothing.
+    func withSessionCap(_ cap: SessionCapEngine.SessionCap?) -> ResolvedSessionPlan {
+        var copy = self
+        copy.sessionCap = cap
+        return copy
+    }
+
     struct ResolvedExercise: Equatable {
         /// Stable identity of the authored frozen `TemplateExercise` (traceability).
         let sourceExerciseID: UUID

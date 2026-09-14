@@ -620,11 +620,16 @@ struct SessionRow: View {
                         Date.durationString(seconds: session.durationSeconds, locale: locale),
                         color: ColorTokens.text2
                     )
-                    if session.totalVolume > 0 {
-                        AnnotationLabel(
-                            String(format: "%.0f kg", session.totalVolume),
-                            color: ColorTokens.text2
-                        )
+                    // U22: the work cell asks `SessionWorkReading`, never `totalVolume`
+                    // directly — the stored field is tonnage on a lifting session and
+                    // METRES on a walk, so the literal " kg" that used to live here read
+                    // a 1.1 km walk back as "1106 kg".
+                    if let work = SessionWorkReading.label(
+                        for: session,
+                        unit: session.athlete?.weightUnit ?? .kg,
+                        locale: locale
+                    ) {
+                        AnnotationLabel(work, color: ColorTokens.text2)
                     }
                     if let rpe = session.sessionRPE {
                         AnnotationLabel(
