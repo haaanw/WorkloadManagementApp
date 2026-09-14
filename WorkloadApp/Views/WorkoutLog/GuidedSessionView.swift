@@ -105,7 +105,14 @@ struct GuidedSessionView: View {
     private var statStrip: some View {
         TimelineView(.periodic(from: startTime, by: 1)) { context in
             HStack(spacing: Spacing.xs) {
-                statWell(value: movePositionText, key: "guided.stat.move")
+                // The MOVE well carries an identifier so the store-plate harness can wait for
+                // the plate to be LAID OUT, not merely present: the capture once landed
+                // mid-presentation, with the readout wells clipped under this strip.
+                statWell(
+                    value: movePositionText,
+                    key: "guided.stat.move",
+                    identifier: "guided.stat.move"
+                )
                 statWell(
                     value: clock(context.date.timeIntervalSince(startTime)),
                     key: "guided.stat.elapsed"
@@ -118,7 +125,11 @@ struct GuidedSessionView: View {
         .background(ColorTokens.surface)
     }
 
-    private func statWell(value: String, key: LocalizedStringKey) -> some View {
+    private func statWell(
+        value: String,
+        key: LocalizedStringKey,
+        identifier: String? = nil
+    ) -> some View {
         VStack(alignment: .leading, spacing: Spacing.baselinePair) {
             Text(value)
                 .font(.Tokens.body)
@@ -134,6 +145,7 @@ struct GuidedSessionView: View {
         .padding(.horizontal, Spacing.xs)
         .padding(.vertical, Spacing.xs)
         .debossed(cornerRadius: CornerTokens.control)
+        .accessibilityIdentifier(identifier ?? "")
     }
 
     private var movePositionText: String {
@@ -189,6 +201,10 @@ struct GuidedSessionView: View {
                     .font(.Tokens.pageTitle)
                     .foregroundStyle(ColorTokens.text1)
                     .fixedSize(horizontal: false, vertical: true)
+                    // The plate's top landmark. Tapping Log set auto-scrolls the pill into
+                    // view, which pushes the move name and set blocks above the fold — the
+                    // store-plate harness scrolls back and waits on THIS to prove it did.
+                    .accessibilityIdentifier("guided.hero.moveName")
 
                 if engine.isPaired(slot.entryIndex) {
                     pairCells(current: slot.entryIndex)
@@ -594,6 +610,13 @@ struct GuidedSessionView: View {
             .padding(.vertical, Spacing.xs)
             .background(ColorTokens.surface)
         }
+        // `AreaRule(axis: .vertical)` is a Rectangle with `height: nil`, so it GROWS to whatever
+        // height it is offered — and this block sits in a VStack beside a flexible ScrollView,
+        // which offers it plenty. Left unconstrained it rendered ~196pt tall for one line of
+        // text and starved the plate's ScrollView, so the hero plate could never fit on screen:
+        // the store plate came out with the move name and set blocks scrolled above the fold.
+        // Pinning the block to its natural height gives the plate its space back.
+        .fixedSize(horizontal: false, vertical: true)
         .background(ColorTokens.surfaceEl)
         .clipShape(RoundedRectangle(cornerRadius: CornerTokens.card))
         .overlay(

@@ -130,6 +130,43 @@ final class ScreenshotTests: XCTestCase {
         app.descendants(matching: .any).matching(identifier: identifier).firstMatch
     }
 
+    /// Poll until `element` is hittable, i.e. actually laid out at a tappable point.
+    ///
+    /// `waitForExistence` only proves a node is in the accessibility tree — which it is while a
+    /// sheet is still sliding up. A screenshot taken then catches the transition: content
+    /// clipped under the chrome above it, siblings not yet drawn. Hittability is the cheap,
+    /// dependency-free proxy for "the presentation has finished".
+    private func waitUntilHittable(_ element: XCUIElement, timeout: TimeInterval = 10) -> Bool {
+        let deadline = Date().addingTimeInterval(timeout)
+        while Date() < deadline {
+            if element.exists, element.isHittable { return true }
+            Thread.sleep(forTimeInterval: 0.25)
+        }
+        return element.exists && element.isHittable
+    }
+
+    /// Bring the guided plate back to its top after `tap()` scrolled it.
+    ///
+    /// A controlled mid-screen drag, not `swipeDown()`: a swipe that BEGINS at the top of a
+    /// sheet's scroll view is the sheet-dismiss gesture, and dismissing the session mid-capture
+    /// would produce a plate of the wrong screen. Dragging from 25 % to 75 % always starts below
+    /// the top edge, and the loop stops the moment the move name is on screen, so no drag is ever
+    /// issued from an already-topped-out scroll.
+    private func scrollGuidedPlateToTop(attempts: Int = 4) {
+        let moveName = anyElement("guided.hero.moveName")
+        let scroll = app.scrollViews.firstMatch
+        guard scroll.exists else { return }
+        for _ in 0..<attempts {
+            if moveName.exists, moveName.isHittable { return }
+            scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.25))
+                .press(
+                    forDuration: 0.05,
+                    thenDragTo: scroll.coordinate(withNormalizedOffset: CGVector(dx: 0.5, dy: 0.75))
+                )
+            Thread.sleep(forTimeInterval: 0.5)
+        }
+    }
+
     /// Scroll until `identifier` is in the accessibility tree, then return it.
     ///
     /// Needed because `MetricsStrip` is a `LazyVGrid` well below Today's fold: a lazy container
@@ -277,12 +314,59 @@ final class ScreenshotTests: XCTestCase {
         let briefStart = anyElement("brief.start")
         XCTAssertTrue(briefStart.waitForExistence(timeout: 10), "Brief start CTA missing")
         briefStart.tap()
+
+        // ONE sheet layer: the brief hands the plan back and dismisses, and only then does the
+        // section present the session. If the brief's own CTA is still in the tree, the guided
+        // plate is stacked on top of it — which is exactly what the last plate caught.
+        XCTAssertTrue(
+            briefStart.waitForNonExistence(timeout: 10),
+            "Brief is still on screen behind the guided session — two sheet layers"
+        )
+
         // anyElement, not app.buttons: the identifier sits on the PrimaryActionButton
         // wrapper, which the AX tree may expose as a non-button node.
         let logSet = anyElement("guided.logSet")
         XCTAssertTrue(logSet.waitForExistence(timeout: 10), "Guided log-set control missing")
+
+        // SETTLE before capturing. Existence alone is not enough: the previous plate was shot
+        // mid-presentation, with the readout wells clipped under the stat strip and the move
+        // name and set blocks not yet drawn.
+        //
+        // The anchor is the MOVE stat well, NOT the Log set pill. The strip is fixed chrome at
+        // the top of the sheet, so "hittable" there means the sheet has finished presenting.
+        // The pill lives inside the plate's ScrollView and is legitimately off-screen until
+        // `tap()` scrolls to it — asserting hittability on it tests the scroll offset, not the
+        // presentation. `guided.skipMove` sits at the BOTTOM of the plate, so its existence is
+        // what proves the plate is fully built (move name and set blocks included).
+        let moveWell = anyElement("guided.stat.move")
+        XCTAssertTrue(moveWell.waitForExistence(timeout: 10), "Guided MOVE stat well missing")
+        let skipMove = anyElement("guided.skipMove")
+        XCTAssertTrue(skipMove.waitForExistence(timeout: 10), "Guided skip-move cell missing")
+        XCTAssertTrue(waitUntilHittable(moveWell), "Guided sheet never finished presenting")
+
         logSet.tap()
+        // The log transition re-enters the plate for the next set; let it finish, then re-settle
+        // on the same anchors so the capture is of a static, fully drawn screen.
         sleep(2)
+        XCTAssertTrue(waitUntilHittable(moveWell), "Guided plate did not settle after logging a set")
+        XCTAssertTrue(skipMove.exists, "Guided plate lost its action pair after logging a set")
+
+        // `tap()` auto-scrolls the pill into view, which pushes the TOP of the plate — the move
+        // name and the set blocks — above the fold. The store plate has to show the whole
+        // shape, so scroll back and prove it with the move name rather than assuming.
+        scrollGuidedPlateToTop()
+        let moveName = anyElement("guided.hero.moveName")
+        // The frame is in the message on purpose: when this failed, "exists but not hittable"
+        // plus a y of 11pt in an 874pt window is what identified the plate as scrolled out of a
+        // viewport that was too short — a diagnosis the bare assertion could not have given.
+        XCTAssertTrue(
+            waitUntilHittable(moveName),
+            "Guided plate never showed its move name — "
+                + "exists=\(moveName.exists) frame=\(moveName.exists ? "\(moveName.frame)" : "n/a") "
+                + "window=\(app.windows.firstMatch.frame)"
+        )
+        XCTAssertTrue(skipMove.exists, "Scrolling back lost the plate's action pair")
+
         saveScreenshot("16_GuidedSession")
     }
 

@@ -33,14 +33,16 @@ struct PreSessionBriefView: View {
     let weightUnit: WeightUnit
     /// Fired after a decision so the host can refresh the readings that cite it.
     var onProposalChanged: () -> Void = {}
+    /// HAND OFF the session to start — the brief does NOT present it.
+    ///
+    /// A sheet presented from inside a sheet leaves both layers on screen, and the store plate
+    /// caught exactly that: the brief's chrome sitting behind the workout sheet. So Start hands
+    /// the resolved plan to `TodayProposalSection` and dismisses; the host presents the workout
+    /// from its own `.sheet(item:)` in the brief's `onDismiss`, so the two are never up together.
+    var onStart: (ResolvedSessionPlan) -> Void = { _ in }
 
-    @Environment(AppContainer.self) private var container
     @Environment(\.dismiss) private var dismiss
     @Environment(\.locale) private var locale
-
-    /// Presented via `.sheet(item:)` — an `isPresented` boolean racing an optional plan is what
-    /// presented an empty sheet on the Today surface once already.
-    @State private var startedPlan: ResolvedSessionPlan?
 
     private var display: TodayVerdictDisplay? { viewModel.display }
     private var readings: TodayBriefReadings? { viewModel.briefReadings }
@@ -76,13 +78,6 @@ struct PreSessionBriefView: View {
             .toolbar(.hidden, for: .navigationBar)
         }
         .metricArea(.readiness)
-        .sheet(item: $startedPlan, onDismiss: {
-            onProposalChanged()
-            dismiss()
-        }) { plan in
-            ActiveWorkoutSheet(resolvedPlan: plan)
-                .environment(container)
-        }
     }
 
     // MARK: - 1. What today looks like (readings only)
@@ -305,7 +300,10 @@ struct PreSessionBriefView: View {
                 isDisabled: !viewModel.canStartResolvedWorkout
             ) {
                 guard let plan = viewModel.resolvedPlanForWorkout else { return }
-                startedPlan = plan
+                // Hand off, then close. The host presents the session once this sheet is gone,
+                // so the guided plate is the only layer on screen.
+                onStart(plan)
+                dismiss()
             }
             .padding(.horizontal, Spacing.sm)
             .padding(.vertical, Spacing.xs)

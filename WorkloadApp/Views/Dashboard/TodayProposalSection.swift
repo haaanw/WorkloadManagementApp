@@ -32,6 +32,11 @@ struct TodayProposalSection: View {
     /// what the app sees; the decision, the readings behind it and the numbers all live one tap
     /// away in the brief, which is also the only door to the session from here.
     @State private var showPreSessionBrief = false
+    /// The plan the brief handed back, parked until the brief has finished dismissing.
+    /// Presenting a sheet from inside a sheet stacks both layers on screen (caught on the
+    /// store plate), so the handoff waits for `onDismiss` and reuses the section's existing
+    /// `.sheet(item: $resolvedPlanForSession)` door.
+    @State private var planHandedBackByBrief: ResolvedSessionPlan?
     // Program designation repos (feature 6 wire) — held as @State (deinit trap).
     @State private var designationPlannedRepo: PlannedSessionRepository?
     @State private var designationScheduleRepo: ScheduleRepository?
@@ -100,12 +105,19 @@ struct TodayProposalSection: View {
         .sheet(isPresented: $showPreSessionBrief, onDismiss: {
             refresh()
             onProposalChanged()
+            // The brief is fully gone by the time this runs, so the workout sheet takes the
+            // screen alone — never stacked behind the brief's chrome.
+            if let plan = planHandedBackByBrief {
+                planHandedBackByBrief = nil
+                resolvedPlanForSession = plan
+            }
         }) {
             if let vm = verdictVM, let athlete {
                 PreSessionBriefView(
                     viewModel: vm,
                     weightUnit: athlete.weightUnit,
-                    onProposalChanged: onProposalChanged
+                    onProposalChanged: onProposalChanged,
+                    onStart: { plan in planHandedBackByBrief = plan }
                 )
                 .environment(container)
             }
