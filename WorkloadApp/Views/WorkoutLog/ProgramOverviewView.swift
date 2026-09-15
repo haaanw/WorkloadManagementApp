@@ -412,7 +412,7 @@ struct ProgramOverviewView: View {
             VStack(alignment: .leading, spacing: Spacing.xs) {
                 HStack {
                     AnnotationLabel(String(
-                        format: String(localized: "program.lift.stamp", defaultValue: "%1$@ · TOP SET ACROSS THE BLOCK · %2$@"),
+                        format: String(localized: "program.lift.stamp", defaultValue: "%1$@ · MOST FREQUENT WEIGHTED LIFT · TOP SET · %2$@"),
                         lift.uppercased(),
                         (athlete?.weightUnit ?? .kg) == .kg ? "KG" : "LB"
                     ))
@@ -464,18 +464,18 @@ struct ProgramOverviewView: View {
         WeightFormatter.displayNumeral(kg, unit: athlete?.weightUnit ?? .kg)
     }
 
-    /// The block's most frequent exercise — the "main lift" whose arc the strip shows.
-    /// The strip's stamp NAMES this rule (U23): the athlete never chose this lift, and a
-    /// chart of a lift you did not pick is unreadable until it says how it was picked.
+    /// The lift the strip charts, or `nil` when the block has none — in which case the whole
+    /// strip is omitted rather than drawn empty.
     private func mainLift(_ program: TrainingProgram) -> String? {
-        var counts: [String: Int] = [:]
-        for day in program.days {
-            guard let templateId = day.templateId, let template = templatesById[templateId] else { continue }
-            for exercise in template.sortedGroups.flatMap(\.sortedExercises) {
-                counts[exercise.exerciseName, default: 0] += 1
-            }
-        }
-        return counts.max { $0.value < $1.value }?.key
+        let sessionById = Dictionary(uniqueKeysWithValues: sessions.map { ($0.id, $0) })
+        let programSessions = programEntries
+            .compactMap { $0.completedSessionId }
+            .compactMap { sessionById[$0] }
+        return ProgramLiftSelection.mainWeightedLift(
+            program: program,
+            templates: templatesById,
+            loggedSessions: programSessions
+        )
     }
 
     private func weekTopSet(
@@ -536,6 +536,60 @@ struct ProgramOverviewView: View {
         .padding(.vertical, Spacing.xl)
         .padding(.horizontal, Spacing.sm)
         .frame(maxWidth: .infinity)
+    }
+}
+
+// MARK: - Lift selection
+
+/// Which movement the progression strip charts (v1.7.3 · UAT round 3 · U23).
+///
+/// The rule used to be "the block's most frequent exercise", full stop. HAN's imported block
+/// ran "Banded rockers" — a band drill that carries no weight — more often than anything
+/// else, so the strip picked it and drew four empty bars and four dashes under a stamp that
+/// promised a top set in kilograms. A chart of a movement that has no number is not a quiet
+/// chart; it reads as broken data.
+///
+/// So the rule gains a precondition: **the lift must actually carry a weight somewhere** —
+/// a planned set with a target load, or a logged set with a real one. Among the movements
+/// that qualify, the most frequent still wins; ties break on name so the choice is stable
+/// across launches rather than riding dictionary order. When nothing qualifies the answer is
+/// `nil`, and the caller omits the strip entirely — no empty chart, no stamp.
+///
+/// Pure and static: the rule is the thing under test, not the view around it.
+enum ProgramLiftSelection {
+
+    static func mainWeightedLift(
+        program: TrainingProgram,
+        templates: [UUID: WorkoutTemplate],
+        loggedSessions: [WorkoutSession]
+    ) -> String? {
+        // Movements the LOG proves carry weight, whatever the plan left blank.
+        let weightedInLog = Set(
+            loggedSessions
+                .flatMap(\.exerciseEntries)
+                .filter { entry in entry.sets.contains { ($0.weightKg ?? 0) > 0 } }
+                .map(\.exerciseName)
+        )
+
+        var counts: [String: Int] = [:]
+        var weighted: Set<String> = []
+        for day in program.sortedDays {
+            guard let templateId = day.templateId, let template = templates[templateId] else { continue }
+            for exercise in template.sortedGroups.flatMap(\.sortedExercises) {
+                counts[exercise.exerciseName, default: 0] += 1
+                let plannedWeight = exercise.sortedSets.contains { ($0.targetWeightKg ?? 0) > 0 }
+                if plannedWeight || weightedInLog.contains(exercise.exerciseName) {
+                    weighted.insert(exercise.exerciseName)
+                }
+            }
+        }
+
+        return counts
+            .filter { weighted.contains($0.key) }
+            .max { lhs, rhs in
+                lhs.value == rhs.value ? lhs.key > rhs.key : lhs.value < rhs.value
+            }?
+            .key
     }
 }
 

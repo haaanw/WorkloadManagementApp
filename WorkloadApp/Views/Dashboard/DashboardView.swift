@@ -24,8 +24,6 @@ struct DashboardView: View {
     @Environment(\.scenePhase) private var scenePhase
     /// R9 seam — read here for `pendingAnchor` (U12: a notification tap's destination).
     @Environment(TabRouter.self) private var router
-    /// Opt-in: a daily question ahead of the score is a real cost, so it is never imposed.
-    @AppStorage("morningProbeEnabled") private var morningProbeEnabled: Bool = false
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @Query private var athletes: [Athlete]
     @Query(sort: \WorkoutSession.sessionDate, order: .reverse)
@@ -33,11 +31,10 @@ struct DashboardView: View {
     @Query private var allCheckIns: [WellnessCheckIn]
     @Query private var trainingProfiles: [TrainingProfile]
     @State private var showActiveWorkout = false
-    /// The ONE morning sheet (U19). `morningProbeBlinding` decides where it opens: non-nil
-    /// means the blinded probe is due and is step 1, carrying the blinding stamp; nil means
-    /// the ratings alone, which is what the prompt row opens on an ordinary morning.
+    /// The morning check-in. Opened from the prompt row and the welcome card only — the app
+    /// never puts a question in front of the reading on its own (HAN ruling 2026-09-15, which
+    /// removed the blinded probe that used to present itself here).
     @State private var showMorningCheckIn = false
-    @State private var morningProbeBlinding: Bool? = nil
     @State private var showTrainingProfile = false
     @State private var viewModel = DashboardViewModel()
     @AppStorage("notificationPrePermissionShown") private var prePermissionShown: Bool = false
@@ -90,10 +87,6 @@ struct DashboardView: View {
                     //     check-in button; two affordances for one action is noise).
                     if athlete != nil, !showWelcomeCard, todayCheckIn == nil {
                         MorningCheckInPrompt {
-                            // The probe is never due here — this row only shows on a morning
-                            // with no check-in yet, and a due probe has already presented the
-                            // sheet from `.task`. So the row opens the ratings step alone.
-                            morningProbeBlinding = nil
                             showMorningCheckIn = true
                         }
                         .padding(.horizontal, Spacing.sm)
@@ -258,12 +251,7 @@ struct DashboardView: View {
                     if showWelcomeCard {
                         WelcomeActionCard(
                             onLogWorkout: { showActiveWorkout = true },
-                            onWellnessCheckIn: {
-                                // The welcome card's own check-in button — ratings only, for
-                                // the same reason the prompt row's is (U19).
-                                morningProbeBlinding = nil
-                                showMorningCheckIn = true
-                            }
+                            onWellnessCheckIn: { showMorningCheckIn = true }
                         )
                         .padding(.horizontal, Spacing.sm)
                     }
@@ -334,12 +322,11 @@ struct DashboardView: View {
             // its state after the proposal moved into `TodayProposalSection`, which owns the
             // plan-led start on this surface through its own `.sheet(item:)`. Removed rather
             // than left as a branch that can only present nothing (U17 diagnosis).
-            // U19 — ONE morning sheet. Step 1 is the blinded probe when it is due, step 2 the
-            // wellness ratings, and its single Save writes both rows. Slice 1 (R3) — a saved
-            // check-in re-runs the pipeline so the reading and the recommendation absorb it
-            // immediately (same contract as RecoveryView's onSaved → onWellnessCheckInSaved).
+            // U19 — ONE morning sheet, the wellness ratings. Slice 1 (R3) — a saved check-in
+            // re-runs the pipeline so the reading and the recommendation absorb it immediately
+            // (same contract as RecoveryView's onSaved → onWellnessCheckInSaved).
             .sheet(isPresented: $showMorningCheckIn) {
-                MorningCheckInSheet(probeBlinding: morningProbeBlinding, onSaved: {
+                MorningCheckInSheet(onSaved: {
                     Task { await loadData() }
                 })
             }
@@ -359,12 +346,6 @@ struct DashboardView: View {
                 }
             }
             .task {
-                // The blinded probe must be asked BEFORE the reading is on screen — an answer
-                // given after seeing a score is a reaction to that score, not an independent
-                // judgement. So it is presented ahead of the load, and the row it writes
-                // records whether blinding actually held. This ordering is what makes
-                // `wasBlinded` truthful; do not move the load above it.
-                presentMorningCheckInIfProbeDue()
                 await loadData()
                 // A launch FROM the notification records its anchor before this screen
                 // exists, so the pending route is consumed after the first load — by then
@@ -409,32 +390,6 @@ struct DashboardView: View {
         withAnimation(Motion.resolved(Motion.state, reduceMotion: reduceMotion)) {
             proxy.scrollTo(NotificationService.weeklySummaryRoute, anchor: .top)
         }
-    }
-
-    /// Open the morning sheet ON THE PROBE when validation is on, today has no probe yet, and
-    /// — crucially — no score has been rendered for this athlete yet in this appearance.
-    ///
-    /// The blinding stamp is `!viewModel.hasLoadedOnce`: on the very first appearance of the
-    /// day the dashboard has not yet drawn a reading, so the answer is genuinely blind. If the
-    /// view has already shown a score this session, the probe still appears (the data is worth
-    /// having) but is stamped unblinded so the analysis can exclude it
-    /// (VALIDATION-PROTOCOL §blinding).
-    ///
-    /// When the probe is NOT due this does nothing: the sheet then opens only from the
-    /// `MorningCheckInPrompt` row, on the ratings step alone.
-    private func presentMorningCheckInIfProbeDue() {
-        guard morningProbeEnabled, let athlete else { return }
-        let day = Calendar.current.startOfDay(for: Date())
-        // A skipped morning stays skipped (round 8, HAN): the probe step stamps the day on
-        // skip, and re-asking on every Home appearance after an explicit "not today"
-        // is exactly the nagging that gets the toggle turned off.
-        guard !MorningProbeRecorder.isSkippedToday() else { return }
-        let existing = (try? modelContext.fetch(
-            FetchDescriptor<MorningReadinessProbe>(predicate: #Predicate { $0.date == day })
-        ))?.contains { $0.athlete?.id == athlete.id } ?? false
-        guard !existing else { return }
-        morningProbeBlinding = !viewModel.hasLoadedOnce
-        showMorningCheckIn = true
     }
 
     /// U18 — the pull-to-refresh action. The watch import needs the CONCRETE HealthKit

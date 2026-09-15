@@ -1,45 +1,20 @@
 import SwiftUI
 import SwiftData
 
-// MARK: - The morning flow (v1.7.3 · U19)
-
-/// The two things the app asks on a morning, in the one order that keeps the first one usable.
-///
-/// They were two sheets — the blinded 1–10 probe and the wellness ratings — presented
-/// independently, both titled "Morning check". HAN met both on the same morning and read them
-/// as duplicates. They are the opposite of duplicates: the ratings are 25% of the readiness
-/// composite, while the probe is held-out evidence that no scoring engine may read
-/// (`MorningReadinessProbeTests`). So they merge into one sheet rather than one of them being
-/// deleted.
-enum MorningCheckInStep: Equatable {
-    /// The blinded 1–10 judgement (+ optional grip). Only ever first.
-    case probe
-    /// The wellness ratings that feed the score.
-    case ratings
-}
-
-/// The step rules, pure so they can be tested without a view.
-enum MorningCheckInFlow {
-
-    /// `probeBlinding` is nil when the probe is not due this morning — validation off, already
-    /// answered, or already skipped — and the sheet opens straight on the ratings.
-    ///
-    /// When it IS due the probe comes first, and that order is load-bearing: `wasBlinded`
-    /// records only whether the DASHBOARD had drawn a score, so a ratings-first sheet (which
-    /// carries its own wellness preview) would stamp a contaminated answer as blinded.
-    static func initialStep(probeBlinding: Bool?) -> MorningCheckInStep {
-        probeBlinding == nil ? .ratings : .probe
-    }
-
-    /// Answering and skipping both land on the ratings — a skipped probe is still a morning
-    /// check-in. Skip stamps the day so the probe is not re-asked (round 8, HAN).
-    static func stepAfterProbe() -> MorningCheckInStep { .ratings }
-
-    /// The probe row is written only when the probe was due AND answered; a skip writes none.
-    static func writesProbeRow(probeBlinding: Bool?, probeAnswered: Bool) -> Bool {
-        probeBlinding != nil && probeAnswered
-    }
-}
+// MARK: - The morning check-in (v1.7.3 · U19, resolved 2026-09-15)
+//
+// There were two morning sheets: the wellness ratings and a blinded 1–10 readiness probe,
+// both titled "Morning check". HAN met both on one morning and read them as duplicates. They
+// were not duplicates — the ratings are 25% of the readiness composite, the probe was
+// held-out evidence no scoring engine may read — but the answer is not to merge them.
+//
+// HAN's ruling (2026-09-15): the probe LEAVES the product. A 1–10 question in front of the
+// score every morning is a cost the athlete pays daily for evidence only the developer reads.
+// So the morning is ONE sheet with ONE step, the ratings, as it was before the merge.
+//
+// The removal is an UNMOUNT, not a schema change: `MorningReadinessProbe` stays in the model
+// graph, the `RecoveryShadowDay` outcome columns and their fence stay, and no migration runs.
+// Rows already collected keep their meaning; nothing new is written.
 
 // MARK: - The sheet
 
@@ -60,31 +35,12 @@ struct MorningCheckInSheet: View {
     @State private var didSeed = false
     @State private var seedSource: SeedSource? = nil
 
-    // Step 1 — the probe. Nil `probeBlinding` means "not due"; the sheet is then the ratings
-    // alone, which is what the `MorningCheckInPrompt` row opens on an ordinary morning.
-    let probeBlinding: Bool?
-    @State private var step: MorningCheckInStep
-    @State private var probeAnswered = false
-    @State private var probeReadiness = 6
-    @State private var probeGripText = ""
-    @State private var probeGripHand: MorningReadinessProbe.GripHand = .right
-    @State private var probeShowGrip = false
-
     private enum SeedSource { case today, prior }
 
     private let defaultTags = ["Caffeine", "Alcohol", "Travel", "Stress"]
 
     private var athlete: Athlete? { athletes.first }
     var onSaved: (() -> Void)?
-
-    /// The step is resolved in `init` rather than in `.task` so the probe is on screen from
-    /// the first frame — a flash of the ratings would put a wellness preview in front of the
-    /// blinded question.
-    init(probeBlinding: Bool? = nil, onSaved: (() -> Void)? = nil) {
-        self.probeBlinding = probeBlinding
-        self.onSaved = onSaved
-        _step = State(initialValue: MorningCheckInFlow.initialStep(probeBlinding: probeBlinding))
-    }
 
     private var wellnessScore: Double {
         Double(sleepQuality + soreness + energy + stress) / 20.0 * 100.0
@@ -93,24 +49,8 @@ struct MorningCheckInSheet: View {
     var body: some View {
         NavigationStack {
             VStack(spacing: 0) {
-                switch step {
-                case .probe:  probeHeader
-                case .ratings: ratingsHeader
-                }
-                switch step {
-                case .probe:
-                    ScrollView {
-                        MorningProbeFields(
-                            readiness: $probeReadiness,
-                            gripText: $probeGripText,
-                            gripHand: $probeGripHand,
-                            showGrip: $probeShowGrip
-                        )
-                    }
-                    .background(ColorTokens.background)
-                case .ratings:
-                    ratingsBody
-                }
+                ratingsHeader
+                ratingsBody
             }
             .toolbar(.hidden, for: .navigationBar)
         }
@@ -131,41 +71,14 @@ struct MorningCheckInSheet: View {
         }
     }
 
-    /// Step 1's titlebar. Skip stamps the day and moves on; Next carries the answer forward to
-    /// the one Save. The probe has its OWN title so the two steps never read alike (U19).
-    private var probeHeader: some View {
-        // Both slots LABELLED: an unlabeled trailing closure goes to `trailing` under Swift's
-        // backward matching, which is how seven sheets silently grew a right-hand Cancel
-        // (UAT round 1, U6).
-        InstrumentSheetHeader(
-            title: "probe.nav.title",
-            leading: {
-                SheetHeaderButton(title: "probe.action.skip") {
-                    MorningProbeRecorder.stampSkippedToday()
-                    probeAnswered = false
-                    step = MorningCheckInFlow.stepAfterProbe()
-                }
-            },
-            trailing: {
-                SheetHeaderButton(title: "morning.action.next", emphasis: true) {
-                    probeAnswered = true
-                    step = MorningCheckInFlow.stepAfterProbe()
-                }
-            }
-        )
-    }
-
-    /// Step 2's titlebar. The leading slot goes back to the probe when there was one, so an
-    /// answer can be corrected before it is written; otherwise it dismisses.
+    /// The sheet's titlebar. Both slots LABELLED: an unlabeled trailing closure goes to
+    /// `trailing` under Swift's backward matching, which is how seven sheets silently grew a
+    /// right-hand Cancel (UAT round 1, U6).
     private var ratingsHeader: some View {
         InstrumentSheetHeader(
             title: "morning.nav.title",
             leading: {
-                if probeBlinding == nil {
-                    SheetHeaderButton(title: "action.cancel") { dismiss() }
-                } else {
-                    SheetHeaderButton(title: "morning.action.back") { step = .probe }
-                }
+                SheetHeaderButton(title: "action.cancel") { dismiss() }
             },
             trailing: {
                 SheetHeaderButton(
@@ -366,29 +279,14 @@ struct MorningCheckInSheet: View {
         isPrefilled = true
     }
 
-    /// The sheet's ONE Save. It writes the wellness row and — when the probe was due and
-    /// answered — the probe row, in a single pass, then re-runs the pipeline through `onSaved`
-    /// exactly as the ratings-only save always has.
+    /// The sheet's Save. Writes today's wellness row, then re-runs the pipeline through
+    /// `onSaved` so the reading and the recommendation absorb it immediately.
     private func save() {
         // Never persist a check-in without a resolved athlete: with athlete == nil the
         // today-upsert query is unscoped (could update another athlete's row) and a new
         // record would insert an orphan WellnessCheckIn (athlete = nil). Aligns save with
         // the already athlete-gated seed path.
         guard let athlete else { return }
-
-        let probe: MorningCheckInRecorder.ProbeAnswer? = {
-            guard MorningCheckInFlow.writesProbeRow(
-                probeBlinding: probeBlinding,
-                probeAnswered: probeAnswered
-            ), let wasBlinded = probeBlinding else { return nil }
-            return MorningCheckInRecorder.ProbeAnswer(
-                readiness: probeReadiness,
-                gripText: probeGripText,
-                gripHand: probeGripHand,
-                includeGrip: probeShowGrip,
-                wasBlinded: wasBlinded
-            )
-        }()
 
         MorningCheckInRecorder.save(
             ratings: MorningCheckInRecorder.Ratings(
@@ -403,7 +301,6 @@ struct MorningCheckInSheet: View {
                 defaults: defaultTags,
                 custom: customTagNames
             ),
-            probe: probe,
             athlete: athlete,
             modelContext: modelContext
         )
@@ -425,11 +322,10 @@ struct MorningCheckInSheet: View {
 
 // MARK: - The morning write
 
-/// Both morning rows, written together.
+/// Today's wellness row, written.
 ///
-/// Extracted from the sheet's `save()` when the two morning sheets merged (v1.7.3 · U19), so
-/// the "one Save writes both rows" contract is a thing a test can run rather than a thing the
-/// view body happens to do.
+/// Extracted from the sheet's `save()` (v1.7.3 · U19) so the write is a thing a test can run
+/// rather than a thing the view body happens to do.
 @MainActor
 enum MorningCheckInRecorder {
 
@@ -447,35 +343,13 @@ enum MorningCheckInRecorder {
         var custom: [String]
     }
 
-    struct ProbeAnswer {
-        var readiness: Int
-        var gripText: String
-        var gripHand: MorningReadinessProbe.GripHand
-        var includeGrip: Bool
-        var wasBlinded: Bool
-    }
-
-    /// Write today's wellness check-in, and the probe row when one was answered. One
-    /// `modelContext.save()` covers both.
+    /// Write today's wellness check-in.
     static func save(
         ratings: Ratings,
         tags: TagSelection,
-        probe: ProbeAnswer?,
         athlete: Athlete,
         modelContext: ModelContext
     ) {
-        if let probe {
-            MorningProbeRecorder.record(
-                readiness: probe.readiness,
-                gripText: probe.gripText,
-                gripHand: probe.gripHand,
-                includeGrip: probe.includeGrip,
-                wasBlinded: probe.wasBlinded,
-                athlete: athlete,
-                modelContext: modelContext
-            )
-        }
-
         // Upsert keyed on today's record so re-opening the sheet on a day the
         // user already checked in UPDATES that row instead of inserting a
         // duplicate same-day WellnessCheckIn (which would shadow the edit and

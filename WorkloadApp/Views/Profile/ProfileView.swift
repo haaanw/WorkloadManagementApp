@@ -13,8 +13,6 @@ struct ProfileView: View {
 
     // Notification settings
     @AppStorage("notificationsEnabled") private var notificationsEnabled: Bool = false
-    /// Opt-in blinded morning probe — the held-out outcome the algorithm is graded against.
-    @AppStorage("morningProbeEnabled") private var morningProbeEnabled: Bool = false
     @AppStorage("notificationDay") private var notificationDay: Int = 1  // 1 = Sunday
     @AppStorage("notificationTime") private var notificationTime: String = "19:00"
     @State private var notificationsDenied: Bool = false
@@ -177,22 +175,17 @@ struct ProfileView: View {
                         ), options: WeightUnit.allCases) { $0.displayName }
                         }
 
-                        // ALGORITHM VALIDATION — opt-in held-out outcome capture (v1.7.1).
-                        // Off by default: a question in front of the score every morning is a
-                        // real cost, so it is offered rather than imposed.
+                        // ALGORITHM VALIDATION.
+                        //
+                        // The opt-in morning probe that this section used to offer was REMOVED
+                        // from the product (HAN ruling 2026-09-15): asking a 1–10 question in
+                        // front of the score every morning is a cost the athlete pays daily for
+                        // evidence only the developer reads. The `MorningReadinessProbe` model
+                        // and the `RecoveryShadowDay` outcome columns are deliberately KEPT —
+                        // unmount, not a schema change, so no migration and no lost rows. What
+                        // remains here is the verdict-measurement readout, under the heading it
+                        // already had.
                         profileSection("profile.validation.title") {
-                            InstrumentFormRow(label: "profile.validation.morningProbe") {
-                                Toggle("", isOn: $morningProbeEnabled)
-                                    .labelsHidden()
-                                    .toggleStyle(.machined)
-                            }
-                            Text("profile.validation.footer")
-                                .font(.Tokens.label)
-                                .foregroundStyle(ColorTokens.text3)
-                                .frame(maxWidth: .infinity, alignment: .leading)
-                                .padding(.horizontal, Spacing.sm)
-                                .padding(.bottom, Spacing.xs)
-                            divider()
                             // Validation signals — quiet internal readout (METRIC-02). Lived in
                             // its own "Validation" section five sections below this one; two
                             // sections for one idea (U10 section review). NOT a hero row: no

@@ -287,6 +287,124 @@ final class ProgramOverviewTests: XCTestCase {
         XCTAssertEqual(TemplateSetSummary.line(for: exercise, unit: .kg), "SETS: 1")
     }
 
+    // MARK: - U23 · which lift the progression strip charts
+
+    /// A program day holding `exercises`, repeated over `weeks`.
+    private func makeProgram(
+        weeks: Int,
+        exercises: [TemplateExercise]
+    ) -> (TrainingProgram, [UUID: WorkoutTemplate]) {
+        let template = WorkoutTemplate(coachId: UUID(), templateName: "Day")
+        let group = ExerciseGroup(groupName: "Main", orderIndex: 0)
+        group.exercises = exercises
+        template.groups = [group]
+        context.insert(template)
+
+        let program = TrainingProgram(
+            athleteId: UUID(), name: "Block", source: .pdf,
+            durationWeeks: weeks, durationSource: .readFromFile
+        )
+        for week in 1...weeks {
+            program.days.append(ProgramDay(
+                weekNumber: week, dayNumber: 1, title: "D1", templateId: template.id
+            ))
+        }
+        context.insert(program)
+        return (program, [template.id: template])
+    }
+
+    /// HAN's block: "Banded rockers" appears on every day, "Back squat" on one — and the
+    /// strip charted the band drill over four empty bars and four dashes.
+    func testTheMostFrequentUnweightedMovementLosesToAWeightedLift() throws {
+        let rockers = TemplateExercise(exerciseName: "Banded rockers", orderIndex: 0)
+        rockers.sets = (0..<3).map { TemplateSet(setIndex: $0, targetReps: 12) }
+        let squat = TemplateExercise(exerciseName: "Back squat", orderIndex: 1)
+        squat.sets = [TemplateSet(setIndex: 0, targetReps: 5, targetWeightKg: 100)]
+        let (program, templates) = makeProgram(weeks: 4, exercises: [rockers, squat])
+
+        XCTAssertEqual(
+            ProgramLiftSelection.mainWeightedLift(
+                program: program, templates: templates, loggedSessions: []
+            ),
+            "Back squat",
+            "A movement with no load anywhere cannot be the strip's subject"
+        )
+    }
+
+    func testABlockWithNoWeightedLiftHidesTheStrip() throws {
+        let rockers = TemplateExercise(exerciseName: "Banded rockers", orderIndex: 0)
+        rockers.sets = (0..<3).map { TemplateSet(setIndex: $0, targetReps: 12) }
+        let carry = TemplateExercise(exerciseName: "Sled push", orderIndex: 1)
+        carry.sets = [TemplateSet(setIndex: 0, targetDistanceMeters: 20)]
+        let (program, templates) = makeProgram(weeks: 4, exercises: [rockers, carry])
+
+        XCTAssertNil(
+            ProgramLiftSelection.mainWeightedLift(
+                program: program, templates: templates, loggedSessions: []
+            ),
+            "No weighted lift means no strip at all — never an empty chart"
+        )
+    }
+
+    /// The plan may leave the load blank where the athlete's own log does not.
+    func testALiftTheLogProvesIsWeightedStillQualifies() throws {
+        let rockers = TemplateExercise(exerciseName: "Banded rockers", orderIndex: 0)
+        rockers.sets = (0..<3).map { TemplateSet(setIndex: $0, targetReps: 12) }
+        let press = TemplateExercise(exerciseName: "Bench press", orderIndex: 1)
+        press.sets = [TemplateSet(setIndex: 0, targetReps: 5)]   // plan gave no number
+        let (program, templates) = makeProgram(weeks: 4, exercises: [rockers, press])
+
+        let session = makeSession()
+        attach([SetRecord(setIndex: 0, reps: 5, weightKg: 80)], named: "Bench press", to: session)
+
+        XCTAssertEqual(
+            ProgramLiftSelection.mainWeightedLift(
+                program: program, templates: templates, loggedSessions: [session]
+            ),
+            "Bench press"
+        )
+    }
+
+    func testTheMostFrequentWeightedLiftWinsAmongWeightedOnes() throws {
+        let squat = TemplateExercise(exerciseName: "Back squat", orderIndex: 0)
+        squat.sets = [TemplateSet(setIndex: 0, targetReps: 5, targetWeightKg: 100)]
+        let press = TemplateExercise(exerciseName: "Bench press", orderIndex: 1)
+        press.sets = [TemplateSet(setIndex: 0, targetReps: 5, targetWeightKg: 80)]
+
+        // Squat on every day, press on one: build two templates by hand.
+        let squatOnly = WorkoutTemplate(coachId: UUID(), templateName: "Lower")
+        let lowerGroup = ExerciseGroup(groupName: "Main", orderIndex: 0)
+        let squatCopy = TemplateExercise(exerciseName: "Back squat", orderIndex: 0)
+        squatCopy.sets = [TemplateSet(setIndex: 0, targetReps: 5, targetWeightKg: 100)]
+        lowerGroup.exercises = [squatCopy]
+        squatOnly.groups = [lowerGroup]
+        context.insert(squatOnly)
+
+        let both = WorkoutTemplate(coachId: UUID(), templateName: "Full")
+        let fullGroup = ExerciseGroup(groupName: "Main", orderIndex: 0)
+        fullGroup.exercises = [squat, press]
+        both.groups = [fullGroup]
+        context.insert(both)
+
+        let program = TrainingProgram(
+            athleteId: UUID(), name: "Block", source: .pdf,
+            durationWeeks: 3, durationSource: .readFromFile
+        )
+        program.days.append(ProgramDay(weekNumber: 1, dayNumber: 1, title: "D1", templateId: both.id))
+        program.days.append(ProgramDay(weekNumber: 2, dayNumber: 1, title: "D1", templateId: squatOnly.id))
+        program.days.append(ProgramDay(weekNumber: 3, dayNumber: 1, title: "D1", templateId: squatOnly.id))
+        context.insert(program)
+
+        XCTAssertEqual(
+            ProgramLiftSelection.mainWeightedLift(
+                program: program,
+                templates: [both.id: both, squatOnly.id: squatOnly],
+                loggedSessions: []
+            ),
+            "Back squat"
+        )
+    }
+
     // MARK: - U22 · source fence
 
     /// No Swift source under `Views/WorkoutLog` may hold a string literal that prints a

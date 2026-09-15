@@ -2,94 +2,78 @@ import XCTest
 import SwiftData
 @testable import workload_management
 
-/// One morning sheet, probe first (v1.7.3 · UAT round 3 · U19).
+/// The morning check-in: ONE sheet, ONE step (v1.7.3 · UAT round 3 · U19, resolved 2026-09-15).
 ///
-/// HAN met two sheets on one morning, both titled "Morning check", and read them as
-/// duplicates. They are the opposite: the wellness ratings are 25% of the readiness composite,
-/// while the 1–10 probe is HELD-OUT evidence no scoring engine may read
-/// (`MorningReadinessProbeTests`). So they merged rather than one being deleted, and the merge
-/// has exactly one rule that cannot bend — the probe comes FIRST.
+/// UAT round 3 met two morning sheets — the wellness ratings and a blinded 1–10 readiness
+/// probe, both titled "Morning check" — and read them as duplicates. They were not: the
+/// ratings are 25% of the readiness composite, the probe was held-out evidence no scoring
+/// engine may read. HAN's ruling went past de-duplication and REMOVED the probe: a question in
+/// front of the reading every morning is a cost the athlete pays daily for evidence only the
+/// developer reads.
 ///
-/// Why first: `wasBlinded` records only whether the DASHBOARD had already drawn a score
-/// (VALIDATION-PROTOCOL §blinding), and non-blinded rows are excluded from every criterion. A
-/// ratings-first sheet carries its own wellness preview score, so it would put a number in
-/// front of the athlete and still stamp the answer blinded.
+/// What this file pins is that the removal was an UNMOUNT. The morning surface asks one thing
+/// and writes one row, the app never presents a question ahead of the reading — and the model
+/// and its outcome fence survive untouched, so nothing migrates and a future re-mount is still
+/// possible.
 @MainActor
 final class MorningCheckInFlowTests: XCTestCase {
 
-    override func setUp() {
-        super.setUp()
-        UserDefaults.standard.removeObject(forKey: MorningProbeRecorder.skippedDayKey)
-    }
+    // MARK: - One step
 
-    override func tearDown() {
-        UserDefaults.standard.removeObject(forKey: MorningProbeRecorder.skippedDayKey)
-        super.tearDown()
-    }
-
-    // MARK: - Step order
-
-    func test_probeIsStepOne_wheneverItIsDue() {
-        XCTAssertEqual(MorningCheckInFlow.initialStep(probeBlinding: true), .probe)
-        XCTAssertEqual(
-            MorningCheckInFlow.initialStep(probeBlinding: false), .probe,
-            "an UNBLINDED probe is still asked — the answer is kept as data and excluded later"
-        )
-    }
-
-    func test_probeNotDue_opensTheRatingsAlone() {
-        // The `MorningCheckInPrompt` row's path on an ordinary morning.
-        XCTAssertEqual(MorningCheckInFlow.initialStep(probeBlinding: nil), .ratings)
-    }
-
-    func test_bothAnsweringAndSkippingLandOnTheRatings() {
-        // A skipped probe is still a morning check-in; the flow never dead-ends on step 1.
-        XCTAssertEqual(MorningCheckInFlow.stepAfterProbe(), .ratings)
-    }
-
-    func test_probeRowIsWrittenOnlyWhenTheProbeWasDueAndAnswered() {
-        XCTAssertTrue(MorningCheckInFlow.writesProbeRow(probeBlinding: true, probeAnswered: true))
+    func test_theMorningSheetHasNoStepMachine() throws {
+        let sheet = try readSource("WorkloadApp/Views/Recovery/MorningCheckInSheet.swift")
         XCTAssertFalse(
-            MorningCheckInFlow.writesProbeRow(probeBlinding: true, probeAnswered: false),
-            "a skip writes no row — an unanswered morning is absence, not a value"
+            sheet.contains("enum MorningCheckInStep"),
+            "the sheet is single-step: a step machine with one step is a state nobody can be in"
         )
-        XCTAssertFalse(
-            MorningCheckInFlow.writesProbeRow(probeBlinding: nil, probeAnswered: true),
-            "no probe was due, so there is nothing to write however the state got set"
-        )
-    }
-
-    func test_skipStampsTheDaySoTheProbeIsNotReAsked() {
-        XCTAssertFalse(MorningProbeRecorder.isSkippedToday())
-        MorningProbeRecorder.stampSkippedToday()
+        XCTAssertFalse(sheet.contains("MorningProbeFields"))
+        XCTAssertFalse(sheet.contains("MorningProbeRecorder"))
         XCTAssertTrue(
-            MorningProbeRecorder.isSkippedToday(),
-            "re-asking after an explicit 'not today' is what gets the toggle turned off"
-        )
-        XCTAssertFalse(
-            MorningProbeRecorder.isSkippedToday(
-                now: Calendar.current.date(byAdding: .day, value: 1, to: .now)!
-            ),
-            "tomorrow asks fresh"
+            sheet.contains("title: \"morning.nav.title\""),
+            "and it keeps its one title"
         )
     }
 
-    // MARK: - One Save, both rows
+    func test_theProbeSurfaceIsGoneFromTheApp() throws {
+        // The probe sheet file was DELETED with its project entry (orchestrator, 2026-09-15);
+        // its absence is the strongest form of "gone", so a missing file passes.
+        XCTAssertFalse(
+            FileManager.default.fileExists(atPath: URL(fileURLWithPath: #filePath)
+                .deletingLastPathComponent().deletingLastPathComponent()
+                .appendingPathComponent("WorkloadApp/Views/Recovery/MorningProbeSheet.swift").path),
+            "MorningProbeSheet.swift must stay deleted"
+        )
+        for file in [
+            "WorkloadApp/Views/Dashboard/DashboardView.swift",
+            "WorkloadApp/Views/Profile/ProfileView.swift",
+        ] {
+            let source = try readSource(file)
+            XCTAssertFalse(
+                source.contains("morningProbeEnabled"),
+                "\(file) still offers or reads the removed opt-in"
+            )
+        }
+        let profile = try readSource("WorkloadApp/Views/Profile/ProfileView.swift")
+        XCTAssertFalse(
+            profile.contains("profile.validation.morningProbe"),
+            "the Profile toggle row is removed"
+        )
+        XCTAssertTrue(
+            profile.contains("profile.validation.title"),
+            "the section heading stays — the verdict-measurement readout still lives under it"
+        )
+        XCTAssertTrue(profile.contains("VerdictMeasurementView()"))
+    }
 
-    func test_oneSave_writesTheProbeRowAndTheWellnessRow() throws {
+    // MARK: - The one Save
+
+    func test_theSaveWritesTodaysWellnessRow() throws {
         let context = try makeContext()
         let athlete = makeAthlete(in: context)
 
         MorningCheckInRecorder.save(
             ratings: .init(sleepQuality: 4, soreness: 2, energy: 5, stress: 3, notes: "slept late"),
             tags: .init(selected: ["Caffeine"], defaults: defaultTags, custom: []),
-            probe: .init(
-                readiness: 8,
-                gripText: "47.5",
-                gripHand: .right,
-                includeGrip: true,
-                wasBlinded: true
-            ),
             athlete: athlete,
             modelContext: context
         )
@@ -98,26 +82,22 @@ final class MorningCheckInFlowTests: XCTestCase {
         XCTAssertEqual(checkIns.count, 1)
         XCTAssertEqual(checkIns.first?.sleepQuality, 4)
         XCTAssertEqual(checkIns.first?.energy, 5)
-
-        let probes = try context.fetch(FetchDescriptor<MorningReadinessProbe>())
-        XCTAssertEqual(probes.count, 1, "the same Save writes the probe row")
-        XCTAssertEqual(probes.first?.perceivedReadiness, 8)
-        XCTAssertEqual(probes.first?.gripStrengthKg, 47.5)
-        XCTAssertEqual(probes.first?.gripHand, .right)
-        XCTAssertTrue(
-            probes.first?.wasBlinded ?? false,
-            "the blinding stamp travels with the answer, it is never re-derived at write time"
+        XCTAssertEqual(checkIns.first?.notes, "slept late")
+        XCTAssertEqual(
+            checkIns.first?.behaviorTags.filter(\.isActive).map(\.tagName), ["Caffeine"],
+            "the behaviour tags ride the same write"
         )
     }
 
-    func test_ratingsOnlySave_writesNoProbeRow() throws {
+    func test_theSaveNeverWritesAProbeRow() throws {
+        // The probe is unmounted, so the morning surface has nothing to say about it. The
+        // MODEL is still here on purpose — this asserts the write path, not the schema.
         let context = try makeContext()
         let athlete = makeAthlete(in: context)
 
         MorningCheckInRecorder.save(
             ratings: .init(sleepQuality: 3, soreness: 3, energy: 3, stress: 3, notes: ""),
             tags: .init(selected: [], defaults: defaultTags, custom: []),
-            probe: nil,
             athlete: athlete,
             modelContext: context
         )
@@ -125,7 +105,7 @@ final class MorningCheckInFlowTests: XCTestCase {
         XCTAssertEqual(try context.fetch(FetchDescriptor<WellnessCheckIn>()).count, 1)
         XCTAssertTrue(
             try context.fetch(FetchDescriptor<MorningReadinessProbe>()).isEmpty,
-            "the prompt row's path must not fabricate a probe answer nobody gave"
+            "nothing in the app asks the probe question any more, so nothing may answer it"
         )
     }
 
@@ -133,66 +113,80 @@ final class MorningCheckInFlowTests: XCTestCase {
         let context = try makeContext()
         let athlete = makeAthlete(in: context)
 
-        for readiness in [5, 9] {
+        for energy in [2, 5] {
             MorningCheckInRecorder.save(
-                ratings: .init(sleepQuality: 3, soreness: 3, energy: 3, stress: 3, notes: ""),
+                ratings: .init(sleepQuality: 3, soreness: 3, energy: energy, stress: 3, notes: ""),
                 tags: .init(selected: [], defaults: defaultTags, custom: []),
-                probe: .init(
-                    readiness: readiness,
-                    gripText: "",
-                    gripHand: .right,
-                    includeGrip: false,
-                    wasBlinded: false
-                ),
                 athlete: athlete,
                 modelContext: context
             )
         }
 
-        XCTAssertEqual(try context.fetch(FetchDescriptor<WellnessCheckIn>()).count, 1)
-        let probes = try context.fetch(FetchDescriptor<MorningReadinessProbe>())
-        XCTAssertEqual(probes.count, 1, "one probe per day — a re-answer CORRECTS the day")
-        XCTAssertEqual(probes.first?.perceivedReadiness, 9)
+        let checkIns = try context.fetch(FetchDescriptor<WellnessCheckIn>())
+        XCTAssertEqual(
+            checkIns.count, 1,
+            "one row per day — a duplicate would shadow the edit and feed a stale row to the score"
+        )
+        XCTAssertEqual(checkIns.first?.energy, 5, "the re-open CORRECTS the day")
     }
 
-    // MARK: - The fences the merge must not break
+    // MARK: - The fences the unmount must not break
 
-    func test_todayMountsExactlyOneMorningSheet_andAsksBeforeItLoads() throws {
+    func test_todayMountsOneMorningSheet_andNeverAsksAheadOfTheReading() throws {
         let dashboard = try readSource("WorkloadApp/Views/Dashboard/DashboardView.swift")
 
+        XCTAssertFalse(dashboard.contains("MorningProbeSheet("))
         XCTAssertFalse(
-            dashboard.contains("MorningProbeSheet("),
-            "U19: the probe no longer presents itself — it is step 1 of the one morning sheet"
+            dashboard.contains("MorningReadinessProbe"),
+            "Today no longer queries the probe to decide what to present"
         )
         XCTAssertEqual(
             dashboard.components(separatedBy: "MorningCheckInSheet(").count - 1, 1,
             "exactly one morning sheet is mounted on Today"
         )
-
         XCTAssertTrue(
-            dashboard.contains("presentMorningCheckInIfProbeDue()\n                await loadData()"),
-            "BLINDING: the probe is presented before the load that draws a score, in the same .task"
+            dashboard.contains(".task {\n                await loadData()"),
+            "nothing is presented ahead of the load any more — the reading is the first thing"
         )
         XCTAssertTrue(
-            dashboard.contains("morningProbeBlinding = !viewModel.hasLoadedOnce"),
-            "blinding stays RECORDED, not assumed (VALIDATION-PROTOCOL §blinding)"
+            dashboard.contains("MorningCheckInPrompt {"),
+            "the sheet is reached from the prompt row the athlete taps"
         )
     }
 
-    func test_theTwoStepsNoLongerReadAlike() throws {
-        let catalog = try readSource("WorkloadApp/Resources/Localizable.xcstrings")
-        // Both titles used to render "Morning check", which is what made them look like
-        // duplicates. The merged sheet keeps "Morning check-in"; the probe step is renamed.
-        XCTAssertTrue(catalog.contains("\"Before you look\""))
-        XCTAssertTrue(catalog.contains("\"Morning check-in\""))
-        XCTAssertFalse(
-            catalog.contains("\"value\" : \"Morning check\"\n"),
-            "the colliding title is gone"
+    func test_theProbeModelAndItsOutcomeFenceSurviveTheUnmount() throws {
+        // The ruling was an UNMOUNT: no migration, no lost rows, and the fence that keeps an
+        // outcome an outcome costs nothing to keep.
+        let pipeline = try readSource("WorkloadApp/Services/RecoveryPipeline.swift")
+        XCTAssertTrue(
+            pipeline.contains("MorningReadinessProbe"),
+            "the shadow record still carries the outcome columns"
         )
+        XCTAssertTrue(pipeline.contains("outcomeWasBlinded"))
 
-        let sheet = try readSource("WorkloadApp/Views/Recovery/MorningCheckInSheet.swift")
-        XCTAssertTrue(sheet.contains("title: \"probe.nav.title\""), "the probe step names itself")
-        XCTAssertTrue(sheet.contains("title: \"morning.nav.title\""), "the ratings step keeps the sheet's name")
+        // The model itself still constructs — so it is still in the graph and nothing migrates.
+        let probe = MorningReadinessProbe(date: Date(), perceivedReadiness: 7, wasBlinded: true)
+        XCTAssertEqual(probe.perceivedReadiness, 7)
+    }
+
+    func test_theRemovedKeysAreGone_andTheReferencedOnesRemain() throws {
+        let catalog = try readSource("WorkloadApp/Resources/Localizable.xcstrings")
+        for removed in ["probe.nav.title", "morning.action.next", "morning.action.back"] {
+            XCTAssertFalse(
+                catalog.contains("\"\(removed)\" :"),
+                "\(removed) lost its last call site with the probe step"
+            )
+        }
+        XCTAssertTrue(
+            catalog.contains("\"morning.nav.title\" :"),
+            "the surviving sheet keeps its title"
+        )
+        for stillUsed in ["probe.grip.hand.left", "probe.grip.hand.right"] {
+            XCTAssertTrue(
+                catalog.contains("\"\(stillUsed)\" :"),
+                "\(stillUsed) is still read by the KEPT MorningReadinessProbe model"
+            )
+        }
     }
 
     // MARK: - Store
